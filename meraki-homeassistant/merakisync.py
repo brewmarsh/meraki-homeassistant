@@ -2,6 +2,7 @@ import meraki
 import argparse
 import re
 import time
+import json
 
 def validate_api_key(api_key):
     # Example validation: API_KEY should be a non-empty string
@@ -30,14 +31,18 @@ def main():
     
     dashboard = meraki.DashboardAPI(api_key)
 
-    devices = dashboard.organizations.getOrganizationDevices(org_id, total_pages='all')
-    print (devices)
-
-    response = dashboard.devices.getDevice()
-
-    print (response)
+    devices_json = dashboard.organizations.getOrganizationDevices(org_id, total_pages='all')
+    #devices = json.load(devices_json)
     
-    while true:
+    #print (devices)
+
+    serial_numbers = [item['serial'] for item in devices_json]
+
+    # Print the serial numbers
+    for serial in serial_numbers:
+        print(serial)
+    
+    while True:
         time.sleep(60)
     
 if __name__ == "__main__":
