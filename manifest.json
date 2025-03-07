@@ -4,11 +4,11 @@
   "codeowners": ["@brewmarsh"],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://www.home-assistant.io/integrations/meraki_ha",
+  "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
   "icon": "mdi:router-network",
-  "image": "meraki-homeassistant-logo.png",
+  "image": "logo.png",
   "iot_class": "cloud_polling",
   "quality_scale": "bronze",
   "requirements": ["meraki"],
-  "version": "0.1.2"
+  "version": "0.0.1"
 }
