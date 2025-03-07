@@ -1,0 +1,46 @@
+name: Increment Version on Merge
+
+on:
+  pull_request:
+    types:
+      closed:
+        branches:
+          - main
+    paths:
+      - 'custom_components/meraki_ha/**' # only run if integration files have changed
+
+jobs:
+  increment_version:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install semver
+      run: pip install semver
+
+    - name: Determine Increment Type and Increment Version
+      id: increment
+      run: |
+        if [[ "${{ github.event.pull_request.title }}" == *"[major]"* ]]; then
+          python increment_version.py major
+          echo "::set-output name=increment_type::major"
+        elif [[ "${{ github.event.pull_request.title }}" == *"[minor]"* ]]; then
+          python increment_version.py minor
+          echo "::set-output name=increment_type::minor"
+        else
+          python increment_version.py patch
+          echo "::set-output name=increment_type::patch"
+        fi
+
+    - name: Commit and push changes
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "Incremented version ( ${{ steps.increment.outputs.increment_type }} )"
