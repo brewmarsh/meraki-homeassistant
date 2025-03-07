@@ -2,6 +2,7 @@
 import logging
 import traceback
 from typing import Any
+import traceback  # Import the traceback module
 
 import voluptuous as vol
 
@@ -48,11 +49,23 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
                     user_input[CONF_MERAKI_API_KEY], user_input[CONF_MERAKI_ORG_ID]
                 )
                 return self.async_create_entry(title="Meraki API", data=user_input)
+                _LOGGER.debug(
+                    f"Data to be saved: {user_input}"
+                )  # Log the data to be saved.
+                result = await self.async_create_entry(title="Meraki API", options={
+                    CONF_MERAKI_API_KEY: user_input[CONF_MERAKI_API_KEY],
+                    CONF_MERAKI_ORG_ID: user_input[CONF_MERAKI_ORG_ID],
+                })
+                _LOGGER.debug(f"async_create_entry result: {result}")  # Log the result.
+                # Add the critical logging here:
+                config_entry = self.hass.config_entries.async_get_entry(result.context['config_entry_id'])
+                _LOGGER.debug(f"Config Entry after create: {config_entry.as_dict()}")
+                return result  # Return the result of async_create_entry.
             except ConfigEntryAuthFailed:
                 errors["base"] = "invalid_auth"
             except Exception as e:
-                _LOGGER.error(f"Config flow error: {e}")
-                _LOGGER.error(traceback.format_exc())
+                _LOGGER.error(f"Config flow error: {e}")  # Log the exception.
+                _LOGGER.error(traceback.format_exc())  # Log the traceback.
                 errors["base"] = "unknown"
 
         return self.async_show_form(

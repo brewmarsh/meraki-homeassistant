@@ -1,4 +1,6 @@
 """Sensor platform for meraki_ha."""
+from __future__ import annotations
+
 import logging
 
 from homeassistant.components.sensor import SensorEntity
@@ -33,16 +35,33 @@ class MerakiDeviceSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(self, coordinator, device):
         """Initialize the sensor."""
-        super().__init__(coordinator)
-        self._device = device
-        self._attr_name = device["name"]
-        self._attr_unique_id = device["serial"]
-        self._attr_state = device.get("firmware", "Unknown")
-        self._attr_extra_state_attributes = {
-            "model": device["model"],
-            "mac": device["mac"],
-            "publicIp": device.get("publicIp"),
-            ATTR_ATTRIBUTION: ATTRIBUTION,
+        try:
+            self._device = device
+            self._attr_name = device["name"]
+            self._attr_unique_id = device["serial"]
+            self._attr_state = device.get("firmware", "Unknown")
+            self._attr_extra_state_attributes = {
+                "model": device["model"],
+                "mac": device["mac"],
+                "publicIp": device.get("publicIp"),
+                ATTR_ATTRIBUTION: ATTRIBUTION,
+            }
+        except KeyError as e:
+            _LOGGER.error(f"Error initializing sensor for {device.get('serial')}: {e}")
+            self._attr_name = "Error"
+            self._attr_unique_id = f"error-{device.get('serial')}"
+            self._attr_state = "Error"
+            self._attr_extra_state_attributes = {}
+
+    @property
+    def device_info(self):
+        """Return the device info."""
+        return {
+            "identifiers": {(DOMAIN, self._device["serial"])},
+            "name": self._device["name"],
+            "manufacturer": "Cisco Meraki",
+            "model": self._device["model"],
+            "sw_version": self._device.get("firmware"),
         }
 
     @property
