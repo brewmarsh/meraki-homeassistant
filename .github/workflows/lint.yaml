@@ -1,4 +1,5 @@
-name: Linton:
+name: Linton
+on:
   push:
     branches:
       - main

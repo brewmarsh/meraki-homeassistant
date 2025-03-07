@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 import logging
 from typing import Any
+import traceback  # Import the traceback module
 
 import voluptuous as vol
 
@@ -20,7 +21,6 @@ from homeassistant.helpers.schema_config_entry_flow import (
 
 from .const import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID, DOMAIN
 from .meraki_api import validate_meraki_credentials
-from .sensor import async_setup_entry as async_setup_sensor_entry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,6 +60,7 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> dict[str, Any]:
         """Handle the initial step."""
+        _LOGGER.debug("Meraki HA: async_step_user in config_flow.py called") #add log
         errors: dict[str, str] = {}
         if user_input is not None:
             _LOGGER.debug(f"User input: {user_input}")  # Log the user input.
@@ -70,13 +71,20 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
                 _LOGGER.debug(
                     f"Data to be saved: {user_input}"
                 )  # Log the data to be saved.
-                result = await self.async_create_entry(data=user_input)
+                result = await self.async_create_entry(title="Meraki API", options={
+                    CONF_MERAKI_API_KEY: user_input[CONF_MERAKI_API_KEY],
+                    CONF_MERAKI_ORG_ID: user_input[CONF_MERAKI_ORG_ID],
+                })
                 _LOGGER.debug(f"async_create_entry result: {result}")  # Log the result.
+                # Add the critical logging here:
+                config_entry = self.hass.config_entries.async_get_entry(result.context['config_entry_id'])
+                _LOGGER.debug(f"Config Entry after create: {config_entry.as_dict()}")
                 return result  # Return the result of async_create_entry.
             except ConfigEntryAuthFailed:
                 errors["base"] = "invalid_auth"
             except Exception as e:
                 _LOGGER.error(f"Config flow error: {e}")  # Log the exception.
+                _LOGGER.error(traceback.format_exc())  # Log the traceback.
                 errors["base"] = "unknown"
 
         return self.async_show_form(
@@ -86,13 +94,3 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
     def async_config_entry_title(self, options: Mapping[str, Any]) -> str:
         """Return config entry title."""
         return "Meraki API"
-
-
-async def async_setup_entry(hass, config_entry):
-    """Set up the Meraki integration."""
-    return await async_setup_sensor_entry(hass, config_entry, hass.async_add_entities)
-
-
-async def async_unload_entry(hass, config_entry):
-    """Unload a config entry."""
-    return True
