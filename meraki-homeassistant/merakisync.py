@@ -4,6 +4,13 @@ import re
 import time
 import json
 
+DOMAIN = "meraki_ha"
+
+def setup(hass, config):
+    hass.states.set("meraki_ha.world", "Started")
+    
+    return True;
+
 def validate_api_key(api_key):
     # Example validation: API_KEY should be a non-empty string
     if not api_key or not isinstance(api_key, str):

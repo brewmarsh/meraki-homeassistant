@@ -1,6 +1,6 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
 name: Meraki integration for Home Assistant
-version: "0.1.15"
+version: "0.1.16"
 slug: meraki-homeassistant
 description: Meraki integration for Home Assistant
 url: "https://github.com/brewmarsh/meraki-home-assistant"
