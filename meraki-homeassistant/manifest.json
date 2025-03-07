@@ -1,0 +1,14 @@
+{
+  "domain": "meraki_ha",
+  "name": "Full Meraki Integration for Home Assistant",
+  "codeowners": ["@brewmarsh"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://www.home-assistant.io/integrations/meraki_ha",
+  "icon": "mdi:router-network",
+  "image": "meraki-homeassistant-logo.png",
+  "iot_class": "cloud_polling",
+  "quality_scale": "bronze",
+  "requirements": ["meraki"],
+  "version": "0.1.2"
+}

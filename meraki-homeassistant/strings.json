@@ -1,0 +1,22 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "New meraki_ha Sensor",
+        "data": {
+          "entity_id": "Input sensor",
+          "name": "Name"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "entity_id": "[%key:component::NEW_DOMAIN::config::step::user::description%]"
+        }
+      }
+    }
+  }
+}
