@@ -1,71 +1,85 @@
-# sensor.py
+"""Sensor platform for meraki_ha."""
+from __future__ import annotations
+
 import logging
 
-from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
-    BinarySensorEntity,
-)
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import ATTR_ATTRIBUTION
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .const import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID, DOMAIN
 from .meraki_api import get_meraki_devices
 
-_LOGGER = logging.getLogger(__name__)  # Create a logger instance
+_LOGGER = logging.getLogger(__name__)
+
+ATTRIBUTION = "Data provided by the Meraki Dashboard API"
 
 
-async def async_setup_entry(hass, config_entry, async_add_entities):
-    """Set up the Meraki binary sensors."""
-    _LOGGER.debug("Setting up Meraki sensors")
-    api_key = config_entry.data["meraki_api_key"]
-    org_id = config_entry.data["meraki_org_id"]
-    _LOGGER.debug(f"API Key: {api_key}, Org ID: {org_id}")
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up the Meraki sensor platform."""
+    _LOGGER.debug("Meraki HA: async_setup_entry in sensor.py called")
+    _LOGGER.debug(f"Meraki HA: async_setup_entry received async_add_entities of type: {type(async_add_entities)}")
+    _LOGGER.debug(f"Config Entry Options: {config_entry.options}")
+    api_key = config_entry.options[CONF_MERAKI_API_KEY]
+    org_id = config_entry.options[CONF_MERAKI_ORG_ID]
 
-    try:
-        devices = await get_meraki_devices(api_key, org_id)
-        _LOGGER.debug(f"Devices: {devices}")
+    devices = await get_meraki_devices(api_key, org_id)
 
-        sensors = []  # Initialize sensors as an empty list
+    if devices:
+        sensors = []
         for device in devices:
-            # if device["model"].startswith(("MX", "MS", "MR")):  # Temporarily comment out for testing
-            sensors.append(MerakiDeviceSensor(device, api_key, org_id))
+            sensors.append(MerakiDeviceSensor(device))
 
-        _LOGGER.debug(f"Created sensors: {sensors}")
-        async_add_entities(sensors)
-    except Exception as e:
-        _LOGGER.error(f"Error setting up Meraki sensors: {e}")
+        _LOGGER.debug(f"Meraki HA: async_add_entities type before call: {type(async_add_entities)}") #add this line
+        await async_add_entities(sensors)
+    else:
+        _LOGGER.error("Failed to retrieve Meraki devices.")
 
+class MerakiDeviceSensor(SensorEntity):
+    """Representation of a Meraki Device Sensor."""
 
-class MerakiDeviceSensor(BinarySensorEntity):
-    """Representation of a Meraki device sensor."""
-
-    def __init__(self, device, api_key, org_id):
+    def __init__(self, device):
         """Initialize the sensor."""
-        self._device = device
-        self._api_key = api_key
-        self._org_id = org_id
-        self._attr_unique_id = f"meraki_{device['serial']}_status"
-        self._attr_name = f"Meraki {device['model']} {device['name']} Status"
-        self._attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
-        self._attr_available = True
+        try:
+            self._device = device
+            self._attr_name = device["name"]
+            self._attr_unique_id = device["serial"]
+            self._attr_state = device.get("firmware", "Unknown")
+            self._attr_extra_state_attributes = {
+                "model": device["model"],
+                "mac": device["mac"],
+                "publicIp": device.get("publicIp"),
+                ATTR_ATTRIBUTION: ATTRIBUTION,
+            }
+        except KeyError as e:
+            _LOGGER.error(f"Error initializing sensor for {device.get('serial')}: {e}")
+            self._attr_name = "Error"
+            self._attr_unique_id = f"error-{device.get('serial')}"
+            self._attr_state = "Error"
+            self._attr_extra_state_attributes = {}
 
     @property
-    def is_on(self):
-        """Return True if the device is online."""
-        return self._device["status"] == "online"
+    def device_info(self):
+        """Return the device info."""
+        return {
+            "identifiers": {(DOMAIN, self._device["serial"])},
+            "name": self._device["name"],
+            "manufacturer": "Cisco Meraki",
+            "model": self._device["model"],
+            "sw_version": self._device.get("firmware"),
+        }
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        return self._attr_state
 
     async def async_update(self):
-        """Update the sensor state."""
-        try:
-            devices = await get_meraki_devices(self._api_key, self._org_id)
-            for device in devices:
-                if device["serial"] == self._device["serial"]:
-                    self._device = device
-                    break
-        except Exception as e:
-            # Handle exceptions, log errors
-            print(f"Error updating Meraki sensor: {e}")
-            self._attr_available = (
-                False  # set the sensor to unavailable if there is an error.
-            )
-            return
-        self._attr_available = (
-            True  # set the sensor to available if the update is successful.
-        )
+        """Fetch new state data for the sensor."""
+        pass

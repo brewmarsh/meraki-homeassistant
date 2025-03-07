@@ -9,6 +9,6 @@
   "image": "logo.png",
   "iot_class": "cloud_polling",
   "quality_scale": "bronze",
-  "requirements": ["meraki"],
+  "requirements": ["meraki", "aiohttp"],
   "version": "0.0.1"
 }
