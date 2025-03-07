@@ -1,4 +1,0 @@
-# https://developers.home-assistant.io/docs/add-ons/repository#repository-configuration
-name: Meraki integration for Home Assistant
-url: 'https://github.com/brewmarsh/meraki-homeassistant'
-maintainer: Awesome Maintainer <awesome@example.com>
