@@ -2,7 +2,6 @@
 import logging
 import traceback
 from typing import Any
-import traceback  # Import the traceback module
 
 import voluptuous as vol
 
