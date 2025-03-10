@@ -78,3 +78,7 @@ async def get_meraki_devices(api_key, org_id):
     except Exception as e:
         _LOGGER.error(f"Outer Error: {e}")
         return None
+    
+class MerakiApiError(Exception):
+    """Exception to indicate a Meraki API error."""
+    pass
