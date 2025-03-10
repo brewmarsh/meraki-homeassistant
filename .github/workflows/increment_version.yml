@@ -2,10 +2,10 @@ name: Increment Version on Merge
 
 on:
   pull_request:
-    types:
-      closed:
-        branches:
-          - main
+    types: 
+      - closed
+    branches:
+      - main
     paths:
       - 'custom_components/meraki_ha/**' # only run if integration files have changed
 

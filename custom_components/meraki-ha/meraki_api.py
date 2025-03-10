@@ -1,10 +1,10 @@
 # meraki_api.py
 import logging
+import aiohttp
+import asyncio
 
-from meraki import DashboardAPI
 from meraki.exceptions import APIError
 
-# from ValueError import ValueError
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
 _LOGGER = logging.getLogger(__name__)  # Create a logger instance
@@ -13,42 +13,72 @@ _LOGGER = logging.getLogger(__name__)  # Create a logger instance
 async def validate_meraki_credentials(api_key, org_id):
     """Validate Meraki API credentials."""
     _LOGGER.debug("Validating Meraki credentials")  # Add logging
+    url = "https://api.meraki.com/api/v1/organizations"
+    headers = {
+        "X-Cisco-Meraki-API-Key": api_key,
+        "Content-Type": "application/json",
+    }
     try:
-        dashboard = DashboardAPI(
-            api_key=api_key,
-            base_url="https://api.meraki.com/api/v1/",
-            print_console=False,
-            output_log=False,
-            suppress_logging=True,
-        )
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers) as response:
+                if response.status == 200:
+                    organizations = await response.json()
+                    _LOGGER.debug(f"Organizations retrieved: {organizations}")  # Log organizations
 
-        organizations = dashboard.organizations.getOrganizations()
-        _LOGGER.debug(f"Organizations: {organizations}")  # Log organizations
-
-        if not any(org["id"] == org_id for org in organizations):
-            _LOGGER.error("Invalid Organization ID")  # Log error
-            raise ValueError("Invalid Organization ID")
-        _LOGGER.debug("Credentials validated successfully")
-        return True
-    except APIError as e:
-        if e.status == 401:
-            raise ConfigEntryAuthFailed
-        raise Exception(f"Meraki API Error: {e.message}")
+                    if not any(org["id"] == org_id for org in organizations):
+                        _LOGGER.error(f"Invalid Organization ID: {org_id}")  # Log error, include org_id
+                        raise ValueError(f"Invalid Organization ID: {org_id}")
+                    _LOGGER.debug("Credentials validated successfully")
+                    return True
+                elif response.status == 401:
+                    _LOGGER.debug("Authentication failed (401)")
+                    raise ConfigEntryAuthFailed
+                else:
+                    _LOGGER.error(f"Meraki API Error: Status: {response.status}")
+                    raise Exception(f"Meraki API Error: Status: {response.status}")
+    except ValueError as ve:
+        _LOGGER.error(f"Value Error: {ve}")
+        raise ve
+    except ConfigEntryAuthFailed:
+        raise
     except Exception as e:
+        _LOGGER.error(f"Error connecting to Meraki API: {e}")
         raise Exception(f"Error connecting to Meraki API: {e}")
 
 
 async def get_meraki_devices(api_key, org_id):
     """Retrieves all devices from a Meraki organization."""
+    _LOGGER.debug(f"Retrieving Meraki devices for Org ID: {org_id}")
+    url = f"https://api.meraki.com/api/v1/organizations/{org_id}/devices"
+    headers = {
+        "X-Cisco-Meraki-API-Key": api_key,
+        "Content-Type": "application/json",
+    }
     try:
-        dashboard = DashboardAPI(
-            api_key=api_key,
-            base_url="https://api.meraki.com/api/v1/",
-            print_console=False,
-            output_log=False,
-            suppress_logging=True,
-        )
-        devices = dashboard.organizations.getOrganizationDevices(organizationId=org_id)
-        return devices
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(url, headers=headers) as response:
+                    _LOGGER.debug(f"Meraki API response status: {response.status}") #Log the status.
+                    raw_text = await response.text()
+                    _LOGGER.debug(f"Meraki API raw text: {raw_text}") # Log the raw text.
+                    if response.status == 200:
+                        devices = await response.json()
+                        _LOGGER.debug(f"Retrieved {len(devices)} devices: {devices}")
+                        await asyncio.sleep(1)  # Add rate limiting mitigation
+                        return devices
+                    else:
+                        _LOGGER.error(f"Meraki API Error during device retrieval: Status: {response.status}")
+                        return None #Return none so it doesn't cause a key error.
+            except aiohttp.ClientError as e:
+                _LOGGER.error(f"Aiohttp Client Error: {e}")
+                return None
+            except Exception as e:
+                _LOGGER.error(f"General Error: {e}")
+                return None
     except Exception as e:
-        raise Exception(f"Error retrieving Meraki devices: {e}")
+        _LOGGER.error(f"Outer Error: {e}")
+        return None
+    
+class MerakiApiError(Exception):
+    """Exception to indicate a Meraki API error."""
+    pass
