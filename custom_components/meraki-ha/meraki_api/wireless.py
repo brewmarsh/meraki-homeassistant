@@ -34,3 +34,22 @@ async def get_meraki_network_wireless_rf_profile(api_key, network_id, rf_profile
                 return await response.json()
     except aiohttp.ClientError as e:
         raise MerakiApiError(f"Error fetching wireless RF profile settings: {e}") from e
+
+async def get_meraki_connected_client_count(api_key, network_id, ap_mac):
+    """Gets the count of clients connected to a specific Meraki access point."""
+    url = f"https://api.meraki.com/api/v1/networks/{network_id}/clients"
+    headers = {
+        "X-Cisco-Meraki-API-Key": api_key,
+        "Content-Type": "application/json",
+    }
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers) as response:
+                response.raise_for_status()
+                clients = await response.json()
+                connected_clients = [
+                    client for client in clients if client.get("apMac") == ap_mac and client.get("status") == "Online"
+                ]
+                return len(connected_clients)
+    except aiohttp.ClientError as e:
+        raise MerakiApiError(f"Error fetching connected client count: {e}") from e

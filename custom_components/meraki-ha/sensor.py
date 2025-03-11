@@ -1,97 +1,80 @@
-"""Sensor platform for meraki_ha."""
+# sensor.py
 import logging
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_ATTRIBUTION
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, DATA_CLIENT, DATA_COORDINATOR
+from .const import DOMAIN, DATA_COORDINATOR
 
 _LOGGER = logging.getLogger(__name__)
-ATTRIBUTION = "Data provided by the Meraki Dashboard API"
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the Meraki sensor platform."""
-    coordinator = hass.data[DOMAIN][config_entry.entry_id][DATA_COORDINATOR]
+    """Set up the sensor platform."""
+    _LOGGER.debug("sensor.py async_setup_entry called")
+    try:
+        coordinator = hass.data[DOMAIN][entry.entry_id][DATA_COORDINATOR]
 
-    await coordinator.async_config_entry_first_refresh()
+        sensors = []
+        for device in coordinator.data:
+            if device["model"].startswith("MR") or device["model"].startswith("GR"):
+                sensors.append(MerakiConnectedClientsSensor(coordinator, device))
+                sensors.append(MerakiRadioSettingsSensor(coordinator, device))
+        async_add_entities(sensors)
+        _LOGGER.debug(f"Meraki Sensors added: {sensors}")
+    except Exception as e:
+        _LOGGER.error(f"Error setting up meraki_ha sensors: {e}")
 
-    sensors = []
-    for device in coordinator.data:
-        sensors.append(MerakiDeviceSensor(coordinator, device))
-        if device.get("uplinks"):
-            for interface, uplink_data in device["uplinks"].items():
-                sensors.append(MerakiUplinkSensor(coordinator, device, interface, uplink_data))
-        # Check if the device is an MR device and has radio settings
-        if device.get("radio_settings") and device["model"].startswith("MR"):
-            sensors.append(MerakiWirelessRadioSensor(coordinator, device, "2.4 GHz", device["radio_settings"]["twoFourGhzSettings"]))
-            sensors.append(MerakiWirelessRadioSensor(coordinator, device, "5 GHz", device["radio_settings"]["fiveGhzSettings"]))
-
-    async_add_entities(sensors)
-
-class MerakiDeviceSensor(CoordinatorEntity, SensorEntity):
-    """Representation of a Meraki Device Sensor."""
+class MerakiConnectedClientsSensor(CoordinatorEntity, SensorEntity):
+    """Representation of a Meraki Connected Clients sensor."""
 
     def __init__(self, coordinator, device):
-        """Initialize the Meraki device sensor."""
+        """Initialize the Meraki Connected Clients sensor."""
         super().__init__(coordinator)
         self._device = device
-        self._attr_name = device["name"]
-        self._attr_unique_id = device["serial"]
+        self._attr_name = f"{device['name']} Connected Clients"
+        self._attr_unique_id = f"{device['serial']}_connected_clients"
+        self._attr_icon = "mdi:account-network"
+        _LOGGER.debug(f"Meraki Sensor Initialized: {self._attr_name}")
 
     @property
-    def state(self):
+    def native_value(self):
         """Return the state of the sensor."""
-        return self._device.get("status", "unknown")
+        if isinstance(self._device.get("connected_clients"), list):
+            return len(self._device["connected_clients"])
+        else:
+            return None
 
     @property
     def extra_state_attributes(self):
-        """Return the state attributes."""
-        attributes = {
-            "model": self._device.get("model"),
-            "firmware": self._device.get("firmware"),
-            "serial_number": self._device.get("serial"),
-            ATTR_ATTRIBUTION: ATTRIBUTION,
-        }
-        return {k: v for k, v in attributes.items() if v is not None}
+        """Return the state attributes of the sensor."""
+        return {"clients": self._device.get("connected_clients")}
 
-    @property
-    def device_info(self):
-        """Return the device info."""
-        return {
-            "identifiers": {(DOMAIN, self._device["serial"])},
-            "name": self._device["name"],
-            "manufacturer": "Cisco Meraki",
-            "model": self._device["model"],
-            "sw_version": self._device.get("firmware"),
-        }
+class MerakiRadioSettingsSensor(CoordinatorEntity, SensorEntity):
+    """Representation of a Meraki Radio Settings sensor."""
 
-class MerakiUplinkSensor(CoordinatorEntity, SensorEntity):
-    """Representation of a Meraki Uplink Sensor."""
-
-    def __init__(self, coordinator, device, interface, uplink_data):
-        """Initialize the uplink sensor."""
+    def __init__(self, coordinator, device):
+        """Initialize the Meraki Radio Settings sensor."""
         super().__init__(coordinator)
         self._device = device
-        self._interface = interface
-        self._uplink_data = uplink_data
-        self._attr_name = f"{device['name']} {interface} Uplink"
-        self._attr_unique_id = f"{device['serial']}-{interface}-uplink"
+        self._attr_name = f"{device['name']} Radio Settings"
+        self._attr_unique_id = f"{device['serial']}_radio_settings"
+        self._attr_icon = "mdi:wifi"
+        _LOGGER.debug(f"Meraki Radio Sensor Initialized: {self._attr_name}")
 
     @property
-    def state(self):
+    def native_value(self):
         """Return the state of the sensor."""
-        if self._uplink_data.get("enabled"):
-            return "Enabled"
+        if self._device.get("radio_settings"):
+            return self._device["radio_settings"].get("channel")
         else:
-            return "Disabled"
+            return "Unavailable"
 
     @property
     def extra_state_attributes(self):
