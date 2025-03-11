@@ -48,6 +48,7 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
                     user_input[CONF_MERAKI_API_KEY], user_input[CONF_MERAKI_ORG_ID]
                 )
                 return self.async_create_entry(title="Meraki API", data=user_input)
+                return self.async_create_entry(title="Meraki API", data=user_input)
             except ConfigEntryAuthFailed:
                 errors["base"] = "invalid_auth"
             except Exception as e:
