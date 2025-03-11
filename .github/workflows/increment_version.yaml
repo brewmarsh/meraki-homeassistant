@@ -33,6 +33,9 @@ jobs:
           python .github/workflows/increment_version.py minor
           if [[ "${{ github.event.pull_request.title }}" == *"[minor]"* ]]; then
             echo "increment_type=minor" >> $GITHUB_OUTPUT
+          python .github/workflows/increment_version.py major
+          if [[ "${{ github.event.pull_request.title }}" == *"[major]"* ]]; then
+            echo "increment_type=major" >> $GITHUB_OUTPUT
           elif [[ "${{ github.event.pull_request.title }}" == *"[minor]"* ]]; then
             echo "increment_type=minor" >> $GITHUB_OUTPUT
           else

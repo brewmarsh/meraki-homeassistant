@@ -121,6 +121,33 @@ class MerakiUplinkSensor(CoordinatorEntity, SensorEntity):
             "sw_version": self._device.get("firmware"),
         }
 
+class MerakiWirelessRadioSensor(CoordinatorEntity, SensorEntity):
+    """Representation of a Meraki Wireless Radio Sensor."""
+
+    def __init__(self, coordinator, device, band, radio_data):
+        """Initialize the wireless radio sensor."""
+        super().__init__(coordinator)
+        self._device = device
+        self._band = band
+        self._radio_data = radio_data
+        self._attr_name = f"{device['name']} {band} Radio"
+        self._attr_unique_id = f"{device['serial']}-{band}-radio"
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        return self._radio_data.get("channel", "unknown")
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        attributes = {
+            "target_power": self._radio_data.get("targetPower"),
+            "channel_width": self._radio_data.get("channelWidth"),
+            ATTR_ATTRIBUTION: ATTRIBUTION,
+        }
+        return {k: v for k, v in attributes.items() if v is not None}
+
     @property
     def device_info(self):
         """Return the device info."""
@@ -131,8 +158,3 @@ class MerakiUplinkSensor(CoordinatorEntity, SensorEntity):
             "model": self._device["model"],
             "sw_version": self._device.get("firmware"),
         }
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-        return self._attr_state
