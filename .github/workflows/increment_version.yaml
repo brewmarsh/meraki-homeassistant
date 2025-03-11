@@ -13,7 +13,8 @@ jobs:
   increment_version:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-
+    permissions: # added permissions section
+      contents: write # grants write permission to the contents of the repo.
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,9 +30,9 @@ jobs:
       - name: Determine Increment Type and Increment Version
         id: increment
         run: |
-          python .github/workflows/increment_version.py major
-          if [[ "${{ github.event.pull_request.title }}" == *"[major]"* ]]; then
-            echo "increment_type=major" >> $GITHUB_OUTPUT
+          python .github/workflows/increment_version.py minor
+          if [[ "${{ github.event.pull_request.title }}" == *"[minor]"* ]]; then
+            echo "increment_type=minor" >> $GITHUB_OUTPUT
           elif [[ "${{ github.event.pull_request.title }}" == *"[minor]"* ]]; then
             echo "increment_type=minor" >> $GITHUB_OUTPUT
           else
