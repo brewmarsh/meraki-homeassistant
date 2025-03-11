@@ -5,34 +5,51 @@ from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.const import CONF_SCAN_INTERVAL
 
-from .const import DOMAIN, PLATFORMS, DATA_CLIENT, DATA_COORDINATOR
-from .coordinator import MerakiCoordinator  # Import your coordinator
+from .const import (
+    DOMAIN,
+    PLATFORMS,
+    DATA_CLIENT,
+    DATA_COORDINATOR,
+    DEFAULT_SCAN_INTERVAL,
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+)
+from .coordinator import MerakiCoordinator
 
 _LOGGER = logging.getLogger(__name__)
-SCAN_INTERVAL = timedelta(minutes=5)
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up meraki_ha from a config entry."""
-    _LOGGER.debug(f"Meraki async_setup_entry called")
+    _LOGGER.debug(f"Meraki async_setup_entry called. Entry options: {entry.options}") #changed to options
 
-    api_key = entry.options["meraki_api_key"]
-    org_id = entry.options["meraki_org_id"]
+    try:
+        api_key = entry.options[CONF_MERAKI_API_KEY] #changed to options
+        org_id = entry.options[CONF_MERAKI_ORG_ID] #changed to options
+        scan_interval = entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL) #changed to options
+        scan_interval_timedelta = timedelta(minutes=scan_interval)
 
-    coordinator = MerakiCoordinator(hass, api_key, org_id) #Create the coordinator object.
+        coordinator = MerakiCoordinator(hass, api_key, org_id, scan_interval_timedelta)
 
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = {
-        DATA_CLIENT: {"api_key": api_key, "org_id": org_id},
-        DATA_COORDINATOR: coordinator,
-    }
+        hass.data.setdefault(DOMAIN, {})
+        hass.data[DOMAIN][entry.entry_id] = {
+            DATA_CLIENT: {"api_key": api_key, "org_id": org_id},
+            DATA_COORDINATOR: coordinator,
+        }
 
-    await coordinator.async_config_entry_first_refresh()
+        await coordinator.async_config_entry_first_refresh()
 
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    _LOGGER.debug(f"Meraki async_forward_entry_setups called")
+        await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+        _LOGGER.debug(f"Meraki async_forward_entry_setups called")
+        return True
 
-    return True
+    except KeyError as e:
+        _LOGGER.error(f"KeyError during setup: {e}. Entry options: {entry.options}") #changed to options
+        return False
+    except Exception as e:
+        _LOGGER.error(f"Unexpected error during setup: {e}. Entry options: {entry.options}") #changed to options
+        return False
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""

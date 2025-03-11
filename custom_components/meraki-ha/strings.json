@@ -10,7 +10,9 @@
       }
     },
     "error": {
-      "invalid_auth": "Invalid API key or Organization ID.",
+      "invalid_auth": "Invalid API key.",
+      "invalid_org_id": "Invalid Organization ID.",
+      "cannot_connect": "Cannot connect to Meraki API.",
       "unknown": "An unknown error occurred."
     }
   },
@@ -23,5 +25,8 @@
         }
       }
     }
+  },
+  "reauth":{
+    "reauth_successful":"Reauthentication was successful."
   }
 }
