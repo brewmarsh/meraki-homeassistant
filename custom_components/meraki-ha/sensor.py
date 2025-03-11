@@ -93,8 +93,3 @@ class MerakiUplinkSensor(CoordinatorEntity, SensorEntity):
             "model": self._device["model"],
             "sw_version": self._device.get("firmware"),
         }
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-        return self._attr_state

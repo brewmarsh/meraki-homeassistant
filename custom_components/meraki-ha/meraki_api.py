@@ -2,6 +2,7 @@
 import logging
 import aiohttp
 import asyncio
+import requests
 
 from meraki.exceptions import APIError
 
