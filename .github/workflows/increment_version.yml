@@ -2,12 +2,12 @@ name: Increment Version on Merge
 
 on:
   pull_request:
-    types: 
+    types:
       - closed
     branches:
       - main
     paths:
-      - 'custom_components/meraki_ha/**' # only run if integration files have changed
+      - 'custom_components/meraki-ha/**'
 
 jobs:
   increment_version:
@@ -15,32 +15,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-    - name: Install semver
-      run: pip install semver
+      - name: Install semver
+        run: pip install semver
 
-    - name: Determine Increment Type and Increment Version
-      id: increment
-      run: |
-        if [[ "${{ github.event.pull_request.title }}" == *"[major]"* ]]; then
-          python increment_version.py major
-          echo "::set-output name=increment_type::major"
-        elif [[ "${{ github.event.pull_request.title }}" == *"[minor]"* ]]; then
-          python increment_version.py minor
-          echo "::set-output name=increment_type::minor"
-        else
-          python increment_version.py patch
-          echo "::set-output name=increment_type::patch"
-        fi
-
-    - name: Commit and push changes
-      uses: stefanzweifel/git-auto-commit-action@v5
-      with:
-        commit_message: "Incremented version ( ${{ steps.increment.outputs.increment_type }} )"
+      - name: Determine Increment Type and Increment Version
+        id: increment
+        run: |
+          python .github/workflows/increment_version.py major
+          if [[ "${{ github.event.pull_request.title }}" == *"[major]"* ]]; then
+            echo "increment_type=major" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.pull_request.title }}" == *"[minor]"* ]]; then
+            echo "increment_type=minor" >> $GITHUB_OUTPUT
+          else
+            echo "increment_type=patch" >> $GITHUB_OUTPUT
+          fi
+      - name: Display manifest.json content
+        run: cat custom_components/meraki-ha/manifest.json
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Incremented version ( ${{ steps.increment.outputs.increment_type }} )"
+          file_pattern: custom_components/meraki-ha/manifest.json
