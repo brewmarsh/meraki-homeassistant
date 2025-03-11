@@ -1,14 +1,18 @@
 {
   "domain": "meraki_ha",
-  "name": "Meraki HA",
+  "name": "Meraki Home Assistant Integration",
   "codeowners": ["@brewmarsh"],
   "config_flow": true,
   "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
+  "issue_tracker": "https://github.com/brewmarsh/meraki-homeassistant/issues",
   "icon": "mdi:router-network",
   "iot_class": "cloud_polling",
-  "quality_scale": "bronze",
-  "requirements": ["meraki", "aiohttp"],
+  "quality_scale": "platinum",
+  "requirements": ["aiohttp"],
   "version": "0.0.2",
   "loggers": ["meraki_ha"],
-  "platforms": ["sensor"]
+  "platforms": ["sensor"],
+  "homeassistant": "2023.7.0",
+  "dependencies": [],
+  "after_dependencies": []
 }

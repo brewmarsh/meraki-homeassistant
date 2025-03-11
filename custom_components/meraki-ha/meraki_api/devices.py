@@ -1,13 +1,25 @@
-# meraki_ha/meraki_api/devices.py
+"""Meraki device API functions for the meraki_ha integration."""
 import logging
+from typing import Any, Dict, List, Optional
+
 import aiohttp
 import asyncio
-from .exceptions import MerakiApiError  # Import custom exception
+
+from .exceptions import MerakiApiError
 
 _LOGGER = logging.getLogger(__name__)
 
-async def get_meraki_devices(api_key, org_id):
-    """Retrieves all devices from a Meraki organization."""
+
+async def get_meraki_devices(api_key: str, org_id: str) -> Optional[List[Dict[str, Any]]]:
+    """Retrieves all devices from a Meraki organization.
+
+    Args:
+        api_key: Meraki API key.
+        org_id: Meraki organization ID.
+
+    Returns:
+        A list of dictionaries representing Meraki devices, or None if an error occurs.
+    """
     _LOGGER.debug(f"Retrieving Meraki devices for Org ID: {org_id}")
     url = f"https://api.meraki.com/api/v1/organizations/{org_id}/devices"
     headers = {
@@ -22,12 +34,14 @@ async def get_meraki_devices(api_key, org_id):
                     raw_text = await response.text()
                     _LOGGER.debug(f"Meraki API raw text: {raw_text}")
                     if response.status == 200:
-                        devices = await response.json()
+                        devices: List[Dict[str, Any]] = await response.json()
                         _LOGGER.debug(f"Retrieved {len(devices)} devices: {devices}")
                         await asyncio.sleep(1)  # Add rate limiting mitigation
                         return devices
                     else:
-                        _LOGGER.error(f"Meraki API Error during device retrieval: Status: {response.status}")
+                        _LOGGER.error(
+                            f"Meraki API Error during device retrieval: Status: {response.status}"
+                        )
                         return None  # Return None to avoid KeyError
             except aiohttp.ClientError as e:
                 _LOGGER.error(f"Aiohttp Client Error: {e}")

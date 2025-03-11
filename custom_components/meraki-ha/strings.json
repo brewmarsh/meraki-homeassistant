@@ -2,19 +2,24 @@
   "config": {
     "step": {
       "user": {
-        "description": "New meraki_ha Sensor",
+        "description": "Configure Meraki API Credentials",
         "data": {
-          "entity_id": "Input sensor",
-          "name": "Name"
+          "meraki_api_key": "Meraki API Key",
+          "meraki_org_id": "Meraki Organization ID"
         }
       }
+    },
+    "error": {
+      "invalid_auth": "Invalid API key or Organization ID.",
+      "unknown": "An unknown error occurred."
     }
   },
   "options": {
     "step": {
       "init": {
+        "title": "Meraki Options",
         "data": {
-          "entity_id": "[%key:component::NEW_DOMAIN::config::step::user::description%]"
+          "scan_interval": "Scan Interval (seconds)"
         }
       }
     }
