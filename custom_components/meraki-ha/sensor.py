@@ -108,6 +108,7 @@ class MerakiUplinkSensor(CoordinatorEntity, SensorEntity):
             ATTR_ATTRIBUTION: ATTRIBUTION,
         }
         return {k: v for k, v in attributes.items() if v is not None}
+        return {k: v for k, v in attributes.items() if v is not None}
 
     @property
     def device_info(self):
