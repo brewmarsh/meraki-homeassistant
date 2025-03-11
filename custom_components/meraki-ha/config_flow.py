@@ -20,7 +20,7 @@ from .meraki_api.authentication import validate_meraki_credentials
 
 _LOGGER = logging.getLogger(__name__)
 
-_LOGGER.debug("meraki_ha config_flow.py loaded") #Added Log
+_LOGGER.debug("meraki_ha config_flow.py loaded")  # Added Log
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -31,8 +31,10 @@ CONFIG_SCHEMA = vol.Schema(
     }
 )
 
+
 class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
     """Handle a config or options flow for meraki_ha."""
+
     config_flow = {}
 
     async def async_step_user(
@@ -44,12 +46,6 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
         if user_input is not None:
             _LOGGER.debug(f"User input: {user_input}")
             try:
-                # Comment out the validation call
-                # await validate_meraki_credentials(
-                #     user_input[CONF_MERAKI_API_KEY], user_input[CONF_MERAKI_ORG_ID]
-                # )
-
-                # Directly return True for testing
                 scan_interval = user_input.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
                 merged_data = {
                     CONF_MERAKI_API_KEY: user_input[CONF_MERAKI_API_KEY],
@@ -57,7 +53,12 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
                     CONF_SCAN_INTERVAL: scan_interval,
                 }
                 _LOGGER.debug(f"User input before create entry: {merged_data}")
-                return self.async_create_entry(data=merged_data)
+                # Add unique_id based on Meraki Org ID
+                return self.async_create_entry(
+                    title="Meraki Cloud Integration",
+                    data=merged_data,
+                    unique_id=user_input[CONF_MERAKI_ORG_ID],  # Add unique_id here.
+                )
 
             except ConfigEntryAuthFailed:
                 errors["base"] = "invalid_auth"
@@ -97,11 +98,6 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
         if user_input is not None:
             _LOGGER.debug(f"Reauth User input: {user_input}")
             try:
-                # Comment out the validation call
-                # await validate_meraki_credentials(
-                #     user_input[CONF_MERAKI_API_KEY], user_input[CONF_MERAKI_ORG_ID]
-                # )
-
                 existing_entry = self.hass.config_entries.async_get_entry(
                     self.context["entry_id"]
                 )
@@ -136,10 +132,13 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
         """
         return "Meraki Cloud Integration"
 
+
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options flow for Meraki integration."""
 
-    async def async_step_init(self, user_input: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def async_step_init(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """Manage the options flow initialization.
 
         Args:
