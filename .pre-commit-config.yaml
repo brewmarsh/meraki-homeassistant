@@ -1,5 +1,10 @@
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2 # Check for the latest version
+    hooks:
+      - id: isort
+        name: isort (python)
+- repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.9.5
     hooks:
       - id: ruff
@@ -59,3 +64,8 @@ repos:
     rev: v0.8.1 # Please check for the latest version
     hooks:
       - id: markdownlint-cli2
+  - repo: https://github.com/psf/black
+    rev: 24.2.0 # Use the latest stable version
+    hooks:
+      - id: black
+        language_version: python3
