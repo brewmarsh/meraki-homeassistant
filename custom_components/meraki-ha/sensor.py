@@ -34,7 +34,40 @@ async def async_setup_entry(
 
 class MerakiDeviceSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki Device Sensor."""
-    # ... (Your existing MerakiDeviceSensor code)
+
+    def __init__(self, coordinator, device):
+        """Initialize the Meraki device sensor."""
+        super().__init__(coordinator)
+        self._device = device
+        self._attr_name = device["name"]
+        self._attr_unique_id = device["serial"]
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        return self._device.get("status", "unknown")
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        attributes = {
+            "model": self._device.get("model"),
+            "firmware": self._device.get("firmware"),
+            "serial_number": self._device.get("serial"),
+            ATTR_ATTRIBUTION: ATTRIBUTION,
+        }
+        return {k: v for k, v in attributes.items() if v is not None}
+
+    @property
+    def device_info(self):
+        """Return the device info."""
+        return {
+            "identifiers": {(DOMAIN, self._device["serial"])},
+            "name": self._device["name"],
+            "manufacturer": "Cisco Meraki",
+            "model": self._device["model"],
+            "sw_version": self._device.get("firmware"),
+        }
 
 class MerakiUplinkSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki Uplink Sensor."""
@@ -71,17 +104,6 @@ class MerakiUplinkSensor(CoordinatorEntity, SensorEntity):
             ATTR_ATTRIBUTION: ATTRIBUTION,
         }
         return {k: v for k, v in attributes.items() if v is not None}
-
-    @property
-    def device_info(self):
-        """Return the device info."""
-        return {
-            "identifiers": {(DOMAIN, self._device["serial"])},
-            "name": self._device["name"],
-            "manufacturer": "Cisco Meraki",
-            "model": self._device["model"],
-            "sw_version": self._device.get("firmware"),
-        }
 
     @property
     def device_info(self):
