@@ -2,7 +2,7 @@ import json
 import sys
 import semver
 
-manifest_path = "custom_components/meraki-ha/manifest.json"
+manifest_path = "../../custom_components/meraki-ha/manifest.json" # Corrected path
 
 try:
     with open(manifest_path, "r") as f:
