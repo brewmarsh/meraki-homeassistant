@@ -29,6 +29,10 @@ async def async_setup_entry(
         if device.get("uplinks"):
             for interface, uplink_data in device["uplinks"].items():
                 sensors.append(MerakiUplinkSensor(coordinator, device, interface, uplink_data))
+        # Check if the device is an MR device and has radio settings
+        if device.get("radio_settings") and device["model"].startswith("MR"):
+            sensors.append(MerakiWirelessRadioSensor(coordinator, device, "2.4 GHz", device["radio_settings"]["twoFourGhzSettings"]))
+            sensors.append(MerakiWirelessRadioSensor(coordinator, device, "5 GHz", device["radio_settings"]["fiveGhzSettings"]))
 
     async_add_entities(sensors)
 

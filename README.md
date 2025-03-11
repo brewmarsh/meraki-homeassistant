@@ -21,6 +21,9 @@ This Home Assistant custom integration provides sensors for your Meraki devices.
 * `meraki`
 * `aiohttp`
 
+## Known issues
+* radio profiles are not returned for all MR devices
+
 ## Disclaimer
 
 This is a custom integration and has not been tested by Home Assistant. Use it at your own risk.

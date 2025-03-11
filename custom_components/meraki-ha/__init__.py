@@ -11,7 +11,7 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .const import DOMAIN, PLATFORMS, DATA_CLIENT, DATA_COORDINATOR
-from .meraki_api import get_meraki_devices, get_meraki_device_appliance_uplinks, MerakiApiError
+from .meraki_api import get_meraki_devices, get_meraki_device_appliance_uplinks, get_meraki_device_wireless_radio_settings, get_meraki_network_wireless_rf_profile, MerakiApiError
 
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(minutes=5)
@@ -27,13 +27,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             devices = await get_meraki_devices(api_key, org_id)
             for device in devices:
-                if device["model"].startswith("MX"): #Only add uplink data for MX devices.
+                if device["model"].startswith("MX"):
                     try:
                         uplink_settings = await get_meraki_device_appliance_uplinks(api_key, org_id, device["serial"])
                         device["uplinks"] = uplink_settings["interfaces"]
                     except MerakiApiError as err:
                         _LOGGER.warning(f"Failed to fetch uplink settings for {device['serial']}: {err}")
                         device["uplinks"] = {}
+                elif device["model"].startswith("MR"):
+                    try:
+                        radio_settings = await get_meraki_device_wireless_radio_settings(api_key, org_id, device["serial"])
+                        _LOGGER.debug(f"Radio settings for {device['serial']}: {radio_settings}")
+                        if radio_settings and radio_settings.get("rfProfileId"):
+                            profile_settings = await get_meraki_network_wireless_rf_profile(api_key, device["networkId"], radio_settings["rfProfileId"])
+                            _LOGGER.debug(f"RF Profile settings for {device['serial']}: {profile_settings}")
+                            device["radio_settings"] = profile_settings
+                        else:
+                            device["radio_settings"] = radio_settings
+                    except MerakiApiError as err:
+                        _LOGGER.warning(f"Failed to fetch radio settings for {device['serial']}: {err}")
+                        device["radio_settings"] = {}
+                else:
+                    device["radio_settings"] = {}
             return devices
         except MerakiApiError as err:
             _LOGGER.error("Failed to update Meraki data")
