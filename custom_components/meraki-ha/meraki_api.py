@@ -2,8 +2,6 @@
 import logging
 import aiohttp
 import asyncio
-import aiohttp
-import asyncio
 
 from meraki.exceptions import APIError
 
@@ -84,3 +82,33 @@ async def get_meraki_devices(api_key, org_id):
 class MerakiApiError(Exception):
     """Exception to indicate a Meraki API error."""
     pass
+
+async def get_meraki_device_appliance_uplinks(api_key, org_id, serial):
+    """Fetch uplink settings for a Meraki MX appliance (async version)."""
+    url = f"https://api.meraki.com/api/v1/devices/{serial}/appliance/uplinks/settings"
+    headers = {
+        "X-Cisco-Meraki-API-Key": api_key,
+        "Content-Type": "application/json",
+    }
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers) as response:
+                response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+                return await response.json()
+    except aiohttp.ClientError as e:
+        raise MerakiApiError(f"Error fetching uplink settings: {e}") from e
+
+async def get_meraki_devices(api_key, org_id):
+    """Fetch Meraki devices (async version)."""
+    url = f"https://api.meraki.com/api/v1/organizations/{org_id}/devices"
+    headers = {
+        "X-Cisco-Meraki-API-Key": api_key,
+        "Content-Type": "application/json",
+    }
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers) as response:
+                response.raise_for_status()
+                return await response.json()
+    except aiohttp.ClientError as e:
+        raise MerakiApiError(f"Error fetching Meraki devices: {e}") from e

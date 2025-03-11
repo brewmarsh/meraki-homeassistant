@@ -11,15 +11,13 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .const import DOMAIN, PLATFORMS, DATA_CLIENT, DATA_COORDINATOR
-from .meraki_api import get_meraki_devices, MerakiApiError
+from .meraki_api import get_meraki_devices, get_meraki_device_appliance_uplinks, MerakiApiError
 
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(minutes=5)
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up meraki_ha from a config entry."""
-    _LOGGER.debug("Meraki HA: async_setup_entry in __init__.py called")
-    _LOGGER.debug(f"Config Entry: {entry.as_dict()}")
 
     api_key = entry.options["meraki_api_key"]
     org_id = entry.options["meraki_org_id"]
@@ -27,7 +25,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async def async_update_data():
         """Fetch data from Meraki API."""
         try:
-            return await get_meraki_devices(api_key, org_id)
+            devices = await get_meraki_devices(api_key, org_id)
+            for device in devices:
+                if device["model"].startswith("MX"): #Only add uplink data for MX devices.
+                    try:
+                        uplink_settings = await get_meraki_device_appliance_uplinks(api_key, org_id, device["serial"])
+                        device["uplinks"] = uplink_settings["interfaces"]
+                    except MerakiApiError as err:
+                        _LOGGER.warning(f"Failed to fetch uplink settings for {device['serial']}: {err}")
+                        device["uplinks"] = {}
+            return devices
         except MerakiApiError as err:
             _LOGGER.error("Failed to update Meraki data")
             raise UpdateFailed(f"Error communicating with Meraki API: {err}") from err
@@ -46,7 +53,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         DATA_COORDINATOR: coordinator,
     }
 
-    # Fetch initial data so we have data when entities subscribe
     await coordinator.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -55,7 +61,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    _LOGGER.debug("Unloading meraki_ha config entry")
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     if unload_ok:
