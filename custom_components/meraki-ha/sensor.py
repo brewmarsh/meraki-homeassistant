@@ -94,6 +94,67 @@ class MerakiRadioSettingsSensor(CoordinatorEntity, SensorEntity):
             return "Unavailable"
 
     @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
-        """Return the state attributes of the sensor."""
-        return {"radio_settings": self._device.get("radio_settings")}
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        attributes = {
+            "vlan_enabled": self._uplink_data.get("vlanTagging", {}).get("enabled"),
+            "vlan_id": self._uplink_data.get("vlanTagging", {}).get("vlanId"),
+            "ipv4_assignment": self._uplink_data.get("svis", {}).get("ipv4", {}).get("assignmentMode"),
+            "ipv4_address": self._uplink_data.get("svis", {}).get("ipv4", {}).get("address"),
+            "ipv4_gateway": self._uplink_data.get("svis", {}).get("ipv4", {}).get("gateway"),
+            "ipv4_nameservers": self._uplink_data.get("svis", {}).get("ipv4", {}).get("nameservers", {}).get("addresses"),
+            "pppoe_enabled": self._uplink_data.get("pppoe", {}).get("enabled"),
+            "pppoe_username": self._uplink_data.get("pppoe", {}).get("authentication", {}).get("username"),
+            ATTR_ATTRIBUTION: ATTRIBUTION,
+        }
+        return {k: v for k, v in attributes.items() if v is not None}
+        return {k: v for k, v in attributes.items() if v is not None}
+
+    @property
+    def device_info(self):
+        """Return the device info."""
+        return {
+            "identifiers": {(DOMAIN, self._device["serial"])},
+            "name": self._device["name"],
+            "manufacturer": "Cisco Meraki",
+            "model": self._device["model"],
+            "sw_version": self._device.get("firmware"),
+        }
+
+class MerakiWirelessRadioSensor(CoordinatorEntity, SensorEntity):
+    """Representation of a Meraki Wireless Radio Sensor."""
+
+    def __init__(self, coordinator, device, band, radio_data):
+        """Initialize the wireless radio sensor."""
+        super().__init__(coordinator)
+        self._device = device
+        self._band = band
+        self._radio_data = radio_data
+        self._attr_name = f"{device['name']} {band} Radio"
+        self._attr_unique_id = f"{device['serial']}-{band}-radio"
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        return self._radio_data.get("channel", "unknown")
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        attributes = {
+            "target_power": self._radio_data.get("targetPower"),
+            "channel_width": self._radio_data.get("channelWidth"),
+            ATTR_ATTRIBUTION: ATTRIBUTION,
+        }
+        return {k: v for k, v in attributes.items() if v is not None}
+
+    @property
+    def device_info(self):
+        """Return the device info."""
+        return {
+            "identifiers": {(DOMAIN, self._device["serial"])},
+            "name": self._device["name"],
+            "manufacturer": "Cisco Meraki",
+            "model": self._device["model"],
+            "sw_version": self._device.get("firmware"),
+        }
