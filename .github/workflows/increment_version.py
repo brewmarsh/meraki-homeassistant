@@ -2,14 +2,21 @@ import json
 import sys
 import semver
 
-manifest_path = "custom_components/meraki-ha/manifest.json" #full path to manifest.
+manifest_path = "custom_components/meraki-ha/manifest.json"
 
-# ... (rest of your script)
+try:
+    with open(manifest_path, "r") as f:
+        data = json.load(f)
+    version = data["version"]
 
-with open(manifest_path, "r") as f:
-    data = json.load(f)
+    increment_type = sys.argv[1] # Get increment type from command-line argument
 
-# ... (version increment logic)
+    new_version = semver.bump_version(version, increment_type)
 
-with open(manifest_path, "w") as f:
-    json.dump(data, f, indent=4)
+    data["version"] = new_version
+
+    with open(manifest_path, "w") as f:
+        json.dump(data, f, indent=4)
+
+except Exception as e:
+    print(f"Error: {e}")
