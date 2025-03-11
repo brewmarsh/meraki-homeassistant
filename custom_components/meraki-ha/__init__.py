@@ -11,7 +11,13 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .const import DOMAIN, PLATFORMS, DATA_CLIENT, DATA_COORDINATOR
-from .meraki_api import get_meraki_devices, get_meraki_device_appliance_uplinks, get_meraki_device_wireless_radio_settings, get_meraki_network_wireless_rf_profile, MerakiApiError
+from .meraki_api import (
+    get_meraki_devices,
+    get_meraki_device_appliance_uplinks,
+    get_meraki_device_wireless_radio_settings,
+    get_meraki_network_wireless_rf_profile,
+    MerakiApiError,
+)  # Import from the meraki_api package
 
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(minutes=5)
