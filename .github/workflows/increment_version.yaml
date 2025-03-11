@@ -30,8 +30,11 @@ jobs:
       - name: Determine Increment Type and Increment Version
         id: increment
         run: |
+          python .github/workflows/increment_version.py minor
+          if [[ "${{ github.event.pull_request.title }}" == *"[minor]"* ]]; then
+            echo "increment_type=minor" >> $GITHUB_OUTPUT
+          python .github/workflows/increment_version.py major
           if [[ "${{ github.event.pull_request.title }}" == *"[major]"* ]]; then
-            python .github/workflows/increment_version.py major
             echo "increment_type=major" >> $GITHUB_OUTPUT
           elif [[ "${{ github.event.pull_request.title }}" == *"[minor]"* ]]; then
             python .github/workflows/increment_version.py minor
