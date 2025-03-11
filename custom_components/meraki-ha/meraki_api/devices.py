@@ -9,6 +9,7 @@ from .exceptions import MerakiApiError
 
 _LOGGER = logging.getLogger(__name__)
 
+_LOGGER.debug("meraki_ha devices.py loaded") #Added Log
 
 async def get_meraki_devices(api_key: str, org_id: str) -> Optional[List[Dict[str, Any]]]:
     """Retrieves all devices from a Meraki organization.
@@ -27,8 +28,10 @@ async def get_meraki_devices(api_key: str, org_id: str) -> Optional[List[Dict[st
         "Content-Type": "application/json",
     }
     try:
+        _LOGGER.debug(f"Starting aiohttp session for device retrieval")
         async with aiohttp.ClientSession() as session:
             try:
+                _LOGGER.debug(f"Sending GET request to {url}")
                 async with session.get(url, headers=headers) as response:
                     _LOGGER.debug(f"Meraki API response status: {response.status}")
                     raw_text = await response.text()

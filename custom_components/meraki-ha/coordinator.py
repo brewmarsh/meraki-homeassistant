@@ -18,22 +18,25 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiCoordinator(DataUpdateCoordinator):
     """Coordinator to fetch data from Meraki API."""
 
-    def __init__(self, hass: HomeAssistant, api_key: str, org_id: str) -> None:
+    def __init__(self, hass: HomeAssistant, api_key: str, org_id: str, scan_interval_timedelta: timedelta) -> None:
         """Initialize the Meraki data coordinator.
 
         Args:
             hass: Home Assistant instance.
             api_key: Meraki API key.
             org_id: Meraki organization ID.
+            scan_interval_timedelta: Time delta for scan interval.
         """
         super().__init__(
             hass,
             _LOGGER,
             name="Meraki Data",
-            update_interval=timedelta(seconds=60),
+            update_interval=scan_interval_timedelta,  # use the scan interval.
         )
         self.api_key = api_key
         self.org_id = org_id
+        self.scan_interval_timedelta = scan_interval_timedelta  # store the scan interval.
+        _LOGGER.debug("MerakiCoordinator initialized")
 
     async def _async_update_data(self) -> List[Dict[str, Any]]:
         """Fetch data from Meraki API endpoint.
@@ -44,8 +47,11 @@ class MerakiCoordinator(DataUpdateCoordinator):
         Raises:
             UpdateFailed: If there's an error communicating with the Meraki API.
         """
+        _LOGGER.debug("Starting Meraki data update")
         try:
+            _LOGGER.debug("Calling get_meraki_devices")
             devices: List[Dict[str, Any]] = await get_meraki_devices(self.api_key, self.org_id)
+            _LOGGER.debug(f"get_meraki_devices returned: {devices}")
             if devices is None:
                 raise UpdateFailed("Error communicating with Meraki API")
 
@@ -55,7 +61,9 @@ class MerakiCoordinator(DataUpdateCoordinator):
                 if model.startswith("MR") or model.startswith("GR"):
                     _LOGGER.debug(f"Fetching clients for {device['serial']}")
                     try:
+                        _LOGGER.debug(f"Calling get_clients for {device['serial']}")
                         clients: List[Dict[str, Any]] = await get_clients(self.api_key, device["networkId"], device["serial"])
+                        _LOGGER.debug(f"get_clients returned: {clients}")
                         device["connected_clients"] = clients
                     except Exception as client_err:
                         _LOGGER.warning(f"Failed to fetch clients for {device['serial']}: {client_err}")
@@ -63,6 +71,8 @@ class MerakiCoordinator(DataUpdateCoordinator):
                 else:
                     device["connected_clients"] = []
 
+            _LOGGER.debug(f"Meraki data update completed: {devices}")
             return devices
         except Exception as err:
+            _LOGGER.error(f"Error communicating with API: {err}")
             raise UpdateFailed(f"Error communicating with API: {err}")
