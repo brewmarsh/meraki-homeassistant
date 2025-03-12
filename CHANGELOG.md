@@ -1,4 +1,4 @@
-<!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
+# Meraki for Home Assistant Changelog
 
 ## 1.2.0
 

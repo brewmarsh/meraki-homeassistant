@@ -1,25 +1,30 @@
 """DataUpdateCoordinator for the meraki_ha integration."""
+
 import logging
 from datetime import timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import (
-    DataUpdateCoordinator,
-    UpdateFailed,
-)
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .meraki_api.devices import get_meraki_devices
-from .meraki_api.clients import get_clients
 from .const import DOMAIN
+from .meraki_api.clients import get_clients
+from .meraki_api.devices import get_meraki_devices
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class MerakiCoordinator(DataUpdateCoordinator):
     """Coordinator to fetch data from Meraki API."""
 
-    def __init__(self, hass: HomeAssistant, api_key: str, org_id: str, scan_interval_timedelta: timedelta) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        api_key: str,
+        org_id: str,
+        scan_interval_timedelta: timedelta,
+    ) -> None:
         """Initialize the Meraki data coordinator.
 
         Args:
@@ -36,7 +41,9 @@ class MerakiCoordinator(DataUpdateCoordinator):
         )
         self.api_key = api_key
         self.org_id = org_id
-        self.scan_interval_timedelta = scan_interval_timedelta  # store the scan interval.
+        self.scan_interval_timedelta = (
+            scan_interval_timedelta  # store the scan interval.
+        )
         _LOGGER.debug("MerakiCoordinator initialized")
 
     async def _async_update_data(self) -> List[Dict[str, Any]]:
@@ -51,7 +58,9 @@ class MerakiCoordinator(DataUpdateCoordinator):
         _LOGGER.debug("Starting Meraki data update")
         try:
             _LOGGER.debug("Calling get_meraki_devices")
-            devices: List[Dict[str, Any]] = await get_meraki_devices(self.api_key, self.org_id)
+            devices: List[Dict[str, Any]] = await get_meraki_devices(
+                self.api_key, self.org_id
+            )
             _LOGGER.debug(f"get_meraki_devices returned: {devices}")
             if devices is None:
                 raise UpdateFailed("Error communicating with Meraki API")
@@ -65,11 +74,15 @@ class MerakiCoordinator(DataUpdateCoordinator):
                     _LOGGER.debug(f"Fetching clients for {device['serial']}")
                     try:
                         _LOGGER.debug(f"Calling get_clients for {device['serial']}")
-                        clients: List[Dict[str, Any]] = await get_clients(self.api_key, device["networkId"], device["serial"])
+                        clients: List[Dict[str, Any]] = await get_clients(
+                            self.api_key, device["networkId"], device["serial"]
+                        )
                         _LOGGER.debug(f"get_clients returned: {clients}")
                         device["connected_clients"] = clients
                     except Exception as client_err:
-                        _LOGGER.warning(f"Failed to fetch clients for {device['serial']}: {client_err}")
+                        _LOGGER.warning(
+                            f"Failed to fetch clients for {device['serial']}: {client_err}"
+                        )
                         device["connected_clients"] = []
                 else:
                     device["connected_clients"] = []

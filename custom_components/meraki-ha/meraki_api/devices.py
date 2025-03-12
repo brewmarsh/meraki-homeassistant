@@ -1,17 +1,19 @@
 """Meraki device API functions for the meraki_ha integration."""
+
+import asyncio
 import logging
 from typing import Any, Dict, List, Optional
 
 import aiohttp
-import asyncio
-
-from .exceptions import MerakiApiError
 
 _LOGGER = logging.getLogger(__name__)
 
-_LOGGER.debug("meraki_ha devices.py loaded") #Added Log
+_LOGGER.debug("meraki_ha devices.py loaded")  # Added Log
 
-async def get_meraki_devices(api_key: str, org_id: str) -> Optional[List[Dict[str, Any]]]:
+
+async def get_meraki_devices(
+    api_key: str, org_id: str
+) -> Optional[List[Dict[str, Any]]]:
     """Retrieves all devices from a Meraki organization.
 
     Args:
@@ -28,7 +30,7 @@ async def get_meraki_devices(api_key: str, org_id: str) -> Optional[List[Dict[st
         "Content-Type": "application/json",
     }
     try:
-        _LOGGER.debug(f"Starting aiohttp session for device retrieval")
+        _LOGGER.debug("Starting aiohttp session for device retrieval")
         async with aiohttp.ClientSession() as session:
             try:
                 _LOGGER.debug(f"Sending GET request to {url}")

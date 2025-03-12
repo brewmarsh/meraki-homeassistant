@@ -1,20 +1,20 @@
 """Meraki HA integration."""
+
 import logging
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.const import CONF_SCAN_INTERVAL
+from homeassistant.core import HomeAssistant
 
 from .const import (
-    DOMAIN,
-    PLATFORMS,
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
     DATA_CLIENT,
     DATA_COORDINATOR,
     DEFAULT_SCAN_INTERVAL,
-    CONF_MERAKI_API_KEY,
-    CONF_MERAKI_ORG_ID,
+    DOMAIN,
+    PLATFORMS,
 )
 from .coordinator import MerakiCoordinator
 
@@ -22,28 +22,19 @@ _LOGGER = logging.getLogger(__name__)
 
 _LOGGER.debug("meraki_ha: Starting __init__.py import")
 
-try:
-    _LOGGER.debug("meraki_ha: Importing aiohttp")
-    import aiohttp
-    _LOGGER.debug("meraki_ha: aiohttp imported successfully")
-except ImportError as e:
-    _LOGGER.error(f"meraki_ha: Error importing aiohttp: {e}")
-
-try:
-    _LOGGER.debug("meraki_ha: Importing voluptuous")
-    import voluptuous
-    _LOGGER.debug("meraki_ha: voluptuous imported successfully")
-except ImportError as e:
-    _LOGGER.error(f"meraki_ha: Error importing voluptuous: {e}")
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up meraki_ha from a config entry."""
-    _LOGGER.debug(f"Meraki async_setup_entry called. Entry options: {entry.options}") #changed to options
+    _LOGGER.debug(
+        f"Meraki async_setup_entry called. Entry options: {entry.options}"
+    )  # changed to options
 
     try:
-        api_key = entry.options[CONF_MERAKI_API_KEY] #changed to options
-        org_id = entry.options[CONF_MERAKI_ORG_ID] #changed to options
-        scan_interval = entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL) #changed to options
+        api_key = entry.options[CONF_MERAKI_API_KEY]  # changed to options
+        org_id = entry.options[CONF_MERAKI_ORG_ID]  # changed to options
+        scan_interval = entry.options.get(
+            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+        )  # changed to options
         scan_interval_timedelta = timedelta(minutes=scan_interval)
 
         coordinator = MerakiCoordinator(hass, api_key, org_id, scan_interval_timedelta)
@@ -57,15 +48,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await coordinator.async_config_entry_first_refresh()
 
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-        _LOGGER.debug(f"Meraki async_forward_entry_setups called")
+        _LOGGER.debug("Meraki async_forward_entry_setups called")
         return True
 
     except KeyError as e:
-        _LOGGER.error(f"KeyError during setup: {e}. Entry options: {entry.options}") #changed to options
+        _LOGGER.error(
+            f"KeyError during setup: {e}. Entry options: {entry.options}"
+        )  # changed to options
         return False
     except Exception as e:
-        _LOGGER.error(f"Unexpected error during setup: {e}. Entry options: {entry.options}") #changed to options
+        _LOGGER.error(
+            f"Unexpected error during setup: {e}. Entry options: {entry.options}"
+        )  # changed to options
         return False
+
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""

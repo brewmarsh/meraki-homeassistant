@@ -1,10 +1,12 @@
-## Type of Change
+# Type of Change
 
 -Bug fix (non-breaking change which fixes an issue)
 -New feature (non-breaking change which adds functionality)
--Breaking change (fix or feature that would cause existing functionality to not work as expected)
+-Breaking change (fix or feature that would cause existing functionality to not
+work as expected)
 
-**Remember to include `[major]`, `[minor]`, or `[patch]` in your PR title based on the type of change.** **Example:** `[minor] Add support for new sensor type`
+**Remember to include `[major]`, `[minor]`, or `[patch]` in your PR title based**
+**on the type of change.** **Example:** `[minor] Add support for new sensor type`
 
 ## Description
 
@@ -12,15 +14,16 @@
 
 ## How Has This Been Tested?
 
-## Screenshots (if appropriate):
+## Screenshots (if appropriate)
 
 ## Types of changes
 
 -Bug fix (non-breaking change which fixes an issue)
 -New feature (non-breaking change which adds functionality)
--Breaking change (fix or feature that would cause existing functionality to not work as expected)
+-Breaking change (fix or feature that would cause existing functionality to not
+work as expected)
 
-## Checklist:
+## Checklist
 
 -My code follows the style guidelines of this project
 -I have performed a self-review of my own code
