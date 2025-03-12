@@ -8,6 +8,7 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
+from homeassistant.helpers import device_registry as dr
 
 from .meraki_api.devices import get_meraki_devices
 from .meraki_api.clients import get_clients
@@ -55,6 +56,8 @@ class MerakiCoordinator(DataUpdateCoordinator):
             if devices is None:
                 raise UpdateFailed("Error communicating with Meraki API")
 
+            device_registry = dr.async_get(self.hass)
+
             for device in devices:
                 model: str = device["model"].strip()
                 _LOGGER.debug(f"Raw Model: {repr(model)}")
@@ -70,6 +73,19 @@ class MerakiCoordinator(DataUpdateCoordinator):
                         device["connected_clients"] = []
                 else:
                     device["connected_clients"] = []
+
+                # Device creation logic
+                _LOGGER.debug(f"Creating/Updating device: {device['serial']}")
+
+                device_registry.async_get_or_create(
+                    config_entry_id=self.config_entry.entry_id,
+                    identifiers={(DOMAIN, device["serial"])},
+                    manufacturer="Cisco Meraki",
+                    model=device["model"],
+                    name=device["name"],
+                    sw_version=device.get("firmware"),
+                )
+                _LOGGER.debug(f"Device {device['serial']} created/updated")
 
             _LOGGER.debug(f"Meraki data update completed: {devices}")
             return devices

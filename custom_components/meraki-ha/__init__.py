@@ -20,6 +20,22 @@ from .coordinator import MerakiCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
+_LOGGER.debug("meraki_ha: Starting __init__.py import")
+
+try:
+    _LOGGER.debug("meraki_ha: Importing aiohttp")
+    import aiohttp
+    _LOGGER.debug("meraki_ha: aiohttp imported successfully")
+except ImportError as e:
+    _LOGGER.error(f"meraki_ha: Error importing aiohttp: {e}")
+
+try:
+    _LOGGER.debug("meraki_ha: Importing voluptuous")
+    import voluptuous
+    _LOGGER.debug("meraki_ha: voluptuous imported successfully")
+except ImportError as e:
+    _LOGGER.error(f"meraki_ha: Error importing voluptuous: {e}")
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up meraki_ha from a config entry."""
     _LOGGER.debug(f"Meraki async_setup_entry called. Entry options: {entry.options}") #changed to options
