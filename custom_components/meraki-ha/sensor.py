@@ -47,6 +47,7 @@ class MerakiConnectedClientsSensor(CoordinatorEntity, SensorEntity):
         """Initialize the Meraki Connected Clients sensor."""
         super().__init__(coordinator)
         self._device = device
+        _LOGGER.debug(f"Meraki: Device data: {device}") #Added for debugging.
         self._attr_name = f"{device['name']} Connected Clients"
         self._attr_unique_id = f"{device['serial']}_connected_clients"
         self._attr_icon = "mdi:account-network"
@@ -55,6 +56,7 @@ class MerakiConnectedClientsSensor(CoordinatorEntity, SensorEntity):
             "serial_number": device.get("serial"),
             "firmware_version": device.get("firmware"),
         }
+        self._attr_extra_state_attributes["serial_number"] = device.get("serial") #Added to make extra sure.
         _LOGGER.debug(f"Meraki: Connected Clients Sensor Initialized: {self._attr_name}")
 
     @property
@@ -70,9 +72,7 @@ class MerakiConnectedClientsSensor(CoordinatorEntity, SensorEntity):
     def extra_state_attributes(self) -> Dict[str, Any]:
         """Return the state attributes of the sensor."""
         _LOGGER.debug(f"Meraki: Getting extra state attributes for {self._attr_name}")
-        attributes = self._attr_extra_state_attributes.copy()
-        attributes.update({"clients": self._device.get("connected_clients")})
-        return attributes
+        return self._attr_extra_state_attributes.copy()
 
 class MerakiRadioSettingsSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki Radio Settings sensor."""
@@ -81,6 +81,7 @@ class MerakiRadioSettingsSensor(CoordinatorEntity, SensorEntity):
         """Initialize the Meraki Radio Settings sensor."""
         super().__init__(coordinator)
         self._device = device
+        _LOGGER.debug(f"Meraki: Device data: {device}") #Added for debugging.
         self._attr_name = f"{device['name']} Radio Settings"
         self._attr_unique_id = f"{device['serial']}_radio_settings"
         self._attr_icon = "mdi:wifi"
@@ -89,6 +90,7 @@ class MerakiRadioSettingsSensor(CoordinatorEntity, SensorEntity):
             "serial_number": device.get("serial"),
             "firmware_version": device.get("firmware"),
         }
+        self._attr_extra_state_attributes["serial_number"] = device.get("serial") #Added to make extra sure.
         _LOGGER.debug(f"Meraki: Radio Sensor Initialized: {self._attr_name}")
 
     @property
@@ -104,9 +106,7 @@ class MerakiRadioSettingsSensor(CoordinatorEntity, SensorEntity):
     def extra_state_attributes(self) -> Dict[str, Any]:
         """Return the state attributes of the sensor."""
         _LOGGER.debug(f"Meraki: Getting extra state attributes for {self._attr_name}")
-        attributes = self._attr_extra_state_attributes.copy()
-        attributes.update({"radio_settings": self._device.get("radio_settings")})
-        return attributes
+        return self._attr_extra_state_attributes.copy()
 
 class MerakiUplinkStatusSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki MX Appliance Uplink Status sensor."""
@@ -115,6 +115,7 @@ class MerakiUplinkStatusSensor(CoordinatorEntity, SensorEntity):
         """Initialize the Meraki MX Appliance Uplink Status sensor."""
         super().__init__(coordinator)
         self._device = device
+        _LOGGER.debug(f"Meraki: Device data: {device}") #Added for debugging.
         self._attr_name = f"{device['name']} Uplink Status"
         self._attr_unique_id = f"{device['serial']}_uplink_status"
         self._attr_icon = "mdi:upload-network-outline"
@@ -123,6 +124,7 @@ class MerakiUplinkStatusSensor(CoordinatorEntity, SensorEntity):
             "serial_number": device.get("serial"),
             "firmware_version": device.get("firmware"),
         }
+        self._attr_extra_state_attributes["serial_number"] = device.get("serial") #Added to make extra sure.
         _LOGGER.debug(f"Meraki: Uplink Sensor Initialized: {self._attr_name}")
 
     async def async_update(self) -> None:
@@ -151,4 +153,4 @@ class MerakiUplinkStatusSensor(CoordinatorEntity, SensorEntity):
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:
         """Return the state attributes of the sensor."""
-        return self._attr_extra_state_attributes
+        return self._attr_extra_state_attributes.copy()
