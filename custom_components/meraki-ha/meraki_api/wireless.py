@@ -1,4 +1,5 @@
 """Meraki wireless API functions for the meraki_ha integration."""
+
 import logging
 from typing import Any, Dict, List
 
@@ -98,7 +99,8 @@ async def get_meraki_connected_client_count(
                 connected_clients = [
                     client
                     for client in clients
-                    if client.get("apMac") == ap_mac and client.get("status") == "Online"
+                    if client.get("apMac") == ap_mac
+                    and client.get("status") == "Online"
                 ]
                 return len(connected_clients)
     except aiohttp.ClientError as e:

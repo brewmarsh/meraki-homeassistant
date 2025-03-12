@@ -1,4 +1,5 @@
 """Meraki appliance API functions for the meraki_ha integration."""
+
 import logging
 from typing import Any, Dict
 

@@ -1,13 +1,15 @@
 """Meraki API authentication functions for the meraki_ha integration."""
+
 import logging
-from typing import Any, List, Dict
+from typing import Any, Dict, List
 
 import aiohttp
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
 _LOGGER = logging.getLogger(__name__)
 
-_LOGGER.debug("meraki_ha authentication.py loaded") #Added Log
+_LOGGER.debug("meraki_ha authentication.py loaded")  # Added Log
+
 
 async def validate_meraki_credentials(api_key: str, org_id: str) -> bool:
     """Validate Meraki API credentials.

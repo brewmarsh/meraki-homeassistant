@@ -1,10 +1,11 @@
 """Config flow for the meraki_ha integration."""
+
 import logging
 import traceback
 from typing import Any, Dict, Optional
 
+import aiohttp
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.exceptions import ConfigEntryAuthFailed
@@ -13,10 +14,13 @@ from homeassistant.helpers.schema_config_entry_flow import (
     SchemaConfigFlowHandler,
     SchemaFlowFormStep,
 )
-import aiohttp
 
-from .const import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID, DOMAIN, DEFAULT_SCAN_INTERVAL
-from .meraki_api.authentication import validate_meraki_credentials
+from .const import (
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,7 +50,9 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
         if user_input is not None:
             _LOGGER.debug(f"User input: {user_input}")
             try:
-                scan_interval = user_input.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+                scan_interval = user_input.get(
+                    CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                )
                 merged_data = {
                     CONF_MERAKI_API_KEY: user_input[CONF_MERAKI_API_KEY],
                     CONF_MERAKI_ORG_ID: user_input[CONF_MERAKI_ORG_ID],
