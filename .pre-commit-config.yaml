@@ -1,10 +1,28 @@
 repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-json
+        exclude: (.vscode|.devcontainer)
+      - id: check-executables-have-shebangs
+        stages: [manual]
+  - repo: https://github.com/psf/black
+    rev: 24.2.0
+    hooks:
+      - id: black
+        language_version: python3
   - repo: https://github.com/pycqa/isort
-    rev: 5.13.2 # Check for the latest version
+    rev: 5.13.2
     hooks:
       - id: isort
         name: isort (python)
-- repo: https://github.com/astral-sh/ruff-pre-commit
+  - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.9.5
     hooks:
       - id: ruff
@@ -21,19 +39,6 @@ repos:
           - --skip="./.*,*.csv,*.json"
           - --quiet-level=2
         exclude_types: [csv, json]
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
-    hooks:
-      - id: check-executables-have-shebangs
-        stages: [manual]
-      - id: check-json
-        exclude: (.vscode|.devcontainer)
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-toml
-      - id: check-merge-conflict
-      - id: mixed-line-ending
-        args: [--fix=lf]
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.35.1
     hooks:
@@ -61,11 +66,6 @@ repos:
         types_or: [python, pyi]
         require_serial: true
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.8.1 # Please check for the latest version
+    rev: v0.8.1 # Check for the latest version
     hooks:
       - id: markdownlint-cli2
-  - repo: https://github.com/psf/black
-    rev: 24.2.0 # Use the latest stable version
-    hooks:
-      - id: black
-        language_version: python3
