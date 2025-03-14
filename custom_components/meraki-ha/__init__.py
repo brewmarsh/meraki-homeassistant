@@ -22,6 +22,8 @@ _LOGGER = logging.getLogger(__name__)
 
 _LOGGER.debug("meraki_ha: Starting __init__.py import")
 
+# PLATFORMS: list[str] = ["sensor", "sensor_network_status"] #Added sensor_network_status here.
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up meraki_ha from a config entry."""
