@@ -9,8 +9,8 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import DOMAIN
-from .meraki_api.clients import get_clients
-from .meraki_api.devices import get_meraki_devices
+from .meraki_api.devices import get_meraki_devices, get_meraki_device_clients
+import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,41 +25,26 @@ class MerakiCoordinator(DataUpdateCoordinator):
         org_id: str,
         scan_interval_timedelta: timedelta,
     ) -> None:
-        """Initialize the Meraki data coordinator.
-
-        Args:
-            hass: Home Assistant instance.
-            api_key: Meraki API key.
-            org_id: Meraki organization ID.
-            scan_interval_timedelta: Time delta for scan interval.
-        """
+        """Initialize the Meraki data coordinator."""
         super().__init__(
             hass,
             _LOGGER,
             name="Meraki Data",
-            update_interval=scan_interval_timedelta,  # use the scan interval.
+            update_interval=scan_interval_timedelta,
         )
         self.api_key = api_key
         self.org_id = org_id
-        self.scan_interval_timedelta = (
-            scan_interval_timedelta  # store the scan interval.
-        )
+        self.scan_interval_timedelta = scan_interval_timedelta
+        self.session = aiohttp.ClientSession()
         _LOGGER.debug("MerakiCoordinator initialized")
 
     async def _async_update_data(self) -> List[Dict[str, Any]]:
-        """Fetch data from Meraki API endpoint.
-
-        Returns:
-            A list of dictionaries representing Meraki devices with client data.
-
-        Raises:
-            UpdateFailed: If there's an error communicating with the Meraki API.
-        """
+        """Fetch data from Meraki API endpoint."""
         _LOGGER.debug("Starting Meraki data update")
         try:
             _LOGGER.debug("Calling get_meraki_devices")
             devices: List[Dict[str, Any]] = await get_meraki_devices(
-                self.api_key, self.org_id
+                self.session, self.api_key, self.org_id
             )
             _LOGGER.debug(f"get_meraki_devices returned: {devices}")
             if devices is None:
@@ -74,8 +59,11 @@ class MerakiCoordinator(DataUpdateCoordinator):
                     _LOGGER.debug(f"Fetching clients for {device['serial']}")
                     try:
                         _LOGGER.debug(f"Calling get_clients for {device['serial']}")
-                        clients: List[Dict[str, Any]] = await get_clients(
-                            self.api_key, device["networkId"], device["serial"]
+                        clients: List[Dict[str, Any]] = await get_meraki_device_clients(
+                            self.session,
+                            self.api_key,
+                            device["networkId"],
+                            device["serial"],
                         )
                         _LOGGER.debug(f"get_clients returned: {clients}")
                         device["connected_clients"] = clients
@@ -105,3 +93,17 @@ class MerakiCoordinator(DataUpdateCoordinator):
         except Exception as err:
             _LOGGER.error(f"Error communicating with API: {err}")
             raise UpdateFailed(f"Error communicating with API: {err}")
+
+    async def async_close_session(self):
+        """Close the aiohttp session."""
+        if self.session and not self.session.closed:
+            await self.session.close()
+
+    async def _async_shutdown(self, event):
+        """Close the aiohttp session on shutdown."""
+        await self.async_close_session()
+
+    async def async_config_entry_first_refresh(self) -> None:
+        """Handle the first refresh of a config entry."""
+        await super().async_config_entry_first_refresh()
+        self.hass.bus.async_listen_once("homeassistant_stop", self._async_shutdown)
