@@ -6,6 +6,7 @@ from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
+from .coordinator import MerakiCoordinator
 
 from .const import (
     CONF_MERAKI_API_KEY,
@@ -16,7 +17,6 @@ from .const import (
     DOMAIN,
     PLATFORMS,
 )
-from .coordinator import MerakiCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
