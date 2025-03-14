@@ -11,8 +11,35 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .const import DOMAIN
 from .meraki_api.devices import get_meraki_devices, get_meraki_device_clients
 import aiohttp
+from .meraki_api.networks import get_meraki_networks
 
 _LOGGER = logging.getLogger(__name__)
+
+
+async def async_create_meraki_network_devices(
+    hass: HomeAssistant, api_key: str, config_entry_id: str, org_id: str
+):
+    """Create Home Assistant device records for Meraki networks."""
+    networks = await get_meraki_networks(api_key, org_id)  # org_id added
+
+    if networks is None:
+        _LOGGER.warning("Failed to retrieve Meraki networks.")
+        return  # Handle the error, log it, etc.
+
+    device_registry = dr.async_get(hass)
+
+    for network in networks:
+        network_id = network["id"]
+        network_name = network["name"]
+
+        device_registry.async_get_or_create(
+            config_entry_id=config_entry_id,  # Use the config entry ID.
+            identifiers={(DOMAIN, network_id)},
+            manufacturer="Cisco Meraki",
+            name=network_name,
+            model="Network",
+        )
+        _LOGGER.debug(f"Created Meraki Network Device: {network_name} ({network_id})")
 
 
 class MerakiCoordinator(DataUpdateCoordinator):
@@ -24,6 +51,7 @@ class MerakiCoordinator(DataUpdateCoordinator):
         api_key: str,
         org_id: str,
         scan_interval_timedelta: timedelta,
+        config_entry,  # Add config_entry to the constructor.
     ) -> None:
         """Initialize the Meraki data coordinator."""
         super().__init__(
@@ -36,6 +64,7 @@ class MerakiCoordinator(DataUpdateCoordinator):
         self.org_id = org_id
         self.scan_interval_timedelta = scan_interval_timedelta
         self.session = aiohttp.ClientSession()
+        self.config_entry = config_entry  # Store config_entry
         _LOGGER.debug("MerakiCoordinator initialized")
 
     async def _async_update_data(self) -> List[Dict[str, Any]]:
@@ -107,3 +136,9 @@ class MerakiCoordinator(DataUpdateCoordinator):
         """Handle the first refresh of a config entry."""
         await super().async_config_entry_first_refresh()
         self.hass.bus.async_listen_once("homeassistant_stop", self._async_shutdown)
+
+    async def async_create_network_devices(self):  # Function call from init.py
+        """Create Meraki Network Devices"""
+        await async_create_meraki_network_devices(
+            self.hass, self.api_key, self.config_entry.entry_id, self.org_id
+        )  # org_id added here.
