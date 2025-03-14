@@ -37,7 +37,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )  # changed to options
         scan_interval_timedelta = timedelta(minutes=scan_interval)
 
-        coordinator = MerakiCoordinator(hass, api_key, org_id, scan_interval_timedelta)
+        coordinator = MerakiCoordinator(
+            hass, api_key, org_id, scan_interval_timedelta, entry
+        )  # Added entry here.
 
         hass.data.setdefault(DOMAIN, {})
         hass.data[DOMAIN][entry.entry_id] = {
@@ -46,6 +48,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         }
 
         await coordinator.async_config_entry_first_refresh()
+        await coordinator.async_create_network_devices()  # Add this line.
 
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
         _LOGGER.debug("Meraki async_forward_entry_setups called")
