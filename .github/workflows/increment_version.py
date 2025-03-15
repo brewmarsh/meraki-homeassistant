@@ -4,7 +4,7 @@ import os
 
 import semver
 
-manifest_path = "../../custom_components/meraki-ha/manifest.json"  # Corrected path
+manifest_path = "custom_components/meraki-ha/manifest.json"  # Corrected path
 
 try:
     print(f"Current working directory: {os.getcwd()}")  # Added debug
