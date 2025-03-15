@@ -22,11 +22,13 @@ try:
 
     print(f"Increment type: {increment_type}")  # Added debug
 
-    new_version = semver.bump_version(version, increment_type)
+    # Corrected semver usage
+    semver_obj = semver.Version(version)
+    new_version = semver_obj.bump(increment_type)
 
     print(f"New version: {new_version}")  # Added debug
 
-    data["version"] = new_version
+    data["version"] = str(new_version)  # convert to string
 
     print(f"Modified manifest data: {data}")  # Added debug
 
