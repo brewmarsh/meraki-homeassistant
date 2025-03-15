@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # Needed for git history
+          fetch-depth: 0 # Fetch the full history
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
