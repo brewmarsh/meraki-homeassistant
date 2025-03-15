@@ -41,3 +41,28 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
             return "Sensor"
         else:
             return "Unknown"
+
+    @property
+    def device_info(self):
+        """Return device information about this entity."""
+        device_icon = "mdi:router-network"  # Default icon for devices
+
+        if self._device["model"].startswith("MR"):
+            device_icon = "mdi:access-point"
+        elif self._device["model"].startswith("MX"):
+            device_icon = "mdi:router"
+        elif self._device["model"].startswith("MS"):
+            device_icon = "mdi:switch"
+        elif self._device["model"].startswith("MV"):
+            device_icon = "mdi:video"
+        elif self._device["model"].startswith("MT"):
+            device_icon = "mdi:thermometer"
+        # Add more device types as needed
+
+        return {
+            "identifiers": {(self.coordinator.domain, self._device["serial"])},
+            "name": self._device["name"],
+            "manufacturer": "Cisco Meraki",
+            "model": self._device["model"],
+            "icon": device_icon,
+        }

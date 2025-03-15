@@ -74,6 +74,7 @@ class MerakiNetworkClientCountSensor(SensorEntity):
         self._network_name = network_name
         self._attr_name = f"{network_name} Clients (24h)"
         self._attr_unique_id = f"{DOMAIN}_{network_id}_clients_24h"
+        self._attr_icon = "mdi:network"
 
     async def async_update(self):
         """Fetch new state data for the sensor."""
