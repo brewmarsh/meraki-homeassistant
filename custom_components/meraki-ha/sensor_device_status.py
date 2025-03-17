@@ -1,10 +1,12 @@
-"""Sensor platform for the meraki_ha integration."""
+"""
+Sensor platform for the meraki_ha integration.
+"""
 
 import logging
-from typing import Any, Dict
-
 from homeassistant.components.sensor import SensorEntity
+
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from typing import Dict, Any
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)

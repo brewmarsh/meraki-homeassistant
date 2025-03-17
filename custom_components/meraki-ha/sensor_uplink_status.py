@@ -29,7 +29,6 @@ class MerakiUplinkStatusSensor(CoordinatorEntity, SensorEntity):
             "serial_number": device.get("serial"),
             "firmware_version": device.get("firmware"),
         }
-        self._attr_extra_state_attributes["serial_number"] = device.get("serial")
         _LOGGER.debug(f"Meraki: Uplink Sensor Initialized: {self._attr_name}")
 
     async def async_update(self) -> None:
@@ -43,9 +42,13 @@ class MerakiUplinkStatusSensor(CoordinatorEntity, SensorEntity):
             )
             if uplinks and uplinks.get("uplinks"):
                 self._attr_native_value = uplinks["uplinks"][0].get("status", "Unknown")
-                self._attr_extra_state_attributes.update(
+                if uplinks["uplinks"]:
+                    self._attr_native_value = uplinks["uplinks"][0].get(
+                        "status", "Unknown"
+                    )
+                else:
+                    self._attr_native_value = "Unknown"
                     {"uplinks": uplinks.get("uplinks")}
-                )
             else:
                 self._attr_native_value = "Unavailable"
                 self._attr_extra_state_attributes.update({"uplinks": None})
@@ -55,6 +58,9 @@ class MerakiUplinkStatusSensor(CoordinatorEntity, SensorEntity):
         except Exception as e:
             _LOGGER.error(f"Meraki: Unexpected error fetching uplink status: {e}")
             self._attr_native_value = "Error"
+            raise e
+        except Exception:
+            self._attr_native_value = "Error"
 
     @property
     def native_value(self) -> str | None:
@@ -62,7 +68,7 @@ class MerakiUplinkStatusSensor(CoordinatorEntity, SensorEntity):
         return self._attr_native_value
 
     @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes of the sensor."""
         _LOGGER.debug(f"Meraki: Getting extra state attributes for {self._attr_name}")
         return self._attr_extra_state_attributes.copy()

@@ -22,7 +22,7 @@ async def async_create_meraki_network_devices(
     """Create Home Assistant device records for Meraki networks."""
     networks = await get_meraki_networks(api_key, org_id)  # org_id added
 
-    if networks is None:
+    if not networks or len(networks) == 0:
         _LOGGER.warning("Failed to retrieve Meraki networks.")
         return  # Handle the error, log it, etc.
 
@@ -63,7 +63,7 @@ class MerakiCoordinator(DataUpdateCoordinator):
         self.api_key = api_key
         self.org_id = org_id
         self.scan_interval_timedelta = scan_interval_timedelta
-        self.session = None
+        self.session = aiohttp.ClientSession()  # Initialize session here
         self.config_entry = config_entry  # Store config_entry
         self.domain = DOMAIN  # Added this line
         _LOGGER.debug("MerakiCoordinator initialized")
@@ -71,8 +71,7 @@ class MerakiCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> List[Dict[str, Any]]:
         """Fetch data from Meraki API endpoint."""
         _LOGGER.debug("Starting Meraki data update")
-        if self.session is None or self.session.closed:
-            self.session = aiohttp.ClientSession()
+        device_registry = dr.async_get(self.hass)
         try:
             _LOGGER.debug("Calling get_meraki_devices")
             devices: List[Dict[str, Any]] = await get_meraki_devices(
@@ -81,9 +80,6 @@ class MerakiCoordinator(DataUpdateCoordinator):
             _LOGGER.debug(f"get_meraki_devices returned: {devices}")
             if devices is None:
                 raise UpdateFailed("Error communicating with Meraki API")
-
-            device_registry = dr.async_get(self.hass)
-
             for device in devices:
                 model: str = device["model"].strip()
                 _LOGGER.debug(f"Raw Model: {repr(model)}")
@@ -122,23 +118,28 @@ class MerakiCoordinator(DataUpdateCoordinator):
 
             _LOGGER.debug(f"Meraki data update completed: {devices}")
             return devices
-        except Exception as error:
-            _LOGGER.error(f"Error communicating with API: {error}")
-            raise UpdateFailed(f"Error communicating with API: {error}")
+        except aiohttp.ClientError as client_error:
+            _LOGGER.error(f"Client error communicating with API: {client_error}")
+            raise UpdateFailed(f"Client error communicating with API: {client_error}")
+        except UpdateFailed as update_error:
+            _LOGGER.error(f"Update failed: {update_error}")
+            raise update_error
+        except Exception as error:  # Capture the exception in the 'error' variable
+            if self.session and not self.session.closed:
+                _LOGGER.error(f"Unexpected error: {error}")
+                raise UpdateFailed(f"Unexpected error: {error}")
 
-    async def async_close_session(self):
-        """Close the aiohttp session."""
+    async def _async_shutdown(self):
+        """Close the aiohttp session on shutdown."""
         if self.session and not self.session.closed:
             await self.session.close()
 
-    async def _async_shutdown(self, event):
-        """Close the aiohttp session on shutdown."""
-        await self.async_close_session()
-
     async def async_config_entry_first_refresh(self) -> None:
         """Handle the first refresh of a config entry."""
-        await super().async_config_entry_first_refresh()
-        self.hass.bus.async_listen_once("homeassistant_stop", self._async_shutdown)
+        try:
+            await super().async_config_entry_first_refresh()
+        finally:
+            self.hass.bus.async_listen_once("homeassistant_stop", self._async_shutdown)
 
     async def async_create_network_devices(self):  # Function call from init.py
         """Create Meraki Network Devices"""

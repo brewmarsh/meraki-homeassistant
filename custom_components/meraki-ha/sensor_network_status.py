@@ -2,8 +2,8 @@
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
-from .const import DOMAIN, DATA_COORDINATOR
-from .meraki_api.networks import get_network_clients_count
+from .const import DOMAIN
+from .meraki_api.networks import get_meraki_networks, get_network_clients_count
 from typing import Optional, List, Dict
 import logging
 
@@ -14,30 +14,32 @@ async def async_setup_entry(
     hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities
 ):
     """Set up the Meraki network client count sensors."""
+
+    async def get_network_ids_and_names(
+        api_key: str, org_id: str
+    ) -> Optional[List[Dict[str, str]]]:
+        """Retrieve network IDs and names from Meraki API."""
+        networks = await get_meraki_networks(api_key, org_id)
+        if networks is None:
+            return None
+        return [{"id": network["id"], "name": network["name"]} for network in networks]
+
     _LOGGER.debug("sensor_network_status.py: async_setup_entry called")
-    coordinator = hass.data[DOMAIN][config_entry.entry_id][DATA_COORDINATOR]
-    networks = await get_network_ids_and_names(coordinator.api_key, coordinator.org_id)
-    _LOGGER.debug(f"sensor_network_status.py: Networks retrieved: {networks}")
-    if networks is None:
-        _LOGGER.warning("Failed to retrieve Meraki networks for sensor setup.")
-        return
 
-    entities = [
-        MerakiNetworkClientCountSensor(coordinator, network["id"], network["name"])
-        for network in networks
-    ]
-    async_add_entities(entities)
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]  # Get the coordinator
 
+    networks = await get_network_ids_and_names(
+        coordinator.api_key, coordinator.org_id
+    )  # Fetch networks using coordinator's API key and org ID
 
-async def get_network_ids_and_names(
-    api_key: str, org_id: str
-) -> Optional[List[Dict[str, str]]]:
-    from .meraki_api.networks import get_meraki_networks
-
-    networks = await get_meraki_networks(api_key, org_id)
-    if networks is None:
-        return None
-    return [{"id": network["id"], "name": network["name"]} for network in networks]
+    if networks:  # Only proceed if networks were successfully fetched
+        entities = [
+            MerakiNetworkClientCountSensor(coordinator, network["id"], network["name"])
+            for network in networks
+        ]
+        async_add_entities(entities)
+    else:
+        _LOGGER.warning("Failed to retrieve Meraki networks, no sensors created.")
 
 
 class MerakiNetworkClientCountSensor(SensorEntity):
@@ -56,6 +58,7 @@ class MerakiNetworkClientCountSensor(SensorEntity):
         self._attr_native_value = await get_network_clients_count(
             self._coordinator.api_key, self._network_id
         )
+        self.async_write_ha_state()
 
     @property
     def device_info(self):
