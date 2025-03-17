@@ -46,7 +46,9 @@ async def async_setup_entry(
 
         async with aiohttp.ClientSession() as session:
             networks = await get_network_ids_and_names(
-                coordinator.api_key, coordinator.org_id, session
+                coordinator.config_entry.options.get("meraki_api_key"),
+                coordinator.config_entry.options.get("meraki_org_id"),
+                session,  # Updated to get from config_entry
             )
         _LOGGER.debug(f"sensor.py: Networks retrieved: {networks}")
 
@@ -77,11 +79,18 @@ class MerakiNetworkClientCountSensor(SensorEntity):
 
         Args:
         """
+        self._coordinator = coordinator
+        self._network_id = network_id
+        self._network_name = network_name
+        self._attr_name = f"Meraki Network Clients {network_name}"
+        self._attr_unique_id = f"meraki_network_clients_{network_id}"
 
     async def async_update(self):
         async with aiohttp.ClientSession() as session:
             self._attr_native_value = await get_network_clients_count(
-                self._coordinator.api_key, self._network_id, session
+                self._coordinator.config_entry.options.get("meraki_api_key"),
+                self._network_id,
+                session,  # Updated to get from config_entry
             )
         self.async_write_ha_state()
 

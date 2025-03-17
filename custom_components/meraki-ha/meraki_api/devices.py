@@ -1,48 +1,58 @@
+# devices.py
 """Meraki device API functions for the meraki_ha integration."""
 
 import asyncio
 import logging
 from typing import Any, Dict, List, Optional
+import json  # added import
 
 import aiohttp
 from .exceptions import MerakiApiError
 
 _LOGGER = logging.getLogger(__name__)
 
-_LOGGER.debug("meraki_ha devices.py loaded")  # Added Log
+_LOGGER.debug("meraki_ha devices.py loaded")
 
 
 async def get_meraki_devices(
     session: aiohttp.ClientSession, api_key: str, org_id: str
 ) -> Optional[List[Dict[str, Any]]]:
-    """Retrieves all devices from a Meraki organization.
-
-    Args:
-        session: aiohttp ClientSession
-        api_key: Meraki API key.
-        org_id: Meraki organization ID.
-
-    Returns:
-        A list of dictionaries representing Meraki devices, or None if an error occurs.
-    """
+    """Retrieves all devices from a Meraki organization."""
     _LOGGER.debug(f"Retrieving Meraki devices for Org ID: {org_id}")
     url = f"https://api.meraki.com/api/v1/organizations/{org_id}/devices"
-    # auth = MerakiAuthentication(api_key) #Remove this line.
     try:
         _LOGGER.debug("Starting aiohttp session for device retrieval")
-        # async with auth.session as session: #Remove this line
         try:
             _LOGGER.debug(f"Sending GET request to {url}")
             async with session.get(
                 url, headers={"X-Cisco-Meraki-API-Key": api_key}
-            ) as response:  # Add api_key to the header.
+            ) as response:
                 _LOGGER.debug(f"Meraki API response status: {response.status}")
                 raw_text = await response.text()
                 _LOGGER.debug(f"Meraki API raw text: {raw_text}")
                 if response.status == 200:
-                    devices: List[Dict[str, Any]] = await response.json()
-                    _LOGGER.debug(f"Retrieved {len(devices)} devices: {devices}")
-                    await asyncio.sleep(1)  # Add rate limiting mitigation
+                    data = await response.json()
+                    _LOGGER.debug(
+                        f"Raw Meraki API response: {json.dumps(data)}"
+                    )  # added line
+                    devices: List[Dict[str, Any]] = []
+                    for device in data:
+                        _LOGGER.debug(
+                            f"Device before processing: {device}"
+                        )  # added line
+                        device_data = {}
+                        for key, value in device.items():
+                            if key is not None:
+                                device_data[key] = value
+                            else:
+                                _LOGGER.warning(
+                                    f"Found None key in device data: {device}"
+                                )
+                        devices.append(device_data)
+                        _LOGGER.debug(
+                            f"Device after processing: {device_data}"
+                        )  # added line
+                    await asyncio.sleep(1)
                     return devices
                 else:
                     _LOGGER.error(
