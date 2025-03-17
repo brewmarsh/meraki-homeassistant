@@ -17,10 +17,14 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_create_meraki_network_devices(
-    hass: HomeAssistant, api_key: str, config_entry_id: str, org_id: str
+    hass: HomeAssistant,
+    api_key: str,
+    config_entry_id: str,
+    org_id: str,
+    session: aiohttp.ClientSession,  # Added session
 ):
     """Create Home Assistant device records for Meraki networks."""
-    networks = await get_meraki_networks(api_key, org_id)  # org_id added
+    networks = await get_meraki_networks(api_key, org_id, session)  # Passed session
 
     if not networks or len(networks) == 0:
         _LOGGER.warning("Failed to retrieve Meraki networks.")
@@ -48,8 +52,6 @@ class MerakiCoordinator(DataUpdateCoordinator):
     def __init__(
         self,
         hass: HomeAssistant,
-        api_key: str,
-        org_id: str,
         scan_interval_timedelta: timedelta,
         config_entry,  # Add config_entry to the constructor.
     ) -> None:
@@ -60,8 +62,6 @@ class MerakiCoordinator(DataUpdateCoordinator):
             name="Meraki Data",
             update_interval=scan_interval_timedelta,
         )
-        self.api_key = api_key
-        self.org_id = org_id
         self.scan_interval_timedelta = scan_interval_timedelta
         self.session = aiohttp.ClientSession()  # Initialize session here
         self.config_entry = config_entry  # Store config_entry
@@ -73,14 +73,29 @@ class MerakiCoordinator(DataUpdateCoordinator):
         _LOGGER.debug("Starting Meraki data update")
         device_registry = dr.async_get(self.hass)
         try:
+            _LOGGER.debug(f"Config Entry options: {self.config_entry.options}")
+            api_key = self.config_entry.options.get("meraki_api_key")
+            org_id = self.config_entry.options.get("meraki_org_id")
+            _LOGGER.debug(f"Org ID from options: {org_id}")
+            _LOGGER.debug(f"API Key from options: {api_key}")
             _LOGGER.debug("Calling get_meraki_devices")
             devices: List[Dict[str, Any]] = await get_meraki_devices(
-                self.session, self.api_key, self.org_id
+                self.session, api_key, org_id
             )
             _LOGGER.debug(f"get_meraki_devices returned: {devices}")
             if devices is None:
                 raise UpdateFailed("Error communicating with Meraki API")
+            processed_devices = []
             for device in devices:
+                device_data = {}
+                for key, value in device.items():
+                    if key is not None:
+                        device_data[key] = value
+                    else:
+                        _LOGGER.warning(f"Found None key in device data: {device}")
+                processed_devices.append(device_data)
+
+            for device in processed_devices:
                 model: str = device["model"].strip()
                 _LOGGER.debug(f"Raw Model: {repr(model)}")
                 if model.startswith("MR") or model.startswith("GR"):
@@ -89,7 +104,7 @@ class MerakiCoordinator(DataUpdateCoordinator):
                         _LOGGER.debug(f"Calling get_clients for {device['serial']}")
                         clients: List[Dict[str, Any]] = await get_meraki_device_clients(
                             self.session,
-                            self.api_key,
+                            api_key,
                             device["networkId"],
                             device["serial"],
                         )
@@ -116,8 +131,8 @@ class MerakiCoordinator(DataUpdateCoordinator):
                 )
                 _LOGGER.debug(f"Device {device['serial']} created/updated")
 
-            _LOGGER.debug(f"Meraki data update completed: {devices}")
-            return devices
+            _LOGGER.debug(f"Meraki data update completed: {processed_devices}")
+            return processed_devices
         except aiohttp.ClientError as client_error:
             _LOGGER.error(f"Client error communicating with API: {client_error}")
             raise UpdateFailed(f"Client error communicating with API: {client_error}")
@@ -143,6 +158,12 @@ class MerakiCoordinator(DataUpdateCoordinator):
 
     async def async_create_network_devices(self):  # Function call from init.py
         """Create Meraki Network Devices"""
+        api_key = self.config_entry.options.get("meraki_api_key")
+        org_id = self.config_entry.options.get("meraki_org_id")
         await async_create_meraki_network_devices(
-            self.hass, self.api_key, self.config_entry.entry_id, self.org_id
+            self.hass,
+            api_key,
+            self.config_entry.entry_id,
+            org_id,
+            self.session,  # added self.session
         )  # org_id added here.
