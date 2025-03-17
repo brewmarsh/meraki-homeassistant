@@ -148,7 +148,11 @@ class MerakiCoordinator(DataUpdateCoordinator):
                         ssids = await get_meraki_ssids(
                             network_id, api_key, self.session
                         )
-                        device["ssids"] = ssids
+                        # Filter out disabled SSIDs
+                        enabled_ssids = [
+                            ssid for ssid in ssids if ssid.get("enabled", False)
+                        ]
+                        device["ssids"] = enabled_ssids
 
             _LOGGER.debug(f"Meraki data update completed: {processed_devices}")
             self.data = {"devices": processed_devices, "network_id": network_id}
