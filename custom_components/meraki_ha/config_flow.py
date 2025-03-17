@@ -53,10 +53,15 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
                 scan_interval = user_input.get(
                     CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
                 )
+                device_name_format = user_input.get(
+                    "device_name_format", "omitted"
+                )  # Get the new option
+
                 merged_data = {
                     CONF_MERAKI_API_KEY: user_input[CONF_MERAKI_API_KEY],
                     CONF_MERAKI_ORG_ID: user_input[CONF_MERAKI_ORG_ID],
                     CONF_SCAN_INTERVAL: scan_interval,
+                    "device_name_format": device_name_format,  # Add the new option to merged data
                 }
                 _LOGGER.debug(f"User input before create entry: {merged_data}")
                 # Removed unique_id for compatibility
@@ -86,7 +91,18 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
                         "suggested_value": DEFAULT_SCAN_INTERVAL,
                         "description": "Enter the scan interval in minutes. Shorter intervals increase API usage.",
                     },
-                ): int
+                ): int,
+                vol.Optional(
+                    "device_name_format", default="omitted"
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=[
+                            {"value": "prefix", "label": "Prefix"},
+                            {"value": "suffix", "label": "Suffix"},
+                            {"value": "omitted", "label": "Omitted"},
+                        ],
+                    )
+                ),
             }
         )
 
@@ -169,6 +185,20 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                             "description": "Enter the scan interval in minutes. Shorter intervals increase API usage.",
                         },
                     ): int,
+                    vol.Optional(
+                        "device_name_format",
+                        default=self.config_entry.options.get(
+                            "device_name_format", "omitted"
+                        ),
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=[
+                                {"value": "prefix", "label": "Prefix"},
+                                {"value": "suffix", "label": "Suffix"},
+                                {"value": "omitted", "label": "Omitted"},
+                            ],
+                        )
+                    ),
                 }
             ),
         )

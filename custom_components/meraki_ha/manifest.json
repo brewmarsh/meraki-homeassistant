@@ -11,7 +11,7 @@
   "version": "0.0.3",
   "loggers": ["meraki_ha"],
   "platforms": ["sensor", "switch"],
-  "homeassistant": "2024.3.0",
+  "homeassistant": "2025.3.0",
   "dependencies": [],
   "after_dependencies": []
 }
