@@ -65,6 +65,7 @@ class MerakiCoordinator(DataUpdateCoordinator):
         self.scan_interval_timedelta = scan_interval_timedelta
         self.session = aiohttp.ClientSession()
         self.config_entry = config_entry  # Store config_entry
+        self.domain = DOMAIN  # Added this line
         _LOGGER.debug("MerakiCoordinator initialized")
 
     async def _async_update_data(self) -> List[Dict[str, Any]]:
