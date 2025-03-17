@@ -66,3 +66,8 @@ class MerakiNetworkClientCountSensor(SensorEntity):
             "manufacturer": "Cisco Meraki",
             "model": "Network",
         }
+
+    @property
+    def icon(self):
+        """Return the icon of the sensor."""
+        return "mdi:account-network"  # Or any other suitable icon

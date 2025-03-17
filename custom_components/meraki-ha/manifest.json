@@ -5,7 +5,6 @@
   "config_flow": true,
   "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
   "issue_tracker": "https://github.com/brewmarsh/meraki-homeassistant/issues",
-  "icon": "mdi:router-network",
   "iot_class": "cloud_polling",
   "quality_scale": "platinum",
   "requirements": ["aiohttp"],
