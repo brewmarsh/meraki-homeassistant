@@ -19,8 +19,12 @@ try:
     increment_type = sys.argv[1]
     print(f"Increment type: {increment_type}")
 
-    # Create semver.Version object
-    semver_obj = semver.Version(version)
+    # Parse and create semver.Version
+    version_info = semver.VersionInfo.parse(version)
+    semver_obj = semver.Version(
+        str(version_info)
+    )  # create version object from version info
+
     new_version = semver_obj.bump(increment_type)
 
     print(f"New version: {new_version}")
