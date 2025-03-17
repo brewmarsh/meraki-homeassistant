@@ -33,13 +33,18 @@ async def async_setup_entry(
         coordinator = hass.data[DOMAIN][entry.entry_id][DATA_COORDINATOR]
 
         sensors: List[SensorEntity] = []
-        for device in coordinator.data:
+        for device in coordinator.data["devices"]:
             _LOGGER.debug(f"Meraki: Processing device: {device['name']}")
             sensors.append(MerakiDeviceStatusSensor(coordinator, device))
             if device["model"].startswith("MR") or device["model"].startswith("GR"):
                 _LOGGER.debug(f"Meraki: Adding MR/GR sensors for {device['name']}")
                 sensors.append(MerakiConnectedClientsSensor(coordinator, device))
                 sensors.append(MerakiRadioSettingsSensor(coordinator, device))
+                if device.get("ssids"):
+                    for ssid in device["ssids"]:
+                        sensors.append(
+                            MerakiSSIDStatusSensor(coordinator, device, ssid)
+                        )
             elif device["model"].startswith("MX"):
                 _LOGGER.debug(f"Meraki: Adding MX sensors for {device['name']}")
                 sensors.append(MerakiUplinkStatusSensor(coordinator, device))
@@ -102,4 +107,30 @@ class MerakiNetworkClientCountSensor(SensorEntity):
             "name": self._network_name,
             "manufacturer": "Cisco Meraki",
             "model": "Network",
+        }
+
+
+class MerakiSSIDStatusSensor(SensorEntity):
+    """Sensor to track the status of a Meraki SSID."""
+
+    def __init__(self, coordinator, device, ssid):
+        self._coordinator = coordinator
+        self._device = device
+        self._ssid = ssid
+        self._attr_name = f"{device['name']} - {ssid['name']} Status"
+        self._attr_unique_id = f"{device['serial']}-{ssid['name']}-status"
+
+    @property
+    def native_value(self):
+        """Return the state of the sensor."""
+        return "Enabled" if self._ssid.get("enabled", False) else "Disabled"
+
+    @property
+    def device_info(self):
+        """Return device information about this entity."""
+        return {
+            "identifiers": {(DOMAIN, self._device["serial"])},
+            "name": self._device["name"],
+            "manufacturer": "Cisco Meraki",
+            "model": self._device["model"],
         }
