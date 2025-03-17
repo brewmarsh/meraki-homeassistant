@@ -15,7 +15,7 @@ DATA_CLIENT = "client"
 DATA_COORDINATOR = "coordinator"
 """Key for storing the Meraki data coordinator in Home Assistant's data."""
 
-PLATFORMS = ["sensor"]
+PLATFORMS = ["sensor", "switch"]
 """List of platforms supported by the integration."""
 
 DEFAULT_SCAN_INTERVAL = 60

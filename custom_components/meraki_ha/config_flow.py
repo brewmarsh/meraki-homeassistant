@@ -59,11 +59,9 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
                     CONF_SCAN_INTERVAL: scan_interval,
                 }
                 _LOGGER.debug(f"User input before create entry: {merged_data}")
-                # Add unique_id based on Meraki Org ID
+                # Removed unique_id for compatibility
                 return self.async_create_entry(
-                    title="Meraki Cloud Integration",
                     data=merged_data,
-                    unique_id=user_input[CONF_MERAKI_ORG_ID],  # Add unique_id here.
                 )
 
             except ConfigEntryAuthFailed:
@@ -100,6 +98,9 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
 
     async def async_step_reauth(self, user_input=None):
         """Handle reauthentication."""
+        _LOGGER.debug(
+            "Meraki HA: async_step_reauth in config_flow.py called"
+        )  # added log
         errors: Dict[str, str] = {}
         if user_input is not None:
             _LOGGER.debug(f"Reauth User input: {user_input}")

@@ -16,13 +16,26 @@ async def async_setup_devices(hass: HomeAssistant, coordinator: MerakiCoordinato
     _LOGGER.debug("Setting up Meraki devices")
 
     device_registry = dr.async_get(hass)
-    for device in coordinator.data:
+
+    devices = coordinator.data.get("devices", [])  # Access the devices list
+    if not isinstance(devices, list):
+        _LOGGER.error("Devices data is not a list. Skipping device setup.")
+        return
+
+    for device in devices:
+        if not isinstance(device, dict):
+            _LOGGER.error(f"Device data is not a dictionary: {device}. Skipping.")
+            continue
+        if "serial" not in device:
+            _LOGGER.error(f"Device data missing 'serial' key: {device}. Skipping.")
+            continue
+
         device_registry.async_get_or_create(
             config_entry_id=coordinator.config_entry.entry_id,
             identifiers={(DOMAIN, device["serial"])},
             manufacturer="Cisco Meraki",
-            model=device["model"],
-            name=device["name"],
+            model=device.get("model"),
+            name=device.get("name"),
             sw_version=device.get("firmware"),
         )
         _LOGGER.debug(f"Device {device['serial']} created/updated")
