@@ -19,8 +19,8 @@ try:
     increment_type = sys.argv[1]
     print(f"Increment type: {increment_type}")
 
-    # Use strict version parsing
-    semver_obj = semver.VersionInfo.parse(version)
+    # Create semver.Version object
+    semver_obj = semver.Version(version)
     new_version = semver_obj.bump(increment_type)
 
     print(f"New version: {new_version}")
