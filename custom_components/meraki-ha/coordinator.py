@@ -63,7 +63,7 @@ class MerakiCoordinator(DataUpdateCoordinator):
         self.api_key = api_key
         self.org_id = org_id
         self.scan_interval_timedelta = scan_interval_timedelta
-        self.session = aiohttp.ClientSession()
+        self.session = None
         self.config_entry = config_entry  # Store config_entry
         self.domain = DOMAIN  # Added this line
         _LOGGER.debug("MerakiCoordinator initialized")
@@ -71,6 +71,8 @@ class MerakiCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> List[Dict[str, Any]]:
         """Fetch data from Meraki API endpoint."""
         _LOGGER.debug("Starting Meraki data update")
+        if self.session is None or self.session.closed:
+            self.session = aiohttp.ClientSession()
         try:
             _LOGGER.debug("Calling get_meraki_devices")
             devices: List[Dict[str, Any]] = await get_meraki_devices(
@@ -97,9 +99,9 @@ class MerakiCoordinator(DataUpdateCoordinator):
                         )
                         _LOGGER.debug(f"get_clients returned: {clients}")
                         device["connected_clients"] = clients
-                    except Exception as client_err:
+                    except Exception as client_error:
                         _LOGGER.warning(
-                            f"Failed to fetch clients for {device['serial']}: {client_err}"
+                            f"Failed to fetch clients for {device['serial']}: {client_error}"
                         )
                         device["connected_clients"] = []
                 else:
@@ -120,9 +122,9 @@ class MerakiCoordinator(DataUpdateCoordinator):
 
             _LOGGER.debug(f"Meraki data update completed: {devices}")
             return devices
-        except Exception as err:
-            _LOGGER.error(f"Error communicating with API: {err}")
-            raise UpdateFailed(f"Error communicating with API: {err}")
+        except Exception as error:
+            _LOGGER.error(f"Error communicating with API: {error}")
+            raise UpdateFailed(f"Error communicating with API: {error}")
 
     async def async_close_session(self):
         """Close the aiohttp session."""

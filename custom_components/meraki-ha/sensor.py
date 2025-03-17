@@ -15,7 +15,7 @@ from .sensor_device_status import MerakiDeviceStatusSensor
 from .meraki_api.networks import (
     get_network_clients_count,
     get_network_ids_and_names,
-)  # updated import.
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,9 +33,7 @@ async def async_setup_entry(
         sensors: list[SensorEntity] = []
         for device in coordinator.data:
             _LOGGER.debug(f"Meraki: Processing device: {device['name']}")
-            sensors.append(
-                MerakiDeviceStatusSensor(coordinator, device)
-            )  # Add device status sensor
+            sensors.append(MerakiDeviceStatusSensor(coordinator, device))
             if device["model"].startswith("MR") or device["model"].startswith("GR"):
                 _LOGGER.debug(f"Meraki: Adding MR/GR sensors for {device['name']}")
                 sensors.append(MerakiConnectedClientsSensor(coordinator, device))
@@ -44,7 +42,6 @@ async def async_setup_entry(
                 _LOGGER.debug(f"Meraki: Adding MX sensors for {device['name']}")
                 sensors.append(MerakiUplinkStatusSensor(coordinator, device))
 
-        # Add network sensors here (logic from sensor_network_status.py)
         networks = await get_network_ids_and_names(
             coordinator.api_key, coordinator.org_id
         )
