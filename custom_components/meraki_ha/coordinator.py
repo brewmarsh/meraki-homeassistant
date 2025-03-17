@@ -12,6 +12,7 @@ from .const import DOMAIN
 from .meraki_api.devices import get_meraki_devices, get_meraki_device_clients
 import aiohttp
 from .meraki_api.networks import get_meraki_networks
+from .meraki_api.wireless import get_meraki_ssids
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -68,7 +69,7 @@ class MerakiCoordinator(DataUpdateCoordinator):
         self.domain = DOMAIN  # Added this line
         _LOGGER.debug("MerakiCoordinator initialized")
 
-    async def _async_update_data(self) -> List[Dict[str, Any]]:
+    async def _async_update_data(self) -> Dict[str, Any]:
         """Fetch data from Meraki API endpoint."""
         _LOGGER.debug("Starting Meraki data update")
         device_registry = dr.async_get(self.hass)
@@ -86,6 +87,7 @@ class MerakiCoordinator(DataUpdateCoordinator):
             if devices is None:
                 raise UpdateFailed("Error communicating with Meraki API")
             processed_devices = []
+            network_id = None  # initialize network_id
             for device in devices:
                 device_data = {}
                 for key, value in device.items():
@@ -94,6 +96,10 @@ class MerakiCoordinator(DataUpdateCoordinator):
                     else:
                         _LOGGER.warning(f"Found None key in device data: {device}")
                 processed_devices.append(device_data)
+                if network_id is None and device.get(
+                    "networkId"
+                ):  # If network_id is not already set and device has a networkId, set it.
+                    network_id = device.get("networkId")
 
             for device in processed_devices:
                 model: str = device["model"].strip()
@@ -131,8 +137,23 @@ class MerakiCoordinator(DataUpdateCoordinator):
                 )
                 _LOGGER.debug(f"Device {device['serial']} created/updated")
 
+            # Retrieve SSIDs for each wireless device
+            for device in processed_devices:
+                if device.get("productType") == "wireless":
+                    network_id = device.get("networkId")
+                    if network_id:
+                        _LOGGER.debug(
+                            f"Calling get_meraki_ssids for network {network_id}"
+                        )
+                        ssids = await get_meraki_ssids(
+                            network_id, api_key, self.session
+                        )
+                        device["ssids"] = ssids
+
             _LOGGER.debug(f"Meraki data update completed: {processed_devices}")
-            return processed_devices
+            self.data = {"devices": processed_devices, "network_id": network_id}
+            _LOGGER.debug(f"Coordinator data: {self.data}")
+            return self.data
         except aiohttp.ClientError as client_error:
             _LOGGER.error(f"Client error communicating with API: {client_error}")
             raise UpdateFailed(f"Client error communicating with API: {client_error}")
@@ -156,7 +177,7 @@ class MerakiCoordinator(DataUpdateCoordinator):
         finally:
             self.hass.bus.async_listen_once("homeassistant_stop", self._async_shutdown)
 
-    async def async_create_network_devices(self):  # Function call from init.py
+    async def async_create_network_devices(self):
         """Create Meraki Network Devices"""
         api_key = self.config_entry.options.get("meraki_api_key")
         org_id = self.config_entry.options.get("meraki_org_id")
@@ -165,5 +186,5 @@ class MerakiCoordinator(DataUpdateCoordinator):
             api_key,
             self.config_entry.entry_id,
             org_id,
-            self.session,  # added self.session
-        )  # org_id added here.
+            self.session,
+        )
