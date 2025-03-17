@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # Fetch the full history
+          fetch-depth: 0 # Needed for git history
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -20,6 +20,9 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Set Package Version
+        run: npm run set-version
 
       - name: Generate Changelog
         run: npx conventional-changelog -p angular -i CHANGELOG.md -s

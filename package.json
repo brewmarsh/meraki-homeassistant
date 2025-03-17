@@ -1,0 +1,15 @@
+{
+  "name": "meraki-homeassistant",
+  "version": "0.0.0",
+  "description": "Meraki Home Assistant Integration",
+  "scripts": {
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
+    "set-version": "node get-version.js && npm version $(node get-version.js) --no-git-tag-version"
+  },
+  "devDependencies": {
+    "conventional-changelog-cli": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
