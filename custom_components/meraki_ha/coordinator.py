@@ -127,12 +127,25 @@ class MerakiCoordinator(DataUpdateCoordinator):
                 # Device creation logic
                 _LOGGER.debug(f"Creating/Updating device: {device['serial']}")
 
+                device_type = device.get("productType", "Unknown")
+                device_name = device["name"]
+                device_name_format = self.config_entry.options.get(
+                    "device_name_format", "omitted"
+                )
+
+                if device_name_format == "prefix":
+                    formatted_device_name = f"[{device_type}] {device_name}"
+                elif device_name_format == "suffix":
+                    formatted_device_name = f"{device_name} [{device_type}]"
+                else:  # omitted
+                    formatted_device_name = device_name
+
                 device_registry.async_get_or_create(
                     config_entry_id=self.config_entry.entry_id,
                     identifiers={(DOMAIN, device["serial"])},
                     manufacturer="Cisco Meraki",
                     model=device["model"],
-                    name=device["name"],
+                    name=formatted_device_name,  # Use the formatted name
                     sw_version=device.get("firmware"),
                 )
                 _LOGGER.debug(f"Device {device['serial']} created/updated")
@@ -180,15 +193,3 @@ class MerakiCoordinator(DataUpdateCoordinator):
             await super().async_config_entry_first_refresh()
         finally:
             self.hass.bus.async_listen_once("homeassistant_stop", self._async_shutdown)
-
-    async def async_create_network_devices(self):
-        """Create Meraki Network Devices"""
-        api_key = self.config_entry.options.get("meraki_api_key")
-        org_id = self.config_entry.options.get("meraki_org_id")
-        await async_create_meraki_network_devices(
-            self.hass,
-            api_key,
-            self.config_entry.entry_id,
-            org_id,
-            self.session,
-        )
