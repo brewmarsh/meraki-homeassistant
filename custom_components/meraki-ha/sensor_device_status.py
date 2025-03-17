@@ -58,6 +58,9 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
         elif self._device["model"].startswith("MT"):
             device_icon = "mdi:thermometer"
         # Add more device types as needed
+        _LOGGER.debug(f"Domain: {self.coordinator.domain}")
+        _LOGGER.debug(f"Serial Number: {self._device['serial']}")
+        _LOGGER.debug(f"Device Data: {self._device}")
 
         return {
             "identifiers": {(self.coordinator.domain, self._device["serial"])},
