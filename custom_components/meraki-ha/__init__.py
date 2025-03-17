@@ -20,7 +20,6 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-_LOGGER.debug("meraki_ha: Starting __init__.py import")
 
 # PLATFORMS: list[str] = ["sensor", "sensor_network_status"] #Added sensor_network_status here.
 
@@ -50,11 +49,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         }
 
         await coordinator.async_config_entry_first_refresh()
-        await coordinator.async_create_network_devices()  # Add this line.
+        await coordinator.async_create_network_devices()
 
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
         _LOGGER.debug("Meraki async_forward_entry_setups called")
-        return True
 
     except KeyError as e:
         _LOGGER.error(
@@ -63,7 +61,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         return False
     except Exception as e:
         _LOGGER.error(
-            f"Unexpected error during setup: {e}. Entry options: {entry.options}"
+            f"Unexpected error during setup: {type(e).__name__}: {e}. Entry options: {entry.options}"
         )  # changed to options
         return False
 

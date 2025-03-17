@@ -7,16 +7,19 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .meraki_api.wireless import get_meraki_device_wireless_radio_settings
-from .meraki_api.exceptions import MerakiApiError
 from .const import DOMAIN
+from .coordinator import MerakiCoordinator
 
 _LOGGER = logging.getLogger(__name__)
+
+UNAVAILABLE = "Unavailable"
+ERROR = "Error"
 
 
 class MerakiRadioSettingsSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki Radio Settings sensor."""
 
-    def __init__(self, coordinator, device: Dict[str, Any]) -> None:
+    def __init__(self, coordinator: MerakiCoordinator, device: Dict[str, Any]) -> None:
         """Initialize the Meraki Radio Settings sensor."""
         super().__init__(coordinator)
         self._device = device
@@ -29,7 +32,6 @@ class MerakiRadioSettingsSensor(CoordinatorEntity, SensorEntity):
             "serial_number": device.get("serial"),
             "firmware_version": device.get("firmware"),
         }
-        self._attr_extra_state_attributes["serial_number"] = device.get("serial")
         _LOGGER.debug(f"Meraki: Radio Sensor Initialized: {self._attr_name}")
 
     async def async_update(self) -> None:
@@ -45,14 +47,10 @@ class MerakiRadioSettingsSensor(CoordinatorEntity, SensorEntity):
                 self._attr_native_value = radio_settings["channel"]
                 self._attr_extra_state_attributes.update(radio_settings)
             else:
-                self._attr_native_value = "Unavailable"
-                self._attr_extra_state_attributes.update({"channel": None})
-        except MerakiApiError as e:
-            _LOGGER.error(f"Meraki: Error fetching radio settings: {e}")
-            self._attr_native_value = "Error"
+                self._attr_native_value = UNAVAILABLE
         except Exception as e:
             _LOGGER.error(f"Meraki: Unexpected error fetching radio settings: {e}")
-            self._attr_native_value = "Error"
+            self._attr_native_value = ERROR
 
     @property
     def native_value(self) -> str | None:
@@ -66,7 +64,7 @@ class MerakiRadioSettingsSensor(CoordinatorEntity, SensorEntity):
         return self._attr_extra_state_attributes.copy()
 
     @property
-    def device_info(self):
+    def device_info(self) -> Dict[str, Any]:
         """Return device information about this entity."""
         return {
             "identifiers": {(DOMAIN, self._device["serial"])},

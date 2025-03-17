@@ -3,6 +3,7 @@
 import logging
 
 from homeassistant.components.sensor import SensorEntity
+from typing import List
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -16,6 +17,7 @@ from .meraki_api.networks import (
     get_network_clients_count,
     get_network_ids_and_names,
 )
+import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,7 +32,7 @@ async def async_setup_entry(
     try:
         coordinator = hass.data[DOMAIN][entry.entry_id][DATA_COORDINATOR]
 
-        sensors: list[SensorEntity] = []
+        sensors: List[SensorEntity] = []
         for device in coordinator.data:
             _LOGGER.debug(f"Meraki: Processing device: {device['name']}")
             sensors.append(MerakiDeviceStatusSensor(coordinator, device))
@@ -42,9 +44,10 @@ async def async_setup_entry(
                 _LOGGER.debug(f"Meraki: Adding MX sensors for {device['name']}")
                 sensors.append(MerakiUplinkStatusSensor(coordinator, device))
 
-        networks = await get_network_ids_and_names(
-            coordinator.api_key, coordinator.org_id
-        )
+        async with aiohttp.ClientSession() as session:
+            networks = await get_network_ids_and_names(
+                coordinator.api_key, coordinator.org_id, session
+            )
         _LOGGER.debug(f"sensor.py: Networks retrieved: {networks}")
 
         if networks is not None:
@@ -56,28 +59,31 @@ async def async_setup_entry(
                 )
 
         async_add_entities(sensors)
-        _LOGGER.debug(f"Meraki: Meraki Sensors added: {sensors}")
+    except KeyError as e:
+        _LOGGER.error(f"Meraki: KeyError setting up meraki_ha sensors: {e}")
+    except TypeError as e:
+        _LOGGER.error(f"Meraki: TypeError setting up meraki_ha sensors: {e}")
+    except ValueError as e:
+        _LOGGER.error(f"Meraki: ValueError setting up meraki_ha sensors: {e}")
     except Exception as e:
+        _LOGGER.error(f"Meraki: Unexpected error setting up meraki_ha sensors: {e}")
         _LOGGER.error(f"Meraki: Error setting up meraki_ha sensors: {e}")
 
 
 class MerakiNetworkClientCountSensor(SensorEntity):
-    """Representation of a Meraki network client count sensor."""
-
     def __init__(self, coordinator, network_id, network_name):
-        """Initialize the sensor."""
-        self._coordinator = coordinator
-        self._network_id = network_id
-        self._network_name = network_name
-        self._attr_name = f"{network_name} Clients (24h)"
-        self._attr_unique_id = f"{DOMAIN}_{network_id}_clients_24h"
-        self._attr_icon = "mdi:network"
+        """
+        Initialize the sensor.
+
+        Args:
+        """
 
     async def async_update(self):
-        """Fetch new state data for the sensor."""
-        self._attr_native_value = await get_network_clients_count(
-            self._coordinator.api_key, self._network_id
-        )
+        async with aiohttp.ClientSession() as session:
+            self._attr_native_value = await get_network_clients_count(
+                self._coordinator.api_key, self._network_id, session
+            )
+        self.async_write_ha_state()
 
     @property
     def device_info(self):

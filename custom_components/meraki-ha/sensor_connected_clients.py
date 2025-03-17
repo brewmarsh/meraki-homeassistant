@@ -9,6 +9,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .meraki_api.devices import get_meraki_device_clients
 from .meraki_api.exceptions import MerakiApiError
 from .const import DOMAIN
+from .coordinator import MerakiCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiConnectedClientsSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki Connected Clients sensor."""
 
-    def __init__(self, coordinator, device: Dict[str, Any]) -> None:
+    def __init__(self, coordinator: MerakiCoordinator, device: Dict[str, Any]) -> None:
         """Initialize the Meraki Connected Clients sensor."""
         super().__init__(coordinator)
         self._device = device
@@ -29,7 +30,6 @@ class MerakiConnectedClientsSensor(CoordinatorEntity, SensorEntity):
             "serial_number": device.get("serial"),
             "firmware_version": device.get("firmware"),
         }
-        self._attr_extra_state_attributes["serial_number"] = device.get("serial")
         _LOGGER.debug(
             f"Meraki: Connected Clients Sensor Initialized: {self._attr_name}"
         )
@@ -39,8 +39,9 @@ class MerakiConnectedClientsSensor(CoordinatorEntity, SensorEntity):
         _LOGGER.debug(f"Meraki: Updating sensor state for {self._attr_name}")
         try:
             clients = await get_meraki_device_clients(
+                self.coordinator.session,
                 self.coordinator.api_key,
-                self.coordinator.org_id,
+                self._device["networkId"],  # Use device network ID
                 self._device["serial"],
             )
             self._attr_native_value = len(clients)
