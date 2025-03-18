@@ -15,8 +15,24 @@ DATA_CLIENT = "client"
 DATA_COORDINATOR = "coordinator"
 """Key for storing the Meraki data coordinator in Home Assistant's data."""
 
-PLATFORMS = ["sensor", "switch"]
-"""List of platforms supported by the integration."""
-
 DEFAULT_SCAN_INTERVAL = 60
 """Default scan interval for the Meraki API data."""
+
+# Platform types
+PLATFORM_SENSOR = "sensor"
+PLATFORM_DEVICE_TRACKER = "device_tracker"
+PLATFORM_DEVICE = "device"
+
+PLATFORMS = [PLATFORM_SENSOR, PLATFORM_DEVICE_TRACKER, PLATFORM_DEVICE]
+"""List of platforms supported by the integration."""
+
+# Sensor types
+SENSOR_CLIENT_COUNT = "client_count"
+SENSOR_SIGNAL_STRENGTH = "signal_strength"
+SENSOR_DATA_USAGE = "data_usage"
+SENSOR_SSID_AVAILABILITY = "ssid_availability"
+SENSOR_SSID_CHANNEL = "ssid_channel"
+
+# Device Attributes
+ATTR_CONNECTED_CLIENTS = "connected_clients"
+ATTR_SSIDS = "ssids"

@@ -8,7 +8,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .meraki_api.wireless import get_meraki_device_wireless_radio_settings
 from .const import DOMAIN
-from .coordinator import MerakiCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,7 +18,7 @@ ERROR = "Error"
 class MerakiRadioSettingsSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki Radio Settings sensor."""
 
-    def __init__(self, coordinator: MerakiCoordinator, device: Dict[str, Any]) -> None:
+    def __init__(self, coordinator: CoordinatorEntity, device: Dict[str, Any]) -> None:
         """Initialize the Meraki Radio Settings sensor."""
         super().__init__(coordinator)
         self._device = device

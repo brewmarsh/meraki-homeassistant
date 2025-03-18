@@ -1,4 +1,7 @@
-"""Sensor platform for the meraki_ha integration."""
+"""Provide sensor platform for the meraki_ha integration.
+
+This module sets up various sensors for the Meraki integration in Home Assistant.
+"""
 
 import logging
 
@@ -7,8 +10,17 @@ from typing import List
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.device_registry import DeviceInfo
 
-from .const import DATA_COORDINATOR, DOMAIN
+from .const import (
+    DATA_COORDINATOR,
+    DOMAIN,
+    SENSOR_CLIENT_COUNT,
+    SENSOR_SSID_AVAILABILITY,
+    SENSOR_SSID_CHANNEL,
+    ATTR_CONNECTED_CLIENTS,
+    ATTR_SSIDS,
+)
 from .sensor_connected_clients import MerakiConnectedClientsSensor
 from .sensor_radio_settings import MerakiRadioSettingsSensor
 from .sensor_uplink_status import MerakiUplinkStatusSensor
@@ -40,11 +52,9 @@ async def async_setup_entry(
                 _LOGGER.debug(f"Meraki: Adding MR/GR sensors for {device['name']}")
                 sensors.append(MerakiConnectedClientsSensor(coordinator, device))
                 sensors.append(MerakiRadioSettingsSensor(coordinator, device))
-                if device.get("ssids"):
-                    for ssid in device["ssids"]:
-                        sensors.append(
-                            MerakiSSIDStatusSensor(coordinator, device, ssid)
-                        )
+                if device.get(ATTR_SSIDS):
+                    for ssid in device[ATTR_SSIDS]:
+                        sensors.extend(create_ssid_sensors(coordinator, device, ssid))
             elif device["model"].startswith("MX"):
                 _LOGGER.debug(f"Meraki: Adding MX sensors for {device['name']}")
                 sensors.append(MerakiUplinkStatusSensor(coordinator, device))
@@ -77,13 +87,19 @@ async def async_setup_entry(
         _LOGGER.error(f"Meraki: Error setting up meraki_ha sensors: {e}")
 
 
+def create_ssid_sensors(coordinator, device, ssid):
+    """Create sensor entities for a given SSID."""
+    sensors = []
+    sensors.append(MerakiSSIDAvailabilitySensor(coordinator, device, ssid))
+    sensors.append(MerakiSSIDChannelSensor(coordinator, device, ssid))
+    sensors.append(MerakiSSIDClientCountSensor(coordinator, device, ssid))
+    # Add other sensor types as needed
+    return sensors
+
+
 class MerakiNetworkClientCountSensor(SensorEntity):
     def __init__(self, coordinator, network_id, network_name):
-        """
-        Initialize the sensor.
-
-        Args:
-        """
+        """Initialize the sensor."""
         self._coordinator = coordinator
         self._network_id = network_id
         self._network_name = network_name
@@ -100,25 +116,27 @@ class MerakiNetworkClientCountSensor(SensorEntity):
         self.async_write_ha_state()
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         """Return device information about this entity."""
-        return {
-            "identifiers": {(DOMAIN, self._network_id)},
-            "name": self._network_name,
-            "manufacturer": "Cisco Meraki",
-            "model": "Network",
-        }
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._network_id)},
+            name=self._network_name,
+            manufacturer="Cisco Meraki",
+            model="Network",
+        )
 
 
-class MerakiSSIDStatusSensor(SensorEntity):
-    """Sensor to track the status of a Meraki SSID."""
+class MerakiSSIDAvailabilitySensor(SensorEntity):
+    """Sensor to track the availability of a Meraki SSID."""
 
     def __init__(self, coordinator, device, ssid):
+        """Initialize the sensor."""
         self._coordinator = coordinator
         self._device = device
         self._ssid = ssid
-        self._attr_name = f"{device['name']} - {ssid['name']} Status"
-        self._attr_unique_id = f"{device['serial']}-{ssid['name']}-status"
+        self._attr_name = f"{device['name']} - {ssid['name']} Availability"
+        self._attr_unique_id = f"{device['serial']}-{ssid['name']}-availability"
+        self._attr_device_class = SENSOR_SSID_AVAILABILITY
 
     @property
     def native_value(self):
@@ -126,11 +144,74 @@ class MerakiSSIDStatusSensor(SensorEntity):
         return "Enabled" if self._ssid.get("enabled", False) else "Disabled"
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         """Return device information about this entity."""
-        return {
-            "identifiers": {(DOMAIN, self._device["serial"])},
-            "name": self._device["name"],
-            "manufacturer": "Cisco Meraki",
-            "model": self._device["model"],
-        }
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device["serial"])},
+            name=self._device["name"],
+            manufacturer="Cisco Meraki",
+            model=self._device["model"],
+        )
+
+
+class MerakiSSIDChannelSensor(SensorEntity):
+    """Sensor to track the channel of a Meraki SSID."""
+
+    def __init__(self, coordinator, device, ssid):
+        """Initialize the sensor."""
+        self._coordinator = coordinator
+        self._device = device
+        self._ssid = ssid
+        self._attr_name = f"{device['name']} - {ssid['name']} Channel"
+        self._attr_unique_id = f"{device['serial']}-{ssid['name']}-channel"
+        self._attr_device_class = SENSOR_SSID_CHANNEL
+
+    @property
+    def native_value(self):
+        """Return the state of the sensor."""
+        return self._ssid.get("channel")
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information about this entity."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device["serial"])},
+            name=self._device["name"],
+            manufacturer="Cisco Meraki",
+            model=self._device["model"],
+        )
+
+
+class MerakiSSIDClientCountSensor(SensorEntity):
+    """Sensor to track the client count of a Meraki SSID."""
+
+    def __init__(self, coordinator, device, ssid):
+        """Initialize the sensor."""
+        self._coordinator = coordinator
+        self._device = device
+        self._ssid = ssid
+        self._attr_name = f"{device['name']} - {ssid['name']} Client Count"
+        self._attr_unique_id = f"{device['serial']}-{ssid['name']}-client-count"
+        self._attr_device_class = SENSOR_CLIENT_COUNT
+
+    @property
+    def native_value(self):
+        """Return the state of the sensor."""
+        clients = self._device.get(ATTR_CONNECTED_CLIENTS, [])
+        return len(
+            [
+                client
+                for client in clients
+                if client.get("ssidName") == self._ssid.get("name")
+            ]
+        )
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information about this entity."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device["serial"])},
+            name=self._device["name"],
+            manufacturer="Cisco Meraki",
+            model=self._device["model"],
+        )
