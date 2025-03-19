@@ -1,4 +1,3 @@
----
 name: Increment Version on Merge
 
 on:
@@ -14,8 +13,8 @@ jobs:
   increment_version:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-    permissions: # added permissions section
-      contents: write # grants write permission to the contents of the repo.
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -31,19 +30,19 @@ jobs:
       - name: Determine Increment Type and Increment Version
         id: increment
         run: |
-          python .github/workflows/increment_version.py minor
           if [[ "${{ github.event.pull_request.title }}" == *"[minor]"* ]]; then
-            echo "increment_type=minor" >> $GITHUB_OUTPUT
-          python .github/workflows/increment_version.py minor
+            increment_type="minor"
           elif [[ "${{ github.event.pull_request.title }}" == *"[major]"* ]]; then
-            echo "increment_type=major" >> $GITHUB_OUTPUT
-            python .github/workflows/increment_version.py major
+            increment_type="major"
           else
-            python .github/workflows/increment_version.py patch
-            echo "increment_type=patch" >> $GITHUB_OUTPUT
+            increment_type="patch"
           fi
+          python .github/workflows/increment_version.py "$increment_type"
+          echo "increment_type=$increment_type" >> "$GITHUB_OUTPUT"
+
       - name: Display manifest.json content
         run: cat custom_components/meraki-ha/manifest.json
+
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
