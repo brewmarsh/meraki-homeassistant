@@ -29,10 +29,15 @@ class MerakiNetworkCoordinator(MerakiBaseCoordinator):
             }
             url = f"https://api.meraki.com/api/v1/organizations/{org_id}/networks"
 
+            _LOGGER.debug(f"Making API call to get networks: {url}")  # added log
             async with self.session.get(url, headers=headers) as resp:
+                _LOGGER.debug(
+                    f"API response status for networks: {resp.status}"
+                )  # added log
                 if resp.status != 200:
                     raise UpdateFailed("Failed to retrieve Meraki networks.")
                 networks = await resp.json()
+                _LOGGER.debug(f"Networks retrieved: {networks}")  # added log
 
             if not networks or len(networks) == 0:
                 _LOGGER.warning("Failed to retrieve Meraki networks.")

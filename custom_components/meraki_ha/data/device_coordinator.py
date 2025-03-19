@@ -30,18 +30,33 @@ class MerakiDeviceCoordinator(MerakiBaseCoordinator):
             }
             url = f"https://api.meraki.com/api/v1/organizations/{org_id}/networks"
 
+            _LOGGER.debug(f"Making API call to get networks: {url}")  # added log
             async with self.session.get(url, headers=headers) as resp:
+                _LOGGER.debug(
+                    f"API response status for networks: {resp.status}"
+                )  # added log
                 if resp.status != 200:
                     raise UpdateFailed("Error communicating with Meraki API")
                 networks = await resp.json()
+                _LOGGER.debug(f"Networks retrieved: {networks}")  # added log
                 devices = []
                 for network in networks:
                     device_url = f"https://api.meraki.com/api/v1/networks/{network['id']}/devices"
+                    _LOGGER.debug(
+                        f"Making API call to get devices from network {network['id']}: {device_url}"
+                    )  # added log
                     async with self.session.get(
                         device_url, headers=headers
                     ) as device_resp:
+                        _LOGGER.debug(
+                            f"API response status for devices: {device_resp.status}"
+                        )  # added log
                         if device_resp.status == 200:
-                            devices.extend(await device_resp.json())
+                            retrieved_devices = await device_resp.json()
+                            _LOGGER.debug(
+                                f"Devices retrieved from network {network['id']}: {retrieved_devices}"
+                            )  # added log
+                            devices.extend(retrieved_devices)
 
             _LOGGER.debug(f"Meraki devices returned: {devices}")
 
@@ -57,11 +72,20 @@ class MerakiDeviceCoordinator(MerakiBaseCoordinator):
                     _LOGGER.debug(f"Fetching clients for {device['serial']}")
                     try:
                         clients_url = f"https://api.meraki.com/api/v1/networks/{device['networkId']}/clients?perPage=1000&serials[]={device['serial']}"
+                        _LOGGER.debug(
+                            f"Making API call to get clients for device {device['serial']}: {clients_url}"
+                        )  # added log
                         async with self.session.get(
                             clients_url, headers=headers
                         ) as clients_resp:
+                            _LOGGER.debug(
+                                f"API response status for clients: {clients_resp.status}"
+                            )  # added log
                             if clients_resp.status == 200:
                                 clients = await clients_resp.json()
+                                _LOGGER.debug(
+                                    f"Clients retrieved for device {device['serial']}: {clients}"
+                                )  # added log
                                 device["connected_clients"] = clients
                             else:
                                 device["connected_clients"] = []

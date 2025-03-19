@@ -1,9 +1,7 @@
-"""Provide sensor platform for the meraki_ha integration.
-
-This module sets up various sensors for the Meraki integration in Home Assistant.
-"""
+"""Provide sensor platform for the meraki_ha integration."""
 
 import logging
+import traceback
 
 from homeassistant.components.sensor import SensorEntity
 from typing import List
@@ -43,10 +41,12 @@ async def async_setup_entry(
     _LOGGER.debug("Meraki: sensor.py async_setup_entry called")
     try:
         coordinator = hass.data[DOMAIN][entry.entry_id][DATA_COORDINATOR]
+        _LOGGER.debug(f"Coordinator data: {coordinator.data}")
 
         sensors: List[SensorEntity] = []
         for device in coordinator.data["devices"]:
             _LOGGER.debug(f"Meraki: Processing device: {device['name']}")
+            _LOGGER.debug(f"Device model: {device['model']}")
             sensors.append(MerakiDeviceStatusSensor(coordinator, device))
             if device["model"].startswith("MR") or device["model"].startswith("GR"):
                 _LOGGER.debug(f"Meraki: Adding MR/GR sensors for {device['name']}")
@@ -54,6 +54,9 @@ async def async_setup_entry(
                 sensors.append(MerakiRadioSettingsSensor(coordinator, device))
                 if device.get(ATTR_SSIDS):
                     for ssid in device[ATTR_SSIDS]:
+                        _LOGGER.debug(
+                            f"Creating SSID sensors for {ssid['name']} on device {device['serial']}"
+                        )
                         sensors.extend(create_ssid_sensors(coordinator, device, ssid))
             elif device["model"].startswith("MX"):
                 _LOGGER.debug(f"Meraki: Adding MX sensors for {device['name']}")
@@ -63,7 +66,7 @@ async def async_setup_entry(
             networks = await get_network_ids_and_names(
                 coordinator.config_entry.options.get("meraki_api_key"),
                 coordinator.config_entry.options.get("meraki_org_id"),
-                session,  # Updated to get from config_entry
+                session,
             )
         _LOGGER.debug(f"sensor.py: Networks retrieved: {networks}")
 
@@ -75,16 +78,21 @@ async def async_setup_entry(
                     )
                 )
 
+        _LOGGER.debug(f"Total sensors added: {len(sensors)}")
+
         async_add_entities(sensors)
     except KeyError as e:
         _LOGGER.error(f"Meraki: KeyError setting up meraki_ha sensors: {e}")
+        _LOGGER.error(f"Traceback: {traceback.format_exc()}")
     except TypeError as e:
         _LOGGER.error(f"Meraki: TypeError setting up meraki_ha sensors: {e}")
+        _LOGGER.error(f"Traceback: {traceback.format_exc()}")
     except ValueError as e:
         _LOGGER.error(f"Meraki: ValueError setting up meraki_ha sensors: {e}")
+        _LOGGER.error(f"Traceback: {traceback.format_exc()}")
     except Exception as e:
         _LOGGER.error(f"Meraki: Unexpected error setting up meraki_ha sensors: {e}")
-        _LOGGER.error(f"Meraki: Error setting up meraki_ha sensors: {e}")
+        _LOGGER.error(f"Traceback: {traceback.format_exc()}")
 
 
 def create_ssid_sensors(coordinator, device, ssid):

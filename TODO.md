@@ -30,3 +30,4 @@
 - [ ] Convert to using the Meraki python library
 - [ ] Add full Home Assistant branding support
 - [ ] Add device tracker support (Meraki client devices)
+- [ ] Refactor and reorganize sensor files

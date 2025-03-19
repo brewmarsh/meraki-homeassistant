@@ -43,8 +43,13 @@ class MerakiSsidCoordinator(DataUpdateCoordinator):
         }
         _LOGGER.debug(f"Fetching SSIDs for network ID: {network_id}")
         try:
+            _LOGGER.debug(f"Making API call to: {url}")  # added log
             async with self.session.get(url, headers=headers) as response:
                 _LOGGER.debug(f"Meraki API Response Status: {response.status}")
+                if response.status != 200:
+                    _LOGGER.error(
+                        f"API returned non-200 status: {response.status}"
+                    )  # added log
                 response.raise_for_status()
                 json_data = await response.json()
                 _LOGGER.debug(f"Meraki API Response JSON: {json_data}")
@@ -73,6 +78,7 @@ class MerakiSsidCoordinator(DataUpdateCoordinator):
                     network_ssids = await self._async_get_ssids(network_id)
                     if network_ssids:
                         ssids.extend(network_ssids)
+            _LOGGER.debug(f"Total SSIDs fetched: {len(ssids)}")  # added log
             return {"ssids": ssids}
         except UpdateFailed as err:
             _LOGGER.error(f"Update failed: {err}")

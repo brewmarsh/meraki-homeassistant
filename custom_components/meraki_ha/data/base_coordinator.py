@@ -42,10 +42,14 @@ class MerakiBaseCoordinator(DataUpdateCoordinator):
                 "Content-Type": "application/json",
             }
             url = f"https://api.meraki.com/api/v1/organizations/{self.org_id}"  # Or some base level API call.
+            _LOGGER.debug(f"Making API call to: {url}")  # added log
             async with self.session.get(url, headers=headers) as resp:
+                _LOGGER.debug(f"API response status: {resp.status}")  # added log
                 if resp.status != 200:
                     raise UpdateFailed(f"API error: {resp.status}")
-                return await resp.json()
+                response_json = await resp.json()
+                _LOGGER.debug(f"API response JSON: {response_json}")  # added log
+                return response_json
 
         except aiohttp.ClientError as e:
             _LOGGER.error(f"API communication error: {e}")
