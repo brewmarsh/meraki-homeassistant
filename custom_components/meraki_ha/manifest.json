@@ -7,7 +7,7 @@
   "issue_tracker": "https://github.com/brewmarsh/meraki-homeassistant/issues",
   "iot_class": "cloud_polling",
   "quality_scale": "platinum",
-  "requirements": ["aiohttp"],
+  "requirements": ["meraki", "aiohttp"],
   "version": "0.0.3",
   "loggers": ["meraki_ha"],
   "platforms": ["sensor", "switch"],
