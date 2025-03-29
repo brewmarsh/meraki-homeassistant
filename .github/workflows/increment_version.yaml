@@ -7,7 +7,7 @@ on:
     branches:
       - main
     paths:
-      - 'custom_components/meraki-ha/**'
+      - 'custom_components/meraki_ha/**'
 
 jobs:
   increment_version:
