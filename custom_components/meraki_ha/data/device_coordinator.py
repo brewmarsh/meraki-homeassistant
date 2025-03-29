@@ -1,7 +1,7 @@
 """Device data coordinator for the meraki_ha integration."""
 
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -70,10 +70,13 @@ class MerakiDeviceCoordinator(MerakiBaseCoordinator):
                 device_data = {k: v for k, v in device.items() if k is not None}
                 processed_devices.append(device_data)
 
-                if (
-                    device.get("productType") == "MR"
-                    or device.get("productType") == "GR"
-                ):
+                _LOGGER.debug(
+                    f"Device {device['serial']} productType: {device.get('productType')}"
+                )
+
+                if device.get("model", "").startswith("MR") or device.get(
+                    "model", ""
+                ).startswith("GR"):
                     _LOGGER.debug(f"Fetching clients for {device['serial']}")
                     try:
                         clients_url = f"https://api.meraki.com/api/v1/networks/{device['networkId']}/clients?perPage=1000&serials[]={device['serial']}"
@@ -87,24 +90,51 @@ class MerakiDeviceCoordinator(MerakiBaseCoordinator):
                                 f"API response status for clients: {clients_resp.status}"
                             )
                             if clients_resp.status == 200:
-                                clients = await clients_resp.json()
+                                clients: List[Dict[str, Any]] = (
+                                    await clients_resp.json()
+                                )
                                 _LOGGER.debug(
                                     f"Clients retrieved for device {device['serial']}: {clients}"
                                 )
-                                device["connected_clients"] = clients
+                                # Filter clients to only those connected to the current device
+                                filtered_clients = [
+                                    client
+                                    for client in clients
+                                    if client.get("recentDeviceSerial")
+                                    == device["serial"]
+                                ]
+                                device["connected_clients"] = len(
+                                    filtered_clients
+                                )  # Store the count here
+                                _LOGGER.debug(
+                                    f"Added connected_clients key for {device['serial']}: {device['connected_clients']}"
+                                )  # added log
                             else:
                                 _LOGGER.warning(
                                     f"Failed to get clients for {device['serial']}. Status: {clients_resp.status}"
                                 )
-                                device["connected_clients"] = []
+                                _LOGGER.debug(
+                                    f"Clients API response: {await clients_resp.text()}"
+                                )  # added log.
+                                device["connected_clients"] = 0  # store 0 if no clients
+                                _LOGGER.debug(
+                                    f"Added connected_clients key for {device['serial']}: {device['connected_clients']}"
+                                )  # added log
 
                     except Exception as client_error:
                         _LOGGER.warning(
                             f"Failed to fetch clients for {device['serial']}: {client_error}"
                         )
-                        device["connected_clients"] = []
+                        device["connected_clients"] = 0  # store 0 if client error.
+                        _LOGGER.debug(
+                            f"Added connected_clients key for {device['serial']}: {device['connected_clients']}"
+                        )  # added log
+
                 else:
-                    device["connected_clients"] = []
+                    device["connected_clients"] = 0  # store 0 for non wireless devices.
+                    _LOGGER.debug(
+                        f"Added connected_clients key for {device['serial']}: {device['connected_clients']}"
+                    )  # added log
 
                 # Device creation logic
                 _LOGGER.debug(f"Creating/Updating device: {device['serial']}")

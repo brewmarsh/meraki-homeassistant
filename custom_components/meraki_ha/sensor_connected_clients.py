@@ -1,16 +1,13 @@
 """Sensor platform for the meraki_ha integration."""
 
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.core import callback
 
-from .meraki_api.devices import get_meraki_device_clients
-from .meraki_api.exceptions import MerakiApiError
 from .const import DOMAIN
-
-# from .coordinator import MerakiCoordinator #Removed import
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,27 +31,50 @@ class MerakiConnectedClientsSensor(CoordinatorEntity, SensorEntity):
         _LOGGER.debug(
             f"Meraki: Connected Clients Sensor Initialized: {self._attr_name}"
         )
+        self._attr_native_value = self._get_client_count()
+        self._attr_native_unit_of_measurement = "clients"
+        self._attr_state_class = "measurement"
 
-    async def async_update(self) -> None:
-        """Update the sensor state."""
-        _LOGGER.debug(f"Meraki: Updating sensor state for {self._attr_name}")
-        try:
-            clients = await get_meraki_device_clients(
-                self.coordinator.session,
-                self.coordinator.api_key,
-                self._device["networkId"],  # Use device network ID
-                self._device["serial"],
+    def _get_client_count(self) -> Optional[int]:
+        """Get the client count from the coordinator data."""
+        _LOGGER.debug(f"Meraki: Getting client count for {self._device['serial']}")
+        _LOGGER.debug(f"Meraki: Coordinator data: {self.coordinator.data}")
+        device_data = next(
+            (
+                d
+                for d in self.coordinator.data.get("devices", [])
+                if d["serial"] == self._device["serial"]
+            ),
+            None,
+        )
+        if device_data:
+            _LOGGER.debug(f"Meraki: Found device data: {device_data}")
+            _LOGGER.debug(
+                f"Meraki: Connected clients data: {device_data.get('connected_clients')}"
             )
-            self._attr_native_value = len(clients)
-        except MerakiApiError as e:
-            _LOGGER.error(f"Meraki: Error fetching connected clients: {e}")
-            self._attr_native_value = None
-        except Exception as e:
-            _LOGGER.error(f"Meraki: Unexpected error fetching connected clients: {e}")
-            self._attr_native_value = None
+            connected_clients = device_data.get("connected_clients")
+            if connected_clients is not None:
+                _LOGGER.debug(f"Meraki: Connected clients: {connected_clients}")
+                return connected_clients
+            else:
+                _LOGGER.warning(
+                    f"Meraki: 'connected_clients' value is None for {self._device['serial']}"
+                )
+                return 0
+        else:
+            _LOGGER.warning(
+                f"Meraki: Device data not found for {self._device['serial']}"
+            )
+            return 0
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._attr_native_value = self._get_client_count()
+        self.async_write_ha_state()
 
     @property
-    def native_value(self) -> int | None:
+    def native_value(self) -> Optional[int]:
         """Return the state of the sensor."""
         return self._attr_native_value
 
