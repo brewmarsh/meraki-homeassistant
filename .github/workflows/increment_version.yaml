@@ -7,7 +7,7 @@ on:
     branches:
       - main
     paths:
-      - 'custom_components/meraki_ha/**'
+      - 'custom_components/meraki-ha/**'
 
 jobs:
   increment_version:
@@ -24,8 +24,10 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install semver
-        run: pip install semver
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_dev.txt
 
       - name: Determine Increment Type and Increment Version
         id: increment
@@ -37,7 +39,7 @@ jobs:
           else
             increment_type="patch"
           fi
-          python .github/workflows/increment_version.py "$increment_type"
+          bump2version "$increment_type" custom_components/meraki-ha/manifest.json
           echo "increment_type=$increment_type" >> "$GITHUB_OUTPUT"
 
       - name: Display manifest.json content
