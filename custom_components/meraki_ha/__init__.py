@@ -29,11 +29,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     api_key = entry.options[CONF_MERAKI_API_KEY]
     org_id = entry.options[CONF_MERAKI_ORG_ID]
     scan_interval = entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    device_name_format = entry.options.get(
+        "device_name_format", "omitted"
+    )  # added line
 
     session = aiohttp.ClientSession()
 
     coordinator = MerakiDataUpdateCoordinator(
-        hass, session, api_key, org_id, timedelta(seconds=scan_interval)
+        hass,
+        session,
+        api_key,
+        org_id,
+        timedelta(seconds=scan_interval),
+        device_name_format,  # added device_name_format
     )
     await coordinator.async_config_entry_first_refresh()
 
