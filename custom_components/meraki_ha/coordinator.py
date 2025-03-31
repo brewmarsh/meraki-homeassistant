@@ -25,6 +25,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator):
         api_key: str,
         org_id: str,
         scan_interval: timedelta,
+        device_name_format: str,  # add device_name_format
     ) -> None:
         """Initialize the Meraki data coordinator."""
         super().__init__(
@@ -42,9 +43,14 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator):
         )
         self.ssid_coordinator = MerakiSsidCoordinator(
             hass, api_key, session, org_id, scan_interval
-        )  # Removed self
+        )
         self.network_coordinator = MerakiNetworkCoordinator(
-            hass, session, api_key, org_id, scan_interval
+            hass,
+            session,
+            api_key,
+            org_id,
+            scan_interval,
+            device_name_format,  # add device_name_format
         )
 
     async def _async_update_data(self) -> Dict[str, Any]:
