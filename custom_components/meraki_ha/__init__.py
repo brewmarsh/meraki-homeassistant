@@ -16,11 +16,15 @@ from .const import (
     DATA_COORDINATOR,
 )
 from .coordinator import MerakiDataUpdateCoordinator
-from .device_setup import async_setup_devices  # added import
+from .device_setup import MerakiDeviceCoordinator  # corrected import
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.DEVICE_TRACKER]
+PLATFORMS: list[Platform] = [
+    Platform.SENSOR,
+    Platform.DEVICE_TRACKER,
+    Platform.SWITCH,
+]  # added Platform.SWITCH
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -32,6 +36,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     device_name_format = entry.options.get(
         "device_name_format", "omitted"
     )  # added line
+    erase_tags = entry.options.get("erase_tags", False)  # Get erase_tags option
+    relaxed_tag_match = entry.options.get(
+        "relaxed_tag_match", False
+    )  # Get relaxed_tag_match option
 
     session = aiohttp.ClientSession()
 
@@ -42,16 +50,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         org_id,
         timedelta(seconds=scan_interval),
         device_name_format,  # added device_name_format
+        erase_tags,  # Pass erase_tags to coordinator
+        relaxed_tag_match,  # Pass relaxed_tag_match to coordinator
     )
     await coordinator.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {DATA_COORDINATOR: coordinator}
     _LOGGER.debug(
-        f"Meraki: Stored coordinator data in hass.data: {hass.data[DOMAIN][entry.entry_id]}"
+        "Meraki: Stored coordinator data in hass.data:"
+        f" {hass.data[DOMAIN][entry.entry_id]}"
     )
 
-    await async_setup_devices(hass, coordinator)  # added line
+    # Instantiate MerakiDeviceCoordinator
+    device_coordinator = MerakiDeviceCoordinator(
+        hass, api_key, org_id, session, timedelta(seconds=scan_interval)
+    )
+
+    await device_coordinator.async_config_entry_first_refresh()
+
+    # Store the device coordinator in hass.data
+    hass.data[DOMAIN][entry.entry_id]["device_coordinator"] = device_coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

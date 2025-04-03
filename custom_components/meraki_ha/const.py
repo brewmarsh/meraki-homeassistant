@@ -36,3 +36,12 @@ SENSOR_SSID_CHANNEL = "ssid_channel"
 # Device Attributes
 ATTR_CONNECTED_CLIENTS = "connected_clients"
 ATTR_SSIDS = "ssids"
+
+# Configuration options
+#   const.py
+ERASE_TAGS_WARNING = (
+    "Tag erasing is enabled! This will ERASE ALL TAGS on your Meraki devices. "
+    "Proceed with extreme caution!"
+)
+CONF_RELAXED_TAG_MATCHING = "relaxed_tag_matching"
+"""Configuration key for relaxed tag matching."""
