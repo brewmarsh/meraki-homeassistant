@@ -28,19 +28,30 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements_dev.txt
+          pip install bump2version
 
       - name: Determine Increment Type and Increment Version
         id: increment
         run: |
+          # Get current version
+          current_version=$(jq -r .version custom_components/meraki-ha/manifest.json)
+          echo "Current Version: $current_version"
+
+          increment_type="patch" # Default
           if [[ "${{ github.event.pull_request.title }}" == *"[minor]"* ]]; then
             increment_type="minor"
           elif [[ "${{ github.event.pull_request.title }}" == *"[major]"* ]]; then
             increment_type="major"
-          else
-            increment_type="patch"
           fi
+          echo "Increment Type: $increment_type"
+
+          # Bump version
           bump2version "$increment_type" custom_components/meraki-ha/manifest.json
           echo "increment_type=$increment_type" >> "$GITHUB_OUTPUT"
+
+          # Get new version and log
+          new_version=$(jq -r .version custom_components/meraki-ha/manifest.json)
+          echo "New Version: $new_version"
 
       - name: Display manifest.json content
         run: cat custom_components/meraki-ha/manifest.json
