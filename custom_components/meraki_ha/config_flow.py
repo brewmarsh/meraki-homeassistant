@@ -20,6 +20,7 @@ from .const import (
     CONF_MERAKI_ORG_ID,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    CONF_RELAXED_TAG_MATCHING,  # add this line
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -56,12 +57,16 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
                 device_name_format = user_input.get(
                     "device_name_format", "omitted"
                 )  # Get the new option
+                relaxed_tag_matching = user_input.get(
+                    CONF_RELAXED_TAG_MATCHING, False
+                )  # Get relaxed tag matching
 
                 merged_data = {
                     CONF_MERAKI_API_KEY: user_input[CONF_MERAKI_API_KEY],
                     CONF_MERAKI_ORG_ID: user_input[CONF_MERAKI_ORG_ID],
                     CONF_SCAN_INTERVAL: scan_interval,
                     "device_name_format": device_name_format,  # Add the new option to merged data
+                    CONF_RELAXED_TAG_MATCHING: relaxed_tag_matching,  # add this line
                 }
                 _LOGGER.debug(f"User input before create entry: {merged_data}")
                 # Removed unique_id for compatibility
@@ -103,6 +108,9 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
                         ],
                     )
                 ),
+                vol.Optional(
+                    CONF_RELAXED_TAG_MATCHING, default=False
+                ): bool,  # add this line
             }
         )
 
@@ -179,7 +187,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 {
                     vol.Required(
                         CONF_SCAN_INTERVAL,
-                        default=DEFAULT_SCAN_INTERVAL,
+                        default=self.config_entry.options.get(
+                            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                        ),
                         description={
                             "suggested_value": DEFAULT_SCAN_INTERVAL,
                             "description": "Enter the scan interval in minutes. Shorter intervals increase API usage.",
@@ -199,6 +209,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                             ],
                         )
                     ),
+                    vol.Optional(
+                        CONF_RELAXED_TAG_MATCHING,
+                        default=self.config_entry.options.get(
+                            CONF_RELAXED_TAG_MATCHING, False
+                        ),
+                    ): bool,  # add this line
                 }
             ),
         )

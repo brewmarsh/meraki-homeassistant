@@ -2,19 +2,40 @@
 
 import logging
 from typing import Any, Dict, List
+from datetime import timedelta
 
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.update_coordinator import UpdateFailed
-
-from .base_coordinator import MerakiBaseCoordinator
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from ..const import DOMAIN
 import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDeviceCoordinator(MerakiBaseCoordinator):
+class MerakiDeviceCoordinator(DataUpdateCoordinator):
     """Coordinator to fetch device data from Meraki API."""
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        session: aiohttp.ClientSession,
+        api_key: str,
+        org_id: str,
+        scan_interval: timedelta,  # Expecting timedelta
+        device_name_format: str,
+    ) -> None:
+        """Initialize the Meraki device coordinator."""
+        super().__init__(
+            hass,
+            _LOGGER,
+            name="Meraki Devices",
+            update_interval=scan_interval,  # Using provided timedelta directly
+        )
+        self.session = session
+        self.api_key = api_key
+        self.org_id = org_id
+        self.device_name_format = device_name_format
 
     async def _async_update_data(self) -> Dict[str, Any]:
         """Fetch and process device data from Meraki API."""
@@ -159,9 +180,7 @@ class MerakiDeviceCoordinator(MerakiBaseCoordinator):
                 else:
                     device_type = "Unknown"
 
-                device_name_format = self.config_entry.options.get(
-                    "device_name_format", "omitted"
-                )
+                device_name_format = self.device_name_format
 
                 formatted_device_name = device_name  # default
 

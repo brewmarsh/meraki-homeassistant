@@ -20,6 +20,7 @@ class MerakiBaseCoordinator(DataUpdateCoordinator):
         api_key: str,
         org_id: str,
         scan_interval: timedelta,
+        device_name_format: str,  # added device_name_format
     ) -> None:
         """Initialize the Meraki base coordinator."""
         super().__init__(
@@ -31,6 +32,7 @@ class MerakiBaseCoordinator(DataUpdateCoordinator):
         self.session = session
         self.api_key = api_key
         self.org_id = org_id
+        self.device_name_format = device_name_format  # added device_name_format
 
     async def _async_update_data(self) -> dict:
         """Base data update logic."""
