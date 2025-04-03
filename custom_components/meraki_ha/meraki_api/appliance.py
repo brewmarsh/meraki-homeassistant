@@ -3,39 +3,34 @@
 import logging
 from typing import Any, Dict
 
-import aiohttp
+import aiohttp  # Keep the aiohttp import
 
 from .exceptions import MerakiApiError
+from ._api_client import _async_meraki_request  # Import the common function
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def get_meraki_device_appliance_uplinks(
-    api_key: str, org_id: str, serial: str
+    api_key: str, serial: str  # Removed session parameter
 ) -> Dict[str, Any]:
     """Fetch uplink settings for a Meraki MX appliance (async version).
 
     Args:
-        api_key: Meraki API key.
-        org_id: Meraki organization ID.
-        serial: Serial number of the Meraki MX appliance.
+        api_key: Meraki API key. [cite: 1, 2]
+        serial: Serial number of the Meraki MX appliance. [cite: 3, 4]
 
     Returns:
         A dictionary containing the uplink settings.
 
     Raises:
-        MerakiApiError: If an error occurs during the API call.
+        MerakiApiError: If an error occurs during the API call. [cite: 17]
     """
-    url = f"https://api.meraki.com/api/v1/devices/{serial}/appliance/uplinks/settings"
-    headers = {
-        "X-Cisco-Meraki-API-Key": api_key,
-        "Content-Type": "application/json",
-    }
+    endpoint = f"/devices/{serial}/appliance/uplinks/settings"
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers) as response:
-                response.raise_for_status()
-                return await response.json()
+        return await _async_meraki_request(
+            api_key, "GET", endpoint
+        )  # Removed session argument
     except aiohttp.ClientError as e:
         raise MerakiApiError(f"Error fetching uplink settings: {e}") from e
     except Exception as e:
