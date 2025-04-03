@@ -1,10 +1,10 @@
-# devices.py
+#   devices.py
 """Meraki device API functions for the meraki_ha integration."""
 
 import asyncio
 import logging
 from typing import Any, Dict, List, Optional
-import json  # added import
+import json  #   added import
 
 import aiohttp
 from .exceptions import MerakiApiError
@@ -18,6 +18,7 @@ async def get_meraki_devices(
     session: aiohttp.ClientSession, api_key: str, org_id: str
 ) -> Optional[List[Dict[str, Any]]]:
     """Retrieves all devices from a Meraki organization."""
+
     _LOGGER.debug(f"Retrieving Meraki devices for Org ID: {org_id}")
     url = f"https://api.meraki.com/api/v1/organizations/{org_id}/devices"
     try:
@@ -34,12 +35,12 @@ async def get_meraki_devices(
                     data = await response.json()
                     _LOGGER.debug(
                         f"Raw Meraki API response: {json.dumps(data)}"
-                    )  # added line
+                    )  #   added line
                     devices: List[Dict[str, Any]] = []
                     for device in data:
                         _LOGGER.debug(
                             f"Device before processing: {device}"
-                        )  # added line
+                        )  #   added line
                         device_data = {}
                         for key, value in device.items():
                             if key is not None:
@@ -51,12 +52,13 @@ async def get_meraki_devices(
                         devices.append(device_data)
                         _LOGGER.debug(
                             f"Device after processing: {device_data}"
-                        )  # added line
+                        )  #   added line
                     await asyncio.sleep(1)
                     return devices
                 else:
                     _LOGGER.error(
-                        f"Meraki API Error during device retrieval: Status: {response.status}"
+                        f"Meraki API Error during device retrieval: Status:"
+                        f" {response.status}"
                     )
                     raise MerakiApiError(
                         f"Meraki API Error: Status: {response.status}, Text: {raw_text}"
@@ -76,6 +78,7 @@ async def get_meraki_device_clients(
     session: aiohttp.ClientSession, api_key: str, network_id: str, serial: str
 ) -> List[Dict[str, Any]]:
     """Retrieve connected clients for a specific Meraki device."""
+
     url = f"https://api.meraki.com/api/v1/networks/{network_id}/clients"
     _LOGGER.debug(f"Retrieving Meraki clients for device serial: {serial}")
     try:
@@ -89,9 +92,81 @@ async def get_meraki_device_clients(
                 _LOGGER.debug(f"Meraki API raw text: {data}")
                 return data
             else:
-                error_message = f"Failed to retrieve Meraki clients. Status: {response.status}, Text: {await response.text()}"
+                error_message = (
+                    f"Failed to retrieve Meraki clients. Status: {response.status},"
+                    f" Text: {await response.text()}"
+                )
                 _LOGGER.error(error_message)
                 raise MerakiApiError(error_message)
     except Exception as e:
         _LOGGER.error(f"Error retrieving clients: {e}")
         raise MerakiApiError(f"Error retrieving clients: {e}")
+
+
+async def get_device_tags(
+    session: aiohttp.ClientSession, api_key: str, serial: str
+) -> Optional[List[str]]:
+    """Retrieves the tags for a specific Meraki device."""
+
+    url = f"https://api.meraki.com/api/v1/devices/{serial}/tags"
+    _LOGGER.debug(f"Retrieving tags for device serial: {serial}")
+    try:
+        _LOGGER.debug(f"Sending GET request to {url}")  #   Log the request URL
+        async with session.get(
+            url, headers={"X-Cisco-Meraki-API-Key": api_key}
+        ) as response:
+            _LOGGER.debug(
+                f"Response status: {response.status}"
+            )  #   Log response status
+            raw_text = await response.text()
+            _LOGGER.debug(f"Response text: {raw_text}")  #   Log response text
+            if response.status == 200:
+                data = await response.json()
+                _LOGGER.debug(f"Meraki API response: {data}")
+                return data  #   Assuming the API returns a list of tag strings
+            elif response.status == 404:
+                _LOGGER.warning(f"Device tags not found for device {serial}.")
+                return []  #   Return an empty list for 404 errors
+            else:
+                error_message = (
+                    f"Failed to retrieve device tags for device {serial}. Status:"
+                    f" {response.status}, Text: {await response.text()}"
+                )  #   Include serial in error
+                _LOGGER.error(error_message)
+                raise MerakiApiError(error_message)
+    except aiohttp.ClientError as e:
+        _LOGGER.error(f"Aiohttp Client Error: {e}")
+        raise MerakiApiError(f"Aiohttp Client Error: {e}")
+    except Exception as e:
+        _LOGGER.error(f"Error retrieving device tags: {e}")
+        raise MerakiApiError(f"Error retrieving device tags: {e}")
+
+
+async def update_device_tags(
+    session: aiohttp.ClientSession, api_key: str, serial: str, tags: List[str]
+) -> bool:
+    """Updates the tags for a specific Meraki device."""
+
+    url = f"https://api.meraki.com/api/v1/devices/{serial}/tags"
+    _LOGGER.debug(f"Updating tags for device serial: {serial} with tags: {tags}")
+    payload = {"tags": tags}
+    try:
+        async with session.put(
+            url, headers={"X-Cisco-Meraki-API-Key": api_key}, json=payload
+        ) as response:
+            if response.status == 200:
+                _LOGGER.debug("Device tags updated successfully")
+                return True
+            else:
+                error_message = (
+                    f"Failed to update device tags for device {serial}. Status:"
+                    f" {response.status}, Text: {await response.text()}"
+                )  #   Include serial in error
+                _LOGGER.error(error_message)
+                raise MerakiApiError(error_message)
+    except aiohttp.ClientError as e:
+        _LOGGER.error(f"Aiohttp Client Error: {e}")
+        raise MerakiApiError(f"Aiohttp Client Error: {e}")
+    except Exception as e:
+        _LOGGER.error(f"Error updating device tags: {e}")
+        raise MerakiApiError(f"Error updating device tags: {e}")

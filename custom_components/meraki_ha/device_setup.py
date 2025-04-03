@@ -3,18 +3,29 @@
 import logging
 from typing import Any, Dict
 
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.update_coordinator import UpdateFailed
-
-from .base_coordinator import MerakiBaseCoordinator
-from ..const import DOMAIN
 import aiohttp
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDeviceCoordinator(MerakiBaseCoordinator):
+class MerakiDeviceCoordinator(DataUpdateCoordinator):
     """Coordinator to fetch device data from Meraki API."""
+
+    def __init__(self, hass, api_key, org_id, session, update_interval):
+        """Initialize the MerakiDeviceCoordinator."""
+        super().__init__(
+            hass,
+            _LOGGER,
+            name="Meraki Devices",
+            update_interval=update_interval,
+        )
+        self.api_key = api_key
+        self.org_id = org_id
+        self.session = session
 
     async def _async_update_data(self) -> Dict[str, Any]:
         """Fetch and process device data from Meraki API."""

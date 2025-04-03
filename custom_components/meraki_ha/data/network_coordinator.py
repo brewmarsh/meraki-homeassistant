@@ -4,30 +4,37 @@ import logging
 from typing import Any, Dict
 from datetime import timedelta
 
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.update_coordinator import UpdateFailed
-
-from .base_coordinator import MerakiBaseCoordinator
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from ..const import DOMAIN
 import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiNetworkCoordinator(MerakiBaseCoordinator):
+class MerakiNetworkCoordinator(DataUpdateCoordinator):
     """Coordinator to fetch network data from Meraki API."""
 
     def __init__(
         self,
-        hass,
-        api_key,
-        org_id,
-        scan_interval: timedelta,
-        session,
+        hass: HomeAssistant,
+        session: aiohttp.ClientSession,
+        api_key: str,
+        org_id: str,
+        scan_interval: timedelta,  # Expecting timedelta
         device_name_format: str,
-    ):
+    ) -> None:
         """Initialize the coordinator."""
-        super().__init__(hass, api_key, org_id, scan_interval, session)
+        super().__init__(
+            hass,
+            _LOGGER,
+            name="Meraki Networks",
+            update_interval=scan_interval,  # Using provided timedelta directly
+        )
+        self.session = session
+        self.api_key = api_key
+        self.org_id = org_id
         self.device_name_format = device_name_format
 
     async def _async_update_data(self) -> Dict[str, Any]:
