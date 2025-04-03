@@ -4,7 +4,7 @@ import logging
 
 from homeassistant.core import HomeAssistant
 
-from .coordinator import MerakiCoordinator, async_create_meraki_network_devices
+from .coordinators import MerakiCoordinator, async_create_meraki_network_devices
 import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
