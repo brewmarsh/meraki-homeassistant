@@ -27,7 +27,7 @@ async def async_setup_entry(
     """Set up the device tracker platform."""
     coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id][
         DATA_COORDINATOR
-    ]  # Corrected type hint and access
+    ]
     devices = coordinator.data.get("devices", [])
 
     entities = []
@@ -42,7 +42,7 @@ class MerakiDeviceTracker(TrackerEntity):
 
     def __init__(
         self, coordinator: MerakiDataUpdateCoordinator, device: Dict[str, Any]
-    ) -> None:  # Corrected type hint
+    ) -> None:
         """Initialize the Meraki device tracker."""
         self.coordinator = coordinator
         self.device = device

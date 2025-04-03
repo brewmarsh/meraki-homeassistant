@@ -1,7 +1,6 @@
 """The meraki_ha integration."""
 
 import logging
-import aiohttp
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
@@ -16,7 +15,6 @@ from .const import (
     DATA_COORDINATOR,
 )
 from .coordinator import MerakiDataUpdateCoordinator
-from .device_setup import MerakiDeviceCoordinator  # corrected import
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,7 +22,7 @@ PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.DEVICE_TRACKER,
     Platform.SWITCH,
-]  # added Platform.SWITCH
+]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -33,25 +31,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     api_key = entry.options[CONF_MERAKI_API_KEY]
     org_id = entry.options[CONF_MERAKI_ORG_ID]
     scan_interval = entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
-    device_name_format = entry.options.get(
-        "device_name_format", "omitted"
-    )  # added line
-    erase_tags = entry.options.get("erase_tags", False)  # Get erase_tags option
-    relaxed_tag_match = entry.options.get(
-        "relaxed_tag_match", False
-    )  # Get relaxed_tag_match option
-
-    session = aiohttp.ClientSession()
+    device_name_format = entry.options.get("device_name_format", "omitted")
+    erase_tags = entry.options.get("erase_tags", False)
+    relaxed_tag_match = entry.options.get("relaxed_tag_match", False)
 
     coordinator = MerakiDataUpdateCoordinator(
         hass,
-        session,
         api_key,
         org_id,
         timedelta(seconds=scan_interval),
-        device_name_format,  # added device_name_format
-        erase_tags,  # Pass erase_tags to coordinator
-        relaxed_tag_match,  # Pass relaxed_tag_match to coordinator
+        device_name_format,
+        erase_tags,
+        relaxed_tag_match,
     )
     await coordinator.async_config_entry_first_refresh()
 
@@ -61,16 +52,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "Meraki: Stored coordinator data in hass.data:"
         f" {hass.data[DOMAIN][entry.entry_id]}"
     )
-
-    # Instantiate MerakiDeviceCoordinator
-    device_coordinator = MerakiDeviceCoordinator(
-        hass, api_key, org_id, session, timedelta(seconds=scan_interval)
-    )
-
-    await device_coordinator.async_config_entry_first_refresh()
-
-    # Store the device coordinator in hass.data
-    hass.data[DOMAIN][entry.entry_id]["device_coordinator"] = device_coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
