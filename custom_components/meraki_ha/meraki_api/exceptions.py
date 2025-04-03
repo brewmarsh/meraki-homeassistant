@@ -8,4 +8,11 @@ class MerakiApiError(Exception):
     Meraki API, such as network errors, invalid requests, or API rate limits.
     """
 
-    pass
+    def __init__(self, message: str) -> None:
+        """Initialize the MerakiApiError with a custom message."""
+        super().__init__(message)
+        self.message = message
+
+    def __str__(self) -> str:
+        """Return the string representation of the exception."""
+        return f"Meraki API Error: {self.message}"
