@@ -1,3 +1,7 @@
+## 0.0.3 (2025-04-04)
+
+
+
 # Meraki for Home Assistant Changelog
 
 ## 1.2.0
