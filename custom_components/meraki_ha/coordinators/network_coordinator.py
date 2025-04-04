@@ -8,7 +8,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from ..const import DOMAIN
-import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,10 +18,9 @@ class MerakiNetworkCoordinator(DataUpdateCoordinator):
     def __init__(
         self,
         hass: HomeAssistant,
-        session: aiohttp.ClientSession,
         api_key: str,
         org_id: str,
-        scan_interval: timedelta,  # Expecting timedelta
+        scan_interval: timedelta,
         device_name_format: str,
     ) -> None:
         """Initialize the coordinator."""
@@ -30,9 +28,8 @@ class MerakiNetworkCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name="Meraki Networks",
-            update_interval=scan_interval,  # Using provided timedelta directly
+            update_interval=scan_interval,
         )
-        self.session = session
         self.api_key = api_key
         self.org_id = org_id
         self.device_name_format = device_name_format
@@ -41,22 +38,21 @@ class MerakiNetworkCoordinator(DataUpdateCoordinator):
         """Fetch and process network data from Meraki API."""
         device_registry = dr.async_get(self.hass)
         try:
-            api_key = self.api_key
-            org_id = self.org_id
+            from .api_data_fetcher import (
+                MerakiApiDataFetcher,
+            )  # Import here to avoid circular dependencies
 
-            headers = {
-                "X-Cisco-Meraki-API-Key": api_key,
-                "Content-Type": "application/json",
-            }
-            url = f"https://api.meraki.com/api/v1/organizations/{org_id}/networks"
+            api_fetcher = MerakiApiDataFetcher(
+                self.api_key, None, self, None
+            )  # Only Network Coordinator is used here.
+
+            url = f"https://api.meraki.com/api/v1/organizations/{self.org_id}/networks"
 
             _LOGGER.debug(f"Making API call to get networks: {url}")
-            async with self.session.get(url, headers=headers) as resp:
-                _LOGGER.debug(f"API response status for networks: {resp.status}")
-                if resp.status != 200:
-                    raise UpdateFailed("Failed to retrieve Meraki networks.")
-                networks = await resp.json()
-                _LOGGER.debug(f"Networks retrieved: {networks}")
+            networks = await api_fetcher._fetch_data(url)
+            if networks is None:
+                raise UpdateFailed("Failed to retrieve Meraki networks.")
+            _LOGGER.debug(f"Networks retrieved: {networks}")
 
             if not networks or len(networks) == 0:
                 _LOGGER.warning("Failed to retrieve Meraki networks.")
@@ -92,9 +88,6 @@ class MerakiNetworkCoordinator(DataUpdateCoordinator):
 
             return {"networks": networks}
 
-        except aiohttp.ClientError as e:
-            _LOGGER.error(f"Error updating network data: {e}")
-            raise UpdateFailed(f"Error updating network data: {e}")
         except Exception as e:
             _LOGGER.error(f"Error updating network data: {e}")
             raise UpdateFailed(f"Error updating network data: {e}")

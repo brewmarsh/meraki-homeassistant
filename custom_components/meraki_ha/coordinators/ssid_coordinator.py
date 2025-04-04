@@ -11,7 +11,6 @@ from homeassistant.helpers.update_coordinator import (
 )
 from homeassistant.helpers import device_registry as dr
 from ..const import DOMAIN
-import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,51 +22,45 @@ class MerakiSsidCoordinator(DataUpdateCoordinator):
         self,
         hass: HomeAssistant,
         api_key: str,
-        session: aiohttp.ClientSession,
         org_id: str,
-        scan_interval: timedelta,  # Expecting timedelta
-        device_name_format: str,  # added variable
+        scan_interval: timedelta,
+        device_name_format: str,
     ) -> None:
         """Initialize the SSID coordinator."""
         super().__init__(
             hass,
             _LOGGER,
             name="Meraki SSIDs",
-            update_interval=scan_interval,  # Using provided timedelta directly
+            update_interval=scan_interval,
         )
         self.api_key = api_key
-        self.session = session
         self.org_id = org_id
         self.networks = []  # Add networks as an instance variable
-        self.device_name_format = device_name_format  # added variable
+        self.device_name_format = device_name_format
         self.data: Dict[str, Any] = {}  # Initialize data
 
     async def _async_get_ssids(self, network_id: str) -> List[Dict[str, Any]]:
         """Fetch SSIDs for a specific network."""
         url = f"https://api.meraki.com/api/v1/networks/{network_id}/wireless/ssids"
-        headers = {
-            "X-Cisco-Meraki-API-Key": self.api_key,
-            "Content-Type": "application/json",
-        }
         _LOGGER.debug(f"Fetching SSIDs for network ID: {network_id}")
         try:
-            _LOGGER.debug(f"Making API call to: {url}")  # added log
-            async with self.session.get(url, headers=headers) as response:
-                _LOGGER.debug(f"Meraki API Response Status: {response.status}")
-                if response.status != 200:
-                    _LOGGER.error(
-                        f"API returned non-200 status: {response.status} for network {network_id}"
-                    )  # added log
-                response.raise_for_status()
-                json_data = await response.json()
-                _LOGGER.debug(f"Meraki API Response JSON: {json_data}")
-                return json_data
-        except aiohttp.ClientError as err:
+            from .api_data_fetcher import (
+                MerakiApiDataFetcher,
+            )  # Import here to avoid circular dependencies
+
+            api_fetcher = MerakiApiDataFetcher(self.api_key, None, None, self)
+
+            _LOGGER.debug(f"Making API call to: {url}")
+            ssids = await api_fetcher._fetch_data(url)
+            if ssids is None:
+                raise UpdateFailed(
+                    f"API returned non-200 status for network {network_id}"
+                )
+            _LOGGER.debug(f"Meraki API Response JSON: {ssids}")
+            return ssids
+        except Exception as err:
             _LOGGER.error(f"Error fetching SSIDs: {err}")
             raise UpdateFailed(f"Error fetching SSIDs: {err}")
-        except Exception as err:
-            _LOGGER.exception(f"Unexpected error fetching SSIDs: {err}")
-            raise UpdateFailed(f"Unexpected error fetching SSIDs: {err}")
 
     async def _async_update_data(self) -> Dict[str, Any]:
         """Fetch all SSIDs."""
