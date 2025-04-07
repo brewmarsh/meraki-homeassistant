@@ -28,8 +28,8 @@ PLATFORMS: list[Platform] = [
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up meraki_ha from a config entry."""
     _LOGGER.debug("Starting async_setup_entry")
-    api_key = entry.options[CONF_MERAKI_API_KEY]
-    org_id = entry.options[CONF_MERAKI_ORG_ID]
+    api_key = entry.data[CONF_MERAKI_API_KEY]
+    org_id = entry.data[CONF_MERAKI_ORG_ID]
     scan_interval = entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
     device_name_format = entry.options.get("device_name_format", "omitted")
     erase_tags = entry.options.get("erase_tags", False)
