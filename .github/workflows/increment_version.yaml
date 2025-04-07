@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Ensure full history is fetched
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -29,9 +31,25 @@ jobs:
           python -m pip install --upgrade pip
           pip install bump2version
 
+      - name: Clean workspace
+        run: rm -rf * # Remove all files to ensure a clean state
+
+      - name: Debug - List files
+        run: ls -la # List files after cleaning
+
       - name: Increment Version
         id: increment
         run: |
+          # Log .bumpversion.cfg content
+          echo "--- .bumpversion.cfg ---"
+          cat .bumpversion.cfg
+          echo "--- end .bumpversion.cfg ---"
+
+          # Log manifest.json content BEFORE bump2version
+          echo "--- manifest.json (before) ---"
+          cat custom_components/meraki_ha/manifest.json
+          echo "--- end manifest.json (before) ---"
+
           # Get current version
           current_version=$(jq -r .version custom_components/meraki_ha/manifest.json)
           echo "Current Version: $current_version"
@@ -48,6 +66,11 @@ jobs:
           bump2version "$increment_type" custom_components/meraki_ha/manifest.json
           echo "increment_type=$increment_type" >> "$GITHUB_OUTPUT"
 
+          # Log manifest.json content AFTER bump2version
+          echo "--- manifest.json (after) ---"
+          cat custom_components/meraki_ha/manifest.json
+          echo "--- end manifest.json (after) ---"
+
           # Get new version and log
           new_version=$(jq -r .version custom_components/meraki_ha/manifest.json)
           echo "New Version: $new_version"
@@ -57,3 +80,5 @@ jobs:
         with:
           commit_message: 'Incremented version ( ${{ steps.increment.outputs.increment_type }} )'
           file_pattern: custom_components/meraki_ha/manifest.json
+          push_options: ' --force'
+          token: ${{ github.token }}
