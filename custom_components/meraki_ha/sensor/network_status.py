@@ -2,8 +2,8 @@
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
-from .const import DOMAIN
-from .meraki_api.networks import get_meraki_networks, get_network_clients_count
+from ..const import DOMAIN
+from ..meraki_api.networks import get_meraki_networks, get_network_clients_count
 from typing import Optional, List, Dict
 import logging
 

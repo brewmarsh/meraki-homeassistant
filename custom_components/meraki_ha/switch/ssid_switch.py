@@ -6,9 +6,27 @@ import aiohttp
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from typing import List
-from .meraki_api.devices import update_device_tags
+from ..meraki_api.devices import update_device_tags
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def match_device_to_ssid(ssid, devices, relaxed_matching):
+    """Match a device to an SSID based on tags."""
+    ssid_tags = ssid.get("tags", [])
+    if not ssid_tags:
+        return True  # SSID has no tags, so any device can match.
+    for device in devices:
+        device_tags = device.get("tags", [])
+        if not device_tags:
+            continue
+        if relaxed_matching:
+            if any(tag in device_tags for tag in ssid_tags):
+                return True
+        else:
+            if all(tag in device_tags for tag in ssid_tags):
+                return True
+    return False
 
 
 class MerakiSSIDSwitch(SwitchEntity):

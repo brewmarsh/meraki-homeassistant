@@ -4,8 +4,8 @@ import logging
 
 from homeassistant.components.sensor import SensorEntity
 
-from .const import DOMAIN
-from .entity import MerakiEntity
+from ..const import DOMAIN
+from ..entity import MerakiEntity
 
 _LOGGER = logging.getLogger(__name__)
 
