@@ -14,6 +14,7 @@ from .radio_settings import MerakiRadioSettingsSensor
 from .uplink_status import MerakiUplinkStatusSensor
 from .network_clients import MerakiNetworkClientCountSensor
 from .ssid import create_ssid_sensors
+from .ssid_availability import MerakiSSIDAvailabilitySensor
 from ..meraki_api.networks import get_network_ids_and_names
 from ..const import DOMAIN, DATA_COORDINATOR, ATTR_SSIDS
 from ..coordinator import MerakiDataUpdateCoordinator
@@ -31,14 +32,18 @@ async def async_setup_entry(
 
     sensors: List[SensorEntity] = []
 
-    ## - use later    relaxed_matching = coordinator.relaxed_tag_match
+    devices = coordinator.data.get("devices", [])
+    _LOGGER.debug(f"sensor.py: Found {len(devices)} devices in coordinator data.")
 
-    for device in coordinator.data.get("devices", []):
-        _LOGGER.debug(f"Meraki: Processing device: {device['name']}")
-        _LOGGER.debug(f"Device model: {device['model']}")
+    for device in devices:
+        _LOGGER.debug(
+            f"Meraki: Processing device: {device.get('name')}, Serial: {device.get('serial')}, Model: {device.get('model')}"
+        )
         sensors.append(MerakiDeviceStatusSensor(coordinator, device))
-        if device["model"].startswith("MR") or device["model"].startswith("GR"):
-            _LOGGER.debug(f"Meraki: Adding MR/GR sensors for {device['name']}")
+        if device.get("model", "").startswith("MR") or device.get(
+            "model", ""
+        ).startswith("GR"):
+            _LOGGER.debug(f"Meraki: Adding MR/GR sensors for {device.get('name')}")
             sensors.append(MerakiConnectedClientsSensor(coordinator, device))
             sensors.append(MerakiRadioSettingsSensor(coordinator, device))
             if device.get(ATTR_SSIDS):
@@ -47,8 +52,11 @@ async def async_setup_entry(
                         f"Creating SSID sensors for {ssid['name']} on device {device['serial']}"
                     )
                     sensors.extend(create_ssid_sensors(coordinator, device, ssid))
-        elif device["model"].startswith("MX"):
-            _LOGGER.debug(f"Meraki: Adding MX sensors for {device['name']}")
+                    sensors.append(
+                        MerakiSSIDAvailabilitySensor(coordinator, device, ssid)
+                    )  # Add this line
+        elif device.get("model", "").startswith("MX"):
+            _LOGGER.debug(f"Meraki: Adding MX sensors for {device.get('name')}")
             sensors.append(MerakiUplinkStatusSensor(coordinator, device))
 
     networks = await get_network_ids_and_names(coordinator.api_key, coordinator.org_id)

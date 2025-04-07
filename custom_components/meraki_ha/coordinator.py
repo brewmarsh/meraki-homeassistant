@@ -104,12 +104,19 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator):
             )
 
             devices: List[Dict[str, Any]] = all_data.get("devices", [])
+            ssids: List[Dict[str, Any]] = all_data.get("ssids", [])
+            networks: List[Dict[str, Any]] = all_data.get("networks", [])
             device_tags: Dict[str, List[str]] = {}
             for device in devices:
                 serial = device["serial"]
                 tags = await device_tag_fetch_coordinator.async_get_device_tags(serial)
                 device_tags[serial] = tags
                 device["tags"] = device_tags[serial]
+
+            # **Explicitly update the coordinator data**
+            device_coordinator.data = devices
+            ssid_coordinator.data = ssids
+            network_coordinator.data = networks
 
             combined_data = await data_aggregation_coordinator._async_update_data(
                 device_coordinator.data,

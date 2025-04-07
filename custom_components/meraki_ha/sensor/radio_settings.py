@@ -7,7 +7,6 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..meraki_api.wireless import get_meraki_device_wireless_radio_settings
-from ..const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,14 +60,3 @@ class MerakiRadioSettingsSensor(CoordinatorEntity, SensorEntity):
         """Return the state attributes of the sensor."""
         _LOGGER.debug(f"Meraki: Getting extra state attributes for {self._attr_name}")
         return self._attr_extra_state_attributes.copy()
-
-    @property
-    def device_info(self) -> Dict[str, Any]:
-        """Return device information about this entity."""
-        return {
-            "identifiers": {(DOMAIN, self._device["serial"])},
-            "name": self._device["name"],
-            "manufacturer": "Cisco Meraki",
-            "model": self._device["model"],
-            "sw_version": self._device.get("firmware"),
-        }

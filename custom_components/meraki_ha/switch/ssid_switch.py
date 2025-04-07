@@ -5,7 +5,9 @@ import aiohttp
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.device_registry import DeviceInfo
 from typing import List
+from ..const import DOMAIN
 from ..meraki_api.devices import update_device_tags
 
 _LOGGER = logging.getLogger(__name__)
@@ -38,7 +40,7 @@ class MerakiSSIDSwitch(SwitchEntity):
         """Initialize the Meraki SSID switch."""
         _LOGGER.debug(
             f"Initializing MerakiSSIDSwitch for {ssid['name']}"
-        )  #  add debug line
+        )  #  add debug line
         self.coordinator = coordinator
         self.device = device
         self.ssid = ssid
@@ -70,7 +72,7 @@ class MerakiSSIDSwitch(SwitchEntity):
 
         _LOGGER.debug(f"Setting SSID {self.ssid['name']} to enabled: {enabled}")
         ssid_tag = f"ssid_{self.ssid['name']}_enabled"
-        current_tags: List[str] = self.device.get("tags", [])  #  Get current tags
+        current_tags: List[str] = self.device.get("tags", [])  #  Get current tags
         new_tags: List[str] = current_tags.copy()
 
         if enabled:
@@ -97,14 +99,25 @@ class MerakiSSIDSwitch(SwitchEntity):
                 f"Successfully set SSID {self.ssid['name']} to enabled: {enabled} "
                 f"on device {self.device['name']}"
             )
-            #  Refresh data to reflect the change
+            #  Refresh data to reflect the change
             await self.coordinator.async_request_refresh()
         except aiohttp.ClientError as e:
             _LOGGER.error(f"Error setting SSID enabled state: {e}")
 
     async def async_update(self) -> None:
         """Update the SSID state."""
-        #  The coordinator should handle updating the SSID state,
-        #  so we don't need to do anything here.
-        #  We might want to add error handling or logging in the future.
+        #  The coordinator should handle updating the SSID state,
+        #  so we don't need to do anything here.
+        #  We might want to add error handling or logging in the future.
         pass
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.device["serial"])},
+            name=self.device.get("name"),
+            model=self.device.get("model"),
+            manufacturer="Cisco Meraki",
+            sw_version=self.device.get("firmware"),
+        )
