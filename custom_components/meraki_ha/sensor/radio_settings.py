@@ -6,8 +6,8 @@ from typing import Any, Dict
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .meraki_api.wireless import get_meraki_device_wireless_radio_settings
-from .const import DOMAIN
+from ..meraki_api.wireless import get_meraki_device_wireless_radio_settings
+from ..const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
