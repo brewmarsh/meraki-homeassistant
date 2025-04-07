@@ -10,22 +10,19 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import selector
-from homeassistant.helpers.schema_config_entry_flow import (
-    SchemaConfigFlowHandler,
-    SchemaFlowFormStep,
-)
+from homeassistant.core import callback
 
 from .const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
-    CONF_RELAXED_TAG_MATCHING,  # add this line
+    CONF_RELAXED_TAG_MATCHING,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
-_LOGGER.debug("meraki_ha config_flow.py loaded")  # Added Log
+_LOGGER.debug("meraki_ha config_flow.py loaded")
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -37,10 +34,11 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
+class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config or options flow for meraki_ha."""
 
     config_flow = {}
+    OPTIONS_FLOW = True
 
     async def async_step_user(
         self, user_input: Optional[Dict[str, Any]] = None
@@ -54,24 +52,25 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
                 scan_interval = user_input.get(
                     CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
                 )
-                device_name_format = user_input.get(
-                    "device_name_format", "omitted"
-                )  # Get the new option
-                relaxed_tag_matching = user_input.get(
-                    CONF_RELAXED_TAG_MATCHING, False
-                )  # Get relaxed tag matching
+                device_name_format = user_input.get("device_name_format", "omitted")
+                relaxed_tag_matching = user_input.get(CONF_RELAXED_TAG_MATCHING, False)
 
-                merged_data = {
+                data = {
                     CONF_MERAKI_API_KEY: user_input[CONF_MERAKI_API_KEY],
                     CONF_MERAKI_ORG_ID: user_input[CONF_MERAKI_ORG_ID],
-                    CONF_SCAN_INTERVAL: scan_interval,
-                    "device_name_format": device_name_format,  # Add the new option to merged data
-                    CONF_RELAXED_TAG_MATCHING: relaxed_tag_matching,  # add this line
                 }
-                _LOGGER.debug(f"User input before create entry: {merged_data}")
-                # Removed unique_id for compatibility
+
+                options = {
+                    CONF_SCAN_INTERVAL: scan_interval,
+                    "device_name_format": device_name_format,
+                    CONF_RELAXED_TAG_MATCHING: relaxed_tag_matching,
+                }
+
+                _LOGGER.debug(f"User input before create entry: {data}, {options}")
                 return self.async_create_entry(
-                    data=merged_data,
+                    data=data,
+                    options=options,
+                    title="Meraki Cloud Integration",
                 )
 
             except ConfigEntryAuthFailed:
@@ -108,13 +107,9 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
                         ],
                     )
                 ),
-                vol.Optional(
-                    CONF_RELAXED_TAG_MATCHING, default=False
-                ): bool,  # add this line
+                vol.Optional(CONF_RELAXED_TAG_MATCHING, default=False): bool,
             }
         )
-
-        self.config_flow = {"user": SchemaFlowFormStep(data_schema_with_scan)}
 
         return self.async_show_form(
             step_id="user", data_schema=data_schema_with_scan, errors=errors
@@ -122,9 +117,7 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
 
     async def async_step_reauth(self, user_input=None):
         """Handle reauthentication."""
-        _LOGGER.debug(
-            "Meraki HA: async_step_reauth in config_flow.py called"
-        )  # added log
+        _LOGGER.debug("Meraki HA: async_step_reauth in config_flow.py called")
         errors: Dict[str, str] = {}
         if user_input is not None:
             _LOGGER.debug(f"Reauth User input: {user_input}")
@@ -132,8 +125,21 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
                 existing_entry = self.hass.config_entries.async_get_entry(
                     self.context["entry_id"]
                 )
+                updated_data = {
+                    CONF_MERAKI_API_KEY: user_input[CONF_MERAKI_API_KEY],
+                    CONF_MERAKI_ORG_ID: user_input[CONF_MERAKI_ORG_ID],
+                }
+
+                updated_options = {
+                    CONF_SCAN_INTERVAL: existing_entry.options[CONF_SCAN_INTERVAL],
+                    "device_name_format": existing_entry.options["device_name_format"],
+                    CONF_RELAXED_TAG_MATCHING: existing_entry.options[
+                        CONF_RELAXED_TAG_MATCHING
+                    ],
+                }
+
                 self.hass.config_entries.async_update_entry(
-                    existing_entry, data=user_input
+                    existing_entry, data=updated_data, options=updated_options
                 )
                 await self.hass.config_entries.async_reload(existing_entry.entry_id)
                 _LOGGER.info("Meraki reauthentication successful.")
@@ -152,32 +158,28 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
             step_id="reauth", data_schema=CONFIG_SCHEMA, errors=errors
         )
 
-    def async_config_entry_title(self, options: Dict[str, Any]) -> str:
-        """Return config entry title.
-
-        Args:
-            options: Configuration options.
-
-        Returns:
-            The config entry title.
-        """
+    def async_config_entry_title(self, data: Dict[str, Any]) -> str:
+        """Return config entry title."""
         return "Meraki Cloud Integration"
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        """Get the options flow for this handler."""
+        return OptionsFlowHandler(config_entry)
 
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options flow for Meraki integration."""
 
+    def __init__(self, config_entry: config_entries.ConfigEntry):
+        """Initialize options flow."""
+        self.config_entry = config_entry
+
     async def async_step_init(
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
-        """Manage the options flow initialization.
-
-        Args:
-            user_input: User input from the form.
-
-        Returns:
-            A dictionary with the next step of the flow.
-        """
+        """Manage the options flow initialization."""
         if user_input is not None:
             return self.async_create_entry(title="Meraki Options", data=user_input)
 
@@ -206,7 +208,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                                 {"value": "prefix", "label": "Prefix"},
                                 {"value": "suffix", "label": "Suffix"},
                                 {"value": "omitted", "label": "Omitted"},
-                            ],
+                            ]
                         )
                     ),
                     vol.Optional(
@@ -214,7 +216,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         default=self.config_entry.options.get(
                             CONF_RELAXED_TAG_MATCHING, False
                         ),
-                    ): bool,  # add this line
+                    ): bool,
                 }
             ),
         )

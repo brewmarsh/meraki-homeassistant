@@ -14,8 +14,8 @@ async def async_setup_networks(hass: HomeAssistant, coordinator: MerakiCoordinat
     """Set up Meraki networks."""
     _LOGGER.debug("Setting up Meraki networks.")
 
-    api_key = coordinator.config_entry.options.get("meraki_api_key")
-    org_id = coordinator.config_entry.options.get("meraki_org_id")
+    api_key = coordinator.api_key  # Get api key from coordinator
+    org_id = coordinator.org_id  # Get org id from coordinator
 
     try:
         async with aiohttp.ClientSession() as session:

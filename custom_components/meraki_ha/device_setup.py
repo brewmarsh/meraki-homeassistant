@@ -15,7 +15,9 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiDeviceCoordinator(DataUpdateCoordinator):
     """Coordinator to fetch device data from Meraki API."""
 
-    def __init__(self, hass, api_key, org_id, session, update_interval):
+    def __init__(
+        self, hass, api_key, org_id, session, update_interval, device_name_format
+    ):
         """Initialize the MerakiDeviceCoordinator."""
         super().__init__(
             hass,
@@ -26,6 +28,7 @@ class MerakiDeviceCoordinator(DataUpdateCoordinator):
         self.api_key = api_key
         self.org_id = org_id
         self.session = session
+        self.device_name_format = device_name_format
 
     async def _async_update_data(self) -> Dict[str, Any]:
         """Fetch and process device data from Meraki API."""
@@ -140,9 +143,7 @@ class MerakiDeviceCoordinator(DataUpdateCoordinator):
                 else:
                     device_type = "Unknown"
 
-                device_name_format = self.config_entry.options.get(
-                    "device_name_format", "omitted"
-                )
+                device_name_format = self.device_name_format
 
                 if device_name_format == "prefix":
                     formatted_device_name = f"[{device_type}] {device_name}"
