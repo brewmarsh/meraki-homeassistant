@@ -7,7 +7,7 @@ on:
     branches:
       - main
     paths:
-      - 'custom_components/meraki-ha/**'
+      - 'custom_components/meraki_ha/**'
 
 jobs:
   increment_version:
@@ -27,14 +27,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements_dev.txt
           pip install bump2version
 
-      - name: Determine Increment Type and Increment Version
+      - name: Increment Version
         id: increment
         run: |
           # Get current version
-          current_version=$(jq -r .version custom_components/meraki-ha/manifest.json)
+          current_version=$(jq -r .version custom_components/meraki_ha/manifest.json)
           echo "Current Version: $current_version"
 
           increment_type="patch" # Default
@@ -46,18 +45,15 @@ jobs:
           echo "Increment Type: $increment_type"
 
           # Bump version
-          bump2version "$increment_type" custom_components/meraki-ha/manifest.json
+          bump2version "$increment_type" custom_components/meraki_ha/manifest.json
           echo "increment_type=$increment_type" >> "$GITHUB_OUTPUT"
 
           # Get new version and log
-          new_version=$(jq -r .version custom_components/meraki-ha/manifest.json)
+          new_version=$(jq -r .version custom_components/meraki_ha/manifest.json)
           echo "New Version: $new_version"
-
-      - name: Display manifest.json content
-        run: cat custom_components/meraki-ha/manifest.json
 
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'Incremented version ( ${{ steps.increment.outputs.increment_type }} )'
-          file_pattern: custom_components/meraki-ha/manifest.json
+          file_pattern: custom_components/meraki_ha/manifest.json
