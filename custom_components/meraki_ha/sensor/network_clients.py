@@ -1,7 +1,5 @@
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.helpers.device_registry import DeviceInfo
 from ..meraki_api.networks import get_network_clients_count
-from ..const import DOMAIN
 
 
 class MerakiNetworkClientCountSensor(SensorEntity):
@@ -19,13 +17,3 @@ class MerakiNetworkClientCountSensor(SensorEntity):
             self._network_id,
         )
         self.async_write_ha_state()
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information about this entity."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._network_id)},
-            name=self._network_name,
-            manufacturer="Cisco Meraki",
-            model="Network",
-        )

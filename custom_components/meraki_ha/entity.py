@@ -3,6 +3,7 @@
 import logging
 
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
 
@@ -19,6 +20,8 @@ class MerakiEntity(CoordinatorEntity):
         self._ssid = ssid
         self._device_name = device.get("name")
         self._device_serial = device.get("serial")
+        self._device_model = device.get("model")
+        self._device_firmware = device.get("firmware")
         self._ssid_name = ssid.get("name") if ssid else None
         self._ssid_number = ssid.get("number") if ssid else None
         self._device_index = self._find_device_index(
@@ -48,11 +51,12 @@ class MerakiEntity(CoordinatorEntity):
         return None
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         """Return the device info."""
-        return {
-            "identifiers": {(DOMAIN, self._device_serial)},
-            "name": self._device_name,
-            "manufacturer": "Cisco Meraki",
-            "model": self._device.get("model"),
-        }
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device_serial)},
+            name=self._device_name,
+            manufacturer="Cisco Meraki",
+            model=self._device_model,
+            sw_version=self._device_firmware,
+        )

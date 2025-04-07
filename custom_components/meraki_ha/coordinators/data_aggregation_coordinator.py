@@ -9,7 +9,7 @@ from datetime import timedelta
 
 from .data_aggregator import DataAggregator
 from .data_processor import MerakiDataProcessor
-from .ssid_status_calculator import SsidStatusCalculator
+from ..helpers.ssid_status_calculator import SsidStatusCalculator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -52,6 +52,11 @@ class DataAggregationCoordinator(DataUpdateCoordinator):
             if device_data is None or ssid_data is None or network_data is None:
                 _LOGGER.warning("One or more coordinator data is None.")
                 return {}  # Return empty dict to prevent errors
+
+            # Log the received data for debugging
+            _LOGGER.debug(
+                f"DataAggregationCoordinator received: device_data={device_data}, ssid_data={ssid_data}, network_data={network_data}, device_tags={device_tags}"
+            )
 
             # Aggregate data
             aggregated_data = await self.data_aggregator.aggregate_data(
