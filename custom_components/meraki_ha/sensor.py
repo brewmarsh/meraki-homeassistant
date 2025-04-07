@@ -15,7 +15,6 @@ from .const import (
     DATA_COORDINATOR,
     DOMAIN,
     ATTR_SSIDS,
-    CONF_RELAXED_TAG_MATCHING,
 )
 from .meraki_api.networks import get_network_clients_count, get_network_ids_and_names
 from .sensor_connected_clients import MerakiConnectedClientsSensor
@@ -23,10 +22,10 @@ from .sensor_device_status import MerakiDeviceStatusSensor
 from .sensor_radio_settings import MerakiRadioSettingsSensor
 from .sensor_uplink_status import MerakiUplinkStatusSensor
 from .coordinator import MerakiDataUpdateCoordinator  # Corrected import
-from .switch_ssid import MerakiSsidSwitch  # Import the switch
 from .sensor_ssid_availability import MerakiSSIDAvailabilitySensor
 from .sensor_ssid_channel import MerakiSSIDChannelSensor
 from .sensor_ssid_client_count import MerakiSSIDClientCountSensor
+from .meraki_ssid_switch import MerakiSsidSwitch
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -67,9 +66,9 @@ async def async_setup_entry(
 
         _LOGGER.debug(f"Device Data in Coordinator: {coordinator.data.get('devices')}")
 
-        relaxed_matching = entry.options.get(
-            CONF_RELAXED_TAG_MATCHING, False
-        )  # Get relaxed matching config
+        relaxed_matching = (
+            coordinator.relaxed_tag_match
+        )  # Get relaxed matching from coordinator
 
         for device in coordinator.data.get(
             "devices", []
@@ -106,8 +105,8 @@ async def async_setup_entry(
                         switches.append(MerakiSsidSwitch(coordinator, device, ssid))
 
         networks = await get_network_ids_and_names(
-            coordinator.config_entry.options.get("meraki_api_key"),
-            coordinator.config_entry.options.get("meraki_org_id"),
+            coordinator.api_key,  # Get API key from coordinator
+            coordinator.org_id,  # Get org ID from coordinator
         )
         _LOGGER.debug(f"sensor.py: Networks retrieved: {networks}")
 
@@ -158,7 +157,7 @@ class MerakiNetworkClientCountSensor(SensorEntity):
 
     async def async_update(self):
         self._attr_native_value = await get_network_clients_count(
-            self._coordinator.config_entry.options.get("meraki_api_key"),
+            self._coordinator.api_key,  # Get API key from coordinator
             self._network_id,
         )
         self.async_write_ha_state()
