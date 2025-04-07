@@ -6,9 +6,9 @@ from typing import Any, Dict
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .meraki_api.appliance import get_meraki_device_appliance_uplinks
-from .meraki_api.exceptions import MerakiApiError
-from .const import DOMAIN
+from ..meraki_api.appliance import get_meraki_device_appliance_uplinks
+from ..meraki_api.exceptions import MerakiApiError
+from ..const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
