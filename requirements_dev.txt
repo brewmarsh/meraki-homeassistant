@@ -8,3 +8,7 @@ pytest-cov
 flake8
 mypy
 pre-commit
+mkdocs
+mkdocs-material
+mkdocs-markdown-extensions 
+pymdown-extensions           
