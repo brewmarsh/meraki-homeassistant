@@ -7,7 +7,6 @@ from homeassistant.components.sensor import SensorEntity
 
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from typing import Dict, Any
-from ..const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,17 +42,6 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
             return "Sensor"
         else:
             return "Unknown"
-
-    @property
-    def device_info(self):
-        """Return device information about this entity."""
-        return {
-            "identifiers": {(DOMAIN, self._device["serial"])},
-            "name": self._device["name"],
-            "manufacturer": "Cisco Meraki",
-            "model": self._device["model"],
-            "sw_version": self._device.get("firmware"),
-        }
 
     @property
     def icon(self):
