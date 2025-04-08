@@ -10,43 +10,43 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
     * Switch (MX, MS)
     * Appliance
     * Camera
-    * Sensor [cite: 3, 4, 5]
+    * Sensor
 * **Entity Creation:** Creates Home Assistant entities for:
-    * Meraki devices [cite: 14]
-    * Meraki networks [cite: 15]
-    * Meraki SSIDs (wireless networks) [cite: 16]
-    * Meraki VLANs [cite: 17]
+    * Meraki devices
+    * Meraki networks
+    * Meraki SSIDs (wireless networks)
+    * Meraki VLANs
 * **Data Monitoring:**
     * Device status
-    * Connected clients (wireless, switches) [cite: 8]
-    * Appliance data usage [cite: 17]
-    * Appliance connected client count [cite: 18]
-    * Switch PoE usage (if supported) [cite: 20, 21, 22]
+    * Connected clients (wireless, switches)
+    * Appliance data usage
+    * Appliance connected client count
+    * Switch PoE usage (if supported)
     * Switch port usage (total, available)
-    * Camera stream URL [cite: 23]
-    * Sensor values (model-dependent) [cite: 25]
+    * Camera stream URL
+    * Sensor values (model-dependent)
     * Radio settings (for Meraki MR devices)
     * Network client count
     * SSID Availability (Enabled/Disabled)
     * SSID Channel
     * SSID Client Count
 * **Device Control:**
-    * Camera RTSP streaming (enable/disable) [cite: 24]
+    * Camera RTSP streaming (enable/disable)
 * **Configuration:**
-    * API key and Organization ID via Home Assistant configuration flow [cite: 30, 31]
-    * Configurable scan interval [cite: 9, 12]
-    * Device name formatting (prefixes, suffixes, omission of device type) [cite: 6]
-    * Relaxed tag matching for SSIDs [cite: 13]
+    * API key and Organization ID via Home Assistant configuration flow
+    * Configurable scan interval
+    * Device name formatting (prefixes, suffixes, omission of device type)
+    * Relaxed tag matching for SSIDs
 * **Authentication:**
-    * Handles API key re-authentication [cite: 13]
+    * Handles API key re-authentication
 
 ##   Installation
 
 ###   Prerequisites
 
 * Home Assistant installation
-* Cisco Meraki API key [cite: 1, 2]
-* Cisco Meraki Organization ID [cite: 2]
+* Cisco Meraki API key
+* Cisco Meraki Organization ID
 
 ###   Installation
 
@@ -58,7 +58,7 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
 1.  Go to "Settings" -> "Devices & Services" -> "Add Integration".
 2.  Search for "Meraki HA" and follow the configuration prompts.
 3.  The scan interval setting is used to define how often (in seconds) that the sensors and devices are updated. The default is 60, but should be adjusted based on the number of devices and networks that you have in order to ensure that you do not exceed a rate limit for your Meraki API calls.
-4.  Optionally, you can set the device name format. [cite: 11, 12]
+4.  Optionally, you can set the device name format.
 
 ##   Obtaining a Meraki API Key
 
@@ -74,21 +74,21 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
     * SSID Availability (Enabled/Disabled)
     * SSID Channel
     * SSID Client Count
-    * Appliance data usage [cite: 17]
-    * Appliance connected client count [cite: 18]
-    * Switch PoE usage (if supported) [cite: 20, 21, 22]
+    * Appliance data usage
+    * Appliance connected client count
+    * Switch PoE usage (if supported)
     * Switch port usage (total, available)
-    * Sensor values (model-dependent) [cite: 25]
+    * Sensor values (model-dependent)
 * **Devices:**
-    * Meraki Devices (MR, MX, etc.) [cite: 14]
-    * Meraki Networks [cite: 15]
-    * Meraki SSIDs [cite: 16]
-    * Meraki VLANs [cite: 19]
+    * Meraki Devices (MR, MX, etc.)
+    * Meraki Networks
+    * Meraki SSIDs
+    * Meraki VLANs
 
 ##   Dependencies
 
-* `meraki` [cite: 32]
-* `aiohttp` [cite: 32]
+* `meraki`
+* `aiohttp`
 
 ##   Known issues
 
@@ -102,7 +102,7 @@ This is a custom integration and has not been tested by Home Assistant. Use it a
 
 * Add signal strength and data usage sensors for connected clients.
 * Add more sensor types for SSIDs.
-* Add device tracker functionality. [cite: 9]
-* Improve error handling and logging. [cite: 27, 28]
+* Add device tracker functionality.
+* Improve error handling and logging.
 * Add service calls to enable/disable SSIDs.
 * Set up MkDocs for documentation generation.
