@@ -31,3 +31,4 @@
 - [ ] Add full Home Assistant branding support
 - [ ] Add device tracker support (Meraki client devices)
 - [ ] Refactor and reorganize sensor files
+- [ ] Use MkDocs for documentation generation
