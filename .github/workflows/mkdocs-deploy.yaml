@@ -1,27 +1,29 @@
-name: Deploy MkDocs  
+name: Deploy MkDocs
 
 on:
   push:
     branches:
-      - main  # Trigger this workflow when changes are pushed to the main branch
+      - main
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  # Use the latest Ubuntu runner
+    runs-on: ubuntu-latest
+    permissions:  # Add this section to grant write permission
+      contents: write  # This allows the action to write to the repository's contents
 
     steps:
-      - uses: actions/checkout@v3  # Checkout your code
-      - uses: actions/setup-python@v4  # Set up Python
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
-          python-version: 3.x  # Use Python 3.x
+          python-version: 3.x
 
-      - run: pip install -r requirements_dev.txt  # Install MkDocs and theme
-      - run: mkdocs build  # Build the MkDocs site
+      - run: pip install -r requirements_dev.txt
+      - run: mkdocs build
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3  # Action to deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}  # GitHub token for authentication
-          publish_dir: ./site  # Directory containing the built MkDocs site (default output dir)
-          publish_branch: gh-pages  # The branch to deploy to
-          force_orphan: true # Ensures a clean history for the `gh-pages` branch
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          publish_branch: gh-pages
+          force_orphan: true
