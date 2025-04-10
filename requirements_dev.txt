@@ -10,5 +10,4 @@ mypy
 pre-commit
 mkdocs
 mkdocs-material
-mkdocs-markdown-extensions 
 pymdown-extensions           
