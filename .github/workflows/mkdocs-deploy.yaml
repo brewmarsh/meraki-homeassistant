@@ -1,4 +1,4 @@
-name: Deploy MkDocs  # Name of your workflow
+name: Deploy MkDocs  
 
 on:
   push:
