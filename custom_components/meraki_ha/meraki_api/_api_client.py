@@ -73,11 +73,21 @@ async def _async_meraki_request(
         params,
         data,
     )  # Log request details
+    _LOGGER.debug(f"Request headers: {headers}")
 
     try:
         async with session.request(
             method, url, headers=headers, json=data, params=params
         ) as response:
+            _LOGGER.debug(f"Response from {response.url}: Status - {response.status}")
+            try:
+                response_json = await response.json()
+                _LOGGER.debug(f"Response body: {response_json}")
+                return response_json
+            except aiohttp.ContentTypeError:
+                response_text = await response.text()
+                _LOGGER.debug(f"Response body (non-JSON): {response_text}")
+                return response_text
             response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
             return await response.json()
     except aiohttp.ClientResponseError as err:

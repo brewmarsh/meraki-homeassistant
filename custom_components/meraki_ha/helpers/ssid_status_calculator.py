@@ -1,33 +1,102 @@
-"""SSID Status Calculator for the meraki_ha integration."""
+"""Helper to calculate the status of Meraki SSIDs based on device tags."""
 
-from typing import Any, Dict, List
+import logging
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class SsidStatusCalculator:
-    """Class to calculate the enabled status of SSIDs based on device tags."""
+    """Calculates the operational status of Meraki SSIDs."""
 
     @staticmethod
-    def calculate_ssid_status(
-        ssids: List[Dict[str, Any]],
-        devices: List[Dict[str, Any]],
-        device_tags: Dict[str, List[str]],
-        relaxed_tag_match: bool,
-    ) -> List[Dict[str, Any]]:
-        """Calculate the enabled status of SSIDs."""
+    def calculate_ssid_status(ssids, devices, device_tags, relaxed_tag_match):
+        """
+        Calculates the status of each SSID based on the operational status
+        and tag matching of associated wireless access point devices.
+        """
+        _LOGGER.debug(
+            f"calculate_ssid_status called with: ssids={ssids}, devices={devices}, device_tags={device_tags}, relaxed_tag_match={relaxed_tag_match}"
+        )
+        if ssids is None:
+            _LOGGER.error("SSID data is None in calculate_ssid_status")
+            return []
+        if devices is None:
+            _LOGGER.error("Device data is None in calculate_ssid_status")
+            return ssids  # Or an empty list, depending on desired behavior
+        if device_tags is None:
+            _LOGGER.warning("Device tags data is None in calculate_ssid_status")
+            device_tags = {}  # Initialize to an empty dictionary to avoid errors
 
+        updated_ssids = []
         for ssid in ssids:
-            ssid_name = ssid["name"]
-            ssid["enabled"] = False  # Default to disabled
+            ssid_id = ssid.get("id")
+            ssid_name = ssid.get("name")
+            enabled = ssid.get("enabled")
+            tags = ssid.get("tags", [])
+            _LOGGER.debug(
+                f"Processing SSID: ID={ssid_id}, Name='{ssid_name}', Enabled={enabled}, Tags={tags}"
+            )
+
+            matching_devices_online = 0
+            matching_devices_total = 0
 
             for device in devices:
-                device_tags_list = device_tags.get(device["serial"], [])
-                if relaxed_tag_match:
-                    if any(ssid_name in tag for tag in device_tags_list):
-                        ssid["enabled"] = True
-                        break  # SSID enabled if found on any device
-                else:
-                    if f"ssid_{ssid_name}_enabled" in device_tags_list:
-                        ssid["enabled"] = True
-                        break  # SSID enabled if found on any device
+                device_serial = device.get("serial")
+                device_status = device.get("status")
+                device_model = device.get("model", "")
+                device_tags_list = device_tags.get(device_serial, [])
+                _LOGGER.debug(
+                    f"  Checking device: Serial={device_serial}, Status='{device_status}', Model='{device_model}', Tags={device_tags_list}"
+                )
 
-        return ssids
+                # Only consider Meraki Wireless Access Points (model starts with "MR")
+                if device_model.startswith("MR"):
+                    if SsidStatusCalculator._does_device_match_ssid(
+                        tags, device_tags_list, relaxed_tag_match
+                    ):
+                        matching_devices_total += 1
+                        if device_status == "online":
+                            matching_devices_online += 1
+                        _LOGGER.debug("    Wireless AP matches SSID criteria.")
+                    else:
+                        _LOGGER.debug("    Wireless AP does not match SSID criteria.")
+                else:
+                    _LOGGER.debug(
+                        f"    Device is not a Wireless AP (model: {device_model}), skipping for SSID status."
+                    )
+
+            ssid["matching_devices_online"] = matching_devices_online
+            ssid["matching_devices_total"] = matching_devices_total
+
+            if enabled:
+                if (
+                    matching_devices_total > 0
+                    and matching_devices_online == matching_devices_total
+                ):
+                    ssid["status"] = "online"
+                elif matching_devices_total > 0 and matching_devices_online > 0:
+                    ssid["status"] = "partially_online"
+                elif matching_devices_total > 0:
+                    ssid["status"] = "offline"
+                else:
+                    ssid["status"] = "no_matching_devices"
+            else:
+                ssid["status"] = "disabled"
+
+            updated_ssids.append(ssid)
+
+        _LOGGER.debug(f"calculate_ssid_status returning: {updated_ssids}")
+        return updated_ssids
+
+    @staticmethod
+    def _does_device_match_ssid(ssid_tags, device_tags, relaxed_tag_match):
+        """Checks if a device's tags match an SSID's tags."""
+        if not ssid_tags:
+            return True
+        if not device_tags:
+            return False if not relaxed_tag_match else True
+
+        if relaxed_tag_match:
+            return any(tag in device_tags for tag in ssid_tags)
+        else:
+            return all(tag in device_tags for tag in ssid_tags)

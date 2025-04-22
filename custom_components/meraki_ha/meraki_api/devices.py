@@ -21,7 +21,7 @@ async def get_meraki_devices(
     """Retrieves all devices from a Meraki organization."""
 
     _LOGGER.debug(f"Retrieving Meraki devices for Org ID: {org_id}")
-    endpoint = f"/organizations/{org_id}/devices"
+    endpoint = f"/{org_id}/devices"
     try:
         data = await _async_meraki_request(
             api_key, "GET", endpoint
