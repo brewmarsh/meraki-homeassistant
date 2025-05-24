@@ -1,4 +1,10 @@
-"""Meraki wireless API functions for the meraki_ha integration."""
+"""Handles Meraki wireless-specific API interactions.
+
+This module provides functions to retrieve information about Meraki
+wireless networks and devices, including radio settings, RF profiles,
+client counts per AP, and SSID configurations. It utilizes the
+centralized `_async_meraki_request` for API calls.
+"""
 
 import logging
 from typing import Any, Dict, List

@@ -1,108 +1,103 @@
-#   Meraki Home Assistant Integration
+# Meraki Home Assistant Integration
 
-This Home Assistant integration allows you to monitor and manage your Cisco Meraki network, including devices, networks, and SSIDs. It leverages the Meraki API to bring data from your Meraki dashboard into Home Assistant, enabling you to gain insights into your network and automate actions based on its status.
+This Home Assistant integration allows you to monitor and manage your Cisco Meraki network devices and services. By leveraging the Meraki Dashboard API, it brings data from your Meraki organization into Home Assistant, enabling enhanced network visibility, automation, and control within your smart home environment.
 
-##   Features
+## Documentation
 
-* **Device Discovery:** Automatically discovers Meraki hardware devices within your organization and networks.
-* **Supported Devices:**
-    * Wireless (MR/GR)
-    * Switch (MX, MS)
-    * Appliance
-    * Camera
-    * Sensor
-* **Entity Creation:** Creates Home Assistant entities for:
-    * Meraki devices
-    * Meraki networks
-    * Meraki SSIDs (wireless networks)
-    * Meraki VLANs
-* **Data Monitoring:**
-    * Device status
-    * Connected clients (wireless, switches)
-    * Appliance data usage
-    * Appliance connected client count
-    * Switch PoE usage (if supported)
-    * Switch port usage (total, available)
-    * Camera stream URL
-    * Sensor values (model-dependent)
-    * Radio settings (for Meraki MR devices)
-    * Network client count
-    * SSID Availability (Enabled/Disabled)
-    * SSID Channel
-    * SSID Client Count
-* **Device Control:**
-    * Camera RTSP streaming (enable/disable)
-* **Configuration:**
-    * API key and Organization ID via Home Assistant configuration flow
-    * Configurable scan interval
-    * Device name formatting (prefixes, suffixes, omission of device type)
-    * Relaxed tag matching for SSIDs
-* **Authentication:**
-    * Handles API key re-authentication
+**For detailed setup instructions, configuration options, entity descriptions, troubleshooting, and more, please visit our [full documentation site](https://YOUR_USER_OR_ORG.github.io/YOUR_REPO_NAME/).** (Replace placeholders with your actual GitHub Pages URL).
 
-##   Installation
+The documentation site includes:
+*   Comprehensive installation and configuration guides.
+*   Detailed explanations of all entities provided by the integration.
+*   Troubleshooting tips for common issues.
+*   Technical overview for developers.
 
-###   Prerequisites
+## Key Features
 
-* Home Assistant installation
-* Cisco Meraki API key
-* Cisco Meraki Organization ID
+*   **Device Discovery:** Automatically discovers Meraki hardware (APs, switches, security appliances, cameras, sensors) within your organization.
+*   **Rich Entity Creation:** Creates a variety of Home Assistant entities for:
+    *   Meraki hardware devices
+    *   Logical Meraki networks
+    *   Wireless SSIDs
+    *   (Potentially VLANs, depending on implementation details)
+*   **Extensive Data Monitoring:** Provides sensors for:
+    *   Device status (online/offline, product type)
+    *   Connected client counts (per AP, per network, per SSID)
+    *   Network uplink status and appliance data usage (for MX series)
+    *   Switch PoE and port usage (for MS series)
+    *   Camera stream URLs (for MV series)
+    *   Environmental sensor values (for MT series)
+    *   Wireless AP radio settings and SSID operational status (channel, availability).
+*   **Control Capabilities:** (Examples, actual controls may vary)
+    *   Enable/disable SSIDs on access points (typically via device tag manipulation).
+    *   Control camera RTSP streaming.
+*   **User-Friendly Configuration:**
+    *   Simple setup via Home Assistant UI (API Key, Organization ID).
+    *   Configurable options: API polling interval, device name formatting, relaxed tag matching for SSID control.
+*   **Authentication Handling:** Manages API key authentication and supports re-authentication flows.
 
-###   Installation
+## Installation
 
-1.  ... (Instructions for installing the custom integration)
-2.  Restart Home Assistant.
+### Prerequisites
 
-##   Configuration
+*   A running Home Assistant instance.
+*   A Cisco Meraki Dashboard API key with appropriate permissions.
+*   Your Cisco Meraki Organization ID.
 
-1.  Go to "Settings" -> "Devices & Services" -> "Add Integration".
-2.  Search for "Meraki HA" and follow the configuration prompts.
-3.  The scan interval setting is used to define how often (in seconds) that the sensors and devices are updated. The default is 60, but should be adjusted based on the number of devices and networks that you have in order to ensure that you do not exceed a rate limit for your Meraki API calls.
-4.  Optionally, you can set the device name format.
+### Recommended Method: HACS (Home Assistant Community Store)
 
-##   Obtaining a Meraki API Key
+1.  Ensure HACS is installed in your Home Assistant.
+2.  In HACS, go to "Integrations", click "Explore & Add Repositories".
+3.  Search for "Meraki HA Integration" (or its registered name) and install it.
+4.  Restart Home Assistant.
 
-1.  ... (Instructions for obtaining an API key)
+For manual installation steps and detailed instructions on obtaining your Meraki API key and Organization ID, please refer to the [Installation and Configuration page on our documentation site](https://YOUR_USER_OR_ORG.github.io/YOUR_REPO_NAME/configuration/).
 
-##   Entities Provided
+## Configuration
 
-* **Sensors:**
-    * Device status
-    * Connected clients
-    * Radio settings
-    * Network client count
-    * SSID Availability (Enabled/Disabled)
-    * SSID Channel
-    * SSID Client Count
-    * Appliance data usage
-    * Appliance connected client count
-    * Switch PoE usage (if supported)
-    * Switch port usage (total, available)
-    * Sensor values (model-dependent)
-* **Devices:**
-    * Meraki Devices (MR, MX, etc.)
-    * Meraki Networks
-    * Meraki SSIDs
-    * Meraki VLANs
+After installation and restarting Home Assistant:
 
-##   Dependencies
+1.  Navigate to **Settings** > **Devices & Services**.
+2.  Click **+ ADD INTEGRATION** and search for "Meraki HA".
+3.  Follow the on-screen prompts to enter your API Key, Organization ID, and initial options.
 
-* `meraki`
-* `aiohttp`
+For a complete guide to all configuration options, see the [documentation site](https://YOUR_USER_OR_ORG.github.io/YOUR_REPO_NAME/configuration/).
 
-##   Known issues
+## Entities Provided
 
-* Radio profiles are not returned for all MR devices.
+This integration creates various entities. For a comprehensive list and descriptions, please see the [Entities page on our documentation site](https://YOUR_USER_OR_ORG.github.io/YOUR_REPO_NAME/entities/).
 
-##   Disclaimer
+Summary:
+*   **Sensors:** Device status, connected client counts (per device, network, SSID), radio settings, network uplink/usage, SSID availability & channel, etc.
+*   **Switches:** SSID enable/disable controls, camera RTSP stream toggle.
+*   **Device Trackers:** Represents Meraki hardware devices, showing connectivity based on client presence on the device itself.
+*   **Home Assistant Devices:** Registers Meraki hardware, networks, and SSIDs as "devices" in the HA device registry for better organization.
 
-This is a custom integration and has not been tested by Home Assistant. Use it at your own risk.
+## Dependencies
 
-##   TODO
+*   `meraki` (Official Cisco Meraki Dashboard API Python library)
+*   `aiohttp` (For asynchronous HTTP requests)
 
-* Add signal strength and data usage sensors for connected clients.
-* Add more sensor types for SSIDs.
-* Add device tracker functionality.
-* Improve error handling and logging.
-* Add service calls to enable/disable SSIDs.
-* Set up MkDocs for documentation generation.
+These are typically installed automatically by Home Assistant.
+
+## Known Issues
+
+Please refer to the [Troubleshooting page on our documentation site](https://YOUR_USER_OR_ORG.github.io/YOUR_REPO_NAME/troubleshooting/) for known issues and common solutions.
+*(Example: Radio profiles may not be available for all MR device models.)*
+
+## Disclaimer
+
+This is a community-developed custom integration. It is not officially endorsed by Cisco Meraki or Home Assistant. Use at your own risk.
+
+## TODO / Future Enhancements
+
+The following are planned or potential areas for improvement. Contributions are welcome!
+
+*   **Client-Specific Sensors:** Add sensors for individual connected clients (e.g., signal strength, data usage per client).
+*   **Expanded SSID Sensors:** Introduce more detailed sensors for SSIDs (e.g., specific authentication modes, encryption types).
+*   **Advanced Device Tracker:** Enhance device tracker functionality, potentially to track specific client devices rather than just Meraki hardware presence.
+*   **Error Handling & Logging:** Continuously refine error handling for API interactions and improve the clarity and utility of diagnostic logging. (Note: Recent documentation efforts have improved clarity on existing error handling).
+*   **Service Calls:** Implement more Home Assistant services for advanced control (e.g., more granular SSID settings, port controls for switches, rebooting devices).
+*   **Support for More Device Features:** Extend support for other Meraki device capabilities as exposed by the API (e.g., more sensor types for MT, advanced switch configurations).
+
+Please check the project's issue tracker on GitHub for more detailed tasks and ongoing discussions.
