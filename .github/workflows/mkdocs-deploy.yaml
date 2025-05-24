@@ -12,8 +12,8 @@ jobs:
       contents: write  # This allows the action to write to the repository's contents
 
     steps:
+      - uses: actions/setup-python@v5
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
         with:
           python-version: 3.x
 
