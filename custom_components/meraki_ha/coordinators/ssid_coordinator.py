@@ -44,22 +44,33 @@ class MerakiSsidCoordinator(DataUpdateCoordinator):
         url = f"https://api.meraki.com/api/v1/networks/{network_id}/wireless/ssids"
         _LOGGER.debug(f"Fetching SSIDs for network ID: {network_id}")
         try:
-            from .api_data_fetcher import (
-                MerakiApiDataFetcher,
-            )  # Import here to avoid circular dependencies
+            from .api_data_fetcher import MerakiApiDataFetcher  # Import here
 
-            api_fetcher = MerakiApiDataFetcher(self.api_key, None, None, self)
+            api_fetcher = MerakiApiDataFetcher(self.api_key, self.org_id, None, self)
 
             _LOGGER.debug(f"Making API call to: {url}")
-            ssids = await api_fetcher._fetch_data(url)
-            if ssids is None:
-                raise UpdateFailed(
-                    f"API returned non-200 status for network {network_id}"
-                )
-            _LOGGER.debug(f"Meraki API Response JSON: {ssids}")
-            return ssids
+            response = await api_fetcher._fetch_data(url)  # Get the response
+
+            if response is None:
+                raise UpdateFailed(f"API returned no data for network {network_id}")
+
+            if isinstance(response, dict) and response.get(
+                "errors"
+            ):  # Check for Meraki API errors
+                error_message = response["errors"]
+                _LOGGER.error(f"Meraki API Error for {url}: {error_message}")
+                raise UpdateFailed(f"Meraki API Error: {error_message}")
+
+            if not isinstance(response, list):
+                _LOGGER.warning(f"Unexpected API response format for {url}: {response}")
+                return []  # Or raise an exception if you prefer
+
+            _LOGGER.debug(f"Meraki API Response JSON: {response}")
+            return response
+        except UpdateFailed as err:
+            raise err  # Re-raise UpdateFailed
         except Exception as err:
-            _LOGGER.error(f"Error fetching SSIDs: {err}")
+            _LOGGER.error(f"Error fetching SSIDs for {network_id}: {err}")
             raise UpdateFailed(f"Error fetching SSIDs: {err}")
 
     async def _async_update_data(self) -> Dict[str, Any]:

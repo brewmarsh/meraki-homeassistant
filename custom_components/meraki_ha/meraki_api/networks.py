@@ -1,54 +1,113 @@
-import aiohttp  # Keep aiohttp import
-from typing import List, Dict, Optional
+# /config/custom_components/meraki_ha/meraki_api/networks.py
 import logging
-
-from ._api_client import _async_meraki_request  # Import the common function
-from .exceptions import MerakiApiError  # Import MerakiApiError
+from typing import List, Dict, Optional
+from ._api_client import MerakiAPIClient
+from .exceptions import MerakiApiError
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def get_meraki_networks(
-    api_key: str, organization_id: str  # Removed session parameter
-) -> Optional[List[Dict[str, str]]]:
-    """Retrieve a list of Meraki networks."""
-    endpoint = f"/organizations/{organization_id}/networks"
-    try:
-        return await _async_meraki_request(
-            api_key, "GET", endpoint
-        )  # Removed session argument
-    except aiohttp.ClientError as e:
-        _LOGGER.error(f"Error retrieving Meraki networks: {e}")
-        raise MerakiApiError(f"Aiohttp Client Error: {e}") from e
-    except Exception as e:
-        _LOGGER.error(f"An unexpected error occurred: {e}")
-        raise MerakiApiError(f"Unexpected error: {e}") from e
+class MerakiNetworksAPI:
+    """Meraki networks API functions."""
 
+    def __init__(self, client: MerakiAPIClient):
+        """Initialize the Meraki Networks API.
 
-async def get_network_clients_count(
-    api_key: str, network_id: str  # Removed session parameter
-) -> Optional[int]:
-    """Retrieve the number of clients connected to a network in the last 24 hours."""
+        Args:
+            client: An instance of the MerakiAPIClient.
+        """
+        self._client = client
 
-    endpoint = f"/networks/{network_id}/clients?timespan=86400"
-    try:
-        clients = await _async_meraki_request(
-            api_key, "GET", endpoint
-        )  # Removed session argument
-        return len(clients)
-    except aiohttp.ClientError as e:
-        _LOGGER.error(f"Error retrieving client count for network {network_id}: {e}")
-        raise MerakiApiError(f"Aiohttp Client Error: {e}") from e
-    except Exception as e:
-        _LOGGER.error(f"An unexpected error occurred: {e}")
-        raise MerakiApiError(f"Unexpected error: {e}") from e
+    async def async_get_organization_networks(
+        self, organization_id: str
+    ) -> Optional[List[Dict[str, str]]]:
+        """Retrieve a list of Meraki networks for an organization.
 
+        Args:
+            organization_id: The ID of the Meraki organization.
 
-async def get_network_ids_and_names(
-    api_key: str, org_id: str  # Removed session parameter
-) -> Optional[List[Dict[str, str]]]:
-    """Retrieve a list of network IDs and names."""
-    networks = await get_meraki_networks(api_key, org_id)  # Removed session argument
-    if networks is None:
-        return None
-    return [{"id": network["id"], "name": network["name"]} for network in networks]
+        Returns:
+            A list of dictionaries, where each dictionary represents a Meraki network,
+            or None if an error occurs.
+
+        Raises:
+            MerakiApiError: If an error occurs during the API call.
+        """
+        endpoint = f"/organizations/{organization_id}/networks"
+        url = f"{self._client._base_url}{endpoint}"
+        headers = {
+            "X-Cisco-Meraki-API-Key": self._client._api_key,
+            "Content-Type": "application/json",
+        }
+        try:
+            return await self._client._async_meraki_request("GET", url, headers)
+        except MerakiApiError:
+            raise
+        except Exception as e:
+            _LOGGER.error(
+                f"Unexpected error retrieving Meraki networks for organization '{organization_id}': {e}"
+            )
+            raise MerakiApiError(
+                f"Unexpected error retrieving Meraki networks for organization '{organization_id}': {e}"
+            ) from e
+
+    async def async_get_network_clients_count(self, network_id: str) -> Optional[int]:
+        """Retrieve the number of clients connected to a network in the last 24 hours.
+
+        Args:
+            network_id: The ID of the Meraki network.
+
+        Returns:
+            The number of clients connected to the network in the last 24 hours,
+            or None if an error occurs.
+
+        Raises:
+            MerakiApiError: If an error occurs during the API call.
+        """
+        endpoint = f"/networks/{network_id}/clients"
+        url = f"{self._client._base_url}{endpoint}"
+        headers = {
+            "X-Cisco-Meraki-API-Key": self._client._api_key,
+            "Content-Type": "application/json",
+        }
+        params = {"timespan": 86400}
+        try:
+            clients = await self._client._async_meraki_request(
+                "GET", url, headers, params=params
+            )
+            return len(clients)
+        except MerakiApiError:
+            raise
+        except Exception as e:
+            _LOGGER.error(
+                f"Unexpected error retrieving client count for network '{network_id}': {e}"
+            )
+            raise MerakiApiError(
+                f"Unexpected error retrieving client count for network '{network_id}': {e}"
+            ) from e
+
+    async def async_get_network_ids_and_names(
+        self, organization_id: str
+    ) -> Optional[List[Dict[str, str]]]:
+        """Retrieve a list of network IDs and names for an organization.
+
+        Args:
+            organization_id: The ID of the Meraki organization.
+
+        Returns:
+            A list of dictionaries, where each dictionary contains the 'id' and 'name'
+            of a Meraki network, or None if an error occurs.
+
+        Raises:
+            MerakiApiError: If an error occurs during the API call.
+        """
+        networks = await self.async_get_organization_networks(organization_id)
+        if networks is None:
+            return None
+        return [{"id": network["id"], "name": network["name"]} for network in networks]
+
+    # Add other network-related API calls here as needed.
+    # Examples:
+    # - async_get_network_devices(...)
+    # - async_get_network_alerts(...)
+    # - async_get_network_snmp(...)

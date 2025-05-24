@@ -1,7 +1,7 @@
 """Data Aggregator for the meraki_ha integration."""
 
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, List
 from ..helpers.ssid_status_calculator import SsidStatusCalculator
 
 _LOGGER = logging.getLogger(__name__)
@@ -16,43 +16,27 @@ class DataAggregator:
         self.ssid_status_calculator = ssid_status_calculator
 
     async def aggregate_data(
-        self, device_data, ssid_data, network_data, device_tags
+        self,
+        processed_devices: List[Dict[str, Any]],
+        ssid_data: List[Dict[str, Any]],
+        network_data: List[Dict[str, Any]],
+        device_tags: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Aggregate data from Meraki coordinators."""
-        _LOGGER.debug(
-            f"Aggregating data: device_data={device_data}, ssid_data={ssid_data}, network_data={network_data}, device_tags={device_tags}"
-        )  # added line
+        # _LOGGER.debug(
+        #    f"Aggregating data: processed_devices={processed_devices}, ssid_data={ssid_data}, network_data={network_data}, device_tags={device_tags}"
+        # )
         try:
-            processed_devices = (
-                self.data_processor.process_devices(device_data)
-                if isinstance(device_data, list)
-                else []
-            )
-            processed_networks = (
-                self.data_processor.process_networks(network_data)
-                if isinstance(network_data, list)
-                else []
-            )
-            processed_ssids = (
-                self.data_processor.process_ssids(ssid_data)
-                if isinstance(ssid_data, list)
-                else []
-            )
-
             aggregated_data = {
                 "devices": processed_devices,
-                "ssids": processed_ssids,
-                "networks": processed_networks,
+                "ssids": ssid_data,
+                "networks": network_data,
+                "device_tags": device_tags,
             }
-
-            for device in aggregated_data.get("devices", []):
-                serial = device.get("serial")
-                if serial and serial in device_tags:
-                    device["tags"] = device_tags[serial]
 
             # Calculate SSID statuses
             processed_ssids_with_status = SsidStatusCalculator.calculate_ssid_status(
-                processed_ssids,
+                ssid_data,
                 processed_devices,
                 device_tags,
                 self.relaxed_tag_match,
@@ -64,9 +48,9 @@ class DataAggregator:
                 "ssids": processed_ssids_with_status,  # Use the updated SSIDs
             }
 
-            _LOGGER.debug(
-                f"Aggregated and processed data: {combined_data}"
-            )  # added line
+            # _LOGGER.debug(
+            #    f"Aggregated and processed data: {combined_data}"
+            # )
             return combined_data
 
         except Exception as e:

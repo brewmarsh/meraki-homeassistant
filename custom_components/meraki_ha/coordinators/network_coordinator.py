@@ -20,15 +20,18 @@ class MerakiNetworkCoordinator(DataUpdateCoordinator):
         hass: HomeAssistant,
         api_key: str,
         org_id: str,
-        scan_interval: timedelta,
+        scan_interval: timedelta,  # Expecting timedelta from __init__.py
         device_name_format: str,
     ) -> None:
         """Initialize the coordinator."""
+        _LOGGER.debug(
+            f"NetworkCoordinator __init__ received scan_interval: {scan_interval}, type: {type(scan_interval)}"
+        )  # Added log
         super().__init__(
             hass,
             _LOGGER,
             name="Meraki Networks",
-            update_interval=scan_interval,
+            update_interval=scan_interval,  # Use the timedelta object directly
         )
         self.api_key = api_key
         self.org_id = org_id
@@ -43,10 +46,10 @@ class MerakiNetworkCoordinator(DataUpdateCoordinator):
             )  # Import here to avoid circular dependencies
 
             api_fetcher = MerakiApiDataFetcher(
-                self.api_key, None, self, None
-            )  # Only Network Coordinator is used here.
+                self.api_key, self.org_id, self, None
+            )  # Pass self for network_coordinator
 
-            url = f"https://api.meraki.com/api/v1/organizations/{self.org_id}/networks"
+            url = f"https://api.meraki.com/api/v1/{self.org_id}/networks"
 
             _LOGGER.debug(f"Making API call to get networks: {url}")
             networks = await api_fetcher._fetch_data(url)
