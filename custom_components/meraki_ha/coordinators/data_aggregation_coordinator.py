@@ -6,7 +6,7 @@ from typing import Dict, Any
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from datetime import timedelta
-from ..coordinator import MerakiDataUpdateCoordinator
+from .base_coordinator import MerakiDataUpdateCoordinator
 from .data_aggregator import DataAggregator
 from .data_processor import MerakiDataProcessor
 from ..helpers.ssid_status_calculator import SsidStatusCalculator
