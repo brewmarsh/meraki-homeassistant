@@ -1,20 +1,27 @@
 name: Version and Release
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
-      - main # Trigger on push to the main branch
+      - main
 
 jobs:
   version-and-release:
     runs-on: ubuntu-latest
+    # Add condition to only run if the pull request was merged
+    if: github.event.pull_request.merged == true
     permissions:
-      contents: write # Needed to commit and push
+      contents: write # Needed to commit, push, and create releases
+      pull-requests: read # Needed to read PR title
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Get full history for changelog
+          # Fetch all history so conventional-changelog can determine version
+          fetch-depth: 0 
+          # Checkout the main branch explicitly, as the PR event might be on a different ref initially
+          ref: main 
 
       - name: Set up Python and Node.js
         uses: actions/setup-python@v5
@@ -31,61 +38,88 @@ jobs:
           npm install
 
       - name: Increment Version
-        id: increment
+        id: increment # Ensure this id is set
         run: |
-          # Log .bumpversion.cfg content
           echo "--- .bumpversion.cfg ---"
-          cat .bumpversion.cfg
+          cat .bumpversion.cfg || echo ".bumpversion.cfg not found" # Added fallback if file not found
           echo "--- end .bumpversion.cfg ---"
 
-          # Log manifest.json content BEFORE bump2version
           echo "--- manifest.json (before) ---"
           cat custom_components/meraki_ha/manifest.json
           echo "--- end manifest.json (before) ---"
 
-          # Get current version
           current_version=$(jq -r .version custom_components/meraki_ha/manifest.json)
           echo "Current Version: $current_version"
 
-          increment_type="patch" # Default
-          #  Determine increment type (using labels is recommended)
-          if [[ "${{ github.event.commits[0].message }}" == *"[minor]"* ]]; then
-            increment_type="minor"
-          elif [[ "${{ github.event.commits[0].message }}" == *"[major]"* ]]; then
+          increment_type="patch" # Default increment type
+          pr_title="${{ github.event.pull_request.title }}" # Get PR title
+
+          if [[ "$pr_title" == *"[major]"* ]]; then
             increment_type="major"
+          elif [[ "$pr_title" == *"[minor]"* ]]; then
+            increment_type="minor"
+          elif [[ "$pr_title" == *"[patch]"* ]]; then # Explicitly check for patch
+            increment_type="patch"
+          else
+            echo "No version increment specified in PR title prefix ([major], [minor], [patch]). Defaulting to '$increment_type'."
           fi
           echo "Increment Type: $increment_type"
 
-          # Bump version
-          bump2version "$increment_type" custom_components/meraki_ha/manifest.json
-          echo "increment_type=$increment_type" >> "$GITHUB_OUTPUT"
+          # Bump version in manifest.json
+          bump2version --allow-dirty "$increment_type" custom_components/meraki_ha/manifest.json
+          
+          new_version=$(jq -r .version custom_components/meraki_ha/manifest.json)
+          echo "New Version from manifest: $new_version"
+          # Output the new_version for subsequent steps
+          echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
 
           # Log manifest.json content AFTER bump2version
           echo "--- manifest.json (after) ---"
           cat custom_components/meraki_ha/manifest.json
           echo "--- end manifest.json (after) ---"
 
-          # Get new version and log
-          new_version=$(jq -r .version custom_components/meraki_ha/manifest.json)
-          echo "New Version: $new_version"
+      - name: Update package.json version
+        if: steps.increment.outputs.new_version != '' # Only run if a new version was determined
+        run: |
+          echo "Synchronizing package.json version with manifest.json version: ${{ steps.increment.outputs.new_version }}"
+          # The script `npm run set-version` is: `node get-version.js && npm version $(node get-version.js) --no-git-tag-version`
+          # Ensure get-version.js reads from custom_components/meraki_ha/manifest.json
+          # For this step, we'll directly use the new_version from the previous step.
+          # This avoids relying on get-version.js to re-read, which might cause issues if it reads an old cached value.
+          # Overwrite package.json version directly or use npm version with the specific version
+          npm version ${{ steps.increment.outputs.new_version }} --no-git-tag-version --allow-same-version
+          echo "--- package.json (after npm version) ---"
+          cat package.json
+          echo "--- end package.json (after npm version) ---"
 
       - name: Generate Changelog
+        if: steps.increment.outputs.new_version != '' # Only run if a new version was determined
         run: npx conventional-changelog -p angular -i CHANGELOG.md -s
 
       - name: Commit and push changes
+        if: steps.increment.outputs.new_version != '' # Only run if changes were made
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: 'chore: update version and CHANGELOG'
-          file_pattern: 'custom_components/meraki_ha/manifest.json CHANGELOG.md package.json' # Adjust as needed
-          push_options: ' --force'
-          token: ${{ github.token }}
+          commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }} and CHANGELOG'
+          # Ensure all changed files are included
+          file_pattern: 'custom_components/meraki_ha/manifest.json CHANGELOG.md package.json'
+          # push_options: '' # Removed --force, default push behavior
+          # Using default push options by removing the line is safer.
+          # Configure committer details
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+
 
       - name: Create Release
-        uses: actions/create-release@v1 # Or a newer version
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        # Condition: Only create a release if a new version was actually generated.
+        if: steps.increment.outputs.new_version != ''
+        uses: actions/create-release@v1 
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Recommended for create-release action
         with:
           tag_name: 'v${{ steps.increment.outputs.new_version }}'
-          release_name: 'v${{ steps.increment.outputs.new_version }}'
-          body_path: 'CHANGELOG.md'
+          release_name: 'Release v${{ steps.increment.outputs.new_version }}'
+          body_path: 'CHANGELOG.md' # Use the generated changelog as the release body
           draft: false
           prerelease: false
