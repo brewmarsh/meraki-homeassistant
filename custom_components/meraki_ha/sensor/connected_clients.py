@@ -18,7 +18,7 @@ class MerakiConnectedClientsSensor(CoordinatorEntity, SensorEntity):
         """Initialize the Meraki Connected Clients sensor."""
         super().__init__(coordinator)
         self._device = device
-        _LOGGER.debug(f"Meraki: Device data: {device}")
+        # _LOGGER.debug(f"Meraki: Device data: {device}")
         self._attr_name = f"{device['name']} Connected Clients"
         self._attr_unique_id = f"{device['serial']}_connected_clients"
         self._attr_icon = "mdi:account-network"
@@ -27,17 +27,17 @@ class MerakiConnectedClientsSensor(CoordinatorEntity, SensorEntity):
             "serial_number": device.get("serial"),
             "firmware_version": device.get("firmware"),
         }
-        _LOGGER.debug(
-            f"Meraki: Connected Clients Sensor Initialized: {self._attr_name}"
-        )
+        # _LOGGER.debug(
+        #    f"Meraki: Connected Clients Sensor Initialized: {self._attr_name}"
+        # )
         self._attr_native_value = self._get_client_count()
         self._attr_native_unit_of_measurement = "clients"
         self._attr_state_class = "measurement"
 
     def _get_client_count(self) -> Optional[int]:
         """Get the client count from the coordinator data."""
-        _LOGGER.debug(f"Meraki: Getting client count for {self._device['serial']}")
-        _LOGGER.debug(f"Meraki: Coordinator data: {self.coordinator.data}")
+        # _LOGGER.debug(f"Meraki: Getting client count for {self._device['serial']}")
+        # _LOGGER.debug(f"Meraki: Coordinator data: {self.coordinator.data}")
         device_data = next(
             (
                 d
@@ -47,10 +47,10 @@ class MerakiConnectedClientsSensor(CoordinatorEntity, SensorEntity):
             None,
         )
         if device_data:
-            _LOGGER.debug(f"Meraki: Found device data: {device_data}")
-            _LOGGER.debug(
-                f"Meraki: Connected clients data: {device_data.get('connected_clients')}"
-            )
+            #    _LOGGER.debug(f"Meraki: Found device data: {device_data}")
+            #    _LOGGER.debug(
+            #        f"Meraki: Connected clients data: {device_data.get('connected_clients')}"
+            #    )
             connected_clients = device_data.get("connected_clients")
             if connected_clients is not None:
                 _LOGGER.debug(f"Meraki: Connected clients: {connected_clients}")

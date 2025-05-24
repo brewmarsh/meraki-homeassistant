@@ -29,7 +29,8 @@ class TagEraserCoordinator(DataUpdateCoordinator):
         self,
         hass: HomeAssistant,
         api_key: str,
-        scan_interval: timedelta,
+        org_id: str,
+        base_url: str,
     ) -> None:
         """
         Initialize the TagEraserCoordinator.
@@ -37,17 +38,20 @@ class TagEraserCoordinator(DataUpdateCoordinator):
         Args:
             hass: Home Assistant instance.
             api_key: Meraki API key.
-            scan_interval: Time interval for updates.
+            org_id: Meraki Organization ID.
+            base_url: Base URL of the Meraki API.
         """
         super().__init__(
             hass,
             _LOGGER,
             name="Meraki Tag Eraser",
-            update_interval=scan_interval,
+            update_interval=timedelta(seconds=60),  # Default interval, can be adjusted
         )
         self.api_key = api_key
+        self.org_id = org_id
+        self.base_url = base_url
         self.api_fetcher = MerakiApiDataFetcher(
-            api_key, None, None, None
+            api_key, org_id, None, None
         )  # api fetcher used for erase only
         self.tag_eraser = TagEraser(self.api_fetcher)
 

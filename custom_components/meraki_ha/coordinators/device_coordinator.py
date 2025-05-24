@@ -51,9 +51,7 @@ class MerakiDeviceCoordinator(DataUpdateCoordinator):
             )  # Only Device Coordinator is used here.
 
             # Get network data to get device data
-            networks_url = (
-                f"https://api.meraki.com/api/v1/organizations/{self.org_id}/networks"
-            )
+            networks_url = f"https://api.meraki.com/api/v1/{self.org_id}/networks"
             networks = await api_fetcher._fetch_data(networks_url)
 
             devices = []

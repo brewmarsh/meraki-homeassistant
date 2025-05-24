@@ -12,8 +12,8 @@ jobs:
       contents: write  # This allows the action to write to the repository's contents
 
     steps:
-      - uses: actions/checkout@v3
       - uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
         with:
           python-version: 3.x
 
@@ -21,7 +21,7 @@ jobs:
       - run: mkdocs build
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./site

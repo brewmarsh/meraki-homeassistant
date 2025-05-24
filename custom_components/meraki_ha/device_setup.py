@@ -42,7 +42,7 @@ class MerakiDeviceCoordinator(DataUpdateCoordinator):
                 "X-Cisco-Meraki-API-Key": api_key,
                 "Content-Type": "application/json",
             }
-            url = f"https://api.meraki.com/api/v1/organizations/{org_id}/networks"
+            url = f"https://api.meraki.com/api/v1/{org_id}/networks"
 
             _LOGGER.debug(f"Making API call to get networks: {url}")
             async with self.session.get(url, headers=headers) as resp:
