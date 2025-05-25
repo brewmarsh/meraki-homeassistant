@@ -10,7 +10,7 @@
   "quality_scale": "platinum",
   "requirements": ["meraki", "aiohttp"],
   "loggers": ["meraki_ha"],
-  "platforms": ["sensor", "switch"],
+  "integration_type": "hub",
   "dependencies": [],
   "after_dependencies": []
 }
