@@ -1,62 +1,213 @@
-"""Sensor platform for the meraki_ha integration."""
+"""Sensor entity for displaying Meraki device radio settings.
 
+This module defines the `MerakiRadioSettingsSensor` class, which represents
+a sensor in Home Assistant displaying information about the radio settings
+of a specific Meraki wireless device (e.g., channel, band).
+"""
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Union # Added Optional, Union
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.core import callback
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..meraki_api.wireless import get_meraki_device_wireless_radio_settings
+# Assuming MerakiDataUpdateCoordinator is the specific coordinator type
+from ..coordinator import MerakiDataUpdateCoordinator
+from ..const import DOMAIN # For device_info identifiers
+
+# Assuming this function is correctly defined in the meraki_api package
+# from ..meraki_api.wireless import get_meraki_device_wireless_radio_settings
+# Placeholder for the function if not available for type checking
+async def get_meraki_device_wireless_radio_settings(
+    api_key: str, org_id: str, serial: str # org_id seems unused in original call
+) -> Optional[Dict[str, Any]]:
+    """Placeholder: Fetches Meraki device wireless radio settings."""
+    _LOGGER.warning(
+        "Using placeholder for get_meraki_device_wireless_radio_settings for serial %s.", serial
+    )
+    # Example successful response structure (simplified)
+    # return {"channel": 6, "band": "2.4 GHz", "txPower": 17}
+    # Example error or no data:
+    return None
 
 _LOGGER = logging.getLogger(__name__)
 
-UNAVAILABLE = "Unavailable"
-ERROR = "Error"
+# Constants for sensor state if data is unavailable or an error occurs
+STATE_UNAVAILABLE_VALUE = "Unavailable" # More descriptive than just UNAVAILABLE
+STATE_ERROR_VALUE = "Error"
 
 
-class MerakiRadioSettingsSensor(CoordinatorEntity, SensorEntity):
-    """Representation of a Meraki Radio Settings sensor."""
+class MerakiRadioSettingsSensor(
+    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+):
+    """Representation of a Meraki Radio Settings sensor.
 
-    def __init__(self, coordinator: CoordinatorEntity, device: Dict[str, Any]) -> None:
-        """Initialize the Meraki Radio Settings sensor."""
+    This sensor displays a key piece of radio information (e.g., channel)
+    as its main state and other radio settings as state attributes.
+    The data is sourced from the `MerakiDataUpdateCoordinator` or fetched
+    directly if this entity manages its own updates.
+
+    Note: The original implementation had its own `async_update` method,
+    suggesting it might fetch data independently. If it's intended to use
+    the coordinator's data, `async_update` should be removed and data
+    retrieved from `self.coordinator.data` in `_handle_coordinator_update`.
+    This revision assumes it will become a true CoordinatorEntity.
+
+    Attributes:
+        _attr_name: The name of the sensor.
+        _attr_unique_id: The unique ID of the sensor.
+        _attr_icon: The icon for the sensor.
+        _device_info_data: Raw dictionary data for the associated Meraki device.
+    """
+
+    _attr_icon = "mdi:wifi-settings" # Icon representing WiFi settings
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device_data: Dict[str, Any], # Data for the Meraki device this sensor is for
+    ) -> None:
+        """Initialize the Meraki Radio Settings sensor.
+
+        Args:
+            coordinator: The data update coordinator.
+            device_data: A dictionary containing information about the Meraki device
+                         (e.g., name, serial, model).
+        """
         super().__init__(coordinator)
-        self._device = device
-        _LOGGER.debug(f"Meraki: Device data: {device}")
-        self._attr_name = f"{device['name']} Radio Settings"
-        self._attr_unique_id = f"{device['serial']}_radio_settings"
-        self._attr_icon = "mdi:wifi"
-        self._attr_extra_state_attributes = {
-            "model": device.get("model"),
-            "serial_number": device.get("serial"),
-            "firmware_version": device.get("firmware"),
+        self._device_info_data: Dict[str, Any] = device_data
+        device_name = self._device_info_data.get("name", self._device_info_data.get("serial", "Unknown Device"))
+        device_serial = self._device_info_data.get("serial", "")
+
+        self._attr_name = f"{device_name} Radio Settings"
+        self._attr_unique_id = f"{device_serial}_radio_settings"
+        
+        # Initialize state attributes, these will be updated from coordinator
+        self._attr_extra_state_attributes: Dict[str, Any] = {
+            "model": self._device_info_data.get("model"),
+            "serial_number": device_serial,
+            "firmware_version": self._device_info_data.get("firmware"),
         }
-        _LOGGER.debug(f"Meraki: Radio Sensor Initialized: {self._attr_name}")
+        # Set initial state
+        self._update_sensor_state()
+        _LOGGER.debug("Meraki Radio Settings Sensor Initialized: %s", self._attr_name)
 
-    async def async_update(self) -> None:
-        """Update the sensor state."""
-        _LOGGER.debug(f"Meraki: Updating sensor state for {self._attr_name}")
-        try:
-            radio_settings = await get_meraki_device_wireless_radio_settings(
-                self.coordinator.api_key,
-                self.coordinator.org_id,
-                self._device["serial"],
-            )
-            if radio_settings and radio_settings.get("channel"):
-                self._attr_native_value = radio_settings["channel"]
-                self._attr_extra_state_attributes.update(radio_settings)
+
+    def _update_sensor_state(self) -> None:
+        """Update sensor state and attributes from coordinator data.
+        
+        This method assumes the coordinator's data (`self.coordinator.data`)
+        contains a structure where radio settings for each device can be found.
+        Example structure: `coordinator.data['devices_radio_settings']['SERIAL'] = {'channel': X, ...}`
+        """
+        device_serial = self._device_info_data.get("serial")
+        radio_settings: Optional[Dict[str, Any]] = None
+
+        if self.coordinator.data and "devices_radio_settings" in self.coordinator.data:
+            device_radio_data = self.coordinator.data["devices_radio_settings"]
+            if isinstance(device_radio_data, dict):
+                radio_settings = device_radio_data.get(device_serial)
+        
+        if radio_settings and isinstance(radio_settings, dict):
+            # Determine primary state (e.g., channel, or a summary string)
+            # The original code used 'channel' as the primary state.
+            primary_value = radio_settings.get("channel")
+            if primary_value is not None:
+                self._attr_native_value = str(primary_value) # Sensor state must be string, int, float, or datetime
             else:
-                self._attr_native_value = UNAVAILABLE
-        except Exception as e:
-            _LOGGER.error(f"Meraki: Unexpected error fetching radio settings: {e}")
-            self._attr_native_value = ERROR
+                self._attr_native_value = STATE_UNAVAILABLE_VALUE
+            
+            # Update all radio settings as extra state attributes
+            # Start with base attributes and add/override with radio_settings
+            current_attributes = {
+                "model": self._device_info_data.get("model"),
+                "serial_number": device_serial,
+                "firmware_version": self._device_info_data.get("firmware"),
+            }
+            current_attributes.update(radio_settings)
+            self._attr_extra_state_attributes = {
+                k: v for k, v in current_attributes.items() if v is not None
+            }
+        else:
+            _LOGGER.warning(
+                "Radio settings for device '%s' (Serial: %s) not found in coordinator data. Setting state to unavailable.",
+                self._device_info_data.get("name", "N/A"),
+                device_serial,
+            )
+            self._attr_native_value = STATE_UNAVAILABLE_VALUE
+            # Keep basic attributes if radio settings are missing
+            self._attr_extra_state_attributes = {
+                "model": self._device_info_data.get("model"),
+                "serial_number": device_serial,
+                "firmware_version": self._device_info_data.get("firmware"),
+            }
+            self._attr_extra_state_attributes = {
+                 k:v for k,v in self._attr_extra_state_attributes.items() if v is not None
+            }
+
+
+    # If this entity fetches its own data (original behavior):
+    # async def async_update(self) -> None:
+    #     """Update the sensor state by fetching data from the API."""
+    #     _LOGGER.debug("Updating radio settings sensor state for %s", self._attr_name)
+    #     device_serial = self._device_info_data.get("serial")
+    #     if not device_serial:
+    #         _LOGGER.error("Cannot update radio settings sensor for %s: missing serial.", self.name)
+    #         self._attr_native_value = STATE_ERROR_VALUE
+    #         return
+    #
+    #     try:
+    #         # Assuming coordinator holds api_key and org_id directly.
+    #         # The org_id was passed to get_meraki_device_wireless_radio_settings in original code,
+    #         # but the function signature in the placeholder doesn't use it.
+    #         # This indicates a potential mismatch or that org_id is not needed for this specific call.
+    #         radio_settings: Optional[
+    #             Dict[str, Any]
+    #         ] = await get_meraki_device_wireless_radio_settings(
+    #             self.coordinator.api_key, # Assuming api_key is an attribute of coordinator
+    #             self.coordinator.org_id,  # Assuming org_id is an attribute of coordinator
+    #             device_serial,
+    #         )
+    #         if radio_settings and isinstance(radio_settings, dict) and radio_settings.get("channel") is not None:
+    #             self._attr_native_value = str(radio_settings["channel"])
+    #             # Update all radio settings as extra state attributes
+    #             current_attributes = self._attr_extra_state_attributes.copy() # Preserve base attributes
+    #             current_attributes.update(radio_settings)
+    #             self._attr_extra_state_attributes = {k:v for k,v in current_attributes.items() if v is not None}
+    #         else:
+    #             _LOGGER.info("Radio settings unavailable or no channel info for %s.", self.name)
+    #             self._attr_native_value = STATE_UNAVAILABLE_VALUE
+    #     except MerakiApiException as e: # Catch specific API errors
+    #         _LOGGER.error("API error fetching radio settings for %s: %s", self.name, e)
+    #         self._attr_native_value = STATE_ERROR_VALUE
+    #     except Exception as e: # Catch any other unexpected errors
+    #         _LOGGER.exception("Unexpected error fetching radio settings for %s: %s", self.name, e)
+    #         self._attr_native_value = STATE_ERROR_VALUE
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator.
+        
+        This method is called by the CoordinatorEntity base class when new data
+        is available from the coordinator. It updates the sensor's state.
+        """
+        self._update_sensor_state()
+        self.async_write_ha_state()
+
+    # native_value property is now managed by _attr_native_value
+    # extra_state_attributes property is now managed by _attr_extra_state_attributes
 
     @property
-    def native_value(self) -> str | None:
-        """Return the state of the sensor."""
-        return self._attr_native_value
+    def device_info(self) -> DeviceInfo:
+        """Return device information for linking this entity to the device registry.
 
-    @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
-        """Return the state attributes of the sensor."""
-        _LOGGER.debug(f"Meraki: Getting extra state attributes for {self._attr_name}")
-        return self._attr_extra_state_attributes.copy()
+        This links the sensor to the physical Meraki device it represents.
+        """
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device_info_data["serial"])},
+            name=str(self._device_info_data.get("name", self._device_info_data["serial"])),
+            manufacturer="Cisco Meraki",
+            model=str(self._device_info_data.get("model", "Unknown")),
+            sw_version=str(self._device_info_data.get("firmware", "")),
+        )

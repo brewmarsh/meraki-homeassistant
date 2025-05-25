@@ -1,60 +1,155 @@
-"""
-Sensor platform for the meraki_ha integration.
-"""
+"""Sensor entity for representing the status of a Meraki device.
 
+This module defines the `MerakiDeviceStatusSensor` class, which
+is a Home Assistant sensor entity that displays the status (product type)
+of a specific Meraki device.
+"""
 import logging
-from homeassistant.components.sensor import SensorEntity
+from typing import Any, Dict, Optional # Added Optional
 
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.core import callback # Added callback for coordinator updates
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from typing import Dict, Any
+
+# Assuming MerakiDataUpdateCoordinator is the specific coordinator type
+from ..coordinator import MerakiDataUpdateCoordinator
+from ..const import DOMAIN # For device_info identifiers
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
-    """Representation of a Meraki Device Status sensor."""
+class MerakiDeviceStatusSensor(
+    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+):
+    """Representation of a Meraki Device Status sensor.
 
-    def __init__(self, coordinator, device: Dict[str, Any]) -> None:
-        """Initialize the Meraki Device Status sensor."""
+    This sensor displays the product type of the Meraki device as its state.
+    It also provides additional device details as state attributes and an
+    icon based on the device model.
+
+    Attributes:
+        _attr_name: The name of the sensor.
+        _attr_unique_id: The unique ID of the sensor.
+        _device_info_data: Raw dictionary data for the associated Meraki device.
+    """
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device_data: Dict[str, Any], # Data for the Meraki device this sensor is for
+    ) -> None:
+        """Initialize the Meraki Device Status sensor.
+
+        Args:
+            coordinator: The data update coordinator.
+            device_data: A dictionary containing information about the Meraki device
+                         (e.g., name, serial, model, firmware, productType).
+        """
         super().__init__(coordinator)
-        self._device = device
-        self._attr_name = f"{device['name']} Status"
-        self._attr_unique_id = f"{device['serial']}_status"
+        self._device_info_data: Dict[str, Any] = device_data
+        device_name = self._device_info_data.get("name", self._device_info_data.get("serial", "Unknown Device"))
+        device_serial = self._device_info_data.get("serial", "")
+
+        self._attr_name = f"{device_name} Status"
+        self._attr_unique_id = f"{device_serial}_device_status" # Ensure consistency, e.g. all lowercase with _
+        
+        # Set initial state and icon
+        self._update_sensor_state_and_icon()
+        _LOGGER.debug("Meraki Device Status Sensor Initialized: %s", self._attr_name)
+
+
+    def _update_sensor_state_and_icon(self) -> None:
+        """Update the sensor's state (native_value) and icon based on device data."""
+        current_device_data: Optional[Dict[str, Any]] = None
+        device_serial = self._device_info_data.get("serial")
+
+        if self.coordinator.data and "devices" in self.coordinator.data:
+            for dev_data in self.coordinator.data["devices"]:
+                if dev_data.get("serial") == device_serial:
+                    current_device_data = dev_data
+                    break
+        
+        if not current_device_data:
+            _LOGGER.warning(
+                "Device data for serial '%s' not found in coordinator for sensor '%s'. Status will be unknown.",
+                device_serial,
+                self.unique_id,
+            )
+            self._attr_native_value = "unknown"
+            self._attr_icon = "mdi:help-rhombus" # Icon for unknown status
+            return
+
+        # Update native_value based on productType
+        product_type: Optional[str] = current_device_data.get("productType")
+        if isinstance(product_type, str):
+            # Capitalize first letter for better display, e.g., "Wireless"
+            self._attr_native_value = product_type.capitalize()
+        else:
+            self._attr_native_value = "Unknown"
+
+        # Update icon based on model
+        model: Optional[str] = current_device_data.get("model")
+        if isinstance(model, str):
+            model_upper = model.upper() # Use upper for consistent prefix checking
+            if model_upper.startswith("MR"):
+                self._attr_icon = "mdi:access-point-network" # More specific than mdi:access-point
+            elif model_upper.startswith("MX"):
+                self._attr_icon = "mdi:router-network" # More specific than mdi:router
+            elif model_upper.startswith("MS"):
+                self._attr_icon = "mdi:switch"
+            elif model_upper.startswith("MV"):
+                self._attr_icon = "mdi:cctv" # More specific than mdi:video
+            elif model_upper.startswith("MT"):
+                self._attr_icon = "mdi:thermometer-lines" # More specific than mdi:thermometer
+            else:
+                self._attr_icon = "mdi:help-network-outline" # Default icon for unknown model types
+        else:
+            self._attr_icon = "mdi:help-network-outline"
+
+        # Update extra state attributes
         self._attr_extra_state_attributes = {
-            "model": device.get("model"),
-            "serial_number": device.get("serial"),
-            "firmware_version": device.get("firmware"),
+            "model": current_device_data.get("model"),
+            "serial_number": current_device_data.get("serial"),
+            "firmware_version": current_device_data.get("firmware"),
+            "product_type": product_type, # Expose original productType
+            "mac_address": current_device_data.get("mac"),
+            "lan_ip": current_device_data.get("lanIp"),
+            "tags": current_device_data.get("tags", []),
+            "network_id": current_device_data.get("networkId"),
         }
-        _LOGGER.debug(f"Meraki: Device Status Sensor Initialized: {self._attr_name}")
+        # Filter out None values from extra_state_attributes
+        self._attr_extra_state_attributes = {
+            k: v for k, v in self._attr_extra_state_attributes.items() if v is not None
+        }
+
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator.
+
+        This method is called by the CoordinatorEntity base class when new data
+        is available from the coordinator. It updates the sensor's state and icon.
+        """
+        self._update_sensor_state_and_icon()
+        self.async_write_ha_state()
+
+    # native_value and icon properties are now managed by _attr_native_value and _attr_icon,
+    # set by _update_sensor_state_and_icon.
 
     @property
-    def native_value(self) -> str:
-        """Return the state of the sensor."""
-        if self._device.get("productType") == "appliance":
-            return "Appliance"
-        elif self._device.get("productType") == "wireless":
-            return "Wireless"
-        elif self._device.get("productType") == "switch":
-            return "Switch"
-        elif self._device.get("productType") == "camera":
-            return "Camera"
-        elif self._device.get("productType") == "sensor":
-            return "Sensor"
-        else:
-            return "Unknown"
+    def device_info(self) -> DeviceInfo:
+        """Return device information for linking this entity to the device registry.
 
-    @property
-    def icon(self):
-        """Return the icon of the sensor."""
-        if self._device["model"].startswith("MR"):
-            return "mdi:access-point"
-        elif self._device["model"].startswith("MX"):
-            return "mdi:router"
-        elif self._device["model"].startswith("MS"):
-            return "mdi:switch"
-        elif self._device["model"].startswith("MV"):
-            return "mdi:video"
-        elif self._device["model"].startswith("MT"):
-            return "mdi:thermometer"
-        else:
-            return "mdi:router-network"  # Default icon
+        This links the sensor to the physical Meraki device it represents.
+        """
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device_info_data["serial"])},
+            name=str(self._device_info_data.get("name", self._device_info_data["serial"])),
+            manufacturer="Cisco Meraki",
+            model=str(self._device_info_data.get("model", "Unknown")),
+            sw_version=str(self._device_info_data.get("firmware", "")),
+        )
+
+    # extra_state_attributes is now managed by _attr_extra_state_attributes,
+    # set by _update_sensor_state_and_icon.

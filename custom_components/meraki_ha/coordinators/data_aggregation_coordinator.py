@@ -1,22 +1,41 @@
-"""Data Aggregation Coordinator for the meraki_ha integration."""
+"""Data Aggregation Coordinator for the Meraki Home Assistant integration.
 
+This module defines the `DataAggregationCoordinator`, which is responsible for
+collecting data from various other coordinators (like device, SSID, network)
+and device tags, then processing and aggregating this data into a unified
+structure. It utilizes `DataAggregator` for the aggregation logic and
+`MerakiDataProcessor` for initial data processing.
+"""
 import logging
-from typing import Dict, Any
+from datetime import timedelta
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from datetime import timedelta
-from .base_coordinator import MerakiDataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import (
+    DataUpdateCoordinator,
+    UpdateFailed,
+)
+
+from ..helpers.ssid_status_calculator import SsidStatusCalculator
 from .data_aggregator import DataAggregator
 from .data_processor import MerakiDataProcessor
-from ..helpers.ssid_status_calculator import SsidStatusCalculator
+
+if TYPE_CHECKING:
+    # To avoid circular import issues, type hint MerakiDataUpdateCoordinator
+    # only during static analysis.
+    from .base_coordinator import MerakiDataUpdateCoordinator
+
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class DataAggregationCoordinator(DataUpdateCoordinator):
-    """
-    Coordinator to aggregate data from Meraki coordinators.
+class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
+    """Coordinator to aggregate data from various Meraki data sources.
+
+    This coordinator doesn't fetch data itself but relies on data passed
+    to its `_async_update_data` method, which is typically called by a
+    parent coordinator (`MerakiDataUpdateCoordinator`). It processes and
+    aggregates device, SSID, network, and tag information.
     """
 
     def __init__(
@@ -24,76 +43,144 @@ class DataAggregationCoordinator(DataUpdateCoordinator):
         hass: HomeAssistant,
         scan_interval: timedelta,
         relaxed_tag_match: bool,
+        # The parent coordinator instance
         coordinator: "MerakiDataUpdateCoordinator",
     ) -> None:
-        """
-        Initialize the DataAggregationCoordinator.
+        """Initialize the DataAggregationCoordinator.
+
+        Args:
+            hass: The Home Assistant instance.
+            scan_interval: The interval for updating data. Note that this
+                coordinator updates when its `_async_update_data` is called,
+                so this interval might be more for consistency or if it
+                were to schedule its own updates.
+            relaxed_tag_match: Boolean indicating if relaxed tag matching is enabled.
+            coordinator: The main MerakiDataUpdateCoordinator instance, used to
+                access shared data or services if needed.
         """
         super().__init__(
             hass,
             _LOGGER,
-            name="Meraki Data Aggregation",
+            name="Meraki Data Aggregation", # Consider making it more specific if multiple instances
             update_interval=scan_interval,
         )
-        self.relaxed_tag_match = relaxed_tag_match
-        self.coordinator = coordinator
-        self.data_processor = MerakiDataProcessor(
+        self.relaxed_tag_match: bool = relaxed_tag_match
+        self.coordinator: "MerakiDataUpdateCoordinator" = coordinator
+
+        # Initialize helper classes for data processing and aggregation
+        self.data_processor: MerakiDataProcessor = MerakiDataProcessor(
             coordinator=self.coordinator
-        )  # Pass coordinator
-        self.ssid_status_calculator = SsidStatusCalculator()
-        self.data_aggregator = DataAggregator(
-            relaxed_tag_match=relaxed_tag_match,
+        )
+        self.ssid_status_calculator: SsidStatusCalculator = SsidStatusCalculator()
+        self.data_aggregator: DataAggregator = DataAggregator(
+            relaxed_tag_match=self.relaxed_tag_match,
             data_processor=self.data_processor,
             ssid_status_calculator=self.ssid_status_calculator,
         )
+        # Ensure self.data is initialized as per DataUpdateCoordinator's generic type
+        self.data: Dict[str, Any] = {}
 
     async def _async_update_data(
-        self, device_data, ssid_data, network_data, device_tags
+        self,
+        device_data: Optional[List[Dict[str, Any]]],
+        ssid_data: Optional[List[Dict[str, Any]]],
+        network_data: Optional[List[Dict[str, Any]]],
+        device_tags: Optional[Dict[str, List[str]]],
     ) -> Dict[str, Any]:
-        """Fetch and aggregate data from Meraki coordinators."""
+        """Fetch (from other coordinators) and aggregate data.
+
+        This method is called by the parent `MerakiDataUpdateCoordinator`
+        with the latest fetched data. It processes this data and then
+        aggregates it.
+
+        Args:
+            device_data: A list of dictionaries, where each dictionary
+                represents a Meraki device. Can be None if data is missing.
+            ssid_data: A list of dictionaries, where each dictionary
+                represents an SSID. Can be None if data is missing.
+            network_data: A list of dictionaries, where each dictionary
+                represents a network. Can be None if data is missing.
+            device_tags: A dictionary mapping device serial numbers to a
+                list of their tags. Can be None if data is missing.
+
+        Returns:
+            A dictionary containing the aggregated data. Returns an empty
+            dictionary if essential input data is missing.
+
+        Raises:
+            UpdateFailed: If a significant error occurs during data
+                processing or aggregation.
+        """
+        _LOGGER.debug(
+            "DataAggregationCoordinator attempting to update with provided data."
+        )
         try:
-            # Check if any coordinator data is None
+            # Validate that essential data is provided
             if device_data is None or ssid_data is None or network_data is None:
-                _LOGGER.warning("One or more coordinator data is None.")
-                return {}  # Return empty dict to prevent errors
+                _LOGGER.warning(
+                    "One or more essential data sources (devices, SSIDs, networks) is None. "
+                    "Skipping aggregation."
+                )
+                return {}  # Return empty dict to prevent errors down the line
 
-            # Log the received data for debugging
-            # _LOGGER.debug(
-            #    f"DataAggregationCoordinator received: device_data={device_data}, ssid_data={ssid_data}, network_data={network_data}, device_tags={device_tags}"
-            # )
-
-            # Process devices and filter for wireless APs
-            processed_devices = []
+            # Process devices: filter for wireless APs (model starting with "MR")
+            processed_devices: List[Dict[str, Any]] = []
             if isinstance(device_data, list):
+                # Assuming process_devices is async as per original 'await'
                 processed_devices = await self.data_processor.process_devices(
                     device_data
-                )  # Add 'await' here
+                )
+                # Filter for Meraki wireless APs (Access Points)
                 processed_devices = [
                     device
                     for device in processed_devices
-                    if device.get("model", "").startswith("MR")
+                    if device.get("model", "").upper().startswith("MR")
                 ]
             else:
-                processed_devices = []
+                _LOGGER.warning(
+                    "Device data is not a list as expected: %s", type(device_data)
+                )
 
-            processed_networks = (
-                self.data_processor.process_networks(network_data)
-                if isinstance(network_data, list)
-                else []
-            )
-            processed_ssids = (
-                self.data_processor.process_ssids(ssid_data)
-                if isinstance(ssid_data, list)
-                else []
-            )
+            # Process networks
+            processed_networks: List[Dict[str, Any]] = []
+            if isinstance(network_data, list):
+                processed_networks = self.data_processor.process_networks(network_data)
+            else:
+                _LOGGER.warning(
+                    "Network data is not a list as expected: %s", type(network_data)
+                )
 
-            # Aggregate data
-            aggregated_data = await self.data_aggregator.aggregate_data(
+            # Process SSIDs
+            processed_ssids: List[Dict[str, Any]] = []
+            if isinstance(ssid_data, list):
+                processed_ssids = self.data_processor.process_ssids(ssid_data)
+            else:
+                _LOGGER.warning(
+                    "SSID data is not a list as expected: %s", type(ssid_data)
+                )
+
+            # Device tags can be None, DataAggregator should handle it
+            if device_tags is None:
+                _LOGGER.warning("Device tags data is None. Proceeding without tags.")
+                device_tags = {}
+
+
+            # Aggregate data using the DataAggregator
+            # Assuming aggregate_data is async as per original 'await'
+            aggregated_data: Dict[
+                str, Any
+            ] = await self.data_aggregator.aggregate_data(
                 processed_devices, processed_ssids, processed_networks, device_tags
             )
-            # _LOGGER.debug(f"Aggregated data: {aggregated_data}")
+
+            _LOGGER.debug(
+                "Data aggregation successful. Processed %d devices, %d SSIDs, %d networks.",
+                len(processed_devices),
+                len(processed_ssids),
+                len(processed_networks),
+            )
             return aggregated_data
 
-        except Exception as e:
-            _LOGGER.error(f"Error aggregating data: {e}")
-            raise UpdateFailed(f"Error aggregating data: {e}")
+        except Exception as e: # pylint: disable=broad-except
+            _LOGGER.exception("Error aggregating Meraki data: %s", e)
+            raise UpdateFailed(f"Error aggregating data: {e}") from e
