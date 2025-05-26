@@ -1,16 +1,16 @@
 {
   "domain": "meraki_ha",
   "name": "Home Assistant Integration for Meraki Devices",
-  "version": "0.0.3",
+  "after_dependencies": [],
   "codeowners": ["@brewmarsh"],
-  "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
-  "issue_tracker": "https://github.com/brewmarsh/meraki-homeassistant/issues",
   "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
+  "integration_type": "hub",
   "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/brewmarsh/meraki-homeassistant/issues",
+  "loggers": ["meraki_ha"],
   "quality_scale": "platinum",
   "requirements": ["meraki", "aiohttp"],
-  "loggers": ["meraki_ha"],
-  "integration_type": "hub",
-  "dependencies": [],
-  "after_dependencies": []
+  "version": "0.0.3"
 }
