@@ -18,10 +18,8 @@ from .const import (
     DOMAIN,
     PLATFORMS,
 )
-from .coordinator import (
-    MerakiDataUpdateCoordinator,
-    MerakiNetworkCoordinator,
-)
+from .coordinators.base_coordinator import MerakiDataUpdateCoordinator
+from .coordinators.network_coordinator import MerakiNetworkCoordinator
 from .coordinators.ssid_coordinator import MerakiSsidCoordinator
 
 _LOGGER = logging.getLogger(__name__)
