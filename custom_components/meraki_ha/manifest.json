@@ -12,5 +12,5 @@
   "loggers": ["meraki_ha"],
   "quality_scale": "platinum",
   "requirements": ["meraki", "aiohttp"],
-  "version": "0.0.3"
+  "version": "0.1.0"
 }
