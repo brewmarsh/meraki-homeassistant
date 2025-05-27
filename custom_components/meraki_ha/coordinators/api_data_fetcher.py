@@ -162,7 +162,6 @@ class MerakiApiDataFetcher:
         network_clients: Dict[str, List[Dict[str, Any]]] = (
             {}
         )  # Stores clients, keyed by network_id.
-
         # Step 3: Iterate through each network to fetch its SSIDs and clients.
         for network in networks:  # `networks` is confirmed not None here.
             network_id: str = network["id"]  # Get the current network's ID.
@@ -235,7 +234,7 @@ class MerakiApiDataFetcher:
                     1  # Count each client matching criteria.
                     for client in network_clients[device_network_id]
                     if client.get("recentDeviceSerial") == device_serial
-                    and client.get("status") == "Online"  # Client is online.
+                    and client.get("status") == "Online"  # Client online.
                 )
             # Add the count to the device info.
             device_info["connected_clients"] = connected_clients_count
@@ -280,7 +279,8 @@ class MerakiApiDataFetcher:
             return None  # Indicate failure to the caller.
         except Exception as e:  # Catch any other unexpected errors.
             _LOGGER.exception(  # Log with stack trace
-                "Unexpected error fetching networks for org %s: %s. Returning None.",
+                "Unexpected error fetching networks for org %s: %s. "
+                "Returning None.",
                 org_id,
                 e,
             )
@@ -310,7 +310,8 @@ class MerakiApiDataFetcher:
             return await self._fetch_data(url)
         except MerakiApiError as e:  # Specific API error handling.
             _LOGGER.warning(
-                "API error fetching devices for org %s from %s: %s. Returning None.",
+                "API error fetching devices for org %s from %s: %s. "
+                "Returning None.",
                 org_id,
                 url,
                 e,
@@ -358,7 +359,8 @@ class MerakiApiDataFetcher:
         except aiohttp.ClientResponseError as e:
             # Errors raised by `resp.raise_for_status()` in _fetch_data
             _LOGGER.warning(
-                "API response error fetching SSIDs for ntwk %s from %s: %s - %s",
+                "API response error fetching SSIDs for ntwk %s from %s: "
+                "%s - %s",
                 network_id,
                 url,
                 e.status,  # HTTP status code
@@ -375,8 +377,8 @@ class MerakiApiDataFetcher:
                 return []  # Treat 404 as "no SSIDs found".
             # For other HTTP errors (e.g., 401, 403, 5xx), raise specific error.
             raise MerakiApiSsidFetchError(
-                f"Failed to fetch SSIDs for ntwk {network_id}: {e.status} - "
-                f"{e.message}"
+                f"Failed to fetch SSIDs for ntwk {network_id}: "
+                f"{e.status} - {e.message}"
             ) from e
         # Handle client-side connection errors (e.g., DNS, TCP).
         except aiohttp.ClientError as e:
@@ -474,12 +476,15 @@ class MerakiApiDataFetcher:
             )
             # Wrap in a generic MerakiApiError.
             raise MerakiApiError(
-                f"API request to {url} failed with status {e.status}: {e.message}",
+                f"API request to {url} failed with status {e.status}: "
+                f"{e.message}",
                 status_code=e.status,
             ) from e
         # Handle errors related to establishing a connection (e.g., DNS).
         except aiohttp.ClientConnectionError as e:
-            _LOGGER.error("Meraki API connection error for URL %s: %s", url, e)
+            _LOGGER.error(
+                "Meraki API connection error for URL %s: %s", url, e
+            )
             # Wrap in a specific connection error type.
             raise MerakiApiConnectionError(
                 f"Connection error while trying to reach {url}: {e}"
