@@ -155,16 +155,34 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok: bool = await hass.config_entries.async_unload_platforms(
         entry, PLATFORMS
     )
-    # If platform unloading was successful, remove coordinator data from hass.data
+    # If platform unloading was successful, proceed to close client and pop data
     if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id)
-        _LOGGER.info(
-            "Successfully unloaded Meraki integration for entry: %s",
-            entry.entry_id)
+        if DOMAIN in hass.data and entry.entry_id in hass.data[DOMAIN]:
+            coordinator_data_entry = hass.data[DOMAIN].get(entry.entry_id) # Get the specific entry's data
+            if coordinator_data_entry and "coordinator" in coordinator_data_entry:
+                coordinator = coordinator_data_entry["coordinator"]
+                # The MerakiAPIClient is an attribute of the MerakiDataUpdateCoordinator
+                if hasattr(coordinator, 'meraki_client') and coordinator.meraki_client:
+                    if hasattr(coordinator.meraki_client, 'close'):
+                        _LOGGER.info("Closing Meraki API client session for entry %s.", entry.entry_id)
+                        try:
+                            await coordinator.meraki_client.close()
+                        except Exception as e:
+                            _LOGGER.error("Error closing Meraki API client session for entry %s: %s", entry.entry_id, e)
+                    else:
+                        _LOGGER.warning("Meraki client found for entry %s but has no close method.", entry.entry_id)
+                else:
+                    _LOGGER.warning("Meraki client not found on coordinator for entry %s during unload.", entry.entry_id)
+            else:
+                _LOGGER.warning("Coordinator not found in hass.data for entry %s during unload.", entry.entry_id)
+
+            # Remove the integration's data from hass.data
+            hass.data[DOMAIN].pop(entry.entry_id)
+            _LOGGER.info("Successfully unloaded Meraki integration and data for entry: %s", entry.entry_id)
+        else:
+            _LOGGER.info("No data found in hass.data[DOMAIN] for entry %s to remove during unload.", entry.entry_id)
     else:
-        _LOGGER.error(
-            "Failed to unload Meraki platforms for entry: %s", entry.entry_id
-        )
+        _LOGGER.error("Failed to unload Meraki platforms for entry: %s", entry.entry_id)
     return unload_ok
 
 

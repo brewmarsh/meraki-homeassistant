@@ -73,13 +73,24 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # Determine if "erase_tags" option is enabled
         self.erase_tags: bool = config_entry.options.get("erase_tags", False)
 
-        # Initialize the main API data fetcher.
-        # This fetcher makes actual calls to the Meraki API.
-        # It's given network/SSID coordinators, possibly to allow direct
-        # updates or use their data, though less common if this coordinator
-        # is the primary orchestrator.
+        # Initialize the MerakiAPIClient
+        # This client will be used by the api_fetcher.
+        # It's important to store it here so its close() method can be called on unload.
+        from ..meraki_api import MerakiAPIClient # Import here to avoid circular dependency at module level if not careful
+        self.meraki_client: MerakiAPIClient = MerakiAPIClient(
+            api_key=api_key,
+            org_id=org_id
+            # Add other necessary params for MerakiAPIClient if any (e.g., base_url, though SDK handles it)
+        )
+
+        # Initialize the main API data fetcher, passing the created client
+        # The MerakiApiDataFetcher __init__ was updated to take meraki_client as first arg
         self.api_fetcher: MerakiApiDataFetcher = MerakiApiDataFetcher(
-            api_key, org_id, self.networks_coordinator, self.ssid_coordinator
+            meraki_client=self.meraki_client,
+            # api_key and org_id are no longer direct params for MerakiApiDataFetcher
+            # Pass other existing params if they are still part of MerakiApiDataFetcher's __init__
+            network_coordinator=self.networks_coordinator, 
+            ssid_coordinator=self.ssid_coordinator 
         )
 
         # Initialize specialized sub-coordinators.
