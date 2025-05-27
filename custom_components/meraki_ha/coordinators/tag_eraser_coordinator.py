@@ -6,8 +6,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from datetime import timedelta
 
-from .tag_eraser import TagEraser
-from .api_data_fetcher import MerakiApiDataFetcher
+from custom_components.meraki_ha.coordinators.tag_eraser import TagEraser
+# MerakiApiDataFetcher is not directly used by TagEraserCoordinator after recent refactors.
+# TagEraser itself will use MerakiAPIClient.
+# from .api_data_fetcher import MerakiApiDataFetcher # Assuming this was for the client
+from custom_components.meraki_ha.meraki_api import MerakiAPIClient # For direct client usage
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -49,11 +52,18 @@ class TagEraserCoordinator(DataUpdateCoordinator):
         )
         self.api_key = api_key
         self.org_id = org_id
-        self.base_url = base_url
-        self.api_fetcher = MerakiApiDataFetcher(
-            api_key, org_id, None, None
-        )  # api fetcher used for erase only
-        self.tag_eraser = TagEraser(self.api_fetcher)
+        # base_url is likely not needed if MerakiAPIClient handles it.
+        # self.base_url = base_url 
+        
+        # TagEraser should take a MerakiAPIClient instance.
+        # The MerakiApiDataFetcher is for fetching bulk data, not direct operations like tag erasing.
+        # We need to instantiate a MerakiAPIClient here for the TagEraser.
+        # This assumes TagEraser's __init__ is updated to accept MerakiAPIClient.
+        # If TagEraser still expects MerakiApiDataFetcher, this needs more adjustment.
+        # For now, let's assume TagEraser is refactored or we provide a client.
+        # A dedicated client for tag erasing ensures separation of concerns.
+        self.meraki_client_for_eraser = MerakiAPIClient(api_key=api_key, org_id=org_id)
+        self.tag_eraser = TagEraser(self.meraki_client_for_eraser) # Pass the client
 
     async def async_erase_device_tags(self, serial: str) -> None:
         """

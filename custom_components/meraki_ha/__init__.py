@@ -11,7 +11,7 @@ from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import (
+from custom_components.meraki_ha.const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_RELAXED_TAG_MATCHING,
@@ -19,7 +19,7 @@ from .const import (
     DOMAIN,
     PLATFORMS, # List of platforms (e.g., ["sensor", "switch"])
 )
-from .coordinators.base_coordinator import MerakiDataUpdateCoordinator
+from custom_components.meraki_ha.coordinators.base_coordinator import MerakiDataUpdateCoordinator
 # Obsolete imports for MerakiNetworkCoordinator and MerakiSsidCoordinator are removed.
 
 _LOGGER = logging.getLogger(__name__)

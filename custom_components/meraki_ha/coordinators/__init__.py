@@ -9,14 +9,14 @@ distribution from the Meraki API.
 """
 
 # Import and re-export key coordinator classes for simpler access from other modules.
-from .base_coordinator import MerakiDataUpdateCoordinator
-from .api_data_fetcher import MerakiApiDataFetcher
-from .data_aggregation_coordinator import DataAggregationCoordinator
-from .data_processor import MerakiDataProcessor # Added for completeness if used externally
-from .data_aggregator import DataAggregator     # Added for completeness if used externally
-from .device_coordinator import MerakiDeviceCoordinator # If still used
-from .device_tag_update_coordinator import DeviceTagUpdateCoordinator # If still used
-from .tag_eraser_coordinator import TagEraserCoordinator # If still used
+from custom_components.meraki_ha.coordinators.base_coordinator import MerakiDataUpdateCoordinator
+from custom_components.meraki_ha.coordinators.api_data_fetcher import MerakiApiDataFetcher
+from custom_components.meraki_ha.coordinators.data_aggregation_coordinator import DataAggregationCoordinator
+from custom_components.meraki_ha.coordinators.data_processor import MerakiDataProcessor # Added for completeness if used externally
+from custom_components.meraki_ha.coordinators.data_aggregator import DataAggregator     # Added for completeness if used externally
+from custom_components.meraki_ha.coordinators.device_coordinator import MerakiDeviceCoordinator # If still used
+from custom_components.meraki_ha.coordinators.device_tag_update_coordinator import DeviceTagUpdateCoordinator # If still used
+from custom_components.meraki_ha.coordinators.tag_eraser_coordinator import TagEraserCoordinator # If still used
 
 
 # __all__ defines the public API of this module when `from .coordinators import *`

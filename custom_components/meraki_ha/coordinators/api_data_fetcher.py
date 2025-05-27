@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
-from ..meraki_api import MerakiAPIClient
+from custom_components.meraki_ha.meraki_api import MerakiAPIClient
 # Obsolete imports for MerakiApiException and related custom exceptions are removed
 # as MerakiSDKAPIError from meraki.exceptions is used directly.
 
