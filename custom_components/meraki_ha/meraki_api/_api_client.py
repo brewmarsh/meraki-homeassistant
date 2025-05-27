@@ -20,7 +20,8 @@ from .networks import MerakiNetworksAPI
 
 _LOGGER = logging.getLogger(__name__)
 
-MERAKI_API_URL = "https://api.meraki.com/api/v1"  # [cite: 1] Base URL for Meraki API
+# [cite: 1] Base URL for Meraki API
+MERAKI_API_URL = "https://api.meraki.com/api/v1"
 
 _CLIENT_SESSION: Optional[aiohttp.ClientSession] = None  # Module-level session
 
@@ -48,7 +49,7 @@ async def _close_client_session() -> None:
 async def _async_api_request(
     method: str,
     url: str,  # Now expects the full URL
-    headers: Dict[str, str],  # Now expects the headers to be passed
+    headers: Dict[str, str],  # Headers to be passed
     data: Optional[Dict[str, Any]] = None,
     params: Optional[Dict[str, Any]] = None,
 ) -> Any:
@@ -85,8 +86,11 @@ async def _async_api_request(
         async with session.request(
             method, url, headers=headers, json=data, params=params
         ) as response:
-            _LOGGER.debug(f"Response from {response.url}: Status - {response.status}")
-            response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+            _LOGGER.debug(
+                f"Response from {response.url}: Status - {response.status}"
+            )
+            # Raise HTTPError for bad responses (4xx or 5xx)
+            response.raise_for_status()
             if response.content_type == "application/json":
                 response_json = await response.json()
                 _LOGGER.debug(f"Response body (JSON): {response_json}")
@@ -125,7 +129,8 @@ class MerakiAPIClient:
         """
         self._api_key = api_key
         self._org_id = org_id
-        self._base_url = "https://api.meraki.com/api/v1"  # Consider making this configurable if needed
+        # Consider making this configurable if needed
+        self._base_url = "https://api.meraki.com/api/v1"
         self.appliance = MerakiApplianceAPI(self)
         self.clients = MerakiClientsAPI(self)
         self.devices = MerakiDevicesAPI(self)
@@ -146,25 +151,27 @@ class MerakiAPIClient:
 
         Args:
             method (str): The HTTP method (e.g., "GET", "POST").
-            endpoint (str): The API endpoint path (relative to the base URL).
-            params (dict, optional): Query parameters for the request. Defaults to None.
-            json (dict, optional): JSON data for the request body (for POST, PUT). Defaults to None.
+            endpoint (str): The API endpoint path (relative to base URL).
+            params (dict, optional): Query parameters for the request.
+                                     Defaults to None.
+            json (dict, optional): JSON data for the request body (for
+                                   POST, PUT). Defaults to None.
 
         Returns:
             dict | list: The JSON response from the Meraki API.
 
         Raises:
-            MerakiApiError: If there is an error communicating with the Meraki API.
+            MerakiApiError: If there is an error communicating with the
+                            Meraki API.
         """
         headers = {
             "X-Cisco-Meraki-API-Key": self._api_key,
             "Content-Type": "application/json",
         }
         url = f"{self._base_url}{endpoint}"
-        return await _async_api_request(method, url, headers, params=params, data=json)
+        return await _async_api_request(
+            method, url, headers, params=params, data=json
+        )
 
 
-__all__ = [
-    "MerakiAPIClient",
-    "MerakiApiError",
-]
+__all__ = ["MerakiAPIClient", "MerakiApiError"]
