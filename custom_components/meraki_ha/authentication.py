@@ -81,21 +81,20 @@ class MerakiAuthentication:
         except MerakiSDKAPIError as e:
             await client.close() # Ensure client is closed on API error
             if e.status == 401:
-                _LOGGER.debug("Authentication failed (401) via SDK: %s", e.message)
-                raise ConfigEntryAuthFailed("Invalid API Key") from e
-            elif e.status == 404: # Could indicate invalid org_id if get_organization_networks was used directly for the specific org
-                _LOGGER.error("Meraki API error (404 Not Found) during validation via SDK: %s", e.message)
-                # This might be treated as an invalid Org ID or a general API error.
-                # Given we fetch all orgs first, a 404 on get_organizations itself is unlikely unless base URL is wrong.
-                # If get_organization_networks(self.org_id) was used, 404 would mean invalid org.
-                # For now, treat non-401 APIErrors as generic.
-                raise Exception(f"Meraki API Error (Status {e.status}): {e.message}") from e
-            else:
-                _LOGGER.error("Meraki SDK API Error during validation: %s, Status: %s", e.message, e.status)
-                raise Exception(f"Meraki API Error (Status {e.status}): {e.message}") from e
-        except ValueError: # Catch ValueError for invalid org_id
+                _LOGGER.error("Authentication failed: Invalid API Key (HTTP 401). Message: %s", e.message)
+                raise ConfigEntryAuthFailed("Invalid API Key (HTTP 401)") from e
+            elif e.status == 403:
+                _LOGGER.error("Authentication failed: API key lacks permissions (HTTP 403). Message: %s", e.message)
+                raise ConfigEntryAuthFailed(f"API key lacks permissions (HTTP 403): {e.message}") from e
+            elif e.status == 404: # This occurs if the get_organizations endpoint itself returns 404
+                _LOGGER.error("Failed to query organizations (HTTP 404). Message: %s", e.message)
+                raise ConfigEntryAuthFailed(f"Failed to query organizations (HTTP 404): {e.message}") from e
+            else: # For other MerakiSDKAPIError status codes (e.g., 400, 500, 502, etc.)
+                _LOGGER.error("Meraki API error during validation (HTTP %s). Message: %s", e.status, e.message)
+                raise ConfigEntryAuthFailed(f"Meraki API error (HTTP {e.status}): {e.message}") from e
+        except ValueError: # Catch ValueError for invalid org_id (org_id not in the list of fetched orgs)
             await client.close() # Ensure client is closed
-            _LOGGER.error("ValueError: Invalid Organization ID %s", self.org_id)
+            _LOGGER.error("Invalid Organization ID: %s not found in accessible organizations.", self.org_id)
             raise # Re-raise the ValueError
         except Exception as e:
             # Ensure client is closed on any other unexpected error
