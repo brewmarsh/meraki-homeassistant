@@ -11,6 +11,6 @@
   "issue_tracker": "https://github.com/brewmarsh/meraki-homeassistant/issues",
   "loggers": ["meraki_ha"],
   "quality_scale": "platinum",
-  "requirements": ["meraki", "aiohttp"],
-  "version": "0.0.3"
+  "requirements": ["meraki>=1.36.0", "aiohttp"],
+  "version": "0.1.0"
 }
