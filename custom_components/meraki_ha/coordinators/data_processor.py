@@ -7,17 +7,11 @@ includes extracting relevant fields and, for certain device types
 (like MR wireless access points), fetching additional details
 asynchronously.
 """
+
 import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, Coroutine, Dict, List, Optional, Union
-
-from ..meraki_api import MerakiAPIClient # This line should already be here from previous step
-
-# Old imports to be removed:
-# from ..meraki_api.wireless import (
-# get_meraki_connected_client_count,
-# get_meraki_device_wireless_radio_settings,
-# )
+from ..meraki_api import MerakiAPIClient 
 
 if TYPE_CHECKING:
     # Avoid circular import at runtime, only for type checking
@@ -42,7 +36,6 @@ class MerakiDataProcessor:
                 access shared information like the API key and org_id.
         """
         self.coordinator: "MerakiDataUpdateCoordinator" = coordinator
-        # self.api_client instantiation is removed, will use self.coordinator.meraki_client
 
     async def process_devices(
         self, devices: List[Dict[str, Any]]
@@ -158,8 +151,7 @@ class MerakiDataProcessor:
                         target_device["connected_clients"] = len(client_result)
                     elif isinstance(client_result, Exception):
                         _LOGGER.warning(
-                            "Error fetching client count for MR device "
-                            "%s (%s): %s",
+                            "Error fetching client count for MR device " "%s (%s): %s",
                             target_device.get("name"),
                             target_device.get("serial"),
                             client_result,
@@ -172,7 +164,7 @@ class MerakiDataProcessor:
                     )
 
                 # Radio settings result
-                radio_task_idx_in_async_tasks = mr_idx * 2 + 1 # Calculate the original index in async_tasks
+\                radio_task_idx_in_async_tasks = mr_idx * 2 + 1 # Calculate the original index in async_tasks
                 radio_task_valid = radio_task_idx_in_async_tasks < len(async_tasks) and \
                                  async_tasks[radio_task_idx_in_async_tasks] is not None
                 if radio_task_valid and result_idx < len(results):
@@ -191,18 +183,14 @@ class MerakiDataProcessor:
                 elif not radio_task_valid:  # Task was None
                     _LOGGER.debug(
                         "Skipped radio settings for MR device %s due to missing info.",
-                        target_device.get("serial")
+                        target_device.get("serial"),
                     )
 
-        _LOGGER.debug(
-            "Finished processing %d devices.", len(processed_devices_list)
-        )
+        _LOGGER.debug("Finished processing %d devices.", len(processed_devices_list))
         return processed_devices_list
 
     @staticmethod
-    def process_networks(
-        networks: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+    def process_networks(networks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Process a list of network data from the Meraki API.
 
         Extracts key information for each network.
@@ -219,16 +207,12 @@ class MerakiDataProcessor:
         """
         processed_networks_list: List[Dict[str, Any]] = []
         if not isinstance(networks, list):
-            _LOGGER.warning(
-                "Network data is not a list: %s", type(networks)
-            )
+            _LOGGER.warning("Network data is not a list: %s", type(networks))
             return processed_networks_list
 
         for network in networks:
             if not isinstance(network, dict):
-                _LOGGER.warning(
-                    "Network item is not a dict: %s", type(network)
-                )
+                _LOGGER.warning("Network item is not a dict: %s", type(network))
                 continue
             processed_network: Dict[str, Any] = {
                 "id": network.get("id"),
@@ -240,9 +224,7 @@ class MerakiDataProcessor:
                 # "tags": network.get("tags", []),
             }
             processed_networks_list.append(processed_network)
-        _LOGGER.debug(
-            "Processed %d networks.", len(processed_networks_list)
-        )
+        _LOGGER.debug("Processed %d networks.", len(processed_networks_list))
         return processed_networks_list
 
     @staticmethod
