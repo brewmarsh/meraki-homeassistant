@@ -7,7 +7,7 @@ leveraging the meraki.aio.DashboardAPI.
 import logging
 from typing import Any
 
-from meraki.aio import DashboardAPI
+from meraki.aio import AsyncDashboardAPI # Changed from DashboardAPI
 # Assuming MerakiApiError might still be used as a base custom error for the integration.
 # If not, this can be removed in a later step if all error handling is done via meraki.APIError
 from .exceptions import MerakiApiError
@@ -30,7 +30,7 @@ class MerakiAPIClient:
         self._org_id = org_id  # Store org_id if needed for specific calls
 
         # Initialize the Meraki SDK
-        self._sdk = DashboardAPI(
+        self._sdk = AsyncDashboardAPI( # Changed from DashboardAPI
             api_key=api_key,
             base_url="https://api.meraki.com/api/v1",  # Standard base URL
             output_log=False,  # Set to True for SDK-level debug logging if needed
