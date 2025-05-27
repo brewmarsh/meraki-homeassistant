@@ -1,4 +1,4 @@
-meraki
+meraki>=1.36.0
 aiohttp
 bump2version
 pytest
