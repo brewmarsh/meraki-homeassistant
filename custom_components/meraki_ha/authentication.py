@@ -41,8 +41,10 @@ class MerakiAuthentication:
             True if credentials are valid and the organization ID is found.
 
         Raises:
-            ConfigEntryAuthFailed: If authentication fails (e.g., invalid API key).
-            ValueError: If the organization ID is not found in the user's organizations.
+            ConfigEntryAuthFailed: If authentication fails (e.g., invalid
+                                   API key).
+            ValueError: If the organization ID is not found in the user's
+                        organizations.
             aiohttp.ClientError: If there's an issue with the HTTP request.
             Exception: For other unexpected API errors.
         """
@@ -63,53 +65,73 @@ class MerakiAuthentication:
                     _LOGGER.debug(f"Meraki API response status: {response.status}")
                     # Check if the request was successful (HTTP 200 OK).
                     if response.status == 200:
-                        # Parse the JSON response containing a list of organizations.
-                        organizations: List[Dict[str, Any]] = await response.json()
-                        _LOGGER.debug(f"Organizations retrieved: {organizations}")
-                        # Verify that the provided organization ID is present in the list of organizations
-                        # accessible with the given API key.
-                        if not any(org["id"] == self.org_id for org in organizations):
-                            _LOGGER.error(f"Invalid Organization ID: {self.org_id}")
-                            # Raise ValueError if the org_id is not found, indicating invalid configuration.
-                            raise ValueError(f"Invalid Organization ID: {self.org_id}")
+                        # Parse JSON response (list of organizations).
+                        organizations: List[Dict[str, Any]] = (
+                            await response.json()
+                        )
+                        _LOGGER.debug("Organizations retrieved: %s", organizations)
+                        # Verify provided org ID is in the list accessible
+                        # with the given API key.
+                        if not any(
+                            org["id"] == self.org_id for org in organizations
+                        ):
+                            _LOGGER.error(
+                                "Invalid Organization ID: %s", self.org_id
+                            )
+                            # Raise ValueError if org_id not found.
+                            raise ValueError(
+                                f"Invalid Organization ID: {self.org_id}"
+                            )
                         _LOGGER.debug("Credentials validated successfully")
                         return True
-                    # Handle authentication failure (HTTP 401 Unauthorized).
-                    # This typically means the API key is incorrect or lacks permissions.
+                    # Handle auth failure (HTTP 401 Unauthorized).
+                    # Typically means API key is incorrect or lacks permissions.
                     elif response.status == 401:
                         _LOGGER.debug("Authentication failed (401)")
                         raise ConfigEntryAuthFailed("Invalid API Key")
                     # Handle other non-successful HTTP status codes.
                     else:
-                        error_text = await response.text() # Get error details from response body.
+                        # Get error details from response body.
+                        error_text = await response.text()
                         _LOGGER.error(
-                            f"Meraki API Error: Status: {response.status}, Response: {error_text}"
+                            "Meraki API Error: Status: %s, Response: %s",
+                            response.status,
+                            error_text,
                         )
                         # Raise a generic exception for other API errors.
                         raise Exception(
-                            f"Meraki API Error: Status: {response.status}, Response: {error_text}"
+                            f"Meraki API Error: Status: {response.status}, "
+                            f"Response: {error_text}"
                         )
-        # Handle client-side errors during the HTTP request (e.g., network issues).
+        # Handle client-side errors (e.g., network issues).
         except aiohttp.ClientError as e:
-            _LOGGER.error(f"Aiohttp Client Error during credential validation: {e}")
-            raise  # Re-raise the original aiohttp.ClientError to be handled by the caller.
+            _LOGGER.error(
+                "Aiohttp Client Error during credential validation: %s", e
+            )
+            # Re-raise original aiohttp.ClientError for caller.
+            raise
         # Handle the ValueError raised for an invalid org_id.
         except ValueError as ve:
-            _LOGGER.error(f"Value Error during credential validation: {ve}")
-            raise  # Re-raise the original ValueError.
-        # Handle the ConfigEntryAuthFailed raised for authentication issues.
+            _LOGGER.error("Value Error during credential validation: %s", ve)
+            # Re-raise the original ValueError.
+            raise
+        # Handle ConfigEntryAuthFailed raised for authentication issues.
         except ConfigEntryAuthFailed:
-            raise  # Re-raise the original ConfigEntryAuthFailed.
-        # Handle any other unexpected exceptions during the process.
+            # Re-raise the original ConfigEntryAuthFailed.
+            raise
+        # Handle any other unexpected exceptions.
         except Exception as e:
-            _LOGGER.error(f"Unexpected error connecting to Meraki API: {e}")
-            # It's generally better to raise a more specific exception or the original one
-            # if it provides more context. For now, re-raising a generic Exception.
+            _LOGGER.error(
+                "Unexpected error connecting to Meraki API: %s", e
+            )
+            # Re-raise generic Exception (consider more specific if possible).
             raise Exception(f"Unexpected error connecting to Meraki API: {e}")
 
 
-async def validate_meraki_credentials(api_key: str, org_id: str) -> bool:
-    """Validate Meraki API credentials using the MerakiAuthentication class.
+async def validate_meraki_credentials(
+    api_key: str, org_id: str
+) -> bool:
+    """Validate Meraki API credentials via MerakiAuthentication class.
 
     Args:
         api_key: The Meraki API key.

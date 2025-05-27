@@ -22,8 +22,8 @@ jobs:
           pip install flake8 mypy pydocstyle
           pip install -r requirements_dev.txt
       - name: Lint with flake8
-        run: flake8 .
+        run: flake8 custom_components/meraki_ha/ tests/
       - name: Type check with mypy
-        run: mypy .
+        run: mypy custom_components/meraki_ha/ tests/
       - name: Docstring check with pydocstyle
-        run: pydocstyle .
+        run: pydocstyle custom_components/meraki_ha/ tests/
