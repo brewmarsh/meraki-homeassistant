@@ -14,6 +14,14 @@ from homeassistant.helpers.update_coordinator import UpdateFailed
 # Assuming your coordinator types are defined, replace Any with them if possible
 # from .network_coordinator import MerakiNetworkCoordinator
 # from .ssid_coordinator import MerakiSsidCoordinator
+from ..meraki_api.exceptions import (
+    MerakiApiException,
+    MerakiApiError,  # This is an alias for MerakiApiException
+    MerakiApiConnectionError,
+    MerakiApiAuthError, # Use this for API key errors
+    MerakiApiNotFoundError, # For 404 errors
+    MerakiApiRateLimitError # For 429 errors
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,38 +29,13 @@ MERAKI_API_URL: str = "https://api.meraki.com/api/v1"
 """Base URL for the Meraki Dashboard API."""
 
 
-class MerakiApiError(Exception):
-    """Base class for exceptions raised by the Meraki API client.
-
-    This exception is a generic base for more specific API errors.
-    """
-
-    pass
-
-
-class MerakiApiConnectionError(MerakiApiError):
-    """Exception raised for errors when connecting to the Meraki API.
-
-    This typically indicates network issues or problems reaching the API endpoint.
-    """
-
-    pass
-
-
-class MerakiApiInvalidApiKeyError(MerakiApiError):
-    """Exception raised when the provided Meraki API key is invalid or unauthorized.
-
-    This occurs if the API key does not have the necessary permissions or is incorrect.
-    """
-
-    pass
-
-
-class MerakiApiSsidFetchError(MerakiApiError):
+# MerakiApiSsidFetchError is a custom local exception for this module.
+# It should inherit from the canonical MerakiApiException.
+class MerakiApiSsidFetchError(MerakiApiException): # Changed parent
     """Exception raised specifically when fetching SSIDs from a network fails.
 
     This might happen if a network does not support wireless SSIDs or if there's an
-    issue retrieving SSID information.
+    issue retrieving SSID information beyond a simple 404.
     """
 
     pass
@@ -411,7 +394,7 @@ class MerakiApiDataFetcher:
                         _LOGGER.error(
                             "Meraki API request unauthorized (401) for URL: %s. Check API key permissions.", url
                         )
-                        raise MerakiApiInvalidApiKeyError(
+                        raise MerakiApiAuthError( # Changed to MerakiApiAuthError
                             f"API key invalid or unauthorized for {url}"
                         )
                     # For other error statuses (400-599), raise an exception.

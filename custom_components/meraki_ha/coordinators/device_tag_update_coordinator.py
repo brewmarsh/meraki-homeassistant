@@ -17,7 +17,8 @@ from homeassistant.helpers.update_coordinator import (
 from homeassistant.util import dt as dt_util # For dt_util.now()
 
 from ..const import DOMAIN # For logger naming consistency
-from .api_data_fetcher import MerakiApiDataFetcher, MerakiApiError
+from .api_data_fetcher import MerakiApiDataFetcher
+from ..meraki_api.exceptions import MerakiApiError # Or MerakiApiException, MerakiApiError is fine as it's an alias
 
 if TYPE_CHECKING:
     # To avoid circular import issues at runtime
