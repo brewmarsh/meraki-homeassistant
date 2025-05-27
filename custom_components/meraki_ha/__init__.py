@@ -18,8 +18,7 @@ from .const import (
     PLATFORMS,
 )
 from .coordinators.base_coordinator import MerakiDataUpdateCoordinator
-from .coordinators.network_coordinator import MerakiNetworkCoordinator
-from .coordinators.ssid_coordinator import MerakiSsidCoordinator
+# MerakiNetworkCoordinator and MerakiSsidCoordinator imports removed
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -81,35 +80,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Convert scan interval to a timedelta object for use with coordinators
     interval: timedelta = timedelta(seconds=scan_interval_seconds)
 
-    # Initialize the coordinator for fetching network-specific data
-    networks_coordinator: MerakiNetworkCoordinator = MerakiNetworkCoordinator(
-        hass,
-        api_key,
-        org_id,
-        interval,  # Use the calculated timedelta interval
-        entry.options.get(
-            "device_name_format", "prefix"
-        ),  # Pass device name formatting option
-    )
-    # Initialize the coordinator for fetching SSID-specific data
-    ssid_coordinator: MerakiSsidCoordinator = MerakiSsidCoordinator(
-        hass,
-        api_key,
-        org_id,
-        interval,
-        base_url,  # Pass necessary config and interval
-    )
+    # Initialization of networks_coordinator and ssid_coordinator removed.
+    # These coordinators are no longer used directly by MerakiDataUpdateCoordinator.
 
     # Initialize the main data update coordinator for the Meraki integration
-    # This coordinator orchestrates data fetching using sub-coordinators.
+    # This coordinator orchestrates data fetching.
     coordinator: MerakiDataUpdateCoordinator = MerakiDataUpdateCoordinator(
         hass,
         api_key,
         org_id,
-        base_url,
+        # base_url, # base_url is handled by the MerakiAPIClient within the coordinator
         interval,  # Use the calculated timedelta interval
-        networks_coordinator,  # Pass the networks_coordinator instance
-        ssid_coordinator,  # Pass the ssid_coordinator instance
+        # networks_coordinator and ssid_coordinator arguments removed
         entry.options.get(
             CONF_RELAXED_TAG_MATCHING, False
         ),  # Get relaxed tag matching option
@@ -121,9 +103,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Store the initialized coordinator in hass.data for access by platforms
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = {"coordinator": coordinator}
+    # Storing only the main coordinator. Network and SSID coordinators are no longer separate.
+    hass.data[DOMAIN][entry.entry_id] = {
+        "coordinator": coordinator 
+        # Add other necessary items if any, e.g. 'api_client': coordinator.meraki_client
+    }
     _LOGGER.debug(
-        "Meraki: Stored coordinator data in hass.data for entry_id: %s",
+        "Meraki: Stored main coordinator data in hass.data for entry_id: %s",
         entry.entry_id,
     )
 
@@ -158,26 +144,21 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # If platform unloading was successful, proceed to close client and pop data
     if unload_ok:
         if DOMAIN in hass.data and entry.entry_id in hass.data[DOMAIN]:
-            coordinator_data_entry = hass.data[DOMAIN].get(entry.entry_id) # Get the specific entry's data
-            if coordinator_data_entry and "coordinator" in coordinator_data_entry:
-                coordinator = coordinator_data_entry["coordinator"]
-                # The MerakiAPIClient is an attribute of the MerakiDataUpdateCoordinator
-                if hasattr(coordinator, 'meraki_client') and coordinator.meraki_client:
-                    if hasattr(coordinator.meraki_client, 'close'):
-                        _LOGGER.info("Closing Meraki API client session for entry %s.", entry.entry_id)
-                        try:
-                            await coordinator.meraki_client.close()
-                        except Exception as e:
-                            _LOGGER.error("Error closing Meraki API client session for entry %s: %s", entry.entry_id, e)
-                    else:
-                        _LOGGER.warning("Meraki client found for entry %s but has no close method.", entry.entry_id)
+            domain_entry_data = hass.data[DOMAIN].pop(entry.entry_id) # Remove and get the entry's data
+            coordinator = domain_entry_data.get("coordinator")
+            
+            if coordinator and hasattr(coordinator, 'meraki_client') and coordinator.meraki_client:
+                if hasattr(coordinator.meraki_client, 'close'):
+                    _LOGGER.info("Closing Meraki API client session for entry %s.", entry.entry_id)
+                    try:
+                        await coordinator.meraki_client.close()
+                    except Exception as e:
+                        _LOGGER.error("Error closing Meraki API client session for entry %s: %s", entry.entry_id, e)
                 else:
-                    _LOGGER.warning("Meraki client not found on coordinator for entry %s during unload.", entry.entry_id)
+                    _LOGGER.warning("Meraki client for entry %s has no close method.", entry.entry_id)
             else:
-                _LOGGER.warning("Coordinator not found in hass.data for entry %s during unload.", entry.entry_id)
-
-            # Remove the integration's data from hass.data
-            hass.data[DOMAIN].pop(entry.entry_id)
+                _LOGGER.warning("Meraki client or coordinator not found for entry %s during unload.", entry.entry_id)
+            
             _LOGGER.info("Successfully unloaded Meraki integration and data for entry: %s", entry.entry_id)
         else:
             _LOGGER.info("No data found in hass.data[DOMAIN] for entry %s to remove during unload.", entry.entry_id)

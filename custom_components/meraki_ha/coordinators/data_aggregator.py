@@ -55,33 +55,31 @@ class DataAggregator:
 
     async def aggregate_data(
         self,
-        processed_devices: List[Dict[str, Any]],
+        processed_devices: List[Dict[str, Any]], # Expected to contain tags within each device
         ssid_data: List[Dict[str, Any]],
         network_data: List[Dict[str, Any]],
-        device_tags: Dict[str, List[str]],  # Changed type from Dict[str, Any]
+        # device_tags parameter removed
     ) -> Dict[str, Any]:
         """Aggregate data from various processed Meraki data sources.
 
-        This method combines the provided lists of devices, SSIDs, and
-        networks with device tags. It then uses `SsidStatusCalculator`
+        This method combines the provided lists of devices (which include their tags),
+        SSIDs, and networks. It then uses `SsidStatusCalculator`
         to update the status of each SSID.
 
         Args:
             processed_devices: A list of dictionaries, where each
                 dictionary represents a device that has already been
                 processed (e.g., filtered for relevant types like
-                wireless APs).
+                wireless APs) and includes its tags.
             ssid_data: A list of dictionaries, where each dictionary
                 represents an SSID.
             network_data: A list of dictionaries, where each dictionary
                 represents a network.
-            device_tags: A dictionary mapping device serial numbers to a
-                list of their tags.
 
         Returns:
             A dictionary containing the aggregated data, with keys like
-            "devices", "ssids" (now including status), "networks", and
-            "device_tags". Returns an empty dictionary if a critical error
+            "devices", "ssids" (now including status), and "networks".
+            Returns an empty dictionary if a critical error
             occurs during aggregation.
         """
         _LOGGER.debug(
@@ -105,8 +103,8 @@ class DataAggregator:
                 Dict[str, Any]
             ] = SsidStatusCalculator.calculate_ssid_status(
                 ssids=ssid_data,  # Pass the original list of SSIDs
-                devices=processed_devices,
-                device_tags=device_tags,
+                devices=processed_devices, # Expected to contain tags
+                # device_tags argument removed
                 relaxed_tag_match=self.relaxed_tag_match,
             )
 
@@ -117,7 +115,7 @@ class DataAggregator:
                 # Use SSIDs with calculated status
                 "ssids": processed_ssids_with_status,
                 "networks": network_data,
-                "device_tags": device_tags,
+                # "device_tags": device_tags, # Removed
             }
 
             _LOGGER.debug(

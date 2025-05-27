@@ -23,9 +23,9 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiDataProcessor:
     """Class to process data fetched from the Meraki API.
 
-    This processor takes raw data lists/dictionaries from the API and
-    formats them, selects relevant fields, and enriches data for
-    specific device types by making additional API calls if necessary.
+    This processor takes raw data lists/dictionaries (pre-fetched by
+    MerakiApiDataFetcher) and formats them, selecting relevant fields.
+    It no longer makes its own API calls.
     """
 
     def __init__(self, coordinator: "MerakiDataUpdateCoordinator") -> None:
@@ -33,163 +33,51 @@ class MerakiDataProcessor:
 
         Args:
             coordinator: The main MerakiDataUpdateCoordinator instance, used to
-                access shared information like the API key and org_id.
+                access shared information or configuration if needed.
+                It is not used for making API calls from this class.
         """
         self.coordinator: "MerakiDataUpdateCoordinator" = coordinator
-        # self.api_key: str = coordinator.api_key # Can be removed if not used directly elsewhere
-        self.api_client = MerakiAPIClient(
-            api_key=self.coordinator.api_key,
-            org_id=self.coordinator.org_id  # Assuming org_id is available on coordinator
-        )
+        # self.api_client initialization removed.
 
     async def process_devices(
         self, devices: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
-        """Process a list of device data from the Meraki API.
+        """Process a list of pre-fetched device data.
 
-        Extracts key information for each device. For Meraki MR devices (wireless APs),
-        it additionally fetches the connected client count and wireless radio settings
-        asynchronously.
+        Extracts key information for each device. The input `devices` list
+        is expected to already contain all necessary information, including
+        `tags`, and for MR devices, `connected_clients_count` and
+        `radio_settings`, as fetched by `MerakiApiDataFetcher`.
 
         Args:
             devices: A list of dictionaries, where each dictionary is a
-                raw representation of a device from the Meraki API.
+                representation of a device with all data pre-fetched.
 
         Returns:
             A list of processed device dictionaries. Each dictionary
             contains selected fields like 'name', 'serial', 'mac',
-            'model', 'networkId', 'tags', and potentially
-            'connected_clients' and 'radio_settings' for MR devices.
+            'model', 'networkId', 'tags', 'connected_clients_count',
+            and 'radio_settings'.
         """
         _LOGGER.debug("Processing %d devices.", len(devices))
         processed_devices_list: List[Dict[str, Any]] = []
-        # Tasks for asyncio.gather to fetch additional data for MR devices
-        async_tasks: List[Optional[Coroutine[Any, Any, Any]]] = []
-        # Keep track of which processed_device maps to which tasks
-        mr_device_indices: List[int] = []
 
-        for i, device in enumerate(devices):
+        for device_data in devices:
             # Basic device information extraction
+            # The input `device_data` is expected to have all necessary fields.
             processed_device: Dict[str, Any] = {
-                "name": device.get("name"),
-                "serial": device.get("serial"),
-                "mac": device.get("mac"),
-                "model": device.get("model"),
-                "networkId": device.get("networkId"),
-                # Default to empty list if no tags
-                "tags": device.get("tags", []),
-                "connected_clients": None,  # Initialize as None
-                "radio_settings": None,  # Initialize as None
+                "name": device_data.get("name"),
+                "serial": device_data.get("serial"),
+                "mac": device_data.get("mac"),
+                "model": device_data.get("model"),
+                "networkId": device_data.get("networkId"),
+                "tags": device_data.get("tags", []), # Ensure tags default to empty list
+                # connected_clients_count and radio_settings are expected to be present
+                # for MR devices, or None/absent for others, as fetched by ApiDataFetcher.
+                "connected_clients_count": device_data.get("connected_clients_count"),
+                "radio_settings": device_data.get("radio_settings"),
             }
             processed_devices_list.append(processed_device)
-
-            # For MR (wireless access point) devices, create tasks to
-            # fetch more details
-            if isinstance(device.get("model"), str) and device.get(
-                "model", ""
-            ).upper().startswith("MR"):
-                network_id: Optional[str] = device.get("networkId")
-                # Use device serial for both client counting and radio settings for MR devices
-                device_serial_for_ap: Optional[str] = device.get("serial")
-                device_serial_for_radio: Optional[str] = device.get("serial") # Same as above, just for clarity
-
-                # Store index of this MR device
-                mr_device_indices.append(i)
-
-                # Task for connected client count
-                if device_serial_for_ap:
-                    async_tasks.append(
-                        self.coordinator.meraki_client.devices.get_device_clients(
-                            serial=device_serial_for_ap
-                            # Consider adding timespan if needed, e.g., timespan=300 for last 5 mins
-                        )
-                    )
-                else:
-                    _LOGGER.warning(
-                        "Missing serial for client count on MR device: %s (%s)",
-                        processed_device.get("name"),
-                        processed_device.get("serial"), # Use processed_device for logging consistency
-                    )
-                    async_tasks.append(None)
-
-                # Task for wireless radio settings
-                if device_serial_for_radio:
-                    async_tasks.append(
-                        self.coordinator.meraki_client.wireless.get_device_wireless_radio_settings(
-                            serial=device_serial_for_radio
-                        )
-                    )
-                else:
-                    _LOGGER.warning(
-                        "Missing serial for radio settings on MR device: %s (%s)",
-                        processed_device.get("name"),
-                        processed_device.get("serial"),
-                    )
-                    # Placeholder for missing serial
-                    async_tasks.append(None)
-            # Non-MR devices don't get additional tasks; their slots in
-            # `results` will be implicitly skipped.
-
-        # Execute all created tasks concurrently if any exist
-        if async_tasks:
-            # `return_exceptions=True` allows handling individual task failures
-            results: List[Union[Any, Exception]] = await asyncio.gather(
-                *[task for task in async_tasks if task is not None],
-                return_exceptions=True,
-            )
-
-            # Assign results back to the corresponding MR devices
-            result_idx = 0
-            for mr_idx in mr_device_indices:
-                target_device = processed_devices_list[mr_idx]
-                # Each MR device had two tasks: client count, radio settings.
-                # Only access results if corresponding tasks were not None.
-                # Assumes tasks were added in pairs for MR devices.
-
-                # Client count result
-                client_task_idx_in_async_tasks = mr_idx * 2 # Calculate the original index in async_tasks
-                client_task_valid = client_task_idx_in_async_tasks < len(async_tasks) and \
-                                  async_tasks[client_task_idx_in_async_tasks] is not None
-                if client_task_valid and result_idx < len(results):
-                    client_result = results[result_idx]
-                    if isinstance(client_result, list): # SDK returns a list of clients
-                        target_device["connected_clients"] = len(client_result)
-                    elif isinstance(client_result, Exception):
-                        _LOGGER.warning(
-                            "Error fetching client count for MR device " "%s (%s): %s",
-                            target_device.get("name"),
-                            target_device.get("serial"),
-                            client_result,
-                        )
-                    result_idx += 1
-                elif not client_task_valid:  # Task was None
-                    _LOGGER.debug(
-                        "Skipped client count for MR device %s due to missing info.",
-                        target_device.get("serial"),
-                    )
-
-                # Radio settings result
-\                radio_task_idx_in_async_tasks = mr_idx * 2 + 1 # Calculate the original index in async_tasks
-                radio_task_valid = radio_task_idx_in_async_tasks < len(async_tasks) and \
-                                 async_tasks[radio_task_idx_in_async_tasks] is not None
-                if radio_task_valid and result_idx < len(results):
-                    radio_result = results[result_idx]
-                    if isinstance(radio_result, dict): # Radio settings should be a dict
-                        target_device["radio_settings"] = radio_result
-                    elif isinstance(radio_result, Exception):
-                        _LOGGER.warning(
-                            "Error fetching radio settings for MR device "
-                            "%s (%s): %s",
-                            target_device.get("name"),
-                            target_device.get("serial"),
-                            radio_result,
-                        )
-                    result_idx += 1
-                elif not radio_task_valid:  # Task was None
-                    _LOGGER.debug(
-                        "Skipped radio settings for MR device %s due to missing info.",
-                        target_device.get("serial"),
-                    )
 
         _LOGGER.debug("Finished processing %d devices.", len(processed_devices_list))
         return processed_devices_list

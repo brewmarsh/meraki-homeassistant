@@ -22,9 +22,8 @@ class SsidStatusCalculator:
     @staticmethod
     def calculate_ssid_status(
         ssids: Optional[List[Dict[str, Any]]],
-        devices: Optional[List[Dict[str, Any]]],
-        # device_serial -> list of tags
-        device_tags: Optional[Dict[str, List[str]]],
+        devices: Optional[List[Dict[str, Any]]], # Devices are expected to include their tags
+        # device_tags parameter removed
         relaxed_tag_match: bool,
     ) -> List[Dict[str, Any]]:
         """Calculate the status of each SSID.
@@ -42,10 +41,7 @@ class SsidStatusCalculator:
                    have 'id', 'name', 'enabled', and optionally 'tags'.
             devices: A list of Meraki device dictionaries. Each device
                      dict should have 'serial', 'status', 'model', and
-                     potentially 'tags' (though tags are passed
-                     separately in `device_tags`).
-            device_tags: A dictionary mapping device serial numbers to a
-                         list of their assigned tags.
+                     'tags' (as a list of strings).
             relaxed_tag_match: A boolean indicating whether to use
                                relaxed tag matching (any common tag) or
                                strict tag matching (all SSID tags must be
@@ -77,15 +73,7 @@ class SsidStatusCalculator:
             for ssid in ssids:
                 ssid["status"] = "unknown_device_data_missing"
             return ssids
-        # If device_tags is None (e.g., an error fetching tags), default to
-        # an empty dictionary. This assumes devices have no tags, which
-        # might affect matching logic.
-        if device_tags is None:
-            _LOGGER.warning(
-                "Device tags data is None in calculate_ssid_status. "
-                "Assuming no devices have tags."
-            )
-            device_tags = {}  # Treat as no tags for any device
+        # The device_tags parameter is removed. Tags are expected within each device object.
 
         _LOGGER.debug(
             "Calculating SSID status for %d SSIDs, %d devices, "
@@ -155,12 +143,9 @@ class SsidStatusCalculator:
                 # We are only interested in Meraki Wireless Access Points (APs)
                 # for SSID status. Their models typically start with "MR".
                 if device_model.upper().startswith("MR"):
-                    # Get the tags for the current device from the
-                    # `device_tags` dictionary. Default to an empty list if
-                    # the device has no tags or serial is missing.
-                    current_device_tags: List[str] = (
-                        device_tags.get(device_serial, []) if device_serial else []
-                    )
+                    # Get the tags directly from the device object.
+                    # Default to an empty list if 'tags' key is missing.
+                    current_device_tags: List[str] = device_info.get("tags", [])
                     _LOGGER.debug(
                         "  Checking Wireless AP: Serial=%s, Status='%s', "
                         "Model='%s', Tags=%s",

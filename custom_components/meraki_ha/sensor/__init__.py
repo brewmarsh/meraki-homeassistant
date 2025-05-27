@@ -30,7 +30,7 @@ from ..coordinator import MerakiDataUpdateCoordinator
 # It should be imported if used, or its functionality incorporated/mocked if not central.
 # For this exercise, we assume it's a valid import path.
 # from ..meraki_api.networks import get_network_ids_and_names # Removed
-from ..meraki_api._api_client import MerakiAPIClient
+# MerakiAPIClient import removed as it's no longer used directly in this file.
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -127,19 +127,10 @@ async def async_setup_entry(
 
     # Add sensors that are network-wide (not tied to a specific device)
     # The function `get_network_ids_and_names` is assumed to be an async utility
-    # that fetches basic network info. If this info is already in `coordinator.data["networks"]`,
-    # that should be preferred to avoid extra API calls.
+    # that fetches basic network info. This information is expected to be in `coordinator.data["networks"]`.
     
-    # Prefer using network data from coordinator if available
+    # Use network data from coordinator
     networks_data: Optional[List[Dict[str, Any]]] = coordinator.data.get("networks")
-    
-    if networks_data is None:
-        _LOGGER.info("Network data not directly in coordinator, attempting API call for network list (sensor setup).")
-        # Fallback to API call if not in coordinator.data (less ideal)
-        api_client = MerakiAPIClient(api_key=coordinator.api_key, org_id=coordinator.org_id)
-        networks_data = await api_client.networks.async_get_network_ids_and_names(
-            organization_id=coordinator.org_id
-        )
 
     if networks_data:
         _LOGGER.debug("Processing %d networks for network-wide sensors.", len(networks_data))
@@ -157,7 +148,7 @@ async def async_setup_entry(
             )
     else:
         _LOGGER.warning(
-            "No network information available to set up network-wide client count sensors."
+            "No network information available in coordinator.data to set up network-wide client count sensors."
         )
 
     if created_sensors:

@@ -89,23 +89,23 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         device_data: Optional[List[Dict[str, Any]]],
         ssid_data: Optional[List[Dict[str, Any]]],
         network_data: Optional[List[Dict[str, Any]]],
-        device_tags: Optional[Dict[str, List[str]]],
+        # device_tags parameter removed
     ) -> Dict[str, Any]:
         """Fetch (from other coordinators) and aggregate data.
 
         This method is called by the parent `MerakiDataUpdateCoordinator`
-        with the latest fetched data. It processes this data and then
-        aggregates it.
+        with the latest fetched data (devices, SSIDs, networks). Device tags
+        are expected to be included within each device object in `device_data`.
+        It processes this data and then aggregates it.
 
         Args:
             device_data: A list of dictionaries, where each dictionary
-                represents a Meraki device. Can be None if data is missing.
+                represents a Meraki device (expected to include tags).
+                Can be None if data is missing.
             ssid_data: A list of dictionaries, where each dictionary
                 represents an SSID. Can be None if data is missing.
             network_data: A list of dictionaries, where each dictionary
                 represents a network. Can be None if data is missing.
-            device_tags: A dictionary mapping device serial numbers to their
-                         tags. Can be None if data is missing.
 
         Returns:
             A dictionary containing the aggregated data. Returns an empty
@@ -167,21 +167,18 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                     "SSID data is not a list as expected: %s", type(ssid_data)
                 )
 
-            # Device tags can be None, DataAggregator should handle it
-            if device_tags is None:
-                _LOGGER.warning(
-                    "Device tags data is None. Proceeding without tags."
-                )
-                device_tags = {}
+            # Device tags are now expected to be within processed_devices.
+            # The separate device_tags parameter and its handling are removed.
+
             # Aggregate data using the DataAggregator
             # Assuming aggregate_data is async as per original 'await'
             aggregated_data: Dict[
                 str, Any
             ] = await self.data_aggregator.aggregate_data(
-                processed_devices,
+                processed_devices, # Expected to contain tags within each device
                 processed_ssids,
                 processed_networks,
-                device_tags,
+                # device_tags argument removed
             )
 
             _LOGGER.debug(
