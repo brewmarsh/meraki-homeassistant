@@ -1,17 +1,14 @@
 """Data Aggregator for the Meraki Home Assistant integration.
 
-This module defines the `DataAggregator` class, which is responsible for
-combining various processed data streams (devices, SSIDs, networks,
-tags) into a single, coherent structure. It utilizes an
-`SsidStatusCalculator` to determine the operational status of SSIDs
-based on device and tag information.
+This module defines the `DataAggregator` class, responsible for combining
+processed data streams (devices with their tags, SSIDs, networks) into a
+single, coherent structure. It primarily utilizes `SsidStatusCalculator`
+to determine the operational status of SSIDs based on device information.
 """
 import logging
 from typing import Any, Dict, List
 
-# Assuming MerakiDataProcessor is a class, import it for type hinting
-# If it's part of the same module or a base class, adjust import as needed.
-# from .data_processor import MerakiDataProcessor
+from .data_processor import MerakiDataProcessor # For type hinting data_processor
 from ..helpers.ssid_status_calculator import SsidStatusCalculator
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,67 +17,62 @@ _LOGGER = logging.getLogger(__name__)
 class DataAggregator:
     """Aggregates processed data from various Meraki sources.
 
-    This class takes lists of processed devices, SSIDs, networks, and
-    device tags, and combines them. A key part of its role is to use the
-    `SsidStatusCalculator` to enrich SSID data with their current
-    operational status.
+    This class takes lists of processed devices (which include their tags),
+    SSIDs, and networks. Its main function is to use the `SsidStatusCalculator`
+    to enrich SSID data with their current operational status (e.g., online,
+    offline) based on the state of associated wireless access points.
     """
 
     def __init__(
         self,
         relaxed_tag_match: bool,
-        # Assuming data_processor is an instance of MerakiDataProcessor
-        data_processor: Any,  # Replace Any with MerakiDataProcessor
-                              # if available
+        data_processor: MerakiDataProcessor, # Type hint updated
         ssid_status_calculator: SsidStatusCalculator,
     ) -> None:
         """Initialize the DataAggregator.
 
         Args:
             relaxed_tag_match: Boolean indicating if relaxed tag matching
-                should be used by the SSID status calculator.
-            data_processor: An instance of `MerakiDataProcessor` (or
-                similar class) that provides methods for processing raw
-                data. (Currently, this parameter doesn't seem to be
-                directly used in `aggregate_data` but is stored).
+                should be used by the `SsidStatusCalculator`.
+            data_processor: An instance of `MerakiDataProcessor`. While stored,
+                it's not directly used in `aggregate_data` as processing
+                is expected to have occurred before data is passed here.
+                It's kept for potential future use or if sub-processing is needed.
             ssid_status_calculator: An instance of `SsidStatusCalculator`
                 used to determine the status of SSIDs.
         """
         self.relaxed_tag_match: bool = relaxed_tag_match
-        # Store MerakiDataProcessor instance
-        self.data_processor: Any = data_processor
+        self.data_processor: MerakiDataProcessor = data_processor # Store for potential use
         self.ssid_status_calculator: SsidStatusCalculator = (
             ssid_status_calculator
         )
 
     async def aggregate_data(
         self,
-        processed_devices: List[Dict[str, Any]], # Expected to contain tags within each device
-        ssid_data: List[Dict[str, Any]],
-        network_data: List[Dict[str, Any]],
-        # device_tags parameter removed
+        processed_devices: List[Dict[str, Any]], # Devices list, tags are within each device dict.
+        ssid_data: List[Dict[str, Any]],         # List of processed SSIDs.
+        network_data: List[Dict[str, Any]],      # List of processed networks.
+        # The `device_tags` parameter has been removed.
     ) -> Dict[str, Any]:
-        """Aggregate data from various processed Meraki data sources.
+        """Aggregate various processed Meraki data streams.
 
-        This method combines the provided lists of devices (which include their tags),
-        SSIDs, and networks. It then uses `SsidStatusCalculator`
-        to update the status of each SSID.
+        This method combines the provided lists of devices (which are expected
+        to include their tags), SSIDs, and networks. It then uses the
+        `SsidStatusCalculator` to update the status of each SSID based on
+        the properties of `processed_devices`.
 
         Args:
-            processed_devices: A list of dictionaries, where each
-                dictionary represents a device that has already been
-                processed (e.g., filtered for relevant types like
-                wireless APs) and includes its tags.
-            ssid_data: A list of dictionaries, where each dictionary
-                represents an SSID.
-            network_data: A list of dictionaries, where each dictionary
-                represents a network.
+            processed_devices: A list of device dictionaries. Each device dict
+                should represent a device that has already been processed
+                (e.g., filtered for wireless APs) and must include its 'tags'.
+            ssid_data: A list of processed SSID dictionaries.
+            network_data: A list of processed network dictionaries.
 
         Returns:
-            A dictionary containing the aggregated data, with keys like
-            "devices", "ssids" (now including status), and "networks".
-            Returns an empty dictionary if a critical error
-            occurs during aggregation.
+            A dictionary containing the aggregated data, structured with keys
+            like "devices", "ssids" (which now include a 'status' field),
+            and "networks". Returns an empty dictionary if a critical error
+            occurs during the aggregation process.
         """
         _LOGGER.debug(
             "Aggregating data for %d devices, %d SSIDs, %d networks.",
@@ -89,45 +81,41 @@ class DataAggregator:
             len(network_data),
         )
         try:
-            # Initial aggregation of the provided data (now commented out as unused)
-            # aggregated_data: Dict[str, Any] = {
-            #     "devices": processed_devices,
-            #     "ssids": ssid_data,  # Original SSIDs before status calculation
-            #     "networks": network_data,
-            #     "device_tags": device_tags,
-            # }
+            # The initial aggregation step creating `aggregated_data` with raw inputs
+            # is removed as it was redundant. The main task is SSID status calculation.
 
-            # Calculate SSID statuses using the SsidStatusCalculator
-            # The SsidStatusCalculator.calculate_ssid_status is a static method.
+            # Calculate SSID statuses using the SsidStatusCalculator.
+            # `SsidStatusCalculator.calculate_ssid_status` is a static method.
+            # It now relies on `processed_devices` containing the tags for each device.
             processed_ssids_with_status: List[
                 Dict[str, Any]
             ] = SsidStatusCalculator.calculate_ssid_status(
-                ssids=ssid_data,  # Pass the original list of SSIDs
-                devices=processed_devices, # Expected to contain tags
-                # device_tags argument removed
+                ssids=ssid_data,             # Pass the list of processed SSIDs.
+                devices=processed_devices,   # Pass devices; tags are expected within each device.
+                # `device_tags` argument is removed as tags are in `processed_devices`.
                 relaxed_tag_match=self.relaxed_tag_match,
             )
 
-            # Update the aggregated data with SSIDs that now include their status
-            # This creates a new dictionary for combined_data to ensure clarity
+            # Construct the final combined data structure.
+            # This dictionary holds all the data to be used by the integration.
             combined_data: Dict[str, Any] = {
                 "devices": processed_devices,
-                # Use SSIDs with calculated status
-                "ssids": processed_ssids_with_status,
+                "ssids": processed_ssids_with_status, # SSIDs now include their calculated status.
                 "networks": network_data,
-                # "device_tags": device_tags, # Removed
+                # The separate "device_tags" key is no longer needed as tags are part of "devices".
             }
 
             _LOGGER.debug(
                 "Data aggregation and SSID status calculation complete. "
-                "Returning combined data."
+                "Returning combined data structure."
             )
             return combined_data
 
         except Exception as e:  # pylint: disable=broad-except
-            # Log the exception with traceback for better debugging
-            _LOGGER.exception("Error during data aggregation: %s", e)
-            # It might be better to raise an exception here if the caller
-            # is equipped to handle it, e.g.,
-            # raise UpdateFailed(f"Aggregation failed: {e}")
-            return {}  # Return empty dict as per original behavior
+            # Log any unexpected exception during aggregation with traceback.
+            _LOGGER.exception("Critical error during data aggregation: %s", e)
+            # Returning an empty dictionary in case of failure, as per previous behavior.
+            # Depending on requirements, raising an UpdateFailed exception might be preferable
+            # to propagate the error to the calling coordinator.
+            # Example: raise UpdateFailed(f"Aggregation failed due to: {e}") from e
+            return {}
