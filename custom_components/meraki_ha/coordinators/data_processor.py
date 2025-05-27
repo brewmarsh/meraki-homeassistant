@@ -11,12 +11,13 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, Coroutine, Dict, List, Optional, Union
 
-# Assuming these are async functions that return data or raise
-# exceptions
-from ..meraki_api.wireless import (
-    get_meraki_connected_client_count,
-    get_meraki_device_wireless_radio_settings,
-)
+from ..meraki_api import MerakiAPIClient # This line should already be here from previous step
+
+# Old imports to be removed:
+# from ..meraki_api.wireless import (
+# get_meraki_connected_client_count,
+# get_meraki_device_wireless_radio_settings,
+# )
 
 if TYPE_CHECKING:
     # Avoid circular import at runtime, only for type checking
@@ -41,11 +42,7 @@ class MerakiDataProcessor:
                 access shared information like the API key and org_id.
         """
         self.coordinator: "MerakiDataUpdateCoordinator" = coordinator
-        # self.api_key: str = coordinator.api_key # Can be removed if not used directly elsewhere
-        self.api_client = MerakiAPIClient(
-            api_key=self.coordinator.api_key,
-            org_id=self.coordinator.org_id  # Assuming org_id is available on coordinator
-        )
+        # self.api_client instantiation is removed, will use self.coordinator.meraki_client
 
     async def process_devices(
         self, devices: List[Dict[str, Any]]
@@ -94,41 +91,33 @@ class MerakiDataProcessor:
                 "model", ""
             ).upper().startswith("MR"):
                 network_id: Optional[str] = device.get("networkId")
-                # MAC address seems to be used as device_serial by
-                # get_meraki_connected_client_count, but the function name
-                # implies it might be specific to client counting on an AP.
-                # Original code used mac_address for client count.
-                # Assume mac_address is identifier needed by that function.
-                ap_identifier_for_clients: Optional[str] = device.get("mac")
-                # or device.get("serial")
-                device_serial_for_radio: Optional[str] = device.get("serial")
+                # Use device serial for both client counting and radio settings for MR devices
+                device_serial_for_ap: Optional[str] = device.get("serial")
+                device_serial_for_radio: Optional[str] = device.get("serial") # Same as above, just for clarity
 
                 # Store index of this MR device
                 mr_device_indices.append(i)
 
                 # Task for connected client count
-                if network_id and ap_identifier_for_clients: # ap_identifier_for_clients might not be needed
+                if device_serial_for_ap:
                     async_tasks.append(
-                        get_meraki_connected_client_count(
-                            self.api_key,
-                            network_id,
-                            ap_identifier_for_clients,
+                        self.coordinator.meraki_client.devices.get_device_clients(
+                            serial=device_serial_for_ap
+                            # Consider adding timespan if needed, e.g., timespan=300 for last 5 mins
                         )
                     )
                 else:
                     _LOGGER.warning(
-                        "Missing networkId or MAC/serial for client count on "
-                        "MR device: %s (%s)",
+                        "Missing serial for client count on MR device: %s (%s)",
                         processed_device.get("name"),
-                        processed_device.get("serial"),
+                        processed_device.get("serial"), # Use processed_device for logging consistency
                     )
-                    # Placeholder for missing info
                     async_tasks.append(None)
 
                 # Task for wireless radio settings
                 if device_serial_for_radio:
                     async_tasks.append(
-                        self.api_client.wireless.async_get_device_wireless_radio_settings(
+                        self.coordinator.meraki_client.wireless.get_device_wireless_radio_settings(
                             serial=device_serial_for_radio
                         )
                     )
@@ -160,12 +149,13 @@ class MerakiDataProcessor:
                 # Assumes tasks were added in pairs for MR devices.
 
                 # Client count result
-                client_task_valid = (mr_idx * 2) < len(async_tasks) and \
-                                  async_tasks[mr_idx * 2] is not None
+                client_task_idx_in_async_tasks = mr_idx * 2 # Calculate the original index in async_tasks
+                client_task_valid = client_task_idx_in_async_tasks < len(async_tasks) and \
+                                  async_tasks[client_task_idx_in_async_tasks] is not None
                 if client_task_valid and result_idx < len(results):
                     client_result = results[result_idx]
-                    if isinstance(client_result, int):
-                        target_device["connected_clients"] = client_result
+                    if isinstance(client_result, list): # SDK returns a list of clients
+                        target_device["connected_clients"] = len(client_result)
                     elif isinstance(client_result, Exception):
                         _LOGGER.warning(
                             "Error fetching client count for MR device "
@@ -182,12 +172,12 @@ class MerakiDataProcessor:
                     )
 
                 # Radio settings result
-                radio_task_valid = (mr_idx * 2 + 1) < len(async_tasks) and \
-                                 async_tasks[mr_idx * 2 + 1] is not None
+                radio_task_idx_in_async_tasks = mr_idx * 2 + 1 # Calculate the original index in async_tasks
+                radio_task_valid = radio_task_idx_in_async_tasks < len(async_tasks) and \
+                                 async_tasks[radio_task_idx_in_async_tasks] is not None
                 if radio_task_valid and result_idx < len(results):
                     radio_result = results[result_idx]
-                    # Assuming radio settings are a dict
-                    if isinstance(radio_result, dict):
+                    if isinstance(radio_result, dict): # Radio settings should be a dict
                         target_device["radio_settings"] = radio_result
                     elif isinstance(radio_result, Exception):
                         _LOGGER.warning(
