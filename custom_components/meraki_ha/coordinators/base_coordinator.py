@@ -19,9 +19,8 @@ from homeassistant.helpers.update_coordinator import (
 from ..const import DOMAIN, ERASE_TAGS_WARNING  # Added DOMAIN
 from .api_data_fetcher import MerakiApiDataFetcher, MerakiApiError
 from .data_aggregation_coordinator import DataAggregationCoordinator
-from .device_tag_fetch_coordinator import DeviceTagFetchCoordinator
-from .network_coordinator import MerakiNetworkCoordinator
-from .ssid_coordinator import MerakiSsidCoordinator
+# DeviceTagFetchCoordinator is no longer used
+# MerakiNetworkCoordinator and MerakiSsidCoordinator are no longer used
 from .tag_eraser_coordinator import TagEraserCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,8 +30,10 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
     """Coordinator to fetch and manage data from the Meraki API.
 
     This coordinator is responsible for the overall data flow, utilizing an
-    API fetcher and several specialized sub-coordinators to gather and
-    process information from the Meraki cloud.
+    API fetcher and a data aggregation sub-coordinator to gather and process
+    information from the Meraki cloud. Device tags, network data, and SSID data
+    are all fetched by MerakiApiDataFetcher and passed directly to the
+    DataAggregationCoordinator.
     """
 
     def __init__(
@@ -42,8 +43,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         org_id: str,
             # base_url: str,  # Unused; URLs constructed in api_fetcher
         scan_interval: timedelta,
-        networks_coordinator: MerakiNetworkCoordinator,
-        ssid_coordinator: MerakiSsidCoordinator,
+        # networks_coordinator and ssid_coordinator parameters removed
         relaxed_tag_match: bool,
         config_entry: ConfigEntry,
     ) -> None:
@@ -54,8 +54,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             api_key: The Meraki API key.
             org_id: The Meraki Organization ID.
             scan_interval: The interval at which to update data.
-            networks_coordinator: Coordinator for network-specific data.
-            ssid_coordinator: Coordinator for SSID-specific data.
+            # networks_coordinator and ssid_coordinator parameters removed
             relaxed_tag_match: Boolean for relaxed tag matching.
             config_entry: The config entry for this coordinator.
         """
@@ -63,10 +62,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         self.api_key: str = api_key
         self.org_id: str = org_id
         # self.base_url: str = base_url  # Handled by MerakiApiDataFetcher
-        self.networks_coordinator: MerakiNetworkCoordinator = (
-            networks_coordinator
-        )
-        self.ssid_coordinator: MerakiSsidCoordinator = ssid_coordinator
+        # self.networks_coordinator and self.ssid_coordinator attributes removed
         # Store config entry for access to options, entry_id
         self.config_entry: ConfigEntry = config_entry
         self.relaxed_tag_match: bool = relaxed_tag_match
@@ -87,10 +83,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # The MerakiApiDataFetcher __init__ was updated to take meraki_client as first arg
         self.api_fetcher: MerakiApiDataFetcher = MerakiApiDataFetcher(
             meraki_client=self.meraki_client,
-            # api_key and org_id are no longer direct params for MerakiApiDataFetcher
-            # Pass other existing params if they are still part of MerakiApiDataFetcher's __init__
-            network_coordinator=self.networks_coordinator, 
-            ssid_coordinator=self.ssid_coordinator 
+            # network_coordinator and ssid_coordinator arguments removed
         )
 
         # Initialize specialized sub-coordinators.
@@ -104,15 +97,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 self,  # Pass self as parent/main coordinator
             )
         )
-        # DeviceTagFetchCoordinator fetches tags for devices.
-        self.device_tag_fetch_coordinator: DeviceTagFetchCoordinator = (
-            DeviceTagFetchCoordinator(
-                hass,
-                api_key,  # Assuming direct API access for tags
-                scan_interval,  # Use main or specific scan_interval for tags
-                self,  # Pass self as parent/main coordinator
-            )
-        )
+        # DeviceTagFetchCoordinator is no longer used as tags are fetched with device data.
         # TagEraserCoordinator handles removing tags from devices.
         # Initialized only if 'erase_tags' option is true.
         self.tag_eraser_coordinator: Optional[TagEraserCoordinator] = None
@@ -149,8 +134,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
     async def _async_update_data(self) -> Dict[str, Any]:
         """Fetch data from the Meraki API endpoint and process it.
 
-        This method orchestrates the fetching of all data (networks, devices, SSIDs),
-        retrieves device tags, aggregates the data, and handles tag erasing if enabled.
+        This method orchestrates the fetching of all data (networks, devices with tags, SSIDs),
+        aggregates the data, and handles tag erasing if enabled.
+        Device tags are now expected to be part of the device data from `api_fetcher.fetch_all_data`.
         This is the primary method called by the DataUpdateCoordinator's schedule.
 
         Returns:
@@ -165,14 +151,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             "Starting Meraki data update for organization ID: %s", self.org_id
         )
         try:
-            # Step 1: Fetch all primary data (networks, devices, SSIDs,
-            # clients) using the api_fetcher. Arguments like hass, org_id are
-            # passed. `update_interval` and `device_name_format` seem not
-            # directly used by `fetch_all_data` itself but might be used by
-            # methods it calls internally if they were part of its class.
+            # Step 1: Fetch all primary data (networks, devices with tags, SSIDs,
+            # clients) using the api_fetcher.
             all_data: Dict[str, Any] = await self.api_fetcher.fetch_all_data(
                 self.hass,  # Pass HomeAssistant instance
-                self.org_id,  # Pass organization ID
+                # org_id is available via self.api_fetcher.org_id, so not passed here.
                 # scan_interval param for fetch_all_data was removed
                 # device_name_format param for fetch_all_data was removed
             )
@@ -186,66 +169,32 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             raise UpdateFailed(f"Unexpected error fetching data: {e}") from e
 
         # Extract data types from `all_data`, default to empty lists.
+        # Device tags are expected to be included in the 'devices' list from fetch_all_data.
         devices: List[Dict[str, Any]] = all_data.get("devices", [])
         ssids: List[Dict[str, Any]] = all_data.get("ssids", [])
         networks: List[Dict[str, Any]] = all_data.get("networks", [])
 
-        # Step 2: Fetch device tags for each discovered device.
-        # Iterate devices, call device_tag_fetch_coordinator.
-        device_tags: Dict[str, List[str]] = {}  # Tags keyed by device serial
-        for device in devices:
-            # Get device serial, default to empty string
-            serial: str = device.get("serial", "")
-            if not serial:  # Skip if device has no serial number
-                _LOGGER.warning("Device found without a serial number: %s", device)
-                continue
-            try:
-                # Fetch tags for the current device using its serial.
-                tags = await self.device_tag_fetch_coordinator.async_get_device_tags(
-                    serial
-                )
-                device_tags[serial] = tags  # Store tags for the serial
-                # Add/update 'tags' key in the device's dictionary
-                device["tags"] = tags
-            except MerakiApiError as e:  # Handle API errors for single device
-                _LOGGER.warning(
-                    "Failed to fetch tags for device %s: %s. "
-                    "Proceeding without its tags.",
-                    serial,
-                    e,
-                )
-                # Ensure 'tags' key exists for consistency
-                device["tags"] = []
-            # Note: UpdateFailed from async_get_device_tags might halt the
-            # entire update if not caught here. Design for tolerance.
+        # Step 2: Device tags are now part of the 'devices' list.
+        # The separate fetching step for device tags is removed.
 
-        # Step 3: Update data in sub-coordinators.
-        # Allows entities associated with these sub-coordinators to access
-        # latest data. Assumes these coordinators are primarily data holders
-        # or their own refresh logic is supplemental.
-        if self.networks_coordinator:
-            self.networks_coordinator.data = networks  # Set networks data
-        if self.ssid_coordinator:
-            self.ssid_coordinator.data = ssids  # Set SSIDs data
-            # Provide network data to ssid_coordinator if needed for context
-            # (e.g., linking SSIDs to network names).
-            self.ssid_coordinator.networks = networks
+        # Step 3: Update data in sub-coordinators (Removed).
+        # Network and SSID data are directly passed to DataAggregationCoordinator.
 
         # Store centrally fetched/processed devices list in `self.device_data`.
-        # Useful if other parts of coordinator/integration need quick access.
-        self.device_data = devices
+        # This also includes networks and ssids from all_data for aggregation.
+        self.device_data = devices # Contains devices with tags, client counts, radio settings
 
         # Step 4: Aggregate all data using DataAggregationCoordinator.
-        # Combines device data, SSID data (from its coordinator), network data
-        # (from its coordinator), and device tags into a final structure.
+        # Passes the raw devices, ssids, and networks lists from all_data.
+        # DataAggregationCoordinator will internally use its DataProcessor.
         try:
             combined_data: Dict[
                 str, Any
             ] = await self.data_aggregation_coordinator._async_update_data(
-                self.device_data,  # Pass processed device list
-                self.ssid_coordinator.data if self.ssid_coordinator else [],
-                self.networks_coordinator.data if self.networks_coordinator else [],
-                device_tags,  # Pass fetched device tags
+                devices,  # Pass raw device list (with tags, etc.)
+                ssids,    # Pass raw SSID list
+                networks, # Pass raw network list
+                # The fourth (device_tags) argument was already removed from DataAggregationCoordinator
             )
         except Exception as e:  # Catch errors from aggregation step
             _LOGGER.exception("Error during data aggregation: %s", e)
