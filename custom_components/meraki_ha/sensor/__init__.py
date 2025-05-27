@@ -14,17 +14,17 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 # Import specific sensor entity classes
-from .connected_clients import MerakiConnectedClientsSensor
-from .device_status import MerakiDeviceStatusSensor
-from .network_clients import MerakiNetworkClientCountSensor
-from .radio_settings import MerakiRadioSettingsSensor
-from .ssid import create_ssid_sensors # Function to create multiple SSID-related sensors
-from .ssid_availability import MerakiSSIDAvailabilitySensor
-from .uplink_status import MerakiUplinkStatusSensor
+from custom_components.meraki_ha.sensor.connected_clients import MerakiConnectedClientsSensor
+from custom_components.meraki_ha.sensor.device_status import MerakiDeviceStatusSensor
+from custom_components.meraki_ha.sensor.network_clients import MerakiNetworkClientCountSensor
+from custom_components.meraki_ha.sensor.radio_settings import MerakiRadioSettingsSensor
+from custom_components.meraki_ha.sensor.ssid import create_ssid_sensors # Function to create multiple SSID-related sensors
+from custom_components.meraki_ha.sensor.ssid_availability import MerakiSSIDAvailabilitySensor
+from custom_components.meraki_ha.sensor.uplink_status import MerakiUplinkStatusSensor
 
 # Import from parent directory for constants and coordinator type
-from ..const import ATTR_SSIDS, DATA_COORDINATOR, DOMAIN # ATTR_SSIDS for device-specific SSIDs
-from ..coordinators.base_coordinator import MerakiDataUpdateCoordinator # Corrected import path
+from custom_components.meraki_ha.const import ATTR_SSIDS, DATA_COORDINATOR, DOMAIN # ATTR_SSIDS for device-specific SSIDs
+from custom_components.meraki_ha.coordinators.base_coordinator import MerakiDataUpdateCoordinator # Corrected import path
 
 # Obsolete imports for MerakiAPIClient and get_network_ids_and_names are removed.
 

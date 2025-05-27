@@ -9,7 +9,7 @@ from typing import Any, Dict, List # Keep List, Dict, Any if still used for type
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
-from ..meraki_api import MerakiAPIClient # Import the refactored client
+from custom_components.meraki_ha.meraki_api import MerakiAPIClient # Import the refactored client
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 if TYPE_CHECKING:
     # Avoid circular import at runtime, only for type checking
     # Ensure this path is correct; if coordinator.py was deleted, it might be base_coordinator
-    from .base_coordinator import MerakiDataUpdateCoordinator 
+    from custom_components.meraki_ha.coordinators.base_coordinator import MerakiDataUpdateCoordinator 
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -8,8 +8,8 @@ to determine the operational status of SSIDs based on device information.
 import logging
 from typing import Any, Dict, List
 
-from .data_processor import MerakiDataProcessor # For type hinting data_processor
-from ..helpers.ssid_status_calculator import SsidStatusCalculator
+from custom_components.meraki_ha.coordinators.data_processor import MerakiDataProcessor # For type hinting data_processor
+from custom_components.meraki_ha.helpers.ssid_status_calculator import SsidStatusCalculator
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -1,8 +1,8 @@
 # /config/custom_components/meraki_ha/meraki_api/__init__.py
 """Meraki API client and exceptions."""
 
-from ._api_client import MerakiAPIClient
-from .exceptions import (
+from custom_components.meraki_ha.meraki_api._api_client import MerakiAPIClient
+from custom_components.meraki_ha.meraki_api.exceptions import (
     MerakiApiError,  # Alias for MerakiApiException
     MerakiApiException,  # Base exception
     MerakiApiConnectionError,
