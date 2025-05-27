@@ -1,3 +1,12 @@
+# 0.1.0 (2025-05-26)
+
+
+### Features
+
+* Comprehensive documentation and build system update ([5c553b4](https://github.com/brewmarsh/meraki-homeassistant/commit/5c553b4c2873f9720c5190641f750fa06e2d78b4))
+
+
+
 ## 0.0.3 (2025-04-04)
 
 
