@@ -6,9 +6,8 @@ It also includes a helper function `match_device_to_ssid` to determine
 if an SSID switch should be created based on tag matching logic.
 """
 import logging
-from typing import Any, Dict, List, Optional # Added Optional
+from typing import Any, Dict, List, Optional
 
-import aiohttp # For ClientError
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import callback # For coordinator updates
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -17,24 +16,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity # Changed
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..const import DOMAIN
-# Assuming update_device_tags is an async function from the meraki_api package
-# from ..meraki_api.devices import update_device_tags
-# Placeholder for the function if not available for type checking
-async def update_device_tags(
-    session: Optional[aiohttp.ClientSession], # Session might not be on coordinator directly
-    api_key: str,
-    serial: str,
-    tags: List[str],
-) -> bool: # Assuming it returns bool for success
-    """Placeholder: Updates device tags."""
-    _LOGGER.warning(
-        "Using placeholder for update_device_tags for serial %s with tags %s.", serial, tags
-    )
-    # In a real scenario, this would make an API call.
-    # For placeholder, return True assuming success.
-    await asyncio.sleep(0) # make it awaitable
-    return True
-import asyncio # Required for placeholder
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -136,7 +117,7 @@ class MerakiSSIDSwitch(CoordinatorEntity[MerakiDataUpdateCoordinator], SwitchEnt
         serial = self._device_info.get("serial", "unknownserial")
         ssid_identifier = self._ssid_info.get("number", self._ssid_info.get("name", "unknownssid"))
         self._attr_unique_id = f"{serial}_ssid_{ssid_identifier}_switch"
-        
+
         # Initial state is set from the coordinator data during _handle_coordinator_update
         # or can be set here if ssid_info_data contains the current 'enabled' state.
         self._update_switch_state() # Set initial state
@@ -258,15 +239,7 @@ class MerakiSSIDSwitch(CoordinatorEntity[MerakiDataUpdateCoordinator], SwitchEnt
             # and API key. The coordinator might hold these or a shared `MerakiAPIClient`.
             # Assuming coordinator has `api_key` and `hass.helpers.aiohttp_client.async_get_clientsession()`.
             # The original code passed `self.coordinator.session`, which is not standard for coordinators.
-            # Let's assume `update_device_tags` is adapted or the coordinator provides a session.
-            session = self.coordinator.hass.helpers.aiohttp_client.async_get_clientsession()
-
-            success = await update_device_tags(
-                session, # Pass the HA-managed session
-                self.coordinator.api_key,
-                device_serial,
-                new_tags,
-            )
+            success = await self._update_device_tags_api(device_serial, new_tags)
             if success:
                 _LOGGER.info(
                     "Successfully updated tags for device '%s' to set SSID '%s' enabled state to: %s",
@@ -287,21 +260,56 @@ class MerakiSSIDSwitch(CoordinatorEntity[MerakiDataUpdateCoordinator], SwitchEnt
                 # self.async_write_ha_state()
                 # raise HomeAssistantError(f"Failed to update tags for SSID {ssid_name}")
 
-
-        except aiohttp.ClientError as e:
-            _LOGGER.error(
-                "Network error setting SSID '%s' enabled state for device '%s': %s",
-                ssid_name, device_serial, e
-            )
-            # Optionally revert or raise
-            # raise HomeAssistantError(f"Network error updating SSID {ssid_name}: {e}")
-        except Exception as e: # Catch broader exceptions
+        except Exception as e: # Catch broader exceptions, including those from _update_device_tags_api if not caught there
             _LOGGER.exception(
-                "Unexpected error setting SSID '%s' enabled state for device '%s': %s",
+                "Unexpected error in _set_ssid_enabled_via_tag for SSID '%s', device '%s': %s",
                 ssid_name, device_serial, e
             )
             # raise HomeAssistantError(f"Unexpected error updating SSID {ssid_name}: {e}")
 
+    async def _update_device_tags_api(self, device_serial: str, new_tags: List[str]) -> bool:
+        """Helper function to update device tags via Meraki API."""
+        try:
+            client = self.coordinator.meraki_client # MerakiAPIClient instance
+            _LOGGER.debug(
+                "Attempting to update tags for device '%s' to %s using meraki_client.devices.update_device",
+                device_serial,
+                new_tags,
+            )
+            # Call the Meraki library's update_device function
+            # This function is part of the meraki.aio.AsyncDashboardAPI.devices controller
+            response = await client.devices.update_device(
+                serial=device_serial,
+                tags=new_tags
+            )
+
+            # A successful call to update_device typically returns the updated device JSON (a dict).
+            # If an error occurs, the meraki library usually raises an APIError.
+            if isinstance(response, dict):
+                _LOGGER.info(
+                    "Successfully updated tags for device '%s'. New tags: %s.",
+                    device_serial,
+                    response.get('tags', new_tags) # Log the tags from response if available
+                )
+                return True
+            else:
+                # This case might indicate an unexpected response format from the library for a successful call,
+                # or the library's behavior has changed.
+                _LOGGER.warning(
+                    "Device tags update for '%s' returned an unexpected response type: %s. Assuming success.",
+                    device_serial,
+                    type(response)
+                )
+                # Depending on library guarantees, you might return True here if no exception was raised.
+                # However, it's safer to be specific if the expected success response is a dict.
+                # For now, let's assume a non-dict response for a normally dict-returning endpoint is ambiguous.
+                return False # Or True, if library docs suggest non-dict success is possible and distinct from errors
+
+        except Exception as e: # Catches meraki.APIError and other potential exceptions
+            _LOGGER.error(
+                "Failed to update tags for device '%s'. Error: %s", device_serial, e
+            )
+            return False
 
     # The `async_update` method is typically not needed for CoordinatorEntity subclasses
     # as the state is updated via `_handle_coordinator_update`.
