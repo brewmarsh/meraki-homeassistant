@@ -5,13 +5,15 @@ making API calls to the Meraki Dashboard API to retrieve information
 about networks, devices, SSIDs, and clients. It also defines custom
 exception classes for API-related errors.
 """
+import asyncio  # Required for placeholder awaitables
 import logging
-from typing import Any, Dict, List, Optional, Union  # Added Union
+from typing import Any, Dict, List, Optional
 
 import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
-# Assuming your coordinator types are defined, replace Any with them if possible
+# Assuming your coordinator types are defined, replace Any with them
+# if possible
 # from .network_coordinator import MerakiNetworkCoordinator
 # from .ssid_coordinator import MerakiSsidCoordinator
 
@@ -51,8 +53,8 @@ class MerakiApiInvalidApiKeyError(MerakiApiError):
 class MerakiApiSsidFetchError(MerakiApiError):
     """Exception raised when fetching SSIDs from a network fails.
 
-    May happen if a network doesn't support wireless SSIDs or if there's
-    an issue retrieving SSID information.
+    May happen if a network doesn't support wireless SSIDs or if
+    there's an issue retrieving SSID information.
     """
 
     pass
@@ -70,8 +72,10 @@ class MerakiApiDataFetcher:
         api_key: str,
         org_id: str,
         # Consider specific coordinator types if available.
-        network_coordinator: Optional[Any] = None,  # MerakiNetworkCoordinator
-        ssid_coordinator: Optional[Any] = None,  # MerakiSsidCoordinator
+        network_coordinator: Optional[Any] = None,
+        # MerakiNetworkCoordinator
+        ssid_coordinator: Optional[Any] = None,
+        # MerakiSsidCoordinator
     ) -> None:
         """Initialize the MerakiApiDataFetcher.
 
@@ -85,12 +89,13 @@ class MerakiApiDataFetcher:
         self.org_id: str = org_id
         self.network_coordinator: Optional[Any] = network_coordinator
         self.ssid_coordinator: Optional[Any] = ssid_coordinator
-        # base_url is specific to an organization, consider if it should be a method param
-        # or if this class is always org-specific.
+        # base_url is specific to an organization, consider if it should be
+        # a method param or if this class is always org-specific.
         # self.base_url: str = f"{MERAKI_API_URL}/organizations/{org_id}"
         # The `base_url` was previously defined here but not consistently used.
-        # API calls now construct full URLs or use the `_fetch_data` helper which takes a full URL.
-        # This simplifies the constructor and makes endpoint management more explicit in each method.
+        # API calls now construct full URLs or use the `_fetch_data` helper
+        # which takes a full URL. This simplifies the constructor and makes
+        # endpoint management more explicit in each method.
 
     async def fetch_all_data(
         self,
@@ -118,13 +123,15 @@ class MerakiApiDataFetcher:
             The 'devices' list is restructured to include a 'connected_clients' count.
 
         Raises:
-            UpdateFailed: If essential data like networks or devices cannot be fetched,
-                          preventing a meaningful update.
-            MerakiApiError: For underlying API communication issues not caught as UpdateFailed.
+            UpdateFailed: If essential data like networks or devices cannot
+                          be fetched, preventing a meaningful update.
+            MerakiApiError: For underlying API communication issues not
+                            caught as UpdateFailed.
         """
         _LOGGER.debug("Fetching all data for organization ID: %s", org_id)
         # Step 1: Fetch all networks for the organization.
-        # This is a foundational piece of data, as devices and SSIDs are often network-specific.
+        # This is a foundational piece of data, as devices and SSIDs are
+        # often network-specific.
         networks: Optional[List[Dict[str, Any]]] = await self.async_get_networks(
             org_id
         )
@@ -132,8 +139,7 @@ class MerakiApiDataFetcher:
         # for data update.
         if networks is None:
             _LOGGER.error(
-                "Could not fetch Meraki networks for org ID: %s. "
-                "Aborting update.",
+                "Could not fetch Meraki networks for org ID: %s. Aborting update.",
                 org_id,
             )
             raise UpdateFailed("Could not fetch Meraki networks.")
@@ -146,18 +152,16 @@ class MerakiApiDataFetcher:
         # If device fetching fails, it's also considered a critical failure.
         if devices is None:
             _LOGGER.error(
-                "Could not fetch Meraki devices for org ID: %s. "
-                "Aborting update.",
+                "Could not fetch Meraki devices for org ID: %s. Aborting update.",
                 org_id,
             )
             raise UpdateFailed("Could not fetch Meraki devices.")
 
         # Initialize lists/dicts to store aggregated data from per-network calls.
         ssids: List[Dict[str, Any]] = []  # Stores all SSIDs.
-        network_clients: Dict[
-            str, List[Dict[str, Any]]
-        ] = {}  # Stores clients, keyed by network_id.
-
+        network_clients: Dict[str, List[Dict[str, Any]]] = (
+            {}
+        )  # Stores clients, keyed by network_id.
         # Step 3: Iterate through each network to fetch its SSIDs and clients.
         for network in networks:  # `networks` is confirmed not None here.
             network_id: str = network["id"]  # Get the current network's ID.
@@ -239,9 +243,9 @@ class MerakiApiDataFetcher:
         # Step 5: Return the aggregated and restructured data.
         # This dictionary forms the main data object for the coordinator.
         return {
-            "devices": restructured_devices, # List of devices, now with client counts.
-            "networks": networks,            # Original list of networks.
-            "ssids": ssids,                  # Aggregated list of all SSIDs.
+            "devices": restructured_devices,  # Devices with client counts.
+            "networks": networks,  # Original list of networks.
+            "ssids": ssids,  # Aggregated list of all SSIDs.
         }
 
     async def async_get_networks(
@@ -257,8 +261,8 @@ class MerakiApiDataFetcher:
             or None if an error occurs preventing data retrieval.
 
         Raises:
-            MerakiApiError: For underlying API communication issues from `_fetch_data`
-                            that are not handled by returning None.
+            MerakiApiError: For underlying API communication issues from
+                            `_fetch_data` not handled by returning None.
         """
         # Construct the API URL for fetching networks within an organization.
         url = f"{MERAKI_API_URL}/organizations/{org_id}/networks"
@@ -266,7 +270,7 @@ class MerakiApiDataFetcher:
         try:
             # Use the internal _fetch_data helper to make the API call.
             return await self._fetch_data(url)
-        except MerakiApiError as e: # Catch API errors specifically.
+        except MerakiApiError as e:  # Catch API errors specifically.
             _LOGGER.warning(
                 "API error fetching networks for org %s: %s. Returning None.",
                 org_id,
@@ -282,7 +286,6 @@ class MerakiApiDataFetcher:
             )
             return None  # Indicate failure.
 
-
     async def async_get_organization_devices(
         self, org_id: str
     ) -> Optional[List[Dict[str, Any]]]:
@@ -296,7 +299,8 @@ class MerakiApiDataFetcher:
             or None if an error occurs preventing data retrieval.
 
         Raises:
-            MerakiApiError: For underlying API communication issues from `_fetch_data`.
+            MerakiApiError: For underlying API communication issues from
+                            `_fetch_data`.
         """
         # Construct the API URL for fetching all devices within an organization.
         url = f"{MERAKI_API_URL}/organizations/{org_id}/devices"
@@ -304,7 +308,7 @@ class MerakiApiDataFetcher:
         try:
             # Use the internal _fetch_data helper.
             return await self._fetch_data(url)
-        except MerakiApiError as e: # Specific API error handling.
+        except MerakiApiError as e:  # Specific API error handling.
             _LOGGER.warning(
                 "API error fetching devices for org %s from %s: %s. "
                 "Returning None.",
@@ -334,15 +338,16 @@ class MerakiApiDataFetcher:
         Returns:
             A list of dictionaries, where each dictionary represents an SSID.
             Returns an empty list if the network is not found (HTTP 404) or if it
-            has no wireless capabilities/SSIDs configured (which can also result in a 404
-            or an empty list from the API depending on the network type).
-            Returns None for other critical errors that prevent data retrieval.
+            has no wireless capabilities/SSIDs configured (which can also
+            result in a 404 or an empty list from the API depending on the
+            network type). Returns None for other critical errors.
 
         Raises:
-            MerakiApiSsidFetchError: If fetching SSIDs fails due to API reasons
-                                     other than 404 (e.g., 403 Forbidden, 500 Server Error).
+            MerakiApiSsidFetchError: If fetching SSIDs fails due to API
+                reasons other than 404 (e.g., 403 Forbidden, 500 Server Error).
             MerakiApiConnectionError: For client-side connection issues.
-            MerakiApiError: For other underlying errors not fitting the above, or if re-raised.
+            MerakiApiError: For other underlying errors not fitting the
+                            above, or if re-raised.
         """
         # Construct the API URL for fetching SSIDs for a given network.
         url = f"{MERAKI_API_URL}/networks/{network_id}/wireless/ssids"
@@ -351,7 +356,8 @@ class MerakiApiDataFetcher:
             # Use the internal _fetch_data helper.
             return await self._fetch_data(url)
         # Handle specific HTTP errors that might occur for this endpoint.
-        except aiohttp.ClientResponseError as e: # Errors raised by `resp.raise_for_status()` in _fetch_data
+        except aiohttp.ClientResponseError as e:
+            # Errors raised by `resp.raise_for_status()` in _fetch_data
             _LOGGER.warning(
                 "API response error fetching SSIDs for ntwk %s from %s: "
                 "%s - %s",
@@ -416,16 +422,17 @@ class MerakiApiDataFetcher:
             The exact type depends on the API endpoint's response.
 
         Raises:
-            MerakiApiInvalidApiKeyError: If the API responds with a 401 Unauthorized error.
-            MerakiApiConnectionError: If there is a client-side connection error (e.g., DNS failure, timeout).
-            MerakiApiError: For other HTTP status codes indicating an API error (400, 5xx range)
-                            or if JSON decoding of the response fails.
+            MerakiApiInvalidApiKeyError: If API responds with 401 Unauthorized.
+            MerakiApiConnectionError: If client-side connection error occurs
+                                      (e.g., DNS failure, timeout).
+            MerakiApiError: For other HTTP status codes indicating an API error
+                            (400, 5xx range) or if JSON decoding fails.
         """
         # Standard headers for Meraki API requests.
         headers: Dict[str, str] = {
-            "X-Cisco-Meraki-API-Key": self.api_key, # API key for authentication.
-            "Content-Type": "application/json",     # Indicates request body format (if any, though GET usually doesn't have one).
-            "Accept": "application/json",  # Indicates preferred response format.
+            "X-Cisco-Meraki-API-Key": self.api_key,  # API key for auth.
+            "Content-Type": "application/json",  # Request body format (GET none).
+            "Accept": "application/json",  # Preferred response format.
         }
         # Log the request, masking the API key for security.
         masked_headers = {
@@ -443,9 +450,7 @@ class MerakiApiDataFetcher:
                 async with session.get(
                     url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)
                 ) as resp:
-                    _LOGGER.debug(
-                        "Response status from %s: %s", url, resp.status
-                    )
+                    _LOGGER.debug("Response status from %s: %s", url, resp.status)
                     # Handle 401 Unauthorized (API key issue).
                     if resp.status == 401:
                         _LOGGER.error(
@@ -503,8 +508,8 @@ class MerakiApiDataFetcher:
     async def async_get_device_tags(self, serial: str) -> List[str]:
         """Fetch tags for a single device by its serial number.
 
-        Note: This method might be redundant if device tags are included
-        in the main organization devices API response.
+        Note: This method might be redundant if device tags are included in
+        the main organization devices API response.
 
         Args:
             serial: The serial number of the device.
@@ -538,12 +543,13 @@ class MerakiApiDataFetcher:
     async def async_update_device_tags(self, serial: str, tags: List[str]) -> bool:
         """Update tags for a single device by its serial number.
 
-        Note: This method might be redundant if device tags can be updated
-        via other means or are managed differently.
+        Note: This method might be redundant if device tags can be updated via
+        other means or are managed differently.
 
         Args:
             serial: The serial number of the device.
-            tags: A list of tags to set for the device. Existing tags might be overwritten.
+            tags: A list of tags to set for the device. Existing tags might
+                  be overwritten.
 
         Returns:
             True if the tags were updated successfully, False otherwise.
@@ -573,4 +579,3 @@ class MerakiApiDataFetcher:
         # Placeholder implementation
         await asyncio.sleep(0)  # Make it awaitable
         return False  # Return False as per original pass
-import asyncio  # Required for placeholder awaitables

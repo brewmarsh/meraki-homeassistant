@@ -1,8 +1,9 @@
 """Provides an interface to Meraki Appliance-specific API endpoints.
 
-This module contains the `MerakiApplianceAPI` class, which encapsulates methods
-for interacting with Meraki API endpoints related to security appliances (MX series)
-and their configurations, such as uplink settings, VLANs, and DHCP subnets.
+This module contains the `MerakiApplianceAPI` class, which encapsulates
+methods for interacting with Meraki API endpoints related to security
+appliances (MX series) and their configurations, such as uplink
+settings, VLANs, and DHCP subnets.
 """
 import logging
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
@@ -33,30 +34,35 @@ class MerakiApplianceAPI:
         """
         self._client: "MerakiAPIClient" = client
 
-    async def async_get_device_appliance_uplinks_settings( # Renamed for clarity
+    # Renamed for clarity
+    async def async_get_device_appliance_uplinks_settings(
         self, serial: str
     ) -> Dict[str, Any]:
         """Fetch uplink settings for a specific Meraki MX security appliance.
 
-        Reference: https://developer.cisco.com/meraki/api-v1/#!get-device-appliance-uplinks-settings
+        Reference:
+        https://developer.cisco.com/meraki/api-v1/#!get-device-appliance-uplinks-settings
 
         Args:
             serial: The serial number of the Meraki MX appliance.
 
         Returns:
-            A dictionary containing the uplink settings for the specified appliance.
-            The structure of this dictionary is defined by the Meraki API.
+            A dictionary containing the uplink settings for the specified
+            appliance. The structure is defined by the Meraki API.
 
         Raises:
-            MerakiApiError: If an error occurs during the API call, such as
-                network issues, invalid API key, or the device not found.
+            MerakiApiError: If an error occurs during the API call,
+                such as network issues, invalid API key, or the device
+                not found.
         """
         endpoint = f"/devices/{serial}/appliance/uplinks/settings"
         _LOGGER.debug(
-            "Fetching appliance uplink settings for device serial: %s", serial
+            "Fetching appliance uplink settings for device serial: %s",
+            serial,
         )
         try:
-            # The _async_meraki_request method in MerakiAPIClient handles URL construction and headers.
+            # The _async_meraki_request method in MerakiAPIClient handles
+            # URL construction and headers.
             return await self._client._async_meraki_request(
                 method="GET", endpoint=endpoint
             )

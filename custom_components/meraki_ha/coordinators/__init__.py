@@ -1,9 +1,10 @@
 """Initializes the coordinators module for the Meraki Home Assistant integration.
 
-This file re-exports the main coordinator classes from their respective modules,
-making them available for easier import by other parts of the integration.
-Coordinators are responsible for managing data fetching, processing, and
-distribution for different aspects of the Meraki API (e.g., devices, SSIDs, networks).
+This file re-exports the main coordinator classes from their respective
+modules, making them available for easier import by other parts of the
+integration. Coordinators are responsible for managing data fetching,
+processing, and distribution for different aspects of the Meraki API
+(e.g., devices, SSIDs, networks).
 """
 
 # Import and re-export coordinators for cleaner access.
@@ -17,8 +18,8 @@ from .network_coordinator import MerakiNetworkCoordinator
 from .ssid_coordinator import MerakiSsidCoordinator
 from .tag_eraser_coordinator import TagEraserCoordinator
 
-# It's good practice to define __all__ to specify what is exported
-# when `from .coordinators import *` is used, though direct imports are preferred.
+# It's good practice to define __all__ to specify what is exported when
+# `from .coordinators import *` is used, though direct imports are preferred.
 __all__ = [
     "MerakiApiDataFetcher",
     "MerakiDeviceCoordinator",

@@ -6,7 +6,7 @@ API keys, organization IDs, and other configuration options.
 """
 import logging
 import traceback
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
 import aiohttp
 import voluptuous as vol
@@ -15,7 +15,6 @@ from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import callback
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import selector
-from homeassistant.helpers.schema_attribute_validator import SchemaAttributeValidator
 
 from .authentication import validate_meraki_credentials
 from .const import (
@@ -43,9 +42,10 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config or options flow for the Meraki integration."""
 
     VERSION = 1
-    # Remove config_flow and OPTIONS_FLOW if not used or handled by inheritance
+    # Remove config_flow and OPTIONS_FLOW if not used or handled by
+    # inheritance
     # config_flow = {}  # This seems unused
-    # OPTIONS_FLOW = True # This is implicitly True if async_get_options_flow is defined
+    # OPTIONS_FLOW = True  # Implicitly True if async_get_options_flow defined
 
     async def async_step_user(
         self, user_input: Optional[Dict[str, Any]] = None
@@ -88,13 +88,13 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 options: Dict[str, Any] = {
                     CONF_SCAN_INTERVAL: user_input.get(
                         CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                    ), # Use default if not provided
+                    ),  # Use default if not provided
                     "device_name_format": user_input.get(
                         "device_name_format", "omitted"
-                    ), # Default device name format
+                    ),  # Default device name format
                     CONF_RELAXED_TAG_MATCHING: user_input.get(
                         CONF_RELAXED_TAG_MATCHING, False
-                    ), # Default relaxed tag matching to False
+                    ),  # Default relaxed tag matching to False
                 }
 
                 _LOGGER.debug(

@@ -5,7 +5,6 @@ It sets up the platform and loads the necessary components.
 """
 import logging
 from datetime import timedelta
-from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -73,8 +72,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             DEFAULT_SCAN_INTERVAL,
         )
         scan_interval_seconds = DEFAULT_SCAN_INTERVAL
-
-
     _LOGGER.debug(
         "Scan_interval after conversion: %s, type: %s",
         scan_interval_seconds,
@@ -163,8 +160,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id)
         _LOGGER.info(
             "Successfully unloaded Meraki integration for entry: %s",
-            entry.entry_id,
-        )
+            entry.entry_id)
     else:
         _LOGGER.error(
             "Failed to unload Meraki platforms for entry: %s", entry.entry_id
@@ -193,5 +189,5 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     # data/options
     await async_setup_entry(hass, entry)
     _LOGGER.info(
-        "Finished reloading Meraki integration for entry: %s", entry.entry_id
-    )
+        "Finished reloading Meraki integration for entry: %s",
+        entry.entry_id)
