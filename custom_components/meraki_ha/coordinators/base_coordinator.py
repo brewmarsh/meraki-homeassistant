@@ -19,7 +19,8 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from ..const import DOMAIN, ERASE_TAGS_WARNING
-from .api_data_fetcher import MerakiApiDataFetcher, MerakiApiError # MerakiApiError for exception handling
+from .api_data_fetcher import MerakiApiDataFetcher
+from ..meraki_api.exceptions import MerakiApiError # MerakiApiError for exception handling
 from .data_aggregation_coordinator import DataAggregationCoordinator
 # Obsolete coordinators (DeviceTagFetchCoordinator, MerakiNetworkCoordinator, MerakiSsidCoordinator) removed.
 from .tag_eraser_coordinator import TagEraserCoordinator
