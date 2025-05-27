@@ -17,6 +17,14 @@ from ..meraki_api import MerakiAPIClient
 # if possible
 # from .network_coordinator import MerakiNetworkCoordinator
 # from .ssid_coordinator import MerakiSsidCoordinator
+from ..meraki_api.exceptions import (
+    MerakiApiException,
+    MerakiApiError,  # This is an alias for MerakiApiException
+    MerakiApiConnectionError,
+    MerakiApiAuthError, # Use this for API key errors
+    MerakiApiNotFoundError, # For 404 errors
+    MerakiApiRateLimitError # For 429 errors
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,7 +32,6 @@ _LOGGER = logging.getLogger(__name__)
 
 # Custom exceptions like MerakiApiError, MerakiApiConnectionError, etc.,
 # will be replaced by meraki.exceptions.APIError or handled directly.
-
 
 class MerakiApiDataFetcher:
     """Class to fetch data from the Meraki API using the Meraki SDK.

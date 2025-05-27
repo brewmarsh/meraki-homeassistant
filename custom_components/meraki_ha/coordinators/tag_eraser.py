@@ -2,10 +2,10 @@
 
 import logging
 
-from .api_data_fetcher import (
-    MerakiApiDataFetcher,
+from .api_data_fetcher import MerakiApiDataFetcher
+from ..meraki_api.exceptions import (
     MerakiApiConnectionError,
-    MerakiApiInvalidApiKeyError,
+    MerakiApiAuthError # This replaces MerakiApiInvalidApiKeyError
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class TagEraser:
             _LOGGER.info(f"Tags erased for device: {serial}")
         except MerakiApiConnectionError as e:
             _LOGGER.error(f"Connection error erasing tags: {e}")
-        except MerakiApiInvalidApiKeyError as e:
+        except MerakiApiAuthError as e: # Changed from MerakiApiInvalidApiKeyError
             _LOGGER.error(f"Invalid API key erasing tags: {e}")
         except Exception as e:
             _LOGGER.error(f"Error erasing tags for device {serial}: {e}")

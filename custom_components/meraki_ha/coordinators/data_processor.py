@@ -36,6 +36,11 @@ class MerakiDataProcessor:
                 access shared information like the API key and org_id.
         """
         self.coordinator: "MerakiDataUpdateCoordinator" = coordinator
+        # self.api_key: str = coordinator.api_key # Can be removed if not used directly elsewhere
+        self.api_client = MerakiAPIClient(
+            api_key=self.coordinator.api_key,
+            org_id=self.coordinator.org_id  # Assuming org_id is available on coordinator
+        )
 
     async def process_devices(
         self, devices: List[Dict[str, Any]]
