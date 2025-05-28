@@ -235,24 +235,25 @@ class MerakiApiDataFetcher:
         """
         _LOGGER.debug("Fetching networks for org ID: %s using SDK", org_id)
         try:
-            _LOGGER.debug(
-                "Fetching all networks using meraki_client.networks.getNetworks and then filtering for org ID %s",
+            _LOGGER.info(
+                "Executing updated async_get_networks with getNetworks (fetch all and filter) for org ID %s.",
                 org_id,
             )
+            
             # Attempt to get all networks the API key has access to
+            # Using getNetworks (camelCase) as getOrganizations was also camelCase
             all_networks_response = await self.meraki_client.networks.getNetworks(
                 total_pages="all"
             )
 
-            if all_networks_response is None: # Or check if it's not a list
+            if all_networks_response is None:
                 _LOGGER.warning(
-                    "Call to getNetworks returned None or unexpected data for org ID %s. Cannot filter networks.",
+                    "Call to getNetworks returned None for org ID %s. Cannot filter networks.",
                     org_id,
                 )
-                return None # Or raise an error if this is considered fatal
+                return None
 
             # Filter networks by organization ID
-            # Ensure all_networks_response is a list of dicts and each dict has 'organizationId'
             org_networks = [
                 network
                 for network in all_networks_response
@@ -261,16 +262,13 @@ class MerakiApiDataFetcher:
             
             if not org_networks:
                 _LOGGER.warning(
-                    "No networks found for organization ID %s after filtering all accessible networks.",
+                    "No networks found for organization ID %s after filtering all accessible networks via getNetworks.",
                     org_id,
                 )
-                # Depending on desired behavior, this could return an empty list or None/raise error.
-                # The original code would effectively lead to UpdateFailed if networks were None/empty.
-                # Let's return None to be handled by the calling function.
-                return None
+                return None # Consistent with how previous errors were handled (leading to UpdateFailed)
             
             _LOGGER.info(
-                "Successfully fetched and filtered %d networks for organization ID %s.",
+                "Successfully fetched and filtered %d networks for org ID %s using getNetworks.",
                 len(org_networks),
                 org_id,
             )
