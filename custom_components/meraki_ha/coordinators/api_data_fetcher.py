@@ -236,13 +236,13 @@ class MerakiApiDataFetcher:
         _LOGGER.debug("Fetching networks for org ID: %s using SDK", org_id)
         try:
             _LOGGER.info(
-                "Executing async_get_networks with organizations.getOrganizationNetworks(org_id=%s).",
+                "Executing async_get_networks with organizations.getOrganizationNetworks(organizationId=%s).",
                 org_id,
             )
             
             # Call is now on self.meraki_client.organizations
             org_networks = await self.meraki_client.organizations.getOrganizationNetworks(
-                organization_id=org_id
+                organizationId=org_id
                 # Consider if total_pages='all' or similar pagination might be needed/supported here,
                 # but start without it for simplicity, similar to getOrganizations.
             )
