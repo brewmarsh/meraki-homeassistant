@@ -236,49 +236,43 @@ class MerakiApiDataFetcher:
         _LOGGER.debug("Fetching networks for org ID: %s using SDK", org_id)
         try:
             _LOGGER.info(
-                "Executing async_get_networks with get_organization_networks(org_id) for org ID %s.",
+                "Executing async_get_networks with organizations.getOrganizationNetworks(org_id=%s).",
                 org_id,
             )
-            _LOGGER.info(f"Attempting call with: self.meraki_client.networks.get_organization_networks")
-            _LOGGER.info(f"Type of self.meraki_client.networks: {type(self.meraki_client.networks)}")
-            _LOGGER.info(f"Attributes/methods on self.meraki_client.networks: {dir(self.meraki_client.networks)}")
             
-            # Attempt to get all networks the API key has access to
-            # Using getNetworks (camelCase) as getOrganizations was also camelCase
-            all_networks_response = await self.meraki_client.networks.get_organization_networks(
+            # Call is now on self.meraki_client.organizations
+            org_networks = await self.meraki_client.organizations.getOrganizationNetworks(
                 organization_id=org_id
+                # Consider if total_pages='all' or similar pagination might be needed/supported here,
+                # but start without it for simplicity, similar to getOrganizations.
             )
 
-            if all_networks_response is None:
+            if org_networks is None: # Explicit check for None if the API can return that on error/no content
                 _LOGGER.warning(
-                    "Call to get_organization_networks returned None for org ID %s. Cannot filter networks.",
+                    "Call to organizations.getOrganizationNetworks for org ID %s returned None.",
+                    org_id,
+                )
+                return None 
+            
+            # If org_networks is an empty list, it means no networks were found for that org, which is valid.
+            # The original code would return None if the filtered list was empty, leading to UpdateFailed.
+            # Let's keep that behavior for consistency: if no networks, treat as an issue for now.
+            if not org_networks: 
+                _LOGGER.warning(
+                    "No networks found for organization ID %s using organizations.getOrganizationNetworks.",
                     org_id,
                 )
                 return None
-
-            # Filter networks by organization ID
-            org_networks = [
-                network
-                for network in all_networks_response
-                if isinstance(network, dict) and network.get("organizationId") == org_id
-            ]
-            
-            if not org_networks:
-                _LOGGER.warning(
-                    "No networks found for organization ID %s after filtering all accessible networks via getNetworks.",
-                    org_id,
-                )
-                return None # Consistent with how previous errors were handled (leading to UpdateFailed)
             
             _LOGGER.info(
-                "Successfully fetched and filtered %d networks for org ID %s using getNetworks.",
+                "Successfully fetched %d networks for org ID %s using organizations.getOrganizationNetworks.",
                 len(org_networks),
                 org_id,
             )
             return org_networks
         except MerakiSDKAPIError as e:
             _LOGGER.warning(
-                "SDK API error during getNetworks or filtering for org %s: Status %s, Reason: %s. Returning None.",
+                "SDK API error during getNetworks or filtering for org %s: Status %s, Reason: %s. Returning None.", # Log message might need update if error context changes
                 org_id, e.status, e.reason,
             )
             return None
