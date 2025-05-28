@@ -236,13 +236,13 @@ class MerakiApiDataFetcher:
         _LOGGER.debug("Fetching networks for org ID: %s using SDK", org_id)
         try:
             _LOGGER.info(
-                "Executing updated async_get_networks with getNetworks (fetch all and filter) for org ID %s.",
+                "Executing async_get_networks with getNetwork() (singular, no args) for org ID %s.",
                 org_id,
             )
             
             # Attempt to get all networks the API key has access to
             # Using getNetworks (camelCase) as getOrganizations was also camelCase
-            all_networks_response = await self.meraki_client.networks.getNetworks()
+            all_networks_response = await self.meraki_client.networks.getNetwork()
 
             if all_networks_response is None:
                 _LOGGER.warning(
