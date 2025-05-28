@@ -52,19 +52,9 @@ class MerakiAuthentication:
         _LOGGER.debug("Preparing to validate Meraki credentials for organization %s using SDK", self.org_id)
         # Corrected attribute names to self.api_key and self.org_id as per class __init__
         client: MerakiAPIClient = MerakiAPIClient(api_key=self.api_key, org_id=self.org_id)
-        _LOGGER.info(f"MerakiAPIClient 'client' instantiated: {client}")
         
         try:
             _LOGGER.debug("Fetching networks for organization %s using Meraki SDK", self.org_id)
-            try:
-                networks_controller = client.networks
-                _LOGGER.info(f"Accessed client.networks successfully. Object: {networks_controller}")
-                _LOGGER.info(f"Meraki client.networks object type: {type(networks_controller)}")
-                _LOGGER.info(f"Meraki client.networks methods/attributes: {dir(networks_controller)}")
-            except Exception as e_access:
-                _LOGGER.error(f"Error accessing client.networks: {e_access}", exc_info=True)
-                # Re-raise the exception to ensure the flow is interrupted as it would be by the failing call
-                raise
             networks: List[Dict[str, Any]] = await client.networks.get_organization_networks(
                 organization_id=self.org_id
             )
