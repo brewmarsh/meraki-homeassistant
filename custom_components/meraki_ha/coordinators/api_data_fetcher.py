@@ -168,11 +168,83 @@ class MerakiApiDataFetcher:
         # Step 4: Restructuring of device data (e.g., `restructured_devices`) is no longer performed here.
         # The `devices` list, now augmented with MR-specific details, is returned directly.
 
-        # Step 5: Return the aggregated data.
+        # Step 5: Fetch clients for each network.
+        all_clients: List[Dict[str, Any]] = []
+        if networks:  # Ensure networks were fetched successfully
+            for network in networks:
+                network_id = network["id"]
+                try:
+                    _LOGGER.debug("Fetching clients for network ID: %s", network_id)
+                    # Using a timespan of 300 seconds (5 minutes) to get recently active clients.
+                    # The SDK method is `self.meraki_client.clients.get_network_clients`
+                    # based on common SDK structures. If this is incorrect, it will need adjustment.
+                    # The prompt suggests `self.meraki_client.networks.get_network_clients`,
+                    # but Meraki SDK usually groups client-related calls under `dashboard.clients`.
+                    # Let's assume `self.meraki_client.clients.get_network_clients` for now.
+                    # If `clients` is not an attribute of `meraki_client`, this will fail and
+                    # we might need to use `self.meraki_client.networks.get_network_clients`.
+                    # Based on typical Meraki SDK patterns, `clients` is a sub-API of `dashboard`.
+                    # Let's try the one from the prompt first: `self.meraki_client.networks.get_network_clients`
+                    network_clients_data = await self.meraki_client.networks.get_network_clients(
+                        network_id, timespan=300  # timespan in seconds
+                    )
+
+                    if network_clients_data:
+                        for client_data in network_clients_data:
+                            # Extract AP serial. Common keys: 'recentDeviceSerial', 'deviceSerial', 'apSerial'.
+                            # The specific key depends on the Meraki API version and client type.
+                            ap_serial = client_data.get('recentDeviceSerial') or \
+                                        client_data.get('recentDeviceMac') or \
+                                        client_data.get('deviceSerial') # recentDeviceMac might be for AP MAC not serial
+
+                            client_entry = {
+                                'mac': client_data['mac'], # 'mac' is usually a guaranteed field
+                                'ip': client_data.get('ip'),
+                                'description': client_data.get('description'),
+                                # Status is 'Online' if present in this list (recently active)
+                                'status': client_data.get('status', 'Online'), # Use provided status or default to Online
+                                'networkId': network_id,
+                                'ap_serial': ap_serial,
+                                # Include other potentially useful fields directly
+                                'usage': client_data.get('usage'),
+                                'vlan': client_data.get('vlan'),
+                                'switchport': client_data.get('switchport'),
+                                'ip6': client_data.get('ip6'),
+                                'manufacturer': client_data.get('manufacturer'),
+                                'os': client_data.get('os'),
+                                'user': client_data.get('user'), # User who logged into the client device
+                                'firstSeen': client_data.get('firstSeen'),
+                                'lastSeen': client_data.get('lastSeen'),
+                                'ssid': client_data.get('ssid') # SSID the client is connected to
+                            }
+                            all_clients.append(client_entry)
+                        _LOGGER.debug(
+                            "Fetched %d clients for network %s", len(network_clients_data), network_id
+                        )
+                    else:
+                        _LOGGER.debug("No clients found for network %s in the given timespan.", network_id)
+
+                except MerakiSDKAPIError as e:
+                    # Log specific error for this network but continue with others
+                    _LOGGER.warning(
+                        "Meraki SDK API error fetching clients for network %s: %s. Status: %s, Reason: %s. Skipping this network's clients.",
+                        network_id, e, e.status, e.reason,
+                    )
+                except Exception as e:  # pylint: disable=broad-except
+                    _LOGGER.exception(
+                        "Unexpected error fetching clients for network %s: %s. Skipping this network's clients.",
+                        network_id, e,
+                    )
+        else:
+            _LOGGER.warning("No networks available to fetch clients from.")
+
+
+        # Step 6: Return the aggregated data including clients.
         return {
             "devices": devices,
             "networks": networks,
             "ssids": ssids,
+            "clients": all_clients,  # Add the new clients list
         }
 
     async def _async_get_mr_device_details(self, device: Dict[str, Any], serial: str) -> None:
