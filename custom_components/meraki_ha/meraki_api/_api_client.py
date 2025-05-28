@@ -65,6 +65,11 @@ class MerakiAPIClient:
         return self._sdk.networks
 
     @property
+    def organizations(self) -> Any: # Or a more specific type like 'OrganizationsController' if known
+        """Provides access to the SDK's organizations controller."""
+        return self._sdk.organizations
+
+    @property
     def sensor(self) -> Any:
         """Provides access to the SDK's sensor controller."""
         return self._sdk.sensor
