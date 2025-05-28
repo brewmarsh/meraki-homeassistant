@@ -81,7 +81,8 @@ class MerakiAPIClient:
 
     async def close(self) -> None:
         """Closes the underlying aiohttp session managed by the SDK."""
-        await self._sdk.aiohttp_session.close()
+        # Ensure exc_type, exc_val, exc_tb are passed for a clean exit
+        await self._sdk.__aexit__(None, None, None)
 
 
 # Update __all__ based on the refactored client.

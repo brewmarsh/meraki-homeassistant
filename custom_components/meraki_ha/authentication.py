@@ -56,7 +56,7 @@ class MerakiAuthentication:
         try:
             _LOGGER.debug("Fetching networks for organization %s using Meraki SDK", self.org_id)
             networks: List[Dict[str, Any]] = await client.networks.get_organization_networks(
-                organization_id=self.org_id, total_pages="all"
+                organization_id=self.org_id
             )
 
             if not networks:
