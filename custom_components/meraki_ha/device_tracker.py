@@ -34,7 +34,7 @@ async def async_setup_entry(
     """Set up Meraki device tracker entities from a config entry.
 
     This function is called by Home Assistant to initialize device tracker
-    entities based on the Meraki devices discovered by the central data
+    entities based on the Meraki clients discovered by the central data
     update coordinator.
 
     Args:
@@ -47,43 +47,40 @@ async def async_setup_entry(
     ]
 
     # Ensure coordinator data is available
-    if coordinator.data is None or "devices" not in coordinator.data:
+    if coordinator.data is None or "clients" not in coordinator.data:  # Ensure 'clients' key exists
         _LOGGER.warning(
-            "No device data available from Meraki coordinator. Cannot set up device trackers."
+            "No client data available from Meraki coordinator. Cannot set up device trackers."
         )
         return
 
-    devices: List[Dict[str, Any]] = coordinator.data.get("devices", [])
-    if not devices:
-        _LOGGER.info("No Meraki devices found to set up device trackers.")
+    clients: List[Dict[str, Any]] = coordinator.data.get("clients", []) # Get clients list
+    if not clients:
+        _LOGGER.info("No Meraki clients found to set up device trackers.")
         return
 
     entities: List[MerakiDeviceTracker] = []
-    for device_data in devices:
-        # Ensure essential device data (serial, model, name) is present
-        if not all(k in device_data for k in ["serial", "model", "name"]):
+    for client_data in clients:
+        # Ensure essential client data (e.g., MAC address) is present
+        if "mac" not in client_data:
             _LOGGER.warning(
-                "Skipping device tracker setup for device with missing "
-                "essential data: %s",
-                device_data.get("serial", "Unknown Serial"),
+                "Skipping device tracker setup for client with missing MAC address: %s",
+                client_data,
             )
             continue
-        entities.append(MerakiDeviceTracker(coordinator, device_data))
+        entities.append(MerakiDeviceTracker(coordinator, client_data))
 
     if entities:
         async_add_entities(entities)
-        _LOGGER.info("Added %d Meraki device trackers.", len(entities))
+        _LOGGER.info("Added %d Meraki client trackers.", len(entities))
 
 
 class MerakiDeviceTracker(
     CoordinatorEntity[MerakiDataUpdateCoordinator], TrackerEntity
 ):
-    """Representation of a Meraki device as a Home Assistant device tracker.
+    """Representation of an individual client device connected to a Meraki network.
 
-    This entity tracks the "connectivity" or "activity" of a Meraki
-    device (like an access point) by checking if it has any connected
-    clients. It is not tracking individual clients, but rather the
-    device itself.
+    This entity tracks the connectivity of a single client (e.g., a laptop,
+    phone) by checking its presence in the Meraki coordinator's data.
     """
 
     # For Home Assistant 2022.11+ to use device name as base
@@ -92,30 +89,28 @@ class MerakiDeviceTracker(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_info: Dict[str, Any],  # Renamed for clarity
+        client_info: Dict[str, Any],
     ) -> None:
-        """Initialize the Meraki device tracker.
+        """Initialize the Meraki client device tracker.
 
         Args:
             coordinator: The `MerakiDataUpdateCoordinator` for data updates.
-            device_info: A dictionary containing the Meraki device's
-                         information, including 'serial', 'name',
-                         'model', etc.
+            client_info: A dictionary containing the client's
+                         information, including 'mac', 'ip', 'description',
+                         'ap_serial' (if connected to an AP), etc.
         """
         super().__init__(coordinator)  # Initialize CoordinatorEntity
-        self._device_info_data: Dict[str, Any] = device_info
-        # Let HA generate from device name if _attr_has_entity_name is True
-        self._attr_name = None
-        # Or set explicitly:
-        # self._attr_name = device_info["name"]
-        self._attr_unique_id = (
-            f"{self._device_info_data['serial']}_device_tracker"
-        )
+        self._client_info_data: Dict[str, Any] = client_info
+        # Name can be client's description or IP if description is not available
+        self._attr_name = self._client_info_data.get(
+            "description"
+        ) or self._client_info_data.get("ip")
+        self._attr_unique_id = f"{self._client_info_data['mac']}_client_tracker"
 
         # Initial update of attributes based on current data
         self._update_attributes()
 
-    @callback  # For properties derived from coordinator data
+    @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._update_attributes()
@@ -124,89 +119,74 @@ class MerakiDeviceTracker(
     def _update_attributes(self) -> None:
         """Update entity attributes based on coordinator data.
 
-        This method finds the current device's data from the
-        coordinator's latest device list and updates the
-        `is_connected` status.
+        This method checks if the current client (identified by MAC address)
+        is present in the coordinator's list of active clients.
         """
-        # Find this specific device in the coordinator's latest data
-        current_device_data: Optional[Dict[str, Any]] = None
-        if self.coordinator.data and "devices" in self.coordinator.data:
-            for dev_data in self.coordinator.data["devices"]:
-                if dev_data.get("serial") == self._device_info_data["serial"]:
-                    current_device_data = dev_data
+        self._attr_is_connected = False  # Default to not connected
+        client_mac = self._client_info_data["mac"]
+
+        if self.coordinator.data and "clients" in self.coordinator.data:
+            active_clients: List[Dict[str, Any]] = self.coordinator.data["clients"]
+            for client_data in active_clients:
+                if client_data.get("mac") == client_mac:
+                    self._attr_is_connected = True
+                    # Update client info if more details are available from active list
+                    self._client_info_data.update(client_data) 
                     break
         
-        if current_device_data:
-            # Assuming 'connected_clients_count' is populated by the
-            # coordinator (e.g., by MerakiDeviceCoordinator) for MR/GR
-            # devices. If not, this logic needs adjustment based on
-            # available data. The original code checked
-            # `len(meraki_device.get("clients")) > 0`.
-            # Let's assume a field like 'connected_clients_count' exists
-            # from prior processing.
-            connected_clients_count: int = current_device_data.get(
-                "connected_clients_count", 0
+        _LOGGER.debug(
+            "Client tracker %s (MAC: %s) is_connected: %s",
+            self._attr_name,
+            client_mac,
+            self._attr_is_connected,
+        )
+        if not self._attr_is_connected:
+             _LOGGER.debug( # More specific log if client not found in active list
+                "Client tracker %s (MAC: %s) not found in coordinator's active client list.",
+                self._attr_name,
+                client_mac,
             )
-            self._attr_is_connected = connected_clients_count > 0
-            _LOGGER.debug(
-                "Device tracker %s (%s) connected_clients_count: %d, "
-                "is_connected: %s",
-                self._device_info_data.get("name"),
-                self._device_info_data["serial"],
-                connected_clients_count,
-                self._attr_is_connected,
-            )
-        else:
-            _LOGGER.warning(
-                "Device tracker %s (%s) could not find its data in "
-                "coordinator update. Setting is_connected to False.",
-                self._device_info_data.get("name"),
-                self._device_info_data["serial"],
-            )
-            self._attr_is_connected = False
 
-    # No need for a separate @property is_connected if _attr_is_connected
-    # is set in _update_attributes and updated via _handle_coordinator_update.
-    # If direct calculation is preferred over storing in _attr_is_connected:
-    # @property
-    # def is_connected(self) -> bool:
-    #     """Return true if device has connected clients or is active."""
-    #     # Find this specific device in coordinator's latest data
-    #     if self.coordinator.data and "devices" in self.coordinator.data:
-    #         for dev_data in self.coordinator.data["devices"]:
-    #             if dev_data.get("serial") == self._device_info_data["serial"]:
-    #                 # Logic based on 'connected_clients_count' or similar
-    #                 return dev_data.get("connected_clients_count", 0) > 0
-    #     return False  # Default to False if data not found
 
     @property
     def source_type(self) -> SourceType:
-        """Return the source type of the device tracker (router/AP)."""
-        # Indicates the device itself is a network device
-        return SourceType.ROUTER
+        """Return the source type of the device tracker."""
+        return SourceType.ROUTER # Client is tracked by the router/AP
 
     @property
     def device_info(self) -> Dict[str, Any]:
-        """Return device information for linking this entity to the registry.
+        """Return device information for linking this entity to the parent Meraki device.
 
         This information is used by Home Assistant to correctly group
         entities and display device details in the UI.
         """
+        # Link to the AP the client is connected to, or the network.
+        # This assumes 'ap_serial' or 'network_id' is in _client_info_data
+        # Default to network if AP serial is not present
+        parent_identifier_value = self._client_info_data.get(
+            "ap_serial"
+        ) or self._client_info_data.get("networkId", "meraki_network")
+
+        # Use client's description or IP as name, fallback to MAC
+        entity_name = self._client_info_data.get(
+            "description"
+        ) or self._client_info_data.get("ip", self._client_info_data["mac"])
+
         return {
-            "identifiers": {(DOMAIN, self._device_info_data["serial"])},
-            "name": str(self._device_info_data["name"]),  # Ensure name is string
-            "manufacturer": "Cisco Meraki",
-            # Ensure model is string
-            "model": str(self._device_info_data.get("model", "Unknown")),
-            # Ensure sw_version is string
-            "sw_version": str(self._device_info_data.get("firmware", "")),
-            # If network is also a device
-            # "via_device": (DOMAIN, self._device_info_data.get("networkId")),
+            "identifiers": {(DOMAIN, parent_identifier_value)},
+            # The name of this client device entity itself is handled by _attr_name
+            # This device_info is for the parent/associated device in HA.
+            # For clarity, we can use a generic name for the client "device" type
+            # or specific if available (e.g. from 'ap_name')
+            "name": f"Meraki Client on {parent_identifier_value}", # This name is for the device entry this entity is linked to
+            "manufacturer": self._client_info_data.get("manufacturer", "Unknown Manufacturer"), # TODO: derive from MAC if possible
+            "model": "Client Device",
+            # No firmware version for a client device in this context
+            # "sw_version": "", 
         }
 
-    # Potentially add other properties if needed, e.g., location,
-    # battery_level (if applicable)
-    # @property
-    # def icon(self) -> str:
-    #     """Return the icon to use in the frontend, if any."""
-    #     return "mdi:router-wireless" if self.is_connected else "mdi:router-wireless-off"
+    # Icon can be dynamic based on connection state
+    @property
+    def icon(self) -> str:
+        """Return the icon to use in the frontend, if any."""
+        return "mdi:lan-connect" if self.is_connected else "mdi:lan-disconnect"
