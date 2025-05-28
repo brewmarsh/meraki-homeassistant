@@ -242,9 +242,7 @@ class MerakiApiDataFetcher:
             
             # Attempt to get all networks the API key has access to
             # Using getNetworks (camelCase) as getOrganizations was also camelCase
-            all_networks_response = await self.meraki_client.networks.getNetwork(
-                total_pages="all"
-            )
+            all_networks_response = await self.meraki_client.networks.getNetworks()
 
             if all_networks_response is None:
                 _LOGGER.warning(
