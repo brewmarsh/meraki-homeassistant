@@ -55,6 +55,8 @@ class MerakiAuthentication:
         
         try:
             _LOGGER.debug("Fetching networks for organization %s using Meraki SDK", self.org_id)
+            _LOGGER.info(f"Meraki client.networks object type: {type(client.networks)}")
+            _LOGGER.info(f"Meraki client.networks methods/attributes: {dir(client.networks)}")
             networks: List[Dict[str, Any]] = await client.networks.get_organization_networks(
                 organization_id=self.org_id
             )
