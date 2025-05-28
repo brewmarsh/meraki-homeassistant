@@ -236,17 +236,22 @@ class MerakiApiDataFetcher:
         _LOGGER.debug("Fetching networks for org ID: %s using SDK", org_id)
         try:
             _LOGGER.info(
-                "Executing async_get_networks with getNetwork() (singular, no args) for org ID %s.",
+                "Executing async_get_networks with get_organization_networks(org_id) for org ID %s.",
                 org_id,
             )
+            _LOGGER.info(f"Attempting call with: self.meraki_client.networks.get_organization_networks")
+            _LOGGER.info(f"Type of self.meraki_client.networks: {type(self.meraki_client.networks)}")
+            _LOGGER.info(f"Attributes/methods on self.meraki_client.networks: {dir(self.meraki_client.networks)}")
             
             # Attempt to get all networks the API key has access to
             # Using getNetworks (camelCase) as getOrganizations was also camelCase
-            all_networks_response = await self.meraki_client.networks.getNetwork()
+            all_networks_response = await self.meraki_client.networks.get_organization_networks(
+                organization_id=org_id
+            )
 
             if all_networks_response is None:
                 _LOGGER.warning(
-                    "Call to getNetworks returned None for org ID %s. Cannot filter networks.",
+                    "Call to get_organization_networks returned None for org ID %s. Cannot filter networks.",
                     org_id,
                 )
                 return None
