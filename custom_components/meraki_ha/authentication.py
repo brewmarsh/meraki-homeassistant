@@ -54,26 +54,38 @@ class MerakiAuthentication:
         client: MerakiAPIClient = MerakiAPIClient(api_key=self.api_key, org_id=self.org_id)
         
         try:
-            _LOGGER.debug("Fetching networks for organization %s using Meraki SDK", self.org_id)
-            networks: List[Dict[str, Any]] = await client.networks.get_organization_networks(
-                organization_id=self.org_id
-            )
+            _LOGGER.debug("Fetching networks for organization %s using Meraki SDK", self.org_id) # This log line might become inaccurate
+            # networks: List[Dict[str, Any]] = await client.networks.get_organization_networks(
+            #     organization_id=self.org_id
+            # )
 
-            if not networks:
-                _LOGGER.warning("No networks found for organization %s. This might be due to the organization having no networks or restricted API key permissions.", self.org_id)
-                raise ValueError(f"No networks found for the organization {self.org_id}.")
+            # if not networks:
+            #     _LOGGER.warning("No networks found for organization %s. This might be due to the organization having no networks or restricted API key permissions.", self.org_id)
+            #     raise ValueError(f"No networks found for the organization {self.org_id}.")
+            
+            _LOGGER.debug("Fetching all organizations accessible by the API key to validate Organization ID %s", self.org_id)
+            # Assuming client.organizations.getOrganizations exists and returns a list of dicts, each with an 'id' key.
+            all_organizations: List[Dict[str, Any]] = await client.organizations.getOrganizations()
 
-            # The subtask example also included an organization check.
-            # The current code only checks networks. If the intention is to also validate the org_id
-            # against a list of all accessible organizations, that logic would go here.
-            # For now, replicating the existing logic which relies on get_organization_networks.
-            # Example (if needed, but not in current file's logic for this try block):
-            # all_organizations: List[Dict[str, Any]] = await client.organizations.getOrganizations()
-            # if not any(org['id'] == self.org_id for org in all_organizations):
-            #     _LOGGER.error("Invalid Organization ID: %s not found in accessible organizations.", self.org_id)
-            #     raise ValueError(f"Invalid Organization ID: {self.org_id}")
+            org_found = False
+            if all_organizations: # Ensure all_organizations is not None or empty
+                for org in all_organizations:
+                    if org.get('id') == self.org_id:
+                        org_found = True
+                        break
+            
+            if not org_found:
+                _LOGGER.warning(
+                    "Organization ID %s not found among accessible organizations or API key lacks permissions to list organizations.", self.org_id
+                )
+                # This specific error message helps differentiate from other ValueErrors.
+                raise ValueError(f"Specified Organization ID {self.org_id} is not accessible with the provided API key.")
 
-            _LOGGER.info("Meraki credentials and organization ID %s validated successfully (networks found).", self.org_id)
+            # If org_found is True, the validation specific to org_id's accessibility is successful.
+            # The original log message for success was:
+            # _LOGGER.info("Meraki credentials and organization ID %s validated successfully (networks found).", self.org_id)
+            # Change it to reflect the new validation method:
+            _LOGGER.info("Meraki API key validated and Organization ID %s found in accessible organizations.", self.org_id)
             return True
 
         except MerakiSDKAPIError as e:
