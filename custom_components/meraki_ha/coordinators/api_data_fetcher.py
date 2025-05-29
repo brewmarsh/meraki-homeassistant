@@ -401,7 +401,7 @@ class MerakiApiDataFetcher:
         _LOGGER.debug("Fetching SSIDs for network ID: %s using SDK", network_id)
         try:
             return await self.meraki_client.wireless.getNetworkWirelessSsids(
-                network_id=network_id
+                networkId=network_id
             )
         except MerakiSDKAPIError as e:
             if e.status == 404:
