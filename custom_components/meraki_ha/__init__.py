@@ -19,7 +19,6 @@ from custom_components.meraki_ha.const import (
     DOMAIN,
     PLATFORMS, # List of platforms (e.g., ["sensor", "switch"])
 )
-from custom_components.meraki_ha.coordinators.base_coordinator import MerakiDataUpdateCoordinator
 # Obsolete imports for MerakiNetworkCoordinator and MerakiSsidCoordinator are removed.
 
 _LOGGER = logging.getLogger(__name__)
@@ -73,6 +72,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Initialize the main data update coordinator.
     # This coordinator now manages all data fetching and sub-coordination internally.
+    from custom_components.meraki_ha.coordinators.base_coordinator import MerakiDataUpdateCoordinator
     coordinator: MerakiDataUpdateCoordinator = MerakiDataUpdateCoordinator(
         hass=hass,
         api_key=api_key,
