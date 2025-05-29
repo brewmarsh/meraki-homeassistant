@@ -370,7 +370,7 @@ class MerakiApiDataFetcher:
         _LOGGER.debug("Fetching organization devices for org ID: %s using SDK", org_id)
         try:
             return await self.meraki_client.organizations.getOrganizationDevices(
-                organization_id=org_id
+                org_id
             )
         except MerakiSDKAPIError as e:
             _LOGGER.warning(
