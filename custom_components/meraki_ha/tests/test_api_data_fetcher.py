@@ -67,13 +67,13 @@ async def test_async_get_organization_devices_success(
     data_fetcher: MerakiApiDataFetcher, mock_meraki_client: MagicMock
 ):
     """Test successful fetching of organization devices."""
-    mock_meraki_client.organizations.get_organization_devices = AsyncMock(
+    mock_meraki_client.organizations.getOrganizationDevices = AsyncMock(
         return_value=MOCK_ORG_DEVICES
     )
     
     result = await data_fetcher.async_get_organization_devices(org_id="test_org_id")
     
-    mock_meraki_client.organizations.get_organization_devices.assert_called_once_with(
+    mock_meraki_client.organizations.getOrganizationDevices.assert_called_once_with(
         organization_id="test_org_id"
     )
     assert result == MOCK_ORG_DEVICES
@@ -82,7 +82,7 @@ async def test_async_get_organization_devices_api_error(
     data_fetcher: MerakiApiDataFetcher, mock_meraki_client: MagicMock, caplog
 ):
     """Test API error when fetching organization devices."""
-    mock_meraki_client.organizations.get_organization_devices = AsyncMock(
+    mock_meraki_client.organizations.getOrganizationDevices = AsyncMock(
         side_effect=MerakiSDKAPIError(MagicMock(status=500, reason="Server Error"), "test API error")
     )
     
@@ -97,7 +97,7 @@ async def test_async_get_organization_devices_unexpected_exception(
     data_fetcher: MerakiApiDataFetcher, mock_meraki_client: MagicMock, caplog
 ):
     """Test unexpected exception when fetching organization devices."""
-    mock_meraki_client.organizations.get_organization_devices = AsyncMock(
+    mock_meraki_client.organizations.getOrganizationDevices = AsyncMock(
         side_effect=Exception("Something broke badly")
     )
     
@@ -279,7 +279,7 @@ async def test_fetch_all_data_success(
     """Test successful fetching of all data types."""
     # Setup mocks for all underlying fetch methods
     mock_meraki_client.organizations.getOrganizationNetworks = AsyncMock(return_value=MOCK_NETWORKS)
-    mock_meraki_client.organizations.get_organization_devices = AsyncMock(return_value=MOCK_ORG_DEVICES)
+    mock_meraki_client.organizations.getOrganizationDevices = AsyncMock(return_value=MOCK_ORG_DEVICES)
     
     # Mock SSIDs for each network
     def mock_get_ssids(network_id):
@@ -341,7 +341,7 @@ async def test_fetch_all_data_devices_fail(
 ):
     """Test fetch_all_data when fetching devices fails."""
     mock_meraki_client.organizations.getOrganizationNetworks = AsyncMock(return_value=MOCK_NETWORKS) # Networks succeed
-    mock_meraki_client.organizations.get_organization_devices = AsyncMock(return_value=None) # Devices fail
+    mock_meraki_client.organizations.getOrganizationDevices = AsyncMock(return_value=None) # Devices fail
     hass_mock_instance = MagicMock()
 
     with pytest.raises(UpdateFailed) as excinfo:
@@ -355,7 +355,7 @@ async def test_fetch_all_data_ssids_fail_for_one_network(
 ):
     """Test fetch_all_data when fetching SSIDs fails for one network but continues for others."""
     mock_meraki_client.organizations.getOrganizationNetworks = AsyncMock(return_value=MOCK_NETWORKS)
-    mock_meraki_client.organizations.get_organization_devices = AsyncMock(return_value=MOCK_ORG_DEVICES)
+    mock_meraki_client.organizations.getOrganizationDevices = AsyncMock(return_value=MOCK_ORG_DEVICES)
     mock_meraki_client.networks.get_network_clients = AsyncMock(return_value=[]) # No clients for simplicity here
 
     # SSIDs for N_123 fail, N_124 succeed
@@ -384,7 +384,7 @@ async def test_fetch_all_data_clients_fail_for_one_network(
 ):
     """Test fetch_all_data when fetching clients fails for one network."""
     mock_meraki_client.organizations.getOrganizationNetworks = AsyncMock(return_value=MOCK_NETWORKS)
-    mock_meraki_client.organizations.get_organization_devices = AsyncMock(return_value=MOCK_ORG_DEVICES)
+    mock_meraki_client.organizations.getOrganizationDevices = AsyncMock(return_value=MOCK_ORG_DEVICES)
     mock_meraki_client.wireless.get_network_wireless_ssids = AsyncMock(return_value=[]) # No SSIDs
 
     def mock_get_clients_partial_fail(network_id, timespan):
