@@ -260,7 +260,7 @@ class MerakiApiDataFetcher:
         """
         # Fetch connected client count
         try:
-            clients_data = await self.meraki_client.devices.get_device_clients(serial=serial)
+            clients_data = await self.meraki_client.devices.getDeviceClients(serial=serial)
             device["connected_clients_count"] = len(clients_data) if clients_data else 0
         except MerakiSDKAPIError as e:
             _LOGGER.warning(
@@ -277,7 +277,7 @@ class MerakiApiDataFetcher:
 
         # Fetch wireless radio settings
         try:
-            radio_settings = await self.meraki_client.wireless.get_device_wireless_radio_settings(serial=serial)
+            radio_settings = await self.meraki_client.wireless.getDeviceWirelessRadioSettings(serial=serial)
             device["radio_settings"] = radio_settings
         except MerakiSDKAPIError as e:
             _LOGGER.warning(
@@ -400,7 +400,7 @@ class MerakiApiDataFetcher:
         """
         _LOGGER.debug("Fetching SSIDs for network ID: %s using SDK", network_id)
         try:
-            return await self.meraki_client.wireless.get_network_wireless_ssids(
+            return await self.meraki_client.wireless.getNetworkWirelessSsids(
                 network_id=network_id
             )
         except MerakiSDKAPIError as e:
