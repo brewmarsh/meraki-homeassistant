@@ -185,7 +185,7 @@ class MerakiApiDataFetcher:
                     # we might need to use `self.meraki_client.networks.get_network_clients`.
                     # Based on typical Meraki SDK patterns, `clients` is a sub-API of `dashboard`.
                     # Let's try the one from the prompt first: `self.meraki_client.networks.get_network_clients`
-                    network_clients_data = await self.meraki_client.networks.get_network_clients(
+                    network_clients_data = await self.meraki_client.networks.getNetworkClients(
                         network_id, timespan=300  # timespan in seconds
                     )
 
