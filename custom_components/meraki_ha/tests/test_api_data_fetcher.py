@@ -74,7 +74,7 @@ async def test_async_get_organization_devices_success(
     result = await data_fetcher.async_get_organization_devices(org_id="test_org_id")
     
     mock_meraki_client.organizations.getOrganizationDevices.assert_called_once_with(
-        organization_id="test_org_id"
+        "test_org_id"
     )
     assert result == MOCK_ORG_DEVICES
 
