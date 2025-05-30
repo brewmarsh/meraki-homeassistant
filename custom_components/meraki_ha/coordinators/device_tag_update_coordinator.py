@@ -67,7 +67,8 @@ class DeviceTagUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         super().__init__(
             hass,
             _LOGGER,
-            name=f"{DOMAIN} Device Tag Update ({org_id})",  # More specific name
+            # More specific name
+            name=f"{DOMAIN} Device Tag Update ({org_id})",
             # For the placeholder _async_update_data
             update_interval=scan_interval,
         )
@@ -167,9 +168,7 @@ class DeviceTagUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             )
             if success:
                 _LOGGER.info(
-                    "Successfully updated tags for device %s. Requesting refresh.",
-                    serial,
-                )
+                    "Successfully updated tags for device %s. Requesting refresh.", serial, )
                 # After a successful update, you might want to trigger a
                 # refresh of data that depends on these tags.
                 # This refreshes this coordinator's data (which is {}),

@@ -64,7 +64,8 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         _LOGGER.debug("Meraki HA: async_step_user called")
         errors: Dict[str, str] = {}
 
-        # This block executes if the user has submitted input (not the first time showing the form).
+        # This block executes if the user has submitted input (not the first
+        # time showing the form).
         if user_input is not None:
             _LOGGER.debug("User input received: %s", user_input)
             try:
@@ -77,7 +78,9 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 )
                 # if not validation_result.get("valid"): # Or rely on exceptions for failure
                 #    # Handle error or let exception propagate
-                org_name = validation_result.get("org_name", user_input[CONF_MERAKI_ORG_ID]) # Fallback to Org ID if name is missing
+                # Fallback to Org ID if name is missing
+                org_name = validation_result.get(
+                    "org_name", user_input[CONF_MERAKI_ORG_ID])
 
                 # Step 2: If credentials are valid, prepare the data and
                 # options for the config entry. 'data' usually stores
@@ -132,7 +135,8 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 )
                 errors["base"] = "invalid_auth"  # Error key for UI message
             except ValueError:
-                # Invalid organization ID (e.g., not found for the given API key).
+                # Invalid organization ID (e.g., not found for the given API
+                # key).
                 _LOGGER.warning("Invalid Organization ID provided.")
                 errors["base"] = "invalid_org_id"  # Error key for UI
             except aiohttp.ClientError:
@@ -150,7 +154,8 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         else:
             # This block executes if user_input is None (first time showing
             # the form).
-            # Initialize user_input as an empty dict to prevent errors when accessing it for defaults.
+            # Initialize user_input as an empty dict to prevent errors when
+            # accessing it for defaults.
             user_input = {}
 
         # Define the schema for the user input form.
@@ -389,9 +394,11 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             return self.async_create_entry(title="", data=user_input)
 
         # This block executes if showing the options form for the first time.
-        # Define the schema for the options form, pre-filling with current option values.
+        # Define the schema for the options form, pre-filling with current
+        # option values.
         options_schema = vol.Schema({
-            # Scan interval field, defaulting to current value or global default.
+            # Scan interval field, defaulting to current value or global
+            # default.
             vol.Required(
                 CONF_SCAN_INTERVAL,
                 default=self.config_entry.options.get(  # Current option value

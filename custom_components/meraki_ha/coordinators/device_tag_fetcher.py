@@ -6,13 +6,13 @@ It's a simpler alternative to `DeviceTagFetchCoordinator` for scenarios where
 coordinator overhead is not needed.
 """
 import logging
-from typing import List, Optional # Added Optional
+from typing import List, Optional  # Added Optional
 
 from .api_data_fetcher import (
     MerakiApiDataFetcher,
-    MerakiApiError, # Catching the base MerakiApiError is often better
-    MerakiApiConnectionError, # Specific error type
-    MerakiApiInvalidApiKeyError, # Specific error type
+    MerakiApiError,  # Catching the base MerakiApiError is often better
+    MerakiApiConnectionError,  # Specific error type
+    MerakiApiInvalidApiKeyError,  # Specific error type
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -59,34 +59,41 @@ class DeviceTagFetcher:
         _LOGGER.debug("Attempting to fetch tags for device serial: %s", serial)
         try:
             # `async_get_device_tags` in api_fetcher is a placeholder.
-            # If it's implemented, it should return Optional[List[str]] or List[str].
+            # If it's implemented, it should return Optional[List[str]] or
+            # List[str].
             tags: Optional[List[str]] = await self.api_fetcher.async_get_device_tags(
                 serial
             )
             if tags is None:
                 _LOGGER.info(
-                    "No tags returned by API fetcher for device %s (or fetcher returned None).", serial
-                )
+                    "No tags returned by API fetcher for device %s (or fetcher returned None).",
+                    serial)
                 return []
-            _LOGGER.debug("Successfully fetched %d tags for device %s.", len(tags), serial)
+            _LOGGER.debug(
+                "Successfully fetched %d tags for device %s.",
+                len(tags),
+                serial)
             return tags
         except MerakiApiConnectionError as e:
             _LOGGER.error(
-                "Connection error while fetching tags for device %s: %s", serial, e
-            )
+                "Connection error while fetching tags for device %s: %s",
+                serial,
+                e)
             return []
         except MerakiApiInvalidApiKeyError as e:
             _LOGGER.error(
-                "Invalid API key error while fetching tags for device %s: %s", serial, e
-            )
+                "Invalid API key error while fetching tags for device %s: %s",
+                serial,
+                e)
             return []
-        except MerakiApiError as e: # Catch other Meraki API specific errors
+        except MerakiApiError as e:  # Catch other Meraki API specific errors
             _LOGGER.error(
-                "A Meraki API error occurred fetching tags for device %s: %s", serial, e
-            )
+                "A Meraki API error occurred fetching tags for device %s: %s",
+                serial,
+                e)
             return []
-        except Exception as e: # Catch any other unexpected errors
-            _LOGGER.exception( # Use .exception to include stack trace
+        except Exception as e:  # Catch any other unexpected errors
+            _LOGGER.exception(  # Use .exception to include stack trace
                 "Unexpected error fetching tags for device %s: %s", serial, e
             )
             return []

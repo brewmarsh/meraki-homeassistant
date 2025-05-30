@@ -28,7 +28,8 @@ _LOGGER = logging.getLogger(__name__)
 MERAKI_API_BASE_URL = "https://api.meraki.com/api/v1"
 
 
-class MerakiDeviceCoordinator(DataUpdateCoordinator[Dict[str, List[Dict[str, Any]]]]):
+class MerakiDeviceCoordinator(
+        DataUpdateCoordinator[Dict[str, List[Dict[str, Any]]]]):
     """Coordinator to fetch and manage device data from the Meraki API.
 
     This coordinator handles fetching all devices across all networks
@@ -144,9 +145,7 @@ class MerakiDeviceCoordinator(DataUpdateCoordinator[Dict[str, List[Dict[str, Any
                             # Changed to debug as it can be normal for some
                             # networks
                             _LOGGER.debug(
-                                "No devices found in network %s, or failed to fetch.",
-                                network_id,
-                            )
+                                "No devices found in network %s, or failed to fetch.", network_id, )
                     except MerakiApiError as e:
                         _LOGGER.warning(
                             "Failed to fetch devices from network %s: %s",
@@ -197,11 +196,8 @@ class MerakiDeviceCoordinator(DataUpdateCoordinator[Dict[str, List[Dict[str, Any
                                 f"&serials[]={serial}"
                             )
                             _LOGGER.debug(
-                                "Fetching clients for AP %s (Serial: %s) in network %s",
-                                device_processed.get("name", serial),
-                                serial,
-                                network_id,
-                            )
+                                "Fetching clients for AP %s (Serial: %s) in network %s", device_processed.get(
+                                    "name", serial), serial, network_id, )
                             clients_data: Optional[
                                 List[Dict[str, Any]]
                             ] = await api_fetcher._fetch_data(clients_url)
@@ -216,11 +212,8 @@ class MerakiDeviceCoordinator(DataUpdateCoordinator[Dict[str, List[Dict[str, Any
                         except MerakiApiError as e:
                             _LOGGER.warning(
                                 "Failed to fetch clients for AP %s (Serial: %s): %s. "
-                                "Setting client count to 0.",
-                                device_processed.get("name", serial),
-                                serial,
-                                e,
-                            )
+                                "Setting client count to 0.", device_processed.get(
+                                    "name", serial), serial, e, )
                             device_processed["connected_clients"] = 0
                         except Exception as e:  # pylint: disable=broad-except
                             _LOGGER.exception(

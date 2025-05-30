@@ -7,9 +7,10 @@ leveraging the meraki.aio.DashboardAPI.
 import logging
 from typing import Any
 
-from meraki.aio import AsyncDashboardAPI # Changed from DashboardAPI
+from meraki.aio import AsyncDashboardAPI  # Changed from DashboardAPI
 # Assuming MerakiApiError might still be used as a base custom error for the integration.
-# If not, this can be removed in a later step if all error handling is done via meraki.APIError
+# If not, this can be removed in a later step if all error handling is
+# done via meraki.APIError
 from .exceptions import MerakiApiError
 
 
@@ -30,7 +31,7 @@ class MerakiAPIClient:
         self._org_id = org_id  # Store org_id if needed for specific calls
 
         # Initialize the Meraki SDK
-        self._sdk = AsyncDashboardAPI( # Changed from DashboardAPI
+        self._sdk = AsyncDashboardAPI(  # Changed from DashboardAPI
             api_key=api_key,
             base_url="https://api.meraki.com/api/v1",  # Standard base URL
             output_log=False,  # Set to True for SDK-level debug logging if needed
@@ -65,7 +66,8 @@ class MerakiAPIClient:
         return self._sdk.networks
 
     @property
-    def organizations(self) -> Any: # Or a more specific type like 'OrganizationsController' if known
+    # Or a more specific type like 'OrganizationsController' if known
+    def organizations(self) -> Any:
         """Provides access to the SDK's organizations controller."""
         return self._sdk.organizations
 
@@ -91,5 +93,6 @@ class MerakiAPIClient:
 
 
 # Update __all__ based on the refactored client.
-# MerakiApiError might be kept if it serves as a custom base error for the integration.
+# MerakiApiError might be kept if it serves as a custom base error for the
+# integration.
 __all__ = ["MerakiAPIClient", "MerakiApiError"]

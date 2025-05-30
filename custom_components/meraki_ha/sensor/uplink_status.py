@@ -5,26 +5,30 @@ sensor entity that displays the status of the primary uplink for a Meraki
 MX security appliance.
 """
 import logging
-from typing import Any, Dict, Optional, List # Added Optional, List
+from typing import Any, Dict, Optional, List  # Added Optional, List
 
-from homeassistant.components.sensor import SensorEntity # SensorStateClass not needed if state is string
-from homeassistant.core import callback # For coordinator updates
+# SensorStateClass not needed if state is string
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.core import callback  # For coordinator updates
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 from ..coordinators import MerakiDataUpdateCoordinator
-from ..const import DOMAIN # For device_info identifiers
+from ..const import DOMAIN  # For device_info identifiers
 # Assuming this function is correctly defined in the meraki_api package
 # from ..meraki_api.appliance import get_meraki_device_appliance_uplinks
 # Placeholder for the function if not available for type checking
-async def get_meraki_device_appliance_uplinks( # Function name was different in appliance.py
-    api_key: str, org_id: str, serial: str # org_id seems unused by actual API endpoint for device uplinks
-) -> Optional[List[Dict[str, Any]]]: # API returns a list of uplinks
+
+
+async def get_meraki_device_appliance_uplinks(  # Function name was different in appliance.py
+    # org_id seems unused by actual API endpoint for device uplinks
+    api_key: str, org_id: str, serial: str
+) -> Optional[List[Dict[str, Any]]]:  # API returns a list of uplinks
     """Placeholder: Fetches Meraki device appliance uplink settings/status."""
     _LOGGER.warning(
-        "Using placeholder for get_meraki_device_appliance_uplinks for serial %s.", serial
-    )
+        "Using placeholder for get_meraki_device_appliance_uplinks for serial %s.",
+        serial)
     # Example successful response structure (simplified list of uplinks)
     # return [{"interface": "wan1", "status": "active", "ip": "1.2.3.4", ...}, {"interface": "wan2", ...}]
     # Example error or no data:
@@ -57,12 +61,12 @@ class MerakiUplinkStatusSensor(
         _device_info_data: Raw dictionary data for the associated Meraki MX appliance.
     """
 
-    _attr_icon = "mdi:upload-network-outline" # Static icon
+    _attr_icon = "mdi:upload-network-outline"  # Static icon
 
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: Dict[str, Any], # Data for the Meraki MX appliance
+        device_data: Dict[str, Any],  # Data for the Meraki MX appliance
     ) -> None:
         """Initialize the Meraki MX Appliance Uplink Status sensor.
 
@@ -73,27 +77,31 @@ class MerakiUplinkStatusSensor(
         """
         super().__init__(coordinator)
         self._device_info_data: Dict[str, Any] = device_data
-        device_name = self._device_info_data.get("name", self._device_info_data.get("serial", "Unknown Device"))
+        device_name = self._device_info_data.get(
+            "name", self._device_info_data.get(
+                "serial", "Unknown Device"))
         device_serial = self._device_info_data.get("serial", "")
 
         self._attr_name = f"{device_name} Uplink Status"
         self._attr_unique_id = f"{device_serial}_uplink_status"
-        
+
         # Initialize base attributes that won't change per update
         self._base_attributes: Dict[str, Any] = {
             "model": self._device_info_data.get("model"),
             "serial_number": device_serial,
             "firmware_version": self._device_info_data.get("firmware"),
         }
-        self._attr_extra_state_attributes = self._base_attributes.copy() # Initial attributes
+        self._attr_extra_state_attributes = self._base_attributes.copy()  # Initial attributes
 
         # Set initial state
         self._update_sensor_state()
-        _LOGGER.debug("Meraki Uplink Status Sensor Initialized: %s", self._attr_name)
+        _LOGGER.debug(
+            "Meraki Uplink Status Sensor Initialized: %s", self._attr_name
+        )
 
     def _update_sensor_state(self) -> None:
         """Update sensor state and attributes from coordinator data.
-        
+
         Assumes coordinator data structure:
         `coordinator.data['devices_uplinks']['SERIAL'] = List[Dict[str, Any]]` (list of uplink details)
         The state of this sensor will be the status of the first uplink in the list.
@@ -106,33 +114,44 @@ class MerakiUplinkStatusSensor(
             device_uplinks_all = self.coordinator.data["devices_uplinks"]
             if isinstance(device_uplinks_all, dict):
                 uplinks_data = device_uplinks_all.get(device_serial)
-        
+
         # Reset attributes to base and then update with new data
         current_attributes = self._base_attributes.copy()
 
         if uplinks_data and isinstance(uplinks_data, list) and uplinks_data:
-            # Assuming the first uplink in the list is the primary or most relevant one for the main state
-            primary_uplink_status = uplinks_data[0].get("status", STATE_UNKNOWN_UPLINK)
+            # Assuming the first uplink in the list is the primary or most
+            # relevant one for the main state
+            primary_uplink_status = uplinks_data[0].get(
+                "status", STATE_UNKNOWN_UPLINK)
             self._attr_native_value = str(primary_uplink_status).capitalize()
             # Add all uplink details to extra_state_attributes
             # To avoid overly large state objects, decide what's most relevant from uplinks_data.
-            # For example, just the list of uplinks, or specific fields from each.
-            current_attributes["uplinks_details"] = uplinks_data # Store the full list
+            # For example, just the list of uplinks, or specific fields from
+            # each.
+            # Store the full list
+            current_attributes["uplinks_details"] = uplinks_data
             # Or, to be more selective:
             # current_attributes["active_uplink_interface"] = uplinks_data[0].get("interface")
             # current_attributes["active_uplink_ip"] = uplinks_data[0].get("ip")
-        elif uplinks_data == []: # Explicitly empty list means no uplinks reported
-             _LOGGER.info("No uplink data reported for device '%s'.", device_serial)
-             self._attr_native_value = STATE_UNAVAILABLE_UPLINK # Or "No Uplinks"
-             current_attributes["uplinks_details"] = []
+        elif uplinks_data == []:  # Explicitly empty list means no uplinks reported
+            _LOGGER.info(
+                "No uplink data reported for device '%s'.", device_serial
+            )
+            # Or "No Uplinks"
+            self._attr_native_value = STATE_UNAVAILABLE_UPLINK
+            current_attributes["uplinks_details"] = []
         else:
             _LOGGER.warning(
-                "Uplink data for device '%s' (Serial: %s) not found or in unexpected format in coordinator data. Setting state to unavailable.",
+                (
+                    "Uplink data for device '%s' (Serial: %s) not found or in "
+                    "unexpected format in coordinator data. Setting state to unavailable."
+                ),
                 self._device_info_data.get("name", "N/A"),
                 device_serial,
             )
             self._attr_native_value = STATE_UNAVAILABLE_UPLINK
-            current_attributes["uplinks_details"] = None # Indicate data was not available
+            # Indicate data was not available
+            current_attributes["uplinks_details"] = None
 
         self._attr_extra_state_attributes = {
             k: v for k, v in current_attributes.items() if v is not None
@@ -187,11 +206,10 @@ class MerakiUplinkStatusSensor(
     #
     #     self._attr_extra_state_attributes = {k:v for k,v in current_attributes.items() if v is not None}
 
-
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator.
-        
+
         This method is called by the CoordinatorEntity base class when new data
         is available from the coordinator. It updates the sensor's state.
         """

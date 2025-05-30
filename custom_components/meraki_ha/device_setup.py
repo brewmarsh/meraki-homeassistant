@@ -10,7 +10,8 @@ from datetime import timedelta  # For type hinting scan_interval
 from typing import Any, Dict, List, Optional  # Added List, Optional
 
 import aiohttp  # For API communication
-from homeassistant.config_entries import ConfigEntry  # For self.config_entry type hint
+# For self.config_entry type hint
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant  # For type hinting hass
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import (
@@ -304,7 +305,7 @@ class MerakiDeviceCoordinator(
                         f"[{device_type_mapped}] {device_name_raw}"
                     )
                 elif self.device_name_format == "suffix" and \
-                     device_type_mapped != "Unknown":
+                        device_type_mapped != "Unknown":
                     formatted_device_name = (
                         f"{device_name_raw} [{device_type_mapped}]"
                     )

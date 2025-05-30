@@ -5,7 +5,7 @@ that represent Meraki SSIDs, allowing them to be enabled or disabled via
 Home Assistant.
 """
 import logging
-from typing import Any, Dict, List # Added Any, Dict
+from typing import Any, Dict, List  # Added Any, Dict
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
@@ -38,9 +38,8 @@ async def async_setup_entry(
         config_entry: The configuration entry for this Meraki integration instance.
         async_add_entities: Callback function to add entities to Home Assistant.
     """
-    coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id][
-        DATA_COORDINATOR
-    ]
+    coordinator: MerakiDataUpdateCoordinator = hass.data[
+        DOMAIN][config_entry.entry_id][DATA_COORDINATOR]
 
     # Ensure coordinator data is available before proceeding
     if coordinator.data is None:
@@ -53,25 +52,30 @@ async def async_setup_entry(
     # The coordinator.data["devices"] is expected to be a list of devices,
     # where each device might have an ATTR_SSIDS key.
     all_devices: List[Dict[str, Any]] = coordinator.data.get("devices", [])
-    
+
     if not all_devices:
-        _LOGGER.info("No Meraki devices found in coordinator data for switch setup.")
+        _LOGGER.info(
+            "No Meraki devices found in coordinator data for switch setup.")
         return
 
     relaxed_matching: bool = coordinator.relaxed_tag_match
     _LOGGER.debug("Switch setup using relaxed_tag_match: %s", relaxed_matching)
 
-    for device_info in all_devices: # Iterate through all devices
+    for device_info in all_devices:  # Iterate through all devices
         # SSIDs are typically associated with wireless devices (APs)
-        # The match_device_to_ssid function likely handles if a device is appropriate for an SSID.
+        # The match_device_to_ssid function likely handles if a device is
+        # appropriate for an SSID.
         ssids_on_device: List[Dict[str, Any]] = device_info.get(ATTR_SSIDS, [])
-        
+
         if not ssids_on_device:
             _LOGGER.debug(
                 "Device '%s' (Serial: %s) has no SSIDs listed under ATTR_SSIDS.",
-                device_info.get("name", "Unknown"),
-                device_info.get("serial", "N/A")
-            )
+                device_info.get(
+                    "name",
+                    "Unknown"),
+                device_info.get(
+                    "serial",
+                    "N/A"))
             continue
 
         for ssid_info in ssids_on_device:
@@ -82,13 +86,18 @@ async def async_setup_entry(
             # It appears to check if *any* device in `all_devices` matches the SSID's tags.
             # This might mean an SSID switch is created for each AP that *could* broadcast it,
             # or one switch per SSID that is matched by at least one AP.
-            # The original logic passed `coordinator.data.get("devices", [])` which is `all_devices`.
+            # The original logic passed `coordinator.data.get("devices", [])`
+            # which is `all_devices`.
             if match_device_to_ssid(ssid_info, all_devices, relaxed_matching):
                 _LOGGER.debug(
                     "Creating SSID switch for SSID '%s' associated with device '%s' (Serial: %s)",
                     ssid_name,
-                    device_info.get("name", "Unknown"),
-                    device_info.get("serial", "N/A"),
+                    device_info.get(
+                        "name",
+                        "Unknown"),
+                    device_info.get(
+                        "serial",
+                        "N/A"),
                 )
                 created_switches.append(
                     MerakiSSIDSwitch(coordinator, device_info, ssid_info)
@@ -97,12 +106,14 @@ async def async_setup_entry(
                 _LOGGER.debug(
                     "SSID '%s' on device '%s' did not meet criteria for switch creation via match_device_to_ssid.",
                     ssid_name,
-                    device_info.get("name", "Unknown")
-                )
-
+                    device_info.get(
+                        "name",
+                        "Unknown"))
 
     if created_switches:
         async_add_entities(created_switches)
-        _LOGGER.debug("Added %d Meraki SSID switch entities.", len(created_switches))
+        _LOGGER.debug(
+            "Added %d Meraki SSID switch entities.",
+            len(created_switches))
     else:
         _LOGGER.debug("No Meraki SSID switch entities were created.")

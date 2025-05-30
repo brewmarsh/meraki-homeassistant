@@ -9,7 +9,7 @@ for the device itself being "active" or having connected clients.
 from __future__ import annotations  # For type hints pre Python 3.9
 
 import logging
-from typing import Any, Dict, List, Optional  # Added List, Optional
+from typing import Any, Dict, List  # Optional removed F401
 
 from homeassistant.components.device_tracker import SourceType, TrackerEntity
 from homeassistant.config_entries import ConfigEntry
@@ -42,9 +42,8 @@ async def async_setup_entry(
         config_entry: The configuration entry for this Meraki integration instance.
         async_add_entities: Callback function to add entities to Home Assistant.
     """
-    coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id][
-        DATA_COORDINATOR
-    ]
+    coordinator: MerakiDataUpdateCoordinator = hass.data[
+        DOMAIN][config_entry.entry_id][DATA_COORDINATOR]
 
     # Ensure coordinator data is available
     if coordinator.data is None or "clients" not in coordinator.data:  # Ensure 'clients' key exists
@@ -53,7 +52,8 @@ async def async_setup_entry(
         )
         return
 
-    clients: List[Dict[str, Any]] = coordinator.data.get("clients", []) # Get clients list
+    clients: List[Dict[str, Any]] = coordinator.data.get(
+        "clients", [])  # Get clients list
     if not clients:
         _LOGGER.info("No Meraki clients found to set up device trackers.")
         return
@@ -101,7 +101,8 @@ class MerakiDeviceTracker(
         """
         super().__init__(coordinator)  # Initialize CoordinatorEntity
         self._client_info_data: Dict[str, Any] = client_info
-        # Name can be client's description or IP if description is not available
+        # Name can be client's description or IP if description is not
+        # available
         self._attr_name = self._client_info_data.get(
             "description"
         ) or self._client_info_data.get("ip")
@@ -126,14 +127,16 @@ class MerakiDeviceTracker(
         client_mac = self._client_info_data["mac"]
 
         if self.coordinator.data and "clients" in self.coordinator.data:
-            active_clients: List[Dict[str, Any]] = self.coordinator.data["clients"]
+            active_clients: List[Dict[str, Any]
+                                 ] = self.coordinator.data["clients"]
             for client_data in active_clients:
                 if client_data.get("mac") == client_mac:
                     self._attr_is_connected = True
-                    # Update client info if more details are available from active list
-                    self._client_info_data.update(client_data) 
+                    # Update client info if more details are available from
+                    # active list
+                    self._client_info_data.update(client_data)
                     break
-        
+
         _LOGGER.debug(
             "Client tracker %s (MAC: %s) is_connected: %s",
             self._attr_name,
@@ -141,17 +144,16 @@ class MerakiDeviceTracker(
             self._attr_is_connected,
         )
         if not self._attr_is_connected:
-             _LOGGER.debug( # More specific log if client not found in active list
+            _LOGGER.debug(  # More specific log if client not found in active list
                 "Client tracker %s (MAC: %s) not found in coordinator's active client list.",
                 self._attr_name,
                 client_mac,
             )
 
-
     @property
     def source_type(self) -> SourceType:
         """Return the source type of the device tracker."""
-        return SourceType.ROUTER # Client is tracked by the router/AP
+        return SourceType.ROUTER  # Client is tracked by the router/AP
 
     @property
     def device_info(self) -> Dict[str, Any]:
@@ -168,9 +170,9 @@ class MerakiDeviceTracker(
         ) or self._client_info_data.get("networkId", "meraki_network")
 
         # Use client's description or IP as name, fallback to MAC
-        entity_name = self._client_info_data.get(
-            "description"
-        ) or self._client_info_data.get("ip", self._client_info_data["mac"])
+        # entity_name = self._client_info_data.get( # F841: local variable 'entity_name' is assigned to but never used
+            # "description"
+        # ) or self._client_info_data.get("ip", self._client_info_data["mac"])
 
         return {
             "identifiers": {(DOMAIN, parent_identifier_value)},

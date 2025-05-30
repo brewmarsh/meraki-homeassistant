@@ -9,29 +9,46 @@ the one in `network_clients.py`. This might indicate redundancy or an alternativ
 setup path. The improvements will be applied assuming this file is in use.
 """
 import logging
-from typing import Any, Dict, List, Optional # Added Any
+from typing import Any, Dict, List, Optional  # Added Any
 
-from homeassistant.components.sensor import SensorEntity, SensorStateClass # Added SensorStateClass
+# Added SensorStateClass
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity # For type hinting coordinator
+# For type hinting coordinator
+# from homeassistant.helpers.update_coordinator import CoordinatorEntity # Unused F401
+from homeassistant.helpers.entity import DeviceInfo # Added for F821
 
 from ..const import DOMAIN
+from ..meraki_api.exceptions import MerakiApiException # Added for F821
 # Assuming MerakiDataUpdateCoordinator is the correct type for the coordinator
 from ..coordinators import MerakiDataUpdateCoordinator
 
 # Assuming these are async functions from the meraki_api package
 # from ..meraki_api.networks import get_meraki_networks, get_network_clients_count
 # Placeholders for the functions if not available for type checking
-async def get_meraki_networks(api_key: str, org_id: str) -> Optional[List[Dict[str, Any]]]:
-    """Placeholder: Fetches all networks for an organization."""
-    _LOGGER.warning("Using placeholder for get_meraki_networks for org_id %s.", org_id)
-    return [{"id": "N_placeholder_net1", "name": "Placeholder Network 1", "productTypes": ["wireless"]}]
 
-async def get_network_clients_count(api_key: str, network_id: str, timespan: int = 86400) -> Optional[int]:
+
+async def get_meraki_networks(
+        api_key: str, org_id: str) -> Optional[List[Dict[str, Any]]]:
+    """Placeholder: Fetches all networks for an organization."""
+    _LOGGER.warning(
+        "Using placeholder for get_meraki_networks for org_id %s.",
+        org_id)
+    return [{"id": "N_placeholder_net1",
+             "name": "Placeholder Network 1",
+             "productTypes": ["wireless"]}]
+
+
+async def get_network_clients_count(
+        api_key: str,
+        network_id: str,
+        timespan: int = 86400) -> Optional[int]:
     """Placeholder: Fetches network client count."""
-    _LOGGER.warning("Using placeholder for get_network_clients_count for network_id %s.", network_id)
+    _LOGGER.warning(
+        "Using placeholder for get_network_clients_count for network_id %s.",
+        network_id)
     return 0
 
 _LOGGER = logging.getLogger(__name__)
@@ -72,22 +89,26 @@ async def async_setup_entry(
             A list of dictionaries, each containing 'id' and 'name' of a network,
             or None if fetching fails.
         """
-        _LOGGER.debug("Fetching network list for org_id: %s (for sensor setup)", org_id)
+        _LOGGER.debug(
+            "Fetching network list for org_id: %s (for sensor setup)",
+            org_id)
         networks_data: Optional[
             List[Dict[str, Any]]
         ] = await get_meraki_networks(api_key, org_id)
         if networks_data is None:
             _LOGGER.error("Failed to retrieve networks for org_id: %s", org_id)
             return None
-        
-        processed_networks: List[Dict[str,str]] = []
+
+        processed_networks: List[Dict[str, str]] = []
         for network in networks_data:
             network_id = network.get("id")
             network_name = network.get("name")
             if network_id and network_name:
-                processed_networks.append({"id": str(network_id), "name": str(network_name)})
+                processed_networks.append(
+                    {"id": str(network_id), "name": str(network_name)})
             else:
-                _LOGGER.warning("Network found with missing ID or name: %s", network)
+                _LOGGER.warning(
+                    "Network found with missing ID or name: %s", network)
         return processed_networks
 
     networks: Optional[List[Dict[str, str]]] = await _get_network_ids_and_names(
@@ -101,14 +122,16 @@ async def async_setup_entry(
         ]
         if entities:
             async_add_entities(entities)
-            _LOGGER.info("Added %d Meraki network client count sensors.", len(entities))
+            _LOGGER.info(
+                "Added %d Meraki network client count sensors.",
+                len(entities))
         else:
-            _LOGGER.info("No network client count sensors were created (networks list might be empty or filtered).")
+            _LOGGER.info(
+                "No network client count sensors were created (networks list might be empty or filtered).")
     else:
         _LOGGER.warning(
             "Failed to retrieve Meraki networks for org_id %s; no network client count sensors will be created.",
-            coordinator.org_id
-        )
+            coordinator.org_id)
 
 
 class MerakiNetworkClientCountSensor(SensorEntity):
@@ -133,14 +156,13 @@ class MerakiNetworkClientCountSensor(SensorEntity):
         _attr_native_unit_of_measurement: The unit of measurement.
         _attr_state_class: The state class of the sensor.
     """
-    _attr_icon = "mdi:account-multiple" # Changed from mdi:account-network for multiple clients
+    _attr_icon = "mdi:account-multiple"  # Changed from mdi:account-network for multiple clients
     _attr_native_unit_of_measurement = "clients"
     _attr_state_class = SensorStateClass.MEASUREMENT
 
-
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator, # Used for API key access
+        coordinator: MerakiDataUpdateCoordinator,  # Used for API key access
         network_id: str,
         network_name: str,
     ) -> None:
@@ -158,7 +180,8 @@ class MerakiNetworkClientCountSensor(SensorEntity):
         # User-friendly name, including the network name for clarity
         self._attr_name = f"{self._network_name} Client Count (24h)"
         self._attr_unique_id = f"{DOMAIN}_{self._network_id}_clients_24h"
-        self._attr_native_value: Optional[int] = None # Initialize native_value
+        # Initialize native_value
+        self._attr_native_value: Optional[int] = None
 
     async def async_update(self) -> None:
         """Fetch new state data for the sensor.
@@ -172,7 +195,8 @@ class MerakiNetworkClientCountSensor(SensorEntity):
             self._network_id,
         )
         try:
-            # Assuming get_network_clients_count is an async function that returns Optional[int]
+            # Assuming get_network_clients_count is an async function that
+            # returns Optional[int]
             client_count: Optional[int] = await get_network_clients_count(
                 self._coordinator.api_key, self._network_id
             )
@@ -181,23 +205,26 @@ class MerakiNetworkClientCountSensor(SensorEntity):
             else:
                 _LOGGER.warning(
                     "Received no client count for network %s (ID: %s), setting to None.",
-                    self._network_name, self._network_id
-                )
-                self._attr_native_value = None # Explicitly set to None if API returns None
-        except MerakiApiException as e: # Catch specific API errors
+                    self._network_name,
+                    self._network_id)
+                self._attr_native_value = None  # Explicitly set to None if API returns None
+        except MerakiApiException as e:  # Catch specific API errors
             _LOGGER.error(
                 "API error updating client count for network '%s' (ID: %s): %s",
-                self._network_name, self._network_id, e
-            )
-            self._attr_native_value = None # Set to None or an error state on API failure
-        except Exception as e: # Catch any other unexpected errors
+                self._network_name,
+                self._network_id,
+                e)
+            self._attr_native_value = None  # Set to None or an error state on API failure
+        except Exception as e:  # Catch any other unexpected errors
             _LOGGER.exception(
                 "Unexpected error updating client count for network '%s' (ID: %s): %s",
-                self._network_name, self._network_id, e
-            )
-            self._attr_native_value = None # Set to None or an error state
-        
-        # self.async_write_ha_state() # Not needed if using _attr_native_value with SensorEntity
+                self._network_name,
+                self._network_id,
+                e)
+            self._attr_native_value = None  # Set to None or an error state
+
+        # self.async_write_ha_state() # Not needed if using _attr_native_value
+        # with SensorEntity
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -207,10 +234,11 @@ class MerakiNetworkClientCountSensor(SensorEntity):
         represented as a device in Home Assistant.
         """
         return DeviceInfo(
-            identifiers={(DOMAIN, self._network_id)}, # Link to the network "device"
+            # Link to the network "device"
+            identifiers={(DOMAIN, self._network_id)},
             name=str(self._network_name),
             manufacturer="Cisco Meraki",
-            model="Network", # Generic model for network-level entities
+            model="Network",  # Generic model for network-level entities
         )
 
     @property
@@ -222,7 +250,7 @@ class MerakiNetworkClientCountSensor(SensorEntity):
             # Could add last_updated time here if managed manually
         }
         return attrs
-    
+
     # The icon property was present in the original code.
     # It can be kept if dynamic icons are needed, or set as _attr_icon if static.
     # For this sensor, a static icon is likely sufficient.
