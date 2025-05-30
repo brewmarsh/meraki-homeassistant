@@ -60,8 +60,8 @@ class MerakiDeviceStatusSensor(
 
 
     def _update_sensor_state_and_icon(self) -> None:
-        """Update the sensor's state (native_value) and icon based on device data."""
         current_device_data: Optional[Dict[str, Any]] = None
+        # Ensure device_serial is defined here, e.g.,
         device_serial = self._device_info_data.get("serial")
 
         if self.coordinator.data and "devices" in self.coordinator.data:
@@ -72,61 +72,58 @@ class MerakiDeviceStatusSensor(
         
         if not current_device_data:
             _LOGGER.warning(
-                "Device data for serial '%s' not found in coordinator for sensor '%s'. Status will be unknown.",
+                "MERAKI_DEBUG_STATUS: Device data for serial '%s' not found in coordinator for sensor '%s'. Status will be unknown.", # Added prefix
                 device_serial,
                 self.unique_id,
             )
             self._attr_native_value = "unknown"
-            self._attr_icon = "mdi:help-rhombus" # Icon for unknown status
+            self._attr_icon = "mdi:help-rhombus"
             return
 
-        # Update native_value based on actual device status
-            _LOGGER.debug(
-                "MERAKI_DEBUG_STATUS: Device %s raw status from coordinator data: %s (type: %s)",
-                device_serial,
-                current_device_data.get("status"),
-                type(current_device_data.get("status")).__name__,
-            )
+        # This is the critical log line to ensure:
+        _LOGGER.debug(
+            "MERAKI_DEBUG_STATUS: Device %s raw status from coordinator data: %s (type: %s)",
+            device_serial,
+            current_device_data.get("status"),
+            type(current_device_data.get("status")).__name__,
+        )
+
         device_status: Optional[str] = current_device_data.get("status")
         if isinstance(device_status, str):
             self._attr_native_value = device_status.lower()
         else:
             self._attr_native_value = "unknown"
-        
-        # Preserve product_type for extra_state_attributes
-        product_type: Optional[str] = current_device_data.get("productType")
 
-        # Update icon based on model
+        product_type: Optional[str] = current_device_data.get("productType") # Keep for attributes
+
         model: Optional[str] = current_device_data.get("model")
         if isinstance(model, str):
-            model_upper = model.upper() # Use upper for consistent prefix checking
+            model_upper = model.upper()
             if model_upper.startswith("MR"):
-                self._attr_icon = "mdi:access-point-network" # More specific than mdi:access-point
+                self._attr_icon = "mdi:access-point-network"
             elif model_upper.startswith("MX"):
-                self._attr_icon = "mdi:router-network" # More specific than mdi:router
+                self._attr_icon = "mdi:router-network"
             elif model_upper.startswith("MS"):
                 self._attr_icon = "mdi:switch"
             elif model_upper.startswith("MV"):
-                self._attr_icon = "mdi:cctv" # More specific than mdi:video
+                self._attr_icon = "mdi:cctv"
             elif model_upper.startswith("MT"):
-                self._attr_icon = "mdi:thermometer-lines" # More specific than mdi:thermometer
+                self._attr_icon = "mdi:thermometer-lines"
             else:
-                self._attr_icon = "mdi:help-network-outline" # Default icon for unknown model types
+                self._attr_icon = "mdi:help-network-outline"
         else:
             self._attr_icon = "mdi:help-network-outline"
 
-        # Update extra state attributes
         self._attr_extra_state_attributes = {
             "model": current_device_data.get("model"),
             "serial_number": current_device_data.get("serial"),
             "firmware_version": current_device_data.get("firmware"),
-            "product_type": product_type, # Expose original productType
+            "product_type": product_type,
             "mac_address": current_device_data.get("mac"),
             "lan_ip": current_device_data.get("lanIp"),
             "tags": current_device_data.get("tags", []),
             "network_id": current_device_data.get("networkId"),
         }
-        # Filter out None values from extra_state_attributes
         self._attr_extra_state_attributes = {
             k: v for k, v in self._attr_extra_state_attributes.items() if v is not None
         }
