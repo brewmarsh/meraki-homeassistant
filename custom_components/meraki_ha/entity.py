@@ -179,13 +179,19 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
         )
 
         # Default: This entity is directly related to the physical Meraki device
-        return DeviceInfo(
+        device_info_to_return = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
-            name=str(formatted_device_name), # USE THE FORMATTED NAME HERE
+            name=str(formatted_device_name),
             manufacturer="Cisco Meraki",
             model=str(self._device_model or "Unknown"),
             sw_version=str(self._device_firmware or ""),
         )
+        _LOGGER.debug(
+            "Device Info for %s: Returning DeviceInfo object: %s",
+            self._device_serial,
+            str(device_info_to_return), # Log the string representation
+        )
+        return device_info_to_return
 
     # Example of how an entity might access its specific data from the
     # coordinator:
