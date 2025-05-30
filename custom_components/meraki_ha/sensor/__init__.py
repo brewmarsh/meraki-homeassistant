@@ -167,7 +167,7 @@ async def async_setup_entry(
             if isinstance(sensor_entity, MerakiDeviceStatusSensor):
                 _LOGGER.error(
                     "MERAKI_SENSOR_SETUP: About to add MerakiDeviceStatusSensor for S/N %s. Accessing device_info: %s",
-                    sensor_entity._device_serial,
+                    sensor_entity._device_info_data.get("serial", "Unknown S/N"),
                     str(sensor_entity.device_info)
                 )
                 # Log only for the first few to avoid excessive logs if there are many devices
