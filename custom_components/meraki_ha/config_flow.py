@@ -71,10 +71,13 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 # Step 1: Validate the provided Meraki API credentials.
                 # This involves making an actual API call to Meraki to confirm
                 # the key and org ID are valid.
-                await validate_meraki_credentials(
+                validation_result = await validate_meraki_credentials(
                     user_input[CONF_MERAKI_API_KEY],
                     user_input[CONF_MERAKI_ORG_ID],
                 )
+                # if not validation_result.get("valid"): # Or rely on exceptions for failure
+                #    # Handle error or let exception propagate
+                org_name = validation_result.get("org_name", user_input[CONF_MERAKI_ORG_ID]) # Fallback to Org ID if name is missing
 
                 # Step 2: If credentials are valid, prepare the data and
                 # options for the config entry. 'data' usually stores
@@ -115,7 +118,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 # options. The title is what users will see in the
                 # integrations list.
                 return self.async_create_entry(
-                    title=f"Meraki Org: {user_input[CONF_MERAKI_ORG_ID]}",
+                    title=f"{org_name} [{user_input[CONF_MERAKI_ORG_ID]}]",
                     data=data,
                     options=options,
                 )

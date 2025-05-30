@@ -80,13 +80,15 @@ class MerakiDeviceStatusSensor(
             self._attr_icon = "mdi:help-rhombus" # Icon for unknown status
             return
 
-        # Update native_value based on productType
-        product_type: Optional[str] = current_device_data.get("productType")
-        if isinstance(product_type, str):
-            # Capitalize first letter for better display, e.g., "Wireless"
-            self._attr_native_value = product_type.capitalize()
+        # Update native_value based on actual device status
+        device_status: Optional[str] = current_device_data.get("status")
+        if isinstance(device_status, str):
+            self._attr_native_value = device_status.lower()
         else:
-            self._attr_native_value = "Unknown"
+            self._attr_native_value = "unknown"
+        
+        # Preserve product_type for extra_state_attributes
+        product_type: Optional[str] = current_device_data.get("productType")
 
         # Update icon based on model
         model: Optional[str] = current_device_data.get("model")

@@ -1,6 +1,6 @@
 {
   "domain": "meraki_ha",
-  "name": "Home Assistant Integration for Meraki Devices",
+  "name": "Meraki for Home Assistant",
   "after_dependencies": [],
   "codeowners": ["@brewmarsh"],
   "config_flow": true,
