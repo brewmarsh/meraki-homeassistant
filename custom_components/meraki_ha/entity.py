@@ -148,6 +148,7 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
                 )
                 # Fall through to physical device if SSID linking fails, and use formatted_device_name for the AP.
 
+        _LOGGER.error("MERAKI_DEVICE_NAMING_DEBUG: device_info called for physical device %s", self._device_serial)
         # Get the raw device name (name from API or serial)
         # self._device_name is already pre-calculated in __init__ to be name or serial
         device_name_raw = self._device_name or "Unknown Meraki Device"
