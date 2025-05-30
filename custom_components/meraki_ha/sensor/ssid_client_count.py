@@ -14,7 +14,7 @@ from homeassistant.core import callback # For coordinator updates
 # Assuming MerakiEntity is the base class for Meraki entities
 from ..entity import MerakiEntity
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
-from ..coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
