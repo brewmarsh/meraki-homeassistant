@@ -117,6 +117,47 @@ class MerakiApiDataFetcher:
             )
             raise UpdateFailed(f"Could not fetch Meraki devices for org {self.org_id}.")
 
+        # Step 2.1: Fetch Device Statuses
+        device_statuses_map = {}
+        if devices: # Only fetch statuses if we have devices
+            try:
+                _LOGGER.debug("MERAKI_DEBUG_FETCHER: Fetching device statuses for org ID: %s", self.org_id)
+                # Use total_pages='all' if supported and tested with the library version.
+                # If not, manual pagination might be needed for large organizations.
+                # For now, assume total_pages='all' or the default call gets enough for testing.
+                statuses_data = await self.meraki_client.organizations.getOrganizationDeviceStatuses(
+                    organizationId=self.org_id, total_pages='all'
+                )
+                if statuses_data:
+                    _LOGGER.debug("MERAKI_DEBUG_FETCHER: Received %d status entries.", len(statuses_data))
+                    for status_entry in statuses_data:
+                        if status_entry.get("serial"):
+                            device_statuses_map[status_entry["serial"]] = status_entry.get("status")
+                else:
+                    _LOGGER.debug("MERAKI_DEBUG_FETCHER: No status data returned from getOrganizationDeviceStatuses.")
+            except MerakiSDKAPIError as e:
+                _LOGGER.warning(
+                    "MERAKI_DEBUG_FETCHER: SDK API error fetching device statuses for org %s: Status %s, Reason: %s. Device statuses may be incomplete.",
+                    self.org_id, e.status, e.reason,
+                )
+            except Exception as e:
+                _LOGGER.exception(
+                    "MERAKI_DEBUG_FETCHER: Unexpected error fetching device statuses for org %s: %s. Device statuses may be incomplete.",
+                    self.org_id, e,
+                )
+
+        # Step 2.2: Merge Statuses into Devices
+        if devices and device_statuses_map:
+            for device in devices:
+                serial = device.get("serial")
+                if serial and serial in device_statuses_map:
+                    device["status"] = device_statuses_map[serial]
+                    _LOGGER.debug("MERAKI_DEBUG_FETCHER: Merged status '%s' for device %s", device["status"], serial)
+                elif serial:
+                    _LOGGER.debug("MERAKI_DEBUG_FETCHER: No specific status entry found for device %s. It may retain a prior status or have none.", serial)
+        elif devices:
+            _LOGGER.debug("MERAKI_DEBUG_FETCHER: No device statuses were successfully mapped, skipping merge.")
+
         # Step 2a: Fetch additional details for MR devices (client count and radio settings).
         # This involves creating a list of asynchronous tasks for MR devices.
         mr_device_tasks = []
