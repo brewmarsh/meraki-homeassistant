@@ -117,6 +117,10 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # Ensure `self.data` is initialized to an empty dict, as expected by DataUpdateCoordinator.
         self.data: Dict[str, Any] = {}
 
+    @property
+    def device_name_format(self) -> str:
+        """Return the device name format option."""
+        return self.config_entry.options.get("device_name_format", "omitted")
 
     async def _async_update_data(self) -> Dict[str, Any]:
         """Fetch, process, and aggregate data from the Meraki API.

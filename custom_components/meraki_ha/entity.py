@@ -15,6 +15,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 # used
 from .coordinators import MerakiDataUpdateCoordinator
 from .const import DOMAIN
+from .coordinators.meraki_device_types import map_meraki_model_to_device_type
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -145,15 +146,30 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
                     "SSID entity for %s is missing networkId from its parent AP data.",
                     self._ssid_name or self._ssid_number,
                 )
+                # Fall through to physical device if SSID linking fails, and use formatted_device_name for the AP.
+
+        # Get the raw device name (name from API or serial)
+        # self._device_name is already pre-calculated in __init__ to be name or serial
+        device_name_raw = self._device_name or "Unknown Meraki Device" 
+
+        # Get device_name_format from the coordinator
+        device_name_format_option = self.coordinator.device_name_format
+
+        device_type_mapped = map_meraki_model_to_device_type(self._device_model or "")
+
+        formatted_device_name = device_name_raw
+        if device_name_format_option == "prefix" and device_type_mapped != "Unknown":
+            formatted_device_name = f"[{device_type_mapped}] {device_name_raw}"
+        elif device_name_format_option == "suffix" and device_type_mapped != "Unknown":
+            formatted_device_name = f"{device_name_raw} [{device_type_mapped}]"
+        # If "omitted", formatted_device_name remains device_name_raw
 
         # Default: This entity is directly related to the physical Meraki device
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
-            # Ensure name is string
-            name=str(self._device_name or "Unknown Meraki Device"),
+            name=str(formatted_device_name), # USE THE FORMATTED NAME HERE
             manufacturer="Cisco Meraki",
-            model=str(self._device_model or "Unknown"),  # Ensure model is string
-            # Ensure sw_version is string
+            model=str(self._device_model or "Unknown"),
             sw_version=str(self._device_firmware or ""),
         )
 
