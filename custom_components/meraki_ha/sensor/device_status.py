@@ -82,7 +82,7 @@ class MerakiDeviceStatusSensor(
 
         # Update native_value based on actual device status
             _LOGGER.debug(
-                "Device %s raw status from coordinator data: %s (type: %s)",
+                "MERAKI_DEBUG_STATUS: Device %s raw status from coordinator data: %s (type: %s)",
                 device_serial,
                 current_device_data.get("status"),
                 type(current_device_data.get("status")).__name__,
@@ -92,7 +92,7 @@ class MerakiDeviceStatusSensor(
             self._attr_native_value = device_status.lower()
         else:
             self._attr_native_value = "unknown"
-
+        
         # Preserve product_type for extra_state_attributes
         product_type: Optional[str] = current_device_data.get("productType")
 

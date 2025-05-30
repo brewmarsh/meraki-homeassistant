@@ -150,7 +150,7 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
 
         # Get the raw device name (name from API or serial)
         # self._device_name is already pre-calculated in __init__ to be name or serial
-        device_name_raw = self._device_name or "Unknown Meraki Device"
+        device_name_raw = self._device_name or "Unknown Meraki Device" 
 
         # Get device_name_format from the coordinator
         device_name_format_option = self.coordinator.device_name_format
@@ -158,7 +158,7 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
         device_type_mapped = map_meraki_model_to_device_type(self._device_model or "")
 
         _LOGGER.debug(
-            "Device Info for %s: Raw Name='%s', Model='%s', FormatOption='%s', MappedType='%s'",
+            "MERAKI_DEBUG_ENTITY: Device Info for %s: Raw Name='%s', Model='%s', FormatOption='%s', MappedType='%s'",
             self._device_serial,
             device_name_raw,
             self._device_model,
@@ -171,9 +171,9 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
             formatted_device_name = f"[{device_type_mapped}] {device_name_raw}"
         elif device_name_format_option == "suffix" and device_type_mapped != "Unknown":
             formatted_device_name = f"{device_name_raw} [{device_type_mapped}]"
-
+        
         _LOGGER.debug(
-            "Device Info for %s: Final Formatted Name='%s'",
+            "MERAKI_DEBUG_ENTITY: Device Info for %s: Final Formatted Name='%s'",
             self._device_serial,
             formatted_device_name,
         )
@@ -187,9 +187,9 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
             sw_version=str(self._device_firmware or ""),
         )
         _LOGGER.debug(
-            "Device Info for %s: Returning DeviceInfo object: %s",
+            "MERAKI_DEBUG_ENTITY: Device Info for %s: Returning DeviceInfo object: %s",
             self._device_serial,
-            str(device_info_to_return),
+            str(device_info_to_return), 
         )
         return device_info_to_return
 
