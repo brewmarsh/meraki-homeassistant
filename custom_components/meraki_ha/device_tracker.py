@@ -189,4 +189,4 @@ class MerakiDeviceTracker(
     @property
     def icon(self) -> str:
         """Return the icon to use in the frontend, if any."""
-        return "mdi:lan-connect" if self.is_connected else "mdi:lan-disconnect"
+        return "mdi:lan-connect" if self._attr_is_connected else "mdi:lan-disconnect"
