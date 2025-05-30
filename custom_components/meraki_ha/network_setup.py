@@ -15,7 +15,7 @@ from homeassistant.core import HomeAssistant
 # The import `from .coordinators import MerakiCoordinator, async_create_meraki_network_devices`
 # suggests MerakiCoordinator might be an alias or a base type.
 # For this context, we'll assume MerakiDataUpdateCoordinator is the intended concrete type.
-from .coordinator import MerakiDataUpdateCoordinator
+from .coordinators import MerakiDataUpdateCoordinator
 # The function `async_create_meraki_network_devices` seems to be missing from
 # the provided file structure in `.coordinators` or needs to be defined/imported correctly.
 # For now, I will assume it's available and correctly imported for the purpose of docstrings.

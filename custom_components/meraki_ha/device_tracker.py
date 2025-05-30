@@ -21,7 +21,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 # Assuming MerakiDataUpdateCoordinator is the central coordinator for
 # the Meraki integration and it's correctly defined in .coordinator
 from .const import DATA_COORDINATOR, DOMAIN
-from .coordinator import MerakiDataUpdateCoordinator
+from .coordinators import MerakiDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
