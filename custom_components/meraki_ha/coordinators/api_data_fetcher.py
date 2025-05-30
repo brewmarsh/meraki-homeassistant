@@ -125,7 +125,7 @@ class MerakiApiDataFetcher:
                 # Use total_pages='all' if supported and tested with the library version.
                 # If not, manual pagination might be needed for large organizations.
                 # For now, assume total_pages='all' or the default call gets enough for testing.
-                statuses_data = await self.meraki_client.organizations.getOrganizationDeviceStatuses(
+                statuses_data = await self.meraki_client.organizations.getOrganizationDevicesStatuses(
                     organizationId=self.org_id, total_pages='all'
                 )
                 if statuses_data:
