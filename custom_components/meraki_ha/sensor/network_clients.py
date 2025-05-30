@@ -5,7 +5,7 @@ represents a sensor in Home Assistant displaying the number of clients
 connected to a specific Meraki network.
 """
 import logging # Added logging
-from typing import Any, Optional # Added Optional, Any
+from typing import Any, Optional, Dict
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.core import callback # For coordinator updates
