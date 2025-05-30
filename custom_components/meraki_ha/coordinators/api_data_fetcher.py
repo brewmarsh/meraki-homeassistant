@@ -367,20 +367,33 @@ class MerakiApiDataFetcher:
             A list of device dictionaries if successful, None otherwise.
             Handles `MerakiSDKAPIError` and other exceptions internally.
         """
-        _LOGGER.debug("Fetching organization devices for org ID: %s using SDK", org_id)
+        _LOGGER.debug("MERAKI_DEBUG_FETCHER: Fetching organization devices for org ID: %s using SDK", org_id) # Added prefix
         try:
-            return await self.meraki_client.organizations.getOrganizationDevices(
+            devices_data = await self.meraki_client.organizations.getOrganizationDevices(
                 org_id
             )
+            # Added detailed logging of the first few devices or summary
+            if devices_data:
+                _LOGGER.debug(
+                    "MERAKI_DEBUG_FETCHER: Received %d devices from SDK. First device example: %s",
+                    len(devices_data),
+                    str(devices_data[0]) if devices_data else "N/A" # Log first device as example
+                )
+                # To log all devices if needed (can be very verbose):
+                # for i, device in enumerate(devices_data):
+                #     _LOGGER.debug("MERAKI_DEBUG_FETCHER: Device %d data: %s", i, str(device))
+            else:
+                _LOGGER.debug("MERAKI_DEBUG_FETCHER: Received no devices_data from SDK (None or empty list).")
+            return devices_data
         except MerakiSDKAPIError as e:
             _LOGGER.warning(
-                "SDK API error fetching devices for org %s: Status %s, Reason: %s. Returning None.",
+                "MERAKI_DEBUG_FETCHER: SDK API error fetching devices for org %s: Status %s, Reason: %s. Returning None.", # Added prefix
                 org_id, e.status, e.reason,
             )
             return None
         except Exception as e: # pylint: disable=broad-except
             _LOGGER.exception(
-                "Unexpected error fetching devices for org %s: %s. Returning None.",
+                "MERAKI_DEBUG_FETCHER: Unexpected error fetching devices for org %s: %s. Returning None.", # Added prefix
                 org_id, e,
             )
             return None
