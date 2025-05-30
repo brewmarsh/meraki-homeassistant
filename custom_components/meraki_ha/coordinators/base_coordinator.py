@@ -158,6 +158,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         devices: List[Dict[str, Any]] = all_data.get("devices", [])
         ssids: List[Dict[str, Any]] = all_data.get("ssids", [])
         networks: List[Dict[str, Any]] = all_data.get("networks", [])
+        clients_list: List[Dict[str, Any]] = all_data.get("clients", []) # New: Extract clients
 
         # Step 2: Device tags are now part of the `devices` list from `all_data`.
         # No separate tag fetching step is needed here.
@@ -168,6 +169,12 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # Store the fetched devices list internally. This list includes tags and MR-specific details.
         self.device_data = devices
 
+        # Process client data to get network client counts
+        from custom_components.meraki_ha.coordinators.data_processor import MerakiDataProcessor # Ensure import
+        processor = MerakiDataProcessor(self) # Instantiate processor
+        network_client_counts = processor.process_network_client_counts(clients_list)
+
+
         # Step 4: Aggregate all data using the DataAggregationCoordinator.
         # This coordinator takes the raw lists of devices, SSIDs, and networks.
         try:
@@ -177,6 +184,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 devices,  # Pass the comprehensive devices list.
                 ssids,    # Pass the SSIDs list.
                 networks, # Pass the networks list.
+                clients_list, # New argument
+                network_client_counts, # New argument
                 # The fourth `device_tags` argument has been removed from _async_update_data.
             )
         except Exception as e: # Catch errors specifically from the aggregation step.

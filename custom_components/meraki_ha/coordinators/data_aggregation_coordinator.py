@@ -105,6 +105,8 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         device_data: Optional[List[Dict[str, Any]]], # Raw device data from ApiDataFetcher
         ssid_data: Optional[List[Dict[str, Any]]],   # Raw SSID data from ApiDataFetcher
         network_data: Optional[List[Dict[str, Any]]],# Raw network data from ApiDataFetcher
+        client_data: Optional[List[Dict[str, Any]]], # New parameter
+        network_client_counts: Optional[Dict[str, int]], # New parameter
         # The `device_tags` parameter has been removed; tags are in `device_data`.
     ) -> Dict[str, Any]:
         """Process and aggregate raw Meraki data.
@@ -151,13 +153,7 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 processed_devices = (
                     await self.data_processor.process_devices(device_data)
                 )
-                # Further filter for Meraki wireless APs (MR series) as these are relevant for SSID status.
-                # Other device types might be processed differently or used for other sensors.
-                processed_devices = [
-                    device
-                    for device in processed_devices
-                    if device.get("model", "").upper().startswith("MR")
-                ]
+                # MR-only filtering removed
             else:
                 _LOGGER.warning(
                     "Device data is not a list as expected: %s. Proceeding with empty processed_devices.",
@@ -195,11 +191,13 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 processed_devices, # Contains device info, including tags and MR-specific details.
                 processed_ssids,
                 processed_networks,
+                client_data, # New argument
+                network_client_counts, # New argument
                 # The fourth `device_tags` argument was removed from DataAggregator.
             )
 
             _LOGGER.debug(
-                "Data aggregation successful. Aggregated %d MR devices, %d SSIDs, %d networks.",
+                "Data aggregation successful. Processed %d devices (passed to aggregator), %d SSIDs, %d networks.",
                 len(processed_devices), len(processed_ssids), len(processed_networks),
             )
             return aggregated_data

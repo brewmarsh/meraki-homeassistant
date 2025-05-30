@@ -104,10 +104,17 @@ class MerakiRadioSettingsSensor(
         device_serial = self._device_info_data.get("serial")
         radio_settings: Optional[Dict[str, Any]] = None
 
-        if self.coordinator.data and "devices_radio_settings" in self.coordinator.data:
-            device_radio_data = self.coordinator.data["devices_radio_settings"]
-            if isinstance(device_radio_data, dict):
-                radio_settings = device_radio_data.get(device_serial)
+        current_device_dict: Optional[Dict[str, Any]] = None
+        if self.coordinator.data and "devices" in self.coordinator.data:
+            for dev in self.coordinator.data["devices"]:
+                if dev.get("serial") == device_serial:
+                    current_device_dict = dev
+                    break
+        
+        if current_device_dict:
+            radio_settings = current_device_dict.get("radio_settings")
+        else:
+            radio_settings = None # Device not found
         
         if radio_settings and isinstance(radio_settings, dict):
             # Determine primary state (e.g., channel, or a summary string)
