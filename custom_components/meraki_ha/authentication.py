@@ -34,14 +34,14 @@ class MerakiAuthentication:
         self.org_id: str = org_id
         # No MerakiAPIClient instance created here, will be done in validate_credentials
 
-    async def validate_credentials(self) -> bool:
+    async def validate_credentials(self) -> Dict[str, Any]:
         """Validate Meraki API credentials using the Meraki SDK.
 
         Makes a request to the Meraki API to fetch organizations and checks
         if the provided organization ID is present in the response.
 
         Returns:
-            True if credentials are valid and the organization ID is found.
+            A dictionary with "valid": True and "org_name": "Organization Name" if credentials are valid.
 
         Raises:
             ConfigEntryAuthFailed: If authentication fails (e.g., invalid API key - HTTP 401).
@@ -67,11 +67,13 @@ class MerakiAuthentication:
             # Assuming client.organizations.getOrganizations exists and returns a list of dicts, each with an 'id' key.
             all_organizations: List[Dict[str, Any]] = await client.organizations.getOrganizations()
 
+            fetched_org_name: Optional[str] = None # Initialize fetched_org_name
             org_found = False
             if all_organizations: # Ensure all_organizations is not None or empty
                 for org in all_organizations:
                     if org.get('id') == self.org_id:
                         org_found = True
+                        fetched_org_name = org.get('name') # Store the organization name
                         break
             
             if not org_found:
@@ -85,8 +87,8 @@ class MerakiAuthentication:
             # The original log message for success was:
             # _LOGGER.info("Meraki credentials and organization ID %s validated successfully (networks found).", self.org_id)
             # Change it to reflect the new validation method:
-            _LOGGER.info("Meraki API key validated and Organization ID %s found in accessible organizations.", self.org_id)
-            return True
+            _LOGGER.info("Meraki API key validated and Organization ID %s found in accessible organizations. Name: %s", self.org_id, fetched_org_name)
+            return {"valid": True, "org_name": fetched_org_name}
 
         except MerakiSDKAPIError as e:
             if e.status == 401:
@@ -116,7 +118,7 @@ class MerakiAuthentication:
 
 async def validate_meraki_credentials(
     api_key: str, org_id: str
-) -> bool:
+) -> Dict[str, Any]:
     """Validate Meraki API credentials via MerakiAuthentication class (SDK version).
 
     Args:
@@ -124,7 +126,7 @@ async def validate_meraki_credentials(
         org_id: The Meraki Organization ID.
 
     Returns:
-        True if credentials are valid.
+        A dictionary with "valid": True and "org_name": "Organization Name" if credentials are valid.
 
     Raises:
         ConfigEntryAuthFailed: If authentication fails.

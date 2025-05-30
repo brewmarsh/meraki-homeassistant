@@ -107,7 +107,11 @@ class SsidStatusCalculator:
                 # Consider only Meraki Wireless Access Points (MR series) for SSID status.
                 if device_model.upper().startswith("MR"):
                     device_serial: Optional[str] = device_info.get("serial")
-                    device_status: str = device_info.get("status", "unknown").lower()
+                    device_status_raw = device_info.get("status")
+                    device_status: str = "unknown" # Default status
+                    if isinstance(device_status_raw, str):
+                        device_status = device_status_raw.lower()
+                    # If device_status_raw was None (or not a string), device_status remains "unknown"
                     # Device tags are now expected to be directly within the device_info dictionary.
                     current_device_tags: List[str] = device_info.get("tags", [])
 

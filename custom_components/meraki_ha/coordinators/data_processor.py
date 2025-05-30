@@ -70,6 +70,7 @@ class MerakiDataProcessor:
                 "mac": device_data.get("mac"),
                 "model": device_data.get("model"),
                 "networkId": device_data.get("networkId"),
+                "status": device_data.get("status"), # <--- ADD THIS LINE
                 "tags": device_data.get("tags", []), # Default to empty list if tags are missing.
                 # `connected_clients_count` and `radio_settings` are expected from ApiDataFetcher for MR devices.
                 # For other device types, these might be None or absent.

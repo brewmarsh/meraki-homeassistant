@@ -110,7 +110,7 @@ class MerakiRadioSettingsSensor(
                 if dev.get("serial") == device_serial:
                     current_device_dict = dev
                     break
-        
+
         if current_device_dict:
             radio_settings = current_device_dict.get("radio_settings")
         else:

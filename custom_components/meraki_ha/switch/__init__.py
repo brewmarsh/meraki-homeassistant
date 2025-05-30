@@ -103,6 +103,6 @@ async def async_setup_entry(
 
     if created_switches:
         async_add_entities(created_switches)
-        _LOGGER.info("Added %d Meraki SSID switch entities.", len(created_switches))
+        _LOGGER.debug("Added %d Meraki SSID switch entities.", len(created_switches))
     else:
-        _LOGGER.info("No Meraki SSID switch entities were created.")
+        _LOGGER.debug("No Meraki SSID switch entities were created.")

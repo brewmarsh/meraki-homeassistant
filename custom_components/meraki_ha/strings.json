@@ -22,6 +22,9 @@
         "title": "Meraki Options",
         "data": {
           "scan_interval": "Scan Interval (seconds)"
+        },
+        "data_description": {
+          "scan_interval": "How often (in seconds) the integration should poll the Meraki Dashboard API for updates. A shorter interval means more responsive sensors but more API calls."
         }
       }
     }
