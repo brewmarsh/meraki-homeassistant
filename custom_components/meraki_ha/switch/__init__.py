@@ -14,7 +14,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 # Import constants and the central data coordinator
 from ..const import ATTR_SSIDS, DATA_COORDINATOR, DOMAIN
-from ..coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiDataUpdateCoordinator
 # Import the specific switch entity and any utility functions
 from .ssid_switch import MerakiSSIDSwitch, match_device_to_ssid
 
