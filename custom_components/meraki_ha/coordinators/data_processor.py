@@ -147,9 +147,22 @@ class MerakiDataProcessor:
                 "number": ssid.get("number"),  # SSID number (0-14 for MR devices).
                 "splashPage": ssid.get("splashPage"),
                 "authMode": ssid.get("authMode"),
+                "networkId": ssid.get("networkId"), # Added networkId
                 # Other relevant SSID attributes can be added here if needed in the future.
                 # e.g., "ipAssignmentMode": ssid.get("ipAssignmentMode"),
             }
             processed_ssids_list.append(processed_ssid)
         _LOGGER.debug("Processed %d SSIDs.", len(processed_ssids_list))
         return processed_ssids_list
+
+    @staticmethod
+    def process_network_client_counts(clients: Optional[List[Dict[str, Any]]]) -> Dict[str, int]:
+        counts: Dict[str, int] = {}
+        if not clients:
+            return counts
+        for client in clients:
+            network_id = client.get("networkId")
+            if network_id:
+                counts[network_id] = counts.get(network_id, 0) + 1
+        _LOGGER.debug("Processed network client counts: %s", counts)
+        return counts

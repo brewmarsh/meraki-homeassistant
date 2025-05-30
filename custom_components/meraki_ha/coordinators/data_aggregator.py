@@ -52,6 +52,8 @@ class DataAggregator:
         processed_devices: List[Dict[str, Any]], # Devices list, tags are within each device dict.
         ssid_data: List[Dict[str, Any]],         # List of processed SSIDs.
         network_data: List[Dict[str, Any]],      # List of processed networks.
+        client_data: Optional[List[Dict[str, Any]]], # New parameter
+        network_client_counts: Optional[Dict[str, int]], # New parameter
         # The `device_tags` parameter has been removed.
     ) -> Dict[str, Any]:
         """Aggregate various processed Meraki data streams.
@@ -99,11 +101,27 @@ class DataAggregator:
             # Construct the final combined data structure.
             # This dictionary holds all the data to be used by the integration.
             combined_data: Dict[str, Any] = {
-                "devices": processed_devices,
-                "ssids": processed_ssids_with_status, # SSIDs now include their calculated status.
+                "devices": [], # To be populated by new logic below
+                "ssids": processed_ssids_with_status,
                 "networks": network_data,
-                # The separate "device_tags" key is no longer needed as tags are part of "devices".
+                "clients": client_data if client_data is not None else [], # Add original client list
+                "network_client_counts": network_client_counts if network_client_counts is not None else {}, # Add network client counts
             }
+
+            # Implement SSID-Device Linking
+            devices_with_embedded_ssids = []
+            for device_dict in processed_devices: # processed_devices is the full list here
+                device_clone = device_dict.copy()
+                if device_clone.get("model", "").upper().startswith("MR"):
+                    dev_network_id = device_clone.get("networkId")
+                    if dev_network_id:
+                        matching_ssids = [
+                            ssid for ssid in processed_ssids_with_status
+                            if ssid.get("networkId") == dev_network_id # Make sure ssid_data contains networkId
+                        ]
+                        device_clone["ssids"] = matching_ssids # ATTR_SSIDS is "ssids"
+                devices_with_embedded_ssids.append(device_clone)
+            combined_data["devices"] = devices_with_embedded_ssids
 
             _LOGGER.debug(
                 "Data aggregation and SSID status calculation complete. "
