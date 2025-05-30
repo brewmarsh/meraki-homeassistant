@@ -174,15 +174,7 @@ class MerakiDeviceTracker(
 
         return {
             "identifiers": {(DOMAIN, parent_identifier_value)},
-            # The name of this client device entity itself is handled by _attr_name
-            # This device_info is for the parent/associated device in HA.
-            # For clarity, we can use a generic name for the client "device" type
-            # or specific if available (e.g. from 'ap_name')
-            "name": f"Meraki Client on {parent_identifier_value}", # This name is for the device entry this entity is linked to
-            "manufacturer": self._client_info_data.get("manufacturer", "Unknown Manufacturer"), # TODO: derive from MAC if possible
-            "model": "Client Device",
-            # No firmware version for a client device in this context
-            # "sw_version": "", 
+            # No 'name', 'manufacturer', or 'model' for the parent device here
         }
 
     # Icon can be dynamic based on connection state
