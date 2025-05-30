@@ -13,7 +13,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
-from ..coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiDataUpdateCoordinator
 from ..const import DOMAIN # For device_info identifiers
 
 # Assuming get_network_clients_count is an async function from the meraki_api package

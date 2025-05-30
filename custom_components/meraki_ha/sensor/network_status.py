@@ -19,7 +19,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity # For typ
 
 from ..const import DOMAIN
 # Assuming MerakiDataUpdateCoordinator is the correct type for the coordinator
-from ..coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiDataUpdateCoordinator
 
 # Assuming these are async functions from the meraki_api package
 # from ..meraki_api.networks import get_meraki_networks, get_network_clients_count
