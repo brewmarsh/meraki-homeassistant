@@ -81,6 +81,12 @@ class MerakiDeviceStatusSensor(
             return
 
         # Update native_value based on actual device status
+            _LOGGER.debug(
+                "Device %s raw status from coordinator data: %s (type: %s)",
+                device_serial,
+                current_device_data.get("status"),
+                type(current_device_data.get("status")).__name__,
+            )
         device_status: Optional[str] = current_device_data.get("status")
         if isinstance(device_status, str):
             self._attr_native_value = device_status.lower()
