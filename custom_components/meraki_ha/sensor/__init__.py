@@ -162,6 +162,6 @@ async def async_setup_entry(
 
     if created_sensors:
         async_add_entities(created_sensors)
-        _LOGGER.info("Added %d Meraki sensor entities for entry_id: %s.", len(created_sensors), config_entry.entry_id)
+        _LOGGER.debug("Added %d Meraki sensor entities for entry_id: %s.", len(created_sensors), config_entry.entry_id)
     else:
         _LOGGER.info("No Meraki sensor entities were created for entry_id: %s.", config_entry.entry_id)

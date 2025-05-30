@@ -307,7 +307,7 @@ class MerakiApiDataFetcher:
         """
         _LOGGER.debug("Fetching networks for org ID: %s using SDK", org_id)
         try:
-            _LOGGER.info(
+            _LOGGER.debug(
                 "Executing async_get_networks with organizations.getOrganizationNetworks(organizationId=%s).",
                 org_id,
             )
@@ -336,7 +336,7 @@ class MerakiApiDataFetcher:
                 )
                 return None
             
-            _LOGGER.info(
+            _LOGGER.debug(
                 "Successfully fetched %d networks for org ID %s using organizations.getOrganizationNetworks.",
                 len(org_networks),
                 org_id,

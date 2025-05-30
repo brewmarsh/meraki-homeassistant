@@ -71,7 +71,7 @@ async def async_setup_entry(
 
     if entities:
         async_add_entities(entities)
-        _LOGGER.info("Added %d Meraki client trackers.", len(entities))
+        _LOGGER.debug("Added %d Meraki client trackers.", len(entities))
 
 
 class MerakiDeviceTracker(
