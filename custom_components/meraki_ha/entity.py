@@ -84,6 +84,7 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
             self._ssid_name = self._ssid_info_data.get("name")
             self._ssid_number = self._ssid_info_data.get("number")
         
+        _LOGGER.error("MERAKI_ENTITY_INIT: Initializing for device S/N: %s, Name: %s", self._device_serial, self._device_name)
         # The _device_index and _ssid_index attributes from the original code
         # are problematic:
         # 1. They assume `coordinator.data` has a specific structure

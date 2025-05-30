@@ -161,6 +161,21 @@ async def async_setup_entry(
         )
 
     if created_sensors:
+        for i, sensor_entity in enumerate(created_sensors):
+            # Ensure MerakiDeviceStatusSensor is imported for isinstance check
+            # from custom_components.meraki_ha.sensor.device_status import MerakiDeviceStatusSensor
+            if isinstance(sensor_entity, MerakiDeviceStatusSensor):
+                _LOGGER.error(
+                    "MERAKI_SENSOR_SETUP: About to add MerakiDeviceStatusSensor for S/N %s. Accessing device_info: %s",
+                    sensor_entity._device_serial,
+                    str(sensor_entity.device_info)
+                )
+                # Log only for the first few to avoid excessive logs if there are many devices
+                if i < 3: # This condition is just to limit log spam in case of many devices
+                    pass  # The main logging is above
+                else:
+                    break # Stop logging after the first few MerakiDeviceStatusSensor instances
+
         async_add_entities(created_sensors)
         _LOGGER.debug("Added %d Meraki sensor entities for entry_id: %s.", len(created_sensors), config_entry.entry_id)
     else:
