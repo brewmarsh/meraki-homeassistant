@@ -157,12 +157,26 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
 
         device_type_mapped = map_meraki_model_to_device_type(self._device_model or "")
 
+        _LOGGER.debug(
+            "Device Info for %s: Raw Name='%s', Model='%s', FormatOption='%s', MappedType='%s'",
+            self._device_serial,
+            device_name_raw,
+            self._device_model,
+            device_name_format_option,
+            device_type_mapped,
+        )
+
         formatted_device_name = device_name_raw
         if device_name_format_option == "prefix" and device_type_mapped != "Unknown":
             formatted_device_name = f"[{device_type_mapped}] {device_name_raw}"
         elif device_name_format_option == "suffix" and device_type_mapped != "Unknown":
             formatted_device_name = f"{device_name_raw} [{device_type_mapped}]"
-        # If "omitted", formatted_device_name remains device_name_raw
+        
+        _LOGGER.debug(
+            "Device Info for %s: Final Formatted Name='%s'",
+            self._device_serial,
+            formatted_device_name,
+        )
 
         # Default: This entity is directly related to the physical Meraki device
         return DeviceInfo(
