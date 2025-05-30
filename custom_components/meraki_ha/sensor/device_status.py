@@ -92,7 +92,7 @@ class MerakiDeviceStatusSensor(
             self._attr_native_value = device_status.lower()
         else:
             self._attr_native_value = "unknown"
-        
+
         # Preserve product_type for extra_state_attributes
         product_type: Optional[str] = current_device_data.get("productType")
 
