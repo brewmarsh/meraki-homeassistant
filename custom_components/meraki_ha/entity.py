@@ -5,6 +5,7 @@ entities in Home Assistant. It provides common properties and methods,
 such as device information linking and coordinator management,
 building upon Home Assistant's `CoordinatorEntity`.
 """
+
 import logging
 from typing import Any, Dict, Optional  # Added Optional, Any (List removed)
 
@@ -72,9 +73,7 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
             self._device_name = self._device_serial
 
         self._device_model: Optional[str] = self._device_info_data.get("model")
-        self._device_firmware: Optional[str] = (
-            self._device_info_data.get("firmware")
-        )
+        self._device_firmware: Optional[str] = self._device_info_data.get("firmware")
 
         # Common attributes derived from ssid_data (if provided)
         self._ssid_name: Optional[str] = None
@@ -83,8 +82,12 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
         if self._ssid_info_data:
             self._ssid_name = self._ssid_info_data.get("name")
             self._ssid_number = self._ssid_info_data.get("number")
-        
-        _LOGGER.error("MERAKI_ENTITY_INIT: Initializing for device S/N: %s, Name: %s", self._device_serial, self._device_name)
+
+        _LOGGER.error(
+            "MERAKI_ENTITY_INIT: Initializing for device S/N: %s, Name: %s",
+            self._device_serial,
+            self._device_name,
+        )
         # The _device_index and _ssid_index attributes from the original code
         # are problematic:
         # 1. They assume `coordinator.data` has a specific structure
@@ -127,7 +130,7 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
         # physical device (AP).
         # The SSID "device" identifier might be "{network_id}_{ssid_number}".
         # The physical device (AP) identifier is (DOMAIN, self._device_serial).
-        
+
         # If this entity represents an SSID itself or a property of an SSID:
         if self._ssid_info_data and self._ssid_number is not None:
             network_id = self._device_info_data.get("networkId")  # AP's networkId
@@ -147,11 +150,16 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
                     "SSID entity for %s is missing networkId from its parent AP data.",
                     self._ssid_name or self._ssid_number,
                 )
-                # Fall through to physical device if SSID linking fails, and use formatted_device_name for the AP.
+                # Fall through to physical device if SSID linking fails, and
+                # use formatted_device_name for the AP.
 
-        _LOGGER.error("MERAKI_DEVICE_NAMING_DEBUG: device_info called for physical device %s", self._device_serial)
+        _LOGGER.error(
+            "MERAKI_DEVICE_NAMING_DEBUG: device_info called for physical device %s",
+            self._device_serial,
+        )
         # Get the raw device name (name from API or serial)
-        # self._device_name is already pre-calculated in __init__ to be name or serial
+        # self._device_name is already pre-calculated in __init__ to be name or
+        # serial
         device_name_raw = self._device_name or "Unknown Meraki Device"
 
         # Get device_name_format from the coordinator
@@ -180,7 +188,8 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
             formatted_device_name,
         )
 
-        # Default: This entity is directly related to the physical Meraki device
+        # Default: This entity is directly related to the physical Meraki
+        # device
         device_info_to_return = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=str(formatted_device_name),

@@ -4,6 +4,7 @@ This module defines the `MerakiConnectedClientsSensor` class, which
 represents a sensor in Home Assistant that displays the number of clients
 currently connected to a specific Meraki device (typically an access point).
 """
+
 import logging
 from typing import Any, Dict, Optional
 
@@ -37,14 +38,16 @@ class MerakiConnectedClientsSensor(
         _device_info_data: Raw dictionary data for the associated Meraki device.
     """
 
-    _attr_icon = "mdi:account-network" # Standard icon for network clients
+    _attr_icon = "mdi:account-network"  # Standard icon for network clients
     _attr_native_unit_of_measurement = "clients"
-    _attr_state_class = SensorStateClass.MEASUREMENT # Indicates a numeric value that's not a total
+    # Indicates a numeric value that's not a total
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: Dict[str, Any], # Data for the Meraki device this sensor is for
+        # Data for the Meraki device this sensor is for
+        device_data: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki Connected Clients sensor.
 
@@ -55,12 +58,16 @@ class MerakiConnectedClientsSensor(
         """
         super().__init__(coordinator)
         self._device_info_data: Dict[str, Any] = device_data
-        device_name = self._device_info_data.get("name", self._device_info_data.get("serial", "Unknown Device"))
-        device_serial = self._device_info_data.get("serial", "") # Should always have serial
+        device_name = self._device_info_data.get(
+            "name", self._device_info_data.get("serial", "Unknown Device")
+        )
+        device_serial = self._device_info_data.get(
+            "serial", ""
+        )  # Should always have serial
 
         self._attr_name = f"{device_name} Connected Clients"
         self._attr_unique_id = f"{device_serial}_connected_clients"
-        
+
         # Set initial state
         self._update_sensor_state()
 
@@ -77,9 +84,10 @@ class MerakiConnectedClientsSensor(
         """
         if self.coordinator.data is None or "devices" not in self.coordinator.data:
             _LOGGER.warning(
-                "Coordinator data or devices list is unavailable for %s.", self.unique_id
+                "Coordinator data or devices list is unavailable for %s.",
+                self.unique_id,
             )
-            return None # Or 0 if preferred for unavailable data source
+            return None  # Or 0 if preferred for unavailable data source
 
         device_serial = self._device_info_data.get("serial")
         found_device_data: Optional[Dict[str, Any]] = None
@@ -87,13 +95,14 @@ class MerakiConnectedClientsSensor(
             if dev_data.get("serial") == device_serial:
                 found_device_data = dev_data
                 break
-        
+
         if found_device_data:
             # The key for connected clients count might be 'connected_clients' or 'connected_clients_count'
             # Based on device_setup.py, it was 'connected_clients_count' after processing.
-            # Original code here used 'connected_clients'. Let's try to be robust.
+            # Original code here used 'connected_clients'. Let's try to be
+            # robust.
             client_count = found_device_data.get("connected_clients_count")
-            if client_count is None: # Fallback if the primary key isn't found
+            if client_count is None:  # Fallback if the primary key isn't found
                 client_count = found_device_data.get("connected_clients")
 
             if isinstance(client_count, int):
@@ -111,19 +120,19 @@ class MerakiConnectedClientsSensor(
                     device_serial,
                     client_count,
                 )
-                return 0 # Default if data is malformed
+                return 0  # Default if data is malformed
         else:
             _LOGGER.warning(
                 "Device data not found in coordinator for serial '%s' (sensor: %s). Defaulting client count to 0.",
                 device_serial,
                 self.unique_id,
             )
-            return 0 # Default if device not found in update
+            return 0  # Default if device not found in update
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator.
-        
+
         This method is called by the CoordinatorEntity base class when new data
         is available from the coordinator. It updates the sensor's state.
         """
@@ -150,7 +159,9 @@ class MerakiConnectedClientsSensor(
         """
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_info_data["serial"])},
-            name=str(self._device_info_data.get("name", self._device_info_data["serial"])),
+            name=str(
+                self._device_info_data.get("name", self._device_info_data["serial"])
+            ),
             manufacturer="Cisco Meraki",
             model=str(self._device_info_data.get("model", "Unknown")),
             sw_version=str(self._device_info_data.get("firmware", "")),
@@ -171,7 +182,8 @@ class MerakiConnectedClientsSensor(
             "model": self._device_info_data.get("model"),
             "serial_number": self._device_info_data.get("serial"),
             "firmware_version": self._device_info_data.get("firmware"),
-            "lan_ip": self._device_info_data.get("lanIp"), # Example of another useful attribute
+            # Example of another useful attribute
+            "lan_ip": self._device_info_data.get("lanIp"),
             "mac_address": self._device_info_data.get("mac"),
         }
         # Filter out None values to keep attributes clean

@@ -5,12 +5,15 @@ DataUpdateCoordinator subclass responsible for fetching device
 information from the Meraki API, processing it, and registering or
 updating corresponding devices in the Home Assistant device registry.
 """
+
 import logging
 from datetime import timedelta  # For type hinting scan_interval
 from typing import Any, Dict, List, Optional  # Added List, Optional
 
 import aiohttp  # For API communication
-from homeassistant.config_entries import ConfigEntry  # For self.config_entry type hint
+
+# For self.config_entry type hint
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant  # For type hinting hass
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import (
@@ -20,6 +23,7 @@ from homeassistant.helpers.update_coordinator import (
 
 # For device identifiers and logger naming
 from .const import DOMAIN
+
 # Assuming meraki_device_types.py exists in the same directory or a
 # place that can be imported
 from .coordinators.meraki_device_types import map_meraki_model_to_device_type
@@ -31,9 +35,7 @@ MERAKI_API_BASE_URL = "https://api.meraki.com/api/v1"
 
 
 # Generic type for self.data
-class MerakiDeviceCoordinator(
-    DataUpdateCoordinator[Dict[str, List[Dict[str, Any]]]]
-):
+class MerakiDeviceCoordinator(DataUpdateCoordinator[Dict[str, List[Dict[str, Any]]]]):
     """Coordinator to fetch, process, and register Meraki device data.
 
     This coordinator retrieves all devices across all networks within a
@@ -109,15 +111,9 @@ class MerakiDeviceCoordinator(
         }
 
         try:
-            _LOGGER.debug(
-                "Fetching all networks for organization: %s", self.org_id
-            )
-            networks_url = (
-                f"{MERAKI_API_BASE_URL}/organizations/{self.org_id}/networks"
-            )
-            async with self.session.get(
-                networks_url, headers=headers
-            ) as resp:
+            _LOGGER.debug("Fetching all networks for organization: %s", self.org_id)
+            networks_url = f"{MERAKI_API_BASE_URL}/organizations/{self.org_id}/networks"
+            async with self.session.get(networks_url, headers=headers) as resp:
                 _LOGGER.debug(
                     "API response status for networks org %s: %s",
                     self.org_id,
@@ -153,9 +149,7 @@ class MerakiDeviceCoordinator(
                     )
                     continue
 
-                devices_url = (
-                    f"{MERAKI_API_BASE_URL}/networks/{network_id}/devices"
-                )
+                devices_url = f"{MERAKI_API_BASE_URL}/networks/{network_id}/devices"
                 _LOGGER.debug(
                     "Fetching devices for network %s (org %s)",
                     network_id,
@@ -170,9 +164,7 @@ class MerakiDeviceCoordinator(
                         device_resp.status,
                     )
                     if device_resp.status == 200:
-                        network_devices: List[
-                            Dict[str, Any]
-                        ] = await device_resp.json()
+                        network_devices: List[Dict[str, Any]] = await device_resp.json()
                         all_devices_raw.extend(network_devices)
                     else:
                         error_text = await device_resp.text()
@@ -232,14 +224,14 @@ class MerakiDeviceCoordinator(
                                 clients_url, headers=headers, params=params
                             ) as clients_resp:
                                 if clients_resp.status == 200:
-                                    clients: List[
-                                        Dict[str, Any]
-                                    ] = await clients_resp.json()
+                                    clients: List[Dict[str, Any]] = (
+                                        await clients_resp.json()
+                                    )
                                     # The API with `serials[]` filter should
                                     # return only clients connected to this AP.
-                                    device_processed[
-                                        "connected_clients_count"
-                                    ] = len(clients)
+                                    device_processed["connected_clients_count"] = len(
+                                        clients
+                                    )
                                 else:
                                     error_text = await clients_resp.text()
                                     _LOGGER.warning(
@@ -287,27 +279,23 @@ class MerakiDeviceCoordinator(
                 # Register or update device in Home Assistant Device Registry
                 # Fallback to serial
                 device_name_raw: str = device_processed.get("name") or serial
-                device_model_str: str = device_processed.get(
-                    "model", "Unknown"
-                )
+                device_model_str: str = device_processed.get("model", "Unknown")
                 device_type_mapped: str = map_meraki_model_to_device_type(
                     device_model_str
                 )
-                firmware_version: Optional[
-                    str
-                ] = device_processed.get("firmware")
+                firmware_version: Optional[str] = device_processed.get("firmware")
 
                 formatted_device_name: str = device_name_raw
-                if self.device_name_format == "prefix" and \
-                   device_type_mapped != "Unknown":
-                    formatted_device_name = (
-                        f"[{device_type_mapped}] {device_name_raw}"
-                    )
-                elif self.device_name_format == "suffix" and \
-                     device_type_mapped != "Unknown":
-                    formatted_device_name = (
-                        f"{device_name_raw} [{device_type_mapped}]"
-                    )
+                if (
+                    self.device_name_format == "prefix"
+                    and device_type_mapped != "Unknown"
+                ):
+                    formatted_device_name = f"[{device_type_mapped}] {device_name_raw}"
+                elif (
+                    self.device_name_format == "suffix"
+                    and device_type_mapped != "Unknown"
+                ):
+                    formatted_device_name = f"{device_name_raw} [{device_type_mapped}]"
 
                 device_registry.async_get_or_create(
                     config_entry_id=self.config_entry.entry_id,

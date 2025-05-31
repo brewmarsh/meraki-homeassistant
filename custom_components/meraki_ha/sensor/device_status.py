@@ -4,17 +4,20 @@ This module defines the `MerakiDeviceStatusSensor` class, which
 is a Home Assistant sensor entity that displays the status (product type)
 of a specific Meraki device.
 """
+
 import logging
-from typing import Any, Dict, Optional # Added Optional
+from typing import Any, Dict, Optional  # Added Optional
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.core import callback # Added callback for coordinator updates
+
+# Added callback for coordinator updates
+from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 from ..coordinators import MerakiDataUpdateCoordinator
-from ..const import DOMAIN # For device_info identifiers
+from ..const import DOMAIN  # For device_info identifiers
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,7 +40,8 @@ class MerakiDeviceStatusSensor(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: Dict[str, Any], # Data for the Meraki device this sensor is for
+        # Data for the Meraki device this sensor is for
+        device_data: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki Device Status sensor.
 
@@ -48,16 +52,18 @@ class MerakiDeviceStatusSensor(
         """
         super().__init__(coordinator)
         self._device_info_data: Dict[str, Any] = device_data
-        device_name = self._device_info_data.get("name", self._device_info_data.get("serial", "Unknown Device"))
+        device_name = self._device_info_data.get(
+            "name", self._device_info_data.get("serial", "Unknown Device")
+        )
         device_serial = self._device_info_data.get("serial", "")
 
         self._attr_name = f"{device_name} Status"
-        self._attr_unique_id = f"{device_serial}_device_status" # Ensure consistency, e.g. all lowercase with _
-        
+        # Ensure consistency, e.g. all lowercase with _
+        self._attr_unique_id = f"{device_serial}_device_status"
+
         # Set initial state and icon
         self._update_sensor_state_and_icon()
         _LOGGER.debug("Meraki Device Status Sensor Initialized: %s", self._attr_name)
-
 
     def _update_sensor_state_and_icon(self) -> None:
         current_device_data: Optional[Dict[str, Any]] = None
@@ -69,10 +75,10 @@ class MerakiDeviceStatusSensor(
                 if dev_data.get("serial") == device_serial:
                     current_device_data = dev_data
                     break
-        
+
         if not current_device_data:
             _LOGGER.warning(
-                "MERAKI_DEBUG_STATUS: Device data for serial '%s' not found in coordinator for sensor '%s'. Status will be unknown.", # Added prefix
+                "MERAKI_DEBUG_STATUS: Device data for serial '%s' not found in coordinator for sensor '%s'. Status will be unknown.",  # Added prefix
                 device_serial,
                 self.unique_id,
             )
@@ -94,7 +100,9 @@ class MerakiDeviceStatusSensor(
         else:
             self._attr_native_value = "unknown"
 
-        product_type: Optional[str] = current_device_data.get("productType") # Keep for attributes
+        product_type: Optional[str] = current_device_data.get(
+            "productType"
+        )  # Keep for attributes
 
         model: Optional[str] = current_device_data.get("model")
         if isinstance(model, str):
@@ -128,7 +136,6 @@ class MerakiDeviceStatusSensor(
             k: v for k, v in self._attr_extra_state_attributes.items() if v is not None
         }
 
-
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator.
@@ -150,7 +157,9 @@ class MerakiDeviceStatusSensor(
         """
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_info_data["serial"])},
-            name=str(self._device_info_data.get("name", self._device_info_data["serial"])),
+            name=str(
+                self._device_info_data.get("name", self._device_info_data["serial"])
+            ),
             manufacturer="Cisco Meraki",
             model=str(self._device_info_data.get("model", "Unknown")),
             sw_version=str(self._device_info_data.get("firmware", "")),

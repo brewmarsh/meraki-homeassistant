@@ -4,8 +4,10 @@ This module defines the `DeviceTagUpdateCoordinator`, which is responsible for
 orchestrating updates to device tags via the Meraki API. It uses the
 `MerakiApiDataFetcher` for the actual API communication.
 """
+
 import logging
 from datetime import timedelta  # Used for scan_interval and self.update_interval
+
 # Added Any for self.data generic
 from typing import (
     TYPE_CHECKING,
@@ -67,7 +69,8 @@ class DeviceTagUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         super().__init__(
             hass,
             _LOGGER,
-            name=f"{DOMAIN} Device Tag Update ({org_id})",  # More specific name
+            # More specific name
+            name=f"{DOMAIN} Device Tag Update ({org_id})",
             # For the placeholder _async_update_data
             update_interval=scan_interval,
         )
@@ -129,9 +132,7 @@ class DeviceTagUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # Return an empty dictionary as per original and superclass expectation
         return {}
 
-    async def async_update_device_tags(
-        self, serial: str, tags: List[str]
-    ) -> None:
+    async def async_update_device_tags(self, serial: str, tags: List[str]) -> None:
         """Update tags for a single Meraki device.
 
         This method uses the `MerakiApiDataFetcher` to send a request to
@@ -197,9 +198,7 @@ class DeviceTagUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             )
             raise
         except MerakiApiError as e:  # Catch specific API errors from the fetcher
-            _LOGGER.error(
-                "API error updating tags for device %s: %s", serial, e
-            )
+            _LOGGER.error("API error updating tags for device %s: %s", serial, e)
             raise UpdateFailed(
                 f"API error updating tags for device {serial}: {e}"
             ) from e

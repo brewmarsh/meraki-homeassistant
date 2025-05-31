@@ -4,8 +4,9 @@ This module is responsible for setting up and initializing switch entities
 that represent Meraki SSIDs, allowing them to be enabled or disabled via
 Home Assistant.
 """
+
 import logging
-from typing import Any, Dict, List # Added Any, Dict
+from typing import Any, Dict, List  # Added Any, Dict
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
@@ -15,6 +16,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 # Import constants and the central data coordinator
 from ..const import ATTR_SSIDS, DATA_COORDINATOR, DOMAIN
 from ..coordinators import MerakiDataUpdateCoordinator
+
 # Import the specific switch entity and any utility functions
 from .ssid_switch import MerakiSSIDSwitch, match_device_to_ssid
 
@@ -53,7 +55,7 @@ async def async_setup_entry(
     # The coordinator.data["devices"] is expected to be a list of devices,
     # where each device might have an ATTR_SSIDS key.
     all_devices: List[Dict[str, Any]] = coordinator.data.get("devices", [])
-    
+
     if not all_devices:
         _LOGGER.info("No Meraki devices found in coordinator data for switch setup.")
         return
@@ -61,16 +63,17 @@ async def async_setup_entry(
     relaxed_matching: bool = coordinator.relaxed_tag_match
     _LOGGER.debug("Switch setup using relaxed_tag_match: %s", relaxed_matching)
 
-    for device_info in all_devices: # Iterate through all devices
+    for device_info in all_devices:  # Iterate through all devices
         # SSIDs are typically associated with wireless devices (APs)
-        # The match_device_to_ssid function likely handles if a device is appropriate for an SSID.
+        # The match_device_to_ssid function likely handles if a device is
+        # appropriate for an SSID.
         ssids_on_device: List[Dict[str, Any]] = device_info.get(ATTR_SSIDS, [])
-        
+
         if not ssids_on_device:
             _LOGGER.debug(
                 "Device '%s' (Serial: %s) has no SSIDs listed under ATTR_SSIDS.",
                 device_info.get("name", "Unknown"),
-                device_info.get("serial", "N/A")
+                device_info.get("serial", "N/A"),
             )
             continue
 
@@ -82,7 +85,8 @@ async def async_setup_entry(
             # It appears to check if *any* device in `all_devices` matches the SSID's tags.
             # This might mean an SSID switch is created for each AP that *could* broadcast it,
             # or one switch per SSID that is matched by at least one AP.
-            # The original logic passed `coordinator.data.get("devices", [])` which is `all_devices`.
+            # The original logic passed `coordinator.data.get("devices", [])`
+            # which is `all_devices`.
             if match_device_to_ssid(ssid_info, all_devices, relaxed_matching):
                 _LOGGER.debug(
                     "Creating SSID switch for SSID '%s' associated with device '%s' (Serial: %s)",
@@ -97,9 +101,8 @@ async def async_setup_entry(
                 _LOGGER.debug(
                     "SSID '%s' on device '%s' did not meet criteria for switch creation via match_device_to_ssid.",
                     ssid_name,
-                    device_info.get("name", "Unknown")
+                    device_info.get("name", "Unknown"),
                 )
-
 
     if created_switches:
         async_add_entities(created_switches)

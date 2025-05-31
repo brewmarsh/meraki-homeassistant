@@ -3,6 +3,7 @@
 This module defines constants used throughout the Meraki integration,
 including domain names, configuration keys, default values, and platform types.
 """
+
 from typing import Final, List
 
 DOMAIN: Final[str] = "meraki_ha"
@@ -28,7 +29,9 @@ PLATFORM_SENSOR: Final[str] = "sensor"
 """Represents the sensor platform (str)."""
 PLATFORM_DEVICE_TRACKER: Final[str] = "device_tracker"
 """Represents the device_tracker platform (str)."""
-PLATFORM_DEVICE: Final[str] = "device" # Assuming this is a custom platform or future use
+PLATFORM_DEVICE: Final[str] = (
+    "device"  # Assuming this is a custom platform or future use
+)
 """Represents a generic device platform (str)."""
 PLATFORM_SWITCH: Final[str] = "switch"
 """Represents the switch platform (str)."""

@@ -6,13 +6,16 @@ into a more structured and usable format for the integration. This
 includes extracting relevant fields. It no longer fetches data asynchronously.
 """
 
-import logging # asyncio, Coroutine, Union, MerakiAPIClient removed
+import logging  # asyncio, Coroutine, Union, MerakiAPIClient removed
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
     # Avoid circular import at runtime, only for type checking
-    # Ensure this path is correct; if coordinator.py was deleted, it might be base_coordinator
-    from custom_components.meraki_ha.coordinators.base_coordinator import MerakiDataUpdateCoordinator 
+    # Ensure this path is correct; if coordinator.py was deleted, it might be
+    # base_coordinator
+    from custom_components.meraki_ha.coordinators.base_coordinator import (
+        MerakiDataUpdateCoordinator,
+    )
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -63,15 +66,17 @@ class MerakiDataProcessor:
 
         for device_data in devices:
             # Extract basic device information.
-            # The input `device_data` is expected to have all fields pre-fetched by ApiDataFetcher.
+            # The input `device_data` is expected to have all fields
+            # pre-fetched by ApiDataFetcher.
             processed_device: Dict[str, Any] = {
                 "name": device_data.get("name"),
                 "serial": device_data.get("serial"),
                 "mac": device_data.get("mac"),
                 "model": device_data.get("model"),
                 "networkId": device_data.get("networkId"),
-                "status": device_data.get("status"), # <--- ADD THIS LINE
-                "tags": device_data.get("tags", []), # Default to empty list if tags are missing.
+                "status": device_data.get("status"),  # <--- ADD THIS LINE
+                # Default to empty list if tags are missing.
+                "tags": device_data.get("tags", []),
                 # `connected_clients_count` and `radio_settings` are expected from ApiDataFetcher for MR devices.
                 # For other device types, these might be None or absent.
                 "connected_clients_count": device_data.get("connected_clients_count"),
@@ -98,13 +103,19 @@ class MerakiDataProcessor:
             Example: `[{"id": "N_123", "name": "Main Office", "type": "wireless"}, ...]`
         """
         processed_networks_list: List[Dict[str, Any]] = []
-        if not isinstance(networks, list): # Basic type check.
-            _LOGGER.warning("Network data is not a list as expected: %s. Returning empty list.", type(networks))
+        if not isinstance(networks, list):  # Basic type check.
+            _LOGGER.warning(
+                "Network data is not a list as expected: %s. Returning empty list.",
+                type(networks),
+            )
             return processed_networks_list
 
         for network in networks:
-            if not isinstance(network, dict): # Ensure each item is a dictionary.
-                _LOGGER.warning("Network item is not a dict: %s. Skipping item.", type(network))
+            # Ensure each item is a dictionary.
+            if not isinstance(network, dict):
+                _LOGGER.warning(
+                    "Network item is not a dict: %s. Skipping item.", type(network)
+                )
                 continue
             processed_network: Dict[str, Any] = {
                 "id": network.get("id"),
@@ -134,21 +145,27 @@ class MerakiDataProcessor:
             Example: `[{"name": "Guest SSID", "enabled": True, "number": 0, ...}, ...]`
         """
         processed_ssids_list: List[Dict[str, Any]] = []
-        if not isinstance(ssids, list): # Basic type check.
-            _LOGGER.warning("SSID data is not a list as expected: %s. Returning empty list.", type(ssids))
+        if not isinstance(ssids, list):  # Basic type check.
+            _LOGGER.warning(
+                "SSID data is not a list as expected: %s. Returning empty list.",
+                type(ssids),
+            )
             return processed_ssids_list
 
         for ssid in ssids:
-            if not isinstance(ssid, dict): # Ensure each item is a dictionary.
-                _LOGGER.warning("SSID item is not a dict: %s. Skipping item.", type(ssid))
+            if not isinstance(ssid, dict):  # Ensure each item is a dictionary.
+                _LOGGER.warning(
+                    "SSID item is not a dict: %s. Skipping item.", type(ssid)
+                )
                 continue
             processed_ssid: Dict[str, Any] = {
                 "name": ssid.get("name"),
                 "enabled": ssid.get("enabled"),
-                "number": ssid.get("number"),  # SSID number (0-14 for MR devices).
+                # SSID number (0-14 for MR devices).
+                "number": ssid.get("number"),
                 "splashPage": ssid.get("splashPage"),
                 "authMode": ssid.get("authMode"),
-                "networkId": ssid.get("networkId"), # Added networkId
+                "networkId": ssid.get("networkId"),  # Added networkId
                 # Other relevant SSID attributes can be added here if needed in the future.
                 # e.g., "ipAssignmentMode": ssid.get("ipAssignmentMode"),
             }
@@ -157,7 +174,9 @@ class MerakiDataProcessor:
         return processed_ssids_list
 
     @staticmethod
-    def process_network_client_counts(clients: Optional[List[Dict[str, Any]]]) -> Dict[str, int]:
+    def process_network_client_counts(
+        clients: Optional[List[Dict[str, Any]]],
+    ) -> Dict[str, int]:
         counts: Dict[str, int] = {}
         if not clients:
             return counts

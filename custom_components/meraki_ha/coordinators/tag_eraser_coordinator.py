@@ -7,10 +7,13 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from datetime import timedelta
 
 from custom_components.meraki_ha.coordinators.tag_eraser import TagEraser
+
 # MerakiApiDataFetcher is not directly used by TagEraserCoordinator after recent refactors.
 # TagEraser itself will use MerakiAPIClient.
-# from .api_data_fetcher import MerakiApiDataFetcher # Assuming this was for the client
-from custom_components.meraki_ha.meraki_api import MerakiAPIClient # For direct client usage
+# from .api_data_fetcher import MerakiApiDataFetcher # Assuming this was
+# for the client
+# For direct client usage
+from custom_components.meraki_ha.meraki_api import MerakiAPIClient
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,13 +51,14 @@ class TagEraserCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name="Meraki Tag Eraser",
-            update_interval=timedelta(seconds=60),  # Default interval, can be adjusted
+            # Default interval, can be adjusted
+            update_interval=timedelta(seconds=60),
         )
         self.api_key = api_key
         self.org_id = org_id
         # base_url is likely not needed if MerakiAPIClient handles it.
-        # self.base_url = base_url 
-        
+        # self.base_url = base_url
+
         # TagEraser should take a MerakiAPIClient instance.
         # The MerakiApiDataFetcher is for fetching bulk data, not direct operations like tag erasing.
         # We need to instantiate a MerakiAPIClient here for the TagEraser.
@@ -63,7 +67,7 @@ class TagEraserCoordinator(DataUpdateCoordinator):
         # For now, let's assume TagEraser is refactored or we provide a client.
         # A dedicated client for tag erasing ensures separation of concerns.
         self.meraki_client_for_eraser = MerakiAPIClient(api_key=api_key, org_id=org_id)
-        self.tag_eraser = TagEraser(self.meraki_client_for_eraser) # Pass the client
+        self.tag_eraser = TagEraser(self.meraki_client_for_eraser)  # Pass the client
 
     async def async_erase_device_tags(self, serial: str) -> None:
         """

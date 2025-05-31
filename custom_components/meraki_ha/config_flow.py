@@ -4,6 +4,7 @@ This module defines the configuration flow for setting up and managing
 the Meraki integration within Home Assistant. It handles user input for
 API keys, organization IDs, and other configuration options.
 """
+
 import logging
 import traceback
 from typing import Any, Dict, Optional
@@ -30,12 +31,14 @@ _LOGGER = logging.getLogger(__name__)
 _LOGGER.debug("meraki_ha config_flow.py loaded")
 
 # Schema for the initial user configuration step
-CONFIG_SCHEMA = vol.Schema({
-    vol.Required(CONF_MERAKI_API_KEY): selector.TextSelector(
-        selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
-    ),
-    vol.Required(CONF_MERAKI_ORG_ID): selector.TextSelector(),
-})
+CONFIG_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_MERAKI_API_KEY): selector.TextSelector(
+            selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+        ),
+        vol.Required(CONF_MERAKI_ORG_ID): selector.TextSelector(),
+    }
+)
 
 
 class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -64,7 +67,8 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         _LOGGER.debug("Meraki HA: async_step_user called")
         errors: Dict[str, str] = {}
 
-        # This block executes if the user has submitted input (not the first time showing the form).
+        # This block executes if the user has submitted input (not the first
+        # time showing the form).
         if user_input is not None:
             _LOGGER.debug("User input received: %s", user_input)
             try:
@@ -77,7 +81,10 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 )
                 # if not validation_result.get("valid"): # Or rely on exceptions for failure
                 #    # Handle error or let exception propagate
-                org_name = validation_result.get("org_name", user_input[CONF_MERAKI_ORG_ID]) # Fallback to Org ID if name is missing
+                # Fallback to Org ID if name is missing
+                org_name = validation_result.get(
+                    "org_name", user_input[CONF_MERAKI_ORG_ID]
+                )
 
                 # Step 2: If credentials are valid, prepare the data and
                 # options for the config entry. 'data' usually stores
@@ -108,9 +115,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 # Step 3: Set a unique ID for this config entry to prevent
                 # duplicate entries for the same Meraki organization.
                 # This helps Home Assistant manage existing configurations.
-                await self.async_set_unique_id(
-                    user_input[CONF_MERAKI_ORG_ID]
-                )
+                await self.async_set_unique_id(user_input[CONF_MERAKI_ORG_ID])
                 # Abort if a config entry with this unique ID already exists.
                 self._abort_if_unique_id_configured()
 
@@ -127,12 +132,11 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             # process.
             except ConfigEntryAuthFailed:
                 # Authentication failed (e.g., invalid API key).
-                _LOGGER.warning(
-                    "Authentication failed with provided credentials."
-                )
+                _LOGGER.warning("Authentication failed with provided credentials.")
                 errors["base"] = "invalid_auth"  # Error key for UI message
             except ValueError:
-                # Invalid organization ID (e.g., not found for the given API key).
+                # Invalid organization ID (e.g., not found for the given API
+                # key).
                 _LOGGER.warning("Invalid Organization ID provided.")
                 errors["base"] = "invalid_org_id"  # Error key for UI
             except aiohttp.ClientError:
@@ -141,54 +145,53 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "cannot_connect"  # Error key for UI
             except Exception as e:  # pylint: disable=broad-except
                 # Catch any other unexpected errors during the process.
-                _LOGGER.error(
-                    "An unexpected error occurred during config flow: %s", e
-                )
+                _LOGGER.error("An unexpected error occurred during config flow: %s", e)
                 # Log the full traceback for debugging.
                 _LOGGER.error(traceback.format_exc())
                 errors["base"] = "unknown"  # Generic error key for UI
         else:
             # This block executes if user_input is None (first time showing
             # the form).
-            # Initialize user_input as an empty dict to prevent errors when accessing it for defaults.
+            # Initialize user_input as an empty dict to prevent errors when
+            # accessing it for defaults.
             user_input = {}
 
         # Define the schema for the user input form.
         # This schema includes fields for API key, Org ID, and other options like scan interval.
         # `CONFIG_SCHEMA` provides the base (API Key, Org ID).
         # `.extend` adds more fields to this base schema for the form.
-        data_schema_with_options = CONFIG_SCHEMA.extend({
-            # Scan interval field: integer, required, with a default value.
-            vol.Required(
-                CONF_SCAN_INTERVAL,
-                default=user_input.get(  # Pre-fill
-                    CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+        data_schema_with_options = CONFIG_SCHEMA.extend(
+            {
+                # Scan interval field: integer, required, with a default value.
+                vol.Required(
+                    CONF_SCAN_INTERVAL,
+                    default=user_input.get(  # Pre-fill
+                        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                    ),
+                ): int,
+                # Device name format field: optional, dropdown selector.
+                vol.Optional(
+                    "device_name_format",
+                    default=user_input.get("device_name_format", "omitted"),  # Pre-fill
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=[  # Dropdown options
+                            {"value": "prefix", "label": "Prefix"},
+                            {"value": "suffix", "label": "Suffix"},
+                            {"value": "omitted", "label": "Omitted"},
+                        ],
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    )
                 ),
-            ): int,
-            # Device name format field: optional, dropdown selector.
-            vol.Optional(
-                "device_name_format",
-                default=user_input.get(
-                    "device_name_format", "omitted"
-                ),  # Pre-fill
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=[  # Dropdown options
-                        {"value": "prefix", "label": "Prefix"},
-                        {"value": "suffix", "label": "Suffix"},
-                        {"value": "omitted", "label": "Omitted"},
-                    ],
-                    mode=selector.SelectSelectorMode.DROPDOWN,
-                )
-            ),
-            # Relaxed tag matching field: optional, boolean (checkbox).
-            vol.Optional(
-                CONF_RELAXED_TAG_MATCHING,
-                default=user_input.get(
-                    CONF_RELAXED_TAG_MATCHING, False
-                ),  # Pre-fill
-            ): bool,
-        })
+                # Relaxed tag matching field: optional, boolean (checkbox).
+                vol.Optional(
+                    CONF_RELAXED_TAG_MATCHING,
+                    default=user_input.get(
+                        CONF_RELAXED_TAG_MATCHING, False
+                    ),  # Pre-fill
+                ): bool,
+            }
+        )
         # Note: UI descriptions for fields like CONF_SCAN_INTERVAL can be
         # added directly in the schema or, more commonly, handled via the
         # strings.json translation files for localization.
@@ -255,33 +258,23 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     existing_entry, data=updated_data
                 )  # Only update data, options remain.
                 # Step 4: Reload the config entry to apply the new credentials.
-                await self.hass.config_entries.async_reload(
-                    existing_entry.entry_id
-                )
+                await self.hass.config_entries.async_reload(existing_entry.entry_id)
                 _LOGGER.info("Meraki reauthentication successful.")
                 # Abort the reauth flow with a "reauth_successful" reason.
                 return self.async_abort(reason="reauth_successful")
 
             # Handle specific exceptions during reauthentication.
             except ConfigEntryAuthFailed:
-                _LOGGER.warning(
-                    "Reauthentication failed: Invalid credentials."
-                )
+                _LOGGER.warning("Reauthentication failed: Invalid credentials.")
                 errors["base"] = "invalid_auth"
             except ValueError:  # From validate_meraki_credentials
-                _LOGGER.warning(
-                    "Reauthentication failed: Invalid Organization ID."
-                )
+                _LOGGER.warning("Reauthentication failed: Invalid Organization ID.")
                 errors["base"] = "invalid_org_id"
             except aiohttp.ClientError:
-                _LOGGER.error(
-                    "Reauthentication failed: Cannot connect to Meraki API."
-                )
+                _LOGGER.error("Reauthentication failed: Cannot connect to Meraki API.")
                 errors["base"] = "cannot_connect"
             except Exception as e:  # pylint: disable=broad-except
-                _LOGGER.error(
-                    "An unexpected error occurred during reauth: %s", e
-                )
+                _LOGGER.error("An unexpected error occurred during reauth: %s", e)
                 _LOGGER.error(traceback.format_exc())
                 errors["base"] = "unknown"
 
@@ -389,39 +382,43 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             return self.async_create_entry(title="", data=user_input)
 
         # This block executes if showing the options form for the first time.
-        # Define the schema for the options form, pre-filling with current option values.
-        options_schema = vol.Schema({
-            # Scan interval field, defaulting to current value or global default.
-            vol.Required(
-                CONF_SCAN_INTERVAL,
-                default=self.config_entry.options.get(  # Current option value
-                    CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+        # Define the schema for the options form, pre-filling with current
+        # option values.
+        options_schema = vol.Schema(
+            {
+                # Scan interval field, defaulting to current value or global
+                # default.
+                vol.Required(
+                    CONF_SCAN_INTERVAL,
+                    default=self.config_entry.options.get(  # Current option value
+                        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                    ),
+                ): int,
+                # Device name format field, dropdown selector.
+                vol.Optional(
+                    "device_name_format",
+                    default=self.config_entry.options.get(
+                        "device_name_format", "omitted"  # Default if not set
+                    ),
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=[
+                            {"value": "prefix", "label": "Prefix"},
+                            {"value": "suffix", "label": "Suffix"},
+                            {"value": "omitted", "label": "Omitted"},
+                        ],
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    )
                 ),
-            ): int,
-            # Device name format field, dropdown selector.
-            vol.Optional(
-                "device_name_format",
-                default=self.config_entry.options.get(
-                    "device_name_format", "omitted"  # Default if not set
-                ),
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=[
-                        {"value": "prefix", "label": "Prefix"},
-                        {"value": "suffix", "label": "Suffix"},
-                        {"value": "omitted", "label": "Omitted"},
-                    ],
-                    mode=selector.SelectSelectorMode.DROPDOWN,
-                )
-            ),
-            # Relaxed tag matching field, boolean (checkbox).
-            vol.Optional(
-                CONF_RELAXED_TAG_MATCHING,
-                default=self.config_entry.options.get(
-                    CONF_RELAXED_TAG_MATCHING, False  # Default if not set
-                ),
-            ): bool,
-        })
+                # Relaxed tag matching field, boolean (checkbox).
+                vol.Optional(
+                    CONF_RELAXED_TAG_MATCHING,
+                    default=self.config_entry.options.get(
+                        CONF_RELAXED_TAG_MATCHING, False  # Default if not set
+                    ),
+                ): bool,
+            }
+        )
         # Note: UI descriptions for these options fields are typically handled
         # via the strings.json translation files for better localization and
         # maintainability.

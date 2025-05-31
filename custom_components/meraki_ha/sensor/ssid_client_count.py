@@ -4,15 +4,19 @@ This module defines the `MerakiSSIDClientCountSensor` class, a Home Assistant
 sensor entity that displays the number of clients currently connected to a
 specific Meraki SSID.
 """
+
 import logging
-from typing import Any, Dict, Optional # Added Optional, Any
+from typing import Any, Dict, Optional  # Added Optional, Any
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
-from homeassistant.core import callback # For coordinator updates
-# from homeassistant.helpers.update_coordinator import CoordinatorEntity # MerakiEntity already inherits
+from homeassistant.core import callback  # For coordinator updates
+
+# from homeassistant.helpers.update_coordinator import CoordinatorEntity #
+# MerakiEntity already inherits
 
 # Assuming MerakiEntity is the base class for Meraki entities
 from ..entity import MerakiEntity
+
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 from ..coordinators import MerakiDataUpdateCoordinator
 
@@ -29,15 +33,15 @@ class MerakiSSIDClientCountSensor(MerakiEntity, SensorEntity):
     Inherits from `MerakiEntity` which handles coordinator and basic device linkage.
     """
 
-    _attr_icon = "mdi:account-multiple" # Static icon for this sensor type
+    _attr_icon = "mdi:account-multiple"  # Static icon for this sensor type
     _attr_native_unit_of_measurement = "clients"
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator, # Explicit coordinator type
-        device_data: Dict[str, Any], # Parent device (e.g., AP)
-        ssid_data: Dict[str, Any],   # Specific SSID data for this sensor
+        coordinator: MerakiDataUpdateCoordinator,  # Explicit coordinator type
+        device_data: Dict[str, Any],  # Parent device (e.g., AP)
+        ssid_data: Dict[str, Any],  # Specific SSID data for this sensor
     ) -> None:
         """Initialize the Meraki SSID Client Count sensor.
 
@@ -50,11 +54,13 @@ class MerakiSSIDClientCountSensor(MerakiEntity, SensorEntity):
 
         base_name = f"{self._device_name or 'Device'} {self._ssid_name or f'SSID {self._ssid_number}'}"
         self._attr_name = f"{base_name} Client Count"
-        
+
         serial_part = self._device_serial or "unknownserial"
-        ssid_num_part = self._ssid_number if self._ssid_number is not None else "unknownssid"
+        ssid_num_part = (
+            self._ssid_number if self._ssid_number is not None else "unknownssid"
+        )
         self._attr_unique_id = f"{serial_part}_{ssid_num_part}_client_count"
-        
+
         # Set initial state
         self._update_sensor_state()
         _LOGGER.debug(
@@ -75,29 +81,34 @@ class MerakiSSIDClientCountSensor(MerakiEntity, SensorEntity):
                             current_ssid_data = ssid
                             break
                     break
-        
+
         if current_ssid_data:
-            # Assuming 'client_count' is a direct attribute of the SSID data from coordinator
+            # Assuming 'client_count' is a direct attribute of the SSID data
+            # from coordinator
             client_count: Optional[int] = current_ssid_data.get("client_count")
             if isinstance(client_count, int):
                 self._attr_native_value = client_count
             else:
                 _LOGGER.debug(
                     "SSID '%s' on device '%s' has no 'client_count' information or it's not an int (%s). Setting to 0.",
-                    self._ssid_name, self._device_name, type(client_count).__name__
+                    self._ssid_name,
+                    self._device_name,
+                    type(client_count).__name__,
                 )
-                self._attr_native_value = 0 # Default to 0 if missing or not an int
+                self._attr_native_value = 0  # Default to 0 if missing or not an int
         else:
             _LOGGER.warning(
                 "SSID data for '%s' (Num: %s) on device '%s' not found in coordinator. Client count set to 0.",
-                self._ssid_name, self._ssid_number, self._device_name
+                self._ssid_name,
+                self._ssid_number,
+                self._device_name,
             )
-            self._attr_native_value = 0 # Default to 0 if SSID data not found
+            self._attr_native_value = 0  # Default to 0 if SSID data not found
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator.
-        
+
         This method is called by the CoordinatorEntity base class when new data
         is available from the coordinator. It updates the sensor's state.
         """

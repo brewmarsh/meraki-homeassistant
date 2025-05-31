@@ -5,15 +5,18 @@ device tags on the Meraki platform. It uses an instance of `MerakiApiDataFetcher
 to perform the necessary API calls and handles API-specific errors, translating
 them into Home Assistant exceptions where appropriate.
 """
+
 import logging
 from typing import List
 
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers.update_coordinator import UpdateFailed # Used for raising errors
+
+# Used for raising errors
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from .api_data_fetcher import (
     MerakiApiDataFetcher,
-    MerakiApiError, # Catching base is good, then specific if needed
+    MerakiApiError,  # Catching base is good, then specific if needed
     MerakiApiConnectionError,
     MerakiApiInvalidApiKeyError,
 )
@@ -80,10 +83,11 @@ class DeviceTagUpdater:
                 )
             else:
                 # This case handles if async_update_device_tags itself returns False
-                # without raising an exception, indicating a non-exceptional failure.
+                # without raising an exception, indicating a non-exceptional
+                # failure.
                 _LOGGER.warning(
                     "Tag update for device %s was reported as unsuccessful by API fetcher (returned False).",
-                    serial
+                    serial,
                 )
                 raise UpdateFailed(
                     f"Tag update for device {serial} failed (API fetcher indicated no success)."
@@ -102,19 +106,19 @@ class DeviceTagUpdater:
             raise ConfigEntryAuthFailed(
                 f"Invalid Meraki API key when updating tags for {serial}: {e}"
             ) from e
-        except MerakiApiError as e: # Catch other specific Meraki API errors
+        except MerakiApiError as e:  # Catch other specific Meraki API errors
             _LOGGER.error(
                 "A Meraki API error occurred updating tags for device %s: %s", serial, e
             )
             raise UpdateFailed(
                 f"Meraki API error updating tags for device {serial}: {e}"
             ) from e
-        except UpdateFailed: # Re-raise if already UpdateFailed
+        except UpdateFailed:  # Re-raise if already UpdateFailed
             raise
-        except ConfigEntryAuthFailed: # Re-raise if already ConfigEntryAuthFailed
+        except ConfigEntryAuthFailed:  # Re-raise if already ConfigEntryAuthFailed
             raise
-        except Exception as e: # Catch any other unexpected errors
-            _LOGGER.exception( # Use .exception to include stack trace
+        except Exception as e:  # Catch any other unexpected errors
+            _LOGGER.exception(  # Use .exception to include stack trace
                 "Unexpected error updating tags for device %s: %s", serial, e
             )
             raise UpdateFailed(
