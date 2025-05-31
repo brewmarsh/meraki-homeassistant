@@ -2,6 +2,7 @@
 """Set up Meraki sensor entities."""
 import asyncio
 import logging
+from functools import partial # Added import
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -54,10 +55,9 @@ async def async_setup_entry(
         full_module_path = f"custom_components.meraki_ha.sensor{module_name_suffix}"
         try:
             # Dynamically import the module
-            # __import__ needs the full path, and fromlist specifies what to return (the module itself)
-            module = await hass.async_add_import_executor_job(
-                __import__, full_module_path, fromlist=["async_setup_entry"]
-            )
+            # Use functools.partial to correctly pass arguments to __import__
+            module_importer = partial(__import__, full_module_path, fromlist=["async_setup_entry"])
+            module = await hass.async_add_import_executor_job(module_importer)
 
             if hasattr(module, "async_setup_entry"):
                 _LOGGER.debug(f"Calling async_setup_entry for sensor module: {full_module_path}")
