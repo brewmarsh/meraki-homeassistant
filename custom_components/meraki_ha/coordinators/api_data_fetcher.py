@@ -242,6 +242,18 @@ class MerakiApiDataFetcher:
 
                 # `async_get_network_ssids` returns [] on 404, None on other errors.
                 if ssid_data_for_network:
+                    for ssid_obj in ssid_data_for_network:
+                        # Ensure networkId is present in each SSID object.
+                        # The SDK should ideally include this, but if not, or if it's under a different key,
+                        # this ensures our data structure is consistent.
+                        # We are adding it if it's not present or if it's None,
+                        # as the logs showed networkId: None.
+                        if isinstance(ssid_obj, dict):
+                            if ssid_obj.get("networkId") is None: # Check if None or missing
+                                ssid_obj["networkId"] = network_id
+                                _LOGGER.debug(f"Added/updated networkId '{network_id}' for SSID '{ssid_obj.get('name')}' (Number: {ssid_obj.get('number')})")
+                        else:
+                            _LOGGER.warning(f"Found non-dict item in ssid_data_for_network: {ssid_obj}")
                     ssids.extend(ssid_data_for_network)
                 # Indicates an error handled by async_get_network_ssids or the
                 # safeguard above.
