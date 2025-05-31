@@ -47,22 +47,34 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
             raise UpdateFailed("Main API data fetcher has no data available for SSIDs.")
 
         all_ssids_from_fetcher: List[Dict[str, Any]] = self.api_data_fetcher.data.get("ssids", [])
-        _LOGGER.debug(f"Retrieved {len(all_ssids_from_fetcher)} SSIDs from api_data_fetcher")
 
-        if not all_ssids_from_fetcher:
-            _LOGGER.info("No SSIDs found by the API data fetcher. No SSID devices to update.")
-            return {} # Return empty if no SSIDs
+        _LOGGER.debug(f"Retrieved {len(all_ssids_from_fetcher)} total SSIDs from api_data_fetcher before filtering.")
+
+        enabled_ssids = [
+            ssid_info for ssid_info in all_ssids_from_fetcher if ssid_info.get("enabled") is True
+        ]
+
+        _LOGGER.debug(f"Found {len(enabled_ssids)} enabled SSIDs after filtering.")
+
+        if not enabled_ssids:
+            _LOGGER.info("No enabled SSIDs found. No SSID devices to update/create.")
+            # If there were previously registered devices for SSIDs that are now disabled,
+            # they will no longer be updated by this coordinator.
+            # HA's device registry policy will determine if they are eventually auto-removed
+            # or need explicit removal (not handled by this change).
+            # For now, just return empty, so no entities are created/updated for disabled SSIDs.
+            return {}
 
         device_registry = dr.async_get(self.hass)
         processed_ssid_devices: Dict[str, Dict[str, Any]] = {}
 
-        for ssid_data in all_ssids_from_fetcher:
+        for ssid_data in enabled_ssids: # Changed to iterate over filtered list
             network_id = ssid_data.get("networkId")
             ssid_number = ssid_data.get("number")
             ssid_name = ssid_data.get("name", f"SSID {ssid_number}")
 
             if not network_id or ssid_number is None: # ssid_number can be 0
-                _LOGGER.warning(f"SSID data missing networkId or number, cannot process: {ssid_data}")
+                _LOGGER.warning(f"Enabled SSID data missing networkId or number, cannot process: {ssid_data}")
                 continue
 
             # Create a unique and stable identifier for the SSID device
@@ -85,9 +97,9 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 # sw_version= # Not directly applicable to an SSID itself. Could use network firmware if available.
                 via_device=(DOMAIN, self.config_entry.entry_id), # Link to the integration instance
             )
-            _LOGGER.debug(f"Registered/Updated device for SSID: {ssid_name} ({unique_ssid_id})")
+            _LOGGER.debug(f"Registered/Updated device for ENABLED SSID: {ssid_name} ({unique_ssid_id})")
 
             processed_ssid_devices[unique_ssid_id] = ssid_data
 
-        _LOGGER.info(f"SSIDDeviceCoordinator processed {len(processed_ssid_devices)} SSID devices.")
+        _LOGGER.info(f"SSIDDeviceCoordinator processed {len(processed_ssid_devices)} ENABLED SSID devices.")
         return processed_ssid_devices
