@@ -19,8 +19,8 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
     * Device status (online/offline, product type)
     * Connected client counts (for APs, networks)
     * Appliance uplink status and potentially other data points (if specific sensors are developed).
-    * Camera snapshot URL generation.
-    * Sensor values for MT series sensors (model-dependent, requires specific sensor entity implementation).
+    *   Basic camera device status; snapshot URL generation to be explicitly integrated (e.g., as sensor attribute or service).
+    *   Sensor values for MT series sensors (Future).
     * Wireless radio settings for MR/GR access points (e.g., channel).
     * SSID Availability (Enabled/Disabled administrative status).
     * SSID Channel (current operational channel).
@@ -111,13 +111,27 @@ Entities are dynamically created based on your Meraki setup.
 *   **Switch Entities:**
     *   **SSID Control:** Allows enabling/disabling SSIDs (achieved by managing device tags on associated APs).
 
-*   **Device Trackers (Conceptual):**
-    *   Represents Meraki hardware (like APs) and their "active" state based on client connectivity. Does not track individual client devices as HA device trackers.
+*   **Device Trackers:**
+    *   Tracks connected client devices.
 
 *   **Home Assistant Devices:**
     *   Physical Meraki Devices (APs, switches, appliances, cameras, sensors) are registered.
     *   Meraki Networks are registered as "devices" to act as parents for physical devices and network-wide entities.
     *   Meraki SSIDs are registered as "devices", typically parented by the network or the APs broadcasting them, to group SSID-specific entities.
+
+## Versioning and Releases
+
+This project uses an automated versioning and release process triggered by merging Pull Requests (PRs) into the `main` branch.
+
+*   **Automatic Version Increment:** When a PR is merged, the version number in `custom_components/meraki_ha/manifest.json` and `package.json` is automatically incremented.
+*   **Determining Increment Type:** The type of version increment (major, minor, or patch) is determined by the PR title:
+    *   `[major]` in the PR title (e.g., `[major] Implement new dashboard feature`) will trigger a major version update (e.g., `1.2.3` -> `2.0.0`).
+    *   `[minor]` in the PR title (e.g., `[minor] Add support for new sensor type`) will trigger a minor version update (e.g., `1.2.3` -> `1.3.0`).
+    *   `[patch]` in the PR title (e.g., `[patch] Fix API error handling`) or if no specific prefix is found, will trigger a patch version update (e.g., `1.2.3` -> `1.2.4`).
+*   **Changelog Generation:** A `CHANGELOG.md` file is automatically updated with commit messages from the PR.
+*   **GitHub Release:** A new GitHub Release is automatically created, tagged with the new version number (e.g., `v1.2.4`), and includes the changelog entries.
+
+Please ensure your PR titles are descriptive and include the appropriate prefix if you intend to trigger a specific type of version bump.
 
 ##   Dependencies
 
@@ -126,8 +140,8 @@ Entities are dynamically created based on your Meraki setup.
 ##   Known Issues
 
 *   **API Rate Limits:** Frequent polling with a short scan interval on large networks can lead to exceeding Meraki API rate limits. Adjust the scan interval appropriately.
-*   **Tag-based SSID Control:** Enabling/disabling SSIDs is managed by adding/removing specific tags on access points. This is an indirect control method and relies on consistent tag management.
-*   Radio profile information might not be available or fully detailed for all wireless device models through the currently used API endpoints.
+*   **SSID Control:** Enabling/disabling SSIDs is managed by adding/removing specific tags on access points, not by direct administrative status change of the SSID. This is an indirect control method and relies on consistent tag management.
+*   **Radio profiles might not be available or fully detailed for all wireless device models through the currently used API endpoints.**
 
 ##   Disclaimer
 

@@ -11,13 +11,14 @@
 - [ ] **Implement Switches for Internet Ports:** Allow control over WAN/Internet ports on MX appliances if API supports. *(From existing TODO)*
 - [ ] **Signal Strength and Data Usage Sensors for Connected Clients:** Create sensors to monitor signal strength (RSSI, SNR) and data usage (upload/download) for individual clients connected to Meraki APs. *(From README TODO & existing TODO)*
 - [ ] **More Sensor Types for SSIDs:** Add sensors for additional SSID properties, e.g., security settings (WPA type), traffic statistics (data usage per SSID), active bands. *(From README TODO & existing TODO)*
-- [ ] **Device Tracker for Connected Clients:** Implement Home Assistant device tracker entities for clients connected to the Meraki network, allowing presence detection based on network connectivity. *(From README TODO & existing TODO)*
+- [x] **Device Tracker for Connected Clients:** Implemented for tracking individual client devices.
 - [ ] **Service Calls to Enable/Disable SSIDs (Directly):** Add service calls to directly control the administrative status of SSIDs via their API endpoints (if different from the current tag-based approach for `MerakiSSIDSwitch`). *(From README TODO & existing TODO)*
 - [ ] **Support for Additional Meraki Product Types/Features:**
     - [ ] More detailed MV camera features (e.g., motion events, specific stream controls beyond snapshot URLs if available). *(Enhancement from existing TODO: "Implement support for other Meraki product types")*
     - [ ] SM (Systems Manager) endpoint monitoring/management if relevant for HA. *(Enhancement from existing TODO)*
     - [ ] Deeper sensor data for MT series (e.g., historical data, more specific readings if available).
     - [ ] More detailed switch port statistics (e.g., per-port traffic, PoE details beyond basic count).
+- [ ] **Clarify and document/implement Camera Snapshot URL generation (is it a sensor attribute, service, or needs full implementation?).**
 - [ ] **Firmware Update Sensors/Notifications:** Entities to indicate available firmware updates for devices or networks.
 - [ ] **Network Health/Event Sensors:** Monitor overall network health or specific Meraki events/alerts.
 
@@ -25,13 +26,14 @@
 
 - [ ] **Configuration Option for SSID Sensor Selection:** Allow users to choose which specific sensors (availability, channel, client count, etc.) they want to enable per SSID to reduce entity clutter. *(From existing TODO)*
 - [ ] **Customize Device and Entity Names:** Provide more advanced configuration options for customizing how Meraki device and entity names are generated in Home Assistant. *(From existing TODO)*
-- [ ] **Convert to using the Meraki Python Library:** Evaluate and potentially migrate from direct `aiohttp` calls to using the official `meraki` Python SDK for simplified API interaction and maintenance, if it supports async operations and meets all needs. *(From existing TODO)*
+- [x] **Convert to using the Meraki Python Library:** Integration uses `meraki.aio.AsyncDashboardAPI`. The `meraki_api/_api_client.py` is a wrapper for this.
 - [ ] **Full Home Assistant Branding Support:** Ensure the integration meets all requirements for Home Assistant branding, including logos and documentation links. *(From existing TODO)*
 - [ ] **Address Specific Bugs:** (Add specific bug descriptions here as they are identified). *(From existing TODO)*
     - [ ] Review "Radio profiles are not returned for all MR devices" (from README known issues) and investigate if it's an API limitation or an integration issue.
 - [ ] **Review API Client (`_api_client.py`):**
-    *   Consider implementing a shared `aiohttp.ClientSession` managed by Home Assistant (`hass.helpers.aiohttp_client.async_get_clientsession()`) instead of creating new sessions per request or per API client instance for better resource management.
-    *   Refine error handling in `_async_api_request` to potentially return `None` or raise more specific exceptions on 404s if desired by calling methods, rather than always raising `MerakiApiError`.
+    *   - [x] Consider implementing a shared `aiohttp.ClientSession`... (Handled by the `meraki` library itself).
+    *   - [ ] Refine error handling in `_async_api_request`... (Obsolete, `_api_client.py` wraps the SDK, does not have this method).
+- [ ] **Fix SSID entity `device_info` to correctly link to parent AP via `via_device` attribute in `MerakiEntity` for SSID-specific entities.**
 - [ ] **Tag-based SSID Control Review:** The current `MerakiSSIDSwitch` uses device tags to control SSID state. Evaluate if a more direct API method for enabling/disabling SSIDs per AP (if available and appropriate) would be better, or if the tag strategy is the most robust.
 - [ ] **VLAN Entity Clarification:** Determine if "Meraki VLANs" should be actual HA entities/devices or if VLAN information is purely contextual data for other entities. Adjust documentation and entity creation accordingly.
 
@@ -46,5 +48,5 @@
 ## Code Quality & Refactoring
 
 - [ ] **Review Placeholder Functions:** Identify and implement any placeholder functions (like `get_network_ids_and_names` in `sensor/__init__.py` or API methods in `meraki_api/` that were marked as placeholders) with actual API calls.
-- [ ] **Consolidate Redundant Code:** Review for any redundant classes or functions (e.g., potentially `MerakiNetworkClientCountSensor` in `network_status.py` vs. `network_clients.py`).
+- [ ] **Consolidate Redundant Code:** Review for any redundant classes or functions (e.g., duplicate `MerakiNetworkClientCountSensor` in `network_clients.py` and `network_status.py`).
 - [ ] **Unit and Integration Tests:** Expand test coverage significantly.
