@@ -35,12 +35,15 @@ PLATFORM_DEVICE: Final[str] = (
 """Represents a generic device platform (str)."""
 PLATFORM_SWITCH: Final[str] = "switch"
 """Represents the switch platform (str)."""
+PLATFORM_TEXT: Final[str] = "text"
+"""Represents the text platform (str)."""
 
 
 PLATFORMS: Final[List[str]] = [
     PLATFORM_SENSOR,
     PLATFORM_DEVICE_TRACKER,
     PLATFORM_SWITCH,
+    PLATFORM_TEXT,
 ]
 """List of platforms supported by the integration (List[str])."""
 

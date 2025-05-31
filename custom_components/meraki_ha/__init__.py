@@ -1,95 +1,59 @@
-"""Initializes the Meraki Home Assistant integration.
-
-This module sets up the core components of the Meraki integration, primarily
-by initializing and configuring the `MerakiDataUpdateCoordinator`. This
-coordinator is responsible for fetching and managing all data from the
-Meraki Dashboard API, which is then used by various platforms (sensor, switch, etc.).
-"""
+# custom_components/meraki_ha/__init__.py
 
 import logging
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from typing import Optional
-from .coordinators import MerakiDataUpdateCoordinator  # Moved import to top
+# Ensure CONF_SCAN_INTERVAL is imported if used directly, or rely on its presence in entry.options
+from homeassistant.const import CONF_SCAN_INTERVAL
 
-from custom_components.meraki_ha.const import (
+from .coordinators import MerakiDataUpdateCoordinator
+from .coordinators.ssid_device_coordinator import SSIDDeviceCoordinator # Import new coordinator
+# MerakiAPIClient is likely imported by MerakiDataUpdateCoordinator or entities,
+# but explicit import here if we were to instantiate it directly.
+# For now, we assume main_coordinator creates/manages it.
+
+from .const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_RELAXED_TAG_MATCHING,
-    DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SCAN_INTERVAL, # Renamed from CONF_SCAN_INTERVAL to avoid clash with homeassistant.const
     DOMAIN,
-    PLATFORMS,  # List of platforms (e.g., ["sensor", "switch"])
+    PLATFORMS, # This will now include PLATFORM_TEXT
+    DATA_CLIENT, # For storing MerakiAPIClient
+    # PLATFORM_TEXT, # No need to explicitly import PLATFORM_TEXT if PLATFORMS is updated correctly
 )
-
-# Obsolete imports for MerakiNetworkCoordinator and MerakiSsidCoordinator
-# are removed.
 
 _LOGGER = logging.getLogger(__name__)
 
-
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Meraki Home Assistant integration from a configuration entry.
-
-    This function initializes the `MerakiDataUpdateCoordinator`, which handles
-    all API interactions and data management. It then forwards the setup to
-    the relevant Home Assistant platforms (like sensor, switch).
-
-    Args:
-        hass: The Home Assistant instance.
-        entry: The configuration entry containing user-provided settings
-               (API key, Organization ID, options).
-
-    Returns:
-        True if the setup was successful, False otherwise.
-    """
     _LOGGER.debug(
         "Starting async_setup_entry for Meraki integration (entry_id: %s)",
         entry.entry_id,
     )
 
-    # Retrieve API key and organization ID from the configuration entry.
     api_key: str = entry.data[CONF_MERAKI_API_KEY]
     org_id: str = entry.data[CONF_MERAKI_ORG_ID]
-    # The base_url is handled by the MerakiAPIClient within the coordinator/SDK.
-    # No longer needed here: base_url: str = "https://api.meraki.com/api/v1"
 
-    _LOGGER.debug("Meraki entry data: %s", entry.data)
-    _LOGGER.debug("Meraki entry options: %s", entry.options)
-
-    # Get scan interval from entry options, with a default value.
-    scan_interval_seconds: int = entry.options.get(
-        "scan_interval", DEFAULT_SCAN_INTERVAL
+    # Use CONF_SCAN_INTERVAL from homeassistant.const for options key
+    scan_interval_seconds_option = entry.options.get(
+        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
     )
-
-    # Ensure scan_interval_seconds is an integer.
     try:
-        scan_interval_seconds = int(scan_interval_seconds)
+        # Ensure it's an int, as options can sometimes be strings
+        scan_interval_seconds = int(scan_interval_seconds_option)
     except ValueError:
         _LOGGER.error(
             "Invalid scan_interval '%s' in options. Using default: %s seconds.",
-            scan_interval_seconds,
+            scan_interval_seconds_option,
             DEFAULT_SCAN_INTERVAL,
         )
         scan_interval_seconds = DEFAULT_SCAN_INTERVAL
 
-    _LOGGER.debug(
-        "Using scan interval of %d seconds for Meraki coordinator.",
-        scan_interval_seconds,
-    )
     interval: timedelta = timedelta(seconds=scan_interval_seconds)
 
-    # Initialization of separate MerakiNetworkCoordinator and MerakiSsidCoordinator removed,
-    # as their functionalities are now integrated within or made obsolete by changes to
-    # MerakiDataUpdateCoordinator and MerakiApiDataFetcher.
-
-    # Initialize the main data update coordinator.
-    # This coordinator now manages all data fetching and sub-coordination
-    # internally.
-    # from custom_components.meraki_ha.coordinators.base_coordinator import MerakiDataUpdateCoordinator # Original import location
-    # MerakiDataUpdateCoordinator is now imported at the top of the file.
-    coordinator: MerakiDataUpdateCoordinator = MerakiDataUpdateCoordinator(
+    main_coordinator: MerakiDataUpdateCoordinator = MerakiDataUpdateCoordinator(
         hass=hass,
         api_key=api_key,
         org_id=org_id,
@@ -97,26 +61,59 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         relaxed_tag_match=entry.options.get(CONF_RELAXED_TAG_MATCHING, False),
         config_entry=entry,
     )
+    # Note: MerakiDataUpdateCoordinator should internally create and store its MerakiAPIClient instance
+    # and make it available via a property (e.g., self.meraki_client) AND store it in
+    # hass.data[DOMAIN][entry.entry_id][DATA_CLIENT] for entities to use.
+    # This is a critical assumption for the rest of the setup.
+    await main_coordinator.async_config_entry_first_refresh()
 
-    # Perform the initial data fetch. This is crucial to ensure that data is
-    # available before Home Assistant attempts to set up entities on various
-    # platforms.
-    await coordinator.async_config_entry_first_refresh()
+    # Retrieve the client instance that main_coordinator should have created and stored.
+    # This relies on main_coordinator's implementation to place the client in hass.data.
+    # If it doesn't, this is a structural issue to be fixed in MerakiDataUpdateCoordinator.
+    # For now, we assume it does, or at least exposes it via a property.
+    meraki_client_instance = getattr(main_coordinator, "meraki_client", None)
+    if not meraki_client_instance:
+        # This is a fallback logic block if main_coordinator doesn't expose client directly
+        # but it should have stored it in hass.data if it created it.
+        # Let's check hass.data as a primary source if not on coordinator.
+        try:
+            meraki_client_instance = hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]
+        except KeyError:
+            _LOGGER.error(
+                "MerakiAPIClient not found on main_coordinator and not in hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]. "
+                "SSID coordinator and its entities may not function correctly if they need to make API calls. "
+                "This indicates MerakiDataUpdateCoordinator is not storing the client as expected."
+            )
+            # Depending on strictness, could return False here.
+            # For now, we'll let it proceed, and entities that need the client will fail if it's not there.
 
-    # Store the initialized coordinator in `hass.data` for access by platforms.
+    # Initialize SSIDDeviceCoordinator
+    ssid_coordinator = SSIDDeviceCoordinator(
+        hass=hass,
+        config_entry=entry,
+        api_data_fetcher=main_coordinator, # main_coordinator's .data should provide "ssids"
+        update_interval=interval, # Or a different interval if desired for SSIDs
+    )
+    await ssid_coordinator.async_config_entry_first_refresh()
+
+    # Store coordinators and client in the structure expected by entities
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = {"coordinator": coordinator}
+    hass.data[DOMAIN][entry.entry_id] = {
+        "coordinator": main_coordinator, # Main coordinator (legacy access for some parts)
+        DATA_CLIENT: meraki_client_instance, # Central client instance
+        "coordinators": {
+            "main": main_coordinator,
+            "ssid_devices": ssid_coordinator,
+        }
+    }
     _LOGGER.debug(
-        "Stored MerakiDataUpdateCoordinator in hass.data for entry_id: %s",
+        "Stored coordinators and client in hass.data for entry_id: %s. Client instance: %s",
         entry.entry_id,
+        "present" if meraki_client_instance else "MISSING",
     )
 
-    # Forward the setup to all defined platforms (e.g., sensor, switch).
-    # These platforms will use the coordinator stored in `hass.data`.
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    # Set up a listener to reload the entry if the configuration options
-    # change.
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     _LOGGER.debug(
         "Completed async_setup_entry for Meraki integration (entry_id: %s)",
@@ -124,97 +121,78 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     return True
 
-
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a Meraki configuration entry.
+    """Handle unloading of a Meraki config entry.
 
-    This function is called when the integration is being removed or reloaded.
-    It handles unloading platforms, closing API client sessions, and cleaning
-    up data stored in `hass.data`.
+    This function is called by Home Assistant when the integration is being
+    unloaded (e.g., due to removal or reconfiguration). It ensures that
+    all associated platforms are unloaded and cleans up resources, such as
+    the Meraki API client and data coordinators.
 
     Args:
         hass: The Home Assistant instance.
-        entry: The configuration entry to unload.
+        entry: The configuration entry being unloaded.
 
     Returns:
-        True if the unload process was successful, False otherwise.
+        True if the unload was successful, False otherwise.
     """
-    _LOGGER.debug("Unloading Meraki integration for entry_id: %s", entry.entry_id)
-    # Unload platforms (sensor, switch, etc.) associated with this config
-    # entry.
-    unload_ok: bool = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    _LOGGER.debug("Starting async_unload_entry for Meraki integration.")
+
+    # Unload platforms associated with the config entry.
+    # PLATFORMS should be the list of platform constants from const.py
+    unload_ok: bool = await hass.config_entries.async_unload_platforms(
+        entry, PLATFORMS
+    )
 
     if unload_ok:
-        # If platforms unloaded successfully, clean up coordinator and API
-        # client.
-        if DOMAIN in hass.data and entry.entry_id in hass.data[DOMAIN]:
-            # Remove and get entry's data.
-            domain_entry_data = hass.data[DOMAIN].pop(entry.entry_id)
-            coordinator: Optional[MerakiDataUpdateCoordinator] = domain_entry_data.get(
-                "coordinator"
-            )
+        _LOGGER.debug("Successfully unloaded Meraki platforms.")
+        # Retrieve the main coordinator to close its client session
+        # This assumes the client is managed by the main coordinator.
+        if (
+            DOMAIN in hass.data
+            and entry.entry_id in hass.data[DOMAIN]
+            and "coordinators" in hass.data[DOMAIN][entry.entry_id]
+            and "main" in hass.data[DOMAIN][entry.entry_id]["coordinators"]
 
-            # Gracefully close the Meraki API client session if the coordinator
-            # and client exist.
-            if (
-                coordinator
-                and hasattr(coordinator, "meraki_client")
-                and coordinator.meraki_client
-            ):
-                if hasattr(coordinator.meraki_client, "close"):
-                    _LOGGER.info(
-                        "Closing Meraki API client session for entry %s.",
-                        entry.entry_id,
-                    )
-                    try:
-                        await coordinator.meraki_client.close()
-                    except Exception as e:
-                        _LOGGER.error(
-                            "Error closing Meraki API client session for entry %s: %s",
-                            entry.entry_id,
-                            e,
-                        )
-                else:
-                    _LOGGER.warning(
-                        "Meraki API client for entry %s does not have a 'close' method.",
-                        entry.entry_id,
-                    )
-            else:
-                _LOGGER.warning(
-                    "Meraki API client or coordinator not found for entry %s during unload.",
-                    entry.entry_id,
-                )
+        ):
+            main_coordinator = hass.data[DOMAIN][entry.entry_id]["coordinators"]["main"]
+            if hasattr(main_coordinator, "meraki_client") and main_coordinator.meraki_client:
+                try:
+                    _LOGGER.debug("Closing Meraki API client session.")
+                    await main_coordinator.meraki_client.close()
+                except Exception as e:
+                    _LOGGER.error("Error closing Meraki API client session: %s", e)
 
-            _LOGGER.info(
-                "Successfully unloaded Meraki integration and associated data for entry: %s",
-                entry.entry_id,
-            )
+            # Clean up hass.data for this entry
+            hass.data[DOMAIN].pop(entry.entry_id)
+            if not hass.data[DOMAIN]: # If no other entries, remove domain from data
+                hass.data.pop(DOMAIN)
+            _LOGGER.debug("Cleaned up hass.data for Meraki entry_id: %s", entry.entry_id)
         else:
-            _LOGGER.info(
-                "No data found in hass.data[DOMAIN] for entry %s to remove during unload.",
-                entry.entry_id,
+            _LOGGER.warning(
+                "Could not find main coordinator in hass.data to close client session during unload."
             )
     else:
-        _LOGGER.error("Failed to unload Meraki platforms for entry: %s", entry.entry_id)
+        _LOGGER.error("Failed to unload Meraki platforms for entry_id: %s.", entry.entry_id)
 
+    _LOGGER.debug("Completed async_unload_entry for Meraki integration.")
     return unload_ok
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload a Meraki configuration entry upon option changes.
+    """Reload Meraki configuration entry.
 
-    This function is triggered when the user modifies the integration's options.
-    It ensures changes are applied by unloading and then setting up the
-    integration again with the new configuration, avoiding a full Home Assistant restart.
+    This function is called by Home Assistant when the user requests to
+    reload the integration, typically after changing configuration options.
+    It first unloads the existing setup and then re-initializes it.
 
     Args:
         hass: The Home Assistant instance.
-        entry: The configuration entry that has been updated.
+        entry: The configuration entry to reload.
     """
-    _LOGGER.info(
-        "Reloading Meraki integration due to option changes for entry: %s",
-        entry.entry_id,
+    _LOGGER.debug("Reloading Meraki configuration entry: %s", entry.entry_id)
+    await async_unload_entry(hass, entry)
+    await async_setup_entry(hass, entry)
+    _LOGGER.debug(
+        "Finished reloading Meraki configuration entry: %s", entry.entry_id
     )
-    await async_unload_entry(hass, entry)  # Unload the current setup.
-    await async_setup_entry(hass, entry)  # Set up again with new options.
-    _LOGGER.info("Finished reloading Meraki integration for entry: %s", entry.entry_id)
