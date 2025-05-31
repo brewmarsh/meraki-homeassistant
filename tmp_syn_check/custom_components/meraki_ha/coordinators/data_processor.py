@@ -6,6 +6,7 @@ and usable format for the integration. This includes extracting relevant fields
 and, for certain device types (like MR wireless access points), fetching
 additional details asynchronously.
 """
+
 import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, Coroutine, Dict, List, Optional, Union
@@ -38,7 +39,7 @@ class MerakiDataProcessor:
         # self.api_key: str = coordinator.api_key # Can be removed if not used directly elsewhere
         self.api_client = MerakiAPIClient(
             api_key=self.coordinator.api_key,
-            org_id=self.coordinator.org_id  # Assuming org_id is available on coordinator
+            org_id=self.coordinator.org_id,  # Assuming org_id is available on coordinator
         )
 
     async def process_devices(
@@ -90,16 +91,20 @@ class MerakiDataProcessor:
                 # but the function name implies it might be specific to client counting on an AP.
                 # The original code used mac_address for client count.
                 # Let's assume mac_address is the identifier needed by that specific function.
-                ap_identifier_for_clients: Optional[str] = device.get("mac") # or device.get("serial")
+                ap_identifier_for_clients: Optional[str] = device.get(
+                    "mac"
+                )  # or device.get("serial")
                 device_serial_for_radio: Optional[str] = device.get("serial")
 
-                mr_device_indices.append(i) # Store index of this MR device
+                mr_device_indices.append(i)  # Store index of this MR device
 
                 # Task for connected client count
-                if network_id and ap_identifier_for_clients: # ap_identifier_for_clients might not be needed
+                if (
+                    network_id and ap_identifier_for_clients
+                ):  # ap_identifier_for_clients might not be needed
                     async_tasks.append(
                         self.api_client.wireless.async_get_network_client_count(
-                            network_id=network_id # Using network_id as per target method
+                            network_id=network_id  # Using network_id as per target method
                         )
                     )
                 else:
@@ -130,7 +135,8 @@ class MerakiDataProcessor:
         if async_tasks:
             # `return_exceptions=True` allows us to handle individual task failures
             results: List[Union[Any, Exception]] = await asyncio.gather(
-                *[task for task in async_tasks if task is not None], return_exceptions=True
+                *[task for task in async_tasks if task is not None],
+                return_exceptions=True
             )
 
             # Assign results back to the corresponding MR devices
@@ -142,7 +148,9 @@ class MerakiDataProcessor:
                 # This logic assumes tasks were added in pairs for MR devices.
 
                 # Client count result
-                client_task_was_valid = (mr_idx * 2) < len(async_tasks) and async_tasks[mr_idx * 2] is not None
+                client_task_was_valid = (mr_idx * 2) < len(async_tasks) and async_tasks[
+                    mr_idx * 2
+                ] is not None
                 if client_task_was_valid and result_idx < len(results):
                     client_result = results[result_idx]
                     if isinstance(client_result, int):
@@ -154,16 +162,22 @@ class MerakiDataProcessor:
                             target_device.get("serial"),
                             client_result,
                         )
-                    result_idx +=1
-                elif not client_task_was_valid: # if the task was None to begin with
-                    _LOGGER.debug("Skipped client count for MR device %s due to missing info.", target_device.get("serial"))
-
+                    result_idx += 1
+                elif not client_task_was_valid:  # if the task was None to begin with
+                    _LOGGER.debug(
+                        "Skipped client count for MR device %s due to missing info.",
+                        target_device.get("serial"),
+                    )
 
                 # Radio settings result
-                radio_task_was_valid = (mr_idx * 2 + 1) < len(async_tasks) and async_tasks[mr_idx * 2 + 1] is not None
+                radio_task_was_valid = (mr_idx * 2 + 1) < len(
+                    async_tasks
+                ) and async_tasks[mr_idx * 2 + 1] is not None
                 if radio_task_was_valid and result_idx < len(results):
                     radio_result = results[result_idx]
-                    if isinstance(radio_result, dict): # Assuming radio settings are a dict
+                    if isinstance(
+                        radio_result, dict
+                    ):  # Assuming radio settings are a dict
                         target_device["radio_settings"] = radio_result
                     elif isinstance(radio_result, Exception):
                         _LOGGER.warning(
@@ -173,17 +187,17 @@ class MerakiDataProcessor:
                             radio_result,
                         )
                     result_idx += 1
-                elif not radio_task_was_valid: # if the task was None to begin with
-                     _LOGGER.debug("Skipped radio settings for MR device %s due to missing info.", target_device.get("serial"))
-
+                elif not radio_task_was_valid:  # if the task was None to begin with
+                    _LOGGER.debug(
+                        "Skipped radio settings for MR device %s due to missing info.",
+                        target_device.get("serial"),
+                    )
 
         _LOGGER.debug("Finished processing %d devices.", len(processed_devices_list))
         return processed_devices_list
 
     @staticmethod
-    def process_networks(
-        networks: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+    def process_networks(networks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Process a list of network data from the Meraki API.
 
         Extracts key information for each network.
@@ -246,7 +260,7 @@ class MerakiDataProcessor:
             processed_ssid: Dict[str, Any] = {
                 "name": ssid.get("name"),
                 "enabled": ssid.get("enabled"),
-                "number": ssid.get("number"), # SSID number is often important
+                "number": ssid.get("number"),  # SSID number is often important
                 "splashPage": ssid.get("splashPage"),
                 "authMode": ssid.get("authMode"),
                 # Add other relevant SSID attributes here if needed

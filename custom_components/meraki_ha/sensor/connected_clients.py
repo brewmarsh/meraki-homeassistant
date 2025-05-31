@@ -4,6 +4,7 @@ This module defines the `MerakiConnectedClientsSensor` class, which
 represents a sensor in Home Assistant that displays the number of clients
 currently connected to a specific Meraki device (typically an access point).
 """
+
 import logging
 from typing import Any, Dict, Optional
 
@@ -58,10 +59,11 @@ class MerakiConnectedClientsSensor(
         super().__init__(coordinator)
         self._device_info_data: Dict[str, Any] = device_data
         device_name = self._device_info_data.get(
-            "name", self._device_info_data.get(
-                "serial", "Unknown Device"))
+            "name", self._device_info_data.get("serial", "Unknown Device")
+        )
         device_serial = self._device_info_data.get(
-            "serial", "")  # Should always have serial
+            "serial", ""
+        )  # Should always have serial
 
         self._attr_name = f"{device_name} Connected Clients"
         self._attr_unique_id = f"{device_serial}_connected_clients"
@@ -83,7 +85,8 @@ class MerakiConnectedClientsSensor(
         if self.coordinator.data is None or "devices" not in self.coordinator.data:
             _LOGGER.warning(
                 "Coordinator data or devices list is unavailable for %s.",
-                self.unique_id)
+                self.unique_id,
+            )
             return None  # Or 0 if preferred for unavailable data source
 
         device_serial = self._device_info_data.get("serial")
@@ -113,9 +116,7 @@ class MerakiConnectedClientsSensor(
             else:
                 _LOGGER.warning(
                     "Connected clients data for device '%s' (Serial: %s) is not an integer: %s. Defaulting to 0.",
-                    self._device_info_data.get(
-                        "name",
-                        "N/A"),
+                    self._device_info_data.get("name", "N/A"),
                     device_serial,
                     client_count,
                 )
@@ -158,7 +159,9 @@ class MerakiConnectedClientsSensor(
         """
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_info_data["serial"])},
-            name=str(self._device_info_data.get("name", self._device_info_data["serial"])),
+            name=str(
+                self._device_info_data.get("name", self._device_info_data["serial"])
+            ),
             manufacturer="Cisco Meraki",
             model=str(self._device_info_data.get("model", "Unknown")),
             sw_version=str(self._device_info_data.get("firmware", "")),

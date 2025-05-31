@@ -5,9 +5,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from homeassistant.components.device_tracker import SourceType
 from homeassistant.config_entries import ConfigEntry
+
 # STATE_HOME, STATE_NOT_HOME removed F401
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator  # UpdateFailed removed F401
+from homeassistant.helpers.update_coordinator import (
+    DataUpdateCoordinator,
+)  # UpdateFailed removed F401
 
 from custom_components.meraki_ha.const import DATA_COORDINATOR, DOMAIN
 from custom_components.meraki_ha.device_tracker import (
@@ -63,9 +66,7 @@ def mock_coordinator(hass: HomeAssistant) -> MagicMock:
     return coordinator
 
 
-def setup_hass_domain_data(
-    hass: HomeAssistant, entry_id: str, coordinator: MagicMock
-):
+def setup_hass_domain_data(hass: HomeAssistant, entry_id: str, coordinator: MagicMock):
     """Set up the hass.data structure for the Meraki domain."""
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry_id] = {DATA_COORDINATOR: coordinator}
@@ -73,10 +74,10 @@ def setup_hass_domain_data(
 
 # --- Test Cases ---
 
+
 async def test_async_setup_entry_creates_trackers(
-        hass: HomeAssistant,
-        mock_coordinator: MagicMock,
-        mock_config_entry: ConfigEntry):
+    hass: HomeAssistant, mock_coordinator: MagicMock, mock_config_entry: ConfigEntry
+):
     """Test that device trackers are created for clients."""
     mock_coordinator.data = {"clients": [MOCK_CLIENT_1, MOCK_CLIENT_2]}
     setup_hass_domain_data(hass, mock_config_entry.entry_id, mock_coordinator)
@@ -89,8 +90,7 @@ async def test_async_setup_entry_creates_trackers(
     created_entities = mock_async_add_entities.call_args[0][0]
     assert len(created_entities) == 2
 
-    entity_macs = {entity._client_info_data["mac"]
-                   for entity in created_entities}
+    entity_macs = {entity._client_info_data["mac"] for entity in created_entities}
     assert MOCK_CLIENT_1["mac"] in entity_macs
     assert MOCK_CLIENT_2["mac"] in entity_macs
 
@@ -105,9 +105,8 @@ async def test_async_setup_entry_creates_trackers(
 
 
 async def test_async_setup_entry_no_clients(
-        hass: HomeAssistant,
-        mock_coordinator: MagicMock,
-        mock_config_entry: ConfigEntry):
+    hass: HomeAssistant, mock_coordinator: MagicMock, mock_config_entry: ConfigEntry
+):
     """Test that no entities are created if the coordinator provides no client data."""
     mock_coordinator.data = {"clients": []}  # No clients
     setup_hass_domain_data(hass, mock_config_entry.entry_id, mock_coordinator)
@@ -120,9 +119,8 @@ async def test_async_setup_entry_no_clients(
 
 
 async def test_async_setup_entry_coordinator_data_none(
-        hass: HomeAssistant,
-        mock_coordinator: MagicMock,
-        mock_config_entry: ConfigEntry):
+    hass: HomeAssistant, mock_coordinator: MagicMock, mock_config_entry: ConfigEntry
+):
     """Test that no entities are created if coordinator.data is None."""
     mock_coordinator.data = None  # Coordinator data is None
     setup_hass_domain_data(hass, mock_config_entry.entry_id, mock_coordinator)
@@ -135,9 +133,8 @@ async def test_async_setup_entry_coordinator_data_none(
 
 
 async def test_async_setup_entry_clients_key_missing(
-        hass: HomeAssistant,
-        mock_coordinator: MagicMock,
-        mock_config_entry: ConfigEntry):
+    hass: HomeAssistant, mock_coordinator: MagicMock, mock_config_entry: ConfigEntry
+):
     """Test that no entities are created if 'clients' key is missing in coordinator.data."""
     mock_coordinator.data = {}  # 'clients' key missing
     setup_hass_domain_data(hass, mock_config_entry.entry_id, mock_coordinator)
@@ -150,9 +147,8 @@ async def test_async_setup_entry_clients_key_missing(
 
 
 async def test_async_setup_entry_missing_client_mac(
-        hass: HomeAssistant,
-        mock_coordinator: MagicMock,
-        mock_config_entry: ConfigEntry):
+    hass: HomeAssistant, mock_coordinator: MagicMock, mock_config_entry: ConfigEntry
+):
     """Test that clients with missing MAC addresses are skipped."""
     client_missing_mac = MOCK_CLIENT_1.copy()
     del client_missing_mac["mac"]
@@ -345,16 +341,18 @@ async def test_coordinator_updates_client_info_changes(
 
 
 async def test_entity_added_to_platform_and_coordinator(
-        hass: HomeAssistant,
-        mock_coordinator: MagicMock,
-        mock_config_entry: ConfigEntry):
+    hass: HomeAssistant, mock_coordinator: MagicMock, mock_config_entry: ConfigEntry
+):
     """Test that the entity correctly subscribes to coordinator updates when added."""
     mock_coordinator.data = {"clients": [MOCK_CLIENT_1]}
     setup_hass_domain_data(hass, mock_config_entry.entry_id, mock_coordinator)
 
     # Patch the MerakiDeviceTracker's methods for subscribing to coordinator
-    with patch.object(MerakiDeviceTracker, 'async_added_to_hass', new_callable=AsyncMock) as mock_added_to_hass, \
-            patch.object(MerakiDeviceTracker, '_handle_coordinator_update', new=MagicMock()) as mock_handle_update:
+    with patch.object(
+        MerakiDeviceTracker, "async_added_to_hass", new_callable=AsyncMock
+    ) as mock_added_to_hass, patch.object(
+        MerakiDeviceTracker, "_handle_coordinator_update", new=MagicMock()
+    ) as mock_handle_update:
 
         mock_async_add_entities = AsyncMock()
         await async_setup_entry(hass, mock_config_entry, mock_async_add_entities)
@@ -378,7 +376,8 @@ async def test_entity_added_to_platform_and_coordinator(
         # So, if our mock_coordinator.async_add_listener was called, it means
         # setup is correct.
         mock_coordinator.async_add_listener.assert_called_with(
-            tracker._handle_coordinator_update)
+            tracker._handle_coordinator_update
+        )
 
         # Also, the initial state should be set by calling
         # _handle_coordinator_update

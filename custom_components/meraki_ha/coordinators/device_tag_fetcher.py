@@ -5,6 +5,7 @@ fetching of device tags from the Meraki API using an instance of `MerakiApiDataF
 It's a simpler alternative to `DeviceTagFetchCoordinator` for scenarios where
 coordinator overhead is not needed.
 """
+
 import logging
 from typing import List, Optional  # Added Optional
 
@@ -67,30 +68,27 @@ class DeviceTagFetcher:
             if tags is None:
                 _LOGGER.info(
                     "No tags returned by API fetcher for device %s (or fetcher returned None).",
-                    serial)
+                    serial,
+                )
                 return []
             _LOGGER.debug(
-                "Successfully fetched %d tags for device %s.",
-                len(tags),
-                serial)
+                "Successfully fetched %d tags for device %s.", len(tags), serial
+            )
             return tags
         except MerakiApiConnectionError as e:
             _LOGGER.error(
-                "Connection error while fetching tags for device %s: %s",
-                serial,
-                e)
+                "Connection error while fetching tags for device %s: %s", serial, e
+            )
             return []
         except MerakiApiInvalidApiKeyError as e:
             _LOGGER.error(
-                "Invalid API key error while fetching tags for device %s: %s",
-                serial,
-                e)
+                "Invalid API key error while fetching tags for device %s: %s", serial, e
+            )
             return []
         except MerakiApiError as e:  # Catch other Meraki API specific errors
             _LOGGER.error(
-                "A Meraki API error occurred fetching tags for device %s: %s",
-                serial,
-                e)
+                "A Meraki API error occurred fetching tags for device %s: %s", serial, e
+            )
             return []
         except Exception as e:  # Catch any other unexpected errors
             _LOGGER.exception(  # Use .exception to include stack trace

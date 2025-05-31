@@ -11,18 +11,25 @@ from meraki.exceptions import APIError as MerakiSDKAPIError
 # Assuming MerakiAPIClient and MerakiApiDataFetcher are importable
 # Adjust paths as necessary if your project structure differs
 from custom_components.meraki_ha.meraki_api import MerakiAPIClient
-from custom_components.meraki_ha.coordinators.api_data_fetcher import MerakiApiDataFetcher
+from custom_components.meraki_ha.coordinators.api_data_fetcher import (
+    MerakiApiDataFetcher,
+)
 
 # --- Mock Data ---
-MOCK_ORG_DEVICES = [{"serial": "Q2AB-CDEF-0001",
-                     "name": "Device 1",
-                     "model": "MR33",
-                     "networkId": "N_123"},
-                    {"serial": "Q2AB-CDEF-0002",
-                     "name": "Device 2",
-                     "model": "MS220-8P",
-                     "networkId": "N_124"},
-                    ]
+MOCK_ORG_DEVICES = [
+    {
+        "serial": "Q2AB-CDEF-0001",
+        "name": "Device 1",
+        "model": "MR33",
+        "networkId": "N_123",
+    },
+    {
+        "serial": "Q2AB-CDEF-0002",
+        "name": "Device 2",
+        "model": "MS220-8P",
+        "networkId": "N_124",
+    },
+]
 
 MOCK_NETWORKS = [
     {"id": "N_123", "name": "Network 1", "organizationId": "test_org_id"},
@@ -38,11 +45,13 @@ MOCK_SSIDS_NET2 = [
     {"number": 0, "name": "SSID_Net2_1", "enabled": True},
 ]
 
-MOCK_CLIENTS_NET1 = [{"mac": "AA:BB:CC:00:01:01",
-                      "description": "Client A Net 1", "ip": "192.168.1.11"}, ]
+MOCK_CLIENTS_NET1 = [
+    {"mac": "AA:BB:CC:00:01:01", "description": "Client A Net 1", "ip": "192.168.1.11"},
+]
 
-MOCK_CLIENTS_NET2 = [{"mac": "AA:BB:CC:00:02:01",
-                      "description": "Client B Net 2", "ip": "192.168.2.21"}, ]
+MOCK_CLIENTS_NET2 = [
+    {"mac": "AA:BB:CC:00:02:01", "description": "Client B Net 2", "ip": "192.168.2.21"},
+]
 
 # --- Fixtures ---
 
@@ -68,6 +77,7 @@ def data_fetcher(mock_meraki_client: MagicMock) -> MerakiApiDataFetcher:
     """Fixture to create an instance of MerakiApiDataFetcher with a mocked client."""
     return MerakiApiDataFetcher(meraki_client=mock_meraki_client)
 
+
 # --- Tests for async_get_organization_devices ---
 
 
@@ -82,7 +92,8 @@ async def test_async_get_organization_devices_success(
     result = await data_fetcher.async_get_organization_devices(org_id="test_org_id")
 
     mock_meraki_client.organizations.getOrganizationDevices.assert_called_once_with(
-        "test_org_id")
+        "test_org_id"
+    )
     assert result == MOCK_ORG_DEVICES
 
 
@@ -92,10 +103,9 @@ async def test_async_get_organization_devices_api_error(
     """Test API error when fetching organization devices."""
     mock_meraki_client.organizations.getOrganizationDevices = AsyncMock(
         side_effect=MerakiSDKAPIError(
-            MagicMock(
-                status=500,
-                reason="Server Error"),
-            "test API error"))
+            MagicMock(status=500, reason="Server Error"), "test API error"
+        )
+    )
 
     with caplog.at_level(logging.WARNING):
         result = await data_fetcher.async_get_organization_devices(org_id="test_org_id")
@@ -124,6 +134,7 @@ async def test_async_get_organization_devices_unexpected_exception(
 
 # --- Tests for async_get_networks ---
 
+
 async def test_async_get_networks_success(
     data_fetcher: MerakiApiDataFetcher, mock_meraki_client: MagicMock
 ):
@@ -135,7 +146,8 @@ async def test_async_get_networks_success(
     result = await data_fetcher.async_get_networks(org_id="test_org_id")
 
     mock_meraki_client.organizations.getOrganizationNetworks.assert_called_once_with(
-        organizationId="test_org_id")
+        organizationId="test_org_id"
+    )
     assert result == MOCK_NETWORKS
 
 
@@ -145,10 +157,9 @@ async def test_async_get_networks_api_error(
     """Test API error when fetching networks."""
     mock_meraki_client.organizations.getOrganizationNetworks = AsyncMock(
         side_effect=MerakiSDKAPIError(
-            MagicMock(
-                status=403,
-                reason="Forbidden"),
-            "test network API error"))
+            MagicMock(status=403, reason="Forbidden"), "test network API error"
+        )
+    )
 
     with caplog.at_level(logging.WARNING):
         result = await data_fetcher.async_get_networks(org_id="test_org_id")
@@ -164,13 +175,17 @@ async def test_async_get_networks_returns_none(
 ):
     """Test when getOrganizationNetworks returns None."""
     mock_meraki_client.organizations.getOrganizationNetworks = AsyncMock(
-        return_value=None)
+        return_value=None
+    )
 
     with caplog.at_level(logging.WARNING):
         result = await data_fetcher.async_get_networks(org_id="test_org_id")
 
     assert result is None
-    assert "Call to organizations.getOrganizationNetworks for org ID test_org_id returned None." in caplog.text
+    assert (
+        "Call to organizations.getOrganizationNetworks for org ID test_org_id returned None."
+        in caplog.text
+    )
 
 
 async def test_async_get_networks_returns_empty_list(
@@ -178,7 +193,8 @@ async def test_async_get_networks_returns_empty_list(
 ):
     """Test when getOrganizationNetworks returns an empty list (treated as no networks found)."""
     mock_meraki_client.organizations.getOrganizationNetworks = AsyncMock(
-        return_value=[])
+        return_value=[]
+    )
 
     with caplog.at_level(logging.WARNING):
         result = await data_fetcher.async_get_networks(org_id="test_org_id")
@@ -188,6 +204,7 @@ async def test_async_get_networks_returns_empty_list(
 
 
 # --- Tests for async_get_network_ssids ---
+
 
 async def test_async_get_network_ssids_success(
     data_fetcher: MerakiApiDataFetcher, mock_meraki_client: MagicMock
@@ -200,7 +217,8 @@ async def test_async_get_network_ssids_success(
     result = await data_fetcher.async_get_network_ssids(network_id="N_123")
 
     mock_meraki_client.wireless.getNetworkWirelessSsids.assert_called_once_with(
-        network_id="N_123")
+        network_id="N_123"
+    )
     assert result == MOCK_SSIDS_NET1
 
 
@@ -210,10 +228,9 @@ async def test_async_get_network_ssids_api_error_404(
     """Test API error 404 (No SSIDs/Wireless) when fetching SSIDs."""
     mock_meraki_client.wireless.getNetworkWirelessSsids = AsyncMock(
         side_effect=MerakiSDKAPIError(
-            MagicMock(
-                status=404,
-                reason="Not found"),
-            "SSID not found"))
+            MagicMock(status=404, reason="Not found"), "SSID not found"
+        )
+    )
 
     with caplog.at_level(logging.INFO):  # 404 is logged as INFO
         result = await data_fetcher.async_get_network_ssids(network_id="N_NONEXIST")
@@ -228,10 +245,9 @@ async def test_async_get_network_ssids_api_error_other(
     """Test other API errors when fetching SSIDs."""
     mock_meraki_client.wireless.getNetworkWirelessSsids = AsyncMock(
         side_effect=MerakiSDKAPIError(
-            MagicMock(
-                status=500,
-                reason="Server Error"),
-            "SSID fetch error"))
+            MagicMock(status=500, reason="Server Error"), "SSID fetch error"
+        )
+    )
 
     with caplog.at_level(logging.WARNING):
         result = await data_fetcher.async_get_network_ssids(network_id="N_123")
@@ -239,6 +255,7 @@ async def test_async_get_network_ssids_api_error_other(
     assert result is None
     assert "SDK API error fetching SSIDs for network N_123" in caplog.text
     assert "Status 500, Reason: Server Error" in caplog.text
+
 
 # --- Tests for _async_get_mr_device_details (helper for fetch_all_data) ---
 
@@ -252,16 +269,20 @@ async def test_async_get_mr_device_details_success(
     mock_radio_data = {"band": "2.4 GHz", "channel": 6}
 
     mock_meraki_client.devices.getDeviceClients = AsyncMock(
-        return_value=mock_clients_data)
+        return_value=mock_clients_data
+    )
     mock_meraki_client.wireless.getDeviceWirelessRadioSettings = AsyncMock(
-        return_value=mock_radio_data)
+        return_value=mock_radio_data
+    )
 
     await data_fetcher._async_get_mr_device_details(device_dict, "MR_SERIAL")
 
     mock_meraki_client.devices.getDeviceClients.assert_called_once_with(
-        serial="MR_SERIAL")
+        serial="MR_SERIAL"
+    )
     mock_meraki_client.wireless.getDeviceWirelessRadioSettings.assert_called_once_with(
-        serial="MR_SERIAL")
+        serial="MR_SERIAL"
+    )
 
     assert device_dict["connected_clients_count"] == 2
     assert device_dict["radio_settings"] == mock_radio_data
@@ -278,7 +299,8 @@ async def test_async_get_mr_device_details_clients_api_error(
         side_effect=MerakiSDKAPIError(MagicMock(status=500), "Client fetch error")
     )
     mock_meraki_client.wireless.getDeviceWirelessRadioSettings = AsyncMock(
-        return_value=mock_radio_data)
+        return_value=mock_radio_data
+    )
 
     with caplog.at_level(logging.WARNING):
         await data_fetcher._async_get_mr_device_details(device_dict, "MR_SERIAL")
@@ -297,7 +319,8 @@ async def test_async_get_mr_device_details_radio_api_error(
     mock_clients_data = [{"mac": "client1"}]
 
     mock_meraki_client.devices.getDeviceClients = AsyncMock(
-        return_value=mock_clients_data)
+        return_value=mock_clients_data
+    )
     mock_meraki_client.wireless.getDeviceWirelessRadioSettings = AsyncMock(
         side_effect=MerakiSDKAPIError(MagicMock(status=500), "Radio fetch error")
     )
@@ -310,19 +333,24 @@ async def test_async_get_mr_device_details_radio_api_error(
     assert device_dict["connected_clients_count"] == 1
     assert device_dict["radio_settings"] is None  # Default value
 
+
 # --- Tests for fetch_all_data (Main Orchestration Method) ---
 
 
 async def test_fetch_all_data_success(
     # Add hass_mock if needed by fetch_all_data
-    data_fetcher: MerakiApiDataFetcher, mock_meraki_client: MagicMock, hass_mock
+    data_fetcher: MerakiApiDataFetcher,
+    mock_meraki_client: MagicMock,
+    hass_mock,
 ):
     """Test successful fetching of all data types."""
     # Setup mocks for all underlying fetch methods
     mock_meraki_client.organizations.getOrganizationNetworks = AsyncMock(
-        return_value=MOCK_NETWORKS)
+        return_value=MOCK_NETWORKS
+    )
     mock_meraki_client.organizations.getOrganizationDevices = AsyncMock(
-        return_value=MOCK_ORG_DEVICES)
+        return_value=MOCK_ORG_DEVICES
+    )
 
     # Mock SSIDs for each network
     def mock_get_ssids(network_id):
@@ -331,8 +359,10 @@ async def test_fetch_all_data_success(
         elif network_id == "N_124":
             return AsyncMock(return_value=MOCK_SSIDS_NET2)()
         return AsyncMock(return_value=[])()  # Default empty for other networks
+
     mock_meraki_client.wireless.getNetworkWirelessSsids = MagicMock(
-        side_effect=mock_get_ssids)
+        side_effect=mock_get_ssids
+    )
 
     # Mock clients for each network
     def mock_get_clients(network_id, timespan):  # Add timespan
@@ -341,18 +371,22 @@ async def test_fetch_all_data_success(
         elif network_id == "N_124":
             return AsyncMock(return_value=MOCK_CLIENTS_NET2)()
         return AsyncMock(return_value=[])()
+
     # Ensure the path matches the one used in fetch_all_data:
     # It was self.meraki_client.networks.get_network_clients
     mock_meraki_client.networks.getNetworkClients = MagicMock(
-        side_effect=mock_get_clients)
+        side_effect=mock_get_clients
+    )
 
     # Mock MR device details (client count and radio settings)
     # For simplicity, assume one MR device from MOCK_ORG_DEVICES
     mr_device_serial = "Q2AB-CDEF-0001"  # Assuming this is an MR device
     mock_meraki_client.devices.getDeviceClients = AsyncMock(
-        return_value=[{"mac": "client_mr"}])
+        return_value=[{"mac": "client_mr"}]
+    )
     mock_meraki_client.wireless.getDeviceWirelessRadioSettings = AsyncMock(
-        return_value={"band": "2.4GHz"})
+        return_value={"band": "2.4GHz"}
+    )
 
     # Mock HomeAssistant instance if needed by the method
     hass_mock_instance = MagicMock()
@@ -362,69 +396,72 @@ async def test_fetch_all_data_success(
     assert all_data["networks"] == MOCK_NETWORKS
     # MR device details are added in-place
     assert all_data["devices"] == MOCK_ORG_DEVICES
-    assert len(all_data["ssids"]) == len(
-        MOCK_SSIDS_NET1) + len(MOCK_SSIDS_NET2)
-    assert len(all_data["clients"]) == len(
-        MOCK_CLIENTS_NET1) + len(MOCK_CLIENTS_NET2)
+    assert len(all_data["ssids"]) == len(MOCK_SSIDS_NET1) + len(MOCK_SSIDS_NET2)
+    assert len(all_data["clients"]) == len(MOCK_CLIENTS_NET1) + len(MOCK_CLIENTS_NET2)
 
     # Verify MR device details were fetched for the MR device
     # Find the MR device in the results and check
     updated_mr_device = next(
-        d for d in all_data["devices"] if d["serial"] == mr_device_serial)
+        d for d in all_data["devices"] if d["serial"] == mr_device_serial
+    )
     assert updated_mr_device["connected_clients_count"] == 1
     assert updated_mr_device["radio_settings"] == {"band": "2.4GHz"}
 
 
 async def test_fetch_all_data_networks_fail(
-        data_fetcher: MerakiApiDataFetcher,
-        mock_meraki_client: MagicMock,
-        caplog,
-        hass_mock):
+    data_fetcher: MerakiApiDataFetcher, mock_meraki_client: MagicMock, caplog, hass_mock
+):
     """Test fetch_all_data when fetching networks fails."""
     mock_meraki_client.organizations.getOrganizationNetworks = AsyncMock(
-        return_value=None)  # Simulate failure
+        return_value=None
+    )  # Simulate failure
     hass_mock_instance = MagicMock()
 
     with pytest.raises(UpdateFailed) as excinfo:
         await data_fetcher.fetch_all_data(hass=hass_mock_instance)
 
-    assert "Could not fetch Meraki networks for org test_org_id" in str(
-        excinfo.value)
-    assert "Could not fetch Meraki networks for org ID: test_org_id. Aborting update." in caplog.text
+    assert "Could not fetch Meraki networks for org test_org_id" in str(excinfo.value)
+    assert (
+        "Could not fetch Meraki networks for org ID: test_org_id. Aborting update."
+        in caplog.text
+    )
 
 
 async def test_fetch_all_data_devices_fail(
-        data_fetcher: MerakiApiDataFetcher,
-        mock_meraki_client: MagicMock,
-        caplog,
-        hass_mock):
+    data_fetcher: MerakiApiDataFetcher, mock_meraki_client: MagicMock, caplog, hass_mock
+):
     """Test fetch_all_data when fetching devices fails."""
     mock_meraki_client.organizations.getOrganizationNetworks = AsyncMock(
-        return_value=MOCK_NETWORKS)  # Networks succeed
+        return_value=MOCK_NETWORKS
+    )  # Networks succeed
     mock_meraki_client.organizations.getOrganizationDevices = AsyncMock(
-        return_value=None)  # Devices fail
+        return_value=None
+    )  # Devices fail
     hass_mock_instance = MagicMock()
 
     with pytest.raises(UpdateFailed) as excinfo:
         await data_fetcher.fetch_all_data(hass=hass_mock_instance)
 
-    assert "Could not fetch Meraki devices for org test_org_id" in str(
-        excinfo.value)
-    assert "Could not fetch Meraki devices for org ID: test_org_id. Aborting update." in caplog.text
+    assert "Could not fetch Meraki devices for org test_org_id" in str(excinfo.value)
+    assert (
+        "Could not fetch Meraki devices for org ID: test_org_id. Aborting update."
+        in caplog.text
+    )
 
 
 async def test_fetch_all_data_ssids_fail_for_one_network(
-        data_fetcher: MerakiApiDataFetcher,
-        mock_meraki_client: MagicMock,
-        caplog,
-        hass_mock):
+    data_fetcher: MerakiApiDataFetcher, mock_meraki_client: MagicMock, caplog, hass_mock
+):
     """Test fetch_all_data when fetching SSIDs fails for one network but continues for others."""
     mock_meraki_client.organizations.getOrganizationNetworks = AsyncMock(
-        return_value=MOCK_NETWORKS)
+        return_value=MOCK_NETWORKS
+    )
     mock_meraki_client.organizations.getOrganizationDevices = AsyncMock(
-        return_value=MOCK_ORG_DEVICES)
+        return_value=MOCK_ORG_DEVICES
+    )
     mock_meraki_client.networks.getNetworkClients = AsyncMock(
-        return_value=[])  # No clients for simplicity here
+        return_value=[]
+    )  # No clients for simplicity here
 
     # SSIDs for N_123 fail, N_124 succeed
     def mock_get_ssids_partial_fail(network_id):
@@ -435,8 +472,10 @@ async def test_fetch_all_data_ssids_fail_for_one_network(
         elif network_id == "N_124":
             return AsyncMock(return_value=MOCK_SSIDS_NET2)()
         return AsyncMock(return_value=[])()
+
     mock_meraki_client.wireless.getNetworkWirelessSsids = MagicMock(
-        side_effect=mock_get_ssids_partial_fail)
+        side_effect=mock_get_ssids_partial_fail
+    )
 
     hass_mock_instance = MagicMock()
 
@@ -444,39 +483,41 @@ async def test_fetch_all_data_ssids_fail_for_one_network(
     with caplog.at_level(logging.WARNING):
         all_data = await data_fetcher.fetch_all_data(hass=hass_mock_instance)
 
-    assert "Error fetching SSIDs for network N_123 was not handled by async_get_network_ssids" in caplog.text
+    assert (
+        "Error fetching SSIDs for network N_123 was not handled by async_get_network_ssids"
+        in caplog.text
+    )
     # Reason might be None if not set in mock
     assert "Status: 500, Reason: None. Skipping." in caplog.text
-    assert len(all_data["ssids"]) == len(
-        MOCK_SSIDS_NET2)  # Only SSIDs from N_124
+    assert len(all_data["ssids"]) == len(MOCK_SSIDS_NET2)  # Only SSIDs from N_124
     assert all_data["networks"] is not None  # Other data should be present
     assert all_data["devices"] is not None
 
 
 async def test_fetch_all_data_clients_fail_for_one_network(
-        data_fetcher: MerakiApiDataFetcher,
-        mock_meraki_client: MagicMock,
-        caplog,
-        hass_mock):
+    data_fetcher: MerakiApiDataFetcher, mock_meraki_client: MagicMock, caplog, hass_mock
+):
     """Test fetch_all_data when fetching clients fails for one network."""
     mock_meraki_client.organizations.getOrganizationNetworks = AsyncMock(
-        return_value=MOCK_NETWORKS)
+        return_value=MOCK_NETWORKS
+    )
     mock_meraki_client.organizations.getOrganizationDevices = AsyncMock(
-        return_value=MOCK_ORG_DEVICES)
+        return_value=MOCK_ORG_DEVICES
+    )
     mock_meraki_client.wireless.getNetworkWirelessSsids = AsyncMock(
-        return_value=[])  # No SSIDs
+        return_value=[]
+    )  # No SSIDs
 
     def mock_get_clients_partial_fail(network_id, timespan):
         if network_id == "N_123":
-            raise MerakiSDKAPIError(
-                MagicMock(
-                    status=500),
-                "Client Error N_123")
+            raise MerakiSDKAPIError(MagicMock(status=500), "Client Error N_123")
         elif network_id == "N_124":
             return AsyncMock(return_value=MOCK_CLIENTS_NET2)()
         return AsyncMock(return_value=[])()
+
     mock_meraki_client.networks.getNetworkClients = MagicMock(
-        side_effect=mock_get_clients_partial_fail)
+        side_effect=mock_get_clients_partial_fail
+    )
 
     hass_mock_instance = MagicMock()
 
@@ -484,8 +525,7 @@ async def test_fetch_all_data_clients_fail_for_one_network(
         all_data = await data_fetcher.fetch_all_data(hass=hass_mock_instance)
 
     assert "Meraki SDK API error fetching clients for network N_123" in caplog.text
-    assert len(all_data["clients"]) == len(
-        MOCK_CLIENTS_NET2)  # Only clients from N_124
+    assert len(all_data["clients"]) == len(MOCK_CLIENTS_NET2)  # Only clients from N_124
 
 
 # Pytest needs a hass_mock fixture if used by any tests.

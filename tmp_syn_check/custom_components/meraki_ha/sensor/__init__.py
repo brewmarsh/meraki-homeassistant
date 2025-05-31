@@ -5,8 +5,9 @@ entities that represent data points from Meraki devices and networks.
 It discovers devices and networks through the central Meraki data coordinator
 and creates corresponding sensor entities.
 """
+
 import logging
-from typing import Any, Dict, List, Optional # Added Any, Optional
+from typing import Any, Dict, List, Optional  # Added Any, Optional
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -18,7 +19,9 @@ from .connected_clients import MerakiConnectedClientsSensor
 from .device_status import MerakiDeviceStatusSensor
 from .network_clients import MerakiNetworkClientCountSensor
 from .radio_settings import MerakiRadioSettingsSensor
-from .ssid import create_ssid_sensors # Function that creates multiple SSID-related sensors
+from .ssid import (
+    create_ssid_sensors,
+)  # Function that creates multiple SSID-related sensors
 from .ssid_availability import MerakiSSIDAvailabilitySensor
 from .uplink_status import MerakiUplinkStatusSensor
 
@@ -66,9 +69,11 @@ async def async_setup_entry(
 
     created_sensors: List[SensorEntity] = []
     devices: List[Dict[str, Any]] = coordinator.data.get("devices", [])
-    _LOGGER.debug("Found %d devices in coordinator data for sensor setup.", len(devices))
+    _LOGGER.debug(
+        "Found %d devices in coordinator data for sensor setup.", len(devices)
+    )
 
-    for device_info in devices: # Use more descriptive variable name
+    for device_info in devices:  # Use more descriptive variable name
         device_serial = device_info.get("serial")
         device_name = device_info.get("name", "Unknown Meraki Device")
         device_model = device_info.get("model", "")
@@ -114,11 +119,15 @@ async def async_setup_entry(
                         create_ssid_sensors(coordinator, device_info, ssid_info)
                     )
                     created_sensors.append(
-                        MerakiSSIDAvailabilitySensor(coordinator, device_info, ssid_info)
+                        MerakiSSIDAvailabilitySensor(
+                            coordinator, device_info, ssid_info
+                        )
                     )
             else:
-                _LOGGER.debug("No SSIDs found directly under device '%s' for sensor setup.", device_name)
-
+                _LOGGER.debug(
+                    "No SSIDs found directly under device '%s' for sensor setup.",
+                    device_name,
+                )
 
         # Add sensors specific to MX (Security Appliance) models
         elif device_model.upper().startswith("MX"):
@@ -129,31 +138,38 @@ async def async_setup_entry(
     # The function `get_network_ids_and_names` is assumed to be an async utility
     # that fetches basic network info. If this info is already in `coordinator.data["networks"]`,
     # that should be preferred to avoid extra API calls.
-    
+
     # Prefer using network data from coordinator if available
     networks_data: Optional[List[Dict[str, Any]]] = coordinator.data.get("networks")
-    
+
     if networks_data is None:
-        _LOGGER.info("Network data not directly in coordinator, attempting API call for network list (sensor setup).")
+        _LOGGER.info(
+            "Network data not directly in coordinator, attempting API call for network list (sensor setup)."
+        )
         # Fallback to API call if not in coordinator.data (less ideal)
-        api_client = MerakiAPIClient(api_key=coordinator.api_key, org_id=coordinator.org_id)
+        api_client = MerakiAPIClient(
+            api_key=coordinator.api_key, org_id=coordinator.org_id
+        )
         networks_data = await api_client.networks.async_get_network_ids_and_names(
             organization_id=coordinator.org_id
         )
 
     if networks_data:
-        _LOGGER.debug("Processing %d networks for network-wide sensors.", len(networks_data))
+        _LOGGER.debug(
+            "Processing %d networks for network-wide sensors.", len(networks_data)
+        )
         for network_info in networks_data:
             network_id = network_info.get("id")
             network_name = network_info.get("name", "Unknown Network")
             if not network_id:
-                _LOGGER.warning("Skipping network with no ID for client count sensor: %s", network_name)
-                continue
-            
-            created_sensors.append(
-                MerakiNetworkClientCountSensor(
-                    coordinator, network_id, network_name
+                _LOGGER.warning(
+                    "Skipping network with no ID for client count sensor: %s",
+                    network_name,
                 )
+                continue
+
+            created_sensors.append(
+                MerakiNetworkClientCountSensor(coordinator, network_id, network_name)
             )
     else:
         _LOGGER.warning(

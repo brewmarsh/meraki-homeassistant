@@ -5,7 +5,7 @@ import logging
 from .api_data_fetcher import MerakiApiDataFetcher
 from ..meraki_api.exceptions import (
     MerakiApiConnectionError,
-    MerakiApiAuthError  # This replaces MerakiApiInvalidApiKeyError
+    MerakiApiAuthError,  # This replaces MerakiApiInvalidApiKeyError
 )
 
 _LOGGER = logging.getLogger(__name__)

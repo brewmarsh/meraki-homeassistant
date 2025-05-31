@@ -7,6 +7,7 @@ tags, SSIDs, etc.) and `DataAggregationCoordinator` to process this data into
 a unified structure for the integration. It also manages optional tag erasing
 via `TagEraserCoordinator`.
 """
+
 import logging
 from datetime import timedelta
 from typing import Any, Dict, List, Optional
@@ -19,13 +20,21 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from custom_components.meraki_ha.const import DOMAIN, ERASE_TAGS_WARNING
-from custom_components.meraki_ha.coordinators.api_data_fetcher import MerakiApiDataFetcher
+from custom_components.meraki_ha.coordinators.api_data_fetcher import (
+    MerakiApiDataFetcher,
+)
+
 # MerakiApiError for exception handling
 from custom_components.meraki_ha.meraki_api import MerakiApiError
-from custom_components.meraki_ha.coordinators.data_aggregation_coordinator import DataAggregationCoordinator
+from custom_components.meraki_ha.coordinators.data_aggregation_coordinator import (
+    DataAggregationCoordinator,
+)
+
 # Obsolete coordinators (DeviceTagFetchCoordinator,
 # MerakiNetworkCoordinator, MerakiSsidCoordinator) removed.
-from custom_components.meraki_ha.coordinators.tag_eraser_coordinator import TagEraserCoordinator
+from custom_components.meraki_ha.coordinators.tag_eraser_coordinator import (
+    TagEraserCoordinator,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -74,9 +83,10 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # here.
         # Local import to avoid potential circulars
         from custom_components.meraki_ha.meraki_api import MerakiAPIClient
+
         self.meraki_client: MerakiAPIClient = MerakiAPIClient(
             api_key=api_key,
-            org_id=org_id
+            org_id=org_id,
             # Base URL is handled by the SDK itself.
         )
 
@@ -161,19 +171,22 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             )
         except MerakiApiError as e:  # Specific API errors from the fetcher.
             _LOGGER.error(
-                "API error during Meraki data fetch for org %s: %s",
-                self.org_id,
-                e)
+                "API error during Meraki data fetch for org %s: %s", self.org_id, e
+            )
             raise UpdateFailed(
                 f"Failed to fetch data from Meraki API for org {self.org_id}: {e}"
             ) from e
-        except Exception as e:  # Catch any other unexpected errors during the main fetch.
+        except (
+            Exception
+        ) as e:  # Catch any other unexpected errors during the main fetch.
             _LOGGER.exception(
                 "Unexpected error during Meraki data fetch for org %s: %s",
                 self.org_id,
-                e)
+                e,
+            )
             raise UpdateFailed(
-                f"Unexpected error fetching data for org {self.org_id}: {e}") from e
+                f"Unexpected error fetching data for org {self.org_id}: {e}"
+            ) from e
 
         # Extract data components from `all_data`. Default to empty lists if
         # keys are missing.
@@ -181,7 +194,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         ssids: List[Dict[str, Any]] = all_data.get("ssids", [])
         networks: List[Dict[str, Any]] = all_data.get("networks", [])
         clients_list: List[Dict[str, Any]] = all_data.get(
-            "clients", [])  # New: Extract clients
+            "clients", []
+        )  # New: Extract clients
 
         # Step 2: Device tags are now part of the `devices` list from `all_data`.
         # No separate tag fetching step is needed here.
@@ -194,32 +208,34 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         self.device_data = devices
 
         # Process client data to get network client counts
-        from custom_components.meraki_ha.coordinators.data_processor import MerakiDataProcessor  # Ensure import
+        from custom_components.meraki_ha.coordinators.data_processor import (
+            MerakiDataProcessor,
+        )  # Ensure import
+
         processor = MerakiDataProcessor(self)  # Instantiate processor
-        network_client_counts = processor.process_network_client_counts(
-            clients_list)
+        network_client_counts = processor.process_network_client_counts(clients_list)
 
         # Step 4: Aggregate all data using the DataAggregationCoordinator.
         # This coordinator takes the raw lists of devices, SSIDs, and networks.
         try:
-            combined_data: Dict[
-                str, Any
-            ] = await self.data_aggregation_coordinator._async_update_data(
-                devices,  # Pass the comprehensive devices list.
-                ssids,    # Pass the SSIDs list.
-                networks,  # Pass the networks list.
-                clients_list,  # New argument
-                network_client_counts,  # New argument
-                # The fourth `device_tags` argument has been removed from
-                # _async_update_data.
+            combined_data: Dict[str, Any] = (
+                await self.data_aggregation_coordinator._async_update_data(
+                    devices,  # Pass the comprehensive devices list.
+                    ssids,  # Pass the SSIDs list.
+                    networks,  # Pass the networks list.
+                    clients_list,  # New argument
+                    network_client_counts,  # New argument
+                    # The fourth `device_tags` argument has been removed from
+                    # _async_update_data.
+                )
             )
         except Exception as e:  # Catch errors specifically from the aggregation step.
             _LOGGER.exception(
-                "Error during data aggregation for org %s: %s",
-                self.org_id,
-                e)
+                "Error during data aggregation for org %s: %s", self.org_id, e
+            )
             raise UpdateFailed(
-                f"Failed to aggregate Meraki data for org {self.org_id}: {e}") from e
+                f"Failed to aggregate Meraki data for org {self.org_id}: {e}"
+            ) from e
 
         # Step 5: Update `self.data` with the fully processed and combined data.
         # This data becomes available to all entities listening to this
@@ -242,17 +258,24 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 "Tag erasing is enabled for organization %s. Processing devices for tag removal.",
                 self.org_id,
             )
-            for device_to_check in devices:  # Use a different variable name to avoid confusion
+            for (
+                device_to_check
+            ) in devices:  # Use a different variable name to avoid confusion
                 serial = device_to_check.get("serial")
                 if serial:
                     try:
-                        await self.tag_eraser_coordinator.async_erase_device_tags(serial)
-                    except MerakiApiError as e:  # Handle errors during tag erasing for a single device.
+                        await self.tag_eraser_coordinator.async_erase_device_tags(
+                            serial
+                        )
+                    except (
+                        MerakiApiError
+                    ) as e:  # Handle errors during tag erasing for a single device.
                         _LOGGER.error(
                             "Failed to erase tags for device %s (org %s): %s",
                             serial,
                             self.org_id,
-                            e)
+                            e,
+                        )
         # Return the final, combined data.
         return self.data
 
@@ -264,20 +287,21 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         such as the Meraki API client session.
         """
         _LOGGER.debug(
-            "MerakiDataUpdateCoordinator shutting down for org %s.",
-            self.org_id)
+            "MerakiDataUpdateCoordinator shutting down for org %s.", self.org_id
+        )
         # Close the Meraki API client session.
-        if hasattr(self, 'meraki_client') and self.meraki_client:
+        if hasattr(self, "meraki_client") and self.meraki_client:
             try:
                 await self.meraki_client.close()
                 _LOGGER.info(
-                    "Meraki API client session closed for org %s.",
-                    self.org_id)
+                    "Meraki API client session closed for org %s.", self.org_id
+                )
             except Exception as e:
                 _LOGGER.error(
                     "Error closing Meraki API client session for org %s: %s",
                     self.org_id,
-                    e)
+                    e,
+                )
 
         # Call superclass shutdown for any base class cleanup.
         await super()._async_shutdown()
@@ -294,6 +318,4 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             self.org_id,
         )
         await super().async_config_entry_first_refresh()
-        _LOGGER.debug(
-            "First data refresh completed for org %s.", self.org_id
-        )
+        _LOGGER.debug("First data refresh completed for org %s.", self.org_id)

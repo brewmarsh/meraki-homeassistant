@@ -4,10 +4,12 @@ This module defines the `MerakiDeviceStatusSensor` class, which
 is a Home Assistant sensor entity that displays the status (product type)
 of a specific Meraki device.
 """
+
 import logging
 from typing import Any, Dict, Optional  # Added Optional
 
 from homeassistant.components.sensor import SensorEntity
+
 # Added callback for coordinator updates
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -51,8 +53,8 @@ class MerakiDeviceStatusSensor(
         super().__init__(coordinator)
         self._device_info_data: Dict[str, Any] = device_data
         device_name = self._device_info_data.get(
-            "name", self._device_info_data.get(
-                "serial", "Unknown Device"))
+            "name", self._device_info_data.get("serial", "Unknown Device")
+        )
         device_serial = self._device_info_data.get("serial", "")
 
         self._attr_name = f"{device_name} Status"
@@ -61,9 +63,7 @@ class MerakiDeviceStatusSensor(
 
         # Set initial state and icon
         self._update_sensor_state_and_icon()
-        _LOGGER.debug(
-            "Meraki Device Status Sensor Initialized: %s",
-            self._attr_name)
+        _LOGGER.debug("Meraki Device Status Sensor Initialized: %s", self._attr_name)
 
     def _update_sensor_state_and_icon(self) -> None:
         current_device_data: Optional[Dict[str, Any]] = None
@@ -91,8 +91,7 @@ class MerakiDeviceStatusSensor(
             "MERAKI_DEBUG_STATUS: Device %s raw status from coordinator data: %s (type: %s)",
             device_serial,
             current_device_data.get("status"),
-            type(
-                current_device_data.get("status")).__name__,
+            type(current_device_data.get("status")).__name__,
         )
 
         device_status: Optional[str] = current_device_data.get("status")
@@ -102,7 +101,8 @@ class MerakiDeviceStatusSensor(
             self._attr_native_value = "unknown"
 
         product_type: Optional[str] = current_device_data.get(
-            "productType")  # Keep for attributes
+            "productType"
+        )  # Keep for attributes
 
         model: Optional[str] = current_device_data.get("model")
         if isinstance(model, str):
@@ -133,7 +133,8 @@ class MerakiDeviceStatusSensor(
             "network_id": current_device_data.get("networkId"),
         }
         self._attr_extra_state_attributes = {
-            k: v for k, v in self._attr_extra_state_attributes.items() if v is not None}
+            k: v for k, v in self._attr_extra_state_attributes.items() if v is not None
+        }
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -156,7 +157,9 @@ class MerakiDeviceStatusSensor(
         """
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_info_data["serial"])},
-            name=str(self._device_info_data.get("name", self._device_info_data["serial"])),
+            name=str(
+                self._device_info_data.get("name", self._device_info_data["serial"])
+            ),
             manufacturer="Cisco Meraki",
             model=str(self._device_info_data.get("model", "Unknown")),
             sw_version=str(self._device_info_data.get("firmware", "")),

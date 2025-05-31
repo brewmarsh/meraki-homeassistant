@@ -4,18 +4,21 @@ This module defines the `MerakiSSIDAvailabilitySensor` class, a Home Assistant
 sensor entity that indicates whether a specific Meraki SSID is currently enabled
 or disabled.
 """
+
 import logging
 from typing import Any, Dict, Optional  # Added Optional, Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import STATE_OFF, STATE_ON  # Standard HA states
 from homeassistant.core import callback  # For coordinator updates
+
 # from homeassistant.helpers.update_coordinator import CoordinatorEntity #
 # MerakiEntity already inherits this
 
 # Assuming MerakiEntity is the base class for Meraki entities and handles
 # coordinator logic.
 from ..entity import MerakiEntity
+
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 from ..coordinators import MerakiDataUpdateCoordinator
 
@@ -42,7 +45,7 @@ class MerakiSSIDAvailabilitySensor(MerakiEntity, SensorEntity):
         self,
         coordinator: MerakiDataUpdateCoordinator,  # Explicit coordinator type
         device_data: Dict[str, Any],  # Parent device (e.g., AP)
-        ssid_data: Dict[str, Any],   # Specific SSID data for this sensor
+        ssid_data: Dict[str, Any],  # Specific SSID data for this sensor
     ) -> None:
         """Initialize the Meraki SSID Availability sensor.
 
@@ -53,8 +56,9 @@ class MerakiSSIDAvailabilitySensor(MerakiEntity, SensorEntity):
             ssid_data: Dictionary containing information about the SSID.
                        Expected to have 'name' (SSID name) and 'number' (SSID number).
         """
-        super().__init__(coordinator, device_data,
-                         ssid_data)  # Pass ssid_data to MerakiEntity
+        super().__init__(
+            coordinator, device_data, ssid_data
+        )  # Pass ssid_data to MerakiEntity
 
         # Construct name and unique ID using info from both device and SSID
         # _device_name and _ssid_name are assumed to be set by MerakiEntity's
@@ -64,7 +68,9 @@ class MerakiSSIDAvailabilitySensor(MerakiEntity, SensorEntity):
 
         # Ensure unique_id is robust even if some parts are None
         serial_part = self._device_serial or "unknownserial"
-        ssid_num_part = self._ssid_number if self._ssid_number is not None else "unknownssid"
+        ssid_num_part = (
+            self._ssid_number if self._ssid_number is not None else "unknownssid"
+        )
         self._attr_unique_id = f"{serial_part}_{ssid_num_part}_availability"
 
         # Set initial state
@@ -82,8 +88,7 @@ class MerakiSSIDAvailabilitySensor(MerakiEntity, SensorEntity):
         current_ssid_data: Optional[Dict[str, Any]] = None
         if self.coordinator.data and "devices" in self.coordinator.data:
             for dev_data in self.coordinator.data["devices"]:
-                if dev_data.get(
-                        "serial") == self._device_serial:  # Match parent device
+                if dev_data.get("serial") == self._device_serial:  # Match parent device
                     # Assuming ssids are nested under device
                     ssids_on_device = dev_data.get("ssids", [])
                     for ssid in ssids_on_device:
@@ -100,7 +105,8 @@ class MerakiSSIDAvailabilitySensor(MerakiEntity, SensorEntity):
                 _LOGGER.warning(
                     "SSID '%s' on device '%s' has no 'enabled' status or it's not boolean. Setting to OFF.",
                     self._ssid_name,
-                    self._device_name)
+                    self._device_name,
+                )
                 # Default if 'enabled' is missing or not bool
                 self._attr_native_value = STATE_OFF
         else:
@@ -108,7 +114,8 @@ class MerakiSSIDAvailabilitySensor(MerakiEntity, SensorEntity):
                 "SSID data for '%s' (Num: %s) on device '%s' not found in coordinator. Setting availability to OFF.",
                 self._ssid_name,
                 self._ssid_number,
-                self._device_name)
+                self._device_name,
+            )
             self._attr_native_value = STATE_OFF  # Default if SSID data not found
 
     @callback

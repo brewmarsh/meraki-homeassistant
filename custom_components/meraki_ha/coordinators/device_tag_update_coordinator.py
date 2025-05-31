@@ -4,8 +4,10 @@ This module defines the `DeviceTagUpdateCoordinator`, which is responsible for
 orchestrating updates to device tags via the Meraki API. It uses the
 `MerakiApiDataFetcher` for the actual API communication.
 """
+
 import logging
 from datetime import timedelta  # Used for scan_interval and self.update_interval
+
 # Added Any for self.data generic
 from typing import (
     TYPE_CHECKING,
@@ -130,9 +132,7 @@ class DeviceTagUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # Return an empty dictionary as per original and superclass expectation
         return {}
 
-    async def async_update_device_tags(
-        self, serial: str, tags: List[str]
-    ) -> None:
+    async def async_update_device_tags(self, serial: str, tags: List[str]) -> None:
         """Update tags for a single Meraki device.
 
         This method uses the `MerakiApiDataFetcher` to send a request to
@@ -168,7 +168,9 @@ class DeviceTagUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             )
             if success:
                 _LOGGER.info(
-                    "Successfully updated tags for device %s. Requesting refresh.", serial, )
+                    "Successfully updated tags for device %s. Requesting refresh.",
+                    serial,
+                )
                 # After a successful update, you might want to trigger a
                 # refresh of data that depends on these tags.
                 # This refreshes this coordinator's data (which is {}),
@@ -196,9 +198,7 @@ class DeviceTagUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             )
             raise
         except MerakiApiError as e:  # Catch specific API errors from the fetcher
-            _LOGGER.error(
-                "API error updating tags for device %s: %s", serial, e
-            )
+            _LOGGER.error("API error updating tags for device %s: %s", serial, e)
             raise UpdateFailed(
                 f"API error updating tags for device {serial}: {e}"
             ) from e

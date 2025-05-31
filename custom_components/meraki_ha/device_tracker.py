@@ -6,6 +6,7 @@ tracker, which can then be used to determine if any clients are
 connected to it, effectively acting as a presence detection mechanism
 for the device itself being "active" or having connected clients.
 """
+
 from __future__ import annotations  # For type hints pre Python 3.9
 
 import logging
@@ -15,6 +16,7 @@ from homeassistant.components.device_tracker import SourceType, TrackerEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback  # Added callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
 # Base class for coordinator entities
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -42,18 +44,22 @@ async def async_setup_entry(
         config_entry: The configuration entry for this Meraki integration instance.
         async_add_entities: Callback function to add entities to Home Assistant.
     """
-    coordinator: MerakiDataUpdateCoordinator = hass.data[
-        DOMAIN][config_entry.entry_id][DATA_COORDINATOR]
+    coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id][
+        DATA_COORDINATOR
+    ]
 
     # Ensure coordinator data is available
-    if coordinator.data is None or "clients" not in coordinator.data:  # Ensure 'clients' key exists
+    if (
+        coordinator.data is None or "clients" not in coordinator.data
+    ):  # Ensure 'clients' key exists
         _LOGGER.warning(
             "No client data available from Meraki coordinator. Cannot set up device trackers."
         )
         return
 
     clients: List[Dict[str, Any]] = coordinator.data.get(
-        "clients", [])  # Get clients list
+        "clients", []
+    )  # Get clients list
     if not clients:
         _LOGGER.info("No Meraki clients found to set up device trackers.")
         return
@@ -127,8 +133,7 @@ class MerakiDeviceTracker(
         client_mac = self._client_info_data["mac"]
 
         if self.coordinator.data and "clients" in self.coordinator.data:
-            active_clients: List[Dict[str, Any]
-                                 ] = self.coordinator.data["clients"]
+            active_clients: List[Dict[str, Any]] = self.coordinator.data["clients"]
             for client_data in active_clients:
                 if client_data.get("mac") == client_mac:
                     self._attr_is_connected = True
@@ -171,7 +176,7 @@ class MerakiDeviceTracker(
 
         # Use client's description or IP as name, fallback to MAC
         # entity_name = self._client_info_data.get( # F841: local variable 'entity_name' is assigned to but never used
-            # "description"
+        # "description"
         # ) or self._client_info_data.get("ip", self._client_info_data["mac"])
 
         return {

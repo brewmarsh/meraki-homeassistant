@@ -5,12 +5,14 @@ entity that allows users to enable or disable a specific Meraki SSID.
 It also includes a helper function `match_device_to_ssid` to determine
 if an SSID switch should be created based on tag matching logic.
 """
+
 import logging
 from typing import Any, Dict, List, Optional
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import callback  # For coordinator updates
 from homeassistant.helpers.device_registry import DeviceInfo
+
 # Changed from DataUpdateCoordinator
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -55,7 +57,9 @@ def match_device_to_ssid(
 
     for device_info in all_devices:  # Changed from device
         device_tags: List[str] = device_info.get("tags", [])
-        if not device_tags:  # Device has no tags, cannot satisfy an SSID that requires tags.
+        if (
+            not device_tags
+        ):  # Device has no tags, cannot satisfy an SSID that requires tags.
             continue
 
         # Normalize tags for case-insensitive comparison
@@ -91,10 +95,7 @@ def match_device_to_ssid(
                 )
                 return True
     _LOGGER.debug(
-        (
-            "SSID '%s' (tags: %s) found no matching device "
-            "with relaxed_matching=%s."
-        ),
+        ("SSID '%s' (tags: %s) found no matching device " "with relaxed_matching=%s."),
         ssid_info.get("name"),
         ssid_tags,
         relaxed_matching,
@@ -102,9 +103,7 @@ def match_device_to_ssid(
     return False
 
 
-class MerakiSSIDSwitch(
-        CoordinatorEntity[MerakiDataUpdateCoordinator],
-        SwitchEntity):
+class MerakiSSIDSwitch(CoordinatorEntity[MerakiDataUpdateCoordinator], SwitchEntity):
     """Representation of a Meraki SSID as a Home Assistant switch.
 
     This entity allows enabling or disabling a specific SSID. The actual control
@@ -113,6 +112,7 @@ class MerakiSSIDSwitch(
 
     Inherits from `CoordinatorEntity` to react to updates from the central coordinator.
     """
+
     # _attr_has_entity_name = True # If you want HA to generate name from
     # device
 
@@ -120,7 +120,7 @@ class MerakiSSIDSwitch(
         self,
         coordinator: MerakiDataUpdateCoordinator,
         device_info_data: Dict[str, Any],  # Parent device (AP) data
-        ssid_info_data: Dict[str, Any],   # Specific SSID data
+        ssid_info_data: Dict[str, Any],  # Specific SSID data
     ) -> None:
         """Initialize the Meraki SSID switch.
 
@@ -133,13 +133,14 @@ class MerakiSSIDSwitch(
         super().__init__(coordinator)
         # Store parent AP info
         self._device_info: Dict[str, Any] = device_info_data
-        self._ssid_info: Dict[str, Any] = ssid_info_data     # Store SSID info
+        self._ssid_info: Dict[str, Any] = ssid_info_data  # Store SSID info
 
         device_name = self._device_info.get(
-            "name", self._device_info.get(
-                "serial", "Unknown Device"))
+            "name", self._device_info.get("serial", "Unknown Device")
+        )
         ssid_name = self._ssid_info.get(
-            "name", f"SSID {self._ssid_info.get('number', 'N/A')}")
+            "name", f"SSID {self._ssid_info.get('number', 'N/A')}"
+        )
 
         # Example: "AP1 - Guest WiFi"
         self._attr_name = f"{device_name} - {ssid_name}"
@@ -147,7 +148,9 @@ class MerakiSSIDSwitch(
         # Combining device serial and SSID number (or name if number not
         # available) is robust.
         serial = self._device_info.get("serial", "unknownserial")
-        ssid_identifier = self._ssid_info.get("number", self._ssid_info.get("name", "unknownssid"))
+        ssid_identifier = self._ssid_info.get(
+            "number", self._ssid_info.get("name", "unknownssid")
+        )
         self._attr_unique_id = f"{serial}_ssid_{ssid_identifier}_switch"
 
         # Initial state is set from the coordinator data during _handle_coordinator_update
@@ -175,7 +178,8 @@ class MerakiSSIDSwitch(
             for dev_data in self.coordinator.data["devices"]:
                 if dev_data.get("serial") == device_serial:
                     ssids_on_device = dev_data.get(
-                        "ssids", [])  # Assuming ssids are nested
+                        "ssids", []
+                    )  # Assuming ssids are nested
                     for ssid_detail in ssids_on_device:
                         if ssid_detail.get("number") == ssid_number:
                             current_ssid_data = ssid_detail
@@ -214,8 +218,9 @@ class MerakiSSIDSwitch(
         """Enable the SSID by adding a specific tag to the parent device."""
         _LOGGER.info(
             "Turning ON SSID: %s for device: %s",
-            self._ssid_info.get('name'),
-            self._device_info.get('name'))
+            self._ssid_info.get("name"),
+            self._device_info.get("name"),
+        )
         await self._set_ssid_enabled_via_tag(True)
         # Optimistically update state. The coordinator refresh will confirm.
         self._attr_is_on = True
@@ -225,8 +230,9 @@ class MerakiSSIDSwitch(
         """Disable the SSID by removing a specific tag from the parent device."""
         _LOGGER.info(
             "Turning OFF SSID: %s for device: %s",
-            self._ssid_info.get('name'),
-            self._device_info.get('name'))
+            self._ssid_info.get("name"),
+            self._device_info.get("name"),
+        )
         await self._set_ssid_enabled_via_tag(False)
         # Optimistically update state. The coordinator refresh will confirm.
         self._attr_is_on = False
@@ -248,8 +254,7 @@ class MerakiSSIDSwitch(
         device_serial = self._device_info.get("serial")
 
         if not ssid_name or not device_serial:
-            _LOGGER.error(
-                "Cannot set SSID state: Missing SSID name or device serial.")
+            _LOGGER.error("Cannot set SSID state: Missing SSID name or device serial.")
             return
 
         # Define the tag that represents this SSID's enabled state on the device
@@ -257,9 +262,7 @@ class MerakiSSIDSwitch(
         # This tagging strategy means the SSID's actual "enabled" flag in Meraki config
         # might not be what's controlled. Instead, APs are tagged to
         # broadcast/not broadcast it.
-        ssid_control_tag = (
-            f"ha_ssid_{ssid_name.replace(' ', '_')}_enabled"
-        )
+        ssid_control_tag = f"ha_ssid_{ssid_name.replace(' ', '_')}_enabled"
 
         # Fetch current tags for the device from the coordinator to avoid race
         # conditions with direct API reads
@@ -270,12 +273,10 @@ class MerakiSSIDSwitch(
                     current_device_data = dev_data
                     break
 
-        current_tags: List[str] = current_device_data.get(
-            "tags", []) if current_device_data else []
-        _LOGGER.debug(
-            "Device '%s' current tags: %s",
-            device_serial,
-            current_tags)
+        current_tags: List[str] = (
+            current_device_data.get("tags", []) if current_device_data else []
+        )
+        _LOGGER.debug("Device '%s' current tags: %s", device_serial, current_tags)
 
         new_tags: List[str] = current_tags[:]  # Make a mutable copy
 
@@ -284,9 +285,8 @@ class MerakiSSIDSwitch(
             if ssid_control_tag not in new_tags:
                 new_tags.append(ssid_control_tag)
                 _LOGGER.debug(
-                    "Adding tag '%s' to device '%s'",
-                    ssid_control_tag,
-                    device_serial)
+                    "Adding tag '%s' to device '%s'", ssid_control_tag, device_serial
+                )
                 tag_action_taken = True
         else:  # Disabling
             if ssid_control_tag in new_tags:
@@ -294,7 +294,8 @@ class MerakiSSIDSwitch(
                 _LOGGER.debug(
                     "Removing tag '%s' from device '%s'",
                     ssid_control_tag,
-                    device_serial)
+                    device_serial,
+                )
                 tag_action_taken = True
 
         if not tag_action_taken:
@@ -346,7 +347,9 @@ class MerakiSSIDSwitch(
                 # self.async_write_ha_state()
                 # raise HomeAssistantError(f"Failed to update tags for SSID {ssid_name}")
 
-        except Exception as e:  # Catch broader exceptions, including those from _update_device_tags_api if not caught there
+        except (
+            Exception
+        ) as e:  # Catch broader exceptions, including those from _update_device_tags_api if not caught there
             _LOGGER.exception(
                 (
                     "Unexpected error in _set_ssid_enabled_via_tag for SSID '%s', "
@@ -359,9 +362,8 @@ class MerakiSSIDSwitch(
             # raise HomeAssistantError(f"Unexpected error updating SSID {ssid_name}: {e}")
 
     async def _update_device_tags_api(
-            self,
-            device_serial: str,
-            new_tags: List[str]) -> bool:
+        self, device_serial: str, new_tags: List[str]
+    ) -> bool:
         """Helper function to update device tags via Meraki API."""
         try:
             client = self.coordinator.meraki_client  # MerakiAPIClient instance
@@ -377,8 +379,7 @@ class MerakiSSIDSwitch(
             # This function is part of the meraki.aio.AsyncDashboardAPI.devices
             # controller
             response = await client.devices.update_device(
-                serial=device_serial,
-                tags=new_tags
+                serial=device_serial, tags=new_tags
             )
 
             # A successful call to update_device typically returns the updated device JSON (a dict).
@@ -389,7 +390,7 @@ class MerakiSSIDSwitch(
                     "Successfully updated tags for device '%s'. New tags: %s.",
                     device_serial,
                     # Log the tags from response if available
-                    response.get('tags', new_tags)
+                    response.get("tags", new_tags),
                 )
                 return True
             else:
@@ -411,9 +412,8 @@ class MerakiSSIDSwitch(
 
         except Exception as e:  # Catches meraki.APIError and other potential exceptions
             _LOGGER.error(
-                "Failed to update tags for device '%s'. Error: %s",
-                device_serial,
-                e)
+                "Failed to update tags for device '%s'. Error: %s", device_serial, e
+            )
             return False
 
     # The `async_update` method is typically not needed for CoordinatorEntity subclasses

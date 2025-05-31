@@ -5,11 +5,13 @@ errors that can occur when communicating with the Meraki Dashboard API.
 These exceptions provide more specific error information than generic
 Python exceptions.
 """
+
 from typing import Optional  # For status_code in MerakiApiException
 
 
 class MerakiApiException(
-        Exception):  # Renamed from MerakiApiError for clarity as a base
+    Exception
+):  # Renamed from MerakiApiError for clarity as a base
     """Base class for exceptions raised by the Meraki API client.
 
     This exception serves as a generic base for more specific API-related errors.
@@ -20,10 +22,7 @@ class MerakiApiException(
         status_code: (Optional) The HTTP status code from the API response, if applicable.
     """
 
-    def __init__(
-            self,
-            message: str,
-            status_code: Optional[int] = None) -> None:
+    def __init__(self, message: str, status_code: Optional[int] = None) -> None:
         """Initialize the MerakiApiException.
 
         Args:
@@ -43,22 +42,24 @@ class MerakiApiException(
 
 # Define more specific exceptions that inherit from MerakiApiException
 
+
 class MerakiApiConnectionError(MerakiApiException):
     """Exception raised for errors when connecting to the Meraki API.
 
     This typically indicates network issues (e.g., DNS failure, connection timeout)
     or problems reaching the API endpoint.
     """
+
     pass  # No additional logic needed, inherits all from MerakiApiException
 
 
-class MerakiApiAuthError(
-        MerakiApiException):  # More specific than just "InvalidApiKey"
+class MerakiApiAuthError(MerakiApiException):  # More specific than just "InvalidApiKey"
     """Exception raised for authentication or authorization errors with the Meraki API.
 
     This occurs if the API key is invalid, has insufficient permissions for the
     requested operation, or if authentication otherwise fails (e.g., HTTP 401/403).
     """
+
     pass
 
 
@@ -78,6 +79,7 @@ class MerakiApiRateLimitError(MerakiApiException):
 
 class MerakiApiServerError(MerakiApiException):
     """Exception raised for server-side errors on the Meraki API (HTTP 5xx)."""
+
     pass
 
 

@@ -4,6 +4,7 @@ This module provides a utility function `create_ssid_sensors` that
 instantiates and returns a list of all sensor entities relevant to a
 specific Meraki SSID (Service Set Identifier).
 """
+
 from typing import Any, Dict, List  # Added Any, Dict, List
 
 from homeassistant.components.sensor import SensorEntity  # For type hinting return
@@ -46,15 +47,9 @@ def create_ssid_sensors(
     sensors: List[SensorEntity] = []
 
     # Instantiate each type of sensor for the SSID
-    sensors.append(
-        MerakiSSIDAvailabilitySensor(coordinator, device_data, ssid_data)
-    )
-    sensors.append(
-        MerakiSSIDChannelSensor(coordinator, device_data, ssid_data)
-    )
-    sensors.append(
-        MerakiSSIDClientCountSensor(coordinator, device_data, ssid_data)
-    )
+    sensors.append(MerakiSSIDAvailabilitySensor(coordinator, device_data, ssid_data))
+    sensors.append(MerakiSSIDChannelSensor(coordinator, device_data, ssid_data))
+    sensors.append(MerakiSSIDClientCountSensor(coordinator, device_data, ssid_data))
 
     # Add other SSID-specific sensor types here as they are developed
     # Example:

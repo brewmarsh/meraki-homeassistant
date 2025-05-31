@@ -5,6 +5,7 @@ by initializing and configuring the `MerakiDataUpdateCoordinator`. This
 coordinator is responsible for fetching and managing all data from the
 Meraki Dashboard API, which is then used by various platforms (sensor, switch, etc.).
 """
+
 import logging
 from datetime import timedelta
 
@@ -21,6 +22,7 @@ from custom_components.meraki_ha.const import (
     DOMAIN,
     PLATFORMS,  # List of platforms (e.g., ["sensor", "switch"])
 )
+
 # Obsolete imports for MerakiNetworkCoordinator and MerakiSsidCoordinator
 # are removed.
 
@@ -44,7 +46,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """
     _LOGGER.debug(
         "Starting async_setup_entry for Meraki integration (entry_id: %s)",
-        entry.entry_id)
+        entry.entry_id,
+    )
 
     # Retrieve API key and organization ID from the configuration entry.
     api_key: str = entry.data[CONF_MERAKI_API_KEY]
@@ -57,7 +60,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Get scan interval from entry options, with a default value.
     scan_interval_seconds: int = entry.options.get(
-        "scan_interval", DEFAULT_SCAN_INTERVAL)
+        "scan_interval", DEFAULT_SCAN_INTERVAL
+    )
 
     # Ensure scan_interval_seconds is an integer.
     try:
@@ -72,7 +76,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     _LOGGER.debug(
         "Using scan interval of %d seconds for Meraki coordinator.",
-        scan_interval_seconds)
+        scan_interval_seconds,
+    )
     interval: timedelta = timedelta(seconds=scan_interval_seconds)
 
     # Initialization of separate MerakiNetworkCoordinator and MerakiSsidCoordinator removed,
@@ -103,7 +108,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {"coordinator": coordinator}
     _LOGGER.debug(
         "Stored MerakiDataUpdateCoordinator in hass.data for entry_id: %s",
-        entry.entry_id)
+        entry.entry_id,
+    )
 
     # Forward the setup to all defined platforms (e.g., sensor, switch).
     # These platforms will use the coordinator stored in `hass.data`.
@@ -114,7 +120,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     _LOGGER.debug(
         "Completed async_setup_entry for Meraki integration (entry_id: %s)",
-        entry.entry_id)
+        entry.entry_id,
+    )
     return True
 
 
@@ -132,9 +139,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     Returns:
         True if the unload process was successful, False otherwise.
     """
-    _LOGGER.debug(
-        "Unloading Meraki integration for entry_id: %s",
-        entry.entry_id)
+    _LOGGER.debug("Unloading Meraki integration for entry_id: %s", entry.entry_id)
     # Unload platforms (sensor, switch, etc.) associated with this config
     # entry.
     unload_ok: bool = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
@@ -146,44 +151,51 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             # Remove and get entry's data.
             domain_entry_data = hass.data[DOMAIN].pop(entry.entry_id)
             coordinator: Optional[MerakiDataUpdateCoordinator] = domain_entry_data.get(
-                "coordinator")
+                "coordinator"
+            )
 
             # Gracefully close the Meraki API client session if the coordinator
             # and client exist.
-            if coordinator and hasattr(
-                    coordinator,
-                    'meraki_client') and coordinator.meraki_client:
-                if hasattr(coordinator.meraki_client, 'close'):
+            if (
+                coordinator
+                and hasattr(coordinator, "meraki_client")
+                and coordinator.meraki_client
+            ):
+                if hasattr(coordinator.meraki_client, "close"):
                     _LOGGER.info(
                         "Closing Meraki API client session for entry %s.",
-                        entry.entry_id)
+                        entry.entry_id,
+                    )
                     try:
                         await coordinator.meraki_client.close()
                     except Exception as e:
                         _LOGGER.error(
                             "Error closing Meraki API client session for entry %s: %s",
                             entry.entry_id,
-                            e)
+                            e,
+                        )
                 else:
                     _LOGGER.warning(
                         "Meraki API client for entry %s does not have a 'close' method.",
-                        entry.entry_id)
+                        entry.entry_id,
+                    )
             else:
                 _LOGGER.warning(
                     "Meraki API client or coordinator not found for entry %s during unload.",
-                    entry.entry_id)
+                    entry.entry_id,
+                )
 
             _LOGGER.info(
                 "Successfully unloaded Meraki integration and associated data for entry: %s",
-                entry.entry_id)
+                entry.entry_id,
+            )
         else:
             _LOGGER.info(
                 "No data found in hass.data[DOMAIN] for entry %s to remove during unload.",
-                entry.entry_id)
+                entry.entry_id,
+            )
     else:
-        _LOGGER.error(
-            "Failed to unload Meraki platforms for entry: %s",
-            entry.entry_id)
+        _LOGGER.error("Failed to unload Meraki platforms for entry: %s", entry.entry_id)
 
     return unload_ok
 
@@ -201,9 +213,8 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """
     _LOGGER.info(
         "Reloading Meraki integration due to option changes for entry: %s",
-        entry.entry_id)
+        entry.entry_id,
+    )
     await async_unload_entry(hass, entry)  # Unload the current setup.
     await async_setup_entry(hass, entry)  # Set up again with new options.
-    _LOGGER.info(
-        "Finished reloading Meraki integration for entry: %s",
-        entry.entry_id)
+    _LOGGER.info("Finished reloading Meraki integration for entry: %s", entry.entry_id)

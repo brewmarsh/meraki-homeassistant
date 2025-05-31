@@ -5,6 +5,7 @@ for fetching device-specific information from the Meraki API,
 processing it, and ensuring devices are correctly registered in the
 Home Assistant device registry.
 """
+
 import logging
 from datetime import timedelta
 from typing import Any, Dict, List, Optional  # Added List, Optional
@@ -18,6 +19,7 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from ..const import DOMAIN  # Assuming DOMAIN is defined
+
 # Import the mapping function for device types
 from .meraki_device_types import map_meraki_model_to_device_type
 
@@ -28,8 +30,7 @@ _LOGGER = logging.getLogger(__name__)
 MERAKI_API_BASE_URL = "https://api.meraki.com/api/v1"
 
 
-class MerakiDeviceCoordinator(
-        DataUpdateCoordinator[Dict[str, List[Dict[str, Any]]]]):
+class MerakiDeviceCoordinator(DataUpdateCoordinator[Dict[str, List[Dict[str, Any]]]]):
     """Coordinator to fetch and manage device data from the Meraki API.
 
     This coordinator handles fetching all devices across all networks
@@ -103,49 +104,41 @@ class MerakiDeviceCoordinator(
         # (the coordinator), which is unusual. It should typically be
         # org_id or specific coordinators.
         # Assuming it needs api_key and org_id for its operations.
-        api_fetcher = MerakiApiDataFetcher(
-            api_key=self.api_key, org_id=self.org_id
-        )
+        api_fetcher = MerakiApiDataFetcher(api_key=self.api_key, org_id=self.org_id)
 
         try:
-            _LOGGER.debug(
-                "Fetching all networks for organization: %s", self.org_id
+            _LOGGER.debug("Fetching all networks for organization: %s", self.org_id)
+            networks_url = f"{MERAKI_API_BASE_URL}/organizations/{self.org_id}/networks"
+            networks: Optional[List[Dict[str, Any]]] = await api_fetcher._fetch_data(
+                networks_url
             )
-            networks_url = (
-                f"{MERAKI_API_BASE_URL}/organizations/{self.org_id}/networks"
-            )
-            networks: Optional[
-                List[Dict[str, Any]]
-            ] = await api_fetcher._fetch_data(networks_url)
 
             all_devices_raw: List[Dict[str, Any]] = []
             if networks:
                 for network in networks:
                     network_id = network.get("id")
                     if not network_id:
-                        _LOGGER.warning(
-                            "Network found without an ID: %s", network
-                        )
+                        _LOGGER.warning("Network found without an ID: %s", network)
                         continue
                     _LOGGER.debug(
                         "Fetching devices for network ID: %s (Name: %s)",
                         network_id,
                         network.get("name", "N/A"),
                     )
-                    device_url = (
-                        f"{MERAKI_API_BASE_URL}/networks/{network_id}/devices"
-                    )
+                    device_url = f"{MERAKI_API_BASE_URL}/networks/{network_id}/devices"
                     try:
-                        network_devices: Optional[
-                            List[Dict[str, Any]]
-                        ] = await api_fetcher._fetch_data(device_url)
+                        network_devices: Optional[List[Dict[str, Any]]] = (
+                            await api_fetcher._fetch_data(device_url)
+                        )
                         if network_devices:
                             all_devices_raw.extend(network_devices)
                         else:
                             # Changed to debug as it can be normal for some
                             # networks
                             _LOGGER.debug(
-                                "No devices found in network %s, or failed to fetch.", network_id, )
+                                "No devices found in network %s, or failed to fetch.",
+                                network_id,
+                            )
                     except MerakiApiError as e:
                         _LOGGER.warning(
                             "Failed to fetch devices from network %s: %s",
@@ -182,8 +175,7 @@ class MerakiDeviceCoordinator(
                 # Enrich MR/GR (Access Point) devices with client count
                 model = device_processed.get("model", "")
                 if isinstance(model, str) and (
-                    model.upper().startswith("MR")
-                    or model.upper().startswith("GR")
+                    model.upper().startswith("MR") or model.upper().startswith("GR")
                 ):
                     network_id = device_processed.get("networkId")
                     if network_id:
@@ -196,11 +188,14 @@ class MerakiDeviceCoordinator(
                                 f"&serials[]={serial}"
                             )
                             _LOGGER.debug(
-                                "Fetching clients for AP %s (Serial: %s) in network %s", device_processed.get(
-                                    "name", serial), serial, network_id, )
-                            clients_data: Optional[
-                                List[Dict[str, Any]]
-                            ] = await api_fetcher._fetch_data(clients_url)
+                                "Fetching clients for AP %s (Serial: %s) in network %s",
+                                device_processed.get("name", serial),
+                                serial,
+                                network_id,
+                            )
+                            clients_data: Optional[List[Dict[str, Any]]] = (
+                                await api_fetcher._fetch_data(clients_url)
+                            )
 
                             # API with `serials[]` param should ideally return
                             # only clients for that serial. If not, further
@@ -212,8 +207,11 @@ class MerakiDeviceCoordinator(
                         except MerakiApiError as e:
                             _LOGGER.warning(
                                 "Failed to fetch clients for AP %s (Serial: %s): %s. "
-                                "Setting client count to 0.", device_processed.get(
-                                    "name", serial), serial, e, )
+                                "Setting client count to 0.",
+                                device_processed.get("name", serial),
+                                serial,
+                                e,
+                            )
                             device_processed["connected_clients"] = 0
                         except Exception as e:  # pylint: disable=broad-except
                             _LOGGER.exception(
@@ -244,19 +242,13 @@ class MerakiDeviceCoordinator(
                 # Fallback to serial if name is missing
                 device_name_raw = device_processed.get("name", serial)
 
-                device_type_mapped = map_meraki_model_to_device_type(
-                    device_model
-                )
+                device_type_mapped = map_meraki_model_to_device_type(device_model)
                 formatted_device_name = device_name_raw  # Default
 
                 if self.device_name_format == "prefix" and device_type_mapped:
-                    formatted_device_name = (
-                        f"[{device_type_mapped}] {device_name_raw}"
-                    )
+                    formatted_device_name = f"[{device_type_mapped}] {device_name_raw}"
                 elif self.device_name_format == "suffix" and device_type_mapped:
-                    formatted_device_name = (
-                        f"{device_name_raw} [{device_type_mapped}]"
-                    )
+                    formatted_device_name = f"{device_name_raw} [{device_type_mapped}]"
                 # If "omitted" or no type mapped, name remains as is.
 
                 device_registry.async_get_or_create(
@@ -280,11 +272,7 @@ class MerakiDeviceCoordinator(
 
         except MerakiApiError as e:
             _LOGGER.error("Meraki API error updating device data: %s", e)
-            raise UpdateFailed(
-                f"Meraki API error updating device data: {e}"
-            ) from e
+            raise UpdateFailed(f"Meraki API error updating device data: {e}") from e
         except Exception as e:  # pylint: disable=broad-except
             _LOGGER.exception("Unexpected error updating device data: %s", e)
-            raise UpdateFailed(
-                f"Unexpected error updating device data: {e}"
-            ) from e
+            raise UpdateFailed(f"Unexpected error updating device data: {e}") from e

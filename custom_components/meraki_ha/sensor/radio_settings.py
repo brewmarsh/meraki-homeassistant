@@ -4,10 +4,13 @@ This module defines the `MerakiRadioSettingsSensor` class, which represents
 a sensor in Home Assistant displaying information about the radio settings
 of a specific Meraki wireless device (e.g., channel, band).
 """
+
 import logging
 from typing import Any, Dict, Optional  # Union removed F401
 
-from homeassistant.components.sensor import SensorEntity  # SensorStateClass removed F401
+from homeassistant.components.sensor import (
+    SensorEntity,
+)  # SensorStateClass removed F401
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -27,11 +30,13 @@ async def get_meraki_device_wireless_radio_settings(
     """Placeholder: Fetches Meraki device wireless radio settings."""
     _LOGGER.warning(
         "Using placeholder for get_meraki_device_wireless_radio_settings for serial %s.",
-        serial)
+        serial,
+    )
     # Example successful response structure (simplified)
     # return {"channel": 6, "band": "2.4 GHz", "txPower": 17}
     # Example error or no data:
     return None
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -82,8 +87,8 @@ class MerakiRadioSettingsSensor(
         super().__init__(coordinator)
         self._device_info_data: Dict[str, Any] = device_data
         device_name = self._device_info_data.get(
-            "name", self._device_info_data.get(
-                "serial", "Unknown Device"))
+            "name", self._device_info_data.get("serial", "Unknown Device")
+        )
         device_serial = self._device_info_data.get("serial", "")
 
         self._attr_name = f"{device_name} Radio Settings"
@@ -97,9 +102,7 @@ class MerakiRadioSettingsSensor(
         }
         # Set initial state
         self._update_sensor_state()
-        _LOGGER.debug(
-            "Meraki Radio Settings Sensor Initialized: %s",
-            self._attr_name)
+        _LOGGER.debug("Meraki Radio Settings Sensor Initialized: %s", self._attr_name)
 
     def _update_sensor_state(self) -> None:
         """Update sensor state and attributes from coordinator data.
@@ -147,9 +150,7 @@ class MerakiRadioSettingsSensor(
         else:
             _LOGGER.warning(
                 "Radio settings for device '%s' (Serial: %s) not found in coordinator data. Setting state to unavailable.",
-                self._device_info_data.get(
-                    "name",
-                    "N/A"),
+                self._device_info_data.get("name", "N/A"),
                 device_serial,
             )
             self._attr_native_value = STATE_UNAVAILABLE_VALUE
@@ -160,7 +161,10 @@ class MerakiRadioSettingsSensor(
                 "firmware_version": self._device_info_data.get("firmware"),
             }
             self._attr_extra_state_attributes = {
-                k: v for k, v in self._attr_extra_state_attributes.items() if v is not None}
+                k: v
+                for k, v in self._attr_extra_state_attributes.items()
+                if v is not None
+            }
 
     # If this entity fetches its own data (original behavior):
     # async def async_update(self) -> None:
@@ -222,7 +226,9 @@ class MerakiRadioSettingsSensor(
         """
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_info_data["serial"])},
-            name=str(self._device_info_data.get("name", self._device_info_data["serial"])),
+            name=str(
+                self._device_info_data.get("name", self._device_info_data["serial"])
+            ),
             manufacturer="Cisco Meraki",
             model=str(self._device_info_data.get("model", "Unknown")),
             sw_version=str(self._device_info_data.get("firmware", "")),

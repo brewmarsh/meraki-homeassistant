@@ -7,6 +7,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from datetime import timedelta
 
 from custom_components.meraki_ha.coordinators.tag_eraser import TagEraser
+
 # MerakiApiDataFetcher is not directly used by TagEraserCoordinator after recent refactors.
 # TagEraser itself will use MerakiAPIClient.
 # from .api_data_fetcher import MerakiApiDataFetcher # Assuming this was
@@ -65,10 +66,8 @@ class TagEraserCoordinator(DataUpdateCoordinator):
         # If TagEraser still expects MerakiApiDataFetcher, this needs more adjustment.
         # For now, let's assume TagEraser is refactored or we provide a client.
         # A dedicated client for tag erasing ensures separation of concerns.
-        self.meraki_client_for_eraser = MerakiAPIClient(
-            api_key=api_key, org_id=org_id)
-        self.tag_eraser = TagEraser(
-            self.meraki_client_for_eraser)  # Pass the client
+        self.meraki_client_for_eraser = MerakiAPIClient(api_key=api_key, org_id=org_id)
+        self.tag_eraser = TagEraser(self.meraki_client_for_eraser)  # Pass the client
 
     async def async_erase_device_tags(self, serial: str) -> None:
         """

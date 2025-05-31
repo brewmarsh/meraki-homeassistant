@@ -4,16 +4,19 @@ This module defines the `MerakiSSIDClientCountSensor` class, a Home Assistant
 sensor entity that displays the number of clients currently connected to a
 specific Meraki SSID.
 """
+
 import logging
 from typing import Any, Dict, Optional  # Added Optional, Any
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.core import callback  # For coordinator updates
+
 # from homeassistant.helpers.update_coordinator import CoordinatorEntity #
 # MerakiEntity already inherits
 
 # Assuming MerakiEntity is the base class for Meraki entities
 from ..entity import MerakiEntity
+
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 from ..coordinators import MerakiDataUpdateCoordinator
 
@@ -38,7 +41,7 @@ class MerakiSSIDClientCountSensor(MerakiEntity, SensorEntity):
         self,
         coordinator: MerakiDataUpdateCoordinator,  # Explicit coordinator type
         device_data: Dict[str, Any],  # Parent device (e.g., AP)
-        ssid_data: Dict[str, Any],   # Specific SSID data for this sensor
+        ssid_data: Dict[str, Any],  # Specific SSID data for this sensor
     ) -> None:
         """Initialize the Meraki SSID Client Count sensor.
 
@@ -53,7 +56,9 @@ class MerakiSSIDClientCountSensor(MerakiEntity, SensorEntity):
         self._attr_name = f"{base_name} Client Count"
 
         serial_part = self._device_serial or "unknownserial"
-        ssid_num_part = self._ssid_number if self._ssid_number is not None else "unknownssid"
+        ssid_num_part = (
+            self._ssid_number if self._ssid_number is not None else "unknownssid"
+        )
         self._attr_unique_id = f"{serial_part}_{ssid_num_part}_client_count"
 
         # Set initial state
@@ -88,14 +93,16 @@ class MerakiSSIDClientCountSensor(MerakiEntity, SensorEntity):
                     "SSID '%s' on device '%s' has no 'client_count' information or it's not an int (%s). Setting to 0.",
                     self._ssid_name,
                     self._device_name,
-                    type(client_count).__name__)
+                    type(client_count).__name__,
+                )
                 self._attr_native_value = 0  # Default to 0 if missing or not an int
         else:
             _LOGGER.warning(
                 "SSID data for '%s' (Num: %s) on device '%s' not found in coordinator. Client count set to 0.",
                 self._ssid_name,
                 self._ssid_number,
-                self._device_name)
+                self._device_name,
+            )
             self._attr_native_value = 0  # Default to 0 if SSID data not found
 
     @callback

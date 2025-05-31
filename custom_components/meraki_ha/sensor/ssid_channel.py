@@ -4,16 +4,19 @@ This module defines the `MerakiSSIDChannelSensor` class, a Home Assistant
 sensor entity that displays the current wireless channel being used by a
 specific Meraki SSID.
 """
+
 import logging
 from typing import Any, Dict, Optional, Union  # Added Optional, Union
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.core import callback  # For coordinator updates
+
 # from homeassistant.helpers.update_coordinator import CoordinatorEntity #
 # MerakiEntity already inherits
 
 # Assuming MerakiEntity is the base class for Meraki entities
 from ..entity import MerakiEntity
+
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 from ..coordinators import MerakiDataUpdateCoordinator
 
@@ -41,7 +44,7 @@ class MerakiSSIDChannelSensor(MerakiEntity, SensorEntity):
         self,
         coordinator: MerakiDataUpdateCoordinator,  # Explicit coordinator type
         device_data: Dict[str, Any],  # Parent device (e.g., AP)
-        ssid_data: Dict[str, Any],   # Specific SSID data for this sensor
+        ssid_data: Dict[str, Any],  # Specific SSID data for this sensor
     ) -> None:
         """Initialize the Meraki SSID Channel sensor.
 
@@ -56,7 +59,9 @@ class MerakiSSIDChannelSensor(MerakiEntity, SensorEntity):
         self._attr_name = f"{base_name} Channel"
 
         serial_part = self._device_serial or "unknownserial"
-        ssid_num_part = self._ssid_number if self._ssid_number is not None else "unknownssid"
+        ssid_num_part = (
+            self._ssid_number if self._ssid_number is not None else "unknownssid"
+        )
         self._attr_unique_id = f"{serial_part}_{ssid_num_part}_channel"
 
         # Set initial state
@@ -83,8 +88,7 @@ class MerakiSSIDChannelSensor(MerakiEntity, SensorEntity):
         if current_ssid_data:
             # Assuming 'channel' is a direct attribute of the SSID data from coordinator
             # The value could be an int, string, or None.
-            channel_value: Union[str, int,
-                                 None] = current_ssid_data.get("channel")
+            channel_value: Union[str, int, None] = current_ssid_data.get("channel")
             if channel_value is not None:
                 # Ensure state is string, int, float or datetime
                 self._attr_native_value = str(channel_value)
@@ -99,7 +103,8 @@ class MerakiSSIDChannelSensor(MerakiEntity, SensorEntity):
                 _LOGGER.debug(
                     "SSID '%s' on device '%s' has no 'channel' information. Setting to None.",
                     self._ssid_name,
-                    self._device_name)
+                    self._device_name,
+                )
                 self._attr_native_value = None
                 self._attr_state_class = None
         else:
@@ -107,7 +112,8 @@ class MerakiSSIDChannelSensor(MerakiEntity, SensorEntity):
                 "SSID data for '%s' (Num: %s) on device '%s' not found in coordinator. Channel sensor state set to None.",
                 self._ssid_name,
                 self._ssid_number,
-                self._device_name)
+                self._device_name,
+            )
             self._attr_native_value = None
             self._attr_state_class = None
 

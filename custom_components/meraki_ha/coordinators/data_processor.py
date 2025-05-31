@@ -13,7 +13,9 @@ if TYPE_CHECKING:
     # Avoid circular import at runtime, only for type checking
     # Ensure this path is correct; if coordinator.py was deleted, it might be
     # base_coordinator
-    from custom_components.meraki_ha.coordinators.base_coordinator import MerakiDataUpdateCoordinator
+    from custom_components.meraki_ha.coordinators.base_coordinator import (
+        MerakiDataUpdateCoordinator,
+    )
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -82,14 +84,11 @@ class MerakiDataProcessor:
             }
             processed_devices_list.append(processed_device)
 
-        _LOGGER.debug(
-            "Finished processing %d devices.",
-            len(processed_devices_list))
+        _LOGGER.debug("Finished processing %d devices.", len(processed_devices_list))
         return processed_devices_list
 
     @staticmethod
-    def process_networks(
-            networks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def process_networks(networks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Process a list of pre-fetched network data.
 
         Extracts key information for each network.
@@ -107,15 +106,16 @@ class MerakiDataProcessor:
         if not isinstance(networks, list):  # Basic type check.
             _LOGGER.warning(
                 "Network data is not a list as expected: %s. Returning empty list.",
-                type(networks))
+                type(networks),
+            )
             return processed_networks_list
 
         for network in networks:
             # Ensure each item is a dictionary.
             if not isinstance(network, dict):
                 _LOGGER.warning(
-                    "Network item is not a dict: %s. Skipping item.",
-                    type(network))
+                    "Network item is not a dict: %s. Skipping item.", type(network)
+                )
                 continue
             processed_network: Dict[str, Any] = {
                 "id": network.get("id"),
@@ -148,14 +148,15 @@ class MerakiDataProcessor:
         if not isinstance(ssids, list):  # Basic type check.
             _LOGGER.warning(
                 "SSID data is not a list as expected: %s. Returning empty list.",
-                type(ssids))
+                type(ssids),
+            )
             return processed_ssids_list
 
         for ssid in ssids:
             if not isinstance(ssid, dict):  # Ensure each item is a dictionary.
                 _LOGGER.warning(
-                    "SSID item is not a dict: %s. Skipping item.",
-                    type(ssid))
+                    "SSID item is not a dict: %s. Skipping item.", type(ssid)
+                )
                 continue
             processed_ssid: Dict[str, Any] = {
                 "name": ssid.get("name"),
@@ -174,7 +175,8 @@ class MerakiDataProcessor:
 
     @staticmethod
     def process_network_client_counts(
-            clients: Optional[List[Dict[str, Any]]]) -> Dict[str, int]:
+        clients: Optional[List[Dict[str, Any]]],
+    ) -> Dict[str, int]:
         counts: Dict[str, int] = {}
         if not clients:
             return counts

@@ -5,6 +5,7 @@ entities that represent data points from Meraki devices and networks.
 It discovers devices and networks using data provided by the central
 `MerakiDataUpdateCoordinator` and creates corresponding sensor entities.
 """
+
 import logging
 from typing import Any, Dict, List, Optional
 
@@ -14,20 +15,30 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 # Import specific sensor entity classes
-from custom_components.meraki_ha.sensor.connected_clients import MerakiConnectedClientsSensor
+from custom_components.meraki_ha.sensor.connected_clients import (
+    MerakiConnectedClientsSensor,
+)
 from custom_components.meraki_ha.sensor.device_status import MerakiDeviceStatusSensor
-from custom_components.meraki_ha.sensor.network_clients import MerakiNetworkClientCountSensor
+from custom_components.meraki_ha.sensor.network_clients import (
+    MerakiNetworkClientCountSensor,
+)
 from custom_components.meraki_ha.sensor.radio_settings import MerakiRadioSettingsSensor
+
 # Function to create multiple SSID-related sensors
 from custom_components.meraki_ha.sensor.ssid import create_ssid_sensors
-from custom_components.meraki_ha.sensor.ssid_availability import MerakiSSIDAvailabilitySensor
+from custom_components.meraki_ha.sensor.ssid_availability import (
+    MerakiSSIDAvailabilitySensor,
+)
 from custom_components.meraki_ha.sensor.uplink_status import MerakiUplinkStatusSensor
 
 # Import from parent directory for constants and coordinator type
 # ATTR_SSIDS for device-specific SSIDs
 from custom_components.meraki_ha.const import ATTR_SSIDS, DATA_COORDINATOR, DOMAIN
+
 # Corrected import path
-from custom_components.meraki_ha.coordinators.base_coordinator import MerakiDataUpdateCoordinator
+from custom_components.meraki_ha.coordinators.base_coordinator import (
+    MerakiDataUpdateCoordinator,
+)
 
 # Obsolete imports for MerakiAPIClient and get_network_ids_and_names are
 # removed.
@@ -61,7 +72,8 @@ async def async_setup_entry(
     if coordinator.data is None:
         _LOGGER.error(
             "Meraki coordinator data is not available. Cannot set up Meraki sensor platform for entry_id: %s.",
-            config_entry.entry_id)
+            config_entry.entry_id,
+        )
         return
 
     created_sensors: List[SensorEntity] = []
@@ -69,19 +81,21 @@ async def async_setup_entry(
     # coordinator.
     devices: List[Dict[str, Any]] = coordinator.data.get("devices", [])
     _LOGGER.debug(
-        "Found %d devices in coordinator data for Meraki sensor setup.",
-        len(devices))
+        "Found %d devices in coordinator data for Meraki sensor setup.", len(devices)
+    )
 
     for device_info in devices:
         device_serial = device_info.get("serial")
         device_name = device_info.get(
-            "name", f"Unknown Meraki Device ({device_serial or 'No Serial'})")
+            "name", f"Unknown Meraki Device ({device_serial or 'No Serial'})"
+        )
         device_model = device_info.get("model", "")
 
         if not device_serial:
             _LOGGER.warning(
                 "Skipping sensor setup for a device with no serial number. Device data: %s",
-                device_info)
+                device_info,
+            )
             continue
 
         _LOGGER.debug(
@@ -92,22 +106,18 @@ async def async_setup_entry(
         )
 
         # Add common device status sensor for all devices.
-        created_sensors.append(
-            MerakiDeviceStatusSensor(
-                coordinator, device_info))
+        created_sensors.append(MerakiDeviceStatusSensor(coordinator, device_info))
 
         # Add sensors specific to MR (Wireless AP) or GR (Gateway with AP) models.
         # These models have wireless capabilities.
         if device_model.upper().startswith(("MR", "GR")):
             _LOGGER.debug(
-                "Adding wireless-specific (MR/GR) sensors for device: %s",
-                device_name)
+                "Adding wireless-specific (MR/GR) sensors for device: %s", device_name
+            )
             created_sensors.append(
-                MerakiConnectedClientsSensor(
-                    coordinator, device_info))
-            created_sensors.append(
-                MerakiRadioSettingsSensor(
-                    coordinator, device_info))
+                MerakiConnectedClientsSensor(coordinator, device_info)
+            )
+            created_sensors.append(MerakiRadioSettingsSensor(coordinator, device_info))
 
             # Process SSIDs associated with this wireless device.
             # The `ATTR_SSIDS` key in `device_info` (e.g., "ssids_on_device") is populated
@@ -132,7 +142,8 @@ async def async_setup_entry(
             # This is populated by `DataAggregator` if it links SSIDs to
             # specific devices.
             ssids_configured_on_device: List[Dict[str, Any]] = device_info.get(
-                ATTR_SSIDS, [])
+                ATTR_SSIDS, []
+            )
             if ssids_configured_on_device:
                 for ssid_info_on_device in ssids_configured_on_device:
                     ssid_name = ssid_info_on_device.get("name", "Unknown SSID")
@@ -144,56 +155,62 @@ async def async_setup_entry(
                     # `create_ssid_sensors` generates sensors like status, auth mode, etc.
                     created_sensors.extend(
                         create_ssid_sensors(
-                            coordinator,
-                            device_info,
-                            ssid_info_on_device))
+                            coordinator, device_info, ssid_info_on_device
+                        )
+                    )
                     # `MerakiSSIDAvailabilitySensor` checks if this specific SSID is broadcasting.
                     created_sensors.append(
                         MerakiSSIDAvailabilitySensor(
-                            coordinator, device_info, ssid_info_on_device))
+                            coordinator, device_info, ssid_info_on_device
+                        )
+                    )
             else:
                 _LOGGER.debug(
                     "No specific SSIDs found under device '%s' for detailed sensor setup. "
-                    "Global SSID sensors might still be created if applicable.", device_name)
+                    "Global SSID sensors might still be created if applicable.",
+                    device_name,
+                )
 
         # Add sensors specific to MX (Security Appliance) models.
         elif device_model.upper().startswith("MX"):
             _LOGGER.debug(
                 "Adding security appliance (MX) specific sensors for device: %s",
-                device_name)
-            created_sensors.append(
-                MerakiUplinkStatusSensor(
-                    coordinator, device_info))
+                device_name,
+            )
+            created_sensors.append(MerakiUplinkStatusSensor(coordinator, device_info))
 
     # Add sensors that are network-wide (not tied to a specific device).
     # Network information is sourced directly from
     # `coordinator.data["networks"]`.
-    networks_data: Optional[List[Dict[str, Any]]
-                            ] = coordinator.data.get("networks")
+    networks_data: Optional[List[Dict[str, Any]]] = coordinator.data.get("networks")
 
     if networks_data:
         _LOGGER.debug(
             "Processing %d networks for network-wide client count sensors.",
-            len(networks_data))
+            len(networks_data),
+        )
         for network_info in networks_data:
             network_id = network_info.get("id")
             network_name = network_info.get(
-                "name", f"Unknown Network ({network_id or 'No ID'})")
+                "name", f"Unknown Network ({network_id or 'No ID'})"
+            )
             if not network_id:
                 _LOGGER.warning(
                     "Skipping network client count sensor for a network with no ID. Network data: %s",
-                    network_info)
+                    network_info,
+                )
                 continue
 
             # Create a sensor to count total clients per network.
             created_sensors.append(
-                MerakiNetworkClientCountSensor(
-                    coordinator, network_id, network_name))
+                MerakiNetworkClientCountSensor(coordinator, network_id, network_name)
+            )
     else:
         _LOGGER.warning(
             "No network information available in coordinator.data. "
             "Cannot set up network-wide client count sensors for entry_id: %s.",
-            config_entry.entry_id)
+            config_entry.entry_id,
+        )
 
     if created_sensors:
         for i, sensor_entity in enumerate(created_sensors):
@@ -203,11 +220,13 @@ async def async_setup_entry(
                 _LOGGER.error(
                     "MERAKI_SENSOR_SETUP: About to add MerakiDeviceStatusSensor for S/N %s. Accessing device_info: %s",
                     sensor_entity._device_info_data.get("serial", "Unknown S/N"),
-                    str(sensor_entity.device_info)
+                    str(sensor_entity.device_info),
                 )
                 # Log only for the first few to avoid excessive logs if there
                 # are many devices
-                if i < 3:  # This condition is just to limit log spam in case of many devices
+                if (
+                    i < 3
+                ):  # This condition is just to limit log spam in case of many devices
                     pass  # The main logging is above
                 else:
                     break  # Stop logging after the first few MerakiDeviceStatusSensor instances
@@ -216,8 +235,10 @@ async def async_setup_entry(
         _LOGGER.debug(
             "Added %d Meraki sensor entities for entry_id: %s.",
             len(created_sensors),
-            config_entry.entry_id)
+            config_entry.entry_id,
+        )
     else:
         _LOGGER.info(
             "No Meraki sensor entities were created for entry_id: %s.",
-            config_entry.entry_id)
+            config_entry.entry_id,
+        )

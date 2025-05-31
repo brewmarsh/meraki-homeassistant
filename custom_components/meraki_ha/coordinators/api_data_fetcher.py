@@ -5,6 +5,7 @@ making API calls to the Meraki Dashboard API to retrieve information
 about networks, devices (including tags), SSIDs, and device-specific details
 like client counts and radio settings for MR devices, using the Meraki SDK.
 """
+
 import asyncio
 import logging
 from typing import Any, Dict, List, Optional
@@ -14,6 +15,7 @@ from homeassistant.helpers.update_coordinator import UpdateFailed
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
 from custom_components.meraki_ha.meraki_api import MerakiAPIClient
+
 # Obsolete imports for MerakiApiException and related custom exceptions are removed
 # as MerakiSDKAPIError from meraki.exceptions is used directly.
 
@@ -77,18 +79,20 @@ class MerakiApiDataFetcher:
                                escalate to this level.
         """
         _LOGGER.debug(
-            "Fetching all data for organization ID: %s using SDK",
-            self.org_id)
+            "Fetching all data for organization ID: %s using SDK", self.org_id
+        )
 
         # Step 1: Fetch all networks for the organization.
         # `async_get_networks` handles its own exceptions and returns None on failure.
         networks: Optional[List[Dict[str, Any]]] = None
         try:
             networks = await self.async_get_networks(self.org_id)
-        except MerakiSDKAPIError as e:  # Should be caught by async_get_networks, but as a safeguard
+        except (
+            MerakiSDKAPIError
+        ) as e:  # Should be caught by async_get_networks, but as a safeguard
             _LOGGER.error(
-                    "Critical error fetching networks for org %s: %s. "
-                    "This should have been handled by async_get_networks.",
+                "Critical error fetching networks for org %s: %s. "
+                "This should have been handled by async_get_networks.",
                 self.org_id,
                 e,
             )
@@ -100,7 +104,8 @@ class MerakiApiDataFetcher:
                 self.org_id,
             )
             raise UpdateFailed(
-                f"Could not fetch Meraki networks for org {self.org_id}.")
+                f"Could not fetch Meraki networks for org {self.org_id}."
+            )
 
         # Step 2: Fetch all devices for the organization.
         # `async_get_organization_devices` handles its own exceptions.
@@ -109,8 +114,8 @@ class MerakiApiDataFetcher:
             devices = await self.async_get_organization_devices(self.org_id)
         except MerakiSDKAPIError as e:  # Safeguard
             _LOGGER.error(
-                    "Critical error fetching devices for org %s: %s. "
-                    "This should have been handled by async_get_organization_devices.",
+                "Critical error fetching devices for org %s: %s. "
+                "This should have been handled by async_get_organization_devices.",
                 self.org_id,
                 e,
             )
@@ -121,8 +126,7 @@ class MerakiApiDataFetcher:
                 "Could not fetch Meraki devices for org ID: %s. Aborting update.",
                 self.org_id,
             )
-            raise UpdateFailed(
-                f"Could not fetch Meraki devices for org {self.org_id}.")
+            raise UpdateFailed(f"Could not fetch Meraki devices for org {self.org_id}.")
 
         # Step 2.1: Fetch Device Statuses
         device_statuses_map = {}
@@ -130,19 +134,20 @@ class MerakiApiDataFetcher:
             try:
                 _LOGGER.debug(
                     "MERAKI_DEBUG_FETCHER: Fetching device statuses for org ID: %s",
-                    self.org_id)
+                    self.org_id,
+                )
                 # Use total_pages='all' if supported and tested with the library version.
                 # If not, manual pagination might be needed for large organizations.
                 # For now, assume total_pages='all' or the default call gets
                 # enough for testing.
                 statuses_data = await self.meraki_client.organizations.getOrganizationDevicesStatuses(
-                    organizationId=self.org_id,
-                    total_pages='all'
+                    organizationId=self.org_id, total_pages="all"
                 )
                 if statuses_data:
                     _LOGGER.debug(
                         "MERAKI_DEBUG_FETCHER: Received %d status entries.",
-                        len(statuses_data))
+                        len(statuses_data),
+                    )
                     for status_entry in statuses_data:
                         if status_entry.get("serial"):
                             device_statuses_map[status_entry["serial"]] = (
@@ -177,14 +182,17 @@ class MerakiApiDataFetcher:
                     _LOGGER.debug(
                         "MERAKI_DEBUG_FETCHER: Merged status '%s' for device %s",
                         device["status"],
-                        serial)
+                        serial,
+                    )
                 elif serial:
                     _LOGGER.debug(
                         "MERAKI_DEBUG_FETCHER: No specific status entry found for device %s. It may retain a prior status or have none.",
-                        serial)
+                        serial,
+                    )
         elif devices:
             _LOGGER.debug(
-                "MERAKI_DEBUG_FETCHER: No device statuses were successfully mapped, skipping merge.")
+                "MERAKI_DEBUG_FETCHER: No device statuses were successfully mapped, skipping merge."
+            )
 
         # Step 2a: Fetch additional details for MR devices (client count and radio settings).
         # This involves creating a list of asynchronous tasks for MR devices.
@@ -194,8 +202,8 @@ class MerakiApiDataFetcher:
                 # Assumes 'serial' is always present for MR devices.
                 serial = device["serial"]
                 mr_device_tasks.append(
-                    self._async_get_mr_device_details(
-                        device, serial))
+                    self._async_get_mr_device_details(device, serial)
+                )
 
         if mr_device_tasks:
             await asyncio.gather(*mr_device_tasks)
@@ -217,8 +225,12 @@ class MerakiApiDataFetcher:
                 _LOGGER.debug("Fetching SSIDs for network ID: %s", network_id)
                 ssid_data_for_network = None  # Initialize for clarity.
                 try:
-                    ssid_data_for_network = await self.async_get_network_ssids(network_id)
-                except MerakiSDKAPIError as e:  # Should be caught by async_get_network_ssids
+                    ssid_data_for_network = await self.async_get_network_ssids(
+                        network_id
+                    )
+                except (
+                    MerakiSDKAPIError
+                ) as e:  # Should be caught by async_get_network_ssids
                     _LOGGER.warning(
                         "Error fetching SSIDs for network %s was not handled by async_get_network_ssids: %s. Status: %s, Reason: %s. Skipping.",
                         network_id,
@@ -261,8 +273,7 @@ class MerakiApiDataFetcher:
             for network in networks:
                 network_id = network["id"]
                 try:
-                    _LOGGER.debug(
-                        "Fetching clients for network ID: %s", network_id)
+                    _LOGGER.debug("Fetching clients for network ID: %s", network_id)
                     # Using a timespan of 300 seconds (5 minutes) to get recently active clients.
                     # The SDK method is `self.meraki_client.clients.get_network_clients`
                     # based on common SDK structures. If this is incorrect, it will need adjustment.
@@ -274,8 +285,10 @@ class MerakiApiDataFetcher:
                     # Based on typical Meraki SDK patterns, `clients` is a sub-API of `dashboard`.
                     # Let's try the one from the prompt first:
                     # `self.meraki_client.networks.get_network_clients`
-                    network_clients_data = await self.meraki_client.networks.getNetworkClients(
-                        network_id, timespan=300  # timespan in seconds
+                    network_clients_data = (
+                        await self.meraki_client.networks.getNetworkClients(
+                            network_id, timespan=300  # timespan in seconds
+                        )
                     )
 
                     if network_clients_data:
@@ -283,44 +296,49 @@ class MerakiApiDataFetcher:
                             # Extract AP serial. Common keys: 'recentDeviceSerial', 'deviceSerial', 'apSerial'.
                             # The specific key depends on the Meraki API
                             # version and client type.
-                            ap_serial = client_data.get('recentDeviceSerial') or \
-                                client_data.get('recentDeviceMac') or \
-                                client_data.get('deviceSerial')  # recentDeviceMac might be for AP MAC not serial
+                            ap_serial = (
+                                client_data.get("recentDeviceSerial")
+                                or client_data.get("recentDeviceMac")
+                                or client_data.get("deviceSerial")
+                            )  # recentDeviceMac might be for AP MAC not serial
 
                             client_entry = {
                                 # 'mac' is usually a guaranteed field
-                                'mac': client_data['mac'],
-                                'ip': client_data.get('ip'),
-                                'description': client_data.get('description'),
+                                "mac": client_data["mac"],
+                                "ip": client_data.get("ip"),
+                                "description": client_data.get("description"),
                                 # Status is 'Online' if present in this list
                                 # (recently active)
                                 # Use provided status or default to Online
-                                'status': client_data.get('status', 'Online'),
-                                'networkId': network_id,
-                                'ap_serial': ap_serial,
+                                "status": client_data.get("status", "Online"),
+                                "networkId": network_id,
+                                "ap_serial": ap_serial,
                                 # Include other potentially useful fields
                                 # directly
-                                'usage': client_data.get('usage'),
-                                'vlan': client_data.get('vlan'),
-                                'switchport': client_data.get('switchport'),
-                                'ip6': client_data.get('ip6'),
-                                'manufacturer': client_data.get('manufacturer'),
-                                'os': client_data.get('os'),
+                                "usage": client_data.get("usage"),
+                                "vlan": client_data.get("vlan"),
+                                "switchport": client_data.get("switchport"),
+                                "ip6": client_data.get("ip6"),
+                                "manufacturer": client_data.get("manufacturer"),
+                                "os": client_data.get("os"),
                                 # User who logged into the client device
-                                'user': client_data.get('user'),
-                                'firstSeen': client_data.get('firstSeen'),
-                                'lastSeen': client_data.get('lastSeen'),
+                                "user": client_data.get("user"),
+                                "firstSeen": client_data.get("firstSeen"),
+                                "lastSeen": client_data.get("lastSeen"),
                                 # SSID the client is connected to
-                                'ssid': client_data.get('ssid')
+                                "ssid": client_data.get("ssid"),
                             }
                             all_clients.append(client_entry)
                         _LOGGER.debug(
                             "Fetched %d clients for network %s",
                             len(network_clients_data),
-                            network_id)
+                            network_id,
+                        )
                     else:
                         _LOGGER.debug(
-                            "No clients found for network %s in the given timespan.", network_id)
+                            "No clients found for network %s in the given timespan.",
+                            network_id,
+                        )
 
                 except MerakiSDKAPIError as e:
                     # Log specific error for this network but continue with
@@ -352,7 +370,8 @@ class MerakiApiDataFetcher:
         }
 
     async def _async_get_mr_device_details(
-            self, device: Dict[str, Any], serial: str) -> None:
+        self, device: Dict[str, Any], serial: str
+    ) -> None:
         """Asynchronously fetch and store client count and radio settings for an MR device.
 
         This helper method updates the provided `device` dictionary in-place with
@@ -365,10 +384,10 @@ class MerakiApiDataFetcher:
         """
         # Fetch connected client count
         try:
-            clients_data = await self.meraki_client.devices.getDeviceClients(serial=serial)
-            device["connected_clients_count"] = (
-                len(clients_data) if clients_data else 0
+            clients_data = await self.meraki_client.devices.getDeviceClients(
+                serial=serial
             )
+            device["connected_clients_count"] = len(clients_data) if clients_data else 0
         except MerakiSDKAPIError as e:
             _LOGGER.warning(
                 "Failed to fetch client count for MR device %s (Serial: %s): "
@@ -391,9 +410,11 @@ class MerakiApiDataFetcher:
 
         # Fetch wireless radio settings
         try:
-            radio_settings = await self.meraki_client.wireless.getDeviceWirelessRadioSettings(
-                serial=serial
-            ) # This one already seems fine, but ensuring consistency
+            radio_settings = (
+                await self.meraki_client.wireless.getDeviceWirelessRadioSettings(
+                    serial=serial
+                )
+            )  # This one already seems fine, but ensuring consistency
             device["radio_settings"] = radio_settings
         except MerakiSDKAPIError as e:
             _LOGGER.warning(
@@ -415,9 +436,7 @@ class MerakiApiDataFetcher:
             )
             device["radio_settings"] = None
 
-    async def async_get_networks(
-        self, org_id: str
-    ) -> Optional[List[Dict[str, Any]]]:
+    async def async_get_networks(self, org_id: str) -> Optional[List[Dict[str, Any]]]:
         """Fetch all networks for a Meraki organization using the SDK.
 
         Args:
@@ -441,7 +460,9 @@ class MerakiApiDataFetcher:
                 # but start without it for simplicity, similar to getOrganizations.
             )
 
-            if org_networks is None:  # Explicit check for None if the API can return that on error/no content
+            if (
+                org_networks is None
+            ):  # Explicit check for None if the API can return that on error/no content
                 _LOGGER.warning(
                     "Call to organizations.getOrganizationNetworks for org ID %s returned None.",
                     org_id,
@@ -497,10 +518,11 @@ class MerakiApiDataFetcher:
         """
         _LOGGER.debug(
             "MERAKI_DEBUG_FETCHER: Fetching organization devices for org ID: %s using SDK",
-            org_id)  # Added prefix
+            org_id,
+        )  # Added prefix
         try:
-            devices_data = await self.meraki_client.organizations.getOrganizationDevices(
-                org_id
+            devices_data = (
+                await self.meraki_client.organizations.getOrganizationDevices(org_id)
             )
             # Added detailed logging of the first few devices or summary
             if devices_data:
@@ -550,9 +572,7 @@ class MerakiApiDataFetcher:
             if the network has no SSIDs (HTTP 404) or None if another error occurs.
             Handles `MerakiSDKAPIError` and other exceptions internally.
         """
-        _LOGGER.debug(
-            "Fetching SSIDs for network ID: %s using SDK",
-            network_id)
+        _LOGGER.debug("Fetching SSIDs for network ID: %s using SDK", network_id)
         try:
             return await self.meraki_client.wireless.getNetworkWirelessSsids(
                 networkId=network_id

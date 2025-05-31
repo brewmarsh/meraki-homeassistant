@@ -5,6 +5,7 @@ entities in Home Assistant. It provides common properties and methods,
 such as device information linking and coordinator management,
 building upon Home Assistant's `CoordinatorEntity`.
 """
+
 import logging
 from typing import Any, Dict, Optional  # Added Optional, Any (List removed)
 
@@ -65,17 +66,14 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
         self._ssid_info_data: Optional[Dict[str, Any]] = ssid_data
 
         # Common attributes derived from device_data
-        self._device_serial: Optional[str] = self._device_info_data.get(
-            "serial")
+        self._device_serial: Optional[str] = self._device_info_data.get("serial")
         self._device_name: Optional[str] = self._device_info_data.get("name")
         # Fallback to serial if name is missing for display name consistency
         if not self._device_name and self._device_serial:
             self._device_name = self._device_serial
 
         self._device_model: Optional[str] = self._device_info_data.get("model")
-        self._device_firmware: Optional[str] = (
-            self._device_info_data.get("firmware")
-        )
+        self._device_firmware: Optional[str] = self._device_info_data.get("firmware")
 
         # Common attributes derived from ssid_data (if provided)
         self._ssid_name: Optional[str] = None
@@ -88,7 +86,8 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
         _LOGGER.error(
             "MERAKI_ENTITY_INIT: Initializing for device S/N: %s, Name: %s",
             self._device_serial,
-            self._device_name)
+            self._device_name,
+        )
         # The _device_index and _ssid_index attributes from the original code
         # are problematic:
         # 1. They assume `coordinator.data` has a specific structure
@@ -134,13 +133,11 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
 
         # If this entity represents an SSID itself or a property of an SSID:
         if self._ssid_info_data and self._ssid_number is not None:
-            network_id = self._device_info_data.get(
-                "networkId")  # AP's networkId
+            network_id = self._device_info_data.get("networkId")  # AP's networkId
             if network_id:
                 # This entity is part of an SSID "device"
                 return DeviceInfo(
-                    identifiers={
-                        (DOMAIN, f"{network_id}_{self._ssid_number}")},
+                    identifiers={(DOMAIN, f"{network_id}_{self._ssid_number}")},
                     # Name might be already set by the SSID "device" registration
                     # Or, if this entity is the SSID "device" itself:
                     # name=str(self._ssid_name or f"SSID {self._ssid_number}"),
@@ -158,7 +155,8 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
 
         _LOGGER.error(
             "MERAKI_DEVICE_NAMING_DEBUG: device_info called for physical device %s",
-            self._device_serial)
+            self._device_serial,
+        )
         # Get the raw device name (name from API or serial)
         # self._device_name is already pre-calculated in __init__ to be name or
         # serial
@@ -167,8 +165,7 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
         # Get device_name_format from the coordinator
         device_name_format_option = self.coordinator.device_name_format
 
-        device_type_mapped = map_meraki_model_to_device_type(
-            self._device_model or "")
+        device_type_mapped = map_meraki_model_to_device_type(self._device_model or "")
 
         _LOGGER.debug(
             "MERAKI_DEBUG_ENTITY: Device Info for %s: Raw Name='%s', Model='%s', FormatOption='%s', MappedType='%s'",

@@ -4,6 +4,7 @@ This module defines the `MerakiNetworkClientCountSensor` class, which
 represents a sensor in Home Assistant displaying the number of clients
 connected to a specific Meraki network.
 """
+
 import logging  # Added logging
 from typing import Any, Optional, Dict
 
@@ -22,16 +23,16 @@ from ..const import DOMAIN  # For device_info identifiers
 
 
 async def get_network_clients_count(
-        api_key: str,
-        network_id: str,
-        timespan: int = 86400) -> int:
+    api_key: str, network_id: str, timespan: int = 86400
+) -> int:
     """Placeholder: Fetches network client count."""
     _LOGGER.warning(
-        "Using placeholder for get_network_clients_count for network_id %s.",
-        network_id)
+        "Using placeholder for get_network_clients_count for network_id %s.", network_id
+    )
     # In a real scenario, this would make an API call.
     # For placeholder, return a static value or a value based on some mock.
     return 0  # Example placeholder value
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -117,24 +118,28 @@ class MerakiNetworkClientCountSensor(
         """
         if self.coordinator.data and "network_client_counts" in self.coordinator.data:
             network_counts: Optional[Dict[str, int]] = self.coordinator.data.get(
-                "network_client_counts")
+                "network_client_counts"
+            )
             if network_counts and self._network_id in network_counts:
                 count = network_counts[self._network_id]
                 _LOGGER.debug(
                     "Client count for network '%s' (ID: %s) from coordinator: %s",
                     self._network_name,
                     self._network_id,
-                    count)
+                    count,
+                )
                 return count
             else:
                 _LOGGER.warning(
                     "Client count data for network ID '%s' not found in coordinator.",
-                    self._network_id)
+                    self._network_id,
+                )
                 return 0  # Default if specific network data missing
         else:
             _LOGGER.warning(
                 "Coordinator data or 'network_client_counts' key is unavailable for %s. Cannot update sensor.",
-                self.unique_id)
+                self.unique_id,
+            )
             # If this sensor *must* call an API, it shouldn't be a CoordinatorEntity
             # or its async_update needs to be different.
             # For now, returning None to indicate data is unavailable from

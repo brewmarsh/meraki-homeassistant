@@ -4,6 +4,7 @@ This module defines the `MerakiUplinkStatusSensor` class, a Home Assistant
 sensor entity that displays the status of the primary uplink for a Meraki
 MX security appliance.
 """
+
 import logging
 from typing import Any, Dict, Optional, List  # Added Optional, List
 
@@ -16,6 +17,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 from ..coordinators import MerakiDataUpdateCoordinator
 from ..const import DOMAIN  # For device_info identifiers
+
 # Assuming this function is correctly defined in the meraki_api package
 # from ..meraki_api.appliance import get_meraki_device_appliance_uplinks
 # Placeholder for the function if not available for type checking
@@ -23,16 +25,20 @@ from ..const import DOMAIN  # For device_info identifiers
 
 async def get_meraki_device_appliance_uplinks(  # Function name was different in appliance.py
     # org_id seems unused by actual API endpoint for device uplinks
-    api_key: str, org_id: str, serial: str
+    api_key: str,
+    org_id: str,
+    serial: str,
 ) -> Optional[List[Dict[str, Any]]]:  # API returns a list of uplinks
     """Placeholder: Fetches Meraki device appliance uplink settings/status."""
     _LOGGER.warning(
         "Using placeholder for get_meraki_device_appliance_uplinks for serial %s.",
-        serial)
+        serial,
+    )
     # Example successful response structure (simplified list of uplinks)
     # return [{"interface": "wan1", "status": "active", "ip": "1.2.3.4", ...}, {"interface": "wan2", ...}]
     # Example error or no data:
     return None
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,8 +84,8 @@ class MerakiUplinkStatusSensor(
         super().__init__(coordinator)
         self._device_info_data: Dict[str, Any] = device_data
         device_name = self._device_info_data.get(
-            "name", self._device_info_data.get(
-                "serial", "Unknown Device"))
+            "name", self._device_info_data.get("serial", "Unknown Device")
+        )
         device_serial = self._device_info_data.get("serial", "")
 
         self._attr_name = f"{device_name} Uplink Status"
@@ -91,13 +97,13 @@ class MerakiUplinkStatusSensor(
             "serial_number": device_serial,
             "firmware_version": self._device_info_data.get("firmware"),
         }
-        self._attr_extra_state_attributes = self._base_attributes.copy()  # Initial attributes
+        self._attr_extra_state_attributes = (
+            self._base_attributes.copy()
+        )  # Initial attributes
 
         # Set initial state
         self._update_sensor_state()
-        _LOGGER.debug(
-            "Meraki Uplink Status Sensor Initialized: %s", self._attr_name
-        )
+        _LOGGER.debug("Meraki Uplink Status Sensor Initialized: %s", self._attr_name)
 
     def _update_sensor_state(self) -> None:
         """Update sensor state and attributes from coordinator data.
@@ -121,8 +127,7 @@ class MerakiUplinkStatusSensor(
         if uplinks_data and isinstance(uplinks_data, list) and uplinks_data:
             # Assuming the first uplink in the list is the primary or most
             # relevant one for the main state
-            primary_uplink_status = uplinks_data[0].get(
-                "status", STATE_UNKNOWN_UPLINK)
+            primary_uplink_status = uplinks_data[0].get("status", STATE_UNKNOWN_UPLINK)
             self._attr_native_value = str(primary_uplink_status).capitalize()
             # Add all uplink details to extra_state_attributes
             # To avoid overly large state objects, decide what's most relevant from uplinks_data.
@@ -134,9 +139,7 @@ class MerakiUplinkStatusSensor(
             # current_attributes["active_uplink_interface"] = uplinks_data[0].get("interface")
             # current_attributes["active_uplink_ip"] = uplinks_data[0].get("ip")
         elif uplinks_data == []:  # Explicitly empty list means no uplinks reported
-            _LOGGER.info(
-                "No uplink data reported for device '%s'.", device_serial
-            )
+            _LOGGER.info("No uplink data reported for device '%s'.", device_serial)
             # Or "No Uplinks"
             self._attr_native_value = STATE_UNAVAILABLE_UPLINK
             current_attributes["uplinks_details"] = []
@@ -226,7 +229,9 @@ class MerakiUplinkStatusSensor(
         """
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_info_data["serial"])},
-            name=str(self._device_info_data.get("name", self._device_info_data["serial"])),
+            name=str(
+                self._device_info_data.get("name", self._device_info_data["serial"])
+            ),
             manufacturer="Cisco Meraki",
             model=str(self._device_info_data.get("model", "Unknown")),
             sw_version=str(self._device_info_data.get("firmware", "")),
