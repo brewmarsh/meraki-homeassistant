@@ -138,15 +138,26 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                     # Fallback if the detailed data (or summary) doesn't provide a name
                     authoritative_ssid_name = f"SSID {merged_ssid_data.get('number', 'Unknown')}"
 
+                # Apply device_name_format for SSIDs
+                device_name_format = self.config_entry.options.get("device_name_format", "omitted")
+
+                formatted_ssid_name = authoritative_ssid_name
+                if device_name_format == "prefix":
+                    formatted_ssid_name = f"[SSID] {authoritative_ssid_name}"
+                elif device_name_format == "suffix":
+                    formatted_ssid_name = f"{authoritative_ssid_name} [SSID]"
+                # If "omitted" or other, use authoritative_ssid_name as is
+
                 device_registry.async_get_or_create(
                     config_entry_id=self.config_entry.entry_id,
                     identifiers={(DOMAIN, unique_ssid_id)},
-                    name=authoritative_ssid_name, # Use the determined authoritative name
-                    model="Wireless SSID",
+                    name=formatted_ssid_name, # Use the formatted name
+                    model="Wireless SSID", # Model type for SSID devices
                     manufacturer="Cisco Meraki",
+                    # Link to the main integration config entry device
                     via_device=(DOMAIN, self.config_entry.entry_id),
                 )
-                _LOGGER.debug(f"Registered/Updated device for ENABLED SSID: {authoritative_ssid_name} ({unique_ssid_id}) using detailed data.")
+                _LOGGER.debug(f"Registered/Updated device for ENABLED SSID: {formatted_ssid_name} ({unique_ssid_id}) using detailed data. Format option: {device_name_format}")
                 detailed_ssid_data_map[unique_ssid_id] = merged_ssid_data
 
             except Exception as e:
