@@ -48,17 +48,49 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
             raise UpdateFailed("Main API data fetcher has no data available for SSIDs.")
 
         all_ssids_from_fetcher: List[Dict[str, Any]] = self.api_data_fetcher.data.get("ssids", [])
+        _LOGGER.debug(f"SSIDCoordinator: Retrieved {len(all_ssids_from_fetcher)} total SSIDs from api_data_fetcher before filtering.")
 
-        _LOGGER.debug(f"Retrieved {len(all_ssids_from_fetcher)} total SSIDs from api_data_fetcher before filtering.")
+        enabled_ssids: List[Dict[str, Any]] = []
+        disabled_ssids_samples: List[Dict[str, Any]] = []
+        # Shorten sample name for brevity in logs if complex objects
+        enabled_ssids_log_samples: List[Dict[str, Any]] = []
 
-        enabled_ssids = [
-            ssid_info for ssid_info in all_ssids_from_fetcher if ssid_info.get("enabled") is True
-        ]
+        for ssid_info in all_ssids_from_fetcher:
+            # Construct a smaller dict for logging samples to keep logs cleaner
+            log_sample = {
+                "name": ssid_info.get("name"),
+                "number": ssid_info.get("number"),
+                "enabled": ssid_info.get("enabled"),
+                "networkId": ssid_info.get("networkId"),
+            }
+            if ssid_info.get("enabled") is True:
+                enabled_ssids.append(ssid_info)
+                if len(enabled_ssids_log_samples) < 3: # Log up to 3 samples
+                    enabled_ssids_log_samples.append(log_sample)
+            else:
+                if len(disabled_ssids_samples) < 3: # Log up to 3 samples
+                    disabled_ssids_samples.append(log_sample)
 
-        _LOGGER.debug(f"Found {len(enabled_ssids)} enabled SSIDs after filtering.")
+        _LOGGER.debug(f"SSIDCoordinator: Found {len(enabled_ssids)} enabled SSIDs after filtering.")
+
+        if disabled_ssids_samples:
+            _LOGGER.debug(f"SSIDCoordinator: Samples of SSIDs FILTERED OUT (e.g., disabled): {disabled_ssids_samples}")
+        elif all_ssids_from_fetcher: # Only log if there were SSIDs to begin with
+            _LOGGER.debug("SSIDCoordinator: No SSIDs were filtered out (all were enabled or list was empty and no disabled samples).")
+        else:
+            _LOGGER.debug("SSIDCoordinator: Initial list of SSIDs was empty.")
+
+
+        if enabled_ssids_log_samples:
+            _LOGGER.debug(f"SSIDCoordinator: Samples of SSIDs TO BE PROCESSED (enabled): {enabled_ssids_log_samples}")
+        elif enabled_ssids: # If list has items but samples somehow not logged (shouldn't happen with this logic)
+             _LOGGER.debug("SSIDCoordinator: Enabled SSIDs are present but no samples logged (unexpected).")
+        else: # No enabled SSIDs
+            _LOGGER.debug("SSIDCoordinator: No enabled SSIDs to be processed.")
+
 
         if not enabled_ssids:
-            _LOGGER.info("No enabled SSIDs found. No SSID devices to update/create.")
+            _LOGGER.info("SSIDCoordinator: No enabled SSIDs found after filtering. No SSID devices to update/create.")
             # If there were previously registered devices for SSIDs that are now disabled,
             # they will no longer be updated by this coordinator.
             # HA's device registry policy will determine if they are eventually auto-removed

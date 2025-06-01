@@ -224,9 +224,18 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
             device_name_raw = device_info.get("name") or serial
             device_model_str = device_info.get("model", "Unknown")
-            # Ensure map_meraki_model_to_device_type is available in this scope
-            device_type_mapped = map_meraki_model_to_device_type(device_model_str)
-            firmware_version = device_info.get("firmware")
+            firmware_version = device_info.get("firmware") # Get firmware version here
+
+            # Custom logic for device_type_mapped
+            # These are placeholder model names. If specific models for SSIDs/Networks exist
+            # as distinct devices in the 'devices' list, their exact model names should be used.
+            if "ssid_number" in device_info or device_model_str == "Wireless SSID Concentrator": # Example condition for SSID-related device
+                device_type_mapped = "SSID"
+            elif device_model_str == "Network Controller": # Example condition for Network-related device
+                device_type_mapped = "Network"
+            else:
+                # Ensure map_meraki_model_to_device_type is available in this scope
+                device_type_mapped = map_meraki_model_to_device_type(device_model_str)
 
             formatted_device_name = device_name_raw
             # Use the property self.device_name_format
