@@ -150,9 +150,8 @@ class MerakiApiDataFetcher:
                     )
                     for status_entry in statuses_data:
                         if status_entry.get("serial"):
-                            device_statuses_map[status_entry["serial"]] = (
-                                status_entry.get("status")
-                            )
+                            # Store the entire status dictionary, not just the status string
+                            device_statuses_map[status_entry["serial"]] = status_entry
                 else:
                     _LOGGER.debug(
                         "MERAKI_DEBUG_FETCHER: No status data returned from getOrganizationDeviceStatuses."
@@ -178,11 +177,14 @@ class MerakiApiDataFetcher:
             for device in devices:
                 serial = device.get("serial")
                 if serial and serial in device_statuses_map:
-                    device["status"] = device_statuses_map[serial]
+                    # Merge the entire status dictionary into the device dictionary
+                    # This will add/overwrite fields in 'device' with those from 'device_statuses_map[serial]'
+                    device.update(device_statuses_map[serial])
                     _LOGGER.debug(
-                        "MERAKI_DEBUG_FETCHER: Merged status '%s' for device %s",
-                        device["status"],
+                        "MERAKI_DEBUG_FETCHER: Merged full status data for device %s. Device data now: %s",
                         serial,
+                        # Log only a subset of device data for brevity if it's too large
+                        {k: device[k] for k in device if k not in ['tags', 'radio_settings']} # Example filter
                     )
                 elif serial:
                     _LOGGER.debug(
@@ -194,16 +196,27 @@ class MerakiApiDataFetcher:
                 "MERAKI_DEBUG_FETCHER: No device statuses were successfully mapped, skipping merge."
             )
 
+        # Log a sample of a few complete device entries after status merge
+        if devices:
+            for i, device_sample in enumerate(devices[:2]): # Log first 2 devices as samples
+                _LOGGER.debug(
+                    "MERAKI_DEBUG_FETCHER: Sample device entry %d after status merge: %s",
+                    i,
+                    device_sample # This will log the full device dict
+                )
+
         # Step 2a: Fetch additional details for MR devices (client count and radio settings).
         # This involves creating a list of asynchronous tasks for MR devices.
         mr_device_tasks = []
-        for device in devices:  # `devices` is confirmed not None here.
-            if device.get("model", "").upper().startswith("MR"):
-                # Assumes 'serial' is always present for MR devices.
-                serial = device["serial"]
-                mr_device_tasks.append(
-                    self._async_get_mr_device_details(device, serial)
-                )
+        # Ensure devices is not None before iterating
+        if devices:
+            for device in devices:
+                if device.get("model", "").upper().startswith("MR"):
+                    # Assumes 'serial' is always present for MR devices.
+                    serial = device["serial"]
+                    mr_device_tasks.append(
+                        self._async_get_mr_device_details(device, serial)
+                    )
 
         if mr_device_tasks:
             await asyncio.gather(*mr_device_tasks)

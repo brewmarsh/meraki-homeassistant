@@ -282,19 +282,36 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             elif self.device_name_format == "suffix" and device_type_mapped != "Unknown":
                 formatted_device_name = f"{device_name_raw} [{device_type_mapped}]"
 
+            # Prepare connections set using MAC address
+            mac_address = device_info.get("mac")
+            connections = None
+            if mac_address:
+                connections = {(dr.CONNECTION_NETWORK_MAC, mac_address)}
+
+            # Log the full device_info for debugging before registration attempt
+            # This log was already added in a previous step, ensuring it's correctly placed.
+            _LOGGER.debug(
+                "MERAKI_DEBUG_COORDINATOR: Preparing to register/update physical device. Full device_info: %s",
+                device_info
+            )
+
             device_registry.async_get_or_create(
                 config_entry_id=self.config_entry.entry_id,
-                identifiers={(DOMAIN, serial)}, # DOMAIN should be imported or available
+                identifiers={(DOMAIN, serial)},
                 manufacturer="Cisco Meraki",
                 model=device_model_str,
                 name=formatted_device_name,
-                sw_version=firmware_version,
+                sw_version=firmware_version, # firmware_version from device_info.get("firmware")
+                connections=connections,    # Pass the connections set
             )
             _LOGGER.debug(
-                "Device %s (Serial: %s, Model: %s) processed and registered/updated.",
+                "Registered/Updated physical device: %s (Serial: %s, Model: %s, MAC: %s, FW: %s, Status: %s)",
                 formatted_device_name,
                 serial,
                 device_model_str,
+                mac_address or "N/A", # Log MAC address
+                firmware_version or "N/A", # Log firmware version
+                device_info.get('status', 'N/A') # Log status
             )
         _LOGGER.debug("Device registration process completed for org %s.", self.org_id)
         # ---- END DEVICE REGISTRATION LOGIC ----
