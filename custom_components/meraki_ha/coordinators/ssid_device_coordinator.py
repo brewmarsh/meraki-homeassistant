@@ -158,7 +158,8 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 try:
                     _LOGGER.debug(f"Fetching client count for SSID {ssid_name_summary} (Num: {ssid_number}, Network: {network_id})")
                     # Using a timespan of 900s (15 minutes) for "current" clients
-                    ssid_clients = await meraki_client.wireless.getNetworkWirelessSsidClients(
+                    # Corrected SDK method name below
+                    ssid_clients = await meraki_client.wireless.get_network_wireless_ssid_clients(
                         networkId=network_id,
                         number=str(ssid_number),
                         timespan=900
