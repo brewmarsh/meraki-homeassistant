@@ -212,9 +212,51 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         self.device_data = devices
 
 
-        # ---- START DEVICE REGISTRATION LOGIC ----
-        _LOGGER.debug("Starting device registration process for org %s.", self.org_id)
-        device_registry = dr.async_get(self.hass)
+        # ---- START NETWORK DEVICE REGISTRATION LOGIC ----
+        _LOGGER.debug("Starting Meraki Network device registration process for org %s.", self.org_id)
+        device_registry = dr.async_get(self.hass) # Ensure dr is available
+        processed_network_devices = 0
+        for network_info in networks: # 'networks' is all_data.get("networks", [])
+            network_id = network_info.get("id")
+            network_name = network_info.get("name")
+
+            if not network_id:
+                _LOGGER.warning("Found a network with missing ID, cannot register as HA device: %s", network_info)
+                continue
+            if not network_name: # Fallback name if network name is missing
+                original_network_name = f"Meraki Network {network_id}"
+                _LOGGER.warning("Found network with missing name (ID: %s), using fallback name: %s", network_id, original_network_name)
+            else:
+                original_network_name = network_name
+
+            # Apply device_name_format for Network devices
+            # self.device_name_format is a property that gets it from config_entry.options
+            current_device_name_format = self.device_name_format
+
+            formatted_network_name = original_network_name
+            if current_device_name_format == "prefix":
+                formatted_network_name = f"[Network] {original_network_name}"
+            elif current_device_name_format == "suffix":
+                formatted_network_name = f"{original_network_name} [Network]"
+            # If "omitted" or other, use original_network_name as is
+
+            _LOGGER.debug("Registering Meraki Network device: %s (ID: %s), Format: %s", formatted_network_name, network_id, current_device_name_format)
+            device_registry.async_get_or_create(
+                config_entry_id=self.config_entry.entry_id,
+                identifiers={(DOMAIN, network_id)}, # Unique identifier for this network device
+                name=formatted_network_name, # Use the formatted name
+                model="Meraki Network", # Model for these logical network devices
+                manufacturer="Cisco Meraki",
+                # No via_device for these, they are parented by the ConfigEntry implicitly
+            )
+            processed_network_devices += 1
+        _LOGGER.debug("Processed %d Meraki Network devices for registration for org %s.", processed_network_devices, self.org_id)
+        # ---- END NETWORK DEVICE REGISTRATION LOGIC ----
+
+
+        # ---- START PHYSICAL DEVICE REGISTRATION LOGIC ----
+        _LOGGER.debug("Starting physical device registration process for org %s.", self.org_id)
+        # device_registry instance is already available from network registration part
 
         for device_info in devices: # 'devices' is all_data.get("devices", [])
             serial = device_info.get("serial")
