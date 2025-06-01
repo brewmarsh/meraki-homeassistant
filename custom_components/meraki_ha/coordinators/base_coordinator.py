@@ -29,6 +29,10 @@ from custom_components.meraki_ha.meraki_api import MerakiApiError
 from custom_components.meraki_ha.coordinators.data_aggregation_coordinator import (
     DataAggregationCoordinator,
 )
+# Added imports for device registration
+from homeassistant.helpers import device_registry as dr
+from .meraki_device_types import map_meraki_model_to_device_type
+
 
 # Obsolete coordinators (DeviceTagFetchCoordinator,
 # MerakiNetworkCoordinator, MerakiSsidCoordinator) removed.
@@ -206,6 +210,48 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # Store the fetched devices list internally. This list includes tags
         # and MR-specific details.
         self.device_data = devices
+
+
+        # ---- START DEVICE REGISTRATION LOGIC ----
+        _LOGGER.debug("Starting device registration process for org %s.", self.org_id)
+        device_registry = dr.async_get(self.hass)
+
+        for device_info in devices: # 'devices' is all_data.get("devices", [])
+            serial = device_info.get("serial")
+            if not serial:
+                _LOGGER.warning("Device found without serial, cannot register: %s", device_info)
+                continue
+
+            device_name_raw = device_info.get("name") or serial
+            device_model_str = device_info.get("model", "Unknown")
+            # Ensure map_meraki_model_to_device_type is available in this scope
+            device_type_mapped = map_meraki_model_to_device_type(device_model_str)
+            firmware_version = device_info.get("firmware")
+
+            formatted_device_name = device_name_raw
+            # Use the property self.device_name_format
+            if self.device_name_format == "prefix" and device_type_mapped != "Unknown":
+                formatted_device_name = f"[{device_type_mapped}] {device_name_raw}"
+            elif self.device_name_format == "suffix" and device_type_mapped != "Unknown":
+                formatted_device_name = f"{device_name_raw} [{device_type_mapped}]"
+
+            device_registry.async_get_or_create(
+                config_entry_id=self.config_entry.entry_id,
+                identifiers={(DOMAIN, serial)}, # DOMAIN should be imported or available
+                manufacturer="Cisco Meraki",
+                model=device_model_str,
+                name=formatted_device_name,
+                sw_version=firmware_version,
+            )
+            _LOGGER.debug(
+                "Device %s (Serial: %s, Model: %s) processed and registered/updated.",
+                formatted_device_name,
+                serial,
+                device_model_str,
+            )
+        _LOGGER.debug("Device registration process completed for org %s.", self.org_id)
+        # ---- END DEVICE REGISTRATION LOGIC ----
+
 
         # Process client data to get network client counts
         from custom_components.meraki_ha.coordinators.data_processor import (
