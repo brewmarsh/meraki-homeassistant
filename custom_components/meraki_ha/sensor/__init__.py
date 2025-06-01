@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 # (relative to the current 'sensor' package)
 # This list needs to be maintained if new sensor types are added in separate files.
 SENSOR_MODULES = [
-    ".meraki_ssid_psk",
+    # ".meraki_ssid_psk", # Removed as per request
     ".ssid",  # This would need an async_setup_entry, or its logic handled here
     ".connected_clients",
     ".device_status",
