@@ -9,7 +9,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from ..const import DOMAIN
+from ..const import DOMAIN, DATA_CLIENT # Added DATA_CLIENT
+from ..meraki_api import MerakiAPIClient # Added MerakiAPIClient
 from .api_data_fetcher import MerakiApiDataFetcher # To access fetched SSIDs
 
 _LOGGER = logging.getLogger(__name__)
@@ -65,41 +66,62 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
             # For now, just return empty, so no entities are created/updated for disabled SSIDs.
             return {}
 
+        # Retrieve the MerakiAPIClient instance
+        meraki_client: MerakiAPIClient = self.hass.data[DOMAIN][self.config_entry.entry_id][DATA_CLIENT]
+        if not meraki_client:
+            _LOGGER.error("MerakiAPIClient not found in hass.data. Cannot fetch SSID details.")
+            raise UpdateFailed("MerakiAPIClient not available for SSID detail fetching.")
+
+        detailed_ssid_data_map: Dict[str, Dict[str, Any]] = {}
         device_registry = dr.async_get(self.hass)
-        processed_ssid_devices: Dict[str, Dict[str, Any]] = {}
 
-        for ssid_data in enabled_ssids: # Changed to iterate over filtered list
-            network_id = ssid_data.get("networkId")
-            ssid_number = ssid_data.get("number")
-            ssid_name = ssid_data.get("name", f"SSID {ssid_number}")
+        for ssid_summary_data in enabled_ssids:
+            network_id = ssid_summary_data.get("networkId")
+            ssid_number = ssid_summary_data.get("number")
+            # Get initial name from summary, might be updated by detail fetch
+            ssid_name_summary = ssid_summary_data.get("name", f"SSID {ssid_number}")
 
-            if not network_id or ssid_number is None: # ssid_number can be 0
-                _LOGGER.warning(f"Enabled SSID data missing networkId or number, cannot process: {ssid_data}")
+            if not network_id or ssid_number is None:
+                _LOGGER.warning(f"Enabled SSID summary data missing networkId or number, cannot fetch details or process: {ssid_summary_data}")
                 continue
 
-            # Create a unique and stable identifier for the SSID device
             unique_ssid_id = f"{DOMAIN}_{network_id}_ssid_{ssid_number}"
 
-            # Add the unique_id to the ssid_data itself for easy access by entities
-            ssid_data["unique_id"] = unique_ssid_id
+            try:
+                _LOGGER.debug(f"Fetching details for SSID {ssid_name_summary} ({network_id}/{ssid_number})")
+                # Ensure number is string for API call as per Meraki SDK expectations
+                ssid_detail_data = await meraki_client.wireless.getNetworkWirelessSsid(
+                    networkId=network_id,
+                    number=str(ssid_number)
+                )
 
-            # Register the SSID as a device in Home Assistant
-            # TODO: Determine the correct via_device identifier.
-            # If network devices are registered, use (DOMAIN, network_id).
-            # Otherwise, use the config entry: (DOMAIN, self.config_entry.entry_id)
-            # For now, using config entry.
-            device_registry.async_get_or_create(
-                config_entry_id=self.config_entry.entry_id,
-                identifiers={(DOMAIN, unique_ssid_id)},
-                name=f"{ssid_name} (SSID)", # Distinguish from physical APs
-                model="Wireless SSID",
-                manufacturer="Cisco Meraki",
-                # sw_version= # Not directly applicable to an SSID itself. Could use network firmware if available.
-                via_device=(DOMAIN, self.config_entry.entry_id), # Link to the integration instance
-            )
-            _LOGGER.debug(f"Registered/Updated device for ENABLED SSID: {ssid_name} ({unique_ssid_id})")
+                # Merge summary data with detail data, detail data takes precedence
+                # The summary already has networkId, number, name, enabled.
+                # Detail will add/override psk, visible, and other specific settings.
+                merged_ssid_data = {**ssid_summary_data, **ssid_detail_data}
+                merged_ssid_data["unique_id"] = unique_ssid_id # Ensure unique_id is preserved/added
 
-            processed_ssid_devices[unique_ssid_id] = ssid_data
+                authoritative_ssid_name = merged_ssid_data.get("name")
+                if not authoritative_ssid_name: # Handles if name is None or empty string
+                    # Fallback if the detailed data (or summary) doesn't provide a name
+                    authoritative_ssid_name = f"SSID {merged_ssid_data.get('number', 'Unknown')}"
 
-        _LOGGER.info(f"SSIDDeviceCoordinator processed {len(processed_ssid_devices)} ENABLED SSID devices.")
-        return processed_ssid_devices
+                device_registry.async_get_or_create(
+                    config_entry_id=self.config_entry.entry_id,
+                    identifiers={(DOMAIN, unique_ssid_id)},
+                    name=authoritative_ssid_name, # Use the determined authoritative name
+                    model="Wireless SSID",
+                    manufacturer="Cisco Meraki",
+                    via_device=(DOMAIN, self.config_entry.entry_id),
+                )
+                _LOGGER.debug(f"Registered/Updated device for ENABLED SSID: {authoritative_ssid_name} ({unique_ssid_id}) using detailed data.")
+                detailed_ssid_data_map[unique_ssid_id] = merged_ssid_data
+
+            except Exception as e:
+                _LOGGER.error(f"Failed to fetch details or register device for SSID {ssid_name_summary} ({network_id}/{ssid_number}): {e}", exc_info=True)
+                # Optionally, could use ssid_summary_data if detail fetch fails, but PSK would be missing
+                # For now, if detail fetch fails, we skip this SSID for this update.
+                continue
+
+        _LOGGER.info(f"SSIDDeviceCoordinator processed {len(detailed_ssid_data_map)} ENABLED SSID devices with detailed data.")
+        return detailed_ssid_data_map
