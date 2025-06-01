@@ -34,6 +34,9 @@ from custom_components.meraki_ha.coordinators.device_tag_update_coordinator impo
 from custom_components.meraki_ha.coordinators.tag_eraser_coordinator import (
     TagEraserCoordinator,
 )  # If still used
+from custom_components.meraki_ha.coordinators.ssid_device_coordinator import (
+    SSIDDeviceCoordinator,
+)
 
 
 # __all__ defines the public API of this module when `from .coordinators import *`
@@ -55,6 +58,7 @@ __all__ = [
     # Handles updating device tags. (Review if still needed)
     "DeviceTagUpdateCoordinator",
     "TagEraserCoordinator",  # Handles erasing tags from devices.
+    "SSIDDeviceCoordinator", # Manages SSID data and device registration.
 ]
 
 # Comments for removed coordinators (MerakiSsidCoordinator, MerakiNetworkCoordinator, DeviceTagFetchCoordinator)
