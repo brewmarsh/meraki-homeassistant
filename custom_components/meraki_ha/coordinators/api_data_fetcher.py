@@ -180,12 +180,11 @@ class MerakiApiDataFetcher:
                     # Merge the entire status dictionary into the device dictionary
                     # This will add/overwrite fields in 'device' with those from 'device_statuses_map[serial]'
                     device.update(device_statuses_map[serial])
-                    _LOGGER.debug(
-                        "MERAKI_DEBUG_FETCHER: Merged full status data for device %s. Device data now: %s",
-                        serial,
-                        # Log only a subset of device data for brevity if it's too large
-                        {k: device[k] for k in device if k not in ['tags', 'radio_settings']} # Example filter
-                    )
+                    # DEBUG: Verbose full device_info log - _LOGGER.debug(
+                    #    "MERAKI_DEBUG_FETCHER: Merged full status data for device %s. Device data now: %s",
+                    #    serial,
+                    #    {k: device[k] for k in device if k not in ['tags', 'radio_settings']}
+                    # )
                 elif serial:
                     _LOGGER.debug(
                         "MERAKI_DEBUG_FETCHER: No specific status entry found for device %s. It may retain a prior status or have none.",
@@ -198,12 +197,13 @@ class MerakiApiDataFetcher:
 
         # Log a sample of a few complete device entries after status merge
         if devices:
-            for i, device_sample in enumerate(devices[:2]): # Log first 2 devices as samples
-                _LOGGER.debug(
-                    "MERAKI_DEBUG_FETCHER: Sample device entry %d after status merge: %s",
-                    i,
-                    device_sample # This will log the full device dict
-                )
+            # DEBUG: Verbose full device_info log for sample devices - for i, device_sample in enumerate(devices[:2]):
+            #    _LOGGER.debug(
+            #        "MERAKI_DEBUG_FETCHER: Sample device entry %d after status merge: %s",
+            #        i,
+            #        device_sample
+            #    )
+            pass # Keep the if block structure if other summary logs might be added later
 
         # Step 2a: Fetch additional details for MR devices (client count and radio settings).
         # This involves creating a list of asynchronous tasks for MR devices.

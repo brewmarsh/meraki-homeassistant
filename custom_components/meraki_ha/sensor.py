@@ -1,0 +1,94 @@
+import logging
+from homeassistant.core import HomeAssistant
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+# Assuming these consts correctly point to the keys used in hass.data for coordinators
+from .const import DOMAIN, DATA_COORDINATOR, DATA_SSID_DEVICES_COORDINATOR
+
+# Import coordinator types
+from .coordinators.base_coordinator import MerakiDataUpdateCoordinator
+from .coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+
+# Import sensor entity classes for physical devices
+from .sensor.device_status import MerakiDeviceStatusSensor
+from .sensor.uplink_status import MerakiUplinkStatusSensor
+# Import for connected clients sensor for physical APs
+from .sensor.connected_clients import MerakiDeviceConnectedClientsSensor
+
+# Import sensor entity classes for SSIDs
+from .sensor.ssid_availability import MerakiSSIDAvailabilitySensor
+from .sensor.ssid_channel import MerakiSSIDChannelSensor
+from .sensor.ssid_client_count import MerakiSSIDClientCountSensor
+
+
+_LOGGER = logging.getLogger(__name__)
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    _LOGGER.info("Setting up Meraki sensor platform.")
+    entities = []
+
+    # Get the main data coordinator for physical devices
+    # Ensure DATA_COORDINATOR is the correct key for MerakiDataUpdateCoordinator
+    main_coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id].get(DATA_COORDINATOR)
+
+    if main_coordinator and main_coordinator.data:
+        physical_devices = main_coordinator.data.get("devices", [])
+        _LOGGER.debug(f"Found {len(physical_devices)} physical devices for sensor setup.")
+        for device_info in physical_devices:
+            serial = device_info.get("serial")
+            if not serial:
+                _LOGGER.warning(f"Skipping device with missing serial: {device_info.get('name', 'Unknown Name')}")
+                continue
+
+            _LOGGER.debug(f"Setting up physical device sensors for: {device_info.get('name', serial)}")
+            entities.append(MerakiDeviceStatusSensor(main_coordinator, device_info))
+
+            product_type = device_info.get("productType")
+            # Add UplinkStatusSensor only if the device has uplink information (typically gateways/appliances)
+            if product_type == "appliance": # Standard check for MX devices
+                 entities.append(MerakiUplinkStatusSensor(main_coordinator, device_info))
+
+            # Add ConnectedClients sensor for wireless APs (MR series)
+            if product_type == "wireless": # Standard check for MR devices
+                entities.append(MerakiDeviceConnectedClientsSensor(main_coordinator, device_info))
+
+            # Potentially add MerakiRadioSettingsSensor for 'wireless' productType if desired
+            # from .sensor.radio_settings import MerakiRadioSettingsSensor
+            # if product_type == "wireless":
+            #     entities.append(MerakiRadioSettingsSensor(main_coordinator, device_info))
+
+    else:
+        _LOGGER.warning("Main coordinator not available or has no data; skipping physical device sensors.")
+
+    # Get the SSID device coordinator
+    # Ensure DATA_SSID_DEVICES_COORDINATOR is the correct key
+    ssid_coordinator: SSIDDeviceCoordinator = hass.data[DOMAIN][config_entry.entry_id].get(DATA_SSID_DEVICES_COORDINATOR)
+
+    if ssid_coordinator and ssid_coordinator.data:
+        # ssid_coordinator.data is a dict of {unique_ssid_id: ssid_data_dict}
+        enabled_ssids_data = ssid_coordinator.data.values()
+        _LOGGER.debug(f"Found {len(enabled_ssids_data)} enabled SSIDs for sensor setup.")
+        for ssid_data in enabled_ssids_data:
+            unique_ssid_id = ssid_data.get("unique_id")
+            if not unique_ssid_id:
+                _LOGGER.warning(f"Skipping SSID with missing unique_id: {ssid_data.get('name', 'Unknown SSID')}")
+                continue
+
+            _LOGGER.debug(f"Setting up SSID sensors for: {ssid_data.get('name', unique_ssid_id)}")
+            # Assuming these sensor classes are designed to take (ssid_coordinator, ssid_data)
+            # and link to the SSID HA device via ssid_data['unique_id']
+            entities.append(MerakiSSIDAvailabilitySensor(ssid_coordinator, ssid_data))
+            entities.append(MerakiSSIDChannelSensor(ssid_coordinator, ssid_data))
+            entities.append(MerakiSSIDClientCountSensor(ssid_coordinator, ssid_data))
+    else:
+        _LOGGER.warning("SSID coordinator not available or has no data; skipping SSID sensors.")
+
+    if entities:
+        _LOGGER.info(f"Adding {len(entities)} Meraki sensor entities.")
+        async_add_entities(entities)
+    else:
+        _LOGGER.info("No Meraki sensor entities to add.")
