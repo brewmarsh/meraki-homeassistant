@@ -3,7 +3,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 # Assuming these consts correctly point to the keys used in hass.data for coordinators
-from .const import DOMAIN, DATA_COORDINATOR, DATA_SSID_DEVICES_COORDINATOR
+from .const import DOMAIN, DATA_COORDINATOR, DATA_COORDINATORS, DATA_SSID_DEVICES_COORDINATOR
 
 # Import coordinator types
 from .coordinators.base_coordinator import MerakiDataUpdateCoordinator
@@ -31,9 +31,11 @@ async def async_setup_entry(
     _LOGGER.info("Setting up Meraki sensor platform.")
     entities = []
 
+    # Get the entry specific data store
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+
     # Get the main data coordinator for physical devices
-    # Ensure DATA_COORDINATOR is the correct key for MerakiDataUpdateCoordinator
-    main_coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id].get(DATA_COORDINATOR)
+    main_coordinator: MerakiDataUpdateCoordinator = entry_data.get(DATA_COORDINATOR)
 
     if main_coordinator and main_coordinator.data:
         physical_devices = main_coordinator.data.get("devices", [])
@@ -64,9 +66,9 @@ async def async_setup_entry(
     else:
         _LOGGER.warning("Main coordinator not available or has no data; skipping physical device sensors.")
 
-    # Get the SSID device coordinator
-    # Ensure DATA_SSID_DEVICES_COORDINATOR is the correct key
-    ssid_coordinator: SSIDDeviceCoordinator = hass.data[DOMAIN][config_entry.entry_id].get(DATA_SSID_DEVICES_COORDINATOR)
+    # Get the SSID device coordinator from the nested 'coordinators' dictionary
+    coordinators_dict = entry_data.get(DATA_COORDINATORS, {})
+    ssid_coordinator: SSIDDeviceCoordinator = coordinators_dict.get(DATA_SSID_DEVICES_COORDINATOR)
 
     if ssid_coordinator and ssid_coordinator.data:
         # ssid_coordinator.data is a dict of {unique_ssid_id: ssid_data_dict}

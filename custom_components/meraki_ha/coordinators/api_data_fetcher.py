@@ -551,12 +551,15 @@ class MerakiApiDataFetcher:
             )
             # Added detailed logging of the first few devices or summary
             if devices_data:
-                _LOGGER.debug(
-                    "MERAKI_DEBUG_FETCHER: Received %d devices from SDK. "
-                    "First device example: %s",
-                    len(devices_data),
-                    # Log first device as example
-                    str(devices_data[0]) if devices_data else "N/A",
+                # DEBUG: Verbose log for first device example - _LOGGER.debug(
+                #    "MERAKI_DEBUG_FETCHER: Received %d devices from SDK. "
+                #    "First device example: %s",
+                #    len(devices_data),
+                #    str(devices_data[0]) if devices_data else "N/A",
+                # )
+                _LOGGER.debug( # Keep a less verbose summary
+                    "MERAKI_DEBUG_FETCHER: Received %d devices from SDK.",
+                    len(devices_data)
                 )
                 # To log all devices if needed (can be very verbose):
                 # for i, device in enumerate(devices_data):

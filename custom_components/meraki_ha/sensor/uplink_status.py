@@ -20,31 +20,11 @@ from ..const import DOMAIN  # For device_info identifiers
 
 # Assuming this function is correctly defined in the meraki_api package
 # from ..meraki_api.appliance import get_meraki_device_appliance_uplinks
-# Placeholder for the function if not available for type checking
-
-
-async def get_meraki_device_appliance_uplinks(  # Function name was different in appliance.py
-    # org_id seems unused by actual API endpoint for device uplinks
-    api_key: str,
-    org_id: str,
-    serial: str,
-) -> Optional[List[Dict[str, Any]]]:  # API returns a list of uplinks
-    """Placeholder: Fetches Meraki device appliance uplink settings/status."""
-    _LOGGER.warning(
-        "Using placeholder for get_meraki_device_appliance_uplinks for serial %s.",
-        serial,
-    )
-    # Example successful response structure (simplified list of uplinks)
-    # return [{"interface": "wan1", "status": "active", "ip": "1.2.3.4", ...}, {"interface": "wan2", ...}]
-    # Example error or no data:
-    return None
-
-
 _LOGGER = logging.getLogger(__name__)
 
 # Constants for sensor state if data is unavailable or an error occurs
 STATE_UNAVAILABLE_UPLINK = "Unavailable"
-STATE_ERROR_UPLINK = "Error"
+# STATE_ERROR_UPLINK = "Error" # Can be removed if not used
 STATE_UNKNOWN_UPLINK = "Unknown"
 
 
@@ -53,18 +33,8 @@ class MerakiUplinkStatusSensor(
 ):
     """Representation of a Meraki MX Appliance Uplink Status sensor.
 
-    This sensor displays the status of the primary uplink of a Meraki MX device.
-    Additional uplink details are exposed as state attributes.
-
-    Note: The original implementation had its own `async_update` method.
-    This revision assumes it will become a true `CoordinatorEntity`, relying on
-    the coordinator to provide uplink data for the specific device.
-
-    Attributes:
-        _attr_name: The name of the sensor.
-        _attr_unique_id: The unique ID of the sensor.
-        _attr_icon: The icon for the sensor.
-        _device_info_data: Raw dictionary data for the associated Meraki MX appliance.
+    This sensor displays the overall status of the Meraki MX device,
+    which implies uplink health. Specific WAN IP details are exposed as state attributes.
     """
 
     _attr_icon = "mdi:upload-network-outline"  # Static icon
@@ -79,135 +49,90 @@ class MerakiUplinkStatusSensor(
         Args:
             coordinator: The data update coordinator.
             device_data: A dictionary containing information about the Meraki MX
-                         appliance (e.g., name, serial, model).
+                         appliance (e.g., name, serial, model, status, wan1Ip, publicIp).
         """
         super().__init__(coordinator)
-        self._device_info_data: Dict[str, Any] = device_data
-        device_name = self._device_info_data.get(
-            "name", self._device_info_data.get("serial", "Unknown Device")
+        # Store the initial device_data to set up unique_id, name, etc.
+        # This data might be stale for the first state update, but _handle_coordinator_update
+        # will refresh it from the coordinator.
+        self._initial_device_data: Dict[str, Any] = device_data
+
+        device_name = self._initial_device_data.get(
+            "name", self._initial_device_data.get("serial", "Unknown Device")
         )
-        device_serial = self._device_info_data.get("serial", "")
+        self._device_serial = self._initial_device_data.get("serial", "") # Store serial for updates
 
         self._attr_name = f"{device_name} Uplink Status"
-        self._attr_unique_id = f"{device_serial}_uplink_status"
+        self._attr_unique_id = f"{self._device_serial}_uplink_status"
 
-        # Initialize base attributes that won't change per update
-        self._base_attributes: Dict[str, Any] = {
-            "model": self._device_info_data.get("model"),
-            "serial_number": device_serial,
-            "firmware_version": self._device_info_data.get("firmware"),
+        # Initial attributes, will be expanded in _update_sensor_state
+        self._attr_extra_state_attributes: Dict[str, Any] = {
+            "model": self._initial_device_data.get("model"),
+            "serial_number": self._device_serial,
+            "firmware_version": self._initial_device_data.get("firmware"),
         }
-        self._attr_extra_state_attributes = (
-            self._base_attributes.copy()
-        )  # Initial attributes
 
-        # Set initial state
+        # Set initial state by calling the update method
         self._update_sensor_state()
-        _LOGGER.debug("Meraki Uplink Status Sensor Initialized: %s", self._attr_name)
+        _LOGGER.debug(
+            "MerakiUplinkStatusSensor Initialized: Name: %s, Unique ID: %s, Initial Device Data (subset): %s",
+            self._attr_name, self._attr_unique_id,
+            {k: self._initial_device_data.get(k) for k in ['name', 'serial', 'status', 'publicIp', 'wan1Ip', 'wan2Ip']}
+        )
 
     def _update_sensor_state(self) -> None:
-        """Update sensor state and attributes from coordinator data.
+        """Update sensor state and attributes from coordinator data."""
 
-        Assumes coordinator data structure:
-        `coordinator.data['devices_uplinks']['SERIAL'] = List[Dict[str, Any]]` (list of uplink details)
-        The state of this sensor will be the status of the first uplink in the list.
-        All uplink details will be in `extra_state_attributes`.
-        """
-        device_serial = self._device_info_data.get("serial")
-        uplinks_data: Optional[List[Dict[str, Any]]] = None
+        current_device_info: Optional[Dict[str, Any]] = None
+        # Find this device's current data in the coordinator's device list
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            for dev_data in self.coordinator.data["devices"]:
+                if dev_data.get("serial") == self._device_serial:
+                    current_device_info = dev_data
+                    break
 
-        if self.coordinator.data and "devices_uplinks" in self.coordinator.data:
-            device_uplinks_all = self.coordinator.data["devices_uplinks"]
-            if isinstance(device_uplinks_all, dict):
-                uplinks_data = device_uplinks_all.get(device_serial)
-
-        # Reset attributes to base and then update with new data
-        current_attributes = self._base_attributes.copy()
-
-        if uplinks_data and isinstance(uplinks_data, list) and uplinks_data:
-            # Assuming the first uplink in the list is the primary or most
-            # relevant one for the main state
-            primary_uplink_status = uplinks_data[0].get("status", STATE_UNKNOWN_UPLINK)
-            self._attr_native_value = str(primary_uplink_status).capitalize()
-            # Add all uplink details to extra_state_attributes
-            # To avoid overly large state objects, decide what's most relevant from uplinks_data.
-            # For example, just the list of uplinks, or specific fields from
-            # each.
-            # Store the full list
-            current_attributes["uplinks_details"] = uplinks_data
-            # Or, to be more selective:
-            # current_attributes["active_uplink_interface"] = uplinks_data[0].get("interface")
-            # current_attributes["active_uplink_ip"] = uplinks_data[0].get("ip")
-        elif uplinks_data == []:  # Explicitly empty list means no uplinks reported
-            _LOGGER.info("No uplink data reported for device '%s'.", device_serial)
-            # Or "No Uplinks"
-            self._attr_native_value = STATE_UNAVAILABLE_UPLINK
-            current_attributes["uplinks_details"] = []
-        else:
+        if not current_device_info:
             _LOGGER.warning(
-                (
-                    "Uplink data for device '%s' (Serial: %s) not found or in "
-                    "unexpected format in coordinator data. Setting state to unavailable."
-                ),
-                self._device_info_data.get("name", "N/A"),
-                device_serial,
+                "Uplink data for device '%s' (Serial: %s) not found in coordinator. Setting state to unavailable.",
+                self._attr_name, self._device_serial
             )
             self._attr_native_value = STATE_UNAVAILABLE_UPLINK
-            # Indicate data was not available
-            current_attributes["uplinks_details"] = None
+            self._attr_extra_state_attributes.update({
+                "wan1_ip": None, "wan2_ip": None, "public_ip": None
+            })
+            return
+
+        # Update state based on the device's overall status
+        device_status = current_device_info.get("status", STATE_UNKNOWN_UPLINK).lower()
+        if device_status == "online":
+            self._attr_native_value = "Online"
+        elif device_status in ["offline", "dormant"]:
+            self._attr_native_value = "Offline"
+        else: # e.g., "alerting", "connecting"
+            self._attr_native_value = device_status.capitalize()
+
+        # Update attributes
+        # Start with base attributes that might have been in initial_device_data but need refresh
+        current_attributes = {
+            "model": current_device_info.get("model"),
+            "serial_number": self._device_serial, # Serial doesn't change
+            "firmware_version": current_device_info.get("firmware"),
+            "wan1_ip": current_device_info.get("wan1Ip"),
+            "wan2_ip": current_device_info.get("wan2Ip"),
+            "public_ip": current_device_info.get("publicIp"),
+            "lan_ip": current_device_info.get("lanIp"), # Merged from status
+            "tags": current_device_info.get("tags", []),
+            "network_id": current_device_info.get("networkId"),
+        }
 
         self._attr_extra_state_attributes = {
             k: v for k, v in current_attributes.items() if v is not None
         }
-
-    # Original async_update logic if this sensor were to fetch its own data:
-    # async def async_update(self) -> None:
-    #     """Update the sensor state by fetching data from the API."""
-    #     _LOGGER.debug("Updating uplink status sensor for %s", self._attr_name)
-    #     device_serial = self._device_info_data.get("serial")
-    #     if not device_serial:
-    #         _LOGGER.error("Cannot update uplink status sensor for %s: missing serial.", self.name)
-    #         self._attr_native_value = STATE_ERROR_UPLINK
-    #         self._attr_extra_state_attributes.update({"uplinks_details": None})
-    #         return
-    #
-    #     current_attributes = self._base_attributes.copy()
-    #     try:
-    #         # The API function get_meraki_device_appliance_uplinks was used.
-    #         # In appliance.py, it was renamed to async_get_device_appliance_uplinks_settings
-    #         # and it returns a Dict, not List. The API endpoint /devices/{serial}/appliance/uplinks
-    #         # (without /settings) returns a list of current uplink statuses. Let's assume that's intended.
-    #         # Placeholder needs to reflect this:
-    #         # async def get_device_appliance_uplinks(api_key: str, serial: str) -> Optional[List[Dict[str, Any]]]:
-    #
-    #         uplinks_status_list: Optional[List[Dict[str, Any]]] = await get_meraki_device_appliance_uplinks(
-    #             self.coordinator.api_key, # Assuming api_key is an attribute of coordinator
-    #             # self.coordinator.org_id, # org_id might not be needed for device specific uplink status
-    #             device_serial,
-    #         )
-    #
-    #         if uplinks_status_list: # API returns a list of uplink interface statuses
-    #             # For simplicity, using the status of the first uplink as the sensor's main state.
-    #             # More complex logic could be to find the "active" one.
-    #             self._attr_native_value = str(uplinks_status_list[0].get("status", STATE_UNKNOWN_UPLINK)).capitalize()
-    #             current_attributes["uplinks_details"] = uplinks_status_list
-    #         elif uplinks_status_list == []:
-    #             self._attr_native_value = "No Uplinks" # Or STATE_UNAVAILABLE_UPLINK
-    #             current_attributes["uplinks_details"] = []
-    #         else: # None was returned by API call
-    #             self._attr_native_value = STATE_UNAVAILABLE_UPLINK
-    #             current_attributes["uplinks_details"] = None
-    #
-    #     except MerakiApiException as e: # Catch specific API errors
-    #         _LOGGER.error("API error fetching uplink status for %s: %s", self.name, e)
-    #         self._attr_native_value = STATE_ERROR_UPLINK
-    #         current_attributes["uplinks_details"] = "API Error"
-    #     except Exception as e: # Catch any other unexpected errors
-    #         _LOGGER.exception("Unexpected error fetching uplink status for %s: %s", self.name, e)
-    #         self._attr_native_value = STATE_ERROR_UPLINK
-    #         current_attributes["uplinks_details"] = "Unexpected Error"
-    #
-    #     self._attr_extra_state_attributes = {k:v for k,v in current_attributes.items() if v is not None}
+        _LOGGER.debug(
+            "Uplink Sensor Updated: %s, State: %s, WAN1: %s, WAN2: %s, PublicIP: %s",
+            self._attr_name, self._attr_native_value,
+            current_attributes.get("wan1_ip"), current_attributes.get("wan2_ip"), current_attributes.get("public_ip")
+        )
 
     @callback
     def _handle_coordinator_update(self) -> None:

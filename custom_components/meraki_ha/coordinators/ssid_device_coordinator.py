@@ -88,6 +88,13 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
         else: # No enabled SSIDs
             _LOGGER.debug("SSIDCoordinator: No enabled SSIDs to be processed.")
 
+        # Performance warning for fetching client counts per SSID
+        if len(enabled_ssids) > 15: # Arbitrary threshold, adjust as needed
+            _LOGGER.warning(
+                f"High number of enabled SSIDs ({len(enabled_ssids)}) detected. "
+                "Fetching client counts for each SSID may lead to API rate limiting "
+                "or performance degradation."
+            )
 
         if not enabled_ssids:
             _LOGGER.info("SSIDCoordinator: No enabled SSIDs found after filtering. No SSID devices to update/create.")
@@ -130,8 +137,37 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 # Merge summary data with detail data, detail data takes precedence
                 # The summary already has networkId, number, name, enabled.
                 # Detail will add/override psk, visible, and other specific settings.
+
+                # Log the raw ssid_detail_data to understand its structure for channel info
+                _LOGGER.debug(f"SSID Detail Data for {ssid_name_summary} (Num: {ssid_number}): {ssid_detail_data}")
+
                 merged_ssid_data = {**ssid_summary_data, **ssid_detail_data}
                 merged_ssid_data["unique_id"] = unique_ssid_id # Ensure unique_id is preserved/added
+
+                # Attempt to extract channel information
+                # This is speculative as 'channel' is not a standard top-level field in getNetworkWirelessSsid response.
+                # It might be part of 'radiusServers' (for accounting), or per-band if available (e.g. 'fiveGhzSettings', 'twoFourGhzSettings').
+                # For simplicity, we'll look for a top-level 'channel' or a common nested path if known.
+                # This will likely result in None for most SSIDs based on standard API.
+                channel = ssid_detail_data.get("channel") # Placeholder
+                # Example: if channel was per band: channel = ssid_detail_data.get("activeBand", {}).get("channel")
+                merged_ssid_data["channel"] = channel if channel else None # Ensure it's None if not found or empty
+
+                # Fetch per-SSID client count
+                client_count = 0 # Default
+                try:
+                    _LOGGER.debug(f"Fetching client count for SSID {ssid_name_summary} (Num: {ssid_number}, Network: {network_id})")
+                    # Using a timespan of 900s (15 minutes) for "current" clients
+                    ssid_clients = await meraki_client.wireless.getNetworkWirelessSsidClients(
+                        networkId=network_id,
+                        number=str(ssid_number),
+                        timespan=900
+                    )
+                    client_count = len(ssid_clients) if ssid_clients else 0
+                    _LOGGER.debug(f"Client count for SSID {ssid_name_summary} (Num: {ssid_number}): {client_count}")
+                except Exception as client_e: # Catch potential API errors for this specific call
+                    _LOGGER.warning(f"Could not fetch client count for SSID {ssid_name_summary} (Num: {ssid_number}): {client_e}")
+                merged_ssid_data["client_count"] = client_count
 
                 authoritative_ssid_name = merged_ssid_data.get("name")
                 if not authoritative_ssid_name: # Handles if name is None or empty string
@@ -157,7 +193,11 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                     # Link to the main integration config entry device
                     via_device=(DOMAIN, self.config_entry.entry_id),
                 )
-                _LOGGER.debug(f"Registered/Updated device for ENABLED SSID: {formatted_ssid_name} ({unique_ssid_id}) using detailed data. Format option: {device_name_format}")
+                _LOGGER.debug(
+                    f"Registered/Updated device for ENABLED SSID: {formatted_ssid_name} ({unique_ssid_id}). "
+                    f"Format: {device_name_format}, Channel: {merged_ssid_data['channel']}, Clients: {merged_ssid_data['client_count']}. "
+                    f"Full Merged Data (subset): {{name: {merged_ssid_data.get('name')}, enabled: {merged_ssid_data.get('enabled')}}}"
+                )
                 detailed_ssid_data_map[unique_ssid_id] = merged_ssid_data
 
             except Exception as e:
