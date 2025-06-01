@@ -68,12 +68,21 @@ jobs:
           # Bump version in manifest.json
           bump2version --allow-dirty "$increment_type" custom_components/meraki_ha/manifest.json
           
-          new_version=$(jq -r .version custom_components/meraki_ha/manifest.json)
-          echo "New Version from manifest: $new_version"
-          # Output the new_version for subsequent steps
-          echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
+          base_version=$(jq -r .version custom_components/meraki_ha/manifest.json)
+          echo "Base Version from manifest after bump: $base_version"
 
-          # Log manifest.json content AFTER bump2version
+          # Append build metadata
+          version_with_build="${base_version}+build.${{ github.run_number }}"
+          echo "Version with Build Metadata: $version_with_build"
+
+          # Update manifest.json with the version including build metadata
+          jq --arg ver "$version_with_build" '.version = $ver' custom_components/meraki_ha/manifest.json > tmp_manifest.json && mv tmp_manifest.json custom_components/meraki_ha/manifest.json
+
+          echo "Updated manifest.json with build metadata."
+          # Output the new_version (including build metadata) for subsequent steps
+          echo "new_version=$version_with_build" >> "$GITHUB_OUTPUT"
+
+          # Log manifest.json content AFTER bump2version and adding build metadata
           echo "--- manifest.json (after) ---"
           cat custom_components/meraki_ha/manifest.json
           echo "--- end manifest.json (after) ---"
