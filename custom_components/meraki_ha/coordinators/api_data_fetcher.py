@@ -222,7 +222,7 @@ class MerakiApiDataFetcher:
                 organizationId=self.org_id
             )
             _LOGGER.debug(
-                "MERAKI_DEBUG_FETCHER: Successfully fetched firmware upgrade data." # Removed data logging for brevity
+                "MERAKI_DEBUG_FETCHER: Successfully fetched firmware upgrade data." 
             )
         except MerakiSDKAPIError as e:
             _LOGGER.warning(
@@ -704,5 +704,3 @@ class MerakiApiDataFetcher:
             )
         device["lan_dns_settings"] = lan_dns_by_vlan
         _LOGGER.debug("MERAKI_DEBUG_FETCHER: Final LAN DNS settings for %s (Serial: %s): %s", device_name, serial, lan_dns_by_vlan)
-
-[end of custom_components/meraki_ha/coordinators/api_data_fetcher.py]
