@@ -80,17 +80,42 @@ async def async_setup_entry(
 
             if product_type == "appliance":
                 _LOGGER.debug("Meraki HA: Device %s IS an appliance. Attempting to add MerakiNetworkInfoSensor.", device_info.get('name', serial))
-                entities.append(MerakiNetworkInfoSensor(main_coordinator, device_info))
-                _LOGGER.debug("Meraki HA: Added MerakiNetworkInfoSensor for %s", device_info.get('name', serial))
-                _LOGGER.debug(
-                    "Meraki HA: Entities list id (inside appliance block, after appends) for %s: %s. Current len: %d",
-                    serial,
-                    id(entities),
-                    len(entities)
-                )
-            # Temporarily comment out other appliance sensors
-            #    entities.append(MerakiUplinkStatusSensor(main_coordinator, device_info))
-            #    entities.append(MerakiWAN1ConnectivitySensor(main_coordinator, device_info))
+                
+                # Create the sensor object first
+                try:
+                    network_info_sensor = MerakiNetworkInfoSensor(main_coordinator, device_info)
+                    _LOGGER.debug(
+                        "Meraki HA: Successfully CREATED MerakiNetworkInfoSensor object for %s: %s. UID: %s. Name: %s", 
+                        device_info.get('name', serial), 
+                        network_info_sensor,
+                        network_info_sensor.unique_id if hasattr(network_info_sensor, 'unique_id') else "NO UID ATTR",
+                        network_info_sensor.name if hasattr(network_info_sensor, 'name') else "NO NAME ATTR"
+                    )
+                    
+                    if network_info_sensor and hasattr(network_info_sensor, 'unique_id'):
+                        entities.append(network_info_sensor)
+                        _LOGGER.debug(
+                            "Meraki HA: Successfully APPENDED MerakiNetworkInfoSensor for %s. Entities list len: %d. Last appended UID: %s", 
+                            device_info.get('name', serial), 
+                            len(entities),
+                            entities[-1].unique_id if entities else "N/A"
+                        )
+                    else:
+                        _LOGGER.error(
+                            "Meraki HA: MerakiNetworkInfoSensor object was None or lacked unique_id for %s, NOT APPENDING. Object: %s", 
+                            device_info.get('name', serial),
+                            network_info_sensor
+                        )
+                except Exception as e:
+                    _LOGGER.exception(
+                        "Meraki HA: EXCEPTION during MerakiNetworkInfoSensor creation or append for %s: %s",
+                        device_info.get('name', serial),
+                        e
+                    )
+                
+                # Keep other new appliance sensors commented out for now
+                # entities.append(MerakiUplinkStatusSensor(main_coordinator, device_info)) # Keep this commented for now
+                # entities.append(MerakiWAN1ConnectivitySensor(main_coordinator, device_info))
             #    entities.append(MerakiWAN2ConnectivitySensor(main_coordinator, device_info))
             #    entities.append(MerakiFirmwareStatusSensor(main_coordinator, device_info))
             #    _LOGGER.debug("Meraki HA: Added new MX-specific sensors for %s", device_info.get('name', serial))
