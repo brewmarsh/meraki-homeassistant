@@ -27,63 +27,85 @@ class MerakiDeviceStatusSensor(
 ):
     """Representation of a Meraki Device Status sensor.
 
-    This sensor displays the product type of the Meraki device as its state.
+    This sensor displays the actual reported status of the Meraki device 
+    (e.g., online, offline, alerting).
     It also provides additional device details as state attributes and an
     icon based on the device model.
 
     Attributes:
         _attr_name: The name of the sensor.
         _attr_unique_id: The unique ID of the sensor.
-        _device_info_data: Raw dictionary data for the associated Meraki device.
+        _device_serial: Serial number of the device this sensor represents. Used for lookups.
     """
+    _attr_has_entity_name = True # Use the device name as the base for the entity name
 
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        # Data for the Meraki device this sensor is for
-        device_data: Dict[str, Any],
+        device_data: Dict[str, Any], # Initial device_data snapshot
     ) -> None:
         """Initialize the Meraki Device Status sensor.
 
         Args:
             coordinator: The data update coordinator.
-            device_data: A dictionary containing information about the Meraki device
+            device_data: A dictionary containing initial information about the Meraki device
                          (e.g., name, serial, model, firmware, productType).
         """
         super().__init__(coordinator)
-        self._device_info_data: Dict[str, Any] = device_data
-        device_name = self._device_info_data.get(
-            "name", self._device_info_data.get("serial", "Unknown Device")
+        self._device_serial: str = device_data["serial"] # Serial is mandatory
+
+        # Set up unique ID
+        self._attr_unique_id = f"{self._device_serial}_device_status"
+
+        # Set device info for linking to HA device registry
+        # This uses the initial device_data for static info.
+        device_name_for_registry = device_data.get("name") or self._device_serial
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, self._device_serial)},
+            name=device_name_for_registry,
+            manufacturer="Cisco Meraki",
+            model=device_data.get("model", "Unknown"),
+            sw_version=device_data.get("firmware"),
+            # Example: Link to an organization-level device if one exists
+            # via_device=(DOMAIN, coordinator.config_entry.unique_id or coordinator.config_entry.entry_id),
         )
-        device_serial = self._device_info_data.get("serial", "")
+        
+        # Name of the sensor itself (e.g., "Device Name Status")
+        # self.entity_id will be sensor.device_name_status
+        # _attr_name is not explicitly set, letting has_entity_name and device name work.
+        # If has_entity_name is False or more control is needed:
+        # self._attr_name = f"{device_name_for_registry} Status"
 
-        self._attr_name = f"{device_name} Status"
-        # Ensure consistency, e.g. all lowercase with _
-        self._attr_unique_id = f"{device_serial}_device_status"
 
-        # Set initial state and icon
-        self._update_sensor_state_and_icon()
-        _LOGGER.debug("Meraki Device Status Sensor Initialized: %s", self._attr_name)
+        # Initial update of state and attributes
+        self._update_sensor_data()
+        _LOGGER.debug(
+            "MerakiDeviceStatusSensor Initialized for %s (Serial: %s)", 
+            device_name_for_registry, self._device_serial
+        )
 
-    def _update_sensor_state_and_icon(self) -> None:
-        current_device_data: Optional[Dict[str, Any]] = None
-        # Ensure device_serial is defined here, e.g.,
-        device_serial = self._device_info_data.get("serial")
-
-        if self.coordinator.data and "devices" in self.coordinator.data:
+    def _get_current_device_data(self) -> Optional[Dict[str, Any]]:
+        """Retrieve the latest data for this sensor's device from the coordinator."""
+        if self.coordinator.data and self.coordinator.data.get("devices"):
             for dev_data in self.coordinator.data["devices"]:
-                if dev_data.get("serial") == device_serial:
-                    current_device_data = dev_data
-                    break
+                if dev_data.get("serial") == self._device_serial:
+                    return dev_data
+        _LOGGER.debug(
+            "Device data for serial '%s' not found in coordinator for sensor '%s'.",
+            self._device_serial, self.unique_id
+        )
+        return None
+
+    def _update_sensor_data(self) -> None:
+        """Update sensor state, icon, and attributes from coordinator data."""
+        current_device_data = self._get_current_device_data()
 
         if not current_device_data:
-            _LOGGER.warning(
-                "MERAKI_DEBUG_STATUS: Device data for serial '%s' not found in coordinator for sensor '%s'. Status will be unknown.",  # Added prefix
-                device_serial,
-                self.unique_id,
-            )
-            self._attr_native_value = "unknown"
-            self._attr_icon = "mdi:help-rhombus"
+            self._attr_native_value = None # Or "unknown" if preferred when unavailable
+            self._attr_icon = "mdi:help-rhombus" # Icon for unknown/unavailable state
+            # Keep basic attributes if device data disappears, or clear them
+            # For now, we'll let them be stale if device disappears from data.
+            # Or, to clear: self._attr_extra_state_attributes = {} 
             return
 
         # This is the critical log line to ensure:
@@ -98,72 +120,59 @@ class MerakiDeviceStatusSensor(
         if isinstance(device_status, str):
             self._attr_native_value = device_status.lower()
         else:
-            self._attr_native_value = "unknown"
+            self._attr_native_value = "unknown" # Default if status is not a string
 
-        product_type: Optional[str] = current_device_data.get(
-            "productType"
-        )  # Keep for attributes
-
+        # Icon logic based on model
         model: Optional[str] = current_device_data.get("model")
         if isinstance(model, str):
             model_upper = model.upper()
-            if model_upper.startswith("MR"):
+            if model_upper.startswith("MR"): # Wireless AP
                 self._attr_icon = "mdi:access-point-network"
-            elif model_upper.startswith("MX"):
+            elif model_upper.startswith("MX"): # Security Appliance
                 self._attr_icon = "mdi:router-network"
-            elif model_upper.startswith("MS"):
+            elif model_upper.startswith("MS"): # Switch
                 self._attr_icon = "mdi:switch"
-            elif model_upper.startswith("MV"):
+            elif model_upper.startswith("MV"): # Camera
                 self._attr_icon = "mdi:cctv"
-            elif model_upper.startswith("MT"):
-                self._attr_icon = "mdi:thermometer-lines"
-            else:
+            elif model_upper.startswith("MT"): # Sensor
+                self._attr_icon = "mdi:thermometer-lines" 
+            else: # Default for other models
                 self._attr_icon = "mdi:help-network-outline"
         else:
-            self._attr_icon = "mdi:help-network-outline"
+            self._attr_icon = "mdi:help-network-outline" # Default if model is not a string
 
+        # Populate attributes from the latest device data
         self._attr_extra_state_attributes = {
             "model": current_device_data.get("model"),
-            "serial_number": current_device_data.get("serial"),
+            "serial_number": current_device_data.get("serial"), # Should match self._device_serial
             "firmware_version": current_device_data.get("firmware"),
-            "product_type": product_type,
+            "product_type": current_device_data.get("productType"),
             "mac_address": current_device_data.get("mac"),
             "lan_ip": current_device_data.get("lanIp"),
+            "public_ip": current_device_data.get("publicIp"),
+            "wan1_ip": current_device_data.get("wan1Ip"),
+            "wan2_ip": current_device_data.get("wan2Ip"),
             "tags": current_device_data.get("tags", []),
             "network_id": current_device_data.get("networkId"),
         }
+        # Filter out None values from attributes
         self._attr_extra_state_attributes = {
             k: v for k, v in self._attr_extra_state_attributes.items() if v is not None
         }
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator.
-
-        This method is called by the CoordinatorEntity base class when new data
-        is available from the coordinator. It updates the sensor's state and icon.
-        """
-        self._update_sensor_state_and_icon()
+        """Handle updated data from the coordinator."""
+        self._update_sensor_data()
         self.async_write_ha_state()
 
-    # native_value and icon properties are now managed by _attr_native_value and _attr_icon,
-    # set by _update_sensor_state_and_icon.
-
     @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information for linking this entity to the device registry.
-
-        This links the sensor to the physical Meraki device it represents.
-        """
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._device_info_data["serial"])},
-            name=str(
-                self._device_info_data.get("name", self._device_info_data["serial"])
-            ),
-            manufacturer="Cisco Meraki",
-            model=str(self._device_info_data.get("model", "Unknown")),
-            sw_version=str(self._device_info_data.get("firmware", "")),
-        )
-
-    # extra_state_attributes is now managed by _attr_extra_state_attributes,
-    # set by _update_sensor_state_and_icon.
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        # Check basic coordinator availability
+        if not super().available: # Checks coordinator.last_update_success
+            return False
+        # Check if the specific device data is available in the coordinator's current data
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            return any(dev.get("serial") == self._device_serial for dev in self.coordinator.data["devices"])
+        return False
