@@ -114,32 +114,7 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
         detailed_ssid_data_map: Dict[str, Dict[str, Any]] = {}
         device_registry = dr.async_get(self.hass)
         
-        # Fetch all organization clients once
-        all_org_clients: List[Dict[str, Any]] = []
-        try:
-            _LOGGER.debug(f"Fetching all organization clients for org {self.api_data_fetcher.org_id} using `meraki_client.organizations.get_organization_clients`.")
-            all_org_clients_response = await meraki_client.organizations.get_organization_clients(
-                self.api_data_fetcher.org_id,
-                timespan=900, # Last 15 minutes, consider making this configurable or longer if needed
-                perPage=1000 # Max per page
-                # TODO: Add pagination support if an org has >1000 active clients.
-                # For now, this gets up to 1000 most recent.
-            )
-            all_org_clients = all_org_clients_response if isinstance(all_org_clients_response, list) else []
-            _LOGGER.debug(f"Fetched {len(all_org_clients)} total clients for organization {self.api_data_fetcher.org_id}.")
-        except Exception as e:
-            _LOGGER.warning(f"Could not fetch organization clients for org {self.api_data_fetcher.org_id}: {e}. SSID client counts will be 0.")
-            # Proceed with empty all_org_clients, so counts will be 0
-
-        # Prepare a map of device serials to their network IDs for efficient lookup
-        # This uses the devices list from the main data fetcher, which should be up-to-date.
-        device_serial_to_network_id_map: Dict[str, str] = {
-            device.get("serial"): device.get("networkId")
-            for device in self.api_data_fetcher.data.get("devices", [])
-            if device.get("serial") and device.get("networkId")
-        }
-
-        network_clients_cache: Dict[str, List[Dict[str, Any]]] = {} # Cache for network-filtered clients
+        network_clients_cache: Dict[str, List[Dict[str, Any]]] = {} # Cache for network clients
 
         for ssid_summary_data in enabled_ssids:
             network_id = ssid_summary_data.get("networkId")
@@ -167,22 +142,35 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 channel = ssid_detail_data.get("channel") 
                 merged_ssid_data["channel"] = channel if channel else None
 
-                # Populate network_clients_cache for the current network_id if not already done
+                # Fetch all clients for the network (if not already cached for this network_id)
+                # and then filter locally for the current SSID.
+                client_count = 0 # Default
                 if network_id not in network_clients_cache:
-                    _LOGGER.debug(f"Filtering organization clients for network {network_id}.")
-                    network_specific_clients = []
-                    for org_client in all_org_clients:
-                        recent_device_serial = org_client.get("recentDeviceSerial")
-                        if recent_device_serial and device_serial_to_network_id_map.get(recent_device_serial) == network_id:
-                            network_specific_clients.append(org_client)
-                        # Add more conditions if clients might not have recentDeviceSerial but other linking keys
-                    network_clients_cache[network_id] = network_specific_clients
-                    _LOGGER.debug(f"Cached {len(network_specific_clients)} clients for network {network_id}.")
-
-                # Filter from the network-specific client list for the current SSID
-                client_count = 0
-                current_network_clients = network_clients_cache.get(network_id, [])
-                if current_network_clients: # Check if list is not empty
+                    _LOGGER.debug(f"Fetching all clients for network {network_id} using `self.meraki_client.networks.get_network_clients` to count for SSID {ssid_name_summary} (Num: {ssid_number})")
+                    try:
+                        # Re-attempting SDK method path: self.meraki_client.networks.get_network_clients
+                        all_network_clients_response = await meraki_client.networks.get_network_clients(
+                            networkId=network_id,
+                            timespan=900,  # Last 15 minutes
+                            perPage=1000   # Try to get all in one go
+                        )
+                        network_clients_cache[network_id] = all_network_clients_response if isinstance(all_network_clients_response, list) else []
+                        _LOGGER.debug(f"Fetched {len(network_clients_cache[network_id])} clients for network {network_id}.")
+                    except AttributeError as e:
+                        _LOGGER.error(f"AttributeError when trying to fetch clients for network {network_id} using `self.meraki_client.networks.get_network_clients`: {e}")
+                        _LOGGER.error(f"Dir of self.meraki_client (AsyncDashboardAPI): {dir(meraki_client)}")
+                        if hasattr(meraki_client, 'networks'):
+                            _LOGGER.error(f"Dir of self.meraki_client.networks (AsyncNetworks): {dir(meraki_client.networks)}")
+                        else:
+                            _LOGGER.error("self.meraki_client has no 'networks' attribute.")
+                        network_clients_cache[network_id] = [] # Cache empty list on error
+                    except Exception as e:
+                        _LOGGER.warning(f"Could not fetch clients for network {network_id} using `self.meraki_client.networks.get_network_clients`: {e}")
+                        network_clients_cache[network_id] = [] # Cache empty list on error
+                
+                # Filter clients for the current SSID
+                current_network_clients = network_clients_cache.get(network_id, []) # Use .get for safety
+                if current_network_clients: 
                     current_ssid_clients = [
                         client for client in current_network_clients
                         if str(client.get('ssid')) == str(ssid_number) 
