@@ -63,6 +63,12 @@ async def async_setup_entry(
                 product_type,
                 type(product_type).__name__
             )
+            _LOGGER.debug(
+                "Meraki HA: Entities count for %s (Serial: %s) BEFORE 'appliance' check: %d",
+                device_info.get('name', serial),
+                serial,
+                len(entities)
+            )
             # Add UplinkStatusSensor only if the device has uplink information (typically gateways/appliances)
             if product_type == "appliance": # Standard check for MX devices
                  entities.append(MerakiUplinkStatusSensor(main_coordinator, device_info))
@@ -72,6 +78,13 @@ async def async_setup_entry(
                  entities.append(MerakiNetworkInfoSensor(main_coordinator, device_info))
                  entities.append(MerakiFirmwareStatusSensor(main_coordinator, device_info))
                  _LOGGER.debug("Meraki HA: Added new MX-specific sensors for %s", device_info.get('name', serial))
+            _LOGGER.debug(
+                "Meraki HA: Entities count for %s (Serial: %s) AFTER 'appliance' check logic: %d. Last entity unique_id: %s",
+                device_info.get('name', serial),
+                serial,
+                len(entities),
+                entities[-1].unique_id if entities and hasattr(entities[-1], 'unique_id') else "N/A"
+            )
             
             # Add ConnectedClients sensor for wireless APs (MR series)
             if product_type == "wireless": # Standard check for MR devices
