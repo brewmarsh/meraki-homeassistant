@@ -15,6 +15,12 @@ from .uplink_status import MerakiUplinkStatusSensor
 # Import for connected clients sensor for physical APs
 from .connected_clients import MerakiDeviceConnectedClientsSensor 
 
+# Import new MX-specific sensors
+from .meraki_wan1_connectivity import MerakiWAN1ConnectivitySensor
+from .meraki_wan2_connectivity import MerakiWAN2ConnectivitySensor
+from .meraki_network_info import MerakiNetworkInfoSensor
+from .meraki_firmware_status import MerakiFirmwareStatusSensor
+
 # Import sensor entity classes for SSIDs
 from .ssid_availability import MerakiSSIDAvailabilitySensor
 from .ssid_channel import MerakiSSIDChannelSensor
@@ -53,6 +59,12 @@ async def async_setup_entry(
             # Add UplinkStatusSensor only if the device has uplink information (typically gateways/appliances)
             if product_type == "appliance": # Standard check for MX devices
                  entities.append(MerakiUplinkStatusSensor(main_coordinator, device_info))
+                 # Add new MX-specific sensors
+                 entities.append(MerakiWAN1ConnectivitySensor(main_coordinator, device_info))
+                 entities.append(MerakiWAN2ConnectivitySensor(main_coordinator, device_info))
+                 entities.append(MerakiNetworkInfoSensor(main_coordinator, device_info))
+                 entities.append(MerakiFirmwareStatusSensor(main_coordinator, device_info))
+                 _LOGGER.debug("Meraki HA: Added new MX-specific sensors for %s", device_info.get('name', serial))
             
             # Add ConnectedClients sensor for wireless APs (MR series)
             if product_type == "wireless": # Standard check for MR devices
