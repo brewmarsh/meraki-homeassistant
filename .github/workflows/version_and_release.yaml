@@ -66,7 +66,7 @@ jobs:
           echo "Increment Type: $increment_type"
 
           # Bump version in manifest.json
-          bump2version --allow-dirty "$increment_type" custom_components/meraki_ha/manifest.json
+          bump2version --verbose --allow-dirty --config-file .bumpversion.cfg "$increment_type" custom_components/meraki_ha/manifest.json
           
           base_version=$(jq -r .version custom_components/meraki_ha/manifest.json)
           echo "Base Version from manifest after bump: $base_version"
