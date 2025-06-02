@@ -56,6 +56,13 @@ async def async_setup_entry(
             entities.append(MerakiDeviceStatusSensor(main_coordinator, device_info))
             
             product_type = device_info.get("productType")
+            _LOGGER.debug(
+                "Meraki HA: Checking product_type for device %s (Serial: %s). product_type is '%s' (Type: %s)",
+                device_info.get('name', serial),
+                serial,
+                product_type,
+                type(product_type).__name__
+            )
             # Add UplinkStatusSensor only if the device has uplink information (typically gateways/appliances)
             if product_type == "appliance": # Standard check for MX devices
                  entities.append(MerakiUplinkStatusSensor(main_coordinator, device_info))
