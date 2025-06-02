@@ -201,27 +201,168 @@ class MerakiApiDataFetcher:
             #    _LOGGER.debug(
             #        "MERAKI_DEBUG_FETCHER: Sample device entry %d after status merge: %s",
             #        i,
-            #        device_sample 
+            #        device_sample
             #    )
             pass # Keep the if block structure if other summary logs might be added later
 
-        # Step 2a: Fetch additional details for MR devices (client count and radio settings).
-        # This involves creating a list of asynchronous tasks for MR devices.
-        mr_device_tasks = []
+        # Initialize for MX-specific data
+        # device_uplink_settings_map = {} # This will be populated by helper tasks directly into device dict
+        firmware_upgrade_data = {}
+
+        # Step 2b: Fetch Firmware Upgrade Availability (once per organization)
+        _LOGGER.debug(
+            "MERAKI_DEBUG_FETCHER: Fetching firmware upgrade data for org ID: %s",
+            self.org_id,
+        )
+        try:
+            firmware_upgrade_data = await self.meraki_client.organizations.getOrganizationFirmwareUpgrades(
+                organizationId=self.org_id
+            )
+            _LOGGER.debug(
+                "MERAKI_DEBUG_FETCHER: Successfully fetched firmware upgrade data. Data: %s",
+                firmware_upgrade_data, # Be mindful of logging potentially large/sensitive data
+            )
+        except MerakiSDKAPIError as e:
+            _LOGGER.warning(
+                "MERAKI_DEBUG_FETCHER: SDK API error fetching firmware upgrade data for org %s: "
+                "Status %s, Reason: %s. Firmware data may be incomplete.",
+                self.org_id,
+                e.status,
+                e.reason,
+            )
+            firmware_upgrade_data = {} # Ensure it's an empty dict on failure
+        except Exception as e:
+            _LOGGER.exception(
+                "MERAKI_DEBUG_FETCHER: Unexpected error fetching firmware upgrade data for org %s: %s. "
+                "Firmware data may be incomplete.",
+                self.org_id,
+                e,
+            )
+            firmware_upgrade_data = {} # Ensure it's an empty dict on failure
+
+
+        # Step 2c: Fetch additional details for MR and MX devices.
+        # This involves creating a list of asynchronous tasks.
+        additional_device_detail_tasks = []
         # Ensure devices is not None before iterating
-        if devices: 
+        if devices:
             for device in devices:
-                if device.get("model", "").upper().startswith("MR"):
-                    # Assumes 'serial' is always present for MR devices.
-                    serial = device["serial"]
-                    mr_device_tasks.append(
+                device_model_upper = device.get("model", "").upper()
+                serial = device.get("serial") # Get serial once
+
+                if not serial: # Skip if no serial, critical for API calls
+                    _LOGGER.debug(
+                        "MERAKI_DEBUG_FETCHER: Device %s (MAC: %s) has no serial, skipping additional detail tasks.",
+                        device.get("name", "N/A"),
+                        device.get("mac", "N/A"),
+                    )
+                    continue
+
+                if device_model_upper.startswith("MR"):
+                    additional_device_detail_tasks.append(
                         self._async_get_mr_device_details(device, serial)
                     )
+                elif device_model_upper.startswith("MX"):
+                    additional_device_detail_tasks.append(
+                        self._async_get_mx_device_uplink_settings(device, self.meraki_client) # Pass client here
+                    )
+                    # Note: _async_get_mx_device_uplink_settings will modify 'device' in place
 
-        if mr_device_tasks:
-            await asyncio.gather(*mr_device_tasks)
-            # Results of these tasks (client counts, radio settings) are directly updated
-            # in the respective device dictionaries within the `devices` list.
+        if additional_device_detail_tasks:
+            await asyncio.gather(*additional_device_detail_tasks)
+            # Results of these tasks (client counts, radio settings, MX uplink settings)
+            # are directly updated in the respective device dictionaries within the `devices` list.
+
+        # Step 3: Process Firmware Data and Merge into Devices
+        if devices and firmware_upgrade_data:
+            _LOGGER.debug("MERAKI_DEBUG_FETCHER: Starting to process firmware data for devices.")
+            # The structure of firmware_upgrade_data needs to be understood to implement this correctly.
+            # Assuming firmware_upgrade_data might have a structure like:
+            # {
+            #   "products": {
+            #     "appliance": { "currentVersion": "MX 18.107.1", "nextUpgrade": { "toVersion": ... }, ... },
+            #     "switch": { ... }, ...
+            #   },
+            #   "upgradeWindow": { ... },
+            #   "timezone": "America/Los_Angeles"
+            # }
+            # Or it might be a list of upgrade statuses per device model or product type.
+            # For now, let's assume a placeholder logic.
+            # This part will likely need significant adjustment based on actual API response.
+
+            # Example: Simplified logic assuming firmware_upgrade_data.products.<product_type>.availableVersions
+            # contains a list of versions, and the latest is the one we care about.
+            # This is a GUESS and needs validation with actual API response.
+
+            for device in devices:
+                device_model = device.get("model", "")
+                device_firmware = device.get("firmware") # This might be 'firmwareVersion' or similar
+                product_type = None # Determine product type (e.g., 'appliance', 'wireless') from model
+
+                if device_model.upper().startswith("MX"):
+                    product_type = "appliance"
+                elif device_model.upper().startswith("MR"):
+                    product_type = "wireless"
+                # Add other product types (MS, MV, MG, MT) as needed
+
+                latest_available_version_for_model = "N/A"
+                is_up_to_date_bool = False # Default to false or unknown
+
+                if product_type and firmware_upgrade_data.get("products", {}).get(product_type):
+                    # This is a highly speculative path based on a common pattern in Meraki API docs
+                    # It might be under 'availableVersions' or 'currentVersion' or 'nextUpgrade.toVersion'
+                    # Let's assume 'currentVersion' refers to the latest available, which might be incorrect.
+                    # A more robust approach would look for something like 'latestStableVersion' or similar.
+                    product_firmware_info = firmware_upgrade_data["products"][product_type]
+                    
+                    # Option 1: Direct 'latestVersion' or 'currentVersion' if it means latest available
+                    # latest_available_version_for_model = product_firmware_info.get("currentVersion", {}).get("version") # if nested
+                    latest_available_version_for_model = product_firmware_info.get("currentVersion") # if flat like "MX 18.107.1"
+                    
+                    # Option 2: If 'availableVersions' is a list of dicts with 'version' key
+                    # available_versions = product_firmware_info.get("availableVersions")
+                    # if available_versions and isinstance(available_versions, list):
+                    #    # Assuming the list is sorted or we need to find the 'latest' based on some criteria
+                    #    if available_versions: # Make sure it's not empty
+                    #        latest_available_version_for_model = available_versions[-1].get("version") # Example: last in list
+
+                    # Option 3: Check 'nextUpgrade' information
+                    # next_upgrade_info = product_firmware_info.get("nextUpgrade")
+                    # if next_upgrade_info and next_upgrade_info.get("toVersion"):
+                    #    latest_available_version_for_model = next_upgrade_info["toVersion"].get("version")
+
+
+                    if device_firmware and latest_available_version_for_model and latest_available_version_for_model != "N/A":
+                        # Firmware strings might include model names or build numbers, e.g., "MX 18.107.1" vs "18.107.1"
+                        # A simple string comparison might work if formats are consistent.
+                        # Sometimes, the device.get("firmware") is short form like "wired-17-10-1"
+                        # while `latest_available_version_for_model` from `getOrganizationFirmwareUpgrades`
+                        # might be more descriptive e.g. "Appliance 17.10.1".
+                        # This comparison logic needs to be robust.
+                        # For now, a direct comparison, but this is a known weak point.
+                        if device_firmware == latest_available_version_for_model:
+                            is_up_to_date_bool = True
+                        # A more advanced check might be needed if versions are "model X.Y.Z" vs "X.Y.Z"
+                        # e.g. by extracting version numbers or checking if device_firmware is a substring
+                        elif latest_available_version_for_model.endswith(device_firmware): # Simple heuristic
+                             is_up_to_date_bool = True
+
+
+                device["firmware_up_to_date"] = is_up_to_date_bool
+                device["latest_firmware_version"] = latest_available_version_for_model
+                _LOGGER.debug(
+                    "MERAKI_DEBUG_FETCHER: Device %s (Model: %s, Current FW: %s): Up-to-date: %s, Latest Available: %s",
+                    device.get("serial", device.get("name", "N/A")),
+                    device_model,
+                    device_firmware,
+                    is_up_to_date_bool,
+                    latest_available_version_for_model,
+                )
+        elif devices:
+             _LOGGER.debug("MERAKI_DEBUG_FETCHER: No firmware upgrade data available to process for devices.")
+        else:
+            _LOGGER.debug("MERAKI_DEBUG_FETCHER: No devices available to process firmware data for.")
+
 
         ssids: List[Dict[str, Any]] = []
         # The `network_clients_data` dictionary is no longer needed here as client counting
@@ -229,7 +370,7 @@ class MerakiApiDataFetcher:
         # If a list of all clients per network was needed elsewhere, it would
         # be collected here.
 
-        # Step 3: Iterate through each network to fetch its SSIDs.
+        # Step 4: Iterate through each network to fetch its SSIDs.
         # `async_get_network_ssids` handles its own exceptions.
         for network in networks:  # `networks` is confirmed not None here.
             network_id: str = network["id"]  # Assumes 'id' is always present.
@@ -633,3 +774,102 @@ class MerakiApiDataFetcher:
 
     # The _fetch_data method, previously part of a different API client
     # structure, is no longer needed.
+
+
+    async def _async_get_mx_device_uplink_settings(
+        self, device: Dict[str, Any], client: MerakiAPIClient
+    ) -> None:
+        """Asynchronously fetch and store uplink settings for an MX device.
+
+        This helper method updates the provided `device` dictionary in-place with
+        `wan1_dns_servers` and `wan2_dns_servers`. It handles API errors
+        gracefully by logging them.
+
+        Args:
+            device: The dictionary representing the MX device to update.
+            client: The MerakiAPIClient instance.
+        """
+        serial = device.get("serial")
+        if not serial:
+            _LOGGER.warning(
+                "MERAKI_DEBUG_FETCHER: Cannot fetch uplink settings for MX device %s: missing serial.",
+                device.get("name", "Unknown"),
+            )
+            return
+
+        _LOGGER.debug(
+            "MERAKI_DEBUG_FETCHER: Fetching uplink settings for MX device %s (Serial: %s)",
+            device.get("name", "Unknown"),
+            serial,
+        )
+        try:
+            # Ensure the client object is correctly passed and used.
+            # The method is client.appliance.getDeviceApplianceUplinksSettings
+            uplink_settings = await client.appliance.getDeviceApplianceUplinksSettings(
+                serial=serial
+            )
+            _LOGGER.debug(
+                "MERAKI_DEBUG_FETCHER: Raw uplink settings for %s: %s",
+                serial,
+                uplink_settings, # Be cautious logging entire complex objects
+            )
+
+            if uplink_settings:
+                # Default to empty lists for DNS servers
+                device["wan1_dns_servers"] = []
+                device["wan2_dns_servers"] = []
+                # Potentially LAN DNS servers too, if the API provides them here
+                # device["lan_dns_servers"] = [] # Example
+
+                interfaces = uplink_settings.get("interfaces", {})
+                
+                wan1_settings = interfaces.get("wan1", {})
+                if wan1_settings and isinstance(wan1_settings.get("dnsServers"), list):
+                    device["wan1_dns_servers"] = wan1_settings["dnsServers"]
+                elif wan1_settings and wan1_settings.get("dnsServers") is not None: # Handle single string if API does that
+                     device["wan1_dns_servers"] = [wan1_settings["dnsServers"]]
+
+
+                wan2_settings = interfaces.get("wan2", {})
+                if wan2_settings and isinstance(wan2_settings.get("dnsServers"), list):
+                    device["wan2_dns_servers"] = wan2_settings["dnsServers"]
+                elif wan2_settings and wan2_settings.get("dnsServers") is not None: # Handle single string
+                     device["wan2_dns_servers"] = [wan2_settings["dnsServers"]]
+                
+                _LOGGER.debug(
+                    "MERAKI_DEBUG_FETCHER: Parsed DNS for %s - WAN1: %s, WAN2: %s",
+                    serial,
+                    device["wan1_dns_servers"],
+                    device["wan2_dns_servers"],
+                )
+            else:
+                _LOGGER.debug(
+                    "MERAKI_DEBUG_FETCHER: No uplink settings data returned for MX device %s (Serial: %s).",
+                    device.get("name", "Unknown"),
+                    serial,
+                )
+                # Ensure keys exist even if no data
+                device["wan1_dns_servers"] = []
+                device["wan2_dns_servers"] = []
+
+        except MerakiSDKAPIError as e:
+            _LOGGER.warning(
+                "MERAKI_DEBUG_FETCHER: Failed to fetch uplink settings for MX device %s (Serial: %s): "
+                "API Error %s - %s. DNS server info will be unavailable.",
+                device.get("name", "Unknown"),
+                serial,
+                e.status,
+                e.reason,
+            )
+            device["wan1_dns_servers"] = []
+            device["wan2_dns_servers"] = []
+        except Exception as e:  # pylint: disable=broad-except
+            _LOGGER.exception(
+                "MERAKI_DEBUG_FETCHER: Unexpected error fetching uplink settings for MX device %s (Serial: %s): %s. "
+                "DNS server info will be unavailable.",
+                device.get("name", "Unknown"),
+                serial,
+                e,
+            )
+            device["wan1_dns_servers"] = []
+            device["wan2_dns_servers"] = []

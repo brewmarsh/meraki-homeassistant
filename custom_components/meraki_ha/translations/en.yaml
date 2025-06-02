@@ -1,4 +1,47 @@
-configuration:
-  message:
-    name: Message
-    description: The message that will be printed to the log when starting this example add-on.
+# English translations for Meraki Home Assistant integration
+config:
+  step:
+    user:
+      description: "Configure Meraki API Credentials"
+      data:
+        meraki_api_key: "Meraki API Key"
+        meraki_org_id: "Meraki Organization ID"
+  error:
+    invalid_auth: "Invalid API key."
+    invalid_org_id: "Invalid Organization ID."
+    cannot_connect: "Cannot connect to Meraki API."
+    unknown: "An unknown error occurred."
+
+options:
+  step:
+    init:
+      title: "Meraki Options"
+      data:
+        scan_interval: "Scan Interval (seconds)"
+      data_description:
+        scan_interval: "How often (in seconds) the integration should poll the Meraki Dashboard API for updates. A shorter interval means more responsive sensors but more API calls."
+
+entity:
+  sensor:
+    meraki_wan1_connectivity:
+      name: "WAN 1 Connectivity"
+      state:
+        connected: "Connected"
+        disconnected: "Disconnected"
+        unknown: "Unknown"
+    meraki_wan2_connectivity:
+      name: "WAN 2 Connectivity"
+      state:
+        connected: "Connected"
+        disconnected: "Disconnected"
+        unknown: "Unknown"
+    meraki_network_info:
+      name: "Network Information"
+    meraki_firmware_status:
+      name: "Firmware Status"
+
+# No specific state translations needed for meraki_network_info or meraki_firmware_status
+# as their states are dynamic strings (hostname/firmware version) or covered by default
+# sensor state translations in Home Assistant (e.g., for "Unknown").
+# If specific "Unknown" or "N/A" states for these sensors needed special translation,
+# they would be added under state.sensor.<sensor_key> above.
