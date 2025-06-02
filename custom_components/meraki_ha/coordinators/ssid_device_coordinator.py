@@ -114,6 +114,8 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
         detailed_ssid_data_map: Dict[str, Dict[str, Any]] = {}
         device_registry = dr.async_get(self.hass)
 
+        network_clients_cache: Dict[str, List[Dict[str, Any]]] = {} # Cache for network clients
+
         for ssid_summary_data in enabled_ssids:
             network_id = ssid_summary_data.get("networkId")
             ssid_number = ssid_summary_data.get("number")
@@ -153,22 +155,34 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 # Example: if channel was per band: channel = ssid_detail_data.get("activeBand", {}).get("channel")
                 merged_ssid_data["channel"] = channel if channel else None # Ensure it's None if not found or empty
 
-                # Fetch per-SSID client count
+                # Fetch all clients for the network (if not already cached for this network_id)
+                # and then filter locally for the current SSID.
                 client_count = 0 # Default
-                try:
-                    _LOGGER.debug(f"Fetching client count for SSID {ssid_name_summary} (Num: {ssid_number}, Network: {network_id}) using get_network_wireless_clients")
-                    # Using a timespan of 900s (15 minutes) for "current" clients
-                    # Attempting alternative SDK method: get_network_wireless_clients with ssidNumber parameter
-                    ssid_clients = await meraki_client.wireless.get_network_wireless_clients(
-                        networkId=network_id,
-                        ssidNumber=str(ssid_number), # Parameter name changed from 'number' to 'ssidNumber'
-                        timespan=900
-                    )
-                    client_count = len(ssid_clients) if ssid_clients else 0
-                    _LOGGER.debug(f"Client count for SSID {ssid_name_summary} (Num: {ssid_number}): {client_count}")
-                except Exception as client_e: # Catch potential API errors for this specific call
-                    _LOGGER.warning(f"Could not fetch client count for SSID {ssid_name_summary} (Num: {ssid_number}) using get_network_wireless_clients: {client_e}")
+                if network_id not in network_clients_cache:
+                    _LOGGER.debug(f"Fetching all clients for network {network_id} to determine client counts for its SSIDs.")
+                    try:
+                        # Corrected SDK method name for fetching network clients (plural)
+                        all_network_clients_response = await meraki_client.networks.get_network_clients(
+                            networkId=network_id,
+                            timespan=900,  # Last 15 minutes
+                            perPage=1000   # Try to get all in one go
+                        )
+                        network_clients_cache[network_id] = all_network_clients_response if isinstance(all_network_clients_response, list) else []
+                        _LOGGER.debug(f"Fetched {len(network_clients_cache[network_id])} clients for network {network_id}.")
+                    except Exception as e:
+                        _LOGGER.warning(f"Could not fetch clients for network {network_id} (to determine SSID client counts): {e}")
+                        network_clients_cache[network_id] = [] # Cache empty list on error
+
+                # Filter clients for the current SSID
+                if network_clients_cache.get(network_id):
+                    current_ssid_clients = [
+                        client for client in network_clients_cache[network_id]
+                        if str(client.get('ssid')) == str(ssid_number) # Ensure robust comparison
+                    ]
+                    client_count = len(current_ssid_clients)
+
                 merged_ssid_data["client_count"] = client_count
+                _LOGGER.debug(f"Client count for SSID {ssid_name_summary} (Num: {ssid_number}) on network {network_id}: {client_count}")
 
                 authoritative_ssid_name = merged_ssid_data.get("name")
                 if not authoritative_ssid_name: # Handles if name is None or empty string
