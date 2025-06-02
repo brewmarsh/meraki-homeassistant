@@ -133,7 +133,7 @@ jobs:
         with:
           commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }} and CHANGELOG'
           # Ensure all changed files are included
-          file_pattern: 'custom_components/meraki_ha/manifest.json CHANGELOG.md package.json'
+          file_pattern: 'custom_components/meraki_ha/manifest.json CHANGELOG.md package.json .bumpversion.cfg package-lock.json'
           # push_options: '' # Removed --force, default push behavior
           # Using default push options by removing the line is safer.
           # Configure committer details
