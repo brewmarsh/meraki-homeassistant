@@ -121,6 +121,12 @@ async def async_setup_entry(
     else:
         _LOGGER.warning("SSID coordinator not available or has no data; skipping SSID sensors.")
         
+    _LOGGER.debug(
+        "Meraki HA: FINAL check before async_add_entities. Total entities in list: %d. First 5 unique_ids: %s. Last 5 unique_ids: %s",
+        len(entities),
+        [e.unique_id for e in entities[:5] if hasattr(e, 'unique_id')],
+        [e.unique_id for e in entities[-5:] if hasattr(e, 'unique_id')]
+    )
     if entities:
         _LOGGER.info("Meraki HA: Adding %d Meraki sensor entities.", len(entities)) # Adjusted
         async_add_entities(entities)
