@@ -648,15 +648,38 @@ class MerakiApiDataFetcher:
         )
         
         lan_dns_by_vlan: Dict[str, Any] = {}
+        vlan_list_to_iterate: List[Dict[str, Any]] = []
         try:
-            vlan_settings_list = await client.appliance.getNetworkApplianceVlansSettings(networkId=network_id)
+            vlan_settings_response = await client.appliance.getNetworkApplianceVlansSettings(networkId=network_id)
 
-            if vlan_settings_list and isinstance(vlan_settings_list, list):
-                _LOGGER.debug("MERAKI_DEBUG_FETCHER: Received %d VLAN entries for network %s.", len(vlan_settings_list), network_id)
-                for vlan_data in vlan_settings_list:
+            if isinstance(vlan_settings_response, dict):
+                _LOGGER.debug(
+                    "MERAKI_DEBUG_FETCHER: Received single dictionary for VLAN settings for network %s (Serial: %s). Wrapping in a list.",
+                    network_id, serial
+                )
+                vlan_list_to_iterate = [vlan_settings_response]
+            elif isinstance(vlan_settings_response, list):
+                vlan_list_to_iterate = vlan_settings_response
+            elif vlan_settings_response is None:
+                _LOGGER.debug(
+                    "MERAKI_DEBUG_FETCHER: No VLANs configured or endpoint not applicable for network %s (Serial: %s) (response is None).", 
+                    network_id, serial
+                )
+                # vlan_list_to_iterate remains empty, which is fine
+            else:
+                _LOGGER.warning(
+                    "MERAKI_DEBUG_FETCHER: Unexpected response type for VLAN settings for network %s (Serial: %s): %s. Expected list or dict.",
+                    network_id, serial, type(vlan_settings_response).__name__
+                )
+                # vlan_list_to_iterate remains empty
+
+            if vlan_list_to_iterate:
+                _LOGGER.debug("MERAKI_DEBUG_FETCHER: Processing %d VLAN entries for network %s.", len(vlan_list_to_iterate), network_id)
+                for vlan_data in vlan_list_to_iterate:
                     if not isinstance(vlan_data, dict):
                         _LOGGER.warning("Skipping non-dictionary item in VLAN settings list for network %s: %s", network_id, vlan_data)
                         continue
+                    
                     vlan_id = vlan_data.get("id")
                     vlan_name = vlan_data.get("name", "Unnamed VLAN")
                     dns_nameservers_setting = vlan_data.get("dnsNameservers")
@@ -676,13 +699,8 @@ class MerakiApiDataFetcher:
                     else:
                         lan_dns_by_vlan[vlan_key] = "Not configured" 
                         _LOGGER.debug("MERAKI_DEBUG_FETCHER: VLAN %s on %s has no explicit DNS configuration.", vlan_key, serial)
-            elif vlan_settings_list is None: 
-                 _LOGGER.debug("MERAKI_DEBUG_FETCHER: No VLANs configured or endpoint not applicable for network %s (Serial: %s).", network_id, serial)
-            else: 
-                _LOGGER.warning(
-                    "MERAKI_DEBUG_FETCHER: Unexpected response type for VLAN settings for network %s (Serial: %s): %s",
-                    network_id, serial, type(vlan_settings_list).__name__
-                )
+            # If vlan_list_to_iterate is empty (e.g. from None response or unexpected type), this loop is skipped.
+            
         except MerakiSDKAPIError as e:
             if e.status == 404:
                 _LOGGER.debug(
