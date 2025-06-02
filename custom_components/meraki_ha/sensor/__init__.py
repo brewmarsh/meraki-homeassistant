@@ -36,6 +36,7 @@ async def async_setup_entry(
 ) -> None:
     _LOGGER.info("Meraki HA: Setting up sensor platform.") # Adjusted
     entities = []
+    _LOGGER.debug("Meraki HA: Initial entities list id: %s", id(entities))
 
     # Get the entry specific data store
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
@@ -66,17 +67,14 @@ async def async_setup_entry(
                 serial,
                 len(entities)
             )
+            # Combined log for product_type check and entities list id
             _LOGGER.debug(
-                "Meraki HA: Checking product_type for device %s (Serial: %s). product_type is '%s' (Type: %s)",
+                "Meraki HA: Checking product_type for device %s (Serial: %s). product_type is '%s' (Type: %s). Entities list id: %s. Current len: %d",
                 device_info.get('name', serial),
                 serial,
                 product_type,
-                type(product_type).__name__
-            )
-            _LOGGER.debug(
-                "Meraki HA: Entities count for %s (Serial: %s) BEFORE 'appliance' check: %d",
-                device_info.get('name', serial),
-                serial,
+                type(product_type).__name__,
+                id(entities),
                 len(entities)
             )
 
@@ -84,6 +82,12 @@ async def async_setup_entry(
                 _LOGGER.debug("Meraki HA: Device %s IS an appliance. Attempting to add MerakiNetworkInfoSensor.", device_info.get('name', serial))
                 entities.append(MerakiNetworkInfoSensor(main_coordinator, device_info))
                 _LOGGER.debug("Meraki HA: Added MerakiNetworkInfoSensor for %s", device_info.get('name', serial))
+                _LOGGER.debug(
+                    "Meraki HA: Entities list id (inside appliance block, after appends) for %s: %s. Current len: %d",
+                    serial,
+                    id(entities),
+                    len(entities)
+                )
             # Temporarily comment out other appliance sensors
             #    entities.append(MerakiUplinkStatusSensor(main_coordinator, device_info))
             #    entities.append(MerakiWAN1ConnectivitySensor(main_coordinator, device_info))
@@ -105,6 +109,7 @@ async def async_setup_entry(
 
     else:
         _LOGGER.warning("Main coordinator not available or has no data; skipping physical device sensors.")
+    _LOGGER.debug("Meraki HA: Entities list id AFTER physical devices loop: %s. Current len: %d", id(entities), len(entities))
 
     # Get the SSID device coordinator from the nested 'coordinators' dictionary
     # coordinators_dict = entry_data.get(DATA_COORDINATORS, {})
@@ -133,6 +138,8 @@ async def async_setup_entry(
         [e.unique_id for e in entities[:5] if hasattr(e, 'unique_id')],
         [e.unique_id for e in entities[-5:] if hasattr(e, 'unique_id')]
     )
+    # New log for id(entities) at FINAL check
+    _LOGGER.debug("Meraki HA: Entities list id FINAL check: %s", id(entities))
     if entities:
         _LOGGER.info("Meraki HA: Adding %d Meraki sensor entities.", len(entities)) # Adjusted
         async_add_entities(entities)
