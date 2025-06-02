@@ -156,18 +156,18 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 # Fetch per-SSID client count
                 client_count = 0 # Default
                 try:
-                    _LOGGER.debug(f"Fetching client count for SSID {ssid_name_summary} (Num: {ssid_number}, Network: {network_id})")
+                    _LOGGER.debug(f"Fetching client count for SSID {ssid_name_summary} (Num: {ssid_number}, Network: {network_id}) using get_network_wireless_clients")
                     # Using a timespan of 900s (15 minutes) for "current" clients
-                    # Corrected SDK method name below
-                    ssid_clients = await meraki_client.wireless.get_network_wireless_ssid_clients(
+                    # Attempting alternative SDK method: get_network_wireless_clients with ssidNumber parameter
+                    ssid_clients = await meraki_client.wireless.get_network_wireless_clients(
                         networkId=network_id,
-                        number=str(ssid_number),
+                        ssidNumber=str(ssid_number), # Parameter name changed from 'number' to 'ssidNumber'
                         timespan=900
                     )
                     client_count = len(ssid_clients) if ssid_clients else 0
                     _LOGGER.debug(f"Client count for SSID {ssid_name_summary} (Num: {ssid_number}): {client_count}")
                 except Exception as client_e: # Catch potential API errors for this specific call
-                    _LOGGER.warning(f"Could not fetch client count for SSID {ssid_name_summary} (Num: {ssid_number}): {client_e}")
+                    _LOGGER.warning(f"Could not fetch client count for SSID {ssid_name_summary} (Num: {ssid_number}) using get_network_wireless_clients: {client_e}")
                 merged_ssid_data["client_count"] = client_count
 
                 authoritative_ssid_name = merged_ssid_data.get("name")

@@ -28,7 +28,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    _LOGGER.info("Setting up Meraki sensor platform.")
+    _LOGGER.info("Meraki HA: Setting up sensor platform.") # Adjusted
     entities = []
 
     # Get the entry specific data store
@@ -39,14 +39,14 @@ async def async_setup_entry(
 
     if main_coordinator and main_coordinator.data:
         physical_devices = main_coordinator.data.get("devices", [])
-        _LOGGER.debug(f"Found {len(physical_devices)} physical devices for sensor setup.")
+        _LOGGER.debug("Meraki HA: Found %d physical devices for sensor setup.", len(physical_devices)) # Adjusted
         for device_info in physical_devices:
             serial = device_info.get("serial")
             if not serial:
                 _LOGGER.warning(f"Skipping device with missing serial: {device_info.get('name', 'Unknown Name')}")
                 continue
 
-            _LOGGER.debug(f"Setting up physical device sensors for: {device_info.get('name', serial)}")
+            _LOGGER.debug("Meraki HA: Setting up physical device sensors for: %s", device_info.get('name', serial)) # Adjusted
             entities.append(MerakiDeviceStatusSensor(main_coordinator, device_info))
 
             product_type = device_info.get("productType")
@@ -73,14 +73,14 @@ async def async_setup_entry(
     if ssid_coordinator and ssid_coordinator.data:
         # ssid_coordinator.data is a dict of {unique_ssid_id: ssid_data_dict}
         enabled_ssids_data = ssid_coordinator.data.values()
-        _LOGGER.debug(f"Found {len(enabled_ssids_data)} enabled SSIDs for sensor setup.")
+        _LOGGER.debug("Meraki HA: Found %d enabled SSIDs for sensor setup.", len(enabled_ssids_data)) # Adjusted
         for ssid_data in enabled_ssids_data:
             unique_ssid_id = ssid_data.get("unique_id")
             if not unique_ssid_id:
                 _LOGGER.warning(f"Skipping SSID with missing unique_id: {ssid_data.get('name', 'Unknown SSID')}")
                 continue
 
-            _LOGGER.debug(f"Setting up SSID sensors for: {ssid_data.get('name', unique_ssid_id)}")
+            _LOGGER.debug("Meraki HA: Setting up SSID sensors for: %s", ssid_data.get('name', unique_ssid_id)) # Adjusted
             # Assuming these sensor classes are designed to take (ssid_coordinator, ssid_data)
             # and link to the SSID HA device via ssid_data['unique_id']
             entities.append(MerakiSSIDAvailabilitySensor(ssid_coordinator, ssid_data))
@@ -90,7 +90,7 @@ async def async_setup_entry(
         _LOGGER.warning("SSID coordinator not available or has no data; skipping SSID sensors.")
 
     if entities:
-        _LOGGER.info(f"Adding {len(entities)} Meraki sensor entities.")
+        _LOGGER.info("Meraki HA: Adding %d Meraki sensor entities.", len(entities)) # Adjusted
         async_add_entities(entities)
     else:
-        _LOGGER.info("No Meraki sensor entities to add.")
+        _LOGGER.info("Meraki HA: No Meraki sensor entities to add.") # Adjusted
