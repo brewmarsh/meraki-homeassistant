@@ -194,14 +194,14 @@ class MerakiApiDataFetcher:
             _LOGGER.debug(
                 "MERAKI_DEBUG_FETCHER: No device statuses were successfully mapped, skipping merge."
             )
-
+        
         # Log a sample of a few complete device entries after status merge
         if devices:
             # DEBUG: Verbose full device_info log for sample devices - for i, device_sample in enumerate(devices[:2]):
             #    _LOGGER.debug(
             #        "MERAKI_DEBUG_FETCHER: Sample device entry %d after status merge: %s",
             #        i,
-            #        device_sample
+            #        device_sample 
             #    )
             pass # Keep the if block structure if other summary logs might be added later
 
@@ -209,7 +209,7 @@ class MerakiApiDataFetcher:
         # This involves creating a list of asynchronous tasks for MR devices.
         mr_device_tasks = []
         # Ensure devices is not None before iterating
-        if devices:
+        if devices: 
             for device in devices:
                 if device.get("model", "").upper().startswith("MR"):
                     # Assumes 'serial' is always present for MR devices.

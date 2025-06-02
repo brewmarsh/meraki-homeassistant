@@ -55,8 +55,8 @@ class MerakiUplinkStatusSensor(
         # Store the initial device_data to set up unique_id, name, etc.
         # This data might be stale for the first state update, but _handle_coordinator_update
         # will refresh it from the coordinator.
-        self._initial_device_data: Dict[str, Any] = device_data
-
+        self._initial_device_data: Dict[str, Any] = device_data 
+        
         device_name = self._initial_device_data.get(
             "name", self._initial_device_data.get("serial", "Unknown Device")
         )
@@ -64,7 +64,7 @@ class MerakiUplinkStatusSensor(
 
         self._attr_name = f"{device_name} Uplink Status"
         self._attr_unique_id = f"{self._device_serial}_uplink_status"
-
+        
         # Initial attributes, will be expanded in _update_sensor_state
         self._attr_extra_state_attributes: Dict[str, Any] = {
             "model": self._initial_device_data.get("model"),
@@ -73,7 +73,7 @@ class MerakiUplinkStatusSensor(
         }
 
         # Set initial state by calling the update method
-        self._update_sensor_state()
+        self._update_sensor_state() 
         _LOGGER.debug(
             "MerakiUplinkStatusSensor Initialized: Name: %s, Unique ID: %s, Initial Device Data (subset): %s",
             self._attr_name, self._attr_unique_id,
@@ -82,7 +82,7 @@ class MerakiUplinkStatusSensor(
 
     def _update_sensor_state(self) -> None:
         """Update sensor state and attributes from coordinator data."""
-
+        
         current_device_info: Optional[Dict[str, Any]] = None
         # Find this device's current data in the coordinator's device list
         if self.coordinator.data and self.coordinator.data.get("devices"):
@@ -90,7 +90,7 @@ class MerakiUplinkStatusSensor(
                 if dev_data.get("serial") == self._device_serial:
                     current_device_info = dev_data
                     break
-
+        
         if not current_device_info:
             _LOGGER.warning(
                 "Uplink data for device '%s' (Serial: %s) not found in coordinator. Setting state to unavailable.",
@@ -124,13 +124,13 @@ class MerakiUplinkStatusSensor(
             "tags": current_device_info.get("tags", []),
             "network_id": current_device_info.get("networkId"),
         }
-
+        
         self._attr_extra_state_attributes = {
             k: v for k, v in current_attributes.items() if v is not None
         }
         _LOGGER.debug(
             "Uplink Sensor Updated: %s, State: %s, WAN1: %s, WAN2: %s, PublicIP: %s",
-            self._attr_name, self._attr_native_value,
+            self._attr_name, self._attr_native_value, 
             current_attributes.get("wan1_ip"), current_attributes.get("wan2_ip"), current_attributes.get("public_ip")
         )
 

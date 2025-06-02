@@ -58,7 +58,7 @@ class MerakiSSIDClientCountSensor(CoordinatorEntity[SSIDDeviceCoordinator], Sens
             model="Wireless SSID",
             manufacturer="Cisco Meraki",
         )
-
+        
         # Set initial state
         self._update_sensor_state()
         _LOGGER.debug(
@@ -77,7 +77,7 @@ class MerakiSSIDClientCountSensor(CoordinatorEntity[SSIDDeviceCoordinator], Sens
             # The 'client_count' field is not standard in Meraki's getNetworkWirelessSsid output.
             # This field would need to be populated by SSIDDeviceCoordinator.
             client_count: Optional[int] = self._ssid_data.get("client_count")
-
+            
             if isinstance(client_count, int):
                 self._attr_native_value = client_count
             else:
@@ -86,7 +86,7 @@ class MerakiSSIDClientCountSensor(CoordinatorEntity[SSIDDeviceCoordinator], Sens
                     self._ssid_data.get("name"),
                     self._ssid_data.get("unique_id"),
                 )
-                self._attr_native_value = 0
+                self._attr_native_value = 0 
         else:
             _LOGGER.warning(
                 "SSID data for ID '%s' not found in coordinator. Client count set to 0.",

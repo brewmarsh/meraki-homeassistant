@@ -231,8 +231,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
             # Apply device_name_format for Network devices
             # self.device_name_format is a property that gets it from config_entry.options
-            current_device_name_format = self.device_name_format
-
+            current_device_name_format = self.device_name_format 
+            
             formatted_network_name = original_network_name
             if current_device_name_format == "prefix":
                 formatted_network_name = f"[Network] {original_network_name}"
@@ -287,17 +287,17 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             connections = None
             if mac_address:
                 connections = {(dr.CONNECTION_NETWORK_MAC, mac_address)}
-
+            
             # Log the full device_info for debugging before registration attempt
             # This log was already added in a previous step, ensuring it's correctly placed.
             _LOGGER.debug(
-                "MERAKI_DEBUG_COORDINATOR: Preparing to register/update physical device. Full device_info: %s",
-                device_info
+                "MERAKI_DEBUG_COORDINATOR: Preparing to register/update physical device. Full device_info: %s", 
+                device_info 
             )
 
             device_registry.async_get_or_create(
                 config_entry_id=self.config_entry.entry_id,
-                identifiers={(DOMAIN, serial)},
+                identifiers={(DOMAIN, serial)}, 
                 manufacturer="Cisco Meraki",
                 model=device_model_str,
                 name=formatted_device_name,

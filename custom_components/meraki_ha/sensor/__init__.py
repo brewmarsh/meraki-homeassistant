@@ -3,7 +3,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 # Assuming these consts correctly point to the keys used in hass.data for coordinators
-from ..const import DOMAIN, DATA_COORDINATOR, DATA_COORDINATORS, DATA_SSID_DEVICES_COORDINATOR
+from ..const import DOMAIN, DATA_COORDINATOR, DATA_COORDINATORS, DATA_SSID_DEVICES_COORDINATOR 
 
 # Import coordinator types
 from ..coordinators.base_coordinator import MerakiDataUpdateCoordinator
@@ -13,7 +13,7 @@ from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
 from .device_status import MerakiDeviceStatusSensor
 from .uplink_status import MerakiUplinkStatusSensor
 # Import for connected clients sensor for physical APs
-from .connected_clients import MerakiDeviceConnectedClientsSensor
+from .connected_clients import MerakiDeviceConnectedClientsSensor 
 
 # Import sensor entity classes for SSIDs
 from .ssid_availability import MerakiSSIDAvailabilitySensor
@@ -42,22 +42,22 @@ async def async_setup_entry(
         _LOGGER.debug("Meraki HA: Found %d physical devices for sensor setup.", len(physical_devices)) # Adjusted
         for device_info in physical_devices:
             serial = device_info.get("serial")
-            if not serial:
+            if not serial: 
                 _LOGGER.warning(f"Skipping device with missing serial: {device_info.get('name', 'Unknown Name')}")
                 continue
 
             _LOGGER.debug("Meraki HA: Setting up physical device sensors for: %s", device_info.get('name', serial)) # Adjusted
             entities.append(MerakiDeviceStatusSensor(main_coordinator, device_info))
-
+            
             product_type = device_info.get("productType")
             # Add UplinkStatusSensor only if the device has uplink information (typically gateways/appliances)
             if product_type == "appliance": # Standard check for MX devices
                  entities.append(MerakiUplinkStatusSensor(main_coordinator, device_info))
-
+            
             # Add ConnectedClients sensor for wireless APs (MR series)
             if product_type == "wireless": # Standard check for MR devices
                 entities.append(MerakiDeviceConnectedClientsSensor(main_coordinator, device_info))
-
+            
             # Potentially add MerakiRadioSettingsSensor for 'wireless' productType if desired
             # from .sensor.radio_settings import MerakiRadioSettingsSensor
             # if product_type == "wireless":
@@ -84,11 +84,11 @@ async def async_setup_entry(
             # Assuming these sensor classes are designed to take (ssid_coordinator, ssid_data)
             # and link to the SSID HA device via ssid_data['unique_id']
             entities.append(MerakiSSIDAvailabilitySensor(ssid_coordinator, ssid_data))
-            entities.append(MerakiSSIDChannelSensor(ssid_coordinator, ssid_data))
+            entities.append(MerakiSSIDChannelSensor(ssid_coordinator, ssid_data)) 
             entities.append(MerakiSSIDClientCountSensor(ssid_coordinator, ssid_data))
     else:
         _LOGGER.warning("SSID coordinator not available or has no data; skipping SSID sensors.")
-
+        
     if entities:
         _LOGGER.info("Meraki HA: Adding %d Meraki sensor entities.", len(entities)) # Adjusted
         async_add_entities(entities)

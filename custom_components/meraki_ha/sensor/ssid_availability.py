@@ -60,7 +60,7 @@ class MerakiSSIDAvailabilitySensor(CoordinatorEntity[SSIDDeviceCoordinator], Sen
             # but identifiers link is primary for entity-to-device.
             # The SSID HA device itself is linked to config_entry.
         )
-
+        
         # Set initial state
         self._update_sensor_state()
         _LOGGER.debug(
@@ -93,7 +93,7 @@ class MerakiSSIDAvailabilitySensor(CoordinatorEntity[SSIDDeviceCoordinator], Sen
                 "SSID data for ID '%s' not found in coordinator. Setting availability to OFF.",
                 self._ssid_data.get("unique_id"),
             )
-            self._attr_native_value = STATE_OFF
+            self._attr_native_value = STATE_OFF 
 
     @callback
     def _handle_coordinator_update(self) -> None:

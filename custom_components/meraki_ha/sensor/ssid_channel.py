@@ -56,7 +56,7 @@ class MerakiSSIDChannelSensor(CoordinatorEntity[SSIDDeviceCoordinator], SensorEn
             model="Wireless SSID",
             manufacturer="Cisco Meraki",
         )
-
+        
         # Set initial state
         self._update_sensor_state()
         _LOGGER.debug(
@@ -77,14 +77,14 @@ class MerakiSSIDChannelSensor(CoordinatorEntity[SSIDDeviceCoordinator], SensorEn
             # (e.g., AP radio settings or specific client details if this sensor means client's channel).
             # For now, we expect it might be in self._ssid_data if enriched by the coordinator.
             channel_value: Union[str, int, None] = self._ssid_data.get("channel")
-
+            
             if channel_value is not None:
                 self._attr_native_value = str(channel_value)
                 if isinstance(channel_value, (int, float)):
                     self._attr_state_class = SensorStateClass.MEASUREMENT
                 else:
                     # If channel can be "Auto" or include text like "(20MHz)"
-                    self._attr_state_class = None
+                    self._attr_state_class = None 
             else:
                 _LOGGER.debug(
                     "SSID '%s' (ID: %s) has no 'channel' information. Setting to None.",

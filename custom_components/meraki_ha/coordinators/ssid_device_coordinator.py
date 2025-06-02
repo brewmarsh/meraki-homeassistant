@@ -53,7 +53,7 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
         enabled_ssids: List[Dict[str, Any]] = []
         disabled_ssids_samples: List[Dict[str, Any]] = []
         # Shorten sample name for brevity in logs if complex objects
-        enabled_ssids_log_samples: List[Dict[str, Any]] = []
+        enabled_ssids_log_samples: List[Dict[str, Any]] = [] 
 
         for ssid_info in all_ssids_from_fetcher:
             # Construct a smaller dict for logging samples to keep logs cleaner
@@ -70,7 +70,7 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
             else:
                 if len(disabled_ssids_samples) < 3: # Log up to 3 samples
                     disabled_ssids_samples.append(log_sample)
-
+        
         _LOGGER.debug(f"SSIDCoordinator: Found {len(enabled_ssids)} enabled SSIDs after filtering.")
 
         if disabled_ssids_samples:
@@ -113,7 +113,7 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
 
         detailed_ssid_data_map: Dict[str, Dict[str, Any]] = {}
         device_registry = dr.async_get(self.hass)
-
+        
         network_clients_cache: Dict[str, List[Dict[str, Any]]] = {} # Cache for network clients
 
         for ssid_summary_data in enabled_ssids:
@@ -139,13 +139,13 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 # Merge summary data with detail data, detail data takes precedence
                 # The summary already has networkId, number, name, enabled.
                 # Detail will add/override psk, visible, and other specific settings.
-
+                
                 # Log the raw ssid_detail_data to understand its structure for channel info
                 _LOGGER.debug(f"SSID Detail Data for {ssid_name_summary} (Num: {ssid_number}): {ssid_detail_data}")
 
                 merged_ssid_data = {**ssid_summary_data, **ssid_detail_data}
                 merged_ssid_data["unique_id"] = unique_ssid_id # Ensure unique_id is preserved/added
-
+                
                 # Attempt to extract channel information
                 # This is speculative as 'channel' is not a standard top-level field in getNetworkWirelessSsid response.
                 # It might be part of 'radiusServers' (for accounting), or per-band if available (e.g. 'fiveGhzSettings', 'twoFourGhzSettings').
@@ -159,10 +159,10 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 # and then filter locally for the current SSID.
                 client_count = 0 # Default
                 if network_id not in network_clients_cache:
-                    _LOGGER.debug(f"Fetching all clients for network {network_id} using `meraki_client.clients.get_network_clients` to count for SSID {ssid_name_summary} (Num: {ssid_number})")
+                    _LOGGER.debug(f"Fetching all clients for network {network_id} using `meraki_client.networks.get_network_clients` to count for SSID {ssid_name_summary} (Num: {ssid_number})")
                     try:
-                        # Using alternative SDK method path: meraki_client.clients
-                        all_network_clients_response = await meraki_client.clients.get_network_clients(
+                        # Re-attempting SDK method path: meraki_client.networks.get_network_clients
+                        all_network_clients_response = await meraki_client.networks.get_network_clients(
                             networkId=network_id,
                             timespan=900,  # Last 15 minutes
                             perPage=1000   # Try to get all in one go
@@ -170,9 +170,9 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                         network_clients_cache[network_id] = all_network_clients_response if isinstance(all_network_clients_response, list) else []
                         _LOGGER.debug(f"Fetched {len(network_clients_cache[network_id])} clients for network {network_id}.")
                     except Exception as e:
-                        _LOGGER.warning(f"Could not fetch clients for network {network_id} using `meraki_client.clients.get_network_clients`: {e}")
+                        _LOGGER.warning(f"Could not fetch clients for network {network_id} using `meraki_client.networks.get_network_clients`: {e}")
                         network_clients_cache[network_id] = [] # Cache empty list on error
-
+                
                 # Filter clients for the current SSID
                 if network_clients_cache.get(network_id):
                     current_ssid_clients = [
@@ -180,7 +180,7 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                         if str(client.get('ssid')) == str(ssid_number) # Ensure robust comparison
                     ]
                     client_count = len(current_ssid_clients)
-
+                
                 merged_ssid_data["client_count"] = client_count
                 _LOGGER.debug(f"Client count for SSID {ssid_name_summary} (Num: {ssid_number}) on network {network_id}: {client_count}")
 
@@ -191,7 +191,7 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
 
                 # Apply device_name_format for SSIDs
                 device_name_format = self.config_entry.options.get("device_name_format", "omitted")
-
+                
                 formatted_ssid_name = authoritative_ssid_name
                 if device_name_format == "prefix":
                     formatted_ssid_name = f"[SSID] {authoritative_ssid_name}"
@@ -206,7 +206,7 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                     model="Wireless SSID", # Model type for SSID devices
                     manufacturer="Cisco Meraki",
                     # Link to the main integration config entry device
-                    via_device=(DOMAIN, self.config_entry.entry_id),
+                    via_device=(DOMAIN, self.config_entry.entry_id), 
                 )
                 _LOGGER.debug(
                     f"Registered/Updated device for ENABLED SSID: {formatted_ssid_name} ({unique_ssid_id}). "
