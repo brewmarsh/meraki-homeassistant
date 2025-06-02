@@ -65,8 +65,30 @@ jobs:
           fi
           echo "Increment Type: $increment_type"
 
-          # Bump version in manifest.json
-          bump2version --verbose --allow-dirty "$increment_type" custom_components/meraki_ha/manifest.json
+          # Calculate the new version based on current_version and increment_type
+          calculated_new_version_string=""
+          # Ensure current_version is in X.Y.Z format, otherwise this parsing will fail or produce unexpected results.
+          # Consider adding error handling or validation for current_version format if necessary.
+          IFS='.' read -r -a version_parts <<< "$current_version"
+          major_part=${version_parts[0]}
+          minor_part=${version_parts[1]}
+          patch_part=${version_parts[2]}
+
+          if [[ "$increment_type" == "major" ]]; then
+            major_part=$((major_part + 1))
+            minor_part=0
+            patch_part=0
+          elif [[ "$increment_type" == "minor" ]]; then
+            minor_part=$((minor_part + 1))
+            patch_part=0
+          elif [[ "$increment_type" == "patch" ]]; then
+            patch_part=$((patch_part + 1))
+          fi
+          calculated_new_version_string="$major_part.$minor_part.$patch_part"
+          echo "Calculated New Version String: $calculated_new_version_string"
+
+          # Bump version in manifest.json using the calculated new version
+          bump2version --verbose --allow-dirty --current-version "$current_version" --new-version "$calculated_new_version_string" custom_components/meraki_ha/manifest.json
           
           base_version=$(jq -r .version custom_components/meraki_ha/manifest.json)
           echo "Base Version from manifest after bump: $base_version"
