@@ -159,10 +159,10 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 # and then filter locally for the current SSID.
                 client_count = 0 # Default
                 if network_id not in network_clients_cache:
-                    _LOGGER.debug(f"Fetching all clients for network {network_id} to determine client counts for its SSIDs.")
+                    _LOGGER.debug(f"Fetching all clients for network {network_id} using `meraki_client.clients.get_network_clients` to count for SSID {ssid_name_summary} (Num: {ssid_number})")
                     try:
-                        # Corrected SDK method name for fetching network clients (plural)
-                        all_network_clients_response = await meraki_client.networks.get_network_clients(
+                        # Using alternative SDK method path: meraki_client.clients
+                        all_network_clients_response = await meraki_client.clients.get_network_clients(
                             networkId=network_id,
                             timespan=900,  # Last 15 minutes
                             perPage=1000   # Try to get all in one go
@@ -170,7 +170,7 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                         network_clients_cache[network_id] = all_network_clients_response if isinstance(all_network_clients_response, list) else []
                         _LOGGER.debug(f"Fetched {len(network_clients_cache[network_id])} clients for network {network_id}.")
                     except Exception as e:
-                        _LOGGER.warning(f"Could not fetch clients for network {network_id} (to determine SSID client counts): {e}")
+                        _LOGGER.warning(f"Could not fetch clients for network {network_id} using `meraki_client.clients.get_network_clients`: {e}")
                         network_clients_cache[network_id] = [] # Cache empty list on error
 
                 # Filter clients for the current SSID
