@@ -274,95 +274,136 @@ class MerakiApiDataFetcher:
             # are directly updated in the respective device dictionaries within the `devices` list.
 
         # Step 3: Process Firmware Data and Merge into Devices
-        if devices and firmware_upgrade_data:
-            _LOGGER.debug("MERAKI_DEBUG_FETCHER: Starting to process firmware data for devices.")
-            # The structure of firmware_upgrade_data needs to be understood to implement this correctly.
-            # Assuming firmware_upgrade_data might have a structure like:
-            # {
-            #   "products": {
-            #     "appliance": { "currentVersion": "MX 18.107.1", "nextUpgrade": { "toVersion": ... }, ... },
-            #     "switch": { ... }, ...
-            #   },
-            #   "upgradeWindow": { ... },
-            #   "timezone": "America/Los_Angeles"
-            # }
-            # Or it might be a list of upgrade statuses per device model or product type.
-            # For now, let's assume a placeholder logic.
-            # This part will likely need significant adjustment based on actual API response.
-
-            # Example: Simplified logic assuming firmware_upgrade_data.products.<product_type>.availableVersions
-            # contains a list of versions, and the latest is the one we care about.
-            # This is a GUESS and needs validation with actual API response.
-
-            for device in devices:
-                device_model = device.get("model", "")
-                device_firmware = device.get("firmware") # This might be 'firmwareVersion' or similar
-                product_type = None # Determine product type (e.g., 'appliance', 'wireless') from model
-
-                if device_model.upper().startswith("MX"):
-                    product_type = "appliance"
-                elif device_model.upper().startswith("MR"):
-                    product_type = "wireless"
-                # Add other product types (MS, MV, MG, MT) as needed
-
-                latest_available_version_for_model = "N/A"
-                is_up_to_date_bool = False # Default to false or unknown
-
-                if product_type and firmware_upgrade_data.get("products", {}).get(product_type):
-                    # This is a highly speculative path based on a common pattern in Meraki API docs
-                    # It might be under 'availableVersions' or 'currentVersion' or 'nextUpgrade.toVersion'
-                    # Let's assume 'currentVersion' refers to the latest available, which might be incorrect.
-                    # A more robust approach would look for something like 'latestStableVersion' or similar.
-                    product_firmware_info = firmware_upgrade_data["products"][product_type]
-                    
-                    # Option 1: Direct 'latestVersion' or 'currentVersion' if it means latest available
-                    # latest_available_version_for_model = product_firmware_info.get("currentVersion", {}).get("version") # if nested
-                    latest_available_version_for_model = product_firmware_info.get("currentVersion") # if flat like "MX 18.107.1"
-                    
-                    # Option 2: If 'availableVersions' is a list of dicts with 'version' key
-                    # available_versions = product_firmware_info.get("availableVersions")
-                    # if available_versions and isinstance(available_versions, list):
-                    #    # Assuming the list is sorted or we need to find the 'latest' based on some criteria
-                    #    if available_versions: # Make sure it's not empty
-                    #        latest_available_version_for_model = available_versions[-1].get("version") # Example: last in list
-
-                    # Option 3: Check 'nextUpgrade' information
-                    # next_upgrade_info = product_firmware_info.get("nextUpgrade")
-                    # if next_upgrade_info and next_upgrade_info.get("toVersion"):
-                    #    latest_available_version_for_model = next_upgrade_info["toVersion"].get("version")
-
-
-                    if device_firmware and latest_available_version_for_model and latest_available_version_for_model != "N/A":
-                        # Firmware strings might include model names or build numbers, e.g., "MX 18.107.1" vs "18.107.1"
-                        # A simple string comparison might work if formats are consistent.
-                        # Sometimes, the device.get("firmware") is short form like "wired-17-10-1"
-                        # while `latest_available_version_for_model` from `getOrganizationFirmwareUpgrades`
-                        # might be more descriptive e.g. "Appliance 17.10.1".
-                        # This comparison logic needs to be robust.
-                        # For now, a direct comparison, but this is a known weak point.
-                        if device_firmware == latest_available_version_for_model:
-                            is_up_to_date_bool = True
-                        # A more advanced check might be needed if versions are "model X.Y.Z" vs "X.Y.Z"
-                        # e.g. by extracting version numbers or checking if device_firmware is a substring
-                        elif latest_available_version_for_model.endswith(device_firmware): # Simple heuristic
-                             is_up_to_date_bool = True
-
-
-                device["firmware_up_to_date"] = is_up_to_date_bool
-                device["latest_firmware_version"] = latest_available_version_for_model
-                _LOGGER.debug(
-                    "MERAKI_DEBUG_FETCHER: Device %s (Model: %s, Current FW: %s): Up-to-date: %s, Latest Available: %s",
-                    device.get("serial", device.get("name", "N/A")),
-                    device_model,
-                    device_firmware,
-                    is_up_to_date_bool,
-                    latest_available_version_for_model,
+        if devices: # Only process if there are devices
+            if not isinstance(firmware_upgrade_data, list):
+                _LOGGER.warning(
+                    "MERAKI_DEBUG_FETCHER: firmware_upgrade_data is not a list (type: %s), "
+                    "cannot process firmware status for devices. Value: %s",
+                    type(firmware_upgrade_data).__name__,
+                    str(firmware_upgrade_data)[:200] # Log a snippet
                 )
-        elif devices:
-             _LOGGER.debug("MERAKI_DEBUG_FETCHER: No firmware upgrade data available to process for devices.")
-        else:
-            _LOGGER.debug("MERAKI_DEBUG_FETCHER: No devices available to process firmware data for.")
+                # Set defaults for all devices as firmware data is unusable
+                for device in devices:
+                    device["firmware_up_to_date"] = False
+                    device["latest_firmware_version"] = device.get("firmware", "N/A")
+            elif not firmware_upgrade_data:
+                _LOGGER.debug(
+                    "MERAKI_DEBUG_FETCHER: firmware_upgrade_data is an empty list. "
+                    "No specific upgrade information available."
+                )
+                for device in devices:
+                    device["firmware_up_to_date"] = True # Assuming if no upgrades listed, current is considered latest
+                    device["latest_firmware_version"] = device.get("firmware", "N/A")
+            else:
+                _LOGGER.debug("MERAKI_DEBUG_FETCHER: Starting to process firmware data list for devices.")
+                if _LOGGER.isEnabledFor(logging.DEBUG): # Log sample only if debug is enabled
+                    _LOGGER.debug(
+                        "MERAKI_DEBUG_FETCHER: Sample firmware_upgrade_data item: %s",
+                        str(firmware_upgrade_data[0])[:300] # Log a snippet of the first item
+                    )
 
+                for device in devices:
+                    device_serial = device.get("serial")
+                    device_model = device.get("model", "")
+                    current_device_firmware = device.get("firmware")
+
+                    # Initialize defaults for this device
+                    is_up_to_date_bool = False # Default to False, assuming an upgrade might be available
+                    # Default latest version to current, can be overridden by specific upgrade info
+                    latest_known_version = current_device_firmware if current_device_firmware else "N/A"
+                    
+                    found_specific_info_for_device = False
+
+                    for upgrade_item in firmware_upgrade_data:
+                        if not isinstance(upgrade_item, dict):
+                            _LOGGER.warning(
+                                "MERAKI_DEBUG_FETCHER: Skipping non-dictionary item in firmware_upgrade_data list: %s",
+                                str(upgrade_item)[:200]
+                            )
+                            continue
+
+                        item_serial = upgrade_item.get("serial")
+                        
+                        # Most specific match: by serial number
+                        if item_serial and item_serial == device_serial:
+                            _LOGGER.debug("MERAKI_DEBUG_FETCHER: Found firmware info by serial for %s", device_serial)
+                            # Example structure: {"serial": "X", "deviceModel": "MXY", "firmware": "current", "status": "up-to-date" / "available"}
+                            # Or: {"serial": "X", ..., "nextUpgrade": {"toVersion": {"version": "1.2.4"}}}
+                            
+                            next_upgrade_info = upgrade_item.get("nextUpgrade")
+                            if isinstance(next_upgrade_info, dict):
+                                to_version_info = next_upgrade_info.get("toVersion")
+                                if isinstance(to_version_info, dict):
+                                    latest_known_version = to_version_info.get("version", latest_known_version)
+                                    # If nextUpgrade exists, it implies current is not the latest targeted one
+                                    is_up_to_date_bool = False 
+                                else: # No specific toVersion, check overall status if available
+                                    item_status = str(upgrade_item.get("status", "")).lower()
+                                    # Common statuses: 'up-to-date', 'has-newer-stable-version', 'beta-available'
+                                    if item_status == "up-to-date":
+                                        is_up_to_date_bool = True
+                                        # If status is up-to-date, then current firmware is the latest known for this device
+                                        latest_known_version = current_device_firmware if current_device_firmware else "N/A"
+                                    elif item_status == "has-newer-stable-version":
+                                        is_up_to_date_bool = False
+                                        # latest_known_version might not be in this specific item if only status is given
+                                        # Need to check 'availableVersions' or 'latestVersion' if present
+                                        available_versions = upgrade_item.get("availableVersions")
+                                        if isinstance(available_versions, list) and available_versions:
+                                            # Assuming the first one is the most relevant or latest stable
+                                            # This part is speculative: API might sort them or provide 'latestStable'
+                                            latest_known_version = available_versions[0].get("version", latest_known_version)
+
+                            else: # No nextUpgrade, check general status or version fields
+                                item_status = str(upgrade_item.get("status", "")).lower()
+                                if item_status == "up-to-date":
+                                    is_up_to_date_bool = True
+                                    latest_known_version = current_device_firmware if current_device_firmware else "N/A"
+                                elif upgrade_item.get("latestVersion"): # Check for a direct latest version field
+                                     latest_known_version = upgrade_item.get("latestVersion")
+
+                            # If after all checks, latest_known_version is still the current one, then it's up to date
+                            if current_device_firmware and current_device_firmware == latest_known_version:
+                                is_up_to_date_bool = True
+                                
+                            found_specific_info_for_device = True
+                            break # Found device-specific info by serial
+
+                    # If no specific serial match was found, we can't reliably determine firmware status
+                    # from a generic list unless it provides model-based latest versions.
+                    # The current loop structure prioritizes serial. If firmware_upgrade_data
+                    # also contains general model availability, that logic would be more complex
+                    # and would need to run if not found_specific_info_for_device.
+                    # For now, if no serial match, is_up_to_date_bool remains its default (False, or True if list was empty)
+                    # and latest_known_version remains current device firmware.
+
+                    if not found_specific_info_for_device and not firmware_upgrade_data: # Empty list implies up-to-date
+                        is_up_to_date_bool = True
+                        latest_known_version = current_device_firmware if current_device_firmware else "N/A"
+                    elif not found_specific_info_for_device:
+                        # Could try a model-based lookup here if the API provides such entries in the list
+                        # For now, we assume if no serial match, we don't have enough info from this list structure
+                        # to definitively say it's NOT up-to-date, unless a global "latest for model X" is found.
+                        # This part remains speculative. A simple approach: if no specific info, assume current is what we know.
+                        _LOGGER.debug("MERAKI_DEBUG_FETCHER: No specific firmware upgrade info found for device %s by serial.", device_serial)
+                        # Heuristic: if we haven't found a newer version, and current firmware is known, assume up-to-date relative to available data.
+                        if current_device_firmware:
+                            is_up_to_date_bool = (current_device_firmware == latest_known_version)
+
+
+                    device["firmware_up_to_date"] = is_up_to_date_bool
+                    device["latest_firmware_version"] = latest_known_version
+                    _LOGGER.debug(
+                        "MERAKI_DEBUG_FETCHER: Device %s (Model: %s, Current FW: %s): Up-to-date: %s, Latest Known: %s",
+                        device_serial,
+                        device_model,
+                        current_device_firmware,
+                        is_up_to_date_bool,
+                        latest_known_version,
+                    )
+        else: # No devices
+            _LOGGER.debug("MERAKI_DEBUG_FETCHER: No devices available to process firmware data for.")
+            # firmware_upgrade_data is not processed if there are no devices.
 
         ssids: List[Dict[str, Any]] = []
         # The `network_clients_data` dictionary is no longer needed here as client counting
