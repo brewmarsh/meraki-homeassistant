@@ -293,6 +293,10 @@ class MerakiApiDataFetcher:
                     additional_device_detail_tasks.append(
                         self._async_get_mx_device_uplink_settings(device, self.meraki_client) # Pass client here
                     )
+                    # Add task for LAN DNS settings for MX devices
+                    additional_device_detail_tasks.append(
+                        self._async_get_mx_lan_dns_settings(device, self.meraki_client)
+                    )
                     # Note: _async_get_mx_device_uplink_settings will modify 'device' in place
 
         if additional_device_detail_tasks:
@@ -882,43 +886,183 @@ class MerakiApiDataFetcher:
                 uplink_settings, # Be cautious logging entire complex objects
             )
 
-            if uplink_settings:
-                # Default to empty lists for DNS servers
-                device["wan1_dns_servers"] = []
-                device["wan2_dns_servers"] = []
-                # Potentially LAN DNS servers too, if the API provides them here
-                # device["lan_dns_servers"] = [] # Example
-
-                interfaces = uplink_settings.get("interfaces", {})
-                
-                wan1_settings = interfaces.get("wan1", {})
-                if wan1_settings and isinstance(wan1_settings.get("dnsServers"), list):
-                    device["wan1_dns_servers"] = wan1_settings["dnsServers"]
-                elif wan1_settings and wan1_settings.get("dnsServers") is not None: # Handle single string if API does that
-                     device["wan1_dns_servers"] = [wan1_settings["dnsServers"]]
+            # Initialize DNS server lists for the device to ensure they always exist
+            device["wan1_dns_servers"] = []
+            device["wan2_dns_servers"] = []
 
 
-                wan2_settings = interfaces.get("wan2", {})
-                if wan2_settings and isinstance(wan2_settings.get("dnsServers"), list):
-                    device["wan2_dns_servers"] = wan2_settings["dnsServers"]
-                elif wan2_settings and wan2_settings.get("dnsServers") is not None: # Handle single string
-                     device["wan2_dns_servers"] = [wan2_settings["dnsServers"]]
-                
+    async def _async_get_mx_lan_dns_settings(
+        self, device: Dict[str, Any], client: MerakiAPIClient
+    ) -> None:
+        """Asynchronously fetch and store LAN DNS settings for an MX device's VLANs."""
+        network_id = device.get("networkId")
+        serial = device.get("serial", "N/A") # For logging
+        device_name = device.get("name", "Unknown")
+
+        if not network_id:
+            _LOGGER.debug(
+                "MERAKI_DEBUG_FETCHER: Cannot fetch LAN DNS settings for MX device %s (Serial: %s): missing networkId.",
+                device_name,
+                serial,
+            )
+            device["lan_dns_settings"] = {} # Ensure key exists
+            return
+
+        _LOGGER.debug(
+            "MERAKI_DEBUG_FETCHER: Fetching LAN DNS (VLAN settings) for MX device %s (Serial: %s, Network: %s)",
+            device_name,
+            serial,
+            network_id,
+        )
+        
+        lan_dns_by_vlan: Dict[str, Any] = {}
+        try:
+            vlan_settings_list = await client.appliance.getNetworkApplianceVlansSettings(
+                networkId=network_id
+            )
+
+            if vlan_settings_list and isinstance(vlan_settings_list, list):
                 _LOGGER.debug(
-                    "MERAKI_DEBUG_FETCHER: Parsed DNS for %s - WAN1: %s, WAN2: %s",
+                    "MERAKI_DEBUG_FETCHER: Received %d VLAN entries for network %s.",
+                    len(vlan_settings_list),
+                    network_id
+                )
+                for vlan_data in vlan_settings_list:
+                    if not isinstance(vlan_data, dict):
+                        _LOGGER.warning("Skipping non-dictionary item in VLAN settings list for network %s: %s", network_id, vlan_data)
+                        continue
+                    
+                    vlan_id = vlan_data.get("id")
+                    vlan_name = vlan_data.get("name", "Unnamed VLAN")
+                    dns_nameservers_setting = vlan_data.get("dnsNameservers")
+                    custom_dns_servers = vlan_data.get("customDnsServers", [])
+
+                    vlan_key = f"VLAN {vlan_id} ({vlan_name})"
+
+                    if dns_nameservers_setting == "custom_servers":
+                        if custom_dns_servers:
+                            lan_dns_by_vlan[vlan_key] = custom_dns_servers
+                            _LOGGER.debug("MERAKI_DEBUG_FETCHER: VLAN %s on %s using custom DNS: %s", vlan_key, serial, custom_dns_servers)
+                        else:
+                            lan_dns_by_vlan[vlan_key] = [] # Custom selected but none provided
+                            _LOGGER.debug("MERAKI_DEBUG_FETCHER: VLAN %s on %s set to 'custom_servers' but no IPs provided.", vlan_key, serial)
+                    elif dns_nameservers_setting:
+                        lan_dns_by_vlan[vlan_key] = dns_nameservers_setting # e.g., "google_dns", "opendns", "upstream_dns"
+                        _LOGGER.debug("MERAKI_DEBUG_FETCHER: VLAN %s on %s using preset DNS: %s", vlan_key, serial, dns_nameservers_setting)
+                    else:
+                        lan_dns_by_vlan[vlan_key] = "Not configured" # Or empty list, depending on preference
+                        _LOGGER.debug("MERAKI_DEBUG_FETCHER: VLAN %s on %s has no explicit DNS configuration.", vlan_key, serial)
+            elif vlan_settings_list is None: # Explicit None means no VLANs or not applicable.
+                 _LOGGER.debug("MERAKI_DEBUG_FETCHER: No VLANs configured or endpoint not applicable for network %s (Serial: %s).", network_id, serial)
+            else: # Unexpected response type
+                _LOGGER.warning(
+                    "MERAKI_DEBUG_FETCHER: Unexpected response type for VLAN settings for network %s (Serial: %s): %s",
+                    network_id, serial, type(vlan_settings_list).__name__
+                )
+
+        except MerakiSDKAPIError as e:
+            if e.status == 404:
+                _LOGGER.debug(
+                    "MERAKI_DEBUG_FETCHER: No VLAN settings found for network %s (Serial: %s) (404 Error). "
+                    "This may be normal if no VLANs are configured or device is not an appliance.",
+                    network_id,
                     serial,
-                    device["wan1_dns_servers"],
-                    device["wan2_dns_servers"],
                 )
             else:
+                _LOGGER.warning(
+                    "MERAKI_DEBUG_FETCHER: Failed to fetch LAN DNS settings for MX device %s (Serial: %s, Network: %s): "
+                    "API Error %s - %s. LAN DNS settings will be unavailable.",
+                    device_name,
+                    serial,
+                    network_id,
+                    e.status,
+                    e.reason,
+                )
+        except Exception as e:  # pylint: disable=broad-except
+            _LOGGER.exception(
+                "MERAKI_DEBUG_FETCHER: Unexpected error fetching LAN DNS settings for MX device %s (Serial: %s, Network: %s): %s. "
+                "LAN DNS settings will be unavailable.",
+                device_name,
+                serial,
+                network_id,
+                e,
+            )
+        
+        device["lan_dns_settings"] = lan_dns_by_vlan
+        _LOGGER.debug("MERAKI_DEBUG_FETCHER: Final LAN DNS settings for %s (Serial: %s): %s", device_name, serial, lan_dns_by_vlan)
+            # Add other WANs here if needed, e.g., device["wan3_dns_servers"] = []
+
+            if uplink_settings:
+                interfaces = uplink_settings.get("interfaces", {})
+                wan_interface_keys = ["wan1", "wan2"] # Extend if handling more (e.g., "wan3", "cellular")
+
+                for interface_name in wan_interface_keys:
+                    current_wan_dns_ips = []
+                    interface_settings = interfaces.get(interface_name, {})
+
+                    if interface_settings:
+                        # Path 1: New SVI structure (e.g., MX19+ firmware)
+                        # interfaces.<wanX>.svis.ipv4.nameservers (list of objects)
+                        # Each object: {'addresses': ['1.1.1.1', '2.2.2.2']}
+                        svis_data = interface_settings.get("svis")
+                        if isinstance(svis_data, dict): # svis is usually a dict, not list. If list, code needs change.
+                            ipv4_data = svis_data.get("ipv4")
+                            if isinstance(ipv4_data, dict):
+                                nameservers_list = ipv4_data.get("nameservers")
+                                if isinstance(nameservers_list, list):
+                                    for ns_entry in nameservers_list:
+                                        if isinstance(ns_entry, dict) and isinstance(ns_entry.get("addresses"), list):
+                                            for ip_addr in ns_entry.get("addresses", []):
+                                                if isinstance(ip_addr, str) and ip_addr not in current_wan_dns_ips:
+                                                    current_wan_dns_ips.append(ip_addr)
+                        
+                        # Path 2: Older "dnsServers" field (list of strings, can be "google_dns" or IPs)
+                        # We only add if they appear to be actual IPs and aren't already captured.
+                        # This path is less prioritized if SVI path yielded results.
+                        if not current_wan_dns_ips: # Only if SVI path didn't yield IPs
+                            dns_servers_field = interface_settings.get("dnsServers") # This was the old logic path
+                            if isinstance(dns_servers_field, list):
+                                for dns_entry in dns_servers_field:
+                                    if isinstance(dns_entry, str):
+                                        # Basic IP validation or check against known non-IP strings
+                                        if '.' in dns_entry or ':' in dns_entry: # Simple check for IP format
+                                            if dns_entry not in current_wan_dns_ips:
+                                                current_wan_dns_ips.append(dns_entry)
+                            elif isinstance(dns_servers_field, str): # Handle single string
+                                if '.' in dns_servers_field or ':' in dns_servers_field:
+                                     if dns_servers_field not in current_wan_dns_ips:
+                                        current_wan_dns_ips.append(dns_servers_field)
+
+
+                    # Path 3: Fallback to device-level primary/secondary DNS if list is still empty
+                    if not current_wan_dns_ips:
+                        primary_dns_key = f"{interface_name}PrimaryDns" # e.g., "wan1PrimaryDns"
+                        secondary_dns_key = f"{interface_name}SecondaryDns" # e.g., "wan1SecondaryDns"
+                        
+                        primary_dns = device.get(primary_dns_key)
+                        if primary_dns and isinstance(primary_dns, str) and primary_dns not in current_wan_dns_ips:
+                            current_wan_dns_ips.append(primary_dns)
+                        
+                        secondary_dns = device.get(secondary_dns_key)
+                        if secondary_dns and isinstance(secondary_dns, str) and secondary_dns not in current_wan_dns_ips:
+                            current_wan_dns_ips.append(secondary_dns)
+                    
+                    device[f"{interface_name}_dns_servers"] = current_wan_dns_ips
+                    _LOGGER.debug(
+                        "MERAKI_DEBUG_FETCHER: Populated %s_dns_servers for %s: %s",
+                        interface_name,
+                        serial,
+                        device[f"{interface_name}_dns_servers"]
+                    )
+
+            else: # No uplink_settings data
                 _LOGGER.debug(
-                    "MERAKI_DEBUG_FETCHER: No uplink settings data returned for MX device %s (Serial: %s).",
+                    "MERAKI_DEBUG_FETCHER: No uplink settings data returned for MX device %s (Serial: %s). "
+                    "DNS server lists will remain default (empty or from device status).",
                     device.get("name", "Unknown"),
                     serial,
                 )
-                # Ensure keys exist even if no data
-                device["wan1_dns_servers"] = []
-                device["wan2_dns_servers"] = []
+                # Ensure keys exist (already done at start of method)
 
         except MerakiSDKAPIError as e:
             _LOGGER.warning(

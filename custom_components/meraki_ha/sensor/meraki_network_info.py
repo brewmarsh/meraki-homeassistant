@@ -88,8 +88,7 @@ class MerakiNetworkInfoSensor(
             "firmware_version": current_device_data.get("firmware"), # Added firmware from base device data
             "firmware_up_to_date": current_device_data.get("firmware_up_to_date"), # From data fetcher
             "latest_firmware_version": current_device_data.get("latest_firmware_version"), # From data fetcher
-            # If LAN DNS servers were fetched, they would be added here:
-            # "lan_dns_servers": current_device_data.get("lan_dns_servers", []),
+            "lan_dns_settings": current_device_data.get("lan_dns_settings"), # LAN DNS settings from fetcher
         }
         
         # Filter out attributes with None values to keep it clean

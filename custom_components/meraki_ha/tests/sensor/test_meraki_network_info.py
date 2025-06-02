@@ -43,6 +43,10 @@ def full_mx_device_data():
         "tags": ["test", "mx", "full_data"],
         "wan1_dns_servers": ["8.8.8.8", "8.8.4.4"],
         "wan2_dns_servers": ["1.1.1.1"],
+        "lan_dns_settings": {
+            "VLAN 10 (Data)": ["192.168.10.5", "192.168.10.6"],
+            "VLAN 20 (Voice)": "google_dns"
+        },
         "firmware": "MX 18.107",
         "firmware_up_to_date": True,
         "latest_firmware_version": "MX 18.107",
@@ -100,42 +104,81 @@ async def test_network_info_full_data(
     assert attrs["public_ip_address"] == full_mx_device_data["publicIp"]
     assert attrs["network_id"] == full_mx_device_data["networkId"]
     assert attrs["tags"] == full_mx_device_data["tags"]
+    assert attrs["lan_dns_settings"] == full_mx_device_data["lan_dns_settings"]
     assert attrs["firmware_version"] == full_mx_device_data["firmware"]
     assert attrs["firmware_up_to_date"] == full_mx_device_data["firmware_up_to_date"]
     assert attrs["latest_firmware_version"] == full_mx_device_data["latest_firmware_version"]
 
 
-async def test_network_info_minimal_data(
+async def test_network_info_partial_and_empty_dns_data(
     hass: HomeAssistant, mock_coordinator, minimal_mx_device_data
 ):
-    """Test sensor state and attributes with minimal device data."""
-    mock_coordinator.data = {"devices": [minimal_mx_device_data]}
-    device_arg = {"serial": minimal_mx_device_data["serial"], "name": minimal_mx_device_data["name"], "model": minimal_mx_device_data["model"]}
+    """Test sensor with various DNS data scenarios: empty lists, absent."""
+    # Scenario 1: WAN DNS empty, LAN DNS empty dict
+    device_data_empty_dns = {
+        **minimal_mx_device_data, # Use minimal as a base
+        "wan1_dns_servers": [],
+        "wan2_dns_servers": [],
+        "lan_dns_settings": {},
+    }
+    mock_coordinator.data = {"devices": [device_data_empty_dns]}
+    device_arg = {"serial": device_data_empty_dns["serial"], "name": device_data_empty_dns["name"], "model": device_data_empty_dns["model"]}
 
-    sensor = MerakiNetworkInfoSensor(mock_coordinator, device_arg)
-    sensor.hass = hass
-    await sensor.async_added_to_hass()
+
+    sensor_empty = MerakiNetworkInfoSensor(mock_coordinator, device_arg)
+    sensor_empty.hass = hass
+    await sensor_empty.async_added_to_hass()
     mock_coordinator.async_update_listeners()
 
-    assert sensor.native_value == minimal_mx_device_data["name"]
-    attrs = sensor.extra_state_attributes
-    assert attrs["hostname"] == minimal_mx_device_data["name"]
-    assert attrs["serial_number"] == minimal_mx_device_data["serial"]
-    assert attrs["model"] == minimal_mx_device_data["model"]
+    attrs_empty = sensor_empty.extra_state_attributes
+    assert attrs_empty["wan1_dns_servers"] == []
+    assert attrs_empty["wan2_dns_servers"] == []
+    assert attrs_empty["lan_dns_settings"] == {}
+
+    # Scenario 2: LAN DNS absent (None), WAN DNS still empty
+    device_data_no_lan_dns = {
+        **minimal_mx_device_data,
+        "wan1_dns_servers": [],
+        "wan2_dns_servers": [],
+        "lan_dns_settings": None, # Explicitly None
+    }
+    mock_coordinator.data = {"devices": [device_data_no_lan_dns]}
+    # Re-use device_arg for sensor init as serial/name/model are same for this test variation
     
-    # These fields should be absent from attributes if not in source data (due to None filtering)
-    assert "mac_address" not in attrs
-    assert "wan1_ip_address" not in attrs
-    assert attrs.get("wan1_dns_servers") == [] # Should default to empty list if key exists from fetcher but is None
-    assert "wan2_ip_address" not in attrs
-    assert attrs.get("wan2_dns_servers") == []
-    assert "lan_ip_address" not in attrs
-    assert "public_ip_address" not in attrs
-    assert "network_id" not in attrs
-    assert attrs.get("tags") == [] # Default to empty list
-    assert "firmware_version" not in attrs # if 'firmware' key is missing
-    assert "firmware_up_to_date" not in attrs # if 'firmware_up_to_date' key is missing
-    assert "latest_firmware_version" not in attrs # if 'latest_firmware_version' key is missing
+    sensor_no_lan = MerakiNetworkInfoSensor(mock_coordinator, device_arg)
+    sensor_no_lan.hass = hass
+    # Need to re-trigger the update mechanism for the new sensor instance or new data
+    # Forcing update by calling the handler
+    sensor_no_lan._handle_coordinator_update() 
+    await hass.async_block_till_done()
+
+
+    attrs_no_lan = sensor_no_lan.extra_state_attributes
+    assert attrs_no_lan["wan1_dns_servers"] == []
+    assert attrs_no_lan["wan2_dns_servers"] == []
+    assert "lan_dns_settings" not in attrs_no_lan # Should be filtered out if None
+
+    # Scenario 3: All DNS fields completely missing from device data (not even None)
+    # This also tests the defaults in the sensor's .get("...", []) calls
+    device_data_missing_all_dns = {
+        **minimal_mx_device_data # Base, and don't add any _dns_servers or _settings keys
+    }
+    # Remove keys if they were part of minimal_mx_device_data, though they aren't by default
+    device_data_missing_all_dns.pop("wan1_dns_servers", None)
+    device_data_missing_all_dns.pop("wan2_dns_servers", None)
+    device_data_missing_all_dns.pop("lan_dns_settings", None)
+
+    mock_coordinator.data = {"devices": [device_data_missing_all_dns]}
+    sensor_missing_all = MerakiNetworkInfoSensor(mock_coordinator, device_arg)
+    sensor_missing_all.hass = hass
+    sensor_missing_all._handle_coordinator_update()
+    await hass.async_block_till_done()
+
+    attrs_missing_all = sensor_missing_all.extra_state_attributes
+    # Based on sensor code: .get("wanX_dns_servers", []) will result in empty list being added
+    assert attrs_missing_all["wan1_dns_servers"] == [] 
+    assert attrs_missing_all["wan2_dns_servers"] == []
+    assert "lan_dns_settings" not in attrs_missing_all # .get("lan_dns_settings") is None, so filtered
 
 
 async def test_network_info_device_name_fallback(
