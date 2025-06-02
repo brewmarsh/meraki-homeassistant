@@ -77,7 +77,7 @@ jobs:
 
           # Update manifest.json with the version including build metadata
           jq --arg ver "$version_with_build" '.version = $ver' custom_components/meraki_ha/manifest.json > tmp_manifest.json && mv tmp_manifest.json custom_components/meraki_ha/manifest.json
-
+          
           echo "Updated manifest.json with build metadata."
           # Output the new_version (including build metadata) for subsequent steps
           echo "new_version=$version_with_build" >> "$GITHUB_OUTPUT"

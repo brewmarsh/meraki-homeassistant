@@ -20,7 +20,7 @@ from ..const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiConnectedClientsSensor(
+class MerakiDeviceConnectedClientsSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
     """Representation of a Meraki Connected Clients sensor.

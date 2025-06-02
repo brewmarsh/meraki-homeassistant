@@ -150,9 +150,8 @@ class MerakiApiDataFetcher:
                     )
                     for status_entry in statuses_data:
                         if status_entry.get("serial"):
-                            device_statuses_map[status_entry["serial"]] = (
-                                status_entry.get("status")
-                            )
+                            # Store the entire status dictionary, not just the status string
+                            device_statuses_map[status_entry["serial"]] = status_entry
                 else:
                     _LOGGER.debug(
                         "MERAKI_DEBUG_FETCHER: No status data returned from getOrganizationDeviceStatuses."
@@ -178,12 +177,14 @@ class MerakiApiDataFetcher:
             for device in devices:
                 serial = device.get("serial")
                 if serial and serial in device_statuses_map:
-                    device["status"] = device_statuses_map[serial]
-                    _LOGGER.debug(
-                        "MERAKI_DEBUG_FETCHER: Merged status '%s' for device %s",
-                        device["status"],
-                        serial,
-                    )
+                    # Merge the entire status dictionary into the device dictionary
+                    # This will add/overwrite fields in 'device' with those from 'device_statuses_map[serial]'
+                    device.update(device_statuses_map[serial])
+                    # DEBUG: Verbose full device_info log - _LOGGER.debug(
+                    #    "MERAKI_DEBUG_FETCHER: Merged full status data for device %s. Device data now: %s",
+                    #    serial,
+                    #    {k: device[k] for k in device if k not in ['tags', 'radio_settings']}
+                    # )
                 elif serial:
                     _LOGGER.debug(
                         "MERAKI_DEBUG_FETCHER: No specific status entry found for device %s. It may retain a prior status or have none.",
@@ -193,17 +194,29 @@ class MerakiApiDataFetcher:
             _LOGGER.debug(
                 "MERAKI_DEBUG_FETCHER: No device statuses were successfully mapped, skipping merge."
             )
+        
+        # Log a sample of a few complete device entries after status merge
+        if devices:
+            # DEBUG: Verbose full device_info log for sample devices - for i, device_sample in enumerate(devices[:2]):
+            #    _LOGGER.debug(
+            #        "MERAKI_DEBUG_FETCHER: Sample device entry %d after status merge: %s",
+            #        i,
+            #        device_sample 
+            #    )
+            pass # Keep the if block structure if other summary logs might be added later
 
         # Step 2a: Fetch additional details for MR devices (client count and radio settings).
         # This involves creating a list of asynchronous tasks for MR devices.
         mr_device_tasks = []
-        for device in devices:  # `devices` is confirmed not None here.
-            if device.get("model", "").upper().startswith("MR"):
-                # Assumes 'serial' is always present for MR devices.
-                serial = device["serial"]
-                mr_device_tasks.append(
-                    self._async_get_mr_device_details(device, serial)
-                )
+        # Ensure devices is not None before iterating
+        if devices: 
+            for device in devices:
+                if device.get("model", "").upper().startswith("MR"):
+                    # Assumes 'serial' is always present for MR devices.
+                    serial = device["serial"]
+                    mr_device_tasks.append(
+                        self._async_get_mr_device_details(device, serial)
+                    )
 
         if mr_device_tasks:
             await asyncio.gather(*mr_device_tasks)
@@ -538,12 +551,15 @@ class MerakiApiDataFetcher:
             )
             # Added detailed logging of the first few devices or summary
             if devices_data:
-                _LOGGER.debug(
-                    "MERAKI_DEBUG_FETCHER: Received %d devices from SDK. "
-                    "First device example: %s",
-                    len(devices_data),
-                    # Log first device as example
-                    str(devices_data[0]) if devices_data else "N/A",
+                # DEBUG: Verbose log for first device example - _LOGGER.debug(
+                #    "MERAKI_DEBUG_FETCHER: Received %d devices from SDK. "
+                #    "First device example: %s",
+                #    len(devices_data),
+                #    str(devices_data[0]) if devices_data else "N/A",
+                # )
+                _LOGGER.debug( # Keep a less verbose summary
+                    "MERAKI_DEBUG_FETCHER: Received %d devices from SDK.",
+                    len(devices_data)
                 )
                 # To log all devices if needed (can be very verbose):
                 # for i, device in enumerate(devices_data):
