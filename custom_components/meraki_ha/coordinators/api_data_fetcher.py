@@ -177,14 +177,41 @@ class MerakiApiDataFetcher:
             for device in devices:
                 serial = device.get("serial")
                 if serial and serial in device_statuses_map:
-                    # Merge the entire status dictionary into the device dictionary
-                    # This will add/overwrite fields in 'device' with those from 'device_statuses_map[serial]'
-                    device.update(device_statuses_map[serial])
-                    # DEBUG: Verbose full device_info log - _LOGGER.debug(
-                    #    "MERAKI_DEBUG_FETCHER: Merged full status data for device %s. Device data now: %s",
-                    #    serial,
-                    #    {k: device[k] for k in device if k not in ['tags', 'radio_settings']}
-                    # )
+                    status_update_data = device_statuses_map[serial]
+                    original_product_type = device.get("productType") # Store original productType
+
+                    # Perform the update
+                    device.update(status_update_data)
+
+                    # Check if productType was overwritten to None, and restore if necessary
+                    current_product_type_after_merge = device.get("productType")
+                    status_provided_product_type = status_update_data.get("productType") # What status data tried to set
+
+                    if current_product_type_after_merge is None and original_product_type is not None:
+                        _LOGGER.debug(
+                            "MERAKI_DEBUG_FETCHER: Restoring original productType '%s' for device %s (Serial: %s) "
+                            "as status update data had productType: %s (Type: %s).",
+                            original_product_type,
+                            device.get('name', 'Unknown'),
+                            serial,
+                            status_provided_product_type,
+                            type(status_provided_product_type).__name__
+                        )
+                        device["productType"] = original_product_type
+                    elif original_product_type is not None and \
+                         status_provided_product_type is not None and \
+                         original_product_type != status_provided_product_type:
+                        _LOGGER.warning(
+                            "MERAKI_DEBUG_FETCHER: productType for device %s (Serial: %s) was changed from '%s' to '%s' "
+                            "by status update data. This is unexpected if original was valid. Using new value from status.",
+                            device.get('name', 'Unknown'),
+                            serial,
+                            original_product_type,
+                            current_product_type_after_merge
+                        )
+                    # If original_product_type was None and status provided one, that's fine (newly added info)
+                    # If both are None, it remains None.
+                    # If they are the same non-None value, also fine.
                 elif serial:
                     _LOGGER.debug(
                         "MERAKI_DEBUG_FETCHER: No specific status entry found for device %s. It may retain a prior status or have none.",
