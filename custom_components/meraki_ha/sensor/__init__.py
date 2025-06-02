@@ -113,12 +113,13 @@ async def async_setup_entry(
                         e
                     )
                 
+                
                 # Keep other new appliance sensors commented out for now
                 # entities.append(MerakiUplinkStatusSensor(main_coordinator, device_info)) # Keep this commented for now
-                # entities.append(MerakiWAN1ConnectivitySensor(main_coordinator, device_info))
-            #    entities.append(MerakiWAN2ConnectivitySensor(main_coordinator, device_info))
-            #    entities.append(MerakiFirmwareStatusSensor(main_coordinator, device_info))
-            #    _LOGGER.debug("Meraki HA: Added new MX-specific sensors for %s", device_info.get('name', serial))
+                entities.append(MerakiWAN1ConnectivitySensor(main_coordinator, device_info))
+                entities.append(MerakiWAN2ConnectivitySensor(main_coordinator, device_info))
+                entities.append(MerakiFirmwareStatusSensor(main_coordinator, device_info))
+                _LOGGER.debug("Meraki HA: Added new MX-specific sensors for %s", device_info.get('name', serial))
             
             # Temporarily comment out wireless specific sensors
             # if product_type == "wireless": # Standard check for MR devices
