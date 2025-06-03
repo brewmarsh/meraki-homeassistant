@@ -173,6 +173,7 @@ class MerakiApiDataFetcher:
                 serial = device.get("serial")
                 if serial and serial in device_statuses_map:
                     status_update_data = device_statuses_map[serial]
+                    original_model = device.get("model", "")
                     original_product_type = device.get("productType") 
 
                     device.update(status_update_data)
@@ -201,6 +202,35 @@ class MerakiApiDataFetcher:
                             serial,
                             original_product_type,
                             current_product_type_after_merge
+                        )
+                    # New logic for MX devices productType override
+                    if original_model and original_model.upper().startswith("MX"):
+                        if device.get("productType") != "appliance":
+                            _LOGGER.debug(
+                                "MERAKI_INFO_FETCHER: Forcing productType to 'appliance' for MX device %s (Serial: %s). Original model: %s, ProductType was: %s",
+                                device.get('name', 'Unknown'),
+                                serial, # Ensure serial is defined in this scope
+                                original_model,
+                                device.get("productType")
+                            )
+                        device["productType"] = "appliance"
+                    elif device.get("model", "").upper().startswith("MX") and device.get("productType") != "appliance":
+                        # This case handles if original_model was somehow lost but current model is MX
+                        _LOGGER.debug(
+                            "MERAKI_INFO_FETCHER: Forcing productType to 'appliance' for device with current model MX %s (Serial: %s). ProductType was: %s",
+                            device.get('name', 'Unknown'),
+                            serial, # Ensure serial is defined in this scope
+                            device.get("productType")
+                        )
+                        device["productType"] = "appliance"
+
+                    # Log the final productType for MX devices after all modifications in fetcher
+                    if device.get("model", "").upper().startswith("MX"):
+                        _LOGGER.debug(
+                            "MERAKI_INFO_FETCHER: Final productType for MX device %s (Serial: %s) before leaving fetch_all_data: %s",
+                            device.get('name', 'Unknown'),
+                            serial, # Ensure serial is defined in this scope
+                            device.get("productType")
                         )
                 elif serial:
                     _LOGGER.debug(
@@ -292,11 +322,11 @@ class MerakiApiDataFetcher:
                     device["latest_firmware_version"] = device.get("firmware", "N/A")
             else:
                 _LOGGER.debug("MERAKI_DEBUG_FETCHER: Starting to process firmware data list for devices.")
-                if _LOGGER.isEnabledFor(logging.DEBUG): 
-                    _LOGGER.debug(
-                        "MERAKI_DEBUG_FETCHER: Sample firmware_upgrade_data item: %s",
-                        str(firmware_upgrade_data[0])[:300] 
-                    )
+                # if _LOGGER.isEnabledFor(logging.DEBUG):
+                #     _LOGGER.debug(
+                #         "MERAKI_DEBUG_FETCHER: Sample firmware_upgrade_data item: %s",
+                #         str(firmware_upgrade_data[0])[:300]
+                #     )
 
                 for device in devices:
                     device_serial = device.get("serial")
@@ -554,7 +584,7 @@ class MerakiApiDataFetcher:
 
         try:
             uplink_settings = await client.appliance.getDeviceApplianceUplinksSettings(serial=serial)
-            _LOGGER.debug("MERAKI_DEBUG_FETCHER: Raw uplink settings for %s: %s", serial, uplink_settings)
+            # _LOGGER.debug("MERAKI_DEBUG_FETCHER: Raw uplink settings for %s: %s", serial, uplink_settings)
 
             if uplink_settings:
                 interfaces = uplink_settings.get("interfaces", {})

@@ -64,25 +64,92 @@ class MerakiDataProcessor:
         _LOGGER.debug("Processing %d devices.", len(devices))
         processed_devices_list: List[Dict[str, Any]] = []
 
-        for device_data in devices:
+        for device_raw_data in devices: # Renamed device_data to device_raw_data for clarity with prompt
+            original_mx_product_type = None
+            is_mx_device = False
+            if isinstance(device_raw_data, dict): # Basic check
+                model = device_raw_data.get("model", "").upper()
+                if model.startswith("MX"):
+                    is_mx_device = True
+                    original_mx_product_type = device_raw_data.get("productType")
+                    _LOGGER.debug(
+                        "MERAKI_INFO_PROCESSOR_PRE: MX Device %s (Serial: %s) received in process_devices with productType: %s, Model: %s",
+                        device_raw_data.get('name', 'Unknown'),
+                        device_raw_data.get("serial", "N/A"),
+                        original_mx_product_type,
+                        device_raw_data.get("model", "")
+                    )
+
             # Extract basic device information.
-            # The input `device_data` is expected to have all fields
+            # The input `device_raw_data` is expected to have all fields
             # pre-fetched by ApiDataFetcher.
-            processed_device: Dict[str, Any] = {
-                "name": device_data.get("name"),
-                "serial": device_data.get("serial"),
-                "mac": device_data.get("mac"),
-                "model": device_data.get("model"),
-                "networkId": device_data.get("networkId"),
-                "status": device_data.get("status"),  # <--- ADD THIS LINE
+            # Name this `processed_device_data` to avoid confusion with device_raw_data
+            processed_device_data: Dict[str, Any] = {
+                "name": device_raw_data.get("name"),
+                "serial": device_raw_data.get("serial"),
+                "mac": device_raw_data.get("mac"),
+                "model": device_raw_data.get("model"),
+                "networkId": device_raw_data.get("networkId"),
+                "status": device_raw_data.get("status"),
+                "productType": device_raw_data.get("productType"), # Ensure productType is copied initially
                 # Default to empty list if tags are missing.
-                "tags": device_data.get("tags", []),
+                "tags": device_raw_data.get("tags", []),
                 # `connected_clients_count` and `radio_settings` are expected from ApiDataFetcher for MR devices.
                 # For other device types, these might be None or absent.
-                "connected_clients_count": device_data.get("connected_clients_count"),
-                "radio_settings": device_data.get("radio_settings"),
+                "connected_clients_count": device_raw_data.get("connected_clients_count"),
+                "radio_settings": device_raw_data.get("radio_settings"),
             }
-            processed_devices_list.append(processed_device)
+
+            # Fields known to be added by MerakiApiDataFetcher for MX or all devices
+            fields_to_copy = [
+                "wan1Ip", "wan2Ip", "publicIp", "lanIp",
+                "firmware_up_to_date", "latest_firmware_version",
+                "wan1_dns_servers", "wan2_dns_servers", "lan_dns_settings",
+                "firmware", # ensure standard firmware field is copied if present
+                # "tags", "networkId", "mac", "status" are already handled in initial dict creation
+                # "productType" is handled by specific logic below
+                # "connected_clients_count", "radio_settings" also handled in initial dict
+            ]
+
+            for field in fields_to_copy:
+                if field in device_raw_data:
+                    processed_device_data[field] = device_raw_data[field]
+
+            if is_mx_device: # Check the flag set at the beginning of the loop
+                # Preserve "appliance" if that's what came in, otherwise force it.
+                # This ensures that if api_data_fetcher correctly set it to "appliance", it's kept.
+                # If it was somehow None or different despite api_data_fetcher's efforts, this also corrects it.
+                current_ptype_before_override = processed_device_data.get("productType")
+                if original_mx_product_type == "appliance":
+                    processed_device_data["productType"] = "appliance"
+                else: # If original wasn't appliance, or was None, force it for MX.
+                    processed_device_data["productType"] = "appliance"
+
+                if current_ptype_before_override != processed_device_data["productType"]:
+                    _LOGGER.debug(
+                        "MERAKI_INFO_PROCESSOR_POST: MX Device %s (Serial: %s) productType was '%s', overridden/set to '%s' in process_devices.",
+                        processed_device_data.get('name', 'Unknown'),
+                        processed_device_data.get("serial", "N/A"),
+                        current_ptype_before_override,
+                        processed_device_data["productType"]
+                    )
+                elif original_mx_product_type != processed_device_data["productType"]: # Log if original was different but override resulted in same (e.g. both None, now appliance)
+                    _LOGGER.debug(
+                        "MERAKI_INFO_PROCESSOR_POST: MX Device %s (Serial: %s) productType was originally '%s', now set to '%s' in process_devices.",
+                        processed_device_data.get('name', 'Unknown'),
+                        processed_device_data.get("serial", "N/A"),
+                        original_mx_product_type, # original_mx_product_type is from device_raw_data
+                        processed_device_data["productType"]
+                    )
+                else: # Log if no change happened but it's an MX device, for completeness
+                    _LOGGER.debug(
+                        "MERAKI_INFO_PROCESSOR_POST: MX Device %s (Serial: %s) productType remains '%s' in process_devices.",
+                        processed_device_data.get('name', 'Unknown'),
+                        processed_device_data.get("serial", "N/A"),
+                        processed_device_data["productType"]
+                    )
+
+            processed_devices_list.append(processed_device_data)
 
         _LOGGER.debug("Finished processing %d devices.", len(processed_devices_list))
         return processed_devices_list

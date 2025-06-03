@@ -59,6 +59,13 @@ async def async_setup_entry(
             entities.append(MerakiDeviceStatusSensor(main_coordinator, device_info))
             _LOGGER.debug("Meraki HA: Added MerakiDeviceStatusSensor for %s", device_info.get('name', serial))
 
+            _LOGGER.debug(
+                "Meraki HA: Processing device for sensor setup. Serial: %s, Model: %s, Name: %s, ProductType from data: %s",
+                device_info.get("serial"),
+                device_info.get("model"),
+                device_info.get("name"),
+                device_info.get("productType"),
+            )
             product_type = device_info.get("productType")
             
             _LOGGER.debug(
@@ -115,7 +122,7 @@ async def async_setup_entry(
                 
                 
                 # Keep other new appliance sensors commented out for now
-                # entities.append(MerakiUplinkStatusSensor(main_coordinator, device_info)) # Keep this commented for now
+                entities.append(MerakiUplinkStatusSensor(main_coordinator, device_info))
                 entities.append(MerakiWAN1ConnectivitySensor(main_coordinator, device_info))
                 entities.append(MerakiWAN2ConnectivitySensor(main_coordinator, device_info))
                 entities.append(MerakiFirmwareStatusSensor(main_coordinator, device_info))
