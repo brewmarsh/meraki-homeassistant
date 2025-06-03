@@ -290,10 +290,10 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             
             # Log the full device_info for debugging before registration attempt
             # This log was already added in a previous step, ensuring it's correctly placed.
-            _LOGGER.debug(
-                "MERAKI_DEBUG_COORDINATOR: Preparing to register/update physical device. Full device_info: %s", 
-                device_info 
-            )
+            # _LOGGER.debug(
+            #     "MERAKI_DEBUG_COORDINATOR: Preparing to register/update physical device. Full device_info: %s",
+            #     device_info
+            # )
 
             device_registry.async_get_or_create(
                 config_entry_id=self.config_entry.entry_id,
