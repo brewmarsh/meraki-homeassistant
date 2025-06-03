@@ -60,6 +60,13 @@ class MerakiNetworkInfoSensor(
                     current_device_data = device
                     break
         
+        if self._device_serial == "Q3FA-PJD8-PUDP":
+            _LOGGER.info(
+                "MERAKI_NETINFO_SENSOR_DATA for %s: %s",
+                self._device_serial,
+                current_device_data
+            )
+
         if not current_device_data:
             self._attr_native_value = "Unknown"
             self._attr_extra_state_attributes = {}

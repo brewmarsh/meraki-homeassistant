@@ -100,6 +100,21 @@ class MerakiDataProcessor:
                 "radio_settings": device_raw_data.get("radio_settings"),
             }
 
+            # Fields known to be added by MerakiApiDataFetcher for MX or all devices
+            fields_to_copy = [
+                "wan1Ip", "wan2Ip", "publicIp", "lanIp",
+                "firmware_up_to_date", "latest_firmware_version",
+                "wan1_dns_servers", "wan2_dns_servers", "lan_dns_settings",
+                "firmware", # ensure standard firmware field is copied if present
+                # "tags", "networkId", "mac", "status" are already handled in initial dict creation
+                # "productType" is handled by specific logic below
+                # "connected_clients_count", "radio_settings" also handled in initial dict
+            ]
+
+            for field in fields_to_copy:
+                if field in device_raw_data:
+                    processed_device_data[field] = device_raw_data[field]
+
             if is_mx_device: # Check the flag set at the beginning of the loop
                 # Preserve "appliance" if that's what came in, otherwise force it.
                 # This ensures that if api_data_fetcher correctly set it to "appliance", it's kept.
