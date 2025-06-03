@@ -172,7 +172,7 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 if processed_devices: # Ensure there are devices to process
                     for device_data_item in processed_devices: # Assuming processed_devices is a list of dicts
                         if isinstance(device_data_item, dict) and device_data_item.get("model", "").upper().startswith("MX"):
-                            _LOGGER.info(
+                            _LOGGER.debug(
                                 "MERAKI_INFO_AGGREGATOR: ProductType for MX device %s (Serial: %s) in DataAggregationCoordinator (after processing): %s",
                                 device_data_item.get('name', 'Unknown'),
                                 device_data_item.get("serial", "N/A"),

@@ -62,13 +62,6 @@ class MerakiWAN1ConnectivitySensor(
                     current_device_data = device
                     break
         
-        if self._device_serial == "Q3FA-PJD8-PUDP": # Or a more general check for MX if possible/safer
-            _LOGGER.info(
-                "MERAKI_WAN1_SENSOR_DATA for %s: %s",
-                self._device_serial,
-                current_device_data
-            )
-
         if not current_device_data:
             self._attr_native_value = STATE_UNKNOWN
             self._attr_extra_state_attributes = {}

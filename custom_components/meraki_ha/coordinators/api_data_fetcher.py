@@ -206,7 +206,7 @@ class MerakiApiDataFetcher:
                     # New logic for MX devices productType override
                     if original_model and original_model.upper().startswith("MX"):
                         if device.get("productType") != "appliance":
-                            _LOGGER.info(
+                            _LOGGER.debug(
                                 "MERAKI_INFO_FETCHER: Forcing productType to 'appliance' for MX device %s (Serial: %s). Original model: %s, ProductType was: %s",
                                 device.get('name', 'Unknown'),
                                 serial, # Ensure serial is defined in this scope
@@ -216,7 +216,7 @@ class MerakiApiDataFetcher:
                         device["productType"] = "appliance"
                     elif device.get("model", "").upper().startswith("MX") and device.get("productType") != "appliance":
                         # This case handles if original_model was somehow lost but current model is MX
-                        _LOGGER.info(
+                        _LOGGER.debug(
                             "MERAKI_INFO_FETCHER: Forcing productType to 'appliance' for device with current model MX %s (Serial: %s). ProductType was: %s",
                             device.get('name', 'Unknown'),
                             serial, # Ensure serial is defined in this scope
@@ -226,7 +226,7 @@ class MerakiApiDataFetcher:
 
                     # Log the final productType for MX devices after all modifications in fetcher
                     if device.get("model", "").upper().startswith("MX"):
-                        _LOGGER.info(
+                        _LOGGER.debug(
                             "MERAKI_INFO_FETCHER: Final productType for MX device %s (Serial: %s) before leaving fetch_all_data: %s",
                             device.get('name', 'Unknown'),
                             serial, # Ensure serial is defined in this scope
