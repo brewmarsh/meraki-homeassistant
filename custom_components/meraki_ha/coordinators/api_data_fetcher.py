@@ -173,6 +173,7 @@ class MerakiApiDataFetcher:
                 serial = device.get("serial")
                 if serial and serial in device_statuses_map:
                     status_update_data = device_statuses_map[serial]
+                    original_model = device.get("model", "")
                     original_product_type = device.get("productType") 
 
                     device.update(status_update_data)
@@ -202,6 +203,17 @@ class MerakiApiDataFetcher:
                             original_product_type,
                             current_product_type_after_merge
                         )
+                    # Ensure MX devices are always typed as 'appliance'
+                    if original_model and original_model.upper().startswith("MX"):
+                        if device.get("productType") != "appliance":
+                            _LOGGER.debug(
+                                "MERAKI_DEBUG_FETCHER: Overriding productType to 'appliance' for MX device %s (Serial: %s). Original model: %s, ProductType after status update: %s",
+                                device.get('name', 'Unknown'),
+                                serial,
+                                original_model,
+                                device.get("productType")
+                            )
+                            device["productType"] = "appliance"
                 elif serial:
                     _LOGGER.debug(
                         "MERAKI_DEBUG_FETCHER: No specific status entry found for device %s. It may retain a prior status or have none.",
