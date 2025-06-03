@@ -148,8 +148,8 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 if network_id not in network_clients_cache:
                     _LOGGER.debug(f"Fetching all clients for network {network_id} using `self.meraki_client.networks.get_network_clients` to count for SSID {ssid_name_summary} (Num: {ssid_number})")
                     try:
-                        # Re-attempting SDK method path: self.meraki_client.networks.get_network_clients
-                        all_network_clients_response = await meraki_client.networks.get_network_clients(
+                        # Corrected SDK method path: self.meraki_client.networks.getNetworkClients
+                        all_network_clients_response = await meraki_client.networks.getNetworkClients(
                             networkId=network_id,
                             timespan=900,  # Last 15 minutes
                             perPage=1000   # Try to get all in one go
@@ -157,15 +157,15 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                         network_clients_cache[network_id] = all_network_clients_response if isinstance(all_network_clients_response, list) else []
                         _LOGGER.debug(f"Fetched {len(network_clients_cache[network_id])} clients for network {network_id}.")
                     except AttributeError as e:
-                        _LOGGER.error(f"AttributeError when trying to fetch clients for network {network_id} using `self.meraki_client.networks.get_network_clients`: {e}")
-                        _LOGGER.error(f"Dir of self.meraki_client (AsyncDashboardAPI): {dir(meraki_client)}")
+                        _LOGGER.error(f"AttributeError when trying to fetch clients for network {network_id} using `meraki_client.networks.getNetworkClients`: {e}")
+                        _LOGGER.error(f"Dir of meraki_client (AsyncDashboardAPI): {dir(meraki_client)}")
                         if hasattr(meraki_client, 'networks'):
-                            _LOGGER.error(f"Dir of self.meraki_client.networks (AsyncNetworks): {dir(meraki_client.networks)}")
+                            _LOGGER.error(f"Dir of meraki_client.networks (AsyncNetworks): {dir(meraki_client.networks)}")
                         else:
-                            _LOGGER.error("self.meraki_client has no 'networks' attribute.")
+                            _LOGGER.error("meraki_client has no 'networks' attribute.")
                         network_clients_cache[network_id] = [] # Cache empty list on error
                     except Exception as e:
-                        _LOGGER.warning(f"Could not fetch clients for network {network_id} using `self.meraki_client.networks.get_network_clients`: {e}")
+                        _LOGGER.warning(f"Could not fetch clients for network {network_id} using `meraki_client.networks.getNetworkClients`: {e}")
                         network_clients_cache[network_id] = [] # Cache empty list on error
                 
                 # Filter clients for the current SSID

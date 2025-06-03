@@ -28,5 +28,35 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "meraki_wan1_connectivity": {
+        "name": "WAN 1 Connectivity"
+      },
+      "meraki_wan2_connectivity": {
+        "name": "WAN 2 Connectivity"
+      },
+      "meraki_network_info": {
+        "name": "Network Information"
+      },
+      "meraki_firmware_status": {
+        "name": "Firmware Status"
+      }
+    }
+  },
+  "state": {
+    "sensor": {
+      "meraki_wan1_connectivity": {
+        "connected": "Connected",
+        "disconnected": "Disconnected",
+        "unknown": "Unknown"
+      },
+      "meraki_wan2_connectivity": {
+        "connected": "Connected",
+        "disconnected": "Disconnected",
+        "unknown": "Unknown"
+      }
+    }
   }
 }
