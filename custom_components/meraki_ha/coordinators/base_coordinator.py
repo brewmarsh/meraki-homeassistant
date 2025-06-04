@@ -243,15 +243,15 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 original_network_name = network_name
 
             # Apply device_name_format for Network devices
-            # self.device_name_format is a property that gets it from config_entry.options
             current_device_name_format = self.device_name_format
 
-            formatted_network_name = original_network_name
-            if current_device_name_format == "prefix":
-                formatted_network_name = f"[Network] {original_network_name}"
-            elif current_device_name_format == "suffix":
-                formatted_network_name = f"{original_network_name} [Network]"
-            # If "omitted" or other, use original_network_name as is
+            # Use the centralized format_device_name helper
+            formatted_network_name = format_device_name(
+                device_name_raw=original_network_name,
+                device_model="Network",  # Specific model string for network type devices
+                device_name_format_option=current_device_name_format,
+                is_org_device=False
+            )
 
             _LOGGER.debug(
                 "Registering Meraki Network device: %s (ID: %s), Format: %s",
@@ -295,21 +295,14 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             device_model_str = device_info.get("model", "Unknown")
             firmware_version = device_info.get("firmware")  # Get firmware version here
 
-            # Standard mapping for physical devices processed by this coordinator.
-            # The placeholder conditions for "SSID" and "Network" types have been removed
-            # as they do not apply to the physical devices (APs, switches, gateways, etc.)
-            # processed in this loop. SSID-specific naming is handled in SSIDDeviceCoordinator.
-            # map_meraki_model_to_device_type provides the correct type (e.g., "Wireless", "Switch", "Appliance").
-            device_type_mapped = map_meraki_model_to_device_type(device_model_str)
-
-            formatted_device_name = device_name_raw
-            # Use the property self.device_name_format
-            if self.device_name_format == "prefix" and device_type_mapped != "Unknown":
-                formatted_device_name = f"[{device_type_mapped}] {device_name_raw}"
-            elif (
-                self.device_name_format == "suffix" and device_type_mapped != "Unknown"
-            ):
-                formatted_device_name = f"{device_name_raw} [{device_type_mapped}]"
+            # Use the centralized format_device_name helper
+            # The map_meraki_model_to_device_type call is handled inside format_device_name
+            formatted_device_name = format_device_name(
+                device_name_raw=device_name_raw,
+                device_model=device_model_str,
+                device_name_format_option=self.device_name_format, # Use property directly
+                is_org_device=False
+            )
 
             # Prepare connections set using MAC address
             mac_address = device_info.get("mac")
@@ -437,12 +430,19 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # Get the device name format option
         device_name_format_option = self.device_name_format # Uses the existing property
 
+        _LOGGER.debug(
+            "OrgDevReg: Raw org name: '%s', Name format option: '%s'",
+            raw_org_name,
+            device_name_format_option
+        )
+
         formatted_org_name = format_device_name(
             device_name_raw=raw_org_name,
             device_model="Organization", # Pass "Organization" as model for clarity
             device_name_format_option=device_name_format_option,
             is_org_device=True,
         )
+        _LOGGER.debug("OrgDevReg: Formatted org name: '%s'", formatted_org_name)
 
         _LOGGER.info(
             "Registering Meraki Organization device: %s (ID: %s)",

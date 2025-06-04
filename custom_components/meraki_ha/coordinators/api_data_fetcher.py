@@ -731,6 +731,12 @@ class MerakiApiDataFetcher:
             # else: # No specific log needed if no ap_serial, normal case for some clients
                  # Removed MERAKI_CLIENT_COUNT_DEBUG logs from this section
 
+        _LOGGER.debug(
+            "ApiFetcher: Calculated Organization-Wide Client Counts: SSID=%d, Wireless=%d, Appliance=%d",
+            clients_on_ssids,
+            clients_on_wireless,
+            clients_on_appliances
+        )
         _LOGGER.debug("Client counts for org %s: SSID: %d, Wireless: %d, Appliance: %d",
                       self.org_id, clients_on_ssids, clients_on_wireless, clients_on_appliances)
 

@@ -53,6 +53,12 @@ class MerakiOrganizationSSIDClientsSensor(
             self._attr_native_value = self.coordinator.data.get("clients_on_ssids", 0)
         else:
             self._attr_native_value = 0
+        _LOGGER.debug(
+            "Sensor '%s': Updated value to %s from coordinator key 'clients_on_ssids'. Coordinator data present: %s",
+            self.name,
+            self._attr_native_value,
+            bool(self.coordinator.data)
+        )
 
 
 class MerakiOrganizationWirelessClientsSensor(
@@ -93,6 +99,12 @@ class MerakiOrganizationWirelessClientsSensor(
             self._attr_native_value = self.coordinator.data.get("clients_on_wireless", 0)
         else:
             self._attr_native_value = 0
+        _LOGGER.debug(
+            "Sensor '%s': Updated value to %s from coordinator key 'clients_on_wireless'. Coordinator data present: %s",
+            self.name,
+            self._attr_native_value,
+            bool(self.coordinator.data)
+        )
 
 
 class MerakiOrganizationApplianceClientsSensor(
@@ -133,3 +145,9 @@ class MerakiOrganizationApplianceClientsSensor(
             self._attr_native_value = self.coordinator.data.get("clients_on_appliances", 0)
         else:
             self._attr_native_value = 0
+        _LOGGER.debug(
+            "Sensor '%s': Updated value to %s from coordinator key 'clients_on_appliances'. Coordinator data present: %s",
+            self.name,
+            self._attr_native_value,
+            bool(self.coordinator.data)
+        )
