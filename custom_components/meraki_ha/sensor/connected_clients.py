@@ -158,13 +158,9 @@ class MerakiDeviceConnectedClientsSensor(
         This links the sensor to the physical Meraki device it represents.
         """
         return DeviceInfo(
-            identifiers={(DOMAIN, self._device_info_data["serial"])},
-            name=str(
-                self._device_info_data.get("name", self._device_info_data["serial"])
-            ),
-            manufacturer="Cisco Meraki",
-            model=str(self._device_info_data.get("model", "Unknown")),
-            sw_version=str(self._device_info_data.get("firmware", "")),
+            identifiers={(DOMAIN, self._device_info_data["serial"])}
+            # No other fields like name, model, manufacturer, sw_version.
+            # These should be inherited from the device entry already created by MerakiDataUpdateCoordinator.
         )
 
     @property

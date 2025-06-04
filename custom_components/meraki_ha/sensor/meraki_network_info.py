@@ -34,10 +34,9 @@ class MerakiNetworkInfoSensor(
         # self.entity_id = f"sensor.{DOMAIN}_{self._device_serial}_network_info" # Let HA generate
 
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._device_serial)},
-            name=device_data.get("name"), # This is the device name for the DeviceInfo
-            manufacturer="Cisco Meraki",
-            model=device_data.get("model"),
+            identifiers={(DOMAIN, self._device_serial)}
+            # No other fields like name, model, manufacturer, sw_version.
+            # These should be inherited from the device entry already created by MerakiDataUpdateCoordinator.
         )
         # The sensor's friendly name suffix
         self._attr_name = "Network Information"
