@@ -33,8 +33,8 @@ from .sensor.meraki_firmware_status import MerakiFirmwareStatusSensor
 SensorClassList = List[Type[Entity]]
 """Type alias for a list of sensor entity classes."""
 
+# Registry mapping Meraki product types to their specific sensor classes.
 SENSOR_REGISTRY: Dict[str, SensorClassList] = {
-    """Registry mapping Meraki product types to their specific sensor classes."""
     "appliance": [  # For MX devices
         MerakiNetworkInfoSensor,
         MerakiWAN1ConnectivitySensor,
