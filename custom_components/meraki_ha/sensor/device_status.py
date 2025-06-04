@@ -106,13 +106,7 @@ class MerakiDeviceStatusSensor(
             # Or, to clear: self._attr_extra_state_attributes = {}
             return
 
-        # This is the critical log line to ensure:
-        _LOGGER.debug(
-            "MERAKI_DEBUG_STATUS: Device %s raw status from coordinator data: %s (type: %s)",
-            self._device_serial,  # Corrected: Use instance attribute
-            current_device_data.get("status"),
-            type(current_device_data.get("status")).__name__,
-        )
+        # Removed MERAKI_DEBUG_STATUS log line
 
         device_status: Optional[str] = current_device_data.get("status")
         if isinstance(device_status, str):

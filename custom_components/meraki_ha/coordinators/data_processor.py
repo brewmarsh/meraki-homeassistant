@@ -81,13 +81,7 @@ class MerakiDataProcessor:
                 if model.startswith("MX"):
                     is_mx_device = True
                     original_mx_product_type = device_raw_data.get("productType")
-                    _LOGGER.debug(
-                        "MERAKI_INFO_PROCESSOR_PRE: MX Device %s (Serial: %s) received in process_devices with productType: %s, Model: %s",
-                        device_raw_data.get("name", "Unknown"),
-                        device_raw_data.get("serial", "N/A"),
-                        original_mx_product_type,
-                        device_raw_data.get("model", ""),
-                    )
+                    # Removed MERAKI_INFO_PROCESSOR_PRE log
 
             # Extract basic device information.
             # The input `device_raw_data` is expected to have all fields
@@ -149,7 +143,7 @@ class MerakiDataProcessor:
                     != processed_device_data["productType"]
                 ):
                     _LOGGER.debug(
-                        "MERAKI_INFO_PROCESSOR_POST: MX Device %s (Serial: %s) productType was '%s', overridden/set to '%s' in process_devices.",
+                        "MX Device %s (Serial: %s) productType was '%s', overridden/set to '%s' in process_devices.",
                         processed_device_data.get("name", "Unknown"),
                         processed_device_data.get("serial", "N/A"),
                         current_ptype_before_override,
@@ -159,7 +153,7 @@ class MerakiDataProcessor:
                     original_mx_product_type != processed_device_data["productType"]
                 ):  # Log if original was different but override resulted in same (e.g. both None, now appliance)
                     _LOGGER.debug(
-                        "MERAKI_INFO_PROCESSOR_POST: MX Device %s (Serial: %s) productType was originally '%s', now set to '%s' in process_devices.",
+                        "MX Device %s (Serial: %s) productType was originally '%s', now set to '%s' in process_devices.",
                         processed_device_data.get("name", "Unknown"),
                         processed_device_data.get("serial", "N/A"),
                         original_mx_product_type,  # original_mx_product_type is from device_raw_data
@@ -167,7 +161,7 @@ class MerakiDataProcessor:
                     )
                 else:  # Log if no change happened but it's an MX device, for completeness
                     _LOGGER.debug(
-                        "MERAKI_INFO_PROCESSOR_POST: MX Device %s (Serial: %s) productType remains '%s' in process_devices.",
+                        "MX Device %s (Serial: %s) productType remains '%s' in process_devices.",
                         processed_device_data.get("name", "Unknown"),
                         processed_device_data.get("serial", "N/A"),
                         processed_device_data["productType"],
