@@ -332,10 +332,11 @@ class MerakiApiDataFetcher:
                     device_serial = device.get("serial")
                     device_model = device.get("model", "")
                     current_device_firmware = device.get("firmware")
-                    is_up_to_date_bool = False 
+                    is_up_to_date_bool = False  # Default assumption: not up-to-date unless confirmed
                     latest_known_version = current_device_firmware if current_device_firmware else "N/A"
                     found_specific_info_for_device = False
 
+                    # Iterate through each entry in the firmware upgrade data from the organization
                     for upgrade_item in firmware_upgrade_data:
                         if not isinstance(upgrade_item, dict):
                             _LOGGER.warning(
@@ -343,43 +344,67 @@ class MerakiApiDataFetcher:
                                 str(upgrade_item)[:200]
                             )
                             continue
+
                         item_serial = upgrade_item.get("serial")
+                        # Check if this upgrade entry is for the current device
                         if item_serial and item_serial == device_serial:
                             _LOGGER.debug("MERAKI_DEBUG_FETCHER: Found firmware info by serial for %s", device_serial)
+                            # 'nextUpgrade' usually contains info about a scheduled upgrade
                             next_upgrade_info = upgrade_item.get("nextUpgrade")
                             if isinstance(next_upgrade_info, dict):
+                                # 'toVersion' indicates the version for the scheduled upgrade
                                 to_version_info = next_upgrade_info.get("toVersion")
                                 if isinstance(to_version_info, dict):
+                                    # This is the target version of the *next scheduled* upgrade
                                     latest_known_version = to_version_info.get("version", latest_known_version)
+                                    # If there's a nextUpgrade, it implies the current one is not the latest
                                     is_up_to_date_bool = False 
                                 else: 
+                                    # If no 'toVersion', check the general 'status' of the upgrade item
                                     item_status = str(upgrade_item.get("status", "")).lower()
                                     if item_status == "up-to-date":
                                         is_up_to_date_bool = True
                                         latest_known_version = current_device_firmware if current_device_firmware else "N/A"
                                     elif item_status == "has-newer-stable-version":
+                                        # This status explicitly states a newer version is available
                                         is_up_to_date_bool = False
+                                        # 'availableVersions' might list newer versions, take the first as latest
                                         available_versions = upgrade_item.get("availableVersions")
                                         if isinstance(available_versions, list) and available_versions:
                                             latest_known_version = available_versions[0].get("version", latest_known_version)
                             else: 
+                                # If no 'nextUpgrade' info, rely on 'status' or 'latestVersion' field
                                 item_status = str(upgrade_item.get("status", "")).lower()
                                 if item_status == "up-to-date":
                                     is_up_to_date_bool = True
+                                    # If status is up-to-date, current firmware is the latest known
                                     latest_known_version = current_device_firmware if current_device_firmware else "N/A"
-                                elif upgrade_item.get("latestVersion"): 
+                                elif upgrade_item.get("latestVersion"): # Some API versions might provide this directly
                                      latest_known_version = upgrade_item.get("latestVersion")
+                                     # If latestVersion is present and different, it's not up-to-date.
+                                     # This will be checked below.
+
+                            # Final check: if current firmware matches the determined latest_known_version, it's up-to-date
                             if current_device_firmware and current_device_firmware == latest_known_version:
                                 is_up_to_date_bool = True
+
                             found_specific_info_for_device = True
-                            break 
+                            break  # Found info for this device, no need to check other upgrade_items
+
+                    # After checking all upgrade_items, if no specific info was found for this device:
                     if not found_specific_info_for_device and not firmware_upgrade_data: 
+                        # If firmware_upgrade_data was empty to begin with, assume up-to-date
                         is_up_to_date_bool = True
                         latest_known_version = current_device_firmware if current_device_firmware else "N/A"
                     elif not found_specific_info_for_device:
+                        # If upgrade data was available but no entry for this serial, make a best guess.
+                        # This path implies we don't have definitive info for this device from the API.
+                        # It's safer to assume not up-to-date or rely on comparison if current_device_firmware exists.
                         _LOGGER.debug("MERAKI_DEBUG_FETCHER: No specific firmware upgrade info found for device %s by serial.", device_serial)
-                        if current_device_firmware:
+                        if current_device_firmware: # If we have current firmware, compare with default latest_known_version (which was init with current)
                             is_up_to_date_bool = (current_device_firmware == latest_known_version)
+                        # If no current_device_firmware, is_up_to_date_bool remains False (initial default)
+
                     device["firmware_up_to_date"] = is_up_to_date_bool
                     device["latest_firmware_version"] = latest_known_version
                     _LOGGER.debug(
@@ -587,14 +612,17 @@ class MerakiApiDataFetcher:
             # _LOGGER.debug("MERAKI_DEBUG_FETCHER: Raw uplink settings for %s: %s", serial, uplink_settings)
 
             if uplink_settings:
+                # Expected structure: uplink_settings = {"interfaces": {"wan1": {...}, "wan2": {...}}}
                 interfaces = uplink_settings.get("interfaces", {})
-                wan_interface_keys = ["wan1", "wan2"] 
+                wan_interface_keys = ["wan1", "wan2"] # Define which WAN interfaces to check
 
                 for interface_name in wan_interface_keys:
                     current_wan_dns_ips = []
                     interface_settings = interfaces.get(interface_name, {})
 
                     if interface_settings:
+                        # Primary way to get DNS: via 'svis' -> 'ipv4' -> 'nameservers'
+                        # Expected: interface_settings.svis.ipv4.nameservers = [{"addresses": ["ip1", "ip2"]}]
                         svis_data = interface_settings.get("svis")
                         if isinstance(svis_data, dict): 
                             ipv4_data = svis_data.get("ipv4")
@@ -602,27 +630,34 @@ class MerakiApiDataFetcher:
                                 nameservers_list = ipv4_data.get("nameservers")
                                 if isinstance(nameservers_list, list):
                                     for ns_entry in nameservers_list:
+                                        # Each ns_entry is like {"addresses": ["ip1", "ip2"], "protocol": "ipv4"}
                                         if isinstance(ns_entry, dict) and isinstance(ns_entry.get("addresses"), list):
                                             for ip_addr in ns_entry.get("addresses", []):
                                                 if isinstance(ip_addr, str) and ip_addr not in current_wan_dns_ips:
                                                     current_wan_dns_ips.append(ip_addr)
                         
+                        # Fallback: Check 'dnsServers' directly under interface_settings
+                        # Expected: interface_settings.dnsServers = ["ip1", "ip2"] or "ip1,ip2" (string)
                         if not current_wan_dns_ips: 
                             dns_servers_field = interface_settings.get("dnsServers") 
                             if isinstance(dns_servers_field, list):
                                 for dns_entry in dns_servers_field:
                                     if isinstance(dns_entry, str):
+                                        # Basic validation for an IP address string
                                         if '.' in dns_entry or ':' in dns_entry: 
                                             if dns_entry not in current_wan_dns_ips:
                                                 current_wan_dns_ips.append(dns_entry)
-                            elif isinstance(dns_servers_field, str): 
+                            elif isinstance(dns_servers_field, str): # Sometimes it might be a comma-separated string
+                                # Basic validation for an IP address string
                                 if '.' in dns_servers_field or ':' in dns_servers_field:
-                                     if dns_servers_field not in current_wan_dns_ips:
+                                     if dns_servers_field not in current_wan_dns_ips: # Assuming it's a single IP if string
                                         current_wan_dns_ips.append(dns_servers_field)
 
+                    # Second Fallback: Check device-level fields like 'wan1PrimaryDns', 'wan1SecondaryDns'
+                    # These might be present in the main device data if not in uplink_settings specifically.
                     if not current_wan_dns_ips:
-                        primary_dns_key = f"{interface_name}PrimaryDns" 
-                        secondary_dns_key = f"{interface_name}SecondaryDns" 
+                        primary_dns_key = f"{interface_name}PrimaryDns" # e.g., "wan1PrimaryDns"
+                        secondary_dns_key = f"{interface_name}SecondaryDns" # e.g., "wan1SecondaryDns"
                         primary_dns = device.get(primary_dns_key)
                         if primary_dns and isinstance(primary_dns, str) and primary_dns not in current_wan_dns_ips:
                             current_wan_dns_ips.append(primary_dns)
@@ -710,26 +745,29 @@ class MerakiApiDataFetcher:
                         _LOGGER.warning("Skipping non-dictionary item in VLAN settings list for network %s: %s", network_id, vlan_data)
                         continue
                     
-                    vlan_id = vlan_data.get("id")
-                    vlan_name = vlan_data.get("name", "Unnamed VLAN")
+                    vlan_id = vlan_data.get("id") # ID of the VLAN, e.g., 10
+                    vlan_name = vlan_data.get("name", "Unnamed VLAN") # Name of the VLAN, e.g., "Data VLAN"
+                    # 'dnsNameservers' indicates how DNS is configured for this VLAN:
+                    # "google_dns", "opendns", "custom_servers", "upstream_dns"
                     dns_nameservers_setting = vlan_data.get("dnsNameservers")
+                    # 'customDnsServers' is a list of IPs, used if dnsNameservers == "custom_servers"
                     custom_dns_servers = vlan_data.get("customDnsServers", [])
-                    vlan_key = f"VLAN {vlan_id} ({vlan_name})"
+                    vlan_key = f"VLAN {vlan_id} ({vlan_name})" # Key for storing in our dict
 
                     if dns_nameservers_setting == "custom_servers":
-                        if custom_dns_servers:
+                        if custom_dns_servers: # If custom, use the provided list
                             lan_dns_by_vlan[vlan_key] = custom_dns_servers
                             _LOGGER.debug("MERAKI_DEBUG_FETCHER: VLAN %s on %s using custom DNS: %s", vlan_key, serial, custom_dns_servers)
-                        else:
+                        else: # If set to custom but no IPs, store as empty list
                             lan_dns_by_vlan[vlan_key] = [] 
                             _LOGGER.debug("MERAKI_DEBUG_FETCHER: VLAN %s on %s set to 'custom_servers' but no IPs provided.", vlan_key, serial)
-                    elif dns_nameservers_setting:
+                    elif dns_nameservers_setting: # If not custom, store the setting string itself (e.g., "google_dns")
                         lan_dns_by_vlan[vlan_key] = dns_nameservers_setting 
                         _LOGGER.debug("MERAKI_DEBUG_FETCHER: VLAN %s on %s using preset DNS: %s", vlan_key, serial, dns_nameservers_setting)
-                    else:
+                    else: # If no specific DNS setting found for the VLAN
                         lan_dns_by_vlan[vlan_key] = "Not configured" 
                         _LOGGER.debug("MERAKI_DEBUG_FETCHER: VLAN %s on %s has no explicit DNS configuration.", vlan_key, serial)
-            # If vlan_list_to_iterate is empty (e.g. from None response or unexpected type), this loop is skipped.
+            # If vlan_list_to_iterate is empty (e.g., from None response or unexpected type), this loop is skipped.
             
         except MerakiSDKAPIError as e:
             if e.status == 404:

@@ -25,9 +25,12 @@ from .meraki_firmware_status import MerakiFirmwareStatusSensor
 from ..sensor_registry import SENSOR_REGISTRY, COMMON_DEVICE_SENSORS, get_sensors_for_device_type
 
 # Import sensor entity classes for SSIDs
-from .ssid_availability import MerakiSSIDAvailabilitySensor
-from .ssid_channel import MerakiSSIDChannelSensor
-from .ssid_client_count import MerakiSSIDClientCountSensor
+# from .ssid_availability import MerakiSSIDAvailabilitySensor # Now created by factory
+# from .ssid_channel import MerakiSSIDChannelSensor # Now created by factory
+# from .ssid_client_count import MerakiSSIDClientCountSensor # Now created by factory
+
+# Import the factory function for SSID sensors
+from .ssid import create_ssid_sensors
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -93,26 +96,34 @@ async def async_setup_entry(
         _LOGGER.warning("Main coordinator not available or has no data; skipping physical device sensors.")
     _LOGGER.debug("Meraki HA: Entities list id AFTER physical devices loop: %s. Current len: %d", id(entities), len(entities))
 
-    # Get the SSID device coordinator from the nested 'coordinators' dictionary
-    # coordinators_dict = entry_data.get(DATA_COORDINATORS, {})
-    # ssid_coordinator: SSIDDeviceCoordinator = coordinators_dict.get(DATA_SSID_DEVICES_COORDINATOR)
+    # Get the SSID device coordinator
+    # Ensure DATA_SSID_DEVICES_COORDINATOR is the correct key used during coordinator setup in __init__.py of the component
+    ssid_coordinator: SSIDDeviceCoordinator = entry_data.get(DATA_SSID_DEVICES_COORDINATOR)
 
-    # if ssid_coordinator and ssid_coordinator.data:
-    #    # ssid_coordinator.data is a dict of {unique_ssid_id: ssid_data_dict}
-    #    enabled_ssids_data = ssid_coordinator.data.values()
-    #    _LOGGER.debug("Meraki HA: Found %d enabled SSIDs for sensor setup.", len(enabled_ssids_data)) # Adjusted
-    #    for ssid_data in enabled_ssids_data:
-    #        unique_ssid_id = ssid_data.get("unique_id")
-    #        if not unique_ssid_id:
-    #            _LOGGER.warning(f"Skipping SSID with missing unique_id: {ssid_data.get('name', 'Unknown SSID')}")
-    #            continue
-    #
-    #        _LOGGER.debug("Meraki HA: Setting up SSID sensors for: %s", ssid_data.get('name', unique_ssid_id)) # Adjusted
-    #        entities.append(MerakiSSIDAvailabilitySensor(ssid_coordinator, ssid_data))
-    #        entities.append(MerakiSSIDChannelSensor(ssid_coordinator, ssid_data)) 
-    #        entities.append(MerakiSSIDClientCountSensor(ssid_coordinator, ssid_data))
-    # else:
-    #    _LOGGER.warning("SSID coordinator not available or has no data; skipping SSID sensors.")
+    if ssid_coordinator and ssid_coordinator.data:
+        # ssid_coordinator.data is a dict of {unique_ssid_id: ssid_info_dict}
+        # Values are the actual data dictionaries for each SSID
+        enabled_ssids_info_list = list(ssid_coordinator.data.values())
+        _LOGGER.debug("Meraki HA: Found %d enabled SSIDs for sensor setup from SSIDDeviceCoordinator.", len(enabled_ssids_info_list)) # Adjusted
+
+        for ssid_info_data in enabled_ssids_info_list:
+            # unique_ssid_id is expected to be part of ssid_info_data, put there by SSIDDeviceCoordinator
+            # Or, if not, the factory/sensors will need to construct it from networkId and SSID number.
+            # For MerakiEntity, passing ssid_info_data as both device_data and ssid_data
+            # means it will look for networkId and number within this dict.
+
+            unique_identifier_for_log = ssid_info_data.get("unique_id") or f"{ssid_info_data.get('networkId')}_{ssid_info_data.get('number')}"
+            _LOGGER.debug("Meraki HA: Setting up SSID sensors for: %s (Name: %s)", unique_identifier_for_log, ssid_info_data.get('name', 'Unknown SSID')) # Adjusted
+
+            # Call the factory function to create all sensors for this SSID
+            # Passing ssid_info_data as both 'device_data' and 'ssid_data' arguments
+            # This assumes MerakiEntity and individual sensor classes can derive
+            # necessary info (like networkId for device_info linking) from this combined data.
+            new_ssid_sensors = create_ssid_sensors(ssid_coordinator, ssid_info_data, ssid_info_data)
+            entities.extend(new_ssid_sensors)
+            _LOGGER.debug("Meraki HA: Added %d sensors for SSID %s", len(new_ssid_sensors), ssid_info_data.get('name', unique_identifier_for_log))
+    else:
+        _LOGGER.warning("SSID coordinator (SSIDDeviceCoordinator) not available or has no data; skipping SSID sensors.")
         
     _LOGGER.debug(
         "Meraki HA: FINAL check before async_add_entities. Total entities in list: %d. First 5 unique_ids: %s. Last 5 unique_ids: %s",

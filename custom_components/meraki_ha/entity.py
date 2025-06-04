@@ -56,16 +56,36 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
                          primary Meraki device this entity is related to
                          (e.g., an AP, switch). Expected to have 'serial',
                          'name', 'model', 'firmware'.
+                         For entities that are directly related to an SSID (e.g., an SSID
+                         availability sensor), this `device_data` parameter might actually be
+                         the SSID's own information dictionary (the same as `ssid_data`).
+                         This is because the SSID itself is treated as the "device"
+                         for that specific entity.
             ssid_data: (Optional) A dictionary containing information
                        about a specific SSID if this entity is related to
                        an SSID. Expected to have 'name' and 'number' if
-                       provided.
+                       provided. If this entity is for the SSID itself, this dictionary
+                       will contain all relevant info for that SSID, including 'networkId'
+                       and 'number' which are crucial for forming its unique identifier.
         """
         super().__init__(coordinator)
+        # Stores the primary device information. For a physical device entity (like an AP sensor),
+        # this is the AP's data. For an SSID-specific entity (like SSID availability),
+        # this will typically be the SSID's own data dictionary, as the SSID is the "device"
+        # this entity pertains to.
         self._device_info_data: Dict[str, Any] = device_data
+
+        # Stores SSID-specific information if the entity is related to an SSID.
+        # If the entity is for an SSID itself (e.g. SSID availability sensor),
+        # this will be the same as _device_info_data.
         self._ssid_info_data: Optional[Dict[str, Any]] = ssid_data
 
-        # Common attributes derived from device_data
+        # Common attributes derived from device_data.
+        # For an SSID-specific entity where device_data is the SSID's own data,
+        # _device_serial, _device_name, _device_model might be None or less relevant
+        # if these fields ('serial', 'model') are not standard for an SSID's data structure.
+        # The actual linking to the HA device registry for SSID entities relies on
+        # networkId and ssid_number from _ssid_info_data (or _device_info_data if they are same).
         self._device_serial: Optional[str] = self._device_info_data.get("serial")
         self._device_name: Optional[str] = self._device_info_data.get("name")
         # Fallback to serial if name is missing for display name consistency
@@ -117,45 +137,65 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
         specifically for an SSID, it links to the SSID "device".
         Otherwise, it links to the physical Meraki device.
         """
-        # Should always have a serial for a device-based entity
+        # Scenario 1: Entity is related to a specific SSID.
+        # This means the entity represents a sensor or switch for an SSID itself.
+        # In this case, _ssid_info_data will be populated (it's the SSID's own data dict),
+        # and _ssid_number will be derived from it.
+        # The `device_info` should then point to the "SSID Device" in Home Assistant.
+        # This "SSID Device" is expected to be registered by SSIDDeviceCoordinator
+        # with an identifier like (DOMAIN, f"{network_id}_{ssid_number}").
+        # This "SSID Device" is, in turn, linked via `via_device` to its "Network Device".
+        # Resulting hierarchy: Sensor Entity -> SSID Device -> Network Device -> Config Entry.
+        if self._ssid_info_data and self._ssid_number is not None:
+            # For SSID entities, _device_info_data and _ssid_info_data might be the same dict.
+            # We need 'networkId' from this dict to form the identifier for the SSID device.
+            network_id = self._device_info_data.get("networkId")
+
+            if network_id:
+                # Identifier for the SSID "device" in Home Assistant.
+                ssid_device_identifier = (DOMAIN, f"{network_id}_{self._ssid_number}")
+                # This entity (e.g., SSID Availability Sensor) will be associated with this SSID device.
+                return DeviceInfo(
+                    identifiers={ssid_device_identifier},
+                    # The name, model, etc., for the SSID "device" itself are set during its
+                    # registration in SSIDDeviceCoordinator. We don't need to redefine them here,
+                    # just link to it using its identifier.
+                    # The via_device for the SSID "device" (linking it to the Network device)
+                    # is also handled during its registration in SSIDDeviceCoordinator.
+                )
+            else:
+                # This case should ideally not happen if ssid_info_data is correctly populated.
+                _LOGGER.warning(
+                    "SSID-specific entity for SSID '%s' (Number: %s) is missing 'networkId' "
+                    "in its data, cannot link to SSID device. Falling back to physical device linkage if possible.",
+                    self._ssid_name or "Unknown", self._ssid_number
+                )
+                # Fall-through to physical device linking logic below if network_id is missing.
+                # This might lead to incorrect association in the UI.
+
+        # Scenario 2: Entity is related to a physical Meraki device (AP, Switch, Gateway).
+        # This means _device_serial should be present (derived from _device_info_data).
+        # The entity will be linked directly to this physical device in Home Assistant.
+        # Resulting hierarchy: Sensor Entity -> Physical Device -> Config Entry.
+
+        # Check for device_serial, which is essential for physical device identification.
+        # If an SSID entity fell through due to missing network_id but also lacks a serial
+        # (because _device_info_data was actually SSID data without a 'serial' field),
+        # then it cannot be properly linked.
         if not self._device_serial:
             _LOGGER.warning(
-                "Meraki entity created without a device serial: %s",
-                self.entity_id if self.hass else "Unknown ID",
+                "Meraki entity cannot determine device_info: "
+                "Missing serial for physical device context, or missing networkId for SSID context. "
+                "Entity ID if available: %s",
+                self.entity_id if self.hass else "Unknown Entity ID",
             )
             return None
 
-        # If this entity is related to a specific SSID, it should be
-        # parented by the SSID "device" which in turn is parented by the
-        # physical device (AP).
-        # The SSID "device" identifier might be "{network_id}_{ssid_number}".
-        # The physical device (AP) identifier is (DOMAIN, self._device_serial).
-
-        # If this entity represents an SSID itself or a property of an SSID:
-        if self._ssid_info_data and self._ssid_number is not None:
-            network_id = self._device_info_data.get("networkId")  # AP's networkId
-            if network_id:
-                # This entity is part of an SSID "device"
-                return DeviceInfo(
-                    identifiers={(DOMAIN, f"{network_id}_{self._ssid_number}")},
-                    # Name might be already set by the SSID "device" registration
-                    # Or, if this entity is the SSID "device" itself:
-                    # name=str(self._ssid_name or f"SSID {self._ssid_number}"),
-                    # model="SSID",
-                    # Links SSID device to physical AP
-                    # via_device=(DOMAIN, self._device_serial),
-                )
-            else:
-                _LOGGER.warning(
-                    "SSID entity for %s is missing networkId from its parent AP data.",
-                    self._ssid_name or self._ssid_number,
-                )
-                # Fall through to physical device if SSID linking fails, and
-                # use formatted_device_name for the AP.
-
-        _LOGGER.error(
-            "MERAKI_DEVICE_NAMING_DEBUG: device_info called for physical device %s",
-            self._device_serial,
+        # If we've reached here, it's either a physical device entity,
+        # or an SSID entity that failed to link to an SSID device and is attempting fallback.
+        _LOGGER.debug( # Changed from error to debug as this path is normal for physical devices
+            "MERAKI_DEVICE_NAMING_DEBUG: device_info resolving for physical device context: S/N %s",
+            self._device_serial
         )
         # Get the raw device name (name from API or serial)
         # self._device_name is already pre-calculated in __init__ to be name or
