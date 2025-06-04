@@ -759,6 +759,10 @@ class MerakiApiDataFetcher:
             device: The device dictionary to update.
             serial: The serial number of the MR device.
         """
+        # Ensure keys are initialized as an integer/None for all devices processed by this method
+        device["connected_clients_count"] = 0
+        device["radio_settings"] = None
+
         try:
             _LOGGER.debug(f"Fetching client count for MR device {device.get('name', 'Unknown')} (Serial: {serial})")
             clients_data = await self.meraki_client.devices.getDeviceClients(
@@ -766,16 +770,15 @@ class MerakiApiDataFetcher:
             )
             _LOGGER.debug(f"Raw clients_data for MR device {serial}: {clients_data}")
 
-            if clients_data is not None:
+            if clients_data is not None: # Will be a list, potentially empty
                 device["connected_clients_count"] = len(clients_data)
-                _LOGGER.debug(f"Successfully fetched {device['connected_clients_count']} clients for MR device {serial}.")
+                _LOGGER.debug(f"Set connected_clients_count to {device['connected_clients_count']} for MR device {serial} (from len).")
             else:
-                # This case handles when clients_data is explicitly None
-                device["connected_clients_count"] = 0
-                _LOGGER.debug(f"Clients_data was None for MR device {serial}. Setting count to 0.")
+                # This case implies API returned None, not an empty list.
+                # device["connected_clients_count"] is already 0 from initialization
+                _LOGGER.debug(f"Clients_data was None for MR device {serial}. connected_clients_count remains 0.")
 
         except MerakiSDKAPIError as e:
-            # Log API errors for client fetching and default to 0.
             _LOGGER.warning(
                 "Failed to fetch client count for MR device %s (Serial: %s): API Error %s - %s. Setting client count to 0.",
                 device.get("name", "Unknown"),
@@ -783,48 +786,47 @@ class MerakiApiDataFetcher:
                 e.status,
                 e.reason,
             )
-            device["connected_clients_count"] = 0 # Ensure it's set on API error
-        except Exception as e:  # Catch any other unexpected errors.
-            # Log unexpected errors and default to 0.
+            device["connected_clients_count"] = 0 # Explicitly ensure it's 0
+            _LOGGER.debug(f"Set connected_clients_count to 0 for MR device {serial} due to MerakiSDKAPIError.")
+
+        except Exception as e:
             _LOGGER.exception(
-                "Unexpected error fetching client count for MR device %s (Serial: %s): %s. Setting client count to 0.",
+                "Unexpected error fetching client count for MR device %s (Serial: %s). Setting client count to 0.",
                 device.get("name", "Unknown"),
                 serial,
-                e,
             )
-            device["connected_clients_count"] = 0 # Ensure it's set on other errors
+            device["connected_clients_count"] = 0 # Explicitly ensure it's 0
+            _LOGGER.debug(f"Set connected_clients_count to 0 for MR device {serial} due to general Exception.")
 
-        # Ensure radio_settings has a default if an exception occurred before it's set
-        if "radio_settings" not in device:
-            device["radio_settings"] = None
+        _LOGGER.debug(f"Final connected_clients_count for MR device {serial} before radio settings: {device.get('connected_clients_count')}")
 
         try:
-            # Fetch wireless radio settings for this MR device.
-            radio_settings = (
+            _LOGGER.debug(f"Fetching radio settings for MR device {serial}")
+            radio_settings_data = (
                 await self.meraki_client.wireless.getDeviceWirelessRadioSettings(
                     serial=serial
                 )
             )
-            device["radio_settings"] = radio_settings  # Store fetched radio settings.
+            device["radio_settings"] = radio_settings_data
+            _LOGGER.debug(f"Successfully fetched radio_settings for MR device {serial}")
         except MerakiSDKAPIError as e:
-            # Log API errors for radio settings fetching and default to None.
             _LOGGER.warning(
-                "Failed to fetch radio settings for MR device %s (Serial: %s): API Error %s - %s. Setting radio settings to None.",
+                "Failed to fetch radio settings for MR device %s (Serial: %s): API Error %s - %s. Setting radio_settings to None.",
                 device.get("name", "Unknown"),
                 serial,
                 e.status,
                 e.reason,
             )
             device["radio_settings"] = None
-        except Exception as e:  # Catch any other unexpected errors.
-            # Log unexpected errors and default to None.
+        except Exception as e:
             _LOGGER.exception(
-                "Unexpected error fetching radio settings for MR device %s (Serial: %s): %s. Setting radio settings to None.",
+                "Unexpected error fetching radio settings for MR device %s (Serial: %s). Setting radio_settings to None.",
                 device.get("name", "Unknown"),
                 serial,
-                e,
             )
             device["radio_settings"] = None
+
+        _LOGGER.debug(f"Finished _async_get_mr_device_details for {serial}. Client count: {device.get('connected_clients_count')}, Radio settings type: {type(device.get('radio_settings')).__name__}")
 
     async def async_get_networks(self, org_id: str) -> Optional[List[Dict[str, Any]]]:
         """Fetch all networks for a Meraki organization using the SDK."""
