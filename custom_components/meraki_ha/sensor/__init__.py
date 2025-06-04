@@ -21,6 +21,9 @@ from .meraki_wan2_connectivity import MerakiWAN2ConnectivitySensor
 from .meraki_network_info import MerakiNetworkInfoSensor
 from .meraki_firmware_status import MerakiFirmwareStatusSensor
 
+# Import from sensor_registry
+from ..sensor_registry import SENSOR_REGISTRY, COMMON_DEVICE_SENSORS, get_sensors_for_device_type
+
 # Import sensor entity classes for SSIDs
 from .ssid_availability import MerakiSSIDAvailabilitySensor
 from .ssid_channel import MerakiSSIDChannelSensor
@@ -55,90 +58,36 @@ async def async_setup_entry(
 
             _LOGGER.debug("Meraki HA: Setting up physical device sensors for: %s", device_info.get('name', serial)) # Adjusted
             
-            # Always add DeviceStatusSensor
-            entities.append(MerakiDeviceStatusSensor(main_coordinator, device_info))
-            _LOGGER.debug("Meraki HA: Added MerakiDeviceStatusSensor for %s", device_info.get('name', serial))
+            # Add common sensors for all devices
+            for sensor_class in COMMON_DEVICE_SENSORS:
+                try:
+                    entities.append(sensor_class(main_coordinator, device_info))
+                    _LOGGER.debug("Meraki HA: Added common sensor %s for %s", sensor_class.__name__, device_info.get('name', serial))
+                except Exception as e:
+                    _LOGGER.error("Meraki HA: Error adding common sensor %s for %s: %s", sensor_class.__name__, device_info.get('name', serial), e)
 
-            _LOGGER.debug(
+            # Add productType-specific sensors
+            product_type = device_info.get("productType")
+            _LOGGER.debug( # Keep this important logging
                 "Meraki HA: Processing device for sensor setup. Serial: %s, Model: %s, Name: %s, ProductType from data: %s",
-                device_info.get("serial"),
+                serial, # Ensure 'serial' is defined in this scope from device_info.get("serial")
                 device_info.get("model"),
                 device_info.get("name"),
-                device_info.get("productType"),
-            )
-            product_type = device_info.get("productType")
-            
-            _LOGGER.debug(
-                "Meraki HA: Entities count for %s (Serial: %s) BEFORE 'appliance' check: %d",
-                device_info.get('name', serial),
-                serial,
-                len(entities)
-            )
-            # Combined log for product_type check and entities list id
-            _LOGGER.debug(
-                "Meraki HA: Checking product_type for device %s (Serial: %s). product_type is '%s' (Type: %s). Entities list id: %s. Current len: %d",
-                device_info.get('name', serial),
-                serial,
                 product_type,
-                type(product_type).__name__,
-                id(entities),
-                len(entities)
             )
 
-            if product_type == "appliance":
-                _LOGGER.debug("Meraki HA: Device %s IS an appliance. Attempting to add MerakiNetworkInfoSensor.", device_info.get('name', serial))
-                
-                # Create the sensor object first
-                try:
-                    network_info_sensor = MerakiNetworkInfoSensor(main_coordinator, device_info)
-                    _LOGGER.debug(
-                        "Meraki HA: Successfully CREATED MerakiNetworkInfoSensor object for %s: %s. UID: %s. Name: %s", 
-                        device_info.get('name', serial), 
-                        network_info_sensor,
-                        network_info_sensor.unique_id if hasattr(network_info_sensor, 'unique_id') else "NO UID ATTR",
-                        network_info_sensor.name if hasattr(network_info_sensor, 'name') else "NO NAME ATTR"
-                    )
-                    
-                    if network_info_sensor and hasattr(network_info_sensor, 'unique_id'):
-                        entities.append(network_info_sensor)
-                        _LOGGER.debug(
-                            "Meraki HA: Successfully APPENDED MerakiNetworkInfoSensor for %s. Entities list len: %d. Last appended UID: %s", 
-                            device_info.get('name', serial), 
-                            len(entities),
-                            entities[-1].unique_id if entities else "N/A"
-                        )
-                    else:
-                        _LOGGER.error(
-                            "Meraki HA: MerakiNetworkInfoSensor object was None or lacked unique_id for %s, NOT APPENDING. Object: %s", 
-                            device_info.get('name', serial),
-                            network_info_sensor
-                        )
-                except Exception as e:
-                    _LOGGER.exception(
-                        "Meraki HA: EXCEPTION during MerakiNetworkInfoSensor creation or append for %s: %s",
-                        device_info.get('name', serial),
-                        e
-                    )
-                
-                
-                # Keep other new appliance sensors commented out for now
-                entities.append(MerakiUplinkStatusSensor(main_coordinator, device_info))
-                entities.append(MerakiWAN1ConnectivitySensor(main_coordinator, device_info))
-                entities.append(MerakiWAN2ConnectivitySensor(main_coordinator, device_info))
-                entities.append(MerakiFirmwareStatusSensor(main_coordinator, device_info))
-                _LOGGER.debug("Meraki HA: Added new MX-specific sensors for %s", device_info.get('name', serial))
-            
-            # Temporarily comment out wireless specific sensors
-            # if product_type == "wireless": # Standard check for MR devices
-            #    entities.append(MerakiDeviceConnectedClientsSensor(main_coordinator, device_info))
-
-            _LOGGER.debug(
-                "Meraki HA: Entities count for %s (Serial: %s) AFTER 'appliance' check logic: %d. Last entity unique_id: %s",
-                device_info.get('name', serial),
-                serial,
-                len(entities),
-                entities[-1].unique_id if entities and hasattr(entities[-1], 'unique_id') else "N/A"
-            )
+            if product_type:
+                sensors_for_type = get_sensors_for_device_type(product_type)
+                if not sensors_for_type:
+                    _LOGGER.debug("Meraki HA: No specific sensor classes defined in registry for productType '%s' for device %s", product_type, device_info.get('name', serial))
+                for sensor_class in sensors_for_type:
+                    try:
+                        entities.append(sensor_class(main_coordinator, device_info))
+                        _LOGGER.debug("Meraki HA: Added sensor %s for %s (productType: %s)", sensor_class.__name__, device_info.get('name', serial), product_type)
+                    except Exception as e:
+                        _LOGGER.error("Meraki HA: Error adding sensor %s for %s (productType: %s): %s", sensor_class.__name__, device_info.get('name', serial), product_type, e)
+            else:
+                _LOGGER.debug("Meraki HA: No productType found for device %s, skipping productType-specific sensors.", device_info.get('name', serial))
 
     else:
         _LOGGER.warning("Main coordinator not available or has no data; skipping physical device sensors.")

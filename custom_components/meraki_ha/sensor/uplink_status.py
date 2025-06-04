@@ -153,11 +153,7 @@ class MerakiUplinkStatusSensor(
         This links the sensor to the physical Meraki MX appliance it represents.
         """
         return DeviceInfo(
-            identifiers={(DOMAIN, self._initial_device_data["serial"])},
-            name=str(
-                self._initial_device_data.get("name", self._initial_device_data["serial"])
-            ),
-            manufacturer="Cisco Meraki",
-            model=str(self._initial_device_data.get("model", "Unknown")),
-            sw_version=str(self._initial_device_data.get("firmware", "")),
+            identifiers={(DOMAIN, self._initial_device_data["serial"])}
+            # No other fields like name, model, manufacturer, sw_version.
+            # These should be inherited from the device entry already created by MerakiDataUpdateCoordinator.
         )

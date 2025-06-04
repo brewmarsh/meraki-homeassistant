@@ -61,13 +61,9 @@ class MerakiDeviceStatusSensor(
         # This uses the initial device_data for static info.
         device_name_for_registry = device_data.get("name") or self._device_serial
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._device_serial)},
-            name=device_name_for_registry,
-            manufacturer="Cisco Meraki",
-            model=device_data.get("model", "Unknown"),
-            sw_version=device_data.get("firmware"),
-            # Example: Link to an organization-level device if one exists
-            # via_device=(DOMAIN, coordinator.config_entry.unique_id or coordinator.config_entry.entry_id),
+            identifiers={(DOMAIN, self._device_serial)}
+            # No other fields like name, model, manufacturer, sw_version.
+            # These should be inherited from the device entry already created by MerakiDataUpdateCoordinator.
         )
         
         # Name of the sensor itself (e.g., "Device Name Status")
