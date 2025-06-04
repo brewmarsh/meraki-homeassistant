@@ -760,12 +760,20 @@ class MerakiApiDataFetcher:
             serial: The serial number of the MR device.
         """
         try:
-            # Fetch clients connected directly to this MR device.
+            _LOGGER.debug(f"Fetching client count for MR device {device.get('name', 'Unknown')} (Serial: {serial})")
             clients_data = await self.meraki_client.devices.getDeviceClients(
                 serial=serial
             )
-            # Store the count of connected clients. If no data, assume 0.
-            device["connected_clients_count"] = len(clients_data) if clients_data else 0
+            _LOGGER.debug(f"Raw clients_data for MR device {serial}: {clients_data}")
+
+            if clients_data is not None:
+                device["connected_clients_count"] = len(clients_data)
+                _LOGGER.debug(f"Successfully fetched {device['connected_clients_count']} clients for MR device {serial}.")
+            else:
+                # This case handles when clients_data is explicitly None
+                device["connected_clients_count"] = 0
+                _LOGGER.debug(f"Clients_data was None for MR device {serial}. Setting count to 0.")
+
         except MerakiSDKAPIError as e:
             # Log API errors for client fetching and default to 0.
             _LOGGER.warning(
@@ -775,7 +783,7 @@ class MerakiApiDataFetcher:
                 e.status,
                 e.reason,
             )
-            device["connected_clients_count"] = 0
+            device["connected_clients_count"] = 0 # Ensure it's set on API error
         except Exception as e:  # Catch any other unexpected errors.
             # Log unexpected errors and default to 0.
             _LOGGER.exception(
@@ -784,7 +792,12 @@ class MerakiApiDataFetcher:
                 serial,
                 e,
             )
-            device["connected_clients_count"] = 0
+            device["connected_clients_count"] = 0 # Ensure it's set on other errors
+
+        # Ensure radio_settings has a default if an exception occurred before it's set
+        if "radio_settings" not in device:
+            device["radio_settings"] = None
+
         try:
             # Fetch wireless radio settings for this MR device.
             radio_settings = (
