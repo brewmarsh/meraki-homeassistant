@@ -15,6 +15,9 @@ from homeassistant.helpers.update_coordinator import UpdateFailed
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
 from custom_components.meraki_ha.meraki_api import MerakiAPIClient
+from ..coordinators.meraki_device_types import (
+    map_meraki_model_to_device_type,
+)
 
 # Obsolete imports for MerakiApiException and related custom exceptions are removed
 # as MerakiSDKAPIError from meraki.exceptions is used directly.
@@ -702,13 +705,43 @@ class MerakiApiDataFetcher:
         else:  # No networks available to fetch clients from.
             _LOGGER.warning("No networks available to fetch clients from.")
 
-        # Step 8: Return all fetched and processed data.
+        # Step 8: Aggregate client counts
+        clients_on_ssids = 0
+        clients_on_appliances = 0
+        clients_on_wireless = 0
+
+        device_serial_to_type_map = {}
+        if devices:
+            for device in devices:
+                serial = device.get("serial")
+                model = device.get("model")
+                if serial and model:
+                    device_serial_to_type_map[serial] = (
+                        map_meraki_model_to_device_type(model)
+                    )
+
+        for client in all_clients:
+            if client.get("ssid"):  # Check if client has an SSID and it's not None/empty
+                clients_on_ssids += 1
+
+            ap_serial = client.get("ap_serial")
+            if ap_serial:
+                device_type = device_serial_to_type_map.get(ap_serial)
+                if device_type == "Wireless":
+                    clients_on_wireless += 1
+                elif device_type == "Appliance":
+                    clients_on_appliances += 1
+
+        # Step 9: Return all fetched and processed data.
         # This dictionary forms the basis for what coordinators and entities will use.
         return {
             "devices": devices,
             "networks": networks,
             "ssids": ssids,
             "clients": all_clients,
+            "clients_on_ssids": clients_on_ssids,
+            "clients_on_appliances": clients_on_appliances,
+            "clients_on_wireless": clients_on_wireless,
         }
 
     async def _async_get_mr_device_details(
