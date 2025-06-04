@@ -41,7 +41,7 @@ jobs:
         id: increment # Ensure this id is set
         run: |
           echo "--- .bumpversion.cfg ---"
-          cat .bumpversion.cfg || echo ".bumpversion.cfg not found" # Added fallback if file not found
+          cat .bumpversion.cfg || echo ".bumpversion.cfg not found"
           echo "--- end .bumpversion.cfg ---"
 
           echo "--- manifest.json (before) ---"
@@ -49,7 +49,7 @@ jobs:
           echo "--- end manifest.json (before) ---"
 
           current_version=$(jq -r .version custom_components/meraki_ha/manifest.json)
-          echo "Current Version: $current_version"
+          echo "Current Version: $current_version" # e.g., 0.1.1+build.81
 
           increment_type="patch" # Default increment type
           pr_title="${{ github.event.pull_request.title }}" # Get PR title
@@ -66,10 +66,11 @@ jobs:
           echo "Increment Type: $increment_type"
 
           # Calculate the new version based on current_version and increment_type
-          calculated_new_version_string=""
           # Ensure current_version is in X.Y.Z format, otherwise this parsing will fail or produce unexpected results.
-          # Consider adding error handling or validation for current_version format if necessary.
-          IFS='.' read -r -a version_parts <<< "$current_version"
+          IFS='+' read -r base_version_from_manifest build_metadata <<< "$current_version" # base_version_from_manifest will be e.g., "0.1.1"
+          echo "Base version from manifest (before bump): $base_version_from_manifest"
+
+          IFS='.' read -r -a version_parts <<< "$base_version_from_manifest"
           major_part=${version_parts[0]}
           minor_part=${version_parts[1]}
           patch_part=${version_parts[2]}
@@ -84,31 +85,38 @@ jobs:
           elif [[ "$increment_type" == "patch" ]]; then
             patch_part=$((patch_part + 1))
           fi
-          calculated_new_version_string="$major_part.$minor_part.$patch_part"
-          echo "Calculated New Version String: $calculated_new_version_string"
+          calculated_new_version_string="$major_part.$minor_part.$patch_part" # This is the new base, e.g., 0.2.0
+          echo "Calculated New Base Version String: $calculated_new_version_string"
+
+          # Temporarily set manifest to base version for bump2version to find it
+          echo "Temporarily setting manifest version to: $base_version_from_manifest for bump2version"
+          jq --arg ver "$base_version_from_manifest" '.version = $ver' custom_components/meraki_ha/manifest.json > tmp_manifest.json && mv tmp_manifest.json custom_components/meraki_ha/manifest.json
+          echo "--- manifest.json (temporarily set to base for bump2version) ---"
+          cat custom_components/meraki_ha/manifest.json
+          echo "--- end manifest.json ---"
 
           # Bump version in manifest.json using the calculated new version
-          bump2version --verbose --allow-dirty --current-version "$current_version" --new-version "$calculated_new_version_string" custom_components/meraki_ha/manifest.json
+          bump2version --verbose --allow-dirty --current-version "$base_version_from_manifest" --new-version "$calculated_new_version_string" custom_components/meraki_ha/manifest.json
           
-          base_version=$(jq -r .version custom_components/meraki_ha/manifest.json)
-          echo "Base Version from manifest after bump: $base_version"
+          base_version_after_bump=$(jq -r .version custom_components/meraki_ha/manifest.json) # This will be the new base, e.g., 0.2.0
+          echo "Base Version from manifest after bump: $base_version_after_bump"
 
           # Append build metadata
-          version_with_build="${base_version}+build.${{ github.run_number }}"
+          version_with_build="${base_version_after_bump}+build.${{ github.run_number }}"
           echo "Version with Build Metadata: $version_with_build"
 
           # Update manifest.json with the version including build metadata
           jq --arg ver "$version_with_build" '.version = $ver' custom_components/meraki_ha/manifest.json > tmp_manifest.json && mv tmp_manifest.json custom_components/meraki_ha/manifest.json
           
           echo "Updated manifest.json with build metadata."
-          # Output the new_base_version and new_full_version for subsequent steps
-          echo "new_base_version=$calculated_new_version_string" >> "$GITHUB_OUTPUT"
+          # Output the new_version (including build metadata) for subsequent steps
+          echo "new_base_version=$base_version_after_bump" >> "$GITHUB_OUTPUT" # Changed from calculated_new_version_string to reflect actual bumped base
           echo "new_full_version=$version_with_build" >> "$GITHUB_OUTPUT"
 
           # Log manifest.json content AFTER bump2version and adding build metadata
-          echo "--- manifest.json (after) ---"
+          echo "--- manifest.json (after all modifications) ---"
           cat custom_components/meraki_ha/manifest.json
-          echo "--- end manifest.json (after) ---"
+          echo "--- end manifest.json (after all modifications) ---"
 
       - name: Update package.json version
         if: steps.increment.outputs.new_full_version != '' # Only run if a new version was determined
