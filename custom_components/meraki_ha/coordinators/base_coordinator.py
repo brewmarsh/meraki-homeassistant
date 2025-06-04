@@ -33,6 +33,7 @@ from custom_components.meraki_ha.coordinators.data_aggregation_coordinator impor
 # Added imports for device registration
 from homeassistant.helpers import device_registry as dr
 from .meraki_device_types import map_meraki_model_to_device_type
+from ..helpers.naming_utils import format_device_name
 
 
 # Obsolete coordinators (DeviceTagFetchCoordinator,
@@ -140,6 +141,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # Ensure `self.data` is initialized to an empty dict, as expected by
         # DataUpdateCoordinator.
         self.data: Dict[str, Any] = {}
+        self.org_name: Optional[str] = None  # Initialize org_name
 
     @property
     def device_name_format(self) -> str:
@@ -201,6 +203,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         clients_list: List[Dict[str, Any]] = all_data.get(
             "clients", []
         )  # New: Extract clients
+        self.org_name = all_data.get("org_name")  # Store org_name from fetched data
 
         # Step 2: Device tags are now part of the `devices` list from `all_data`.
         # No separate tag fetching step is needed here.
@@ -421,6 +424,44 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                         )
         # Return the final, combined data.
         return self.data
+
+    async def async_register_organization_device(self, hass: HomeAssistant) -> None:
+        """Register the Meraki Organization as a device in Home Assistant."""
+        if not self.org_id:
+            _LOGGER.error("Organization ID not available, cannot register organization device.")
+            return
+
+        # Use self.org_name if fetched, otherwise a default name.
+        raw_org_name = self.org_name if self.org_name else f"Meraki Organization {self.org_id}"
+
+        # Get the device name format option
+        device_name_format_option = self.device_name_format # Uses the existing property
+
+        formatted_org_name = format_device_name(
+            device_name_raw=raw_org_name,
+            device_model="Organization", # Pass "Organization" as model for clarity
+            device_name_format_option=device_name_format_option,
+            is_org_device=True,
+        )
+
+        _LOGGER.info(
+            "Registering Meraki Organization device: %s (ID: %s)",
+            formatted_org_name,
+            self.org_id,
+        )
+
+        device_registry = dr.async_get(hass)
+        device_registry.async_get_or_create(
+            config_entry_id=self.config_entry.entry_id,
+            identifiers={(DOMAIN, self.org_id)},
+            name=formatted_org_name,
+            model="Organization",  # Static model name for the Organization device itself
+            manufacturer="Cisco Meraki",
+            # No via_device for the top-level organization device
+        )
+        _LOGGER.debug(
+            "Organization device registration attempt complete for %s.", self.org_id
+        )
 
     async def _async_shutdown(self) -> None:
         """Clean up resources when the coordinator is shut down.

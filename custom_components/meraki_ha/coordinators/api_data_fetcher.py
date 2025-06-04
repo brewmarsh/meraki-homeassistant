@@ -611,13 +611,13 @@ class MerakiApiDataFetcher:
                 network_id = network["id"]
                 try:
                     _LOGGER.debug("Fetching clients for network ID: %s", network_id)
-                    # Fetch clients for the current network. Timespan of 300 seconds (5 minutes)
-                    # is used to get recently active clients. This helps in keeping the data fresh
-                    # and manageable.
+                    # Fetch clients for the current network. Timespan is set to 3600 seconds (1 hour)
+                    # to get a more stable count of recently active clients over a longer period,
+                    # reducing short-term fluctuations compared to the previous 5-minute window.
                     network_clients_data = (
                         await self.meraki_client.networks.getNetworkClients(
                             network_id,
-                            timespan=300,  # Use a short timespan for recent clients.
+                            timespan=3600,  # Updated timespan to 1 hour
                         )
                     )
                     if network_clients_data:  # If clients are found.
@@ -734,7 +734,35 @@ class MerakiApiDataFetcher:
         _LOGGER.debug("Client counts for org %s: SSID: %d, Wireless: %d, Appliance: %d",
                       self.org_id, clients_on_ssids, clients_on_wireless, clients_on_appliances)
 
-        # Step 9: Return all fetched and processed data.
+        # Step 9: Fetch organization details to get the organization name.
+        # This is used for naming the top-level organization device and related entities.
+        org_details: Optional[Dict[str, Any]] = None
+        org_name: Optional[str] = None
+        try:
+            _LOGGER.debug("Fetching organization details for org ID: %s", self.org_id)
+            org_details = await self.meraki_client.organizations.getOrganization(
+                organizationId=self.org_id
+            )
+            if org_details and isinstance(org_details, dict):
+                org_name = org_details.get("name")
+                _LOGGER.debug("Successfully fetched organization name: %s for org ID: %s", org_name, self.org_id)
+            else:
+                _LOGGER.warning("Could not extract organization name. Org details: %s", org_details)
+        except MerakiSDKAPIError as e:
+            _LOGGER.warning(
+                "SDK API error fetching organization details for org %s: Status %s, Reason: %s. Organization name will be unavailable.",
+                self.org_id,
+                e.status,
+                e.reason,
+            )
+        except Exception as e:
+            _LOGGER.exception(
+                "Unexpected error fetching organization details for org %s: %s. Organization name will be unavailable.",
+                self.org_id,
+                e,
+            )
+
+        # Step 10: Return all fetched and processed data.
         # This dictionary forms the basis for what coordinators and entities will use.
         return {
             "devices": devices,
@@ -744,6 +772,7 @@ class MerakiApiDataFetcher:
             "clients_on_ssids": clients_on_ssids,
             "clients_on_appliances": clients_on_appliances,
             "clients_on_wireless": clients_on_wireless,
+            "org_name": org_name,  # Add org_name to the returned data
         }
 
     async def _async_get_mr_device_details(

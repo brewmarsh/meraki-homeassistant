@@ -51,6 +51,11 @@ from .ssid import create_ssid_sensors
 
 # Import the new organization-level sensor
 from .org_device_type_clients import MerakiOrgDeviceTypeClientsSensor
+from .org_clients import (
+    MerakiOrganizationSSIDClientsSensor,
+    MerakiOrganizationWirelessClientsSensor,
+    MerakiOrganizationApplianceClientsSensor,
+)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -92,17 +97,18 @@ async def async_setup_entry(
 
     # --- Organization-level Sensor Setup ---
     if main_coordinator and main_coordinator.data:
-        organization_id = main_coordinator.meraki_client.org_id
-        # Attempt to get org_name, fallback to org_id if not available
-        organization_name = getattr(main_coordinator.meraki_client, "org_name", organization_id)
+        organization_id = main_coordinator.org_id # Use direct attribute
+        # Use main_coordinator.org_name, falling back to org_id if None or empty
+        organization_name = main_coordinator.org_name if main_coordinator.org_name else organization_id
 
+        # Add the existing MerakiOrgDeviceTypeClientsSensor
         try:
-            org_client_sensor = MerakiOrgDeviceTypeClientsSensor(
+            org_device_type_sensor = MerakiOrgDeviceTypeClientsSensor(
                 coordinator=main_coordinator,
                 organization_id=organization_id,
-                organization_name=organization_name,
+                organization_name=organization_name, # Use the resolved name
             )
-            entities.append(org_client_sensor)
+            entities.append(org_device_type_sensor)
             _LOGGER.debug(
                 "Meraki HA: Added MerakiOrgDeviceTypeClientsSensor for organization %s",
                 organization_name,
@@ -113,6 +119,34 @@ async def async_setup_entry(
                 organization_name,
                 e,
             )
+
+        # Add the new specific organization client count sensors
+        new_org_sensors = [
+            MerakiOrganizationSSIDClientsSensor(
+                coordinator=main_coordinator, org_id=organization_id, org_name=organization_name
+            ),
+            MerakiOrganizationWirelessClientsSensor(
+                coordinator=main_coordinator, org_id=organization_id, org_name=organization_name
+            ),
+            MerakiOrganizationApplianceClientsSensor(
+                coordinator=main_coordinator, org_id=organization_id, org_name=organization_name
+            ),
+        ]
+        for sensor in new_org_sensors:
+            try:
+                entities.append(sensor)
+                _LOGGER.debug(
+                    "Meraki HA: Added organization sensor %s for %s",
+                    sensor.name, # Using sensor.name which should be set in __init__
+                    organization_name,
+                )
+            except Exception as e:
+                _LOGGER.error(
+                    "Meraki HA: Error adding organization sensor %s for %s: %s",
+                    sensor.name if hasattr(sensor, "name") else type(sensor).__name__,
+                    organization_name,
+                    e,
+                )
     else:
         _LOGGER.warning(
             "Main coordinator not available or has no data; skipping organization-level sensors."

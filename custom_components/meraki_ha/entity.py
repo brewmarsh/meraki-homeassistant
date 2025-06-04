@@ -16,7 +16,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 # used
 from .coordinators import MerakiDataUpdateCoordinator
 from .const import DOMAIN
-from .coordinators.meraki_device_types import map_meraki_model_to_device_type
+# map_meraki_model_to_device_type is now used via format_device_name
+# from .coordinators.meraki_device_types import map_meraki_model_to_device_type
+from .helpers.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -103,8 +105,8 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
             self._ssid_name = self._ssid_info_data.get("name")
             self._ssid_number = self._ssid_info_data.get("number")
 
-        _LOGGER.error(
-            "MERAKI_ENTITY_INIT: Initializing for device S/N: %s, Name: %s",
+        _LOGGER.debug( # Changed from .error to .debug
+            "MerakiEntity: Initializing for device S/N: %s, Name: %s",
             self._device_serial,
             self._device_name,
         )
@@ -198,8 +200,8 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
 
         # If we've reached here, it's either a physical device entity,
         # or an SSID entity that failed to link to an SSID device and is attempting fallback.
-        _LOGGER.debug(  # Changed from error to debug as this path is normal for physical devices
-            "MERAKI_DEVICE_NAMING_DEBUG: device_info resolving for physical device context: S/N %s",
+        _LOGGER.debug(
+            "MerakiEntity: device_info resolving for physical device context: S/N %s",
             self._device_serial,
         )
         # Get the raw device name (name from API or serial as fallback).
@@ -212,31 +214,20 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
             self.coordinator.device_name_format
         )  # Property on main coordinator
 
-        # Map the device model (e.g., "MR52", "MX67") to a general type (e.g., "Wireless", "Appliance").
-        device_type_mapped = map_meraki_model_to_device_type(self._device_model or "")
-
-        _LOGGER.debug(
-            "MERAKI_DEBUG_ENTITY: Device Info for %s: Raw Name='%s', Model='%s', FormatOption='%s', MappedType='%s'",
-            self._device_serial,  # This must be valid if we reached here for a physical device
-            device_name_raw,
-            self._device_model,
-            device_name_format_option,
-            device_type_mapped,
+        # Use the new helper function to format the device name
+        formatted_device_name = format_device_name(
+            device_name_raw=device_name_raw,
+            device_model=self._device_model or "",
+            device_name_format_option=device_name_format_option,
+            is_org_device=False,  # This is for physical devices
         )
 
-        # Apply name formatting based on user's preference.
-        formatted_device_name = device_name_raw
-        if device_name_format_option == "prefix" and device_type_mapped != "Unknown":
-            # Example: "[Wireless] My AP Name"
-            formatted_device_name = f"[{device_type_mapped}] {device_name_raw}"
-        elif device_name_format_option == "suffix" and device_type_mapped != "Unknown":
-            # Example: "My AP Name [Wireless]"
-            formatted_device_name = f"{device_name_raw} [{device_type_mapped}]"
-        # If format is "omitted" or device_type_mapped is "Unknown", raw name is used.
-
         _LOGGER.debug(
-            "MERAKI_DEBUG_ENTITY: Device Info for %s: Final Formatted Name='%s'",
+            "MerakiEntity: Device Info for S/N %s: Raw Name='%s', Model='%s', FormatOption='%s', Final Formatted Name='%s'",
             self._device_serial,
+            device_name_raw,
+            self._device_model or "",
+            device_name_format_option,
             formatted_device_name,
         )
 
@@ -251,11 +242,7 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
             model=str(self._device_model or "Unknown"),
             sw_version=str(self._device_firmware or ""),
         )
-        _LOGGER.debug(
-            "MERAKI_DEBUG_ENTITY: Device Info for %s: Returning DeviceInfo object: %s",
-            self._device_serial,
-            str(device_info_to_return),
-        )
+        # Removed verbose logging of the full DeviceInfo object
         return device_info_to_return
 
     # Example of how an entity might access its specific data from the
