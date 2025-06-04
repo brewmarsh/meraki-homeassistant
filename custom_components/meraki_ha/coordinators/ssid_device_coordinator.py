@@ -125,7 +125,8 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 _LOGGER.warning(f"Enabled SSID summary data missing networkId or number, cannot fetch details or process: {ssid_summary_data}")
                 continue
 
-            unique_ssid_id = f"{DOMAIN}_{network_id}_ssid_{ssid_number}"
+            # Standardized unique_ssid_id to match MerakiEntity expectations
+            unique_ssid_id = f"{network_id}_{ssid_number}"
 
             try:
                 _LOGGER.debug(f"Fetching details for SSID {ssid_name_summary} ({network_id}/{ssid_number})")
@@ -201,11 +202,11 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                     name=formatted_ssid_name, # Use the formatted name
                     model="Wireless SSID", # Model type for SSID devices
                     manufacturer="Cisco Meraki",
-                    # Link to the main integration config entry device
-                    via_device=(DOMAIN, self.config_entry.entry_id), 
+                    # Link to the parent Network device
+                    via_device=(DOMAIN, network_id),
                 )
                 _LOGGER.debug(
-                    f"Registered/Updated device for ENABLED SSID: {formatted_ssid_name} ({unique_ssid_id}). "
+                    f"Registered/Updated device for ENABLED SSID: {formatted_ssid_name} (ID: {unique_ssid_id}, Network Parent: {network_id}). "
                     f"Format: {device_name_format}, Channel: {merged_ssid_data['channel']}, Clients: {merged_ssid_data['client_count']}. "
                     f"Full Merged Data (subset): {{name: {merged_ssid_data.get('name')}, enabled: {merged_ssid_data.get('enabled')}}}"
                 )

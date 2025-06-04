@@ -61,6 +61,13 @@ class MerakiDataProcessor:
             'model', 'networkId', 'tags', 'connected_clients_count',
             and 'radio_settings'.
         """
+        if not isinstance(devices, list):
+            _LOGGER.warning(
+                "Device data is not a list as expected: %s. Returning empty list.",
+                type(devices),
+            )
+            return []
+
         _LOGGER.debug("Processing %d devices.", len(devices))
         processed_devices_list: List[Dict[str, Any]] = []
 
