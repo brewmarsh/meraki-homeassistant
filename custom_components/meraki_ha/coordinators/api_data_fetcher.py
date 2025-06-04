@@ -712,25 +712,45 @@ class MerakiApiDataFetcher:
 
         device_serial_to_type_map = {}
         if devices:
+            # Ensure 'devices' here is the comprehensive list
             for device in devices:
                 serial = device.get("serial")
-                model = device.get("model")
-                if serial and model:
+                model = device.get("model", "") # Ensure model is a string
+                if serial and model: # model can be empty string but map_meraki_model_to_device_type should handle it
                     device_serial_to_type_map[serial] = (
                         map_meraki_model_to_device_type(model)
                     )
 
-        for client in all_clients:
-            if client.get("ssid"):  # Check if client has an SSID and it's not None/empty
-                clients_on_ssids += 1
+        _LOGGER.debug(f"MERAKI_CLIENT_COUNT_DEBUG: Device Serial-to-Type Map: {device_serial_to_type_map}")
+        _LOGGER.debug(f"MERAKI_CLIENT_COUNT_DEBUG: Total raw clients fetched: {len(all_clients)}")
 
+        for client in all_clients:
+            _LOGGER.debug(f"MERAKI_CLIENT_COUNT_DEBUG: Processing client: {client.get('mac')} (Description: {client.get('description')}, IP: {client.get('ip')}, SSID: {client.get('ssid')}, AP Serial: {client.get('ap_serial')})")
+
+            # client_counted_for_wireless_or_appliance = False # Variable not used, can be removed if not intended for future use
+
+            # Count clients on SSIDs
+            if client.get("ssid"):  # Check if client is associated with an SSID
+                clients_on_ssids += 1
+                _LOGGER.debug(f"MERAKI_CLIENT_COUNT_DEBUG: Client {client.get('mac')} counted for SSID: {client.get('ssid')}. New SSID count: {clients_on_ssids}")
+
+            # Count clients on Wireless APs or Appliances
             ap_serial = client.get("ap_serial")
             if ap_serial:
                 device_type = device_serial_to_type_map.get(ap_serial)
+                _LOGGER.debug(f"MERAKI_CLIENT_COUNT_DEBUG: Client {client.get('mac')} connected to AP Serial: {ap_serial}, mapped device type: {device_type}")
                 if device_type == "Wireless":
                     clients_on_wireless += 1
+                    # client_counted_for_wireless_or_appliance = True
+                    _LOGGER.debug(f"MERAKI_CLIENT_COUNT_DEBUG: Client {client.get('mac')} counted for Wireless. New Wireless count: {clients_on_wireless}")
                 elif device_type == "Appliance":
                     clients_on_appliances += 1
+                    # client_counted_for_wireless_or_appliance = True
+                    _LOGGER.debug(f"MERAKI_CLIENT_COUNT_DEBUG: Client {client.get('mac')} counted for Appliance. New Appliance count: {clients_on_appliances}")
+            else:
+                 _LOGGER.debug(f"MERAKI_CLIENT_COUNT_DEBUG: Client {client.get('mac')} has no ap_serial. Cannot categorize as Wireless/Appliance based on AP.")
+
+        _LOGGER.debug(f"MERAKI_CLIENT_COUNT_DEBUG: Final counts - SSID: {clients_on_ssids}, Wireless: {clients_on_wireless}, Appliance: {clients_on_appliances}")
 
         # Step 9: Return all fetched and processed data.
         # This dictionary forms the basis for what coordinators and entities will use.
