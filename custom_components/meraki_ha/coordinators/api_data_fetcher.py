@@ -316,9 +316,7 @@ class MerakiApiDataFetcher:
         additional_device_detail_tasks = []
         if devices:  # Only proceed if there are devices.
             for device in devices:  # Iterate through the list of devices.
-                device_model_upper = device.get(
-                    "model", ""
-                ).upper()  # Get model, convert to uppercase for reliable matching.
+                device_model = device.get("model", "") # No .upper() here yet
                 serial = device.get("serial")
 
                 if (
@@ -331,25 +329,27 @@ class MerakiApiDataFetcher:
                     )
                     continue
 
-                if device_model_upper.startswith("MR"):
-                    # For MR devices (wireless access points), fetch client count and radio settings.
+                # Determine device type using the utility function
+                generic_device_type = map_meraki_model_to_device_type(device_model)
+                _LOGGER.debug(f"Device {serial} (Model: {device_model}) mapped to generic type: {generic_device_type}")
+
+                # Call _async_get_mr_device_details if it's a "Wireless" device
+                if generic_device_type == "Wireless":
+                    _LOGGER.debug(f"Device {serial} is Wireless, scheduling _async_get_mr_device_details.")
                     additional_device_detail_tasks.append(
-                        self._async_get_mr_device_details(
-                            device, serial
-                        )  # Schedule task.
+                        self._async_get_mr_device_details(device, serial)
                     )
-                elif device_model_upper.startswith("MX"):
-                    # For MX devices (security appliances), fetch uplink and LAN DNS settings.
-                    # These provide details about WAN connectivity and local network DNS.
+                elif device_model.upper().startswith("MX"): # Keep existing MX logic as is
+                    _LOGGER.debug(f"Device {serial} is MX, scheduling MX detail tasks.")
                     additional_device_detail_tasks.append(
                         self._async_get_mx_device_uplink_settings(
                             device, self.meraki_client
-                        )  # Schedule task.
+                        )
                     )
                     additional_device_detail_tasks.append(
                         self._async_get_mx_lan_dns_settings(
                             device, self.meraki_client
-                        )  # Schedule task.
+                        )
                     )
 
         if additional_device_detail_tasks:  # If there are tasks to run.
