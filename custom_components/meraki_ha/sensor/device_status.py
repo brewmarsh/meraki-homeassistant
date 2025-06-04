@@ -27,7 +27,7 @@ class MerakiDeviceStatusSensor(
 ):
     """Representation of a Meraki Device Status sensor.
 
-    This sensor displays the actual reported status of the Meraki device 
+    This sensor displays the actual reported status of the Meraki device
     (e.g., online, offline, alerting).
     It also provides additional device details as state attributes and an
     icon based on the device model.
@@ -37,12 +37,13 @@ class MerakiDeviceStatusSensor(
         _attr_unique_id: The unique ID of the sensor.
         _device_serial: Serial number of the device this sensor represents. Used for lookups.
     """
-    _attr_has_entity_name = True # Use the device name as the base for the entity name
+
+    _attr_has_entity_name = True  # Use the device name as the base for the entity name
 
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: Dict[str, Any], # Initial device_data snapshot
+        device_data: Dict[str, Any],  # Initial device_data snapshot
     ) -> None:
         """Initialize the Meraki Device Status sensor.
 
@@ -52,7 +53,7 @@ class MerakiDeviceStatusSensor(
                          (e.g., name, serial, model, firmware, productType).
         """
         super().__init__(coordinator)
-        self._device_serial: str = device_data["serial"] # Serial is mandatory
+        self._device_serial: str = device_data["serial"]  # Serial is mandatory
 
         # Set up unique ID
         self._attr_unique_id = f"{self._device_serial}_device_status"
@@ -65,19 +66,19 @@ class MerakiDeviceStatusSensor(
             # No other fields like name, model, manufacturer, sw_version.
             # These should be inherited from the device entry already created by MerakiDataUpdateCoordinator.
         )
-        
+
         # Name of the sensor itself (e.g., "Device Name Status")
         # self.entity_id will be sensor.device_name_status
         # _attr_name is not explicitly set, letting has_entity_name and device name work.
         # If has_entity_name is False or more control is needed:
         # self._attr_name = f"{device_name_for_registry} Status"
 
-
         # Initial update of state and attributes
         self._update_sensor_data()
         _LOGGER.debug(
-            "MerakiDeviceStatusSensor Initialized for %s (Serial: %s)", 
-            device_name_for_registry, self._device_serial
+            "MerakiDeviceStatusSensor Initialized for %s (Serial: %s)",
+            device_name_for_registry,
+            self._device_serial,
         )
 
     def _get_current_device_data(self) -> Optional[Dict[str, Any]]:
@@ -88,7 +89,8 @@ class MerakiDeviceStatusSensor(
                     return dev_data
         _LOGGER.debug(
             "Device data for serial '%s' not found in coordinator for sensor '%s'.",
-            self._device_serial, self.unique_id
+            self._device_serial,
+            self.unique_id,
         )
         return None
 
@@ -97,17 +99,17 @@ class MerakiDeviceStatusSensor(
         current_device_data = self._get_current_device_data()
 
         if not current_device_data:
-            self._attr_native_value = None # Or "unknown" if preferred when unavailable
-            self._attr_icon = "mdi:help-rhombus" # Icon for unknown/unavailable state
+            self._attr_native_value = None  # Or "unknown" if preferred when unavailable
+            self._attr_icon = "mdi:help-rhombus"  # Icon for unknown/unavailable state
             # Keep basic attributes if device data disappears, or clear them
             # For now, we'll let them be stale if device disappears from data.
-            # Or, to clear: self._attr_extra_state_attributes = {} 
+            # Or, to clear: self._attr_extra_state_attributes = {}
             return
 
         # This is the critical log line to ensure:
         _LOGGER.debug(
             "MERAKI_DEBUG_STATUS: Device %s raw status from coordinator data: %s (type: %s)",
-            self._device_serial, # Corrected: Use instance attribute
+            self._device_serial,  # Corrected: Use instance attribute
             current_device_data.get("status"),
             type(current_device_data.get("status")).__name__,
         )
@@ -116,31 +118,35 @@ class MerakiDeviceStatusSensor(
         if isinstance(device_status, str):
             self._attr_native_value = device_status.lower()
         else:
-            self._attr_native_value = "unknown" # Default if status is not a string
+            self._attr_native_value = "unknown"  # Default if status is not a string
 
         # Icon logic based on model
         model: Optional[str] = current_device_data.get("model")
         if isinstance(model, str):
             model_upper = model.upper()
-            if model_upper.startswith("MR"): # Wireless AP
+            if model_upper.startswith("MR"):  # Wireless AP
                 self._attr_icon = "mdi:access-point-network"
-            elif model_upper.startswith("MX"): # Security Appliance
+            elif model_upper.startswith("MX"):  # Security Appliance
                 self._attr_icon = "mdi:router-network"
-            elif model_upper.startswith("MS"): # Switch
+            elif model_upper.startswith("MS"):  # Switch
                 self._attr_icon = "mdi:switch"
-            elif model_upper.startswith("MV"): # Camera
+            elif model_upper.startswith("MV"):  # Camera
                 self._attr_icon = "mdi:cctv"
-            elif model_upper.startswith("MT"): # Sensor
-                self._attr_icon = "mdi:thermometer-lines" 
-            else: # Default for other models
+            elif model_upper.startswith("MT"):  # Sensor
+                self._attr_icon = "mdi:thermometer-lines"
+            else:  # Default for other models
                 self._attr_icon = "mdi:help-network-outline"
         else:
-            self._attr_icon = "mdi:help-network-outline" # Default if model is not a string
+            self._attr_icon = (
+                "mdi:help-network-outline"  # Default if model is not a string
+            )
 
         # Populate attributes from the latest device data
         self._attr_extra_state_attributes = {
             "model": current_device_data.get("model"),
-            "serial_number": current_device_data.get("serial"), # Should match self._device_serial
+            "serial_number": current_device_data.get(
+                "serial"
+            ),  # Should match self._device_serial
             "firmware_version": current_device_data.get("firmware"),
             "product_type": current_device_data.get("productType"),
             "mac_address": current_device_data.get("mac"),
@@ -166,9 +172,12 @@ class MerakiDeviceStatusSensor(
     def available(self) -> bool:
         """Return True if entity is available."""
         # Check basic coordinator availability
-        if not super().available: # Checks coordinator.last_update_success
+        if not super().available:  # Checks coordinator.last_update_success
             return False
         # Check if the specific device data is available in the coordinator's current data
         if self.coordinator.data and self.coordinator.data.get("devices"):
-            return any(dev.get("serial") == self._device_serial for dev in self.coordinator.data["devices"])
+            return any(
+                dev.get("serial") == self._device_serial
+                for dev in self.coordinator.data["devices"]
+            )
         return False

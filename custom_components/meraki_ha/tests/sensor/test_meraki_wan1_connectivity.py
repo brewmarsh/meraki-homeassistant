@@ -25,7 +25,7 @@ def mock_coordinator(hass: HomeAssistant, mock_meraki_client_instance):
         hass, client=mock_meraki_client_instance, org_id="test_org_id"
     )
     coordinator.data = {"devices": []}  # Initial empty data
-    coordinator.async_update_listeners = MagicMock() # Mock listeners
+    coordinator.async_update_listeners = MagicMock()  # Mock listeners
     return coordinator
 
 
@@ -60,7 +60,9 @@ async def test_wan1_sensor_initialization(
 
     assert sensor.unique_id == f"{sample_mx_device_data['serial']}_wan1_connectivity"
     assert sensor.name == "WAN 1 Connectivity"  # As _attr_name is set directly
-    assert sensor.device_info["identifiers"] == {(DOMAIN, sample_mx_device_data["serial"])}
+    assert sensor.device_info["identifiers"] == {
+        (DOMAIN, sample_mx_device_data["serial"])
+    }
     assert sensor.device_info["name"] == sample_mx_device_data["name"]
     assert sensor.device_info["model"] == sample_mx_device_data["model"]
     assert sensor.device_info["manufacturer"] == "Cisco Meraki"
@@ -70,17 +72,21 @@ async def test_wan1_state_connected(
     hass: HomeAssistant, mock_coordinator, sample_mx_device_data
 ):
     """Test sensor state when WAN1 is connected."""
-    device_data_connected = {**sample_mx_device_data, "wan1Ip": "1.2.3.4", "status": "online"}
+    device_data_connected = {
+        **sample_mx_device_data,
+        "wan1Ip": "1.2.3.4",
+        "status": "online",
+    }
     mock_coordinator.data = {"devices": [device_data_connected]}
 
     sensor = MerakiWAN1ConnectivitySensor(mock_coordinator, sample_mx_device_data)
     sensor.hass = hass
-    
+
     # Manually trigger the first update or rely on the callback if it's set up
     # In a real HA environment, add_entity schedules _handle_coordinator_update
     # For testing, we can call it directly after attaching hass.
-    await sensor.async_added_to_hass() # This should schedule the first update via the coordinator
-    mock_coordinator.async_update_listeners() # Simulate coordinator calling listeners
+    await sensor.async_added_to_hass()  # This should schedule the first update via the coordinator
+    mock_coordinator.async_update_listeners()  # Simulate coordinator calling listeners
 
     assert sensor.native_value == STATE_CONNECTED
     assert sensor.extra_state_attributes["wan1_ip_address"] == "1.2.3.4"
@@ -106,7 +112,11 @@ async def test_wan1_state_disconnected_device_offline(
     hass: HomeAssistant, mock_coordinator, sample_mx_device_data
 ):
     """Test sensor state when WAN1 is disconnected (device offline)."""
-    device_data_offline = {**sample_mx_device_data, "wan1Ip": "1.2.3.4", "status": "offline"}
+    device_data_offline = {
+        **sample_mx_device_data,
+        "wan1Ip": "1.2.3.4",
+        "status": "offline",
+    }
     mock_coordinator.data = {"devices": [device_data_offline]}
 
     sensor = MerakiWAN1ConnectivitySensor(mock_coordinator, sample_mx_device_data)
@@ -128,7 +138,7 @@ async def test_wan1_state_unknown_device_missing(
     sensor.hass = hass
     await sensor.async_added_to_hass()
     mock_coordinator.async_update_listeners()
-    
+
     assert sensor.native_value == STATE_UNKNOWN
     assert sensor.extra_state_attributes == {}
 
@@ -150,13 +160,17 @@ async def test_wan1_availability(
 
     # 3. Coordinator has 'devices' list, but our device is not in it
     type(mock_coordinator).data = PropertyMock(return_value={"devices": []})
-    assert not sensor.available # This relies on _update_state having run to see device is missing
+    assert (
+        not sensor.available
+    )  # This relies on _update_state having run to see device is missing
 
     # 4. Device is present
-    type(mock_coordinator).data = PropertyMock(return_value={"devices": [sample_mx_device_data]})
+    type(mock_coordinator).data = PropertyMock(
+        return_value={"devices": [sample_mx_device_data]}
+    )
     # Call update to reflect new data
     sensor._handle_coordinator_update()
-    await hass.async_block_till_done() # Allow state machine to catch up
+    await hass.async_block_till_done()  # Allow state machine to catch up
     assert sensor.available
 
 
@@ -171,7 +185,7 @@ async def test_wan1_coordinator_update(
     sensor = MerakiWAN1ConnectivitySensor(mock_coordinator, sample_mx_device_data)
     sensor.hass = hass
     await sensor.async_added_to_hass()
-    mock_coordinator.async_update_listeners() # Initial update
+    mock_coordinator.async_update_listeners()  # Initial update
 
     assert sensor.native_value == STATE_DISCONNECTED
     assert sensor.extra_state_attributes["wan1_ip_address"] == "N/A"
@@ -179,8 +193,10 @@ async def test_wan1_coordinator_update(
     # Simulate coordinator updating with new data: connected
     device_updated = {**sample_mx_device_data, "wan1Ip": "5.6.7.8", "status": "online"}
     # Update coordinator's data property directly for next call
-    type(mock_coordinator).data = PropertyMock(return_value={"devices": [device_updated]})
-    
+    type(mock_coordinator).data = PropertyMock(
+        return_value={"devices": [device_updated]}
+    )
+
     # Call the update handler
     sensor._handle_coordinator_update()
     await hass.async_block_till_done()
@@ -190,7 +206,9 @@ async def test_wan1_coordinator_update(
 
     # Simulate coordinator updating with device offline
     device_offline = {**sample_mx_device_data, "wan1Ip": "5.6.7.8", "status": "offline"}
-    type(mock_coordinator).data = PropertyMock(return_value={"devices": [device_offline]})
+    type(mock_coordinator).data = PropertyMock(
+        return_value={"devices": [device_offline]}
+    )
     sensor._handle_coordinator_update()
     await hass.async_block_till_done()
 
@@ -201,7 +219,7 @@ async def test_wan1_coordinator_update(
     type(mock_coordinator).data = PropertyMock(return_value={"devices": []})
     sensor._handle_coordinator_update()
     await hass.async_block_till_done()
-    
+
     assert sensor.native_value == STATE_UNKNOWN
     assert sensor.extra_state_attributes == {}
-    assert not sensor.available # availability should also reflect this
+    assert not sensor.available  # availability should also reflect this

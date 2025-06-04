@@ -60,13 +60,13 @@ class MerakiWAN1ConnectivitySensor(
                 if device.get("serial") == self._device_serial:
                     current_device_data = device
                     break
-        
+
         if not current_device_data:
             self._attr_native_value = STATE_UNKNOWN
             self._attr_extra_state_attributes = {}
             _LOGGER.debug(
                 "Device %s not found in coordinator data for WAN1 connectivity sensor.",
-                self._device_serial
+                self._device_serial,
             )
             return
 
@@ -78,16 +78,17 @@ class MerakiWAN1ConnectivitySensor(
             self._attr_native_value = STATE_CONNECTED
         else:
             self._attr_native_value = STATE_DISCONNECTED
-        
-        self._attr_extra_state_attributes = {"wan1_ip_address": wan1_ip if wan1_ip else "N/A"}
+
+        self._attr_extra_state_attributes = {
+            "wan1_ip_address": wan1_ip if wan1_ip else "N/A"
+        }
         _LOGGER.debug(
             "WAN1 Sensor update for %s: wan1_ip=%s, device_status=%s, state=%s",
             self._device_serial,
             wan1_ip,
             device_status,
-            self._attr_native_value
+            self._attr_native_value,
         )
-
 
     @callback
     def _handle_coordinator_update(self) -> None:

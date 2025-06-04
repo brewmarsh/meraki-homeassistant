@@ -6,7 +6,7 @@ MX security appliance.
 """
 
 import logging
-from typing import Any, Dict, Optional, List  # Added Optional, List
+from typing import Any, Dict, Optional # List removed
 
 # SensorStateClass not needed if state is string
 from homeassistant.components.sensor import SensorEntity
@@ -55,16 +55,18 @@ class MerakiUplinkStatusSensor(
         # Store the initial device_data to set up unique_id, name, etc.
         # This data might be stale for the first state update, but _handle_coordinator_update
         # will refresh it from the coordinator.
-        self._initial_device_data: Dict[str, Any] = device_data 
-        
+        self._initial_device_data: Dict[str, Any] = device_data
+
         device_name = self._initial_device_data.get(
             "name", self._initial_device_data.get("serial", "Unknown Device")
         )
-        self._device_serial = self._initial_device_data.get("serial", "") # Store serial for updates
+        self._device_serial = self._initial_device_data.get(
+            "serial", ""
+        )  # Store serial for updates
 
         self._attr_name = f"{device_name} Uplink Status"
         self._attr_unique_id = f"{self._device_serial}_uplink_status"
-        
+
         # Initial attributes, will be expanded in _update_sensor_state
         self._attr_extra_state_attributes: Dict[str, Any] = {
             "model": self._initial_device_data.get("model"),
@@ -73,16 +75,20 @@ class MerakiUplinkStatusSensor(
         }
 
         # Set initial state by calling the update method
-        self._update_sensor_state() 
+        self._update_sensor_state()
         _LOGGER.debug(
             "MerakiUplinkStatusSensor Initialized: Name: %s, Unique ID: %s, Initial Device Data (subset): %s",
-            self._attr_name, self._attr_unique_id,
-            {k: self._initial_device_data.get(k) for k in ['name', 'serial', 'status', 'publicIp', 'wan1Ip', 'wan2Ip']}
+            self._attr_name,
+            self._attr_unique_id,
+            {
+                k: self._initial_device_data.get(k)
+                for k in ["name", "serial", "status", "publicIp", "wan1Ip", "wan2Ip"]
+            },
         )
 
     def _update_sensor_state(self) -> None:
         """Update sensor state and attributes from coordinator data."""
-        
+
         current_device_info: Optional[Dict[str, Any]] = None
         # Find this device's current data in the coordinator's device list
         if self.coordinator.data and self.coordinator.data.get("devices"):
@@ -90,16 +96,17 @@ class MerakiUplinkStatusSensor(
                 if dev_data.get("serial") == self._device_serial:
                     current_device_info = dev_data
                     break
-        
+
         if not current_device_info:
             _LOGGER.warning(
                 "Uplink data for device '%s' (Serial: %s) not found in coordinator. Setting state to unavailable.",
-                self._attr_name, self._device_serial
+                self._attr_name,
+                self._device_serial,
             )
             self._attr_native_value = STATE_UNAVAILABLE_UPLINK
-            self._attr_extra_state_attributes.update({
-                "wan1_ip": None, "wan2_ip": None, "public_ip": None
-            })
+            self._attr_extra_state_attributes.update(
+                {"wan1_ip": None, "wan2_ip": None, "public_ip": None}
+            )
             return
 
         # Update state based on the device's overall status
@@ -108,30 +115,33 @@ class MerakiUplinkStatusSensor(
             self._attr_native_value = "Online"
         elif device_status in ["offline", "dormant"]:
             self._attr_native_value = "Offline"
-        else: # e.g., "alerting", "connecting"
+        else:  # e.g., "alerting", "connecting"
             self._attr_native_value = device_status.capitalize()
 
         # Update attributes
         # Start with base attributes that might have been in initial_device_data but need refresh
         current_attributes = {
             "model": current_device_info.get("model"),
-            "serial_number": self._device_serial, # Serial doesn't change
+            "serial_number": self._device_serial,  # Serial doesn't change
             "firmware_version": current_device_info.get("firmware"),
             "wan1_ip": current_device_info.get("wan1Ip"),
             "wan2_ip": current_device_info.get("wan2Ip"),
             "public_ip": current_device_info.get("publicIp"),
-            "lan_ip": current_device_info.get("lanIp"), # Merged from status
+            "lan_ip": current_device_info.get("lanIp"),  # Merged from status
             "tags": current_device_info.get("tags", []),
             "network_id": current_device_info.get("networkId"),
         }
-        
+
         self._attr_extra_state_attributes = {
             k: v for k, v in current_attributes.items() if v is not None
         }
         _LOGGER.debug(
             "Uplink Sensor Updated: %s, State: %s, WAN1: %s, WAN2: %s, PublicIP: %s",
-            self._attr_name, self._attr_native_value, 
-            current_attributes.get("wan1_ip"), current_attributes.get("wan2_ip"), current_attributes.get("public_ip")
+            self._attr_name,
+            self._attr_native_value,
+            current_attributes.get("wan1_ip"),
+            current_attributes.get("wan2_ip"),
+            current_attributes.get("public_ip"),
         )
 
     @callback

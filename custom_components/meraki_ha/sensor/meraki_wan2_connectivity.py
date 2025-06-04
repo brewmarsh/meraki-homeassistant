@@ -60,13 +60,13 @@ class MerakiWAN2ConnectivitySensor(
                 if device.get("serial") == self._device_serial:
                     current_device_data = device
                     break
-        
+
         if not current_device_data:
             self._attr_native_value = STATE_UNKNOWN
             self._attr_extra_state_attributes = {}
             _LOGGER.debug(
                 "Device %s not found in coordinator data for WAN2 connectivity sensor.",
-                self._device_serial
+                self._device_serial,
             )
             return
 
@@ -81,14 +81,16 @@ class MerakiWAN2ConnectivitySensor(
             # doesn't strictly mean 'Disconnected' in a fault sense,
             # but from a connectivity perspective through WAN2, it is.
             self._attr_native_value = STATE_DISCONNECTED
-        
-        self._attr_extra_state_attributes = {"wan2_ip_address": wan2_ip if wan2_ip else "N/A"}
+
+        self._attr_extra_state_attributes = {
+            "wan2_ip_address": wan2_ip if wan2_ip else "N/A"
+        }
         _LOGGER.debug(
             "WAN2 Sensor update for %s: wan2_ip=%s, device_status=%s, state=%s",
             self._device_serial,
             wan2_ip,
             device_status,
-            self._attr_native_value
+            self._attr_native_value,
         )
 
     @callback

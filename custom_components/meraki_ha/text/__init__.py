@@ -1,7 +1,6 @@
 # custom_components/meraki_ha/text/__init__.py
 """Set up Meraki text entities."""
-import asyncio
-import logging
+import logging # asyncio removed
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -11,6 +10,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .meraki_ssid_name import async_setup_entry as ssid_name_async_setup_entry
 
 _LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -25,4 +25,4 @@ async def async_setup_entry(
     await ssid_name_async_setup_entry(hass, config_entry, async_add_entities)
 
     _LOGGER.info("Finished setting up Meraki text platform.")
-    return True # Must return True if setup is successful
+    return True  # Must return True if setup is successful

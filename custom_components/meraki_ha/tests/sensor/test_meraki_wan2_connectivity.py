@@ -38,8 +38,8 @@ def sample_mx_device_data():
         "model": "MX64",
         "networkId": "N_12345",
         "mac": "00:11:22:33:44:55",
-        "wan1Ip": "1.2.3.4", # Assume WAN1 is up for these tests unless specified
-        "wan2Ip": None, # Default to None for WAN2
+        "wan1Ip": "1.2.3.4",  # Assume WAN1 is up for these tests unless specified
+        "wan2Ip": None,  # Default to None for WAN2
         "lanIp": "192.168.1.1",
         "status": "online",
         "tags": ["test", "mx"],
@@ -60,14 +60,20 @@ async def test_wan2_sensor_initialization(
 
     assert sensor.unique_id == f"{sample_mx_device_data['serial']}_wan2_connectivity"
     assert sensor.name == "WAN 2 Connectivity"
-    assert sensor.device_info["identifiers"] == {(DOMAIN, sample_mx_device_data["serial"])}
+    assert sensor.device_info["identifiers"] == {
+        (DOMAIN, sample_mx_device_data["serial"])
+    }
 
 
 async def test_wan2_state_connected(
     hass: HomeAssistant, mock_coordinator, sample_mx_device_data
 ):
     """Test sensor state when WAN2 is connected."""
-    device_data_connected = {**sample_mx_device_data, "wan2Ip": "5.6.7.8", "status": "online"}
+    device_data_connected = {
+        **sample_mx_device_data,
+        "wan2Ip": "5.6.7.8",
+        "status": "online",
+    }
     mock_coordinator.data = {"devices": [device_data_connected]}
 
     sensor = MerakiWAN2ConnectivitySensor(mock_coordinator, sample_mx_device_data)
@@ -99,7 +105,11 @@ async def test_wan2_state_disconnected_device_offline(
     hass: HomeAssistant, mock_coordinator, sample_mx_device_data
 ):
     """Test sensor state when WAN2 is disconnected (device offline)."""
-    device_data_offline = {**sample_mx_device_data, "wan2Ip": "5.6.7.8", "status": "offline"}
+    device_data_offline = {
+        **sample_mx_device_data,
+        "wan2Ip": "5.6.7.8",
+        "status": "offline",
+    }
     mock_coordinator.data = {"devices": [device_data_offline]}
 
     sensor = MerakiWAN2ConnectivitySensor(mock_coordinator, sample_mx_device_data)
@@ -121,7 +131,7 @@ async def test_wan2_state_unknown_device_missing(
     sensor.hass = hass
     await sensor.async_added_to_hass()
     mock_coordinator.async_update_listeners()
-    
+
     assert sensor.native_value == STATE_UNKNOWN
     assert sensor.extra_state_attributes == {}
 
@@ -142,8 +152,10 @@ async def test_wan2_availability(
     type(mock_coordinator).data = PropertyMock(return_value={"devices": []})
     assert not sensor.available
 
-    type(mock_coordinator).data = PropertyMock(return_value={"devices": [sample_mx_device_data]})
-    sensor._handle_coordinator_update() # update based on new mock data
+    type(mock_coordinator).data = PropertyMock(
+        return_value={"devices": [sample_mx_device_data]}
+    )
+    sensor._handle_coordinator_update()  # update based on new mock data
     await hass.async_block_till_done()
     assert sensor.available
 
@@ -162,19 +174,31 @@ async def test_wan2_coordinator_update(
 
     assert sensor.native_value == STATE_DISCONNECTED
 
-    device_updated = {**sample_mx_device_data, "wan2Ip": "9.10.11.12", "status": "online"}
-    type(mock_coordinator).data = PropertyMock(return_value={"devices": [device_updated]})
+    device_updated = {
+        **sample_mx_device_data,
+        "wan2Ip": "9.10.11.12",
+        "status": "online",
+    }
+    type(mock_coordinator).data = PropertyMock(
+        return_value={"devices": [device_updated]}
+    )
     sensor._handle_coordinator_update()
     await hass.async_block_till_done()
 
     assert sensor.native_value == STATE_CONNECTED
     assert sensor.extra_state_attributes["wan2_ip_address"] == "9.10.11.12"
 
-    device_offline = {**sample_mx_device_data, "wan2Ip": "9.10.11.12", "status": "offline"}
-    type(mock_coordinator).data = PropertyMock(return_value={"devices": [device_offline]})
+    device_offline = {
+        **sample_mx_device_data,
+        "wan2Ip": "9.10.11.12",
+        "status": "offline",
+    }
+    type(mock_coordinator).data = PropertyMock(
+        return_value={"devices": [device_offline]}
+    )
     sensor._handle_coordinator_update()
     await hass.async_block_till_done()
-    
+
     assert sensor.native_value == STATE_DISCONNECTED
 
     type(mock_coordinator).data = PropertyMock(return_value={"devices": []})

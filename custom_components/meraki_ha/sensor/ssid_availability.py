@@ -24,7 +24,9 @@ from ..const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDAvailabilitySensor(CoordinatorEntity[SSIDDeviceCoordinator], SensorEntity):
+class MerakiSSIDAvailabilitySensor(
+    CoordinatorEntity[SSIDDeviceCoordinator], SensorEntity
+):
     """Represents a Meraki SSID Availability sensor.
 
     This sensor entity reflects the 'enabled' state of a specific SSID.
@@ -44,30 +46,34 @@ class MerakiSSIDAvailabilitySensor(CoordinatorEntity[SSIDDeviceCoordinator], Sen
                        Expected to have 'unique_id', 'name', and 'enabled'.
         """
         super().__init__(coordinator)
-        self._ssid_data = ssid_data # Store the initial data for unique_id and name setup
+        self._ssid_data = (
+            ssid_data  # Store the initial data for unique_id and name setup
+        )
 
         ssid_name = self._ssid_data.get("name", "Unknown SSID")
         self._attr_name = f"{ssid_name} Availability"
-        self._attr_unique_id = f"{self._ssid_data['unique_id']}_availability" # Use unique_id from ssid_data
+        self._attr_unique_id = f"{self._ssid_data['unique_id']}_availability"  # Use unique_id from ssid_data
 
         # Link to the SSID HA Device
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._ssid_data["unique_id"])},
-            name=ssid_name, # Name of the parent SSID HA device
-            model="Wireless SSID", # Model of the parent SSID HA device
+            name=ssid_name,  # Name of the parent SSID HA device
+            model="Wireless SSID",  # Model of the parent SSID HA device
             manufacturer="Cisco Meraki",
             # via_device can link to the integration config entry if desired,
             # but identifiers link is primary for entity-to-device.
             # The SSID HA device itself is linked to config_entry.
         )
-        
+
         # Set initial state
         self._update_sensor_state()
         _LOGGER.debug(
             "MerakiSSIDAvailabilitySensor Initialized: Name: %s, Unique ID: %s, SSID Data: %s",
             self._attr_name,
             self._attr_unique_id,
-            {key: ssid_data.get(key) for key in ['name', 'unique_id', 'enabled']} # Log subset
+            {
+                key: ssid_data.get(key) for key in ["name", "unique_id", "enabled"]
+            },  # Log subset
         )
 
     def _update_sensor_state(self) -> None:
@@ -77,7 +83,7 @@ class MerakiSSIDAvailabilitySensor(CoordinatorEntity[SSIDDeviceCoordinator], Sen
         current_ssid_data = self.coordinator.data.get(self._ssid_data["unique_id"])
 
         if current_ssid_data:
-            self._ssid_data = current_ssid_data # Update internal data
+            self._ssid_data = current_ssid_data  # Update internal data
             is_enabled: Optional[bool] = self._ssid_data.get("enabled")
             if isinstance(is_enabled, bool):
                 self._attr_native_value = STATE_ON if is_enabled else STATE_OFF
@@ -93,7 +99,7 @@ class MerakiSSIDAvailabilitySensor(CoordinatorEntity[SSIDDeviceCoordinator], Sen
                 "SSID data for ID '%s' not found in coordinator. Setting availability to OFF.",
                 self._ssid_data.get("unique_id"),
             )
-            self._attr_native_value = STATE_OFF 
+            self._attr_native_value = STATE_OFF
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -105,4 +111,3 @@ class MerakiSSIDAvailabilitySensor(CoordinatorEntity[SSIDDeviceCoordinator], Sen
     def icon(self) -> str:
         """Return the icon of the sensor based on its state."""
         return "mdi:wifi" if self.native_value == STATE_ON else "mdi:wifi-off"
-

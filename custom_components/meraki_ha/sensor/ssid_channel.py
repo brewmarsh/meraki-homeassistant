@@ -6,7 +6,7 @@ specific Meraki SSID.
 """
 
 import logging
-from typing import Any, Dict, Optional, Union  # Added Optional, Union
+from typing import Any, Dict, Union # Optional removed
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.core import callback  # For coordinator updates
@@ -56,14 +56,16 @@ class MerakiSSIDChannelSensor(CoordinatorEntity[SSIDDeviceCoordinator], SensorEn
             model="Wireless SSID",
             manufacturer="Cisco Meraki",
         )
-        
+
         # Set initial state
         self._update_sensor_state()
         _LOGGER.debug(
             "MerakiSSIDChannelSensor Initialized: Name: %s, Unique ID: %s, SSID Data: %s",
             self._attr_name,
             self._attr_unique_id,
-            {key: ssid_data.get(key) for key in ['name', 'unique_id', 'channel']} # Log subset
+            {
+                key: ssid_data.get(key) for key in ["name", "unique_id", "channel"]
+            },  # Log subset
         )
 
     def _update_sensor_state(self) -> None:
@@ -71,20 +73,20 @@ class MerakiSSIDChannelSensor(CoordinatorEntity[SSIDDeviceCoordinator], SensorEn
         current_ssid_data = self.coordinator.data.get(self._ssid_data["unique_id"])
 
         if current_ssid_data:
-            self._ssid_data = current_ssid_data # Update internal data
+            self._ssid_data = current_ssid_data  # Update internal data
             # The 'channel' field is not standard in Meraki's getNetworkWirelessSsid output.
             # This field would need to be populated by SSIDDeviceCoordinator from another source
             # (e.g., AP radio settings or specific client details if this sensor means client's channel).
             # For now, we expect it might be in self._ssid_data if enriched by the coordinator.
             channel_value: Union[str, int, None] = self._ssid_data.get("channel")
-            
+
             if channel_value is not None:
                 self._attr_native_value = str(channel_value)
                 if isinstance(channel_value, (int, float)):
                     self._attr_state_class = SensorStateClass.MEASUREMENT
                 else:
                     # If channel can be "Auto" or include text like "(20MHz)"
-                    self._attr_state_class = None 
+                    self._attr_state_class = None
             else:
                 _LOGGER.debug(
                     "SSID '%s' (ID: %s) has no 'channel' information. Setting to None.",

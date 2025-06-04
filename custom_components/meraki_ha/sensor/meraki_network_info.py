@@ -1,7 +1,7 @@
 """Sensor for Meraki Device Network Information."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional # List removed
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import callback
@@ -58,13 +58,13 @@ class MerakiNetworkInfoSensor(
                 if device.get("serial") == self._device_serial:
                     current_device_data = device
                     break
-        
+
         if not current_device_data:
             self._attr_native_value = "Unknown"
             self._attr_extra_state_attributes = {}
             _LOGGER.debug(
                 "Device %s not found in coordinator data for network info sensor.",
-                self._device_serial
+                self._device_serial,
             )
             return
 
@@ -75,31 +75,39 @@ class MerakiNetworkInfoSensor(
             "hostname": current_device_data.get("name"),
             "serial_number": current_device_data.get("serial"),
             "model": current_device_data.get("model"),
-            "mac_address": current_device_data.get("mac"), # Added MAC address
+            "mac_address": current_device_data.get("mac"),  # Added MAC address
             "wan1_ip_address": current_device_data.get("wan1Ip"),
             "wan1_dns_servers": current_device_data.get("wan1_dns_servers", []),
             "wan2_ip_address": current_device_data.get("wan2Ip"),
             "wan2_dns_servers": current_device_data.get("wan2_dns_servers", []),
             "lan_ip_address": current_device_data.get("lanIp"),
             "public_ip_address": current_device_data.get("publicIp"),
-            "network_id": current_device_data.get("networkId"), # Added Network ID
+            "network_id": current_device_data.get("networkId"),  # Added Network ID
             "tags": current_device_data.get("tags", []),
-            "firmware_version": current_device_data.get("firmware"), # Added firmware from base device data
-            "firmware_up_to_date": current_device_data.get("firmware_up_to_date"), # From data fetcher
-            "latest_firmware_version": current_device_data.get("latest_firmware_version"), # From data fetcher
-            "lan_dns_settings": current_device_data.get("lan_dns_settings"), # LAN DNS settings from fetcher
+            "firmware_version": current_device_data.get(
+                "firmware"
+            ),  # Added firmware from base device data
+            "firmware_up_to_date": current_device_data.get(
+                "firmware_up_to_date"
+            ),  # From data fetcher
+            "latest_firmware_version": current_device_data.get(
+                "latest_firmware_version"
+            ),  # From data fetcher
+            "lan_dns_settings": current_device_data.get(
+                "lan_dns_settings"
+            ),  # LAN DNS settings from fetcher
         }
-        
+
         # Filter out attributes with None values to keep it clean
         self._attr_extra_state_attributes = {
             k: v for k, v in attributes.items() if v is not None
         }
-        
+
         _LOGGER.debug(
             "Network Info Sensor update for %s: state=%s, attributes=%s",
             self._device_serial,
             self._attr_native_value,
-            self._attr_extra_state_attributes
+            self._attr_extra_state_attributes,
         )
 
     @callback
