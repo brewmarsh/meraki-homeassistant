@@ -10,6 +10,8 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to commit and push changes
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python 3.9
@@ -19,8 +21,38 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 mypy pydocstyle
+          pip install flake8 mypy pydocstyle black
           pip install -r requirements_dev.txt
+      - name: Format with black
+        run: black custom_components/meraki_ha/ tests/
+      - name: Check for changes and commit/fail
+        run: |
+          # Configure git user for committing changes
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+          # Check for modified files
+          if ! git diff --quiet; then
+            echo "Code formatting changes detected by black."
+            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              echo "Running on a pull request. Committing changes..."
+              git commit -am "style: auto-format Python code with black"
+              # Use GITHUB_HEAD_REF for the branch name in PRs
+              git push origin HEAD:${{ github.head_ref }}
+              echo "Changes committed and pushed to PR branch."
+            elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main" ]]; then
+              echo "::error::Unformatted code was merged to main. Please format code before merging."
+              git diff # Output the diff for visibility in logs
+              exit 1
+            else
+              echo "Code changes detected, but not on a PR or push to main. Diff:"
+              git diff
+              # Optionally, consider this an error too, or just log it.
+              # For now, just log and don't fail for other event/ref combinations.
+            fi
+          else
+            echo "No formatting changes needed."
+          fi
       - name: Lint with flake8
         run: flake8 custom_components/meraki_ha/ tests/
       - name: Type check with mypy
