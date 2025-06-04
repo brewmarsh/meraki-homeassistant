@@ -118,8 +118,11 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         ssid_data: Optional[List[Dict[str, Any]]],
         # Raw network data from ApiDataFetcher
         network_data: Optional[List[Dict[str, Any]]],
-        client_data: Optional[List[Dict[str, Any]]],  # New parameter
-        network_client_counts: Optional[Dict[str, int]],  # New parameter
+        client_data: Optional[List[Dict[str, Any]]],
+        network_client_counts: Optional[Dict[str, int]],
+        clients_on_ssids: int = 0,
+        clients_on_appliances: int = 0,
+        clients_on_wireless: int = 0,
         # The `device_tags` parameter has been removed; tags are in
         # `device_data`.
     ) -> Dict[str, Any]:
@@ -178,12 +181,8 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                         if isinstance(device_data_item, dict) and device_data_item.get(
                             "model", ""
                         ).upper().startswith("MX"):
-                            _LOGGER.debug(
-                                "MERAKI_INFO_AGGREGATOR: ProductType for MX device %s (Serial: %s) in DataAggregationCoordinator (after processing): %s",
-                                device_data_item.get("name", "Unknown"),
-                                device_data_item.get("serial", "N/A"),
-                                device_data_item.get("productType"),
-                            )
+                            # Removed MERAKI_INFO_AGGREGATOR log line
+                            pass # No specific logging needed here after removal, loop continues
             else:
                 _LOGGER.warning(
                     "Device data is not a list as expected: %s. Proceeding with empty processed_devices.",
@@ -222,8 +221,11 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 # Contains device info, including tags and MR-specific details.
                 processed_ssids,
                 processed_networks,
-                client_data,  # New argument
-                network_client_counts,  # New argument
+                client_data,
+                network_client_counts,
+                clients_on_ssids=clients_on_ssids,
+                clients_on_appliances=clients_on_appliances,
+                clients_on_wireless=clients_on_wireless,
                 # The fourth `device_tags` argument was removed from
                 # DataAggregator.
             )

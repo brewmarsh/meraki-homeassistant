@@ -49,6 +49,9 @@ from ..sensor_registry import (
 # Import the factory function for SSID sensors
 from .ssid import create_ssid_sensors
 
+# Import the new organization-level sensor
+from .org_device_type_clients import MerakiOrgDeviceTypeClientsSensor
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -86,6 +89,35 @@ async def async_setup_entry(
 
     # Get the main data coordinator for physical devices
     main_coordinator: MerakiDataUpdateCoordinator = entry_data.get(DATA_COORDINATOR)
+
+    # --- Organization-level Sensor Setup ---
+    if main_coordinator and main_coordinator.data:
+        organization_id = main_coordinator.meraki_client.org_id
+        # Attempt to get org_name, fallback to org_id if not available
+        organization_name = getattr(main_coordinator.meraki_client, "org_name", organization_id)
+
+        try:
+            org_client_sensor = MerakiOrgDeviceTypeClientsSensor(
+                coordinator=main_coordinator,
+                organization_id=organization_id,
+                organization_name=organization_name,
+            )
+            entities.append(org_client_sensor)
+            _LOGGER.debug(
+                "Meraki HA: Added MerakiOrgDeviceTypeClientsSensor for organization %s",
+                organization_name,
+            )
+        except Exception as e:
+            _LOGGER.error(
+                "Meraki HA: Error adding MerakiOrgDeviceTypeClientsSensor for organization %s: %s",
+                organization_name,
+                e,
+            )
+    else:
+        _LOGGER.warning(
+            "Main coordinator not available or has no data; skipping organization-level sensors."
+        )
+
 
     # --- Physical Device Sensor Setup ---
     # Iterate through physical devices fetched by the main_coordinator

@@ -350,6 +350,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         processor = MerakiDataProcessor(self)  # Instantiate processor
         network_client_counts = processor.process_network_client_counts(clients_list)
 
+        # Extract the new organization-wide client counts from all_data
+        clients_on_ssids = all_data.get("clients_on_ssids", 0)
+        clients_on_appliances = all_data.get("clients_on_appliances", 0)
+        clients_on_wireless = all_data.get("clients_on_wireless", 0)
+
         # Step 4: Aggregate all data using the DataAggregationCoordinator.
         # This coordinator takes the raw lists of devices, SSIDs, and networks.
         try:
@@ -358,8 +363,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                     devices,  # Pass the comprehensive devices list.
                     ssids,  # Pass the SSIDs list.
                     networks,  # Pass the networks list.
-                    clients_list,  # New argument
-                    network_client_counts,  # New argument
+                    clients_list,
+                    network_client_counts,
+                    clients_on_ssids=clients_on_ssids,
+                    clients_on_appliances=clients_on_appliances,
+                    clients_on_wireless=clients_on_wireless,
                     # The fourth `device_tags` argument has been removed from
                     # _async_update_data.
                 )

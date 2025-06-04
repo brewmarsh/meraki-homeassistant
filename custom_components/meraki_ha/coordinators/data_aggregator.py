@@ -57,8 +57,11 @@ class DataAggregator:
         processed_devices: List[Dict[str, Any]],
         ssid_data: List[Dict[str, Any]],  # List of processed SSIDs.
         network_data: List[Dict[str, Any]],  # List of processed networks.
-        client_data: Optional[List[Dict[str, Any]]],  # New parameter
-        network_client_counts: Optional[Dict[str, int]],  # New parameter
+        client_data: Optional[List[Dict[str, Any]]],
+        network_client_counts: Optional[Dict[str, int]],
+        clients_on_ssids: int = 0,
+        clients_on_appliances: int = 0,
+        clients_on_wireless: int = 0,
         # The `device_tags` parameter has been removed.
     ) -> Dict[str, Any]:
         """Aggregate various processed Meraki data streams.
@@ -120,6 +123,9 @@ class DataAggregator:
                 "network_client_counts": (
                     network_client_counts if network_client_counts is not None else {}
                 ),
+                "clients_on_ssids": clients_on_ssids,
+                "clients_on_appliances": clients_on_appliances,
+                "clients_on_wireless": clients_on_wireless,
             }
 
             # Implement SSID-Device Linking
