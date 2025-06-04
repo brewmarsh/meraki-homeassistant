@@ -37,7 +37,7 @@ from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
 
 # Import from sensor_registry
 from ..sensor_registry import (
-    # SENSOR_REGISTRY, # Unused
+    SENSOR_REGISTRY, # Imported for debug logging
     COMMON_DEVICE_SENSORS,
     get_sensors_for_device_type,
 )
@@ -140,6 +140,18 @@ async def async_setup_entry(
             )
 
             if product_type:
+                # ---- START REQUESTED DEBUG LOGGING ----
+                _LOGGER.debug(
+                    "MERAKI_SENSOR_DEBUG: ProductType for lookup: '%s' (type: %s)",
+                    product_type,
+                    type(product_type).__name__,
+                )
+                # SENSOR_REGISTRY was imported at the top of the file
+                _LOGGER.debug(
+                    "MERAKI_SENSOR_DEBUG: SENSOR_REGISTRY keys available: %s",
+                    list(SENSOR_REGISTRY.keys()),
+                )
+                # ---- END REQUESTED DEBUG LOGGING ----
                 sensors_for_type = get_sensors_for_device_type(product_type)
                 if not sensors_for_type:
                     _LOGGER.debug(
