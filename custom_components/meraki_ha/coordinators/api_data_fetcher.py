@@ -86,10 +86,14 @@ class MerakiApiDataFetcher:
         # `async_get_networks` handles its own exceptions and returns None on failure.
         networks: Optional[List[Dict[str, Any]]] = None
         try:
+            # Attempt to fetch all networks for the organization. This is a foundational step,
+            # as networks are containers for devices and SSIDs.
             networks = await self.async_get_networks(self.org_id)
         except (
             MerakiSDKAPIError
-        ) as e:  # Should be caught by async_get_networks, but as a safeguard
+        ) as e:  # Should be caught by async_get_networks, but as a safeguard.
+            # This catch block is a defensive measure. Ideally, async_get_networks
+            # should internally handle API errors and return None, which is checked below.
             _LOGGER.error(
                 "Critical error fetching networks for org %s: %s. "
                 "This should have been handled by async_get_networks.",
@@ -111,8 +115,12 @@ class MerakiApiDataFetcher:
         # `async_get_organization_devices` handles its own exceptions.
         devices: Optional[List[Dict[str, Any]]] = None
         try:
+            # Fetch all devices associated with the organization. This list will be
+            # enriched with status, tags, and device-specific details later.
             devices = await self.async_get_organization_devices(self.org_id)
-        except MerakiSDKAPIError as e:  # Safeguard
+        except MerakiSDKAPIError as e:  # Safeguard.
+            # Similar to network fetching, async_get_organization_devices should handle
+            # its errors. This is a fallback.
             _LOGGER.error(
                 "Critical error fetching devices for org %s: %s. "
                 "This should have been handled by async_get_organization_devices.",
@@ -129,27 +137,32 @@ class MerakiApiDataFetcher:
             raise UpdateFailed(f"Could not fetch Meraki devices for org {self.org_id}.")
 
         # Step 2.1: Fetch Device Statuses
-        device_statuses_map = {}
-        if devices:  # Only fetch statuses if we have devices
+        device_statuses_map = (
+            {}
+        )  # Initialize a map to store device statuses keyed by serial.
+        if devices:  # Only fetch statuses if we have a list of devices.
             try:
                 _LOGGER.debug(
                     "MERAKI_DEBUG_FETCHER: Fetching device statuses for org ID: %s",
                     self.org_id,
                 )
+                # Retrieve status for all devices in the organization.
+                # 'total_pages="all"' ensures pagination is handled by the SDK.
                 statuses_data = await self.meraki_client.organizations.getOrganizationDevicesStatuses(
                     organizationId=self.org_id, total_pages="all"
                 )
-                if statuses_data:
+                if statuses_data:  # Check if any status data was returned.
                     _LOGGER.debug(
                         "MERAKI_DEBUG_FETCHER: Received %d status entries.",
                         len(statuses_data),
                     )
+                    # Populate the map with statuses, using device serial as the key.
                     for status_entry in statuses_data:
-                        if status_entry.get("serial"):
+                        if status_entry.get("serial"):  # Ensure serial exists.
                             device_statuses_map[status_entry["serial"]] = status_entry
                 else:
                     _LOGGER.debug(
-                        "MERAKI_DEBUG_FETCHER: No status data returned from getOrganizationDeviceStatuses."
+                        "MERAKI_DEBUG_FETCHER: No status data returned from getOrganizationDeviceStatuses."  # Log if no data.
                     )
             except MerakiSDKAPIError as e:
                 _LOGGER.warning(
@@ -168,93 +181,129 @@ class MerakiApiDataFetcher:
                 )
 
         # Step 2.2: Merge Statuses into Devices
-        if devices and device_statuses_map:
-            for device in devices:
+        if (
+            devices and device_statuses_map
+        ):  # Proceed if both devices and statuses data exist.
+            for (
+                device
+            ) in devices:  # Iterate through each device from the initial fetch.
                 serial = device.get("serial")
-                if serial and serial in device_statuses_map:
+                if (
+                    serial and serial in device_statuses_map
+                ):  # Check if status is available for this device.
                     status_update_data = device_statuses_map[serial]
+                    # Preserve original model and productType before updating.
+                    # This is important because device status API might not include all details
+                    # or might have different productType representations (e.g., null).
                     original_model = device.get("model", "")
-                    original_product_type = device.get("productType") 
+                    original_product_type = device.get("productType")
 
+                    # Merge status data into the main device dictionary.
+                    # This adds new fields (like 'status', 'publicIp', etc.) and overwrites existing ones if present in status_update_data.
                     device.update(status_update_data)
 
+                    # Post-merge checks for productType, as status data might alter it.
                     current_product_type_after_merge = device.get("productType")
                     status_provided_product_type = status_update_data.get("productType")
 
-                    if current_product_type_after_merge is None and original_product_type is not None:
+                    # If the status update made productType null, but we had a valid one from the initial device fetch, restore it.
+                    # This handles cases where the /status endpoint might not return productType or returns it as null.
+                    if (
+                        current_product_type_after_merge is None
+                        and original_product_type is not None
+                    ):
                         _LOGGER.debug(
                             "MERAKI_DEBUG_FETCHER: Restoring original productType '%s' for device %s (Serial: %s) "
                             "as status update data had productType: %s (Type: %s).",
                             original_product_type,
-                            device.get('name', 'Unknown'),
+                            device.get("name", "Unknown"),
                             serial,
                             status_provided_product_type,
-                            type(status_provided_product_type).__name__
+                            type(status_provided_product_type).__name__,
                         )
                         device["productType"] = original_product_type
-                    elif original_product_type is not None and \
-                         status_provided_product_type is not None and \
-                         original_product_type != status_provided_product_type:
+                    # Log if productType was unexpectedly changed by status data, but both were non-null.
+                    elif (
+                        original_product_type is not None
+                        and status_provided_product_type is not None
+                        and original_product_type != status_provided_product_type
+                    ):
                         _LOGGER.warning(
                             "MERAKI_DEBUG_FETCHER: productType for device %s (Serial: %s) was changed from '%s' to '%s' "
                             "by status update data. This is unexpected if original was valid. Using new value from status.",
-                            device.get('name', 'Unknown'),
+                            device.get("name", "Unknown"),
                             serial,
                             original_product_type,
-                            current_product_type_after_merge
+                            current_product_type_after_merge,
                         )
-                    # New logic for MX devices productType override
-                    if original_model and original_model.upper().startswith("MX"):
-                        if device.get("productType") != "appliance":
-                            _LOGGER.debug(
-                                "MERAKI_INFO_FETCHER: Forcing productType to 'appliance' for MX device %s (Serial: %s). Original model: %s, ProductType was: %s",
-                                device.get('name', 'Unknown'),
-                                serial, # Ensure serial is defined in this scope
-                                original_model,
-                                device.get("productType")
-                            )
-                        device["productType"] = "appliance"
-                    elif device.get("model", "").upper().startswith("MX") and device.get("productType") != "appliance":
-                        # This case handles if original_model was somehow lost but current model is MX
-                        _LOGGER.debug(
-                            "MERAKI_INFO_FETCHER: Forcing productType to 'appliance' for device with current model MX %s (Serial: %s). ProductType was: %s",
-                            device.get('name', 'Unknown'),
-                            serial, # Ensure serial is defined in this scope
-                            device.get("productType")
-                        )
-                        device["productType"] = "appliance"
 
-                    # Log the final productType for MX devices after all modifications in fetcher
+                    # Override productType for MX devices to ensure consistency.
+                    # MX devices should always be 'appliance'. This corrects any discrepancies
+                    # from the API (e.g., if /devices or /status reports it differently or as null for MX).
+                    # It checks based on the original model string or the current model string.
+                    if (original_model and original_model.upper().startswith("MX")) or (
+                        device.get("model", "").upper().startswith("MX")
+                    ):
+                        if (
+                            device.get("productType") != "appliance"
+                        ):  # Only log if a change is made.
+                            _LOGGER.debug(
+                                "MERAKI_INFO_FETCHER: Forcing productType to 'appliance' for MX device %s (Serial: %s). Original model: '%s', ProductType was: '%s'",
+                                device.get("name", "Unknown"),
+                                serial,
+                                (
+                                    original_model
+                                    if original_model
+                                    else device.get("model", "")
+                                ),  # Log the model used for the check
+                                device.get(
+                                    "productType"
+                                ),  # Log the productType before override
+                            )
+                        device["productType"] = "appliance"  # Force to 'appliance'.
+
+                    # Log the final productType for MX devices after all modifications.
+                    # This helps in debugging productType issues for MX devices.
                     if device.get("model", "").upper().startswith("MX"):
                         _LOGGER.debug(
                             "MERAKI_INFO_FETCHER: Final productType for MX device %s (Serial: %s) before leaving fetch_all_data: %s",
-                            device.get('name', 'Unknown'),
-                            serial, # Ensure serial is defined in this scope
-                            device.get("productType")
+                            device.get("name", "Unknown"),
+                            serial,
+                            device.get("productType"),
                         )
-                elif serial:
+                elif (
+                    serial
+                ):  # If device serial exists but no status entry was found for it.
                     _LOGGER.debug(
                         "MERAKI_DEBUG_FETCHER: No specific status entry found for device %s. It may retain a prior status or have none.",
                         serial,
                     )
-        elif devices:
+        elif devices:  # If devices list exists but device_statuses_map is empty.
             _LOGGER.debug(
                 "MERAKI_DEBUG_FETCHER: No device statuses were successfully mapped, skipping merge."
             )
-        
-        firmware_upgrade_data = {}
+
+        # Step 3: Fetch firmware upgrade data for the organization.
+        # This data is used to determine if devices have pending upgrades or are up-to-date.
+        firmware_upgrade_data = (
+            {}
+        )  # Initialize as an empty dict; will be a list if successful.
         _LOGGER.debug(
             "MERAKI_DEBUG_FETCHER: Fetching firmware upgrade data for org ID: %s",
             self.org_id,
         )
         try:
-            firmware_upgrade_data = await self.meraki_client.organizations.getOrganizationFirmwareUpgrades(
-                organizationId=self.org_id
+            # Fetch firmware upgrade status for the entire organization.
+            firmware_upgrade_data = (
+                await self.meraki_client.organizations.getOrganizationFirmwareUpgrades(
+                    organizationId=self.org_id
+                )
             )
             _LOGGER.debug(
-                "MERAKI_DEBUG_FETCHER: Successfully fetched firmware upgrade data." 
+                "MERAKI_DEBUG_FETCHER: Successfully fetched firmware upgrade data."
             )
         except MerakiSDKAPIError as e:
+            # Log API errors but continue, as firmware status is non-critical.
             _LOGGER.warning(
                 "MERAKI_DEBUG_FETCHER: SDK API error fetching firmware upgrade data for org %s: "
                 "Status %s, Reason: %s. Firmware data may be incomplete.",
@@ -262,23 +311,32 @@ class MerakiApiDataFetcher:
                 e.status,
                 e.reason,
             )
-            firmware_upgrade_data = {} 
+            firmware_upgrade_data = (
+                {}
+            )  # Ensure it's an empty dict on error to prevent downstream issues.
         except Exception as e:
+            # Log unexpected errors but continue.
             _LOGGER.exception(
                 "MERAKI_DEBUG_FETCHER: Unexpected error fetching firmware upgrade data for org %s: %s. "
                 "Firmware data may be incomplete.",
                 self.org_id,
                 e,
             )
-            firmware_upgrade_data = {} 
+            firmware_upgrade_data = {}  # Ensure it's an empty dict on error.
 
+        # Step 4: Fetch additional details for MR (wireless) and MX (appliance) devices.
+        # This is done concurrently using asyncio.gather for efficiency.
         additional_device_detail_tasks = []
-        if devices:
-            for device in devices:
-                device_model_upper = device.get("model", "").upper()
-                serial = device.get("serial") 
+        if devices:  # Only proceed if there are devices.
+            for device in devices:  # Iterate through the list of devices.
+                device_model_upper = device.get(
+                    "model", ""
+                ).upper()  # Get model, convert to uppercase for reliable matching.
+                serial = device.get("serial")
 
-                if not serial: 
+                if (
+                    not serial
+                ):  # Skip if device serial is missing, as it's needed for API calls.
                     _LOGGER.debug(
                         "MERAKI_DEBUG_FETCHER: Device %s (MAC: %s) has no serial, skipping additional detail tasks.",
                         device.get("name", "N/A"),
@@ -287,250 +345,436 @@ class MerakiApiDataFetcher:
                     continue
 
                 if device_model_upper.startswith("MR"):
+                    # For MR devices (wireless access points), fetch client count and radio settings.
                     additional_device_detail_tasks.append(
-                        self._async_get_mr_device_details(device, serial)
+                        self._async_get_mr_device_details(
+                            device, serial
+                        )  # Schedule task.
                     )
                 elif device_model_upper.startswith("MX"):
+                    # For MX devices (security appliances), fetch uplink and LAN DNS settings.
+                    # These provide details about WAN connectivity and local network DNS.
                     additional_device_detail_tasks.append(
-                        self._async_get_mx_device_uplink_settings(device, self.meraki_client)
+                        self._async_get_mx_device_uplink_settings(
+                            device, self.meraki_client
+                        )  # Schedule task.
                     )
                     additional_device_detail_tasks.append(
-                        self._async_get_mx_lan_dns_settings(device, self.meraki_client)
+                        self._async_get_mx_lan_dns_settings(
+                            device, self.meraki_client
+                        )  # Schedule task.
                     )
 
-        if additional_device_detail_tasks:
-            await asyncio.gather(*additional_device_detail_tasks)
+        if additional_device_detail_tasks:  # If there are tasks to run.
+            await asyncio.gather(
+                *additional_device_detail_tasks
+            )  # Execute all scheduled tasks concurrently.
 
-        if devices: 
+        # Step 5: Process firmware upgrade data and merge into device dictionaries.
+        if devices:  # Check if there are devices to process.
+            # Ensure firmware_upgrade_data is a list before iterating.
+            # The API might return a single dict or other types on error/empty.
             if not isinstance(firmware_upgrade_data, list):
                 _LOGGER.warning(
                     "MERAKI_DEBUG_FETCHER: firmware_upgrade_data is not a list (type: %s), "
                     "cannot process firmware status for devices. Value: %s",
                     type(firmware_upgrade_data).__name__,
-                    str(firmware_upgrade_data)[:200] 
+                    str(firmware_upgrade_data)[
+                        :200
+                    ],  # Log a snippet of the data for debugging.
                 )
+                # If data is not as expected, mark all devices with default firmware status.
                 for device in devices:
-                    device["firmware_up_to_date"] = False
-                    device["latest_firmware_version"] = device.get("firmware", "N/A")
-            elif not firmware_upgrade_data:
+                    device["firmware_up_to_date"] = (
+                        False  # Assume not up-to-date if data is bad.
+                    )
+                    device["latest_firmware_version"] = device.get(
+                        "firmware", "N/A"
+                    )  # Use current as latest known.
+            elif (
+                not firmware_upgrade_data
+            ):  # If the list is empty (no pending or recent upgrades).
                 _LOGGER.debug(
                     "MERAKI_DEBUG_FETCHER: firmware_upgrade_data is an empty list. "
                     "No specific upgrade information available."
                 )
+                # Assume all devices are up-to-date if no upgrade info is present.
+                # This interpretation might need adjustment based on API behavior for fully up-to-date orgs.
                 for device in devices:
-                    device["firmware_up_to_date"] = True 
+                    device["firmware_up_to_date"] = (
+                        True  # Or False, depending on desired default if API gives no info.
+                    )
                     device["latest_firmware_version"] = device.get("firmware", "N/A")
-            else:
-                _LOGGER.debug("MERAKI_DEBUG_FETCHER: Starting to process firmware data list for devices.")
-                # if _LOGGER.isEnabledFor(logging.DEBUG):
+            else:  # Process each device against the firmware upgrade data.
+                _LOGGER.debug(
+                    "MERAKI_DEBUG_FETCHER: Starting to process firmware data list for devices."
+                )
+                # if _LOGGER.isEnabledFor(logging.DEBUG): # Conditional logging for performance.
                 #     _LOGGER.debug(
                 #         "MERAKI_DEBUG_FETCHER: Sample firmware_upgrade_data item: %s",
-                #         str(firmware_upgrade_data[0])[:300]
+                #         str(firmware_upgrade_data[0])[:300] # Log sample for debugging.
                 #     )
 
-                for device in devices:
+                for device in devices:  # Iterate through each device.
                     device_serial = device.get("serial")
                     device_model = device.get("model", "")
                     current_device_firmware = device.get("firmware")
-                    is_up_to_date_bool = False  # Default assumption: not up-to-date unless confirmed
-                    latest_known_version = current_device_firmware if current_device_firmware else "N/A"
-                    found_specific_info_for_device = False
+                    is_up_to_date_bool = (
+                        False  # Default assumption: not up-to-date unless confirmed.
+                    )
+                    latest_known_version = (
+                        current_device_firmware if current_device_firmware else "N/A"
+                    )  # Default to current.
+                    found_specific_info_for_device = (
+                        False  # Flag to track if we found info for this device.
+                    )
 
-                    # Iterate through each entry in the firmware upgrade data from the organization
+                    # Iterate through each entry in the firmware upgrade data from the organization.
                     for upgrade_item in firmware_upgrade_data:
-                        if not isinstance(upgrade_item, dict):
+                        if not isinstance(
+                            upgrade_item, dict
+                        ):  # Skip malformed entries.
                             _LOGGER.warning(
                                 "MERAKI_DEBUG_FETCHER: Skipping non-dictionary item in firmware_upgrade_data list: %s",
-                                str(upgrade_item)[:200]
+                                str(upgrade_item)[:200],
                             )
                             continue
 
                         item_serial = upgrade_item.get("serial")
-                        # Check if this upgrade entry is for the current device
+                        # Check if this upgrade entry is for the current device.
                         if item_serial and item_serial == device_serial:
-                            _LOGGER.debug("MERAKI_DEBUG_FETCHER: Found firmware info by serial for %s", device_serial)
-                            # 'nextUpgrade' usually contains info about a scheduled upgrade
+                            _LOGGER.debug(
+                                "MERAKI_DEBUG_FETCHER: Found firmware info by serial for %s",
+                                device_serial,
+                            )
+                            # 'nextUpgrade' usually contains info about a scheduled upgrade.
                             next_upgrade_info = upgrade_item.get("nextUpgrade")
                             if isinstance(next_upgrade_info, dict):
-                                # 'toVersion' indicates the version for the scheduled upgrade
+                                # 'toVersion' indicates the version for the scheduled upgrade.
                                 to_version_info = next_upgrade_info.get("toVersion")
                                 if isinstance(to_version_info, dict):
-                                    # This is the target version of the *next scheduled* upgrade
-                                    latest_known_version = to_version_info.get("version", latest_known_version)
-                                    # If there's a nextUpgrade, it implies the current one is not the latest
-                                    is_up_to_date_bool = False 
-                                else: 
-                                    # If no 'toVersion', check the general 'status' of the upgrade item
-                                    item_status = str(upgrade_item.get("status", "")).lower()
+                                    # This is the target version of the *next scheduled* upgrade.
+                                    latest_known_version = to_version_info.get(
+                                        "version", latest_known_version
+                                    )
+                                    # If there's a nextUpgrade, it implies the current one is not the latest.
+                                    is_up_to_date_bool = False
+                                else:
+                                    # If no 'toVersion', check the general 'status' of the upgrade item.
+                                    # This part handles cases where 'nextUpgrade' exists but 'toVersion' might be missing or structured differently.
+                                    item_status = str(
+                                        upgrade_item.get("status", "")
+                                    ).lower()
                                     if item_status == "up-to-date":
                                         is_up_to_date_bool = True
-                                        latest_known_version = current_device_firmware if current_device_firmware else "N/A"
+                                        latest_known_version = (
+                                            current_device_firmware
+                                            if current_device_firmware
+                                            else "N/A"
+                                        )
                                     elif item_status == "has-newer-stable-version":
-                                        # This status explicitly states a newer version is available
+                                        # This status explicitly states a newer version is available.
                                         is_up_to_date_bool = False
-                                        # 'availableVersions' might list newer versions, take the first as latest
-                                        available_versions = upgrade_item.get("availableVersions")
-                                        if isinstance(available_versions, list) and available_versions:
-                                            latest_known_version = available_versions[0].get("version", latest_known_version)
-                            else: 
-                                # If no 'nextUpgrade' info, rely on 'status' or 'latestVersion' field
-                                item_status = str(upgrade_item.get("status", "")).lower()
+                                        # 'availableVersions' might list newer versions, take the first as latest.
+                                        available_versions = upgrade_item.get(
+                                            "availableVersions"
+                                        )
+                                        if (
+                                            isinstance(available_versions, list)
+                                            and available_versions
+                                        ):
+                                            latest_known_version = available_versions[
+                                                0
+                                            ].get("version", latest_known_version)
+                            else:
+                                # If no 'nextUpgrade' info, rely on 'status' or 'latestVersion' field from the upgrade item.
+                                item_status = str(
+                                    upgrade_item.get("status", "")
+                                ).lower()
                                 if item_status == "up-to-date":
                                     is_up_to_date_bool = True
-                                    # If status is up-to-date, current firmware is the latest known
-                                    latest_known_version = current_device_firmware if current_device_firmware else "N/A"
-                                elif upgrade_item.get("latestVersion"): # Some API versions might provide this directly
-                                     latest_known_version = upgrade_item.get("latestVersion")
-                                     # If latestVersion is present and different, it's not up-to-date.
-                                     # This will be checked below.
+                                    # If status is up-to-date, current firmware is the latest known.
+                                    latest_known_version = (
+                                        current_device_firmware
+                                        if current_device_firmware
+                                        else "N/A"
+                                    )
+                                elif upgrade_item.get(
+                                    "latestVersion"
+                                ):  # Some API versions might provide this directly.
+                                    latest_known_version = upgrade_item.get(
+                                        "latestVersion"
+                                    )
+                                    # If latestVersion is present and different from current, it's not up-to-date.
+                                    # This will be checked by the final comparison below.
 
-                            # Final check: if current firmware matches the determined latest_known_version, it's up-to-date
-                            if current_device_firmware and current_device_firmware == latest_known_version:
+                            # Final check: if current firmware matches the determined latest_known_version, it's up-to-date.
+                            # This handles cases where 'status' might be misleading if 'latestVersion' or 'toVersion' is the same as current.
+                            if (
+                                current_device_firmware
+                                and current_device_firmware == latest_known_version
+                            ):
                                 is_up_to_date_bool = True
 
                             found_specific_info_for_device = True
-                            break  # Found info for this device, no need to check other upgrade_items
+                            break  # Found info for this device, no need to check other upgrade_items.
 
                     # After checking all upgrade_items, if no specific info was found for this device:
-                    if not found_specific_info_for_device and not firmware_upgrade_data: 
-                        # If firmware_upgrade_data was empty to begin with, assume up-to-date
+                    if not found_specific_info_for_device and not firmware_upgrade_data:
+                        # If firmware_upgrade_data was empty to begin with (no org-level upgrade info), assume up-to-date.
                         is_up_to_date_bool = True
-                        latest_known_version = current_device_firmware if current_device_firmware else "N/A"
+                        latest_known_version = (
+                            current_device_firmware
+                            if current_device_firmware
+                            else "N/A"
+                        )
                     elif not found_specific_info_for_device:
                         # If upgrade data was available but no entry for this serial, make a best guess.
                         # This path implies we don't have definitive info for this device from the API.
                         # It's safer to assume not up-to-date or rely on comparison if current_device_firmware exists.
-                        _LOGGER.debug("MERAKI_DEBUG_FETCHER: No specific firmware upgrade info found for device %s by serial.", device_serial)
-                        if current_device_firmware: # If we have current firmware, compare with default latest_known_version (which was init with current)
-                            is_up_to_date_bool = (current_device_firmware == latest_known_version)
-                        # If no current_device_firmware, is_up_to_date_bool remains False (initial default)
+                        _LOGGER.debug(
+                            "MERAKI_DEBUG_FETCHER: No specific firmware upgrade info found for device %s by serial.",
+                            device_serial,
+                        )
+                        if (
+                            current_device_firmware
+                        ):  # If we have current firmware, compare with default latest_known_version (which was init with current).
+                            is_up_to_date_bool = (
+                                current_device_firmware == latest_known_version
+                            )
+                        # If no current_device_firmware, is_up_to_date_bool remains False (initial default).
 
+                    # Store the determined firmware status in the device dictionary.
                     device["firmware_up_to_date"] = is_up_to_date_bool
                     device["latest_firmware_version"] = latest_known_version
                     _LOGGER.debug(
                         "MERAKI_DEBUG_FETCHER: Device %s (Model: %s, Current FW: %s): Up-to-date: %s, Latest Known: %s",
-                        device_serial, device_model, current_device_firmware, is_up_to_date_bool, latest_known_version,
+                        device_serial,
+                        device_model,
+                        current_device_firmware,
+                        is_up_to_date_bool,
+                        latest_known_version,
                     )
-        else: 
-            _LOGGER.debug("MERAKI_DEBUG_FETCHER: No devices available to process firmware data for.")
+        else:  # No devices available to process.
+            _LOGGER.debug(
+                "MERAKI_DEBUG_FETCHER: No devices available to process firmware data for."
+            )
 
+        # Step 6: Fetch SSIDs for each network.
         ssids: List[Dict[str, Any]] = []
-        for network in networks: 
-            network_id: str = network["id"]  
+        for (
+            network
+        ) in networks:  # Iterate through the list of networks obtained earlier.
+            network_id: str = network["id"]  # Get network ID.
             try:
                 _LOGGER.debug("Fetching SSIDs for network ID: %s", network_id)
-                ssid_data_for_network = None 
+                ssid_data_for_network = None  # Initialize to None for this iteration.
                 try:
-                    ssid_data_for_network = await self.async_get_network_ssids(network_id)
-                except MerakiSDKAPIError as e: 
+                    # Fetch SSIDs for the current network.
+                    ssid_data_for_network = await self.async_get_network_ssids(
+                        network_id
+                    )
+                except (
+                    MerakiSDKAPIError
+                ) as e:  # Handle API errors during SSID fetch for a specific network.
                     _LOGGER.warning(
                         "Error fetching SSIDs for network %s was not handled by async_get_network_ssids: %s. Status: %s, Reason: %s. Skipping.",
-                        network_id, e, e.status, e.reason,
+                        network_id,
+                        e,
+                        e.status,
+                        e.reason,
                     )
-                if ssid_data_for_network:
-                    for ssid_obj in ssid_data_for_network:
+                if ssid_data_for_network:  # If SSIDs were successfully fetched.
+                    for (
+                        ssid_obj
+                    ) in ssid_data_for_network:  # Iterate through fetched SSIDs.
                         if isinstance(ssid_obj, dict):
-                            if ssid_obj.get("networkId") is None: 
+                            # Ensure 'networkId' is present in each SSID object.
+                            # This is crucial for linking SSIDs back to their parent network.
+                            if ssid_obj.get("networkId") is None:  # If missing, add it.
                                 ssid_obj["networkId"] = network_id
-                                _LOGGER.debug(f"Added/updated networkId '{network_id}' for SSID '{ssid_obj.get('name')}' (Number: {ssid_obj.get('number')})")
-                        else:
-                            _LOGGER.warning(f"Found non-dict item in ssid_data_for_network: {ssid_obj}")
-                    ssids.extend(ssid_data_for_network)
-                elif ssid_data_for_network is None:
+                                _LOGGER.debug(
+                                    f"Added/updated networkId '{network_id}' for SSID '{ssid_obj.get('name')}' (Number: {ssid_obj.get('number')})"
+                                )
+                        else:  # Log if an item in the list is not a dictionary.
+                            _LOGGER.warning(
+                                f"Found non-dict item in ssid_data_for_network: {ssid_obj}"
+                            )
+                    ssids.extend(
+                        ssid_data_for_network
+                    )  # Add fetched SSIDs to the main list.
+                elif (
+                    ssid_data_for_network is None
+                ):  # If async_get_network_ssids returned None (e.g., due to error).
                     _LOGGER.info(
                         "SSID data result was None for network %s, SSIDs for this network will be skipped.",
                         network_id,
                     )
-            except Exception as e: 
+            except (
+                Exception
+            ) as e:  # Catch any other unexpected errors during processing of a network.
                 _LOGGER.exception(
                     "Unexpected error processing network %s for SSID data: %s. Skipping this network's SSIDs.",
-                    network_id, e,
+                    network_id,
+                    e,
                 )
+
+        # Step 7: Fetch all clients across all networks.
         all_clients: List[Dict[str, Any]] = []
-        if networks: 
-            for network in networks:
+        if networks:  # Only proceed if networks list is available.
+            for network in networks:  # Iterate through each network.
                 network_id = network["id"]
                 try:
                     _LOGGER.debug("Fetching clients for network ID: %s", network_id)
+                    # Fetch clients for the current network. Timespan of 300 seconds (5 minutes)
+                    # is used to get recently active clients. This helps in keeping the data fresh
+                    # and manageable.
                     network_clients_data = (
                         await self.meraki_client.networks.getNetworkClients(
-                            network_id, timespan=300 
+                            network_id,
+                            timespan=300,  # Use a short timespan for recent clients.
                         )
                     )
-                    if network_clients_data:
-                        for client_data in network_clients_data:
+                    if network_clients_data:  # If clients are found.
+                        for client_data in network_clients_data:  # Process each client.
+                            # Attempt to get AP serial; this helps in linking clients to specific APs if needed.
+                            # Different API versions/device types might use different keys for this.
                             ap_serial = (
-                                client_data.get("recentDeviceSerial")
-                                or client_data.get("recentDeviceMac")
-                                or client_data.get("deviceSerial")
-                            ) 
+                                client_data.get(
+                                    "recentDeviceSerial"
+                                )  # Primary key for AP serial.
+                                or client_data.get(
+                                    "recentDeviceMac"
+                                )  # Fallback if serial not present.
+                                or client_data.get("deviceSerial")  # Another fallback.
+                            )
+                            # Construct a standardized client entry dictionary.
                             client_entry = {
-                                "mac": client_data["mac"], "ip": client_data.get("ip"),
+                                "mac": client_data["mac"],
+                                "ip": client_data.get("ip"),
                                 "description": client_data.get("description"),
-                                "status": client_data.get("status", "Online"),
-                                "networkId": network_id, "ap_serial": ap_serial,
-                                "usage": client_data.get("usage"), "vlan": client_data.get("vlan"),
-                                "switchport": client_data.get("switchport"), "ip6": client_data.get("ip6"),
-                                "manufacturer": client_data.get("manufacturer"), "os": client_data.get("os"),
-                                "user": client_data.get("user"), "firstSeen": client_data.get("firstSeen"),
-                                "lastSeen": client_data.get("lastSeen"), "ssid": client_data.get("ssid"),
+                                "status": client_data.get(
+                                    "status", "Online"
+                                ),  # Default to "Online" if status missing.
+                                "networkId": network_id,
+                                "ap_serial": ap_serial,  # Link to network and AP.
+                                # Include various other potentially useful client details.
+                                "usage": client_data.get("usage"),
+                                "vlan": client_data.get("vlan"),
+                                "switchport": client_data.get("switchport"),
+                                "ip6": client_data.get("ip6"),
+                                "manufacturer": client_data.get("manufacturer"),
+                                "os": client_data.get("os"),
+                                "user": client_data.get("user"),
+                                "firstSeen": client_data.get("firstSeen"),
+                                "lastSeen": client_data.get("lastSeen"),
+                                "ssid": client_data.get("ssid"),
                             }
-                            all_clients.append(client_entry)
+                            all_clients.append(
+                                client_entry
+                            )  # Add to the list of all clients.
                         _LOGGER.debug(
-                            "Fetched %d clients for network %s", len(network_clients_data), network_id,
+                            "Fetched %d clients for network %s",
+                            len(network_clients_data),
+                            network_id,
                         )
-                    else:
+                    else:  # No clients found for this network in the timespan.
                         _LOGGER.debug(
-                            "No clients found for network %s in the given timespan.", network_id,
+                            "No clients found for network %s in the given timespan.",
+                            network_id,
                         )
-                except MerakiSDKAPIError as e:
+                except (
+                    MerakiSDKAPIError
+                ) as e:  # Handle API errors during client fetching for a network.
                     _LOGGER.warning(
                         "Meraki SDK API error fetching clients for network %s: %s. Status: %s, Reason: %s. Skipping this network's clients.",
-                        network_id, e, e.status, e.reason,
+                        network_id,
+                        e,
+                        e.status,
+                        e.reason,
                     )
-                except Exception as e: 
+                except Exception as e:  # Handle other unexpected errors.
                     _LOGGER.exception(
                         "Unexpected error fetching clients for network %s: %s. Skipping this network's clients.",
-                        network_id, e,
+                        network_id,
+                        e,
                     )
-        else:
+        else:  # No networks available to fetch clients from.
             _LOGGER.warning("No networks available to fetch clients from.")
+
+        # Step 8: Return all fetched and processed data.
+        # This dictionary forms the basis for what coordinators and entities will use.
         return {
-            "devices": devices, "networks": networks, "ssids": ssids, "clients": all_clients,
+            "devices": devices,
+            "networks": networks,
+            "ssids": ssids,
+            "clients": all_clients,
         }
 
     async def _async_get_mr_device_details(
         self, device: Dict[str, Any], serial: str
     ) -> None:
-        """Asynchronously fetch and store client count and radio settings for an MR device."""
+        """Fetch and store client count and radio settings for an MR (wireless) device.
+
+        This method updates the provided `device` dictionary in-place with
+        `connected_clients_count` and `radio_settings`. It handles API errors
+        gracefully by logging warnings and setting default values.
+
+        Args:
+            device: The device dictionary to update.
+            serial: The serial number of the MR device.
+        """
         try:
-            clients_data = await self.meraki_client.devices.getDeviceClients(serial=serial)
+            # Fetch clients connected directly to this MR device.
+            clients_data = await self.meraki_client.devices.getDeviceClients(
+                serial=serial
+            )
+            # Store the count of connected clients. If no data, assume 0.
             device["connected_clients_count"] = len(clients_data) if clients_data else 0
         except MerakiSDKAPIError as e:
+            # Log API errors for client fetching and default to 0.
             _LOGGER.warning(
                 "Failed to fetch client count for MR device %s (Serial: %s): API Error %s - %s. Setting client count to 0.",
-                device.get("name", "Unknown"), serial, e.status, e.reason,
+                device.get("name", "Unknown"),
+                serial,
+                e.status,
+                e.reason,
             )
             device["connected_clients_count"] = 0
-        except Exception as e: 
+        except Exception as e:  # Catch any other unexpected errors.
+            # Log unexpected errors and default to 0.
             _LOGGER.exception(
                 "Unexpected error fetching client count for MR device %s (Serial: %s): %s. Setting client count to 0.",
-                device.get("name", "Unknown"), serial, e,
+                device.get("name", "Unknown"),
+                serial,
+                e,
             )
             device["connected_clients_count"] = 0
         try:
-            radio_settings = await self.meraki_client.wireless.getDeviceWirelessRadioSettings(serial=serial)
-            device["radio_settings"] = radio_settings
+            # Fetch wireless radio settings for this MR device.
+            radio_settings = (
+                await self.meraki_client.wireless.getDeviceWirelessRadioSettings(
+                    serial=serial
+                )
+            )
+            device["radio_settings"] = radio_settings  # Store fetched radio settings.
         except MerakiSDKAPIError as e:
+            # Log API errors for radio settings fetching and default to None.
             _LOGGER.warning(
                 "Failed to fetch radio settings for MR device %s (Serial: %s): API Error %s - %s. Setting radio settings to None.",
-                device.get("name", "Unknown"), serial, e.status, e.reason,
+                device.get("name", "Unknown"),
+                serial,
+                e.status,
+                e.reason,
             )
             device["radio_settings"] = None
-        except Exception as e: 
+        except Exception as e:  # Catch any other unexpected errors.
+            # Log unexpected errors and default to None.
             _LOGGER.exception(
                 "Unexpected error fetching radio settings for MR device %s (Serial: %s): %s. Setting radio settings to None.",
-                device.get("name", "Unknown"), serial, e,
+                device.get("name", "Unknown"),
+                serial,
+                e,
             )
             device["radio_settings"] = None
 
@@ -538,40 +782,92 @@ class MerakiApiDataFetcher:
         """Fetch all networks for a Meraki organization using the SDK."""
         _LOGGER.debug("Fetching networks for org ID: %s using SDK", org_id)
         try:
-            _LOGGER.debug("Executing async_get_networks with organizations.getOrganizationNetworks(organizationId=%s).", org_id)
-            org_networks = await self.meraki_client.organizations.getOrganizationNetworks(organizationId=org_id)
-            if org_networks is None: 
-                _LOGGER.warning("Call to organizations.getOrganizationNetworks for org ID %s returned None.", org_id)
-                return None
-            if not org_networks:
-                _LOGGER.warning("No networks found for organization ID %s using organizations.getOrganizationNetworks.", org_id)
-                return None
-            _LOGGER.debug("Successfully fetched %d networks for org ID %s using organizations.getOrganizationNetworks.", len(org_networks), org_id)
+            # Call SDK to get networks for the organization.
+            _LOGGER.debug(
+                "Executing async_get_networks with organizations.getOrganizationNetworks(organizationId=%s).",
+                org_id,
+            )
+            org_networks = (
+                await self.meraki_client.organizations.getOrganizationNetworks(
+                    organizationId=org_id
+                )
+            )
+            # Handle cases where API might return None or an empty list.
+            if org_networks is None:  # If API response is literally None.
+                _LOGGER.warning(
+                    "Call to organizations.getOrganizationNetworks for org ID %s returned None.",
+                    org_id,
+                )
+                return None  # Return None to indicate failure or no data.
+            if not org_networks:  # If the list is empty.
+                _LOGGER.warning(
+                    "No networks found for organization ID %s using organizations.getOrganizationNetworks.",
+                    org_id,
+                )
+                return None  # Or return [] if an empty list is a more desired "valid but no data" response.
+            _LOGGER.debug(
+                "Successfully fetched %d networks for org ID %s using organizations.getOrganizationNetworks.",
+                len(org_networks),
+                org_id,
+            )
             return org_networks
         except MerakiSDKAPIError as e:
-            _LOGGER.warning("SDK API error during getNetworks or filtering for org %s: Status %s, Reason: %s. Returning None.", org_id, e.status, e.reason)
+            # Log API errors and return None to indicate failure.
+            _LOGGER.warning(
+                "SDK API error during getNetworks or filtering for org %s: Status %s, Reason: %s. Returning None.",
+                org_id,
+                e.status,
+                e.reason,
+            )
             return None
-        except Exception as e: 
-            _LOGGER.exception("Unexpected error during getNetworks or filtering for org %s: %s. Returning None.", org_id, e)
+        except Exception as e:  # Catch any other unexpected error.
+            # Log unexpected errors and return None.
+            _LOGGER.exception(
+                "Unexpected error during getNetworks or filtering for org %s: %s. Returning None.",
+                org_id,
+                e,
+            )
             return None
 
     async def async_get_organization_devices(
         self, org_id: str
     ) -> Optional[List[Dict[str, Any]]]:
         """Get all devices in the Meraki organization using the SDK."""
-        _LOGGER.debug("MERAKI_DEBUG_FETCHER: Fetching organization devices for org ID: %s using SDK", org_id)
+        _LOGGER.debug(
+            "MERAKI_DEBUG_FETCHER: Fetching organization devices for org ID: %s using SDK",
+            org_id,
+        )
         try:
-            devices_data = await self.meraki_client.organizations.getOrganizationDevices(org_id)
-            if devices_data:
-                _LOGGER.debug("MERAKI_DEBUG_FETCHER: Received %d devices from SDK.", len(devices_data))
-            else:
-                _LOGGER.debug("MERAKI_DEBUG_FETCHER: Received no devices_data from SDK (None or empty list).")
+            # Call SDK to get all devices in the organization.
+            devices_data = (
+                await self.meraki_client.organizations.getOrganizationDevices(org_id)
+            )
+            if devices_data:  # Log count if data is received.
+                _LOGGER.debug(
+                    "MERAKI_DEBUG_FETCHER: Received %d devices from SDK.",
+                    len(devices_data),
+                )
+            else:  # Log if no data or empty list.
+                _LOGGER.debug(
+                    "MERAKI_DEBUG_FETCHER: Received no devices_data from SDK (None or empty list)."
+                )
             return devices_data
         except MerakiSDKAPIError as e:
-            _LOGGER.warning("MERAKI_DEBUG_FETCHER: SDK API error fetching devices for org %s: Status %s, Reason: %s. Returning None.", org_id, e.status, e.reason)
+            # Log API errors and return None.
+            _LOGGER.warning(
+                "MERAKI_DEBUG_FETCHER: SDK API error fetching devices for org %s: Status %s, Reason: %s. Returning None.",
+                org_id,
+                e.status,
+                e.reason,
+            )
             return None
-        except Exception as e: 
-            _LOGGER.exception("MERAKI_DEBUG_FETCHER: Unexpected error fetching devices for org %s: %s. Returning None.", org_id, e)
+        except Exception as e:  # Catch any other unexpected error.
+            # Log unexpected errors and return None.
+            _LOGGER.exception(
+                "MERAKI_DEBUG_FETCHER: Unexpected error fetching devices for org %s: %s. Returning None.",
+                org_id,
+                e,
+            )
             return None
 
     async def async_get_network_ssids(
@@ -580,213 +876,423 @@ class MerakiApiDataFetcher:
         """Fetch all SSIDs for a specific Meraki network using the SDK."""
         _LOGGER.debug("Fetching SSIDs for network ID: %s using SDK", network_id)
         try:
-            return await self.meraki_client.wireless.getNetworkWirelessSsids(networkId=network_id)
+            # Call SDK to get SSIDs for the given network.
+            return await self.meraki_client.wireless.getNetworkWirelessSsids(
+                networkId=network_id
+            )
         except MerakiSDKAPIError as e:
+            # Handle 404 specifically: network might not have wireless capabilities or SSIDs.
+            # This is a common case for non-wireless networks (e.g., MX only networks).
             if e.status == 404:
-                _LOGGER.info("SSID resource not found for network %s (likely no wireless capabilities or SSIDs configured). Returning empty list.", network_id)
-                return [] 
-            _LOGGER.warning("SDK API error fetching SSIDs for network %s: Status %s, Reason: %s. Returning None for this network's SSIDs.", network_id, e.status, e.reason)
+                _LOGGER.info(
+                    "SSID resource not found for network %s (likely no wireless capabilities or SSIDs configured). Returning empty list.",
+                    network_id,
+                )
+                return (
+                    []
+                )  # Return empty list for 404, as it's a valid state (no SSIDs).
+            # Log other API errors and return None to indicate failure for this network's SSIDs.
+            _LOGGER.warning(
+                "SDK API error fetching SSIDs for network %s: Status %s, Reason: %s. Returning None for this network's SSIDs.",
+                network_id,
+                e.status,
+                e.reason,
+            )
             return None
-        except Exception as e: 
-            _LOGGER.exception("Unexpected error fetching SSIDs for network %s: %s. Returning None.", network_id, e)
+        except Exception as e:  # Catch any other unexpected error.
+            # Log unexpected errors and return None.
+            _LOGGER.exception(
+                "Unexpected error fetching SSIDs for network %s: %s. Returning None.",
+                network_id,
+                e,
+            )
             return None
 
     async def _async_get_mx_device_uplink_settings(
         self, device: Dict[str, Any], client: MerakiAPIClient
     ) -> None:
-        """Asynchronously fetch and store uplink settings for an MX device."""
+        """Fetch and store WAN DNS server settings from uplink configuration for an MX (appliance) device.
+
+        This method updates the provided `device` dictionary in-place with
+        `wan1_dns_servers` and `wan2_dns_servers`. It attempts to parse these
+        from the device's uplink settings API response. Handles API errors
+        gracefully by logging warnings and ensuring default empty lists.
+
+        Args:
+            device: The device dictionary to update.
+            client: The MerakiAPIClient instance to use for the API call.
+        """
         serial = device.get("serial")
-        if not serial:
-            _LOGGER.warning("MERAKI_DEBUG_FETCHER: Cannot fetch uplink settings for MX device %s: missing serial.", device.get("name", "Unknown"))
+        if not serial:  # Cannot proceed without a serial number.
+            _LOGGER.warning(
+                "MERAKI_DEBUG_FETCHER: Cannot fetch uplink settings for MX device %s: missing serial.",
+                device.get("name", "Unknown"),
+            )
             return
 
-        _LOGGER.debug("MERAKI_DEBUG_FETCHER: Fetching uplink settings for MX device %s (Serial: %s)", device.get("name", "Unknown"), serial)
-        
-        # Initialize DNS server lists for the device to ensure they always exist
+        _LOGGER.debug(
+            "MERAKI_DEBUG_FETCHER: Fetching uplink settings for MX device %s (Serial: %s)",
+            device.get("name", "Unknown"),
+            serial,
+        )
+
+        # Initialize DNS server lists for the device to ensure they always exist, even if fetching fails or data is missing.
+        # This prevents KeyError later if the lists are not populated.
         device["wan1_dns_servers"] = []
         device["wan2_dns_servers"] = []
         # Add other WANs here if needed, e.g., device["wan3_dns_servers"] = []
 
         try:
-            uplink_settings = await client.appliance.getDeviceApplianceUplinksSettings(serial=serial)
-            # _LOGGER.debug("MERAKI_DEBUG_FETCHER: Raw uplink settings for %s: %s", serial, uplink_settings)
+            # Fetch uplink settings for the specific MX device by its serial.
+            uplink_settings = await client.appliance.getDeviceApplianceUplinksSettings(
+                serial=serial
+            )
+            # _LOGGER.debug("MERAKI_DEBUG_FETCHER: Raw uplink settings for %s: %s", serial, uplink_settings) # Optional: log raw response for deep debugging.
 
-            if uplink_settings:
+            if uplink_settings:  # Check if any settings were returned.
                 # Expected structure: uplink_settings = {"interfaces": {"wan1": {...}, "wan2": {...}}}
-                interfaces = uplink_settings.get("interfaces", {})
-                wan_interface_keys = ["wan1", "wan2"] # Define which WAN interfaces to check
+                interfaces = uplink_settings.get(
+                    "interfaces", {}
+                )  # Get the 'interfaces' dictionary, default to empty if not found.
+                wan_interface_keys = [
+                    "wan1",
+                    "wan2",
+                ]  # Define which WAN interfaces to check (e.g., "wan1", "wan2", "cellular").
 
-                for interface_name in wan_interface_keys:
-                    current_wan_dns_ips = []
-                    interface_settings = interfaces.get(interface_name, {})
+                for (
+                    interface_name
+                ) in (
+                    wan_interface_keys
+                ):  # Iterate through defined WAN interfaces (wan1, wan2).
+                    current_wan_dns_ips = (
+                        []
+                    )  # Temporary list to store DNS IPs for the current WAN interface.
+                    interface_settings = interfaces.get(
+                        interface_name, {}
+                    )  # Get settings for the specific interface (e.g., wan1).
 
-                    if interface_settings:
+                    if interface_settings:  # If settings for this interface exist.
                         # Primary way to get DNS: via 'svis' -> 'ipv4' -> 'nameservers'
-                        # Expected: interface_settings.svis.ipv4.nameservers = [{"addresses": ["ip1", "ip2"]}]
+                        # This structure is often found in newer Meraki API versions or more detailed responses.
+                        # Expected structure: interface_settings.svis.ipv4.nameservers = [{"addresses": ["ip1", "ip2"], "protocol": "ipv4"}]
                         svis_data = interface_settings.get("svis")
-                        if isinstance(svis_data, dict): 
+                        if isinstance(
+                            svis_data, dict
+                        ):  # Check if 'svis' data is a dictionary.
                             ipv4_data = svis_data.get("ipv4")
-                            if isinstance(ipv4_data, dict):
+                            if isinstance(
+                                ipv4_data, dict
+                            ):  # Check if 'ipv4' data is a dictionary.
                                 nameservers_list = ipv4_data.get("nameservers")
-                                if isinstance(nameservers_list, list):
-                                    for ns_entry in nameservers_list:
-                                        # Each ns_entry is like {"addresses": ["ip1", "ip2"], "protocol": "ipv4"}
-                                        if isinstance(ns_entry, dict) and isinstance(ns_entry.get("addresses"), list):
-                                            for ip_addr in ns_entry.get("addresses", []):
-                                                if isinstance(ip_addr, str) and ip_addr not in current_wan_dns_ips:
+                                if isinstance(
+                                    nameservers_list, list
+                                ):  # Check if 'nameservers' is a list.
+                                    for (
+                                        ns_entry
+                                    ) in (
+                                        nameservers_list
+                                    ):  # Each ns_entry is like {"addresses": ["ip1", "ip2"], "protocol": "ipv4"}
+                                        if isinstance(ns_entry, dict) and isinstance(
+                                            ns_entry.get("addresses"), list
+                                        ):  # Validate structure.
+                                            for ip_addr in ns_entry.get(
+                                                "addresses", []
+                                            ):  # Iterate through IPs in "addresses".
+                                                if (
+                                                    isinstance(ip_addr, str)
+                                                    and ip_addr
+                                                    not in current_wan_dns_ips
+                                                ):  # Avoid duplicates.
                                                     current_wan_dns_ips.append(ip_addr)
-                        
+
                         # Fallback: Check 'dnsServers' directly under interface_settings
-                        # Expected: interface_settings.dnsServers = ["ip1", "ip2"] or "ip1,ip2" (string)
-                        if not current_wan_dns_ips: 
-                            dns_servers_field = interface_settings.get("dnsServers") 
-                            if isinstance(dns_servers_field, list):
+                        # This is a more common or older way the API might provide DNS servers.
+                        # Expected structure: interface_settings.dnsServers = ["ip1", "ip2"] or "ip1,ip2" (string)
+                        if (
+                            not current_wan_dns_ips
+                        ):  # Only if primary method didn't yield results.
+                            dns_servers_field = interface_settings.get("dnsServers")
+                            if isinstance(
+                                dns_servers_field, list
+                            ):  # If it's a list of IPs.
                                 for dns_entry in dns_servers_field:
                                     if isinstance(dns_entry, str):
-                                        # Basic validation for an IP address string
-                                        if '.' in dns_entry or ':' in dns_entry: 
-                                            if dns_entry not in current_wan_dns_ips:
+                                        # Basic validation for an IP address string (contains '.' for IPv4 or ':' for IPv6).
+                                        if (
+                                            "." in dns_entry or ":" in dns_entry
+                                        ):  # Simple check if it looks like an IP.
+                                            if (
+                                                dns_entry not in current_wan_dns_ips
+                                            ):  # Avoid duplicates.
                                                 current_wan_dns_ips.append(dns_entry)
-                            elif isinstance(dns_servers_field, str): # Sometimes it might be a comma-separated string
-                                # Basic validation for an IP address string
-                                if '.' in dns_servers_field or ':' in dns_servers_field:
-                                     if dns_servers_field not in current_wan_dns_ips: # Assuming it's a single IP if string
+                            elif isinstance(
+                                dns_servers_field, str
+                            ):  # Sometimes it might be a comma-separated string or single IP.
+                                # Basic validation for an IP address string.
+                                if (
+                                    "." in dns_servers_field or ":" in dns_servers_field
+                                ):  # Simple check.
+                                    if (
+                                        dns_servers_field not in current_wan_dns_ips
+                                    ):  # Assuming it's a single IP if string.
                                         current_wan_dns_ips.append(dns_servers_field)
 
                     # Second Fallback: Check device-level fields like 'wan1PrimaryDns', 'wan1SecondaryDns'
-                    # These might be present in the main device data if not in uplink_settings specifically.
-                    if not current_wan_dns_ips:
-                        primary_dns_key = f"{interface_name}PrimaryDns" # e.g., "wan1PrimaryDns"
-                        secondary_dns_key = f"{interface_name}SecondaryDns" # e.g., "wan1SecondaryDns"
-                        primary_dns = device.get(primary_dns_key)
-                        if primary_dns and isinstance(primary_dns, str) and primary_dns not in current_wan_dns_ips:
+                    # These might be present in the main device data (from /status endpoint) if not in uplink_settings specifically.
+                    # This is a less common source but provides robustness if other paths fail.
+                    if (
+                        not current_wan_dns_ips
+                    ):  # Only if previous methods yielded no results.
+                        primary_dns_key = (
+                            f"{interface_name}PrimaryDns"  # e.g., "wan1PrimaryDns"
+                        )
+                        secondary_dns_key = (
+                            f"{interface_name}SecondaryDns"  # e.g., "wan1SecondaryDns"
+                        )
+                        primary_dns = device.get(
+                            primary_dns_key
+                        )  # Get from the main device dictionary (already fetched status).
+                        if (
+                            primary_dns
+                            and isinstance(primary_dns, str)
+                            and primary_dns not in current_wan_dns_ips
+                        ):
                             current_wan_dns_ips.append(primary_dns)
                         secondary_dns = device.get(secondary_dns_key)
-                        if secondary_dns and isinstance(secondary_dns, str) and secondary_dns not in current_wan_dns_ips:
+                        if (
+                            secondary_dns
+                            and isinstance(secondary_dns, str)
+                            and secondary_dns not in current_wan_dns_ips
+                        ):
                             current_wan_dns_ips.append(secondary_dns)
-                    
+
+                    # Store the collected DNS IPs for this WAN interface in the main device dictionary.
+                    # This makes it available for sensors or other logic.
                     device[f"{interface_name}_dns_servers"] = current_wan_dns_ips
                     _LOGGER.debug(
                         "MERAKI_DEBUG_FETCHER: Populated %s_dns_servers for %s: %s",
-                        interface_name, serial, device[f"{interface_name}_dns_servers"]
+                        interface_name,
+                        serial,
+                        device[f"{interface_name}_dns_servers"],
                     )
-            else: 
+            else:  # If no uplink_settings data was returned at all for the device.
                 _LOGGER.debug(
                     "MERAKI_DEBUG_FETCHER: No uplink settings data returned for MX device %s (Serial: %s). "
                     "DNS server lists will remain default (empty or from device status).",
-                    device.get("name", "Unknown"), serial,
+                    device.get("name", "Unknown"),
+                    serial,
                 )
         except MerakiSDKAPIError as e:
+            # Log API errors and ensure DNS lists remain empty (as initialized).
             _LOGGER.warning(
                 "MERAKI_DEBUG_FETCHER: Failed to fetch uplink settings for MX device %s (Serial: %s): "
                 "API Error %s - %s. DNS server info will be unavailable.",
-                device.get("name", "Unknown"), serial, e.status, e.reason,
+                device.get("name", "Unknown"),
+                serial,
+                e.status,
+                e.reason,
             )
-            # Defaults are already set at the beginning of the try block
-        except Exception as e:  
+            # Defaults are already set at the beginning of the try block, so no specific action needed here.
+        except Exception as e:  # Catch any other unexpected error.
+            # Log unexpected errors.
             _LOGGER.exception(
                 "MERAKI_DEBUG_FETCHER: Unexpected error fetching uplink settings for MX device %s (Serial: %s): %s. "
                 "DNS server info will be unavailable.",
-                device.get("name", "Unknown"), serial, e,
+                device.get("name", "Unknown"),
+                serial,
+                e,
             )
-            # Defaults are already set
+            # Defaults are already set.
 
     async def _async_get_mx_lan_dns_settings(
         self, device: Dict[str, Any], client: MerakiAPIClient
     ) -> None:
-        """Asynchronously fetch and store LAN DNS settings for an MX device's VLANs."""
-        network_id = device.get("networkId")
-        serial = device.get("serial", "N/A") 
-        device_name = device.get("name", "Unknown")
+        """Fetch and store LAN DNS settings from VLAN configurations for an MX (appliance) device.
 
-        if not network_id:
+        This method updates the provided `device` dictionary in-place with
+        `lan_dns_settings`, a dictionary mapping VLAN names/IDs to their
+        DNS configurations (e.g., "google_dns", "opendns", or a list of custom IPs).
+        Handles API errors gracefully.
+
+        Args:
+            device: The device dictionary to update.
+            client: The MerakiAPIClient instance to use for the API call.
+        """
+        network_id = device.get(
+            "networkId"
+        )  # Network ID is required to fetch VLANs for the network the MX is in.
+        serial = device.get("serial", "N/A")  # For logging purposes.
+        device_name = device.get("name", "Unknown")  # For logging purposes.
+
+        if not network_id:  # Cannot proceed without network ID.
             _LOGGER.debug(
                 "MERAKI_DEBUG_FETCHER: Cannot fetch LAN DNS settings for MX device %s (Serial: %s): missing networkId.",
-                device_name, serial,
+                device_name,
+                serial,
             )
-            device["lan_dns_settings"] = {} 
+            device["lan_dns_settings"] = (
+                {}
+            )  # Ensure the key exists in the device dict, even if empty.
             return
 
         _LOGGER.debug(
             "MERAKI_DEBUG_FETCHER: Fetching LAN DNS (VLAN settings) for MX device %s (Serial: %s, Network: %s)",
-            device_name, serial, network_id,
+            device_name,
+            serial,
+            network_id,
         )
-        
-        lan_dns_by_vlan: Dict[str, Any] = {}
-        vlan_list_to_iterate: List[Dict[str, Any]] = []
-        try:
-            vlan_settings_response = await client.appliance.getNetworkApplianceVlansSettings(networkId=network_id)
 
-            if isinstance(vlan_settings_response, dict):
+        lan_dns_by_vlan: Dict[str, Any] = (
+            {}
+        )  # Dictionary to store DNS settings per VLAN.
+        vlan_list_to_iterate: List[Dict[str, Any]] = (
+            []
+        )  # List to hold VLAN data from API for consistent processing.
+        try:
+            # Fetch VLAN settings for the network associated with the MX device.
+            # The API might return a list of VLANs or a single dictionary if only one VLAN is configured.
+            vlan_settings_response = (
+                await client.appliance.getNetworkApplianceVlansSettings(
+                    networkId=network_id
+                )
+            )
+
+            # Standardize response to be a list for consistent processing logic.
+            if isinstance(
+                vlan_settings_response, dict
+            ):  # If API returns a single VLAN object.
                 _LOGGER.debug(
                     "MERAKI_DEBUG_FETCHER: Received single dictionary for VLAN settings for network %s (Serial: %s). Wrapping in a list.",
-                    network_id, serial
+                    network_id,
+                    serial,
                 )
-                vlan_list_to_iterate = [vlan_settings_response]
-            elif isinstance(vlan_settings_response, list):
+                vlan_list_to_iterate = [vlan_settings_response]  # Wrap in a list.
+            elif isinstance(
+                vlan_settings_response, list
+            ):  # If API returns a list of VLANs.
                 vlan_list_to_iterate = vlan_settings_response
-            elif vlan_settings_response is None:
+            elif (
+                vlan_settings_response is None
+            ):  # If no VLANs are configured or endpoint not applicable (e.g. device not an MX).
                 _LOGGER.debug(
-                    "MERAKI_DEBUG_FETCHER: No VLANs configured or endpoint not applicable for network %s (Serial: %s) (response is None).", 
-                    network_id, serial
+                    "MERAKI_DEBUG_FETCHER: No VLANs configured or endpoint not applicable for network %s (Serial: %s) (response is None).",
+                    network_id,
+                    serial,
                 )
-                # vlan_list_to_iterate remains empty, which is fine
-            else:
+                # vlan_list_to_iterate remains empty, which is handled gracefully below.
+            else:  # Unexpected response type from the API.
                 _LOGGER.warning(
                     "MERAKI_DEBUG_FETCHER: Unexpected response type for VLAN settings for network %s (Serial: %s): %s. Expected list or dict.",
-                    network_id, serial, type(vlan_settings_response).__name__
+                    network_id,
+                    serial,
+                    type(vlan_settings_response).__name__,
                 )
-                # vlan_list_to_iterate remains empty
+                # vlan_list_to_iterate remains empty.
 
-            if vlan_list_to_iterate:
-                _LOGGER.debug("MERAKI_DEBUG_FETCHER: Processing %d VLAN entries for network %s.", len(vlan_list_to_iterate), network_id)
-                for vlan_data in vlan_list_to_iterate:
-                    if not isinstance(vlan_data, dict):
-                        _LOGGER.warning("Skipping non-dictionary item in VLAN settings list for network %s: %s", network_id, vlan_data)
+            if vlan_list_to_iterate:  # If there are VLANs to process.
+                _LOGGER.debug(
+                    "MERAKI_DEBUG_FETCHER: Processing %d VLAN entries for network %s.",
+                    len(vlan_list_to_iterate),
+                    network_id,
+                )
+                for (
+                    vlan_data
+                ) in vlan_list_to_iterate:  # Iterate through each VLAN's data.
+                    if not isinstance(vlan_data, dict):  # Skip malformed entries.
+                        _LOGGER.warning(
+                            "Skipping non-dictionary item in VLAN settings list for network %s: %s",
+                            network_id,
+                            vlan_data,
+                        )
                         continue
-                    
-                    vlan_id = vlan_data.get("id") # ID of the VLAN, e.g., 10
-                    vlan_name = vlan_data.get("name", "Unnamed VLAN") # Name of the VLAN, e.g., "Data VLAN"
-                    # 'dnsNameservers' indicates how DNS is configured for this VLAN:
-                    # "google_dns", "opendns", "custom_servers", "upstream_dns"
-                    dns_nameservers_setting = vlan_data.get("dnsNameservers")
-                    # 'customDnsServers' is a list of IPs, used if dnsNameservers == "custom_servers"
-                    custom_dns_servers = vlan_data.get("customDnsServers", [])
-                    vlan_key = f"VLAN {vlan_id} ({vlan_name})" # Key for storing in our dict
 
-                    if dns_nameservers_setting == "custom_servers":
-                        if custom_dns_servers: # If custom, use the provided list
+                    vlan_id = vlan_data.get("id")  # ID of the VLAN, e.g., "10".
+                    vlan_name = vlan_data.get(
+                        "name", "Unnamed VLAN"
+                    )  # Name of the VLAN, e.g., "Data VLAN".
+                    # 'dnsNameservers' indicates how DNS is configured for this VLAN:
+                    # Possible values: "google_dns", "opendns", "custom_servers", "upstream_dns".
+                    dns_nameservers_setting = vlan_data.get("dnsNameservers")
+                    # 'customDnsServers' is a list of IPs, used if dnsNameservers_setting == "custom_servers".
+                    custom_dns_servers = vlan_data.get(
+                        "customDnsServers", []
+                    )  # Default to empty list.
+                    vlan_key = f"VLAN {vlan_id} ({vlan_name})"  # Key for storing in our result dict, e.g., "VLAN 10 (Data VLAN)".
+
+                    if (
+                        dns_nameservers_setting == "custom_servers"
+                    ):  # If VLAN uses custom DNS servers.
+                        if custom_dns_servers:  # If custom IPs are provided.
                             lan_dns_by_vlan[vlan_key] = custom_dns_servers
-                            _LOGGER.debug("MERAKI_DEBUG_FETCHER: VLAN %s on %s using custom DNS: %s", vlan_key, serial, custom_dns_servers)
-                        else: # If set to custom but no IPs, store as empty list
-                            lan_dns_by_vlan[vlan_key] = [] 
-                            _LOGGER.debug("MERAKI_DEBUG_FETCHER: VLAN %s on %s set to 'custom_servers' but no IPs provided.", vlan_key, serial)
-                    elif dns_nameservers_setting: # If not custom, store the setting string itself (e.g., "google_dns")
-                        lan_dns_by_vlan[vlan_key] = dns_nameservers_setting 
-                        _LOGGER.debug("MERAKI_DEBUG_FETCHER: VLAN %s on %s using preset DNS: %s", vlan_key, serial, dns_nameservers_setting)
-                    else: # If no specific DNS setting found for the VLAN
-                        lan_dns_by_vlan[vlan_key] = "Not configured" 
-                        _LOGGER.debug("MERAKI_DEBUG_FETCHER: VLAN %s on %s has no explicit DNS configuration.", vlan_key, serial)
+                            _LOGGER.debug(
+                                "MERAKI_DEBUG_FETCHER: VLAN %s on %s using custom DNS: %s",
+                                vlan_key,
+                                serial,
+                                custom_dns_servers,
+                            )
+                        else:  # If set to "custom_servers" but no IPs are listed.
+                            lan_dns_by_vlan[vlan_key] = []  # Store as empty list.
+                            _LOGGER.debug(
+                                "MERAKI_DEBUG_FETCHER: VLAN %s on %s set to 'custom_servers' but no IPs provided.",
+                                vlan_key,
+                                serial,
+                            )
+                    elif (
+                        dns_nameservers_setting
+                    ):  # If not "custom_servers", store the setting string itself (e.g., "google_dns").
+                        lan_dns_by_vlan[vlan_key] = dns_nameservers_setting
+                        _LOGGER.debug(
+                            "MERAKI_DEBUG_FETCHER: VLAN %s on %s using preset DNS: %s",
+                            vlan_key,
+                            serial,
+                            dns_nameservers_setting,
+                        )
+                    else:  # If no specific DNS setting ('dnsNameservers') found for the VLAN.
+                        lan_dns_by_vlan[vlan_key] = (
+                            "Not configured"  # Indicate not configured.
+                        )
+                        _LOGGER.debug(
+                            "MERAKI_DEBUG_FETCHER: VLAN %s on %s has no explicit DNS configuration.",
+                            vlan_key,
+                            serial,
+                        )
             # If vlan_list_to_iterate is empty (e.g., from None response or unexpected type), this loop is skipped.
-            
+
         except MerakiSDKAPIError as e:
+            # Handle 404 specifically: network might not have VLANs or endpoint not applicable (e.g., non-MX device).
             if e.status == 404:
                 _LOGGER.debug(
                     "MERAKI_DEBUG_FETCHER: No VLAN settings found for network %s (Serial: %s) (404 Error). "
                     "This may be normal if no VLANs are configured or device is not an appliance.",
-                    network_id, serial,
+                    network_id,
+                    serial,
                 )
-            else:
+            else:  # Log other API errors.
                 _LOGGER.warning(
                     "MERAKI_DEBUG_FETCHER: Failed to fetch LAN DNS settings for MX device %s (Serial: %s, Network: %s): "
                     "API Error %s - %s. LAN DNS settings will be unavailable.",
-                    device_name, serial, network_id, e.status, e.reason,
+                    device_name,
+                    serial,
+                    network_id,
+                    e.status,
+                    e.reason,
                 )
-        except Exception as e:  
+        except Exception as e:  # Catch any other unexpected error.
+            # Log unexpected errors.
             _LOGGER.exception(
                 "MERAKI_DEBUG_FETCHER: Unexpected error fetching LAN DNS settings for MX device %s (Serial: %s, Network: %s): %s. "
                 "LAN DNS settings will be unavailable.",
-                device_name, serial, network_id, e,
+                device_name,
+                serial,
+                network_id,
+                e,
             )
+        # Store the collected LAN DNS settings in the main device dictionary.
+        # This makes it available for sensors or other logic.
         device["lan_dns_settings"] = lan_dns_by_vlan
-        _LOGGER.debug("MERAKI_DEBUG_FETCHER: Final LAN DNS settings for %s (Serial: %s): %s", device_name, serial, lan_dns_by_vlan)
+        _LOGGER.debug(
+            "MERAKI_DEBUG_FETCHER: Final LAN DNS settings for %s (Serial: %s): %s",
+            device_name,
+            serial,
+            lan_dns_by_vlan,
+        )

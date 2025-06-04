@@ -21,10 +21,14 @@ DATA_CLIENT: Final[str] = "client"
 DATA_COORDINATOR: Final[str] = "coordinator"
 """Key for storing the Meraki data coordinator in Home Assistant's data (str)."""
 
-DATA_COORDINATORS: Final[str] = "coordinators" # New constant for the coordinators dictionary
+DATA_COORDINATORS: Final[str] = (
+    "coordinators"  # New constant for the coordinators dictionary
+)
 """Key for storing the dictionary of all coordinators."""
 
-DATA_SSID_DEVICES_COORDINATOR: Final[str] = "ssid_devices" # New constant for SSID coordinator key
+DATA_SSID_DEVICES_COORDINATOR: Final[str] = (
+    "ssid_devices"  # New constant for SSID coordinator key
+)
 """Key for storing the SSID devices coordinator within the coordinators dictionary."""
 
 DEFAULT_SCAN_INTERVAL: Final[int] = 60

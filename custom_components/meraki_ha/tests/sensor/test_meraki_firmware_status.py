@@ -43,13 +43,19 @@ async def test_firmware_sensor_initialization(
     hass: HomeAssistant, mock_coordinator, device_data_template
 ):
     """Test sensor initialization."""
-    device_arg = {"serial": device_data_template["serial"], "name": device_data_template["name"], "model": device_data_template["model"]}
+    device_arg = {
+        "serial": device_data_template["serial"],
+        "name": device_data_template["name"],
+        "model": device_data_template["model"],
+    }
     sensor = MerakiFirmwareStatusSensor(mock_coordinator, device_arg)
     sensor.hass = hass
 
     assert sensor.unique_id == f"{device_data_template['serial']}_firmware_status"
     assert sensor.name == "Firmware Status"
-    assert sensor.device_info["identifiers"] == {(DOMAIN, device_data_template["serial"])}
+    assert sensor.device_info["identifiers"] == {
+        (DOMAIN, device_data_template["serial"])
+    }
 
 
 async def test_firmware_up_to_date(
@@ -64,8 +70,11 @@ async def test_firmware_up_to_date(
         "latest_firmware_version": current_fw,
     }
     mock_coordinator.data = {"devices": [device_firmware_data]}
-    device_arg = {"serial": device_firmware_data["serial"], "name": device_firmware_data["name"], "model": device_firmware_data["model"]}
-
+    device_arg = {
+        "serial": device_firmware_data["serial"],
+        "name": device_firmware_data["name"],
+        "model": device_firmware_data["model"],
+    }
 
     sensor = MerakiFirmwareStatusSensor(mock_coordinator, device_arg)
     sensor.hass = hass
@@ -93,7 +102,11 @@ async def test_firmware_outdated(
         "latest_firmware_version": latest_fw,
     }
     mock_coordinator.data = {"devices": [device_firmware_data]}
-    device_arg = {"serial": device_firmware_data["serial"], "name": device_firmware_data["name"], "model": device_firmware_data["model"]}
+    device_arg = {
+        "serial": device_firmware_data["serial"],
+        "name": device_firmware_data["name"],
+        "model": device_firmware_data["model"],
+    }
 
     sensor = MerakiFirmwareStatusSensor(mock_coordinator, device_arg)
     sensor.hass = hass
@@ -120,7 +133,11 @@ async def test_firmware_info_missing_from_fetcher(
         # "latest_firmware_version": ..., (missing)
     }
     mock_coordinator.data = {"devices": [device_firmware_data]}
-    device_arg = {"serial": device_firmware_data["serial"], "name": device_firmware_data["name"], "model": device_firmware_data["model"]}
+    device_arg = {
+        "serial": device_firmware_data["serial"],
+        "name": device_firmware_data["name"],
+        "model": device_firmware_data["model"],
+    }
 
     sensor = MerakiFirmwareStatusSensor(mock_coordinator, device_arg)
     sensor.hass = hass
@@ -144,20 +161,24 @@ async def test_firmware_current_version_missing(
     device_firmware_data = {
         **device_data_template,
         # "firmware": ..., (missing)
-        "firmware_up_to_date": True, # Assume fetcher somehow got this
+        "firmware_up_to_date": True,  # Assume fetcher somehow got this
         "latest_firmware_version": "MX 18.107.1",
     }
     mock_coordinator.data = {"devices": [device_firmware_data]}
-    device_arg = {"serial": device_firmware_data["serial"], "name": device_firmware_data["name"], "model": device_firmware_data["model"]}
+    device_arg = {
+        "serial": device_firmware_data["serial"],
+        "name": device_firmware_data["name"],
+        "model": device_firmware_data["model"],
+    }
 
     sensor = MerakiFirmwareStatusSensor(mock_coordinator, device_arg)
     sensor.hass = hass
     await sensor.async_added_to_hass()
     mock_coordinator.async_update_listeners()
 
-    assert sensor.native_value == "N/A" # Default for missing firmware
+    assert sensor.native_value == "N/A"  # Default for missing firmware
     attrs = sensor.extra_state_attributes
-    assert "current_firmware_version" not in attrs # Filtered out if None
+    assert "current_firmware_version" not in attrs  # Filtered out if None
     assert attrs["firmware_up_to_date"] is True
     assert attrs["latest_available_firmware_version"] == "MX 18.107.1"
 
@@ -167,7 +188,11 @@ async def test_firmware_status_unknown_device_missing(
 ):
     """Test sensor state when device data is missing from coordinator."""
     mock_coordinator.data = {"devices": []}
-    device_arg = {"serial": device_data_template["serial"], "name": device_data_template["name"], "model": device_data_template["model"]}
+    device_arg = {
+        "serial": device_data_template["serial"],
+        "name": device_data_template["name"],
+        "model": device_data_template["model"],
+    }
 
     sensor = MerakiFirmwareStatusSensor(mock_coordinator, device_arg)
     sensor.hass = hass
@@ -182,7 +207,11 @@ async def test_firmware_status_availability(
     hass: HomeAssistant, mock_coordinator, device_data_template
 ):
     """Test sensor availability."""
-    device_arg = {"serial": device_data_template["serial"], "name": device_data_template["name"], "model": device_data_template["model"]}
+    device_arg = {
+        "serial": device_data_template["serial"],
+        "name": device_data_template["name"],
+        "model": device_data_template["model"],
+    }
     sensor = MerakiFirmwareStatusSensor(mock_coordinator, device_arg)
     sensor.hass = hass
 
@@ -192,7 +221,9 @@ async def test_firmware_status_availability(
     type(mock_coordinator).data = PropertyMock(return_value={"devices": []})
     assert not sensor.available
 
-    type(mock_coordinator).data = PropertyMock(return_value={"devices": [device_data_template]})
+    type(mock_coordinator).data = PropertyMock(
+        return_value={"devices": [device_data_template]}
+    )
     sensor._handle_coordinator_update()
     await hass.async_block_till_done()
     assert sensor.available

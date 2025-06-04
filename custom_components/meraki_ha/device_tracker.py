@@ -119,7 +119,11 @@ class MerakiDeviceTracker(
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+        """Handle updated data from the coordinator.
+
+        This method is called when the coordinator has new data. It triggers
+        an update of the entity's attributes and state.
+        """
         self._update_attributes()
         self.async_write_ha_state()
 
@@ -157,7 +161,11 @@ class MerakiDeviceTracker(
 
     @property
     def source_type(self) -> SourceType:
-        """Return the source type of the device tracker."""
+        """Return the source type of the device tracker.
+
+        Returns:
+            The source type, which is ROUTER as clients are tracked by APs/routers.
+        """
         return SourceType.ROUTER  # Client is tracked by the router/AP
 
     @property
@@ -166,6 +174,9 @@ class MerakiDeviceTracker(
 
         This information is used by Home Assistant to correctly group
         entities and display device details in the UI.
+
+        Returns:
+            A dictionary containing device information.
         """
         # Link to the AP the client is connected to, or the network.
         # This assumes 'ap_serial' or 'network_id' is in _client_info_data
@@ -187,5 +198,9 @@ class MerakiDeviceTracker(
     # Icon can be dynamic based on connection state
     @property
     def icon(self) -> str:
-        """Return the icon to use in the frontend, if any."""
+        """Return the icon to use in the frontend, if any.
+
+        Returns:
+            The icon string, dynamically chosen based on connection state.
+        """
         return "mdi:lan-connect" if self._attr_is_connected else "mdi:lan-disconnect"

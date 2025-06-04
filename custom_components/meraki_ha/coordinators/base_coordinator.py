@@ -29,6 +29,7 @@ from custom_components.meraki_ha.meraki_api import MerakiApiError
 from custom_components.meraki_ha.coordinators.data_aggregation_coordinator import (
     DataAggregationCoordinator,
 )
+
 # Added imports for device registration
 from homeassistant.helpers import device_registry as dr
 from .meraki_device_types import map_meraki_model_to_device_type
@@ -211,28 +212,37 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # and MR-specific details.
         self.device_data = devices
 
-
         # ---- START NETWORK DEVICE REGISTRATION LOGIC ----
-        _LOGGER.debug("Starting Meraki Network device registration process for org %s.", self.org_id)
-        device_registry = dr.async_get(self.hass) # Ensure dr is available
+        _LOGGER.debug(
+            "Starting Meraki Network device registration process for org %s.",
+            self.org_id,
+        )
+        device_registry = dr.async_get(self.hass)  # Ensure dr is available
         processed_network_devices = 0
-        for network_info in networks: # 'networks' is all_data.get("networks", [])
+        for network_info in networks:  # 'networks' is all_data.get("networks", [])
             network_id = network_info.get("id")
             network_name = network_info.get("name")
 
             if not network_id:
-                _LOGGER.warning("Found a network with missing ID, cannot register as HA device: %s", network_info)
+                _LOGGER.warning(
+                    "Found a network with missing ID, cannot register as HA device: %s",
+                    network_info,
+                )
                 continue
-            if not network_name: # Fallback name if network name is missing
+            if not network_name:  # Fallback name if network name is missing
                 original_network_name = f"Meraki Network {network_id}"
-                _LOGGER.warning("Found network with missing name (ID: %s), using fallback name: %s", network_id, original_network_name)
+                _LOGGER.warning(
+                    "Found network with missing name (ID: %s), using fallback name: %s",
+                    network_id,
+                    original_network_name,
+                )
             else:
                 original_network_name = network_name
 
             # Apply device_name_format for Network devices
             # self.device_name_format is a property that gets it from config_entry.options
-            current_device_name_format = self.device_name_format 
-            
+            current_device_name_format = self.device_name_format
+
             formatted_network_name = original_network_name
             if current_device_name_format == "prefix":
                 formatted_network_name = f"[Network] {original_network_name}"
@@ -240,33 +250,47 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 formatted_network_name = f"{original_network_name} [Network]"
             # If "omitted" or other, use original_network_name as is
 
-            _LOGGER.debug("Registering Meraki Network device: %s (ID: %s), Format: %s", formatted_network_name, network_id, current_device_name_format)
+            _LOGGER.debug(
+                "Registering Meraki Network device: %s (ID: %s), Format: %s",
+                formatted_network_name,
+                network_id,
+                current_device_name_format,
+            )
             device_registry.async_get_or_create(
                 config_entry_id=self.config_entry.entry_id,
-                identifiers={(DOMAIN, network_id)}, # Unique identifier for this network device
-                name=formatted_network_name, # Use the formatted name
-                model="Meraki Network", # Model for these logical network devices
+                identifiers={
+                    (DOMAIN, network_id)
+                },  # Unique identifier for this network device
+                name=formatted_network_name,  # Use the formatted name
+                model="Meraki Network",  # Model for these logical network devices
                 manufacturer="Cisco Meraki",
                 # No via_device for these, they are parented by the ConfigEntry implicitly
             )
             processed_network_devices += 1
-        _LOGGER.debug("Processed %d Meraki Network devices for registration for org %s.", processed_network_devices, self.org_id)
+        _LOGGER.debug(
+            "Processed %d Meraki Network devices for registration for org %s.",
+            processed_network_devices,
+            self.org_id,
+        )
         # ---- END NETWORK DEVICE REGISTRATION LOGIC ----
 
-
         # ---- START PHYSICAL DEVICE REGISTRATION LOGIC ----
-        _LOGGER.debug("Starting physical device registration process for org %s.", self.org_id)
+        _LOGGER.debug(
+            "Starting physical device registration process for org %s.", self.org_id
+        )
         # device_registry instance is already available from network registration part
 
-        for device_info in devices: # 'devices' is all_data.get("devices", [])
+        for device_info in devices:  # 'devices' is all_data.get("devices", [])
             serial = device_info.get("serial")
             if not serial:
-                _LOGGER.warning("Device found without serial, cannot register: %s", device_info)
+                _LOGGER.warning(
+                    "Device found without serial, cannot register: %s", device_info
+                )
                 continue
 
             device_name_raw = device_info.get("name") or serial
             device_model_str = device_info.get("model", "Unknown")
-            firmware_version = device_info.get("firmware") # Get firmware version here
+            firmware_version = device_info.get("firmware")  # Get firmware version here
 
             # Standard mapping for physical devices processed by this coordinator.
             # The placeholder conditions for "SSID" and "Network" types have been removed
@@ -279,7 +303,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             # Use the property self.device_name_format
             if self.device_name_format == "prefix" and device_type_mapped != "Unknown":
                 formatted_device_name = f"[{device_type_mapped}] {device_name_raw}"
-            elif self.device_name_format == "suffix" and device_type_mapped != "Unknown":
+            elif (
+                self.device_name_format == "suffix" and device_type_mapped != "Unknown"
+            ):
                 formatted_device_name = f"{device_name_raw} [{device_type_mapped}]"
 
             # Prepare connections set using MAC address
@@ -287,7 +313,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             connections = None
             if mac_address:
                 connections = {(dr.CONNECTION_NETWORK_MAC, mac_address)}
-            
+
             # Log the full device_info for debugging before registration attempt
             # This log was already added in a previous step, ensuring it's correctly placed.
             # _LOGGER.debug(
@@ -297,25 +323,24 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
             device_registry.async_get_or_create(
                 config_entry_id=self.config_entry.entry_id,
-                identifiers={(DOMAIN, serial)}, 
+                identifiers={(DOMAIN, serial)},
                 manufacturer="Cisco Meraki",
                 model=device_model_str,
                 name=formatted_device_name,
-                sw_version=firmware_version, # firmware_version from device_info.get("firmware")
-                connections=connections,    # Pass the connections set
+                sw_version=firmware_version,  # firmware_version from device_info.get("firmware")
+                connections=connections,  # Pass the connections set
             )
             _LOGGER.debug(
                 "Registered/Updated physical device: %s (Serial: %s, Model: %s, MAC: %s, FW: %s, Status: %s)",
                 formatted_device_name,
                 serial,
                 device_model_str,
-                mac_address or "N/A", # Log MAC address
-                firmware_version or "N/A", # Log firmware version
-                device_info.get('status', 'N/A') # Log status
+                mac_address or "N/A",  # Log MAC address
+                firmware_version or "N/A",  # Log firmware version
+                device_info.get("status", "N/A"),  # Log status
             )
         _LOGGER.debug("Device registration process completed for org %s.", self.org_id)
         # ---- END DEVICE REGISTRATION LOGIC ----
-
 
         # Process client data to get network client counts
         from custom_components.meraki_ha.coordinators.data_processor import (

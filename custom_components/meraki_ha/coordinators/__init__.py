@@ -25,6 +25,7 @@ from custom_components.meraki_ha.coordinators.data_processor import MerakiDataPr
 
 # Added for completeness if used externally
 from custom_components.meraki_ha.coordinators.data_aggregator import DataAggregator
+
 # MerakiDeviceCoordinator import removed as file is deleted
 from custom_components.meraki_ha.coordinators.device_tag_update_coordinator import (
     DeviceTagUpdateCoordinator,
@@ -54,7 +55,7 @@ __all__ = [
     # Handles updating device tags. (Review if still needed)
     "DeviceTagUpdateCoordinator",
     "TagEraserCoordinator",  # Handles erasing tags from devices.
-    "SSIDDeviceCoordinator", # Manages SSID data and device registration.
+    "SSIDDeviceCoordinator",  # Manages SSID data and device registration.
 ]
 
 # Comments for removed coordinators (MerakiSsidCoordinator, MerakiNetworkCoordinator, DeviceTagFetchCoordinator)

@@ -1,14 +1,16 @@
 # custom_components/meraki_ha/sensor_registry.py
 """Sensor registry for Meraki Home Assistant integration."""
 
-from typing import List, Type, Dict, Any
+from typing import List, Type, Dict # Any removed
 from homeassistant.helpers.entity import Entity
 
 # Import sensor classes
 # Physical device sensors
 from .sensor.device_status import MerakiDeviceStatusSensor
 from .sensor.uplink_status import MerakiUplinkStatusSensor
-from .sensor.connected_clients import MerakiDeviceConnectedClientsSensor # For MR devices
+from .sensor.connected_clients import (
+    MerakiDeviceConnectedClientsSensor,
+)  # For MR devices
 
 # MX-specific sensors
 from .sensor.meraki_wan1_connectivity import MerakiWAN1ConnectivitySensor
@@ -29,14 +31,16 @@ from .sensor.meraki_firmware_status import MerakiFirmwareStatusSensor
 
 # Type hint for a list of sensor entity classes
 SensorClassList = List[Type[Entity]]
+"""Type alias for a list of sensor entity classes."""
 
+# Registry mapping Meraki product types to their specific sensor classes.
 SENSOR_REGISTRY: Dict[str, SensorClassList] = {
     "appliance": [  # For MX devices
         MerakiNetworkInfoSensor,
         MerakiWAN1ConnectivitySensor,
         MerakiWAN2ConnectivitySensor,
         MerakiFirmwareStatusSensor,
-        MerakiUplinkStatusSensor, # Reinstated in previous work
+        MerakiUplinkStatusSensor,  # Reinstated in previous work
     ],
     "wireless": [  # For MR devices
         MerakiDeviceConnectedClientsSensor,
@@ -55,10 +59,20 @@ SENSOR_REGISTRY: Dict[str, SensorClassList] = {
 
 # Sensors to be added to all devices regardless of product type
 # (unless already covered by specific product type lists)
+# List of sensor classes common to all Meraki physical devices.
 COMMON_DEVICE_SENSORS: SensorClassList = [
     MerakiDeviceStatusSensor,
 ]
 
+
 def get_sensors_for_device_type(product_type: str) -> SensorClassList:
-    """Return a list of sensor classes for a given Meraki product type."""
+    """Return a list of sensor classes for a given Meraki product type.
+
+    Args:
+        product_type: The product type string (e.g., "appliance", "wireless").
+
+    Returns:
+        A list of sensor classes applicable to the given product type.
+        Returns an empty list if the product type is not found in the registry.
+    """
     return SENSOR_REGISTRY.get(product_type, [])

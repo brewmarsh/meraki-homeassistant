@@ -2,7 +2,7 @@
 """Text entity for renaming Meraki SSIDs."""
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict # Optional removed
 
 from homeassistant.components.text import TextEntity, TextMode
 from homeassistant.config_entries import ConfigEntry
@@ -16,14 +16,19 @@ from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Meraki SSID name text entities from a config entry."""
-    ssid_coordinator: SSIDDeviceCoordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinators"]["ssid_devices"]
-    meraki_client: MerakiAPIClient = hass.data[DOMAIN][config_entry.entry_id][DATA_CLIENT]
+    ssid_coordinator: SSIDDeviceCoordinator = hass.data[DOMAIN][config_entry.entry_id][
+        "coordinators"
+    ]["ssid_devices"]
+    meraki_client: MerakiAPIClient = hass.data[DOMAIN][config_entry.entry_id][
+        DATA_CLIENT
+    ]
 
     if not ssid_coordinator.data:
         _LOGGER.warning("SSID Coordinator has no data, skipping text entity setup")
@@ -31,7 +36,11 @@ async def async_setup_entry(
 
     text_entities = []
     for ssid_unique_id, ssid_data in ssid_coordinator.data.items():
-        text_entities.append(MerakiSSIDNameTextEntity(ssid_coordinator, meraki_client, config_entry, ssid_unique_id, ssid_data))
+        text_entities.append(
+            MerakiSSIDNameTextEntity(
+                ssid_coordinator, meraki_client, config_entry, ssid_unique_id, ssid_data
+            )
+        )
 
     async_add_entities(text_entities, update_before_add=True)
 
@@ -46,7 +55,7 @@ class MerakiSSIDNameTextEntity(CoordinatorEntity[SSIDDeviceCoordinator], TextEnt
         coordinator: SSIDDeviceCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
-        ssid_unique_id: str, # HA device unique_id for the SSID
+        ssid_unique_id: str,  # HA device unique_id for the SSID
         ssid_data: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki SSID name text entity."""
@@ -60,8 +69,8 @@ class MerakiSSIDNameTextEntity(CoordinatorEntity[SSIDDeviceCoordinator], TextEnt
         initial_name = ssid_data.get("name", f"SSID {self._ssid_number}")
 
         self._attr_unique_id = f"{self._ssid_unique_id}_name_text"
-        self._attr_name = f"{initial_name} Name" # e.g., "Guest WiFi Name"
-        self._attr_native_value = initial_name # Set initial state
+        self._attr_name = f"{initial_name} Name"  # e.g., "Guest WiFi Name"
+        self._attr_native_value = initial_name  # Set initial state
 
     @property
     def device_info(self) -> Dict[str, Any]:
@@ -77,10 +86,14 @@ class MerakiSSIDNameTextEntity(CoordinatorEntity[SSIDDeviceCoordinator], TextEnt
         if current_ssid_data:
             new_name = current_ssid_data.get("name", f"SSID {self._ssid_number}")
             self._attr_native_value = new_name
-            self._attr_name = f"{new_name} Name" # Update entity name if SSID name changes
+            self._attr_name = (
+                f"{new_name} Name"  # Update entity name if SSID name changes
+            )
         else:
             # Data for this SSID not found, log warning, state remains unchanged or becomes unavailable
-            _LOGGER.warning(f"Could not find data for SSID {self._ssid_unique_id} in coordinator for text entity.")
+            _LOGGER.warning(
+                f"Could not find data for SSID {self._ssid_unique_id} in coordinator for text entity."
+            )
             # Optionally set to None or some indicator of unavailability
             # self._attr_native_value = None
         self.async_write_ha_state()
@@ -88,16 +101,20 @@ class MerakiSSIDNameTextEntity(CoordinatorEntity[SSIDDeviceCoordinator], TextEnt
     async def async_set_value(self, value: str) -> None:
         """Change the SSID name via the Meraki API."""
         if not self._network_id or self._ssid_number is None:
-            _LOGGER.error(f"Cannot set SSID name for {self.name}: Missing networkId or SSID number.")
+            _LOGGER.error(
+                f"Cannot set SSID name for {self.name}: Missing networkId or SSID number."
+            )
             return
 
-        _LOGGER.debug(f"Setting SSID name for {self._network_id}/{self._ssid_number} to: {value}")
+        _LOGGER.debug(
+            f"Setting SSID name for {self._network_id}/{self._ssid_number} to: {value}"
+        )
 
         try:
             await self._meraki_client.wireless.updateNetworkWirelessSsid(
                 networkId=self._network_id,
                 number=self._ssid_number,
-                name=value  # The new name for the SSID
+                name=value,  # The new name for the SSID
             )
             # Update the internal state optimistically for quicker UI response
             self._attr_native_value = value
