@@ -116,6 +116,20 @@ class MerakiNetworkClientCountSensor(
         `network_client_counts` which is a dict mapping `network_id` to count.
         Example: `self.coordinator.data['network_client_counts'][self._network_id]`
         """
+        if self.coordinator.data is None or "network_client_counts" not in self.coordinator.data:
+            _LOGGER.warning(
+                "MerakiNetworkClientCountSensor '%s' (for network: %s) "
+                "is used with a coordinator that does not provide the 'network_client_counts' data structure. "
+                "This sensor will likely show 0 or an inaccurate value. "
+                "For organization-wide client counts, please use the new MerakiOrganization[Type]ClientsSensor entities. "
+                "If you are trying to get per-network client counts, ensure the coordinator populates 'network_client_counts'.",
+                self.name,
+                self._network_name,
+            )
+            # The existing logic will handle returning None or 0 if the key is missing,
+            # so the warning is the main addition here.
+            # No need to return early unless specific error handling is desired beyond the warning.
+
         if self.coordinator.data and "network_client_counts" in self.coordinator.data:
             network_counts: Optional[Dict[str, int]] = self.coordinator.data.get(
                 "network_client_counts"

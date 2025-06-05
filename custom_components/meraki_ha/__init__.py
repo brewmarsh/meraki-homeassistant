@@ -77,6 +77,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # This initial refresh populates the coordinator with data before entities are set up.
     await main_coordinator.async_config_entry_first_refresh()
 
+    # Register the Meraki Organization itself as a device in Home Assistant.
+    # This call is placed after the first refresh to ensure that the
+    # coordinator has fetched necessary data, like the organization name,
+    # which is used in the device registration process.
+    if hasattr(main_coordinator, "async_register_organization_device"):
+        _LOGGER.debug("Attempting to register Meraki Organization as a device.")
+        await main_coordinator.async_register_organization_device(hass)
+    else:
+        _LOGGER.warning("main_coordinator does not have async_register_organization_device method.")
+
     # 3. Populate hass.data with the client from main_coordinator and the main_coordinator itself
     # hass.data is the central store in Home Assistant for sharing data between components and platforms.
     # We store the MerakiAPIClient instance for direct API access if needed by other parts
