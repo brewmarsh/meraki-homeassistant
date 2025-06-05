@@ -97,39 +97,45 @@ async def async_setup_entry(
 
     # --- Organization-level Sensor Setup ---
     if main_coordinator and main_coordinator.data:
-        organization_id = main_coordinator.org_id # Use direct attribute
-        # Use main_coordinator.org_name, falling back to org_id if None or empty
-        organization_name = main_coordinator.org_name if main_coordinator.org_name else organization_id
+        organization_id = main_coordinator.org_id
+        raw_organization_name_for_fallback = main_coordinator.org_name if main_coordinator.org_name else organization_id
+
+        # Use the formatted display name stored in the coordinator from Step 1
+        # Fall back to raw name if formatted_org_display_name is somehow None or empty
+        # (it should be populated by async_register_organization_device before this sensor setup)
+        org_name_for_sensors = main_coordinator.formatted_org_display_name \
+            if main_coordinator.formatted_org_display_name \
+            else raw_organization_name_for_fallback
 
         # Add the existing MerakiOrgDeviceTypeClientsSensor
         try:
             org_device_type_sensor = MerakiOrgDeviceTypeClientsSensor(
                 coordinator=main_coordinator,
                 organization_id=organization_id,
-                organization_name=organization_name, # Use the resolved name
+                organization_name=org_name_for_sensors, # Use the new variable
             )
             entities.append(org_device_type_sensor)
             _LOGGER.debug(
                 "Meraki HA: Added MerakiOrgDeviceTypeClientsSensor for organization %s",
-                organization_name,
+                org_name_for_sensors,
             )
         except Exception as e:
             _LOGGER.error(
                 "Meraki HA: Error adding MerakiOrgDeviceTypeClientsSensor for organization %s: %s",
-                organization_name,
+                org_name_for_sensors,
                 e,
             )
 
         # Add the new specific organization client count sensors
         new_org_sensors = [
             MerakiOrganizationSSIDClientsSensor(
-                coordinator=main_coordinator, org_id=organization_id, org_name=organization_name
+                coordinator=main_coordinator, org_id=organization_id, org_name=org_name_for_sensors # Use the new variable
             ),
             MerakiOrganizationWirelessClientsSensor(
-                coordinator=main_coordinator, org_id=organization_id, org_name=organization_name
+                coordinator=main_coordinator, org_id=organization_id, org_name=org_name_for_sensors # Use the new variable
             ),
             MerakiOrganizationApplianceClientsSensor(
-                coordinator=main_coordinator, org_id=organization_id, org_name=organization_name
+                coordinator=main_coordinator, org_id=organization_id, org_name=org_name_for_sensors # Use the new variable
             ),
         ]
         for sensor in new_org_sensors:
@@ -138,13 +144,13 @@ async def async_setup_entry(
                 _LOGGER.debug(
                     "Meraki HA: Added organization sensor %s for %s",
                     sensor.name, # Using sensor.name which should be set in __init__
-                    organization_name,
+                    org_name_for_sensors,
                 )
             except Exception as e:
                 _LOGGER.error(
                     "Meraki HA: Error adding organization sensor %s for %s: %s",
                     sensor.name if hasattr(sensor, "name") else type(sensor).__name__,
-                    organization_name,
+                    org_name_for_sensors,
                     e,
                 )
     else:
