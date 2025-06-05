@@ -87,6 +87,25 @@ class MerakiAPIClient:
         """Provides access to the SDK's wireless controller."""
         return self._sdk.wireless
 
+    async def get_network_clients(self, network_id: str, **kwargs) -> Any:
+        """Get the clients of a network.
+
+        Args:
+            network_id: The ID of the network.
+            kwargs: Additional arguments to pass to the API call.
+
+        Returns:
+            The clients of the network.
+        """
+        try:
+            return await self._sdk.networks.getNetworkClients(networkId=network_id, **kwargs)
+        except Exception as e:
+            _LOGGER.error(f"Error fetching clients for network {network_id}: {e}")
+            # Depending on desired error handling, you might raise a custom exception
+            # or return a specific value like None or an empty list.
+            # For now, re-raising the exception to be handled by the caller.
+            raise MerakiApiError(f"Failed to fetch clients for network {network_id}: {e}") from e
+
     async def close(self) -> None:
         """Closes the underlying aiohttp session managed by the SDK."""
         # Ensure exc_type, exc_val, exc_tb are passed for a clean exit

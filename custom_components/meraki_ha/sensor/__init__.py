@@ -7,6 +7,7 @@ fetch and manage data from the Meraki API.
 """
 
 import logging
+from typing import Optional # Added Optional
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -17,11 +18,13 @@ from ..const import (
     DATA_COORDINATOR,
     # DATA_COORDINATORS, # Unused
     DATA_SSID_DEVICES_COORDINATOR,
+    MERAKI_API_CLIENT, # Added MERAKI_API_CLIENT
 )
 
 # Import coordinator types
 from ..coordinators.base_coordinator import MerakiDataUpdateCoordinator
 from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+from ..meraki_api import MerakiAPIClient # Added MerakiAPIClient
 
 # Import sensor entity classes for physical devices - These are now dynamically loaded via sensor_registry
 # from .device_status import MerakiDeviceStatusSensor # Unused
@@ -56,6 +59,9 @@ from .org_clients import (
     MerakiOrganizationWirelessClientsSensor,
     MerakiOrganizationApplianceClientsSensor,
 )
+
+# Import the new Network Clients sensor
+from .network_clients import MerakiNetworkClientsSensor # Added MerakiNetworkClientsSensor
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -94,6 +100,14 @@ async def async_setup_entry(
 
     # Get the main data coordinator for physical devices
     main_coordinator: MerakiDataUpdateCoordinator = entry_data.get(DATA_COORDINATOR)
+
+    # Retrieve the MerakiAPIClient instance
+    meraki_api_client: Optional[MerakiAPIClient] = entry_data.get(MERAKI_API_CLIENT)
+
+    if not meraki_api_client:
+        _LOGGER.error("Meraki API client not found in entry_data. Cannot set up network client sensors.")
+        # Depending on the integration's design, you might want to return or handle this differently.
+        # For now, subsequent blocks that depend on meraki_api_client will check for it.
 
     # --- Organization-level Sensor Setup ---
     if main_coordinator and main_coordinator.data:
@@ -250,6 +264,52 @@ async def async_setup_entry(
         id(entities),
         len(entities),
     )
+
+    # --- Network-specific Sensor Setup (New) ---
+    if main_coordinator and main_coordinator.data and meraki_api_client:
+        networks = main_coordinator.data.get("networks", [])
+        _LOGGER.debug(
+            "Meraki HA: Found %d networks for client sensor setup.", len(networks)
+        )
+        for network_data in networks:
+            network_id = network_data.get("id")
+            network_name = network_data.get("name")
+
+            if not network_id or not network_name:
+                _LOGGER.warning(
+                    "Skipping network with missing ID or name for client sensor: %s",
+                    network_data,
+                )
+                continue
+
+            try:
+                client_sensor = MerakiNetworkClientsSensor(
+                    coordinator=main_coordinator, # Or a more specific coordinator if needed
+                    network_id=network_id,
+                    network_name=network_name,
+                    meraki_api_client=meraki_api_client,
+                )
+                entities.append(client_sensor)
+                _LOGGER.debug(
+                    "Meraki HA: Added MerakiNetworkClientsSensor for network %s (ID: %s)",
+                    network_name,
+                    network_id,
+                )
+            except Exception as e:
+                _LOGGER.error(
+                    "Meraki HA: Error adding MerakiNetworkClientsSensor for network %s (ID: %s): %s",
+                    network_name,
+                    network_id,
+                    e,
+                )
+    elif not meraki_api_client:
+        _LOGGER.warning(
+            "Meraki API client not available; skipping network client sensors."
+        )
+    else: # This means main_coordinator or main_coordinator.data is missing
+        _LOGGER.warning(
+            "Main coordinator not available or has no data; skipping network client sensors."
+        )
 
     # Get the SSID device coordinator
     # This coordinator manages SSIDs as logical "devices" in Home Assistant.
