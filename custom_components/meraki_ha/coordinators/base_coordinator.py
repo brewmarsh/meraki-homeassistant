@@ -438,7 +438,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
         formatted_org_name = format_device_name(
             device_name_raw=raw_org_name,
-            # device_model="Organization", # Parameter removed
+            device_model="Organization",
             device_name_format_option=device_name_format_option,
             is_org_device=True
         )
