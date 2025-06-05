@@ -1,3 +1,17 @@
+# [0.3.0](https://github.com/brewmarsh/meraki-homeassistant/compare/v0.2.0...v0.3.0) (2025-06-05)
+
+
+### Bug Fixes
+
+* Improve naming consistency and add diagnostics ([31c7fde](https://github.com/brewmarsh/meraki-homeassistant/commit/31c7fde03ccd248015fd2041c86232e6eacc9b14))
+
+
+### Features
+
+* Add Organization device, org-wide client sensors, and naming/logging improvements ([5eaa50f](https://github.com/brewmarsh/meraki-homeassistant/commit/5eaa50f10517498d31d2f957b4689ac6a6d7834e))
+
+
+
 # [0.2.0](https://github.com/brewmarsh/meraki-homeassistant/compare/v0.1.2...v0.2.0) (2025-06-04)
 
 
