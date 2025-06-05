@@ -438,9 +438,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
         formatted_org_name = format_device_name(
             device_name_raw=raw_org_name,
-            device_model="Organization", # Pass "Organization" as model for clarity
+            # device_model="Organization", # Parameter removed
             device_name_format_option=device_name_format_option,
-            is_org_device=True,
+            is_org_device=True
         )
         _LOGGER.debug("OrgDevReg: Formatted org name: '%s'", formatted_org_name)
 
