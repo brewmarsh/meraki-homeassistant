@@ -89,10 +89,11 @@ class MerakiOrgDeviceTypeClientsSensor(CoordinatorEntity[MerakiDataUpdateCoordin
     def device_info(self) -> DeviceInfo:
         """Return device information for linking this entity to the Meraki Organization."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self._organization_id)},
-            name=f"Meraki Organization: {self._organization_name}",
-            manufacturer="Cisco Meraki",
-            model="Organization",
+            identifiers={(DOMAIN, self._organization_id)}
+            # The name, manufacturer, and model attributes should be inherited from the
+            # device entry created by MerakiDataUpdateCoordinator.
+            # Providing them here again, especially if the 'name' differs from the
+            # original registration, can lead to unexpected updates or conflicts.
         )
 
     @property

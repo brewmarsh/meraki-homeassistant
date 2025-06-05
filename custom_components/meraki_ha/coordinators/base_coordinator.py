@@ -142,6 +142,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # DataUpdateCoordinator.
         self.data: Dict[str, Any] = {}
         self.org_name: Optional[str] = None  # Initialize org_name
+        self.formatted_org_display_name: Optional[str] = None
 
     @property
     def device_name_format(self) -> str:
@@ -438,11 +439,12 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
         formatted_org_name = format_device_name(
             device_name_raw=raw_org_name,
-            device_model="Organization", # Pass "Organization" as model for clarity
+            device_model="Organization",
             device_name_format_option=device_name_format_option,
-            is_org_device=True,
+            is_org_device=True
         )
         _LOGGER.debug("OrgDevReg: Formatted org name: '%s'", formatted_org_name)
+        self.formatted_org_display_name = formatted_org_name
 
         _LOGGER.info(
             "Registering Meraki Organization device: %s (ID: %s)",
