@@ -11,24 +11,28 @@ def map_meraki_model_to_device_type(model: str) -> str:
 
     The function checks the prefix of the model string to determine its
     general category (e.g., "MR" models are "Wireless", "MS" models are "Switch").
+    It also specifically identifies "Network" as a type.
 
     Args:
         model: The Meraki device model string (e.g., "MR52",
-               "MS220-8P"). It's expected to be a non-empty string.
+               "MS220-8P", "Network"). It's expected to be a non-empty string.
 
     Returns:
         A string representing the generic device type (e.g., "Wireless",
-        "Switch", "Appliance", "Camera", "Sensor"). Returns "Unknown" if the
-        model prefix does not match any known category.
+        "Switch", "Appliance", "Camera", "Sensor", "Network").
+        Returns "Unknown" if the model prefix does not match any known category
+        and is not "Network".
     """
     # Handle empty string case, though API usually provides models
     if not model:
         return "Unknown"
 
-    # Ensure case-insensitivity for prefixes
+    # Ensure case-insensitivity for prefixes and direct match
     model_upper = model.upper()
 
-    if model_upper.startswith("MR") or model_upper.startswith("GR"):
+    if model_upper == "NETWORK": # Specific check for "Network"
+        return "Network"
+    elif model_upper.startswith("MR") or model_upper.startswith("GR"):
         # Meraki Wireless Access Points (MR series, GR is older/alt)
         return "Wireless"
     elif model_upper.startswith("MS") or model_upper.startswith("GS"):
