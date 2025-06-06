@@ -47,9 +47,9 @@ def create_ssid_sensors(
     sensors: List[SensorEntity] = []
 
     # Instantiate each type of sensor for the SSID
-    sensors.append(MerakiSSIDAvailabilitySensor(coordinator, device_data, ssid_data))
-    sensors.append(MerakiSSIDChannelSensor(coordinator, device_data, ssid_data))
-    sensors.append(MerakiSSIDClientCountSensor(coordinator, device_data, ssid_data))
+    sensors.append(MerakiSSIDAvailabilitySensor(coordinator, ssid_data))
+    sensors.append(MerakiSSIDChannelSensor(coordinator, ssid_data))
+    sensors.append(MerakiSSIDClientCountSensor(coordinator, ssid_data))
 
     # Add other SSID-specific sensor types here as they are developed
     # Example:
