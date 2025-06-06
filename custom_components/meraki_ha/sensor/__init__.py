@@ -63,6 +63,9 @@ from .org_clients import (
 # Import the new Network Clients sensor
 from .network_clients import MerakiNetworkClientsSensor # Added MerakiNetworkClientsSensor
 
+# Import the new Network Identity sensor
+from .network_identity import MerakiNetworkIdentitySensor
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -268,6 +271,21 @@ async def async_setup_entry(
                     "Meraki HA: Error adding MerakiNetworkClientsSensor for network %s (ID: %s): %s",
                     network_name,
                     network_id,
+                    e,
+                )
+
+            # Add the new Network Identity Sensor
+            try:
+                identity_sensor = MerakiNetworkIdentitySensor(
+                    coordinator=main_coordinator,
+                    network_data=network_data, # Pass the whole network_data dict
+                )
+                entities.append(identity_sensor)
+            except Exception as e:
+                _LOGGER.error(
+                    "Meraki HA: Error adding MerakiNetworkIdentitySensor for network %s (ID: %s): %s",
+                    network_data.get("name", "Unknown"), # Use .get for safety in log
+                    network_data.get("id", "Unknown"),   # Use .get for safety in log
                     e,
                 )
     elif not meraki_api_client:
