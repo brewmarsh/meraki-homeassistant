@@ -18,7 +18,7 @@ from ..const import (
     DATA_COORDINATOR,
     # DATA_COORDINATORS, # Unused
     DATA_SSID_DEVICES_COORDINATOR,
-    MERAKI_API_CLIENT, # Added MERAKI_API_CLIENT
+    DATA_CLIENT, # Correct key for the API client
 )
 
 # Import coordinator types
@@ -104,7 +104,7 @@ async def async_setup_entry(
     main_coordinator: MerakiDataUpdateCoordinator = entry_data.get(DATA_COORDINATOR)
 
     # Retrieve the MerakiAPIClient instance
-    meraki_api_client: Optional[MerakiAPIClient] = entry_data.get(MERAKI_API_CLIENT)
+    meraki_api_client: Optional[MerakiAPIClient] = entry_data.get(DATA_CLIENT)
 
     if not meraki_api_client:
         _LOGGER.error("Meraki API client not found in entry_data. Cannot set up network client sensors.")
@@ -300,9 +300,11 @@ async def async_setup_entry(
     # Get the SSID device coordinator
     # This coordinator manages SSIDs as logical "devices" in Home Assistant.
     # Ensure DATA_SSID_DEVICES_COORDINATOR is the correct key used during coordinator setup in __init__.py of the component
-    ssid_coordinator: SSIDDeviceCoordinator = entry_data.get(
-        DATA_SSID_DEVICES_COORDINATOR
-    )
+    coordinators_map = entry_data.get("coordinators")
+    if coordinators_map:
+        ssid_coordinator: Optional[SSIDDeviceCoordinator] = coordinators_map.get(DATA_SSID_DEVICES_COORDINATOR)
+    else:
+        ssid_coordinator = None
 
     # --- SSID "Device" Sensor Setup ---
     # Iterate through enabled SSIDs fetched by the ssid_coordinator
