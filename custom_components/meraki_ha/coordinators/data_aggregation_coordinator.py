@@ -87,7 +87,6 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # It no longer takes data_processor as an argument.
         self.data_aggregator: DataAggregator = DataAggregator(
             relaxed_tag_match=self.relaxed_tag_match,
-            # data_processor=self.data_processor, # This line is removed
             ssid_status_calculator=self.ssid_status_calculator,
         )
 
