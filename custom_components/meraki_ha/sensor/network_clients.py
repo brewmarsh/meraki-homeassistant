@@ -61,7 +61,7 @@ class MerakiNetworkClientsSensor(
                 perPage=1000,
             )
             if clients is None:
-                _LOGGER.info(
+                _LOGGER.debug(
                     "API call for network clients for network %s (ID: %s) returned None. Treating as zero clients.", self._network_name, self._network_id
                 )
                 return []
