@@ -28,7 +28,9 @@ class MerakiSSIDClientCountSensor(
     """Represents a Meraki SSID Client Count sensor.
 
     This sensor entity displays the number of clients connected to a specific SSID.
-    It is linked to an SSID HA device.
+    The client count is provided by the `SSIDDeviceCoordinator`, which calculates
+    it based on network-wide client data filtered by SSID name.
+    This sensor is linked to an HA device representing the specific SSID.
     """
 
     _attr_icon = "mdi:account-multiple"
@@ -43,9 +45,12 @@ class MerakiSSIDClientCountSensor(
         """Initialize the Meraki SSID Client Count sensor.
 
         Args:
-            coordinator: The SSIDDeviceCoordinator.
-            ssid_data: Dictionary containing information about the SSID.
-                       Expected: 'unique_id', 'name', and potentially 'client_count'.
+            coordinator: The `SSIDDeviceCoordinator` instance that provides updates
+                         for this SSID's data, including the client count.
+            ssid_data: A dictionary containing initial information about the SSID,
+                       including 'unique_id' (for identifying the SSID in coordinator data),
+                       'name' (for display purposes), and potentially 'client_count'
+                       as calculated by the coordinator.
         """
         super().__init__(coordinator)
         self._ssid_data = ssid_data
@@ -73,13 +78,18 @@ class MerakiSSIDClientCountSensor(
         )
 
     def _update_sensor_state(self) -> None:
-        """Update the sensor's state based on coordinator data for this SSID."""
+        """Update the sensor's state using the latest data from the coordinator.
+
+        This method retrieves the most recent data for this specific SSID from the
+        `SSIDDeviceCoordinator`. It then updates the sensor's native value with
+        the `client_count` found in that data. If `client_count` is missing or
+        not an integer, the sensor's value defaults to 0.
+        """
         current_ssid_data = self.coordinator.data.get(self._ssid_data["unique_id"])
 
         if current_ssid_data:
             self._ssid_data = current_ssid_data  # Update internal data
-            # The 'client_count' field is not standard in Meraki's getNetworkWirelessSsid output.
-            # This field would need to be populated by SSIDDeviceCoordinator.
+            # The 'client_count' field is populated by the SSIDDeviceCoordinator.
             client_count: Optional[int] = self._ssid_data.get("client_count")
 
             if isinstance(client_count, int):

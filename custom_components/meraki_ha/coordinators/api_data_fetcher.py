@@ -803,7 +803,7 @@ class MerakiApiDataFetcher:
             clients_data = await self.meraki_client.devices.getDeviceClients(
                 serial=serial
             )
-            _LOGGER.debug(f"Raw clients_data for MR device {serial}: {clients_data}")
+            # _LOGGER.debug(f"Raw clients_data for MR device {serial}: {clients_data}") # Removed: too verbose
 
             if clients_data is not None: # Will be a list, potentially empty
                 device["connected_clients_count"] = len(clients_data)
