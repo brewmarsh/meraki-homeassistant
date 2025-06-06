@@ -269,18 +269,7 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                     network_id, []
                 )  # Use .get for safety.
 
-                _LOGGER.debug(
-                    f"SSID_CLIENT_DEBUG: Calculating client count for SSID '{ssid_name_summary}' (Number: {ssid_number}) on network {network_id}. "
-                    f"Total clients fetched for this network: {len(current_network_clients) if current_network_clients is not None else 'None'}"
-                )
-
                 if current_network_clients:
-                    for i, client_debug in enumerate(current_network_clients[:5]): # Log first 5 clients
-                        _LOGGER.debug(
-                            f"SSID_CLIENT_DEBUG: Sample client {i+1} on network {network_id} - MAC: {client_debug.get('mac')}, "
-                            f"IP: {client_debug.get('ip')}, Client's reported SSID: '{client_debug.get('ssid')}' (type: {type(client_debug.get('ssid')).__name__})"
-                        )
-
                     current_ssid_clients = [
                         client
                         for client in current_network_clients # current_network_clients is already checked for None above indirectly
@@ -288,11 +277,8 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                     ]
                     client_count = len(current_ssid_clients)
 
-                    _LOGGER.debug(
-                        f"SSID_CLIENT_DEBUG: SSID '{ssid_name_summary}' (Number: {ssid_number}) - Matched client list MACs: {[c.get('mac') for c in current_ssid_clients]}. Count: {client_count}"
-                    )
                 else: # Should not happen if network_id was in cache and had clients, but good for safety
-                    _LOGGER.debug(f"SSID_CLIENT_DEBUG: No clients found in cache for network {network_id} to filter for SSID {ssid_name_summary} (Number: {ssid_number}). Count remains {client_count}.")
+                    pass # No specific debug message needed here after removal of SSID_CLIENT_DEBUG
 
 
                 merged_ssid_data["client_count"] = (

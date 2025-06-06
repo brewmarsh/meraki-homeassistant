@@ -58,8 +58,8 @@ class MerakiNetworkClientsSensor(
             # The getNetworkClients method is part of the official Meraki SDK
             clients = await self._meraki_api_client.networks.getNetworkClients(
                 networkId=self._network_id,
-                # timespan=86400,  # Example: clients active in the last 24 hours
-                # perPage=1000, # Example: fetch up to 1000 clients
+                timespan=86400,  # Clients active in the last 24 hours
+                perPage=1000, # Fetch up to 1000 clients per page
             )
             return clients if clients else []
         except Exception as e:
