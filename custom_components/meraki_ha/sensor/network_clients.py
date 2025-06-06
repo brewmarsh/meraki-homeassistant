@@ -54,17 +54,29 @@ class MerakiNetworkClientsSensor(
     async def _fetch_clients_data(self) -> List[Dict[str, Any]]:
         """Fetch clients data from the Meraki API."""
         try:
-            # Use the API client's networks controller to get network clients
-            # The getNetworkClients method is part of the official Meraki SDK
             clients = await self._meraki_api_client.networks.getNetworkClients(
                 networkId=self._network_id,
-                timespan=86400,  # Clients active in the last 24 hours
-                perPage=1000, # Fetch up to 1000 clients per page
+                timespan=86400,
+                perPage=1000,
             )
-            return clients if clients else []
+            if clients is None:
+                _LOGGER.info(
+                    "API call for network clients for network %s (ID: %s) returned None. Treating as zero clients.", self._network_name, self._network_id
+                )
+                return []
+            if not clients:  # Empty list
+                _LOGGER.debug(
+                    "API call for network clients for network %s (ID: %s) returned an empty list. Zero clients.", self._network_name, self._network_id
+                )
+                return []
+            # If clients is not None and not empty, it's a non-empty list
+            _LOGGER.debug(
+                "Successfully fetched %d clients for network %s (ID: %s).", len(clients), self._network_name, self._network_id
+            )
+            return clients
         except Exception as e:
             _LOGGER.error(
-                "Error fetching clients for network %s: %s", self._network_id, e
+                "Error fetching clients for network %s (ID: %s): %s", self._network_name, self._network_id, e
             )
             return []
 

@@ -266,7 +266,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                     (DOMAIN, network_id)
                 },  # Unique identifier for this network device
                 name=formatted_network_name,  # Use the formatted name
-                model="Meraki Network",  # Model for these logical network devices
+                model=f"Network (ID: {network_id})",  # Model for these logical network devices
                 manufacturer="Cisco Meraki",
                 # No via_device for these, they are parented by the ConfigEntry implicitly
             )

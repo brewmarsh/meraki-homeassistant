@@ -319,7 +319,7 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                         (DOMAIN, unique_ssid_id)
                     },  # Unique identifier for this SSID "device".
                     name=formatted_ssid_name,  # User-friendly name for the SSID "device".
-                    model="Wireless SSID",  # Model type for these logical SSID devices.
+                    model=f"SSID (Net: {network_id}, Num: {ssid_number})",  # Model type for these logical SSID devices.
                     manufacturer="Cisco Meraki",
                     # Link this SSID "device" to its parent Network "device" in HA.
                     # This creates a hierarchy: Config Entry -> Network Device -> SSID Device -> Entities.
