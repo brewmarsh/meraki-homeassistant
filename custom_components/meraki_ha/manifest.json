@@ -19,5 +19,5 @@
     "meraki>=1.36.0",
     "aiohttp"
   ],
-  "version": "0.5.1+build.91"
+  "version": "0.6.0+build.92"
 }
