@@ -25,6 +25,7 @@ class MerakiNetworkClientsSensor(
     _attr_icon = "mdi:account-multiple"
     _attr_native_unit_of_measurement = "clients"
     _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_should_poll = True # Add this line
 
     def __init__(
         self,
@@ -83,45 +84,10 @@ class MerakiNetworkClientsSensor(
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        # This method is called when the coordinator has new data.
-        # We will trigger a separate fetch for client data here or rely on a periodic update.
-        # For simplicity in this example, let's assume client data is fetched periodically
-        # by async_update, or fetched here if the coordinator signals a relevant change.
-        # If the coordinator's update cycle is frequent enough, and client data doesn't need
-        # to be real-time with coordinator updates, async_update is more appropriate.
-        # However, if client data should refresh when other network data refreshes,
-        # it could be triggered here.
-
-        # For now, let's keep the logic in _update_sensor_state which is called by
-        # the parent's _handle_coordinator_update after updating self.coordinator.data.
-        # The actual fetching will be done in async_update for this specific sensor.
-        # This means this sensor will have its own update cycle for client data,
-        # independent of the main coordinator's generic data update.
-        # This is not ideal if we want this sensor to be purely a CoordinatorEntity
-        # that relies *only* on the coordinator's pushed data.
-
-        # A better approach for a CoordinatorEntity:
-        # The coordinator itself should fetch this data if it's central to many entities.
-        # If this data is specific to *this* sensor, then this sensor might not
-        # perfectly fit the CoordinatorEntity model if it has to do its own fetching
-        # triggered by _handle_coordinator_update or via its own async_update.
-
-        # Let's assume for now that the coordinator *could* provide this data.
-        # If `self.coordinator.data` contains client info for this network_id:
-        # self._clients_data = self.coordinator.data.get("network_clients", {}).get(self._network_id, [])
-        # self._update_sensor_state()
-        # self.async_write_ha_state()
-
-        # If it must fetch its own data, it should not be a CoordinatorEntity,
-        # or it needs a custom async_update. Let's modify it to fetch its own data for now,
-        # which means it's a bit of a hybrid.
-        # The `async_update` method will be responsible for fetching.
-        # `_handle_coordinator_update` will just schedule an update or rely on HA's polling.
-        # For now, let's assume the coordinator doesn't provide this directly.
-        # We will call our own update method.
-        self._update_sensor_state() # This will use potentially stale _clients_data
-                                     # if async_update isn't called.
-        self.async_write_ha_state()
+        # By calling async_schedule_update_ha_state with force_refresh=True,
+        # we ensure that our own async_update method (which calls _fetch_clients_data)
+        # is run when the coordinator signals an update.
+        self.async_schedule_update_ha_state(force_refresh=True)
 
 
     def _update_sensor_state(self) -> None:
