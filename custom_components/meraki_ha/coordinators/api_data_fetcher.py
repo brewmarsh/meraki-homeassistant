@@ -833,8 +833,6 @@ class MerakiApiDataFetcher:
             device["connected_clients_count"] = 0 # Explicitly ensure it's 0
             _LOGGER.debug(f"Set connected_clients_count to 0 for MR device {serial} due to general Exception.")
 
-        _LOGGER.debug(f"Final connected_clients_count for MR device {serial} before radio settings: {device.get('connected_clients_count')}")
-
         try:
             _LOGGER.debug(f"Fetching radio settings for MR device {serial}")
             radio_settings_data = (

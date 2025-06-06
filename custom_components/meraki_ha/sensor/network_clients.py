@@ -1,63 +1,28 @@
-"""Sensor entity for monitoring the client count on a Meraki network.
-
-This module defines the `MerakiNetworkClientCountSensor` class, which
-represents a sensor in Home Assistant displaying the number of clients
-connected to a specific Meraki network.
-"""
-
-import logging  # Added logging
-from typing import Any, Optional, Dict
+import logging
+from typing import Any, Dict, List, Optional
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
-from homeassistant.core import callback  # For coordinator updates
+from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-# Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 from ..coordinators import MerakiDataUpdateCoordinator
-from ..const import DOMAIN  # For device_info identifiers
-
-# Assuming get_network_clients_count is an async function from the meraki_api package
-# from ..meraki_api.networks import get_network_clients_count
-# Placeholder for the function if not available for type checking
-
-
-async def get_network_clients_count(
-    api_key: str, network_id: str, timespan: int = 86400
-) -> int:
-    """Placeholder: Fetches network client count."""
-    _LOGGER.warning(
-        "Using placeholder for get_network_clients_count for network_id %s.", network_id
-    )
-    # In a real scenario, this would make an API call.
-    # For placeholder, return a static value or a value based on some mock.
-    return 0  # Example placeholder value
-
+from ..const import DOMAIN
+from ..meraki_api._api_client import MerakiAPIClient
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiNetworkClientCountSensor(
+class MerakiNetworkClientsSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
-    """Representation of a Meraki Network Client Count sensor.
+    """Representation of a Meraki Network Clients sensor.
 
-    This sensor displays the total number of clients that have been active
-    on a specific Meraki network within a defined timespan (typically 24 hours).
-    The data is sourced from the `MerakiDataUpdateCoordinator`, which should
-    provide network-level client count information or the means to derive it.
-
-    Attributes:
-        _attr_name: The name of the sensor.
-        _attr_unique_id: The unique ID of the sensor.
-        _attr_icon: The icon for the sensor.
-        _attr_native_unit_of_measurement: The unit of measurement.
-        _attr_state_class: The state class of the sensor.
-        _network_id: The ID of the Meraki network this sensor monitors.
-        _network_name: The name of the Meraki network.
+    This sensor displays the number of clients connected to a specific
+    Meraki network and lists their details as attributes.
     """
 
-    _attr_icon = "mdi:account-multiple"  # Icon representing multiple users/clients
+    _attr_icon = "mdi:account-multiple"
     _attr_native_unit_of_measurement = "clients"
     _attr_state_class = SensorStateClass.MEASUREMENT
 
@@ -66,161 +31,141 @@ class MerakiNetworkClientCountSensor(
         coordinator: MerakiDataUpdateCoordinator,
         network_id: str,
         network_name: str,
+        meraki_api_client: MerakiAPIClient,
     ) -> None:
-        """Initialize the Meraki Network Client Count sensor.
+        """Initialize the Meraki Network Clients sensor.
 
         Args:
             coordinator: The data update coordinator.
             network_id: The ID of the Meraki network this sensor is for.
             network_name: The name of the Meraki network.
+            meraki_api_client: The Meraki API client.
         """
         super().__init__(coordinator)
-        self._network_id: str = network_id
-        self._network_name: str = network_name
-        # Construct a user-friendly name and a unique ID
-        self._attr_name = f"{self._network_name} Client Count"
-        self._attr_unique_id = f"meraki_network_clients_{self._network_id}"
+        self._network_id = network_id
+        self._network_name = network_name
+        self._meraki_api_client = meraki_api_client
+        self._attr_name = f"{network_name} Clients"
+        self._attr_unique_id = f"meraki_network_clients_{network_id}"
+        self._clients_data: List[Dict[str, Any]] = []
 
-        # Set initial state
         self._update_sensor_state()
 
-    def _get_network_client_count(self) -> Optional[int]:
-        """Retrieve the client count for this network from coordinator data.
-
-        This method assumes the coordinator's data structure includes a way to
-        get client counts per network, or this sensor might need to make its
-        own API call if the coordinator doesn't aggregate this specific data point.
-
-        The original code directly called `get_network_clients_count` in `async_update`.
-        If this sensor is a `CoordinatorEntity`, it should ideally get data *from*
-        the coordinator. If the coordinator does not provide this specific value,
-        then this sensor might not be a `CoordinatorEntity` in the typical sense
-        or the coordinator needs to be adapted.
-
-        For this revision, we'll assume the coordinator's `self.data` contains
-        a dictionary where keys might be network IDs and values contain client counts,
-        or there's a specific key for aggregated network stats.
-        If `get_network_clients_count` must be called, it implies this sensor
-        might manage its own updates or the coordinator needs to expose this specific data.
-
-        Let's assume `coordinator.data` has a structure like:
-        `{"networks_stats": {"network_id_1": {"client_count": X}, ...}}`
-        Or, if the `get_network_clients_count` is preferred, this entity
-        should not be a `CoordinatorEntity` but a regular `SensorEntity` that
-        schedules its own `async_update`.
-
-        Given the original code:
-        It was a regular `SensorEntity` calling `get_network_clients_count` in `async_update`.
-        To make it a `CoordinatorEntity`, the coordinator must provide this value.
-        Let's assume the coordinator's `data` dictionary has a top-level key
-        `network_client_counts` which is a dict mapping `network_id` to count.
-        Example: `self.coordinator.data['network_client_counts'][self._network_id]`
-        """
-        if self.coordinator.data is None or "network_client_counts" not in self.coordinator.data:
-            _LOGGER.warning(
-                "MerakiNetworkClientCountSensor '%s' (for network: %s) "
-                "is used with a coordinator that does not provide the 'network_client_counts' data structure. "
-                "This sensor will likely show 0 or an inaccurate value. "
-                "For organization-wide client counts, please use the new MerakiOrganization[Type]ClientsSensor entities. "
-                "If you are trying to get per-network client counts, ensure the coordinator populates 'network_client_counts'.",
-                self.name,
-                self._network_name,
+    async def _fetch_clients_data(self) -> List[Dict[str, Any]]:
+        """Fetch clients data from the Meraki API."""
+        try:
+            # Use the API client's networks controller to get network clients
+            # The getNetworkClients method is part of the official Meraki SDK
+            clients = await self._meraki_api_client.networks.getNetworkClients(
+                networkId=self._network_id,
+                # timespan=86400,  # Example: clients active in the last 24 hours
+                # perPage=1000, # Example: fetch up to 1000 clients
             )
-            # The existing logic will handle returning None or 0 if the key is missing,
-            # so the warning is the main addition here.
-            # No need to return early unless specific error handling is desired beyond the warning.
-
-        if self.coordinator.data and "network_client_counts" in self.coordinator.data:
-            network_counts: Optional[Dict[str, int]] = self.coordinator.data.get(
-                "network_client_counts"
+            return clients if clients else []
+        except Exception as e:
+            _LOGGER.error(
+                "Error fetching clients for network %s: %s", self._network_id, e
             )
-            if network_counts and self._network_id in network_counts:
-                count = network_counts[self._network_id]
-                _LOGGER.debug(
-                    "Client count for network '%s' (ID: %s) from coordinator: %s",
-                    self._network_name,
-                    self._network_id,
-                    count,
-                )
-                return count
-            else:
-                _LOGGER.warning(
-                    "Client count data for network ID '%s' not found in coordinator.",
-                    self._network_id,
-                )
-                return 0  # Default if specific network data missing
-        else:
-            _LOGGER.warning(
-                "Coordinator data or 'network_client_counts' key is unavailable for %s. Cannot update sensor.",
-                self.unique_id,
-            )
-            # If this sensor *must* call an API, it shouldn't be a CoordinatorEntity
-            # or its async_update needs to be different.
-            # For now, returning None to indicate data is unavailable from
-            # coordinator.
-            return None
+            return []
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._update_sensor_state()
+        # This method is called when the coordinator has new data.
+        # We will trigger a separate fetch for client data here or rely on a periodic update.
+        # For simplicity in this example, let's assume client data is fetched periodically
+        # by async_update, or fetched here if the coordinator signals a relevant change.
+        # If the coordinator's update cycle is frequent enough, and client data doesn't need
+        # to be real-time with coordinator updates, async_update is more appropriate.
+        # However, if client data should refresh when other network data refreshes,
+        # it could be triggered here.
+
+        # For now, let's keep the logic in _update_sensor_state which is called by
+        # the parent's _handle_coordinator_update after updating self.coordinator.data.
+        # The actual fetching will be done in async_update for this specific sensor.
+        # This means this sensor will have its own update cycle for client data,
+        # independent of the main coordinator's generic data update.
+        # This is not ideal if we want this sensor to be purely a CoordinatorEntity
+        # that relies *only* on the coordinator's pushed data.
+
+        # A better approach for a CoordinatorEntity:
+        # The coordinator itself should fetch this data if it's central to many entities.
+        # If this data is specific to *this* sensor, then this sensor might not
+        # perfectly fit the CoordinatorEntity model if it has to do its own fetching
+        # triggered by _handle_coordinator_update or via its own async_update.
+
+        # Let's assume for now that the coordinator *could* provide this data.
+        # If `self.coordinator.data` contains client info for this network_id:
+        # self._clients_data = self.coordinator.data.get("network_clients", {}).get(self._network_id, [])
+        # self._update_sensor_state()
+        # self.async_write_ha_state()
+
+        # If it must fetch its own data, it should not be a CoordinatorEntity,
+        # or it needs a custom async_update. Let's modify it to fetch its own data for now,
+        # which means it's a bit of a hybrid.
+        # The `async_update` method will be responsible for fetching.
+        # `_handle_coordinator_update` will just schedule an update or rely on HA's polling.
+        # For now, let's assume the coordinator doesn't provide this directly.
+        # We will call our own update method.
+        self._update_sensor_state() # This will use potentially stale _clients_data
+                                     # if async_update isn't called.
         self.async_write_ha_state()
 
-    def _update_sensor_state(self) -> None:
-        """Update the native value of the sensor based on coordinator data."""
-        self._attr_native_value = self._get_network_client_count()
 
-    # If this entity were to manage its own updates (not as a CoordinatorEntity subclass):
-    # async def async_update(self) -> None:
-    #     """Fetch new state data for the sensor.
-    #
-    #     This is the only method that should fetch new data for Home Assistant.
-    #     """
-    #     _LOGGER.debug("Updating Meraki Network Client Count sensor for network: %s", self._network_name)
-    #     try:
-    #         # Assuming self._coordinator provides api_key. If not, it needs to be passed differently.
-    #         # This implies the coordinator object might just be a data store or config holder here.
-    #         api_key = getattr(self._coordinator, 'api_key', None)
-    #         if not api_key:
-    #             _LOGGER.error("API key not available for MerakiNetworkClientCountSensor.")
-    #             self._attr_native_value = None # Or some error state
-    #             return
-    #
-    #         count = await get_network_clients_count(
-    #             api_key,
-    #             self._network_id,
-    #             # timespan=... # Add if configurable or needed
-    #         )
-    #         self._attr_native_value = count
-    #     except Exception as e: # Catch specific exceptions if possible
-    #         _LOGGER.error(
-    #             "Error updating Meraki Network Client Count sensor for network '%s': %s",
-    #             self._network_name, e
-    #         )
-    # self._attr_native_value = None # Or handle error state appropriately
+    def _update_sensor_state(self) -> None:
+        """Update the native value and attributes of the sensor based on fetched client data."""
+        # This method now relies on self._clients_data being up-to-date.
+        # `async_update` will be responsible for updating `self._clients_data`.
+        self._attr_native_value = len(self._clients_data)
+        self._attr_extra_state_attributes = {
+            "network_id": self._network_id,
+            "network_name": self._network_name,
+            "clients_list": [
+                {
+                    "description": client.get("description"),
+                    "mac": client.get("mac"),
+                    "ip": client.get("ip"),
+                    "vlan": client.get("vlan"),
+                    "status": client.get("status"),
+                    "last_seen": client.get("lastSeen"),
+                    "manufacturer": client.get("manufacturer"),
+                    "os": client.get("os"),
+                    "user": client.get("user"), # Added user
+                    "ssid": client.get("ssid"), # Added ssid
+                }
+                for client in self._clients_data
+            ],
+        }
+
+    async def async_update(self) -> None:
+        """Fetch new state data for the sensor.
+
+        This method is responsible for fetching the latest client data.
+        """
+        _LOGGER.debug(
+            "Fetching Meraki Network Clients sensor data for network: %s",
+            self._network_name,
+        )
+        self._clients_data = await self._fetch_clients_data()
+        self._update_sensor_state() # Update internal state based on new data
 
     @property
     def device_info(self) -> DeviceInfo:
-        """Return device information for linking this entity to the network "device".
-
-        This sensor is associated with a Meraki Network, which itself is
-        represented as a device in Home Assistant.
-        """
+        """Return device information for linking this entity to the network "device"."""
         return DeviceInfo(
-            # Link to the network "device"
             identifiers={(DOMAIN, self._network_id)},
-            name=str(self._network_name),
+            name=self._network_name,
             manufacturer="Cisco Meraki",
-            model="Network",  # Generic model for network-level entities
-            # via_device=None, # This entity is related to the network device
-            # itself
+            model="Network",
         )
 
-    @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
-        """Return additional state attributes for the sensor."""
-        attrs: Dict[str, Any] = {
-            "network_id": self._network_id,
-            "network_name": self._network_name,
-        }
-        return attrs
+# Remove or comment out the old MerakiNetworkClientCountSensor
+# class MerakiNetworkClientCountSensor(
+#     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+# ):
+#     ... (rest of the old class)
+#
+# async def get_network_clients_count(
+#     api_key: str, network_id: str, timespan: int = 86400
+# ) -> int:
+#     ... (old placeholder function)

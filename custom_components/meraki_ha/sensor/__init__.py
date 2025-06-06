@@ -7,6 +7,7 @@ fetch and manage data from the Meraki API.
 """
 
 import logging
+from typing import Optional # Added Optional
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -17,11 +18,13 @@ from ..const import (
     DATA_COORDINATOR,
     # DATA_COORDINATORS, # Unused
     DATA_SSID_DEVICES_COORDINATOR,
+    MERAKI_API_CLIENT, # Added MERAKI_API_CLIENT
 )
 
 # Import coordinator types
 from ..coordinators.base_coordinator import MerakiDataUpdateCoordinator
 from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+from ..meraki_api import MerakiAPIClient # Added MerakiAPIClient
 
 # Import sensor entity classes for physical devices - These are now dynamically loaded via sensor_registry
 # from .device_status import MerakiDeviceStatusSensor # Unused
@@ -57,6 +60,9 @@ from .org_clients import (
     MerakiOrganizationApplianceClientsSensor,
 )
 
+# Import the new Network Clients sensor
+from .network_clients import MerakiNetworkClientsSensor # Added MerakiNetworkClientsSensor
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -87,13 +93,20 @@ async def async_setup_entry(
     """
     _LOGGER.info("Meraki HA: Setting up sensor platform.")  # Adjusted
     entities = []
-    _LOGGER.debug("Meraki HA: Initial entities list id: %s", id(entities))
 
     # Get the entry specific data store
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
 
     # Get the main data coordinator for physical devices
     main_coordinator: MerakiDataUpdateCoordinator = entry_data.get(DATA_COORDINATOR)
+
+    # Retrieve the MerakiAPIClient instance
+    meraki_api_client: Optional[MerakiAPIClient] = entry_data.get(MERAKI_API_CLIENT)
+
+    if not meraki_api_client:
+        _LOGGER.error("Meraki API client not found in entry_data. Cannot set up network client sensors.")
+        # Depending on the integration's design, you might want to return or handle this differently.
+        # For now, subsequent blocks that depend on meraki_api_client will check for it.
 
     # --- Organization-level Sensor Setup ---
     if main_coordinator and main_coordinator.data:
@@ -115,10 +128,6 @@ async def async_setup_entry(
                 organization_name=org_name_for_sensors, # Use the new variable
             )
             entities.append(org_device_type_sensor)
-            _LOGGER.debug(
-                "Meraki HA: Added MerakiOrgDeviceTypeClientsSensor for organization %s",
-                org_name_for_sensors,
-            )
         except Exception as e:
             _LOGGER.error(
                 "Meraki HA: Error adding MerakiOrgDeviceTypeClientsSensor for organization %s: %s",
@@ -141,11 +150,6 @@ async def async_setup_entry(
         for sensor in new_org_sensors:
             try:
                 entities.append(sensor)
-                _LOGGER.debug(
-                    "Meraki HA: Added organization sensor %s for %s",
-                    sensor.name, # Using sensor.name which should be set in __init__
-                    org_name_for_sensors,
-                )
             except Exception as e:
                 _LOGGER.error(
                     "Meraki HA: Error adding organization sensor %s for %s: %s",
@@ -187,11 +191,6 @@ async def async_setup_entry(
             for sensor_class in COMMON_DEVICE_SENSORS:
                 try:
                     entities.append(sensor_class(main_coordinator, device_info))
-                    _LOGGER.debug(
-                        "Meraki HA: Added common sensor %s for %s",
-                        sensor_class.__name__,
-                        device_info.get("name", serial),
-                    )
                 except Exception as e:
                     _LOGGER.error(
                         "Meraki HA: Error adding common sensor %s for %s: %s",
@@ -221,12 +220,6 @@ async def async_setup_entry(
                 for sensor_class in sensors_for_type:
                     try:
                         entities.append(sensor_class(main_coordinator, device_info))
-                        _LOGGER.debug(
-                            "Meraki HA: Added sensor %s for %s (productType: %s)",
-                            sensor_class.__name__,
-                            device_info.get("name", serial),
-                            product_type,
-                        )
                     except Exception as e:
                         _LOGGER.error(
                             "Meraki HA: Error adding sensor %s for %s (productType: %s): %s",
@@ -245,11 +238,46 @@ async def async_setup_entry(
         _LOGGER.warning(
             "Main coordinator not available or has no data; skipping physical device sensors."
         )
-    _LOGGER.debug(
-        "Meraki HA: Entities list id AFTER physical devices loop: %s. Current len: %d",
-        id(entities),
-        len(entities),
-    )
+    # --- Network-specific Sensor Setup (New) ---
+    if main_coordinator and main_coordinator.data and meraki_api_client:
+        networks = main_coordinator.data.get("networks", [])
+        _LOGGER.debug(
+            "Meraki HA: Found %d networks for client sensor setup.", len(networks)
+        )
+        for network_data in networks:
+            network_id = network_data.get("id")
+            network_name = network_data.get("name")
+
+            if not network_id or not network_name:
+                _LOGGER.warning(
+                    "Skipping network with missing ID or name for client sensor: %s",
+                    network_data,
+                )
+                continue
+
+            try:
+                client_sensor = MerakiNetworkClientsSensor(
+                    coordinator=main_coordinator, # Or a more specific coordinator if needed
+                    network_id=network_id,
+                    network_name=network_name,
+                    meraki_api_client=meraki_api_client,
+                )
+                entities.append(client_sensor)
+            except Exception as e:
+                _LOGGER.error(
+                    "Meraki HA: Error adding MerakiNetworkClientsSensor for network %s (ID: %s): %s",
+                    network_name,
+                    network_id,
+                    e,
+                )
+    elif not meraki_api_client:
+        _LOGGER.warning(
+            "Meraki API client not available; skipping network client sensors."
+        )
+    else: # This means main_coordinator or main_coordinator.data is missing
+        _LOGGER.warning(
+            "Main coordinator not available or has no data; skipping network client sensors."
+        )
 
     # Get the SSID device coordinator
     # This coordinator manages SSIDs as logical "devices" in Home Assistant.
@@ -294,11 +322,6 @@ async def async_setup_entry(
                 ssid_coordinator, ssid_info_data, ssid_info_data
             )
             entities.extend(new_ssid_sensors)
-            _LOGGER.debug(
-                "Meraki HA: Added %d sensors for SSID %s",
-                len(new_ssid_sensors),
-                ssid_info_data.get("name", unique_identifier_for_log),
-            )
     else:
         _LOGGER.warning(
             "SSID coordinator (SSIDDeviceCoordinator) not available or has no data; skipping SSID sensors."
@@ -310,8 +333,6 @@ async def async_setup_entry(
         [e.unique_id for e in entities[:5] if hasattr(e, "unique_id")],
         [e.unique_id for e in entities[-5:] if hasattr(e, "unique_id")],
     )
-    # New log for id(entities) at FINAL check
-    _LOGGER.debug("Meraki HA: Entities list id FINAL check: %s", id(entities))
     if entities:
         _LOGGER.info(
             "Meraki HA: Adding %d Meraki sensor entities.", len(entities)

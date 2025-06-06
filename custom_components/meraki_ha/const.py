@@ -31,6 +31,9 @@ DATA_SSID_DEVICES_COORDINATOR: Final[str] = (
 )
 """Key for storing the SSID devices coordinator within the coordinators dictionary."""
 
+MERAKI_API_CLIENT: Final[str] = "meraki_api_client"
+"""Key for storing the MerakiAPIClient instance in hass.data (str)."""
+
 DEFAULT_SCAN_INTERVAL: Final[int] = 60
 """Default scan interval in seconds for the Meraki API data (int)."""
 
