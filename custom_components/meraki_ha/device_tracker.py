@@ -186,9 +186,8 @@ class MerakiDeviceTracker(
         ) or self._client_info_data.get("networkId", "meraki_network")
 
         # Use client's description or IP as name, fallback to MAC
-        # entity_name = self._client_info_data.get( # F841: local variable 'entity_name' is assigned to but never used
-        # "description"
-        # ) or self._client_info_data.get("ip", self._client_info_data["mac"])
+        # The entity's name is set by _attr_name via _attr_has_entity_name=True
+        # and the device's name (AP/Network) is resolved by Home Assistant.
 
         return {
             "identifiers": {(DOMAIN, parent_identifier_value)},

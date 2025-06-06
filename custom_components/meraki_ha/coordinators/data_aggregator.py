@@ -30,7 +30,7 @@ class DataAggregator:
     def __init__(
         self,
         relaxed_tag_match: bool,
-        data_processor: MerakiDataProcessor,  # Type hint updated
+        # data_processor: MerakiDataProcessor, # Removed as it's not used
         ssid_status_calculator: SsidStatusCalculator,
     ) -> None:
         """Initialize the DataAggregator.
@@ -38,17 +38,13 @@ class DataAggregator:
         Args:
             relaxed_tag_match: Boolean indicating if relaxed tag matching
                 should be used by the `SsidStatusCalculator`.
-            data_processor: An instance of `MerakiDataProcessor`. While stored,
-                it's not directly used in `aggregate_data` as processing
-                is expected to have occurred before data is passed here.
-                It's kept for potential future use or if sub-processing is needed.
+            # data_processor: An instance of `MerakiDataProcessor` was previously
+            #                 accepted but found to be unused within this class.
             ssid_status_calculator: An instance of `SsidStatusCalculator`
                 used to determine the status of SSIDs.
         """
         self.relaxed_tag_match: bool = relaxed_tag_match
-        self.data_processor: MerakiDataProcessor = (
-            data_processor  # Store for potential use
-        )
+        # self.data_processor: MerakiDataProcessor = data_processor
         self.ssid_status_calculator: SsidStatusCalculator = ssid_status_calculator
 
     async def aggregate_data(

@@ -95,18 +95,15 @@ def mock_ssid_status_calculator():
 
 @pytest.fixture
 def aggregator(
-    mock_data_processor, mock_ssid_status_calculator_unused
-):  # mock_ssid_status_calculator_unused is to trigger its patching
-    # The SsidStatusCalculator instance passed to DataAggregator isn't directly used for its methods
-    # if SsidStatusCalculator.calculate_ssid_status is a static method and patched directly.
-    # However, we still need to pass an instance.
-    # We use mock_ssid_status_calculator_unused to ensure the static method is patched during this test.
+    mock_ssid_status_calculator_unused, # Renamed, as data_processor is removed
+):
+    # mock_ssid_status_calculator_unused ensures SsidStatusCalculator.calculate_ssid_status is patched
     return DataAggregator(
         relaxed_tag_match=False,
-        data_processor=mock_data_processor,
+        # data_processor=mock_data_processor, # Removed
         ssid_status_calculator=MagicMock(
             spec=SsidStatusCalculator
-        ),  # Pass a mock instance
+        ),
     )
 
 
@@ -232,4 +229,105 @@ def test_placeholder():
 #     # assert mr1_merged["connected_clients_count"] == 5 # Merged detail
 #     pass
 
-print("test_data_aggregator.py created")
+@pytest.mark.asyncio
+async def test_aggregation_with_empty_inputs(aggregator, mock_ssid_status_calculator):
+    """Test aggregation with empty lists for devices, SSIDs, and networks."""
+    aggregated_data = await aggregator.aggregate_data(
+        processed_devices=[],
+        ssid_data=[],
+        network_data=[],
+        client_data=[],
+        network_client_counts={},
+        clients_on_ssids=0,
+        clients_on_appliances=0,
+        clients_on_wireless=0
+    )
+
+    assert aggregated_data["devices"] == []
+    assert aggregated_data["ssids"] == [] # SsidStatusCalculator will be called with empty list
+    assert aggregated_data["networks"] == []
+    assert aggregated_data["clients"] == []
+    assert aggregated_data["network_client_counts"] == {}
+    assert aggregated_data["clients_on_ssids"] == 0
+    assert aggregated_data["clients_on_appliances"] == 0
+    assert aggregated_data["clients_on_wireless"] == 0
+
+    mock_ssid_status_calculator.assert_called_once_with(
+        ssids=[], devices=[], relaxed_tag_match=False
+    )
+
+@pytest.mark.asyncio
+async def test_aggregation_with_none_client_data(aggregator, mock_ssid_status_calculator):
+    """Test aggregation when optional client_data and network_client_counts are None."""
+    aggregated_data = await aggregator.aggregate_data(
+        processed_devices=ALL_PROCESSED_DEVICES, # Use some devices for SSID linking part
+        ssid_data=ALL_SSID_DATA,
+        network_data=NETWORK_DATA,
+        client_data=None, # Test None case
+        network_client_counts=None, # Test None case
+        clients_on_ssids=10, # Arbitrary values
+        clients_on_appliances=5,
+        clients_on_wireless=8
+    )
+
+    assert len(aggregated_data["devices"]) == len(ALL_PROCESSED_DEVICES)
+    assert len(aggregated_data["ssids"]) == len(ALL_SSID_DATA)
+    assert aggregated_data["networks"] == NETWORK_DATA
+
+    assert aggregated_data["clients"] == [] # Should default to empty list
+    assert aggregated_data["network_client_counts"] == {} # Should default to empty dict
+
+    assert aggregated_data["clients_on_ssids"] == 10
+    assert aggregated_data["clients_on_appliances"] == 5
+    assert aggregated_data["clients_on_wireless"] == 8
+
+    mock_ssid_status_calculator.assert_called_once_with(
+        ssids=ALL_SSID_DATA, devices=ALL_PROCESSED_DEVICES, relaxed_tag_match=False
+    )
+
+
+@pytest.mark.asyncio
+async def test_aggregation_ssid_device_linking_no_mr_devices(aggregator, mock_ssid_status_calculator):
+    """Test SSID-device linking when there are no MR devices."""
+    non_mr_devices = PROCESSED_DEVICES_MS + PROCESSED_DEVICES_MX
+    aggregated_data = await aggregator.aggregate_data(
+        processed_devices=non_mr_devices,
+        ssid_data=ALL_SSID_DATA,
+        network_data=NETWORK_DATA,
+        client_data=[],
+        network_client_counts={}
+    )
+
+    for device in aggregated_data["devices"]:
+        assert "ssids" not in device # No MR devices, so no SSIDs should be embedded
+
+    mock_ssid_status_calculator.assert_called_once_with(
+        ssids=ALL_SSID_DATA, devices=non_mr_devices, relaxed_tag_match=False
+    )
+
+@pytest.mark.asyncio
+async def test_aggregation_ssid_device_linking_ssids_not_in_device_network(aggregator, mock_ssid_status_calculator):
+    """Test SSID-device linking ensuring only SSIDs of the device's network are linked."""
+    # MR1 is in N1. SSID_DATA_N2 are for network N2.
+    mr1_device_list = [PROCESSED_DEVICES_MR[0]] # Only MR1
+
+    aggregated_data = await aggregator.aggregate_data(
+        processed_devices=mr1_device_list,
+        ssid_data=ALL_SSID_DATA, # Contains SSIDs from N1 and N2
+        network_data=NETWORK_DATA,
+        client_data=[],
+        network_client_counts={}
+    )
+
+    mr1_aggregated = next(d for d in aggregated_data["devices"] if d["serial"] == "MR1")
+    assert "ssids" in mr1_aggregated
+    # Should only contain SSIDs from N1
+    assert len(mr1_aggregated["ssids"]) == len(SSID_DATA_N1)
+    for ssid_in_device in mr1_aggregated["ssids"]:
+        assert ssid_in_device["networkId"] == "N1"
+
+    mock_ssid_status_calculator.assert_called_once_with(
+        ssids=ALL_SSID_DATA, devices=mr1_device_list, relaxed_tag_match=False
+    )
+
+# print("test_data_aggregator.py created") # Removed print

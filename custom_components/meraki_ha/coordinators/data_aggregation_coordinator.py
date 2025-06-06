@@ -171,18 +171,10 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 processed_devices = await self.data_processor.process_devices(
                     device_data
                 )
-                # MR-only filtering removed
-                if processed_devices:  # Ensure there are devices to process
-                    for (
-                        device_data_item
-                    ) in (
-                        processed_devices
-                    ):  # Assuming processed_devices is a list of dicts
-                        if isinstance(device_data_item, dict) and device_data_item.get(
-                            "model", ""
-                        ).upper().startswith("MX"):
-                            # Removed MERAKI_INFO_AGGREGATOR log line
-                            pass # No specific logging needed here after removal, loop continues
+                # The loop that previously iterated here to log MX devices (and before that, filter MR-only)
+                # has been removed as it currently serves no purpose.
+                # If specific processing for MX devices (or others) is needed at this stage in the future,
+                # it can be re-added here.
             else:
                 _LOGGER.warning(
                     "Device data is not a list as expected: %s. Proceeding with empty processed_devices.",
