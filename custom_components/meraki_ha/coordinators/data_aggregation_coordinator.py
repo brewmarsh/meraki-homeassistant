@@ -76,34 +76,18 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             # Pass parent for context if needed by processor.
             coordinator=self.coordinator
         )
-        # DataAggregator combines processed data and calculates SSID statuses.
-        # SsidStatusCalculator is instantiated within DataAggregator.
-        self.data_aggregator: DataAggregator = DataAggregator(
-            relaxed_tag_match=self.relaxed_tag_match,
-            data_processor=self.data_processor,
-            # DataAggregator might use processor for some tasks.
-            # SsidStatusCalculator is now internally managed by DataAggregator or passed directly if needed.
-            # For this refactor, assuming DataAggregator handles its SsidStatusCalculator.
-            ssid_status_calculator=None,  # Or pass SsidStatusCalculator() if DataAggregator expects it.
-            # Based on previous DataAggregator changes, it might instantiate its own.
-            # Let's assume DataAggregator handles it or it's passed if required.
-            # For now, to match previous logic where DataAggregator took it:
-            # from ..helpers.ssid_status_calculator import SsidStatusCalculator
-            # self.ssid_status_calculator: SsidStatusCalculator = SsidStatusCalculator()
-            # ... then pass self.ssid_status_calculator to DataAggregator
-            # However, the prompt is about this file. Assuming DataAggregator is self-sufficient or correctly initialized.
-            # Re-checking DataAggregator structure: it takes SsidStatusCalculator.
-            # So, it should be initialized here.
-        )
-        # Re-instating SsidStatusCalculator initialization for DataAggregator
+
+        # Initialize SsidStatusCalculator first
         from custom_components.meraki_ha.helpers.ssid_status_calculator import (
             SsidStatusCalculator,
         )
-
         self.ssid_status_calculator: SsidStatusCalculator = SsidStatusCalculator()
-        self.data_aggregator = DataAggregator(  # Re-initialize with calculator
+
+        # DataAggregator combines processed data and calculates SSID statuses.
+        # It no longer takes data_processor as an argument.
+        self.data_aggregator: DataAggregator = DataAggregator(
             relaxed_tag_match=self.relaxed_tag_match,
-            data_processor=self.data_processor,
+            # data_processor=self.data_processor, # This line is removed
             ssid_status_calculator=self.ssid_status_calculator,
         )
 
