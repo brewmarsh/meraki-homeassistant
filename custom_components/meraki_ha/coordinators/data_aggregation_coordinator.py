@@ -76,34 +76,17 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             # Pass parent for context if needed by processor.
             coordinator=self.coordinator
         )
-        # DataAggregator combines processed data and calculates SSID statuses.
-        # SsidStatusCalculator is instantiated within DataAggregator.
-        self.data_aggregator: DataAggregator = DataAggregator(
-            relaxed_tag_match=self.relaxed_tag_match,
-            data_processor=self.data_processor,
-            # DataAggregator might use processor for some tasks.
-            # SsidStatusCalculator is now internally managed by DataAggregator or passed directly if needed.
-            # For this refactor, assuming DataAggregator handles its SsidStatusCalculator.
-            ssid_status_calculator=None,  # Or pass SsidStatusCalculator() if DataAggregator expects it.
-            # Based on previous DataAggregator changes, it might instantiate its own.
-            # Let's assume DataAggregator handles it or it's passed if required.
-            # For now, to match previous logic where DataAggregator took it:
-            # from ..helpers.ssid_status_calculator import SsidStatusCalculator
-            # self.ssid_status_calculator: SsidStatusCalculator = SsidStatusCalculator()
-            # ... then pass self.ssid_status_calculator to DataAggregator
-            # However, the prompt is about this file. Assuming DataAggregator is self-sufficient or correctly initialized.
-            # Re-checking DataAggregator structure: it takes SsidStatusCalculator.
-            # So, it should be initialized here.
-        )
-        # Re-instating SsidStatusCalculator initialization for DataAggregator
+
+        # Initialize SsidStatusCalculator first
         from custom_components.meraki_ha.helpers.ssid_status_calculator import (
             SsidStatusCalculator,
         )
-
         self.ssid_status_calculator: SsidStatusCalculator = SsidStatusCalculator()
-        self.data_aggregator = DataAggregator(  # Re-initialize with calculator
+
+        # DataAggregator combines processed data and calculates SSID statuses.
+        # It no longer takes data_processor as an argument.
+        self.data_aggregator: DataAggregator = DataAggregator(
             relaxed_tag_match=self.relaxed_tag_match,
-            data_processor=self.data_processor,
             ssid_status_calculator=self.ssid_status_calculator,
         )
 
@@ -171,18 +154,10 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 processed_devices = await self.data_processor.process_devices(
                     device_data
                 )
-                # MR-only filtering removed
-                if processed_devices:  # Ensure there are devices to process
-                    for (
-                        device_data_item
-                    ) in (
-                        processed_devices
-                    ):  # Assuming processed_devices is a list of dicts
-                        if isinstance(device_data_item, dict) and device_data_item.get(
-                            "model", ""
-                        ).upper().startswith("MX"):
-                            # Removed MERAKI_INFO_AGGREGATOR log line
-                            pass # No specific logging needed here after removal, loop continues
+                # The loop that previously iterated here to log MX devices (and before that, filter MR-only)
+                # has been removed as it currently serves no purpose.
+                # If specific processing for MX devices (or others) is needed at this stage in the future,
+                # it can be re-added here.
             else:
                 _LOGGER.warning(
                     "Device data is not a list as expected: %s. Proceeding with empty processed_devices.",

@@ -82,11 +82,18 @@ class DeviceTagUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
         # Initialize MerakiApiDataFetcher for API communication.
         # Network and SSID coordinators are not relevant for tag updates.
+        # MerakiApiDataFetcher now expects a MerakiAPIClient instance.
+        # We should use the client from the main_coordinator.
+        if not hasattr(main_coordinator, 'meraki_client'):
+            # This would be a programming error if main_coordinator doesn't have it.
+            _LOGGER.error("Main coordinator does not have a 'meraki_client' attribute. Cannot initialize ApiDataFetcher for DeviceTagUpdateCoordinator.")
+            # Handle this gracefully, perhaps by setting api_fetcher to None or raising an error.
+            # For now, let's assume it will be present.
+            # If it could be None, then api_fetcher calls would need None checks.
+            raise ValueError("Main coordinator missing meraki_client, required for DeviceTagUpdateCoordinator's ApiDataFetcher")
+
         self.api_fetcher: MerakiApiDataFetcher = MerakiApiDataFetcher(
-            api_key=self.api_key,
-            org_id=self.org_id,
-            network_coordinator=None,
-            ssid_coordinator=None,
+            meraki_client=main_coordinator.meraki_client
         )
 
         # self.data is managed by DataUpdateCoordinator.

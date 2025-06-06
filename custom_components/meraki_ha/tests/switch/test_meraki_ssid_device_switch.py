@@ -147,6 +147,60 @@ async def test_ssid_enabled_switch_state_and_turn_on_off(
     mock_ssid_coordinator.async_request_refresh.assert_called_once()
 
 
+async def test_ssid_broadcast_switch_state_and_turn_on_off(
+    hass: HomeAssistant,
+    mock_meraki_client: MagicMock,
+    mock_ssid_coordinator: MagicMock,
+    mock_config_entry: MagicMock,
+):
+    """Test the state and turn_on/turn_off methods of MerakiSSIDBroadcastSwitch."""
+    # MOCK_SSID_DATA_2_HIDDEN has "visible": False
+    switch_broadcast = MerakiSSIDBroadcastSwitch(
+        coordinator=mock_ssid_coordinator,
+        meraki_client=mock_meraki_client,
+        config_entry=mock_config_entry,
+        ssid_unique_id=MOCK_SSID_UNIQUE_ID_2,
+        ssid_data=MOCK_SSID_DATA_2_HIDDEN,
+    )
+    switch_broadcast.hass = hass
+    switch_broadcast._handle_coordinator_update() # Set initial state
+
+    assert switch_broadcast.unique_id == f"{MOCK_SSID_UNIQUE_ID_2}_broadcast_switch"
+    assert switch_broadcast.name == "Test SSID 2 Broadcast Control"
+    assert switch_broadcast.is_on is False # Initially hidden means switch is "off" in terms of broadcasting
+
+    # Test turning on (making it visible)
+    await switch_broadcast.async_turn_on()
+    mock_meraki_client.wireless.updateNetworkWirelessSsid.assert_called_once_with(
+        networkId="net2",
+        number=1,
+        visible=True, # Attribute for broadcast switch is "visible"
+    )
+    mock_ssid_coordinator.async_request_refresh.assert_called_once()
+
+    # Reset mocks and update coordinator data
+    mock_meraki_client.wireless.updateNetworkWirelessSsid.reset_mock()
+    mock_ssid_coordinator.async_request_refresh.reset_mock()
+
+    updated_ssid_data_visible = MOCK_SSID_DATA_2_HIDDEN.copy()
+    updated_ssid_data_visible["visible"] = True
+    mock_ssid_coordinator.data = {
+        **mock_ssid_coordinator.data,
+        MOCK_SSID_UNIQUE_ID_2: updated_ssid_data_visible,
+    }
+    switch_broadcast._handle_coordinator_update()
+    assert switch_broadcast.is_on is True
+
+    # Test turning off (making it hidden)
+    await switch_broadcast.async_turn_off()
+    mock_meraki_client.wireless.updateNetworkWirelessSsid.assert_called_once_with(
+        networkId="net2",
+        number=1,
+        visible=False,
+    )
+    mock_ssid_coordinator.async_request_refresh.assert_called_once()
+
+
 async def test_async_setup_entry_switches(
     hass: HomeAssistant,
     mock_meraki_client: MagicMock,
