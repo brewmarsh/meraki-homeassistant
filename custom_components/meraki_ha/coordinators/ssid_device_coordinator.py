@@ -273,7 +273,7 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                     current_ssid_clients = [
                         client
                         for client in current_network_clients # current_network_clients is already checked for None above indirectly
-                        if str(client.get("ssid", "")) == str(ssid_number) # Added default "" for get("ssid")
+                        if str(client.get("ssid", "")) == str(ssid_summary_data.get("name", "")) # Compare with SSID name
                     ]
                     client_count = len(current_ssid_clients)
 
