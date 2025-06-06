@@ -17,7 +17,16 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
-    """Manages fetching and updating SSID data and registers SSIDs as devices."""
+    """Manages fetching SSID data, updating corresponding HA devices, and calculating client counts.
+
+    This coordinator retrieves information for all enabled SSIDs within a Meraki network.
+    It registers each enabled SSID as a distinct HA device.
+    Client counts for each SSID are determined by:
+    1. Fetching all clients for the parent network of the SSID (cached per network).
+    2. Filtering these network clients locally by comparing the `ssid` attribute reported
+       by each client against the configured name of the current SSID.
+    The resulting count is then stored within the SSID's data.
+    """
 
     def __init__(
         self,
@@ -44,7 +53,23 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
         )
 
     async def _async_update_data(self) -> Dict[str, Dict[str, Any]]:
-        """Fetch SSID data and update/create corresponding HA devices."""
+        """Fetch SSID data, update/create HA devices, and calculate client counts.
+
+        This method performs the following steps:
+        1. Retrieves all SSIDs from the `MerakiApiDataFetcher`.
+        2. Filters for enabled SSIDs.
+        3. For each enabled SSID:
+            a. Fetches detailed SSID information.
+            b. Calculates client count:
+                i. Retrieves all clients for the SSID's parent network (uses a cache
+                   to avoid redundant API calls for multiple SSIDs on the same network).
+                ii. Filters the list of network clients where the client's reported
+                   SSID name (`client.get("ssid")`) matches the configured name of
+                   the current SSID (`ssid_summary_data.get("name")`).
+                iii. The number of matching clients is stored as `client_count`.
+            c. Registers or updates an HA device for the SSID, including the client count.
+        4. Returns a dictionary mapping unique SSID IDs to their processed data.
+        """
         _LOGGER.debug("SSIDDeviceCoordinator starting _async_update_data")
 
         # Ensure the main data fetcher has run and has data
@@ -66,9 +91,9 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
         all_ssids_from_fetcher: List[Dict[str, Any]] = self.api_data_fetcher.data.get(
             "ssids", []
         )
-        _LOGGER.debug(
-            f"SSIDCoordinator: Retrieved {len(all_ssids_from_fetcher)} total SSIDs from api_data_fetcher before filtering."
-        )
+        # _LOGGER.debug( # Removed: too verbose
+        #     f"SSIDCoordinator: Retrieved {len(all_ssids_from_fetcher)} total SSIDs from api_data_fetcher before filtering."
+        # )
 
         # --- Filter SSIDs ---
         # We are only interested in SSIDs that are currently enabled, as these are the ones
@@ -103,28 +128,30 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
             f"SSIDCoordinator: Found {len(enabled_ssids)} enabled SSIDs after filtering."
         )
 
-        if disabled_ssids_samples:
-            _LOGGER.debug(
-                f"SSIDCoordinator: Samples of SSIDs FILTERED OUT (e.g., disabled): {disabled_ssids_samples}"
-            )
-        elif all_ssids_from_fetcher:  # Only log if there were SSIDs to begin with
-            _LOGGER.debug(
-                "SSIDCoordinator: No SSIDs were filtered out (all were enabled or list was empty and no disabled samples)."
-            )
-        else:
-            _LOGGER.debug("SSIDCoordinator: Initial list of SSIDs was empty.")
+        # Removed excessive logging of filtered/processed SSID samples
+        # if disabled_ssids_samples:
+        #     _LOGGER.debug(
+        #         f"SSIDCoordinator: Samples of SSIDs FILTERED OUT (e.g., disabled): {disabled_ssids_samples}"
+        #     )
+        # elif all_ssids_from_fetcher:  # Only log if there were SSIDs to begin with
+        #     _LOGGER.debug(
+        #         "SSIDCoordinator: No SSIDs were filtered out (all were enabled or list was empty and no disabled samples)."
+        #     )
+        # else:
+        #     _LOGGER.debug("SSIDCoordinator: Initial list of SSIDs was empty.")
 
-        if enabled_ssids_log_samples:
-            _LOGGER.debug(
-                f"SSIDCoordinator: Samples of SSIDs TO BE PROCESSED (enabled): {enabled_ssids_log_samples}"
-            )
-        elif (
-            enabled_ssids
-        ):  # If list has items but samples somehow not logged (shouldn't happen with this logic)
-            _LOGGER.debug(
-                "SSIDCoordinator: Enabled SSIDs are present but no samples logged (unexpected)."
-            )
-        else:  # No enabled SSIDs
+        # if enabled_ssids_log_samples:
+        #     _LOGGER.debug(
+        #         f"SSIDCoordinator: Samples of SSIDs TO BE PROCESSED (enabled): {enabled_ssids_log_samples}"
+        #     )
+        # elif (
+        #     enabled_ssids
+        # ):  # If list has items but samples somehow not logged (shouldn't happen with this logic)
+        #     _LOGGER.debug(
+        #         "SSIDCoordinator: Enabled SSIDs are present but no samples logged (unexpected)."
+        #     )
+        # else:  # No enabled SSIDs
+        if not enabled_ssids: # Simplified condition
             _LOGGER.debug("SSIDCoordinator: No enabled SSIDs to be processed.")
 
         # Performance warning for fetching client counts per SSID
@@ -244,15 +271,7 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                         _LOGGER.error(
                             f"AttributeError when trying to fetch clients for network {network_id} using `meraki_client.networks.getNetworkClients`: {e}"
                         )
-                        _LOGGER.error(
-                            f"Dir of meraki_client (AsyncDashboardAPI): {dir(meraki_client)}"
-                        )
-                        if hasattr(meraki_client, "networks"):
-                            _LOGGER.error(
-                                f"Dir of meraki_client.networks (AsyncNetworks): {dir(meraki_client.networks)}"
-                            )
-                        else:
-                            _LOGGER.error("meraki_client has no 'networks' attribute.")
+                        # Removed verbose dir() logging for AttributeError
                         network_clients_cache[network_id] = (
                             []
                         )  # Cache empty list on error.
@@ -273,7 +292,10 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                     current_ssid_clients = [
                         client
                         for client in current_network_clients # current_network_clients is already checked for None above indirectly
-                        if str(client.get("ssid", "")) == str(ssid_summary_data.get("name", "")) # Compare with SSID name
+                        # Compare the SSID name reported by the client (client.get("ssid"))
+                        # with the configured name of the current SSID (ssid_summary_data.get("name")).
+                        # Both are cast to strings for robust comparison, defaulting to empty strings if None.
+                        if str(client.get("ssid", "")) == str(ssid_summary_data.get("name", ""))
                     ]
                     client_count = len(current_ssid_clients)
 
