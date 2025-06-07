@@ -6,8 +6,9 @@ This module defines sensor entities for camera sense and audio detection status.
 import logging
 from typing import Any, Dict, Optional
 
-from homeassistant.components.sensor import SensorEntity, EntityDescription
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import callback
+from homeassistant.helpers.entity import EntityDescription # Corrected import path
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 

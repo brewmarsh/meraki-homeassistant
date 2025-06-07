@@ -4,9 +4,10 @@
 import logging
 from typing import Any, Dict, Optional
 
-from homeassistant.components.switch import SwitchEntity, EntityDescription
+from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback # Added HomeAssistant
+from homeassistant.helpers.entity import EntityDescription # Corrected import path
 from homeassistant.helpers.entity_platform import AddEntitiesCallback # Added AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
