@@ -76,9 +76,10 @@ class MerakiDeviceStatusSensor(
 
         self.entity_description = EntityDescription(
             key="device_status",
-            name="Status", # This will be the entity-specific part of the name
-            state_class=None # Device status (e.g., "online", "offline") is categorical
+            name="Status" # This will be the entity-specific part of the name
+            # state_class=None removed from here
         )
+        self._attr_state_class = None # Explicitly set as an attribute
 
         # Initial update of state and attributes
         self._update_sensor_data()

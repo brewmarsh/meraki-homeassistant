@@ -40,9 +40,10 @@ class MerakiCameraSenseStatusSensor(
         )
         self.entity_description = EntityDescription(
             key="camera_sense_status",
-            name="Sense Enabled",
-            state_class=None  # Explicitly set state_class
+            name="Sense Enabled"
+            # state_class=None removed from here
         )
+        self._attr_state_class = None # Explicitly set as an attribute
         self._update_sensor_data()
         _LOGGER.debug(
             "MerakiCameraSenseStatusSensor Initialized for %s (Serial: %s)",
@@ -134,9 +135,10 @@ class MerakiCameraAudioDetectionSensor(
         )
         self.entity_description = EntityDescription(
             key="camera_audio_detection_status",
-            name="Audio Detection",
-            state_class=None  # Explicitly set state_class
+            name="Audio Detection"
+            # state_class=None removed from here
         )
+        self._attr_state_class = None # Explicitly set as an attribute
         self._update_sensor_data()
         _LOGGER.debug(
             "MerakiCameraAudioDetectionSensor Initialized for %s (Serial: %s)",

@@ -52,8 +52,8 @@ class TestMerakiDeviceStatusSensor(unittest.TestCase):
         # After EntityDescription update, sensor.name should be "Status"
         self.assertEqual(self.sensor.name, "Status")
         self.assertTrue(self.sensor.has_entity_name)
-        # Verify state_class from EntityDescription
-        self.assertIsNone(self.sensor.entity_description.state_class)
+        # Verify state_class directly on the sensor instance
+        self.assertIsNone(self.sensor.state_class)
 
         self.assertEqual(self.sensor.native_value, "online")
         self.assertEqual(self.sensor.icon, "mdi:access-point-network") # MR model
