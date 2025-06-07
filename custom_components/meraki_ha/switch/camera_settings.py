@@ -4,7 +4,7 @@
 import logging
 from typing import Any, Dict, Optional
 
-from homeassistant.components.switch import SwitchEntity
+from homeassistant.components.switch import SwitchEntity, EntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback # Added HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback # Added AddEntitiesCallback
@@ -60,18 +60,11 @@ class MerakiCameraSettingSwitchBase(
             self._device_serial,
         )
 
-    @property
-    def name(self) -> str:
-        """Return the name of the switch."""
-        # Overridden by specific switch classes if _attr_has_entity_name = True doesn't suffice
-        # For now, relying on Home Assistant's automatic naming with _attr_has_entity_name = True
-        # and the device name.
-        # If a more specific name is needed, it can be set in the derived classes.
-        # Example: return f"{self._get_device_name()} {self._switch_type_display_name}"
-        # Default name will be like "Device Name Entity Name"
-        # We will set self.entity_description.name in derived classes for better control
-        return super().name if hasattr(super(), 'name') else "Camera Switch"
-
+    # The explicit 'name' property is removed.
+    # With _attr_has_entity_name = True and self.entity_description.name set,
+    # Home Assistant will automatically generate the name as "Device Name Entity Description Name".
+    # For example, if device is "Living Room Cam" and entity_description.name is "MV Sense",
+    # the full name will be "Living Room Cam MV Sense".
 
     def _get_current_device_data(self) -> Optional[Dict[str, Any]]:
         """Retrieve the latest data for this switch's device from the coordinator."""
@@ -232,8 +225,7 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
             "sense_enabled", # switch_type for unique_id
             "senseEnabled",    # attribute_to_check in API data
         )
-        # For more specific naming if needed:
-        # self.entity_description = EntityDescription(key="sense_enabled", name="Sense Enabled")
+        self.entity_description = EntityDescription(key="sense_enabled", name="MV Sense")
 
 
 class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
@@ -253,8 +245,7 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
             "audio_detection", # switch_type for unique_id
             "audioDetection.enabled", # attribute_to_check (nested)
         )
-        # For more specific naming if needed:
-        # self.entity_description = EntityDescription(key="audio_detection", name="Audio Detection")
+        self.entity_description = EntityDescription(key="audio_detection", name="Audio Detection")
 
 # async_setup_entry will be defined in __init__.py for the switch platform
 # and will iterate over camera devices to add these switches.
