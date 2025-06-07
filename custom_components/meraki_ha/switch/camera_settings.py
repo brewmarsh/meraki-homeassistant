@@ -99,30 +99,31 @@ class MerakiCameraSettingSwitchBase(
         """Update the internal state of the switch based on coordinator data."""
         current_device_data = self._get_current_device_data()
         if current_device_data:
-            # Navigate the attribute path for potentially nested keys
-            value = current_device_data
-            try:
-                for key in self._attribute_path:
-                    value = value[key]
-                self._attr_is_on = bool(value)
-            except (KeyError, TypeError):
-                _LOGGER.warning(
-                    "Could not find attribute %s for %s, assuming off.",
+            raw_value = None
+            if self._attribute_path == ["senseEnabled"]:
+                raw_value = current_device_data.get("senseEnabled")
+            elif self._attribute_path == ["audioDetection", "enabled"]:
+                audio_data = current_device_data.get("audioDetection")
+                if isinstance(audio_data, dict):
+                    raw_value = audio_data.get("enabled")
+                else:
+                    _LOGGER.debug("audioDetection data is not a dict for %s", self.unique_id)
+
+            if raw_value is None: # Explicitly check for None
+                self._attr_is_on = False # Default state if data is missing/malformed for this specific switch
+                _LOGGER.debug(
+                    "Attribute %s not found or malformed for %s in coordinator data, setting switch to off.",
                     self._attribute_to_check,
-                    self.unique_id
+                    self.unique_id,
                 )
-                self._attr_is_on = False # Default if path is invalid or key missing
+            else:
+                self._attr_is_on = bool(raw_value)
         else:
-            self._attr_is_on = False
+            self._attr_is_on = False # Default if device data itself is missing
             _LOGGER.warning(
                 "Could not find device data for %s in coordinator, switch state set to False",
                 self.unique_id,
             )
-        # Placeholder until actual API data is available
-        # For now, let's assume the coordinator *might* hold this data directly on the device entry
-        # or that this method will be more sophisticated when API calls are integrated.
-        # self._attr_is_on = current_device_data.get(self._attribute_to_check, False)
-
 
     async def _update_camera_setting(self, value: bool) -> None:
         """Update the specific camera setting via API."""
@@ -140,24 +141,27 @@ class MerakiCameraSettingSwitchBase(
         # For "audioDetection.enabled", the payload would be:
         # payload = {"audioDetection": {"enabled": value}}
 
-        payload = {}
-        if len(self._attribute_path) == 1:
-            payload = {self._attribute_path[0]: value}
-        elif len(self._attribute_path) == 2: # e.g. audioDetection.enabled
-            payload = {self._attribute_path[0]: {self._attribute_path[1]: value}}
+        # Prepare arguments for the API client method
+        kwargs_for_api = {}
+        if self._attribute_path == ["senseEnabled"]:
+            kwargs_for_api["sense_enabled"] = value
+        elif self._attribute_path == ["audioDetection", "enabled"]:
+            kwargs_for_api["audio_detection_enabled"] = value
         else:
-            _LOGGER.error("Unsupported attribute path depth for API call: %s", self._attribute_to_check)
+            _LOGGER.error(
+                "Unsupported attribute path for API call: %s", self._attribute_path
+            )
             return
 
         try:
-            # Placeholder for actual API call
             _LOGGER.debug(
-                "Simulating API call for %s with payload: %s", self._device_serial, payload
+                "Calling update_camera_sense_settings for %s with args: %s",
+                self._device_serial,
+                kwargs_for_api,
             )
-            # Simulate API call success:
-            # await self._meraki_client.devices.updateDeviceCameraSense( # Fictional method
-            # serial=self._device_serial, **payload
-            # )
+            await self._meraki_client.update_camera_sense_settings(
+                serial=self._device_serial, **kwargs_for_api
+            )
 
             # After a successful API call, request the coordinator to refresh its data.
             await self.coordinator.async_request_refresh()
@@ -186,11 +190,29 @@ class MerakiCameraSettingSwitchBase(
 
     @property
     def available(self) -> bool:
-        """Return True if entity is available."""
-        if not super().available: # Checks coordinator.last_update_success
+        """Return True if entity is available and its specific data is present."""
+        if not super().available:  # Checks coordinator's last_update_success
             return False
-        # Check if the specific device data is available
-        return self._get_current_device_data() is not None
+
+        current_device_data = self._get_current_device_data()
+        if not current_device_data:
+            return False # Device not in coordinator data
+
+        # Check for presence of the specific attribute this switch relies on
+        if self._attribute_path == ["senseEnabled"]:
+            if "senseEnabled" not in current_device_data:
+                _LOGGER.debug("Switch %s unavailable, senseEnabled missing", self.unique_id)
+                return False
+        elif self._attribute_path == ["audioDetection", "enabled"]:
+            audio_data = current_device_data.get("audioDetection")
+            if not isinstance(audio_data, dict) or "enabled" not in audio_data:
+                _LOGGER.debug("Switch %s unavailable, audioDetection.enabled missing/malformed", self.unique_id)
+                return False
+        else:
+            _LOGGER.warning("Switch %s has unhandled _attribute_path for availability check: %s", self.unique_id, self._attribute_path)
+            return False # Should not happen with defined switches
+
+        return True
 
 
 class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):

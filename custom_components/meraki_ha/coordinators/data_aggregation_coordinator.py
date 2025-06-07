@@ -164,6 +164,43 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                     type(device_data),
                 )
 
+            # Step 1.5: Fetch and merge camera-specific settings for camera devices
+            if self.coordinator.meraki_client: # Ensure API client is available
+                for device_dict in processed_devices:
+                    serial = device_dict.get("serial")
+                    product_type = device_dict.get("productType", "").lower()
+                    model = device_dict.get("model", "").upper()
+
+                    if serial and (product_type == "camera" or model.startswith("MV")):
+                        try:
+                            _LOGGER.debug(
+                                "Fetching camera sense settings for camera %s", serial
+                            )
+                            sense_settings = await self.coordinator.meraki_client.get_camera_sense_settings(
+                                serial=serial
+                            )
+                            if sense_settings:
+                                # Merge sense_settings into the device_dict
+                                # Example keys from sense_settings: "senseEnabled", "audioDetection"
+                                device_dict["senseEnabled"] = sense_settings.get("senseEnabled")
+                                device_dict["audioDetection"] = sense_settings.get("audioDetection")
+                                _LOGGER.debug(
+                                    "Successfully merged sense settings for camera %s: %s",
+                                    serial,
+                                    {
+                                        "senseEnabled": device_dict.get("senseEnabled"),
+                                        "audioDetection": device_dict.get("audioDetection")
+                                    }
+                                )
+                        except Exception as e: # Catch MerakiApiError or other exceptions
+                            _LOGGER.warning(
+                                "Failed to fetch or merge camera sense settings for %s: %s. Proceeding without them.",
+                                serial,
+                                e,
+                            )
+            else:
+                _LOGGER.warning("Meraki API client not available on parent coordinator, skipping camera sense settings fetch.")
+
             # Step 2: Process raw network data.
             processed_networks: List[Dict[str, Any]] = []
             if isinstance(network_data, list):

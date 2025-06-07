@@ -24,329 +24,341 @@ MOCK_CAMERA_DEVICE_INFO_BASE = {
     "mac": "00:11:22:33:44:66",
 }
 
+from datetime import timedelta # Added for coordinator scan_interval
+
 # Data as if returned by get_camera_sense_settings and placed in coordinator
-MOCK_COORD_DATA_SENSE_ON_AUDIO_ON = {
-    "devices": [
-        {
-            **MOCK_CAMERA_DEVICE_INFO_BASE,
-            "senseEnabled": True, # Top-level for sense
-            "audioDetection": {"enabled": True}, # Nested for audio
-        }
-    ]
+MOCK_DEVICE_SWITCH_SENSE_ON_AUDIO_ON = {
+    **MOCK_CAMERA_DEVICE_INFO_BASE,
+    "name": "Cam Switch SOn AOn",
+    "senseEnabled": True,
+    "audioDetection": {"enabled": True},
 }
 
-MOCK_COORD_DATA_SENSE_OFF_AUDIO_OFF = {
-    "devices": [
-        {
-            **MOCK_CAMERA_DEVICE_INFO_BASE,
-            "senseEnabled": False,
-            "audioDetection": {"enabled": False},
-        }
-    ]
+MOCK_DEVICE_SWITCH_SENSE_OFF_AUDIO_OFF = {
+    **MOCK_CAMERA_DEVICE_INFO_BASE,
+    "name": "Cam Switch SOff AOff",
+    "senseEnabled": False,
+    "audioDetection": {"enabled": False},
 }
 
-# Minimal device info for initialization if coordinator data is sparse initially
-MOCK_CAMERA_DEVICE_INFO_FOR_INIT = {"serial": MOCK_CAMERA_DEVICE_SERIAL, "name": "Test Switch Camera"}
+# For availability tests
+MOCK_DEVICE_SWITCH_SENSE_KEY_MISSING = {
+    **MOCK_CAMERA_DEVICE_INFO_BASE, "name": "CamSenseKeyMissing", "audioDetection": {"enabled": True}
+}
+if "senseEnabled" in MOCK_DEVICE_SWITCH_SENSE_KEY_MISSING: del MOCK_DEVICE_SWITCH_SENSE_KEY_MISSING["senseEnabled"]
+
+MOCK_DEVICE_SWITCH_AUDIO_KEY_MISSING = {
+    **MOCK_CAMERA_DEVICE_INFO_BASE, "name": "CamAudioKeyMissing", "senseEnabled": True
+}
+if "audioDetection" in MOCK_DEVICE_SWITCH_AUDIO_KEY_MISSING: del MOCK_DEVICE_SWITCH_AUDIO_KEY_MISSING["audioDetection"]
+
+MOCK_DEVICE_SWITCH_AUDIO_MALFORMED_NOT_DICT = {
+    **MOCK_CAMERA_DEVICE_INFO_BASE, "name": "CamAudioNotDict", "senseEnabled": True, "audioDetection": "not_a_dict"
+}
+
+MOCK_DEVICE_SWITCH_AUDIO_MALFORMED_NO_ENABLED = {
+    **MOCK_CAMERA_DEVICE_INFO_BASE, "name": "CamAudioNoEnabled", "senseEnabled": True, "audioDetection": {"other_key": True}
+}
 
 
 @pytest.fixture
-def mock_coordinator_switch():
+def mock_meraki_api_client_switch_fixture(): # Renamed to avoid conflict
+    """Fixture for a mock MerakiAPIClient for switch tests."""
+    client = MagicMock(spec=MerakiAPIClient)
+    client.get_camera_sense_settings = AsyncMock(return_value={"senseEnabled": True, "audioDetection": {"enabled": True}})
+    client.update_camera_sense_settings = AsyncMock(return_value={})
+    return client
+
+@pytest.fixture
+def mock_coordinator_switch_fixture(hass: HomeAssistant, mock_meraki_api_client_switch_fixture: MagicMock):
     """Fixture for a mock MerakiDataUpdateCoordinator for switches."""
-    coordinator = MagicMock(spec=MerakiDataUpdateCoordinator)
-    # Start with data reflecting sense ON and audio ON
-    coordinator.data = MOCK_COORD_DATA_SENSE_ON_AUDIO_ON
-    coordinator.async_update_listeners = MagicMock()
-    coordinator.async_add_listener = MagicMock()
-    coordinator.async_request_refresh = AsyncMock()
+    coordinator = MerakiDataUpdateCoordinator(
+        hass=hass,
+        logger=MagicMock(),
+        name="test_meraki_switch_coordinator",
+        meraki_client=mock_meraki_api_client_switch_fixture,
+        org_id="test_org_id_switch"
+    )
+    coordinator.scan_interval = timedelta(seconds=30)
+    coordinator.data = {"devices": [MOCK_DEVICE_SWITCH_SENSE_ON_AUDIO_ON]} # Default
     coordinator.last_update_success = True
     return coordinator
 
-@pytest.fixture
-def mock_meraki_api_client_switch():
-    """Fixture for a mock MerakiAPIClient for switch tests."""
-    client = MagicMock(spec=MerakiAPIClient)
-    # get_camera_sense_settings might be called if a switch needs to refresh its state
-    # or if update_camera_sense_settings returns it (as per current implementation)
-    client.get_camera_sense_settings = AsyncMock(return_value={"senseEnabled": True, "audioDetection": {"enabled": True}})
-    client.update_camera_sense_settings = AsyncMock(return_value={}) # Default successful update
-    return client
-
 
 async def setup_switch_entity(
-    hass: HomeAssistant, coordinator, api_client, switch_class, device_info
+    hass: HomeAssistant, coordinator: MerakiDataUpdateCoordinator,
+    api_client: MerakiAPIClient, switch_class, device_info: dict
 ):
     """Helper to setup a switch entity."""
-    # Switches take device_info directly, not config_entry
     switch = switch_class(coordinator, api_client, device_info)
     switch.hass = hass
-    switch.entity_id = f"switch.test_{switch.unique_id}"
+    switch.entity_id = f"switch.test_{switch.unique_id.lower()}" # Lowercase for consistency
     return switch
 
 # --- MerakiCameraSenseSwitch Tests ---
 
-async def test_sense_switch_creation_and_properties(hass: HomeAssistant, mock_coordinator_switch, mock_meraki_api_client_switch):
+async def test_sense_switch_creation_and_properties(hass: HomeAssistant, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture):
     """Test switch creation and basic properties for SenseSwitch."""
-    # Use the device data from the coordinator for setup
-    device_data_for_sensor = mock_coordinator_switch.data["devices"][0]
+    device_data = mock_coordinator_switch_fixture.data["devices"][0]
     switch = await setup_switch_entity(
-        hass, mock_coordinator_switch, mock_meraki_api_client_switch, MerakiCameraSenseSwitch, device_data_for_sensor
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraSenseSwitch, device_data
     )
-
+    # Name generation relies on hass.states.async_entity_category_for_device,
+    # which is hard to mock here. Unique ID and device info are more critical.
     assert switch.unique_id == f"{MOCK_CAMERA_DEVICE_SERIAL}_sense_enabled_switch"
-    # Name is auto-generated by HA if _attr_has_entity_name = True and entity_description is not set
-    # The switch code currently sets _attr_has_entity_name = True but doesn't set entity_description.name
-    # So, the name will be "Device Name" + " " (from Entity.name) if entity_description.name is None.
-    # The current implementation of MerakiCameraSettingSwitchBase.name might need adjustment or specific override.
-    # For now, let's assume it generates a name like "Test Switch Camera Sense Enabled"
-    # based on the _attr_name logic in the base class if overridden or entity_description is used.
-    # As per current code: MerakiCameraSenseSwitch has no specific name override, relies on base.
-    # Base class `name` property is not defined, so it uses HA default.
-    # Let's check entity_description or explicit _attr_name if set.
-    # The current code uses `_attr_has_entity_name = True` and the sensor name is based on device name + type.
-    # The switch name property in the base class: f"{self._get_device_name()} {self._switch_type_display_name}"
-    # This is not implemented yet. The current switch name is actually `None` which means HA will generate it.
-    # Let's test based on the unique_id for now, name can be refined.
-    # assert switch.name == f"{MOCK_CAMERA_DEVICE_INFO_BASE['name']} Sense Enabled" # This depends on naming logic
-
     assert switch.device_info["identifiers"] == {(DOMAIN, MOCK_CAMERA_DEVICE_SERIAL)}
-    assert switch.available is True
+    assert switch.available is True # Based on default coordinator data
 
 
-async def test_sense_switch_initial_state_on(hass: HomeAssistant, mock_coordinator_switch, mock_meraki_api_client_switch):
+async def test_sense_switch_initial_state_on(hass: HomeAssistant, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture):
     """Test SenseSwitch initial state when sense is ON."""
-    mock_coordinator_switch.data = MOCK_COORD_DATA_SENSE_ON_AUDIO_ON
-    device_data_for_sensor = mock_coordinator_switch.data["devices"][0]
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_SENSE_ON_AUDIO_ON]}
+    device_data = mock_coordinator_switch_fixture.data["devices"][0]
     switch = await setup_switch_entity(
-        hass, mock_coordinator_switch, mock_meraki_api_client_switch, MerakiCameraSenseSwitch, device_data_for_sensor
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraSenseSwitch, device_data
     )
-    # _update_internal_state is called in __init__
     assert switch.is_on is True
 
-async def test_sense_switch_initial_state_off(hass: HomeAssistant, mock_coordinator_switch, mock_meraki_api_client_switch):
+async def test_sense_switch_initial_state_off(hass: HomeAssistant, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture):
     """Test SenseSwitch initial state when sense is OFF."""
-    mock_coordinator_switch.data = MOCK_COORD_DATA_SENSE_OFF_AUDIO_OFF
-    device_data_for_sensor = mock_coordinator_switch.data["devices"][0]
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_SENSE_OFF_AUDIO_OFF]}
+    device_data = mock_coordinator_switch_fixture.data["devices"][0]
     switch = await setup_switch_entity(
-        hass, mock_coordinator_switch, mock_meraki_api_client_switch, MerakiCameraSenseSwitch, device_data_for_sensor
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraSenseSwitch, device_data
     )
     assert switch.is_on is False
 
 
-async def test_sense_switch_turn_on(hass: HomeAssistant, mock_coordinator_switch, mock_meraki_api_client_switch):
+async def test_sense_switch_turn_on(hass: HomeAssistant, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture):
     """Test turning ON the SenseSwitch."""
-    mock_coordinator_switch.data = MOCK_COORD_DATA_SENSE_OFF_AUDIO_OFF # Start with it off
-    device_data_for_sensor = mock_coordinator_switch.data["devices"][0]
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_SENSE_OFF_AUDIO_OFF]}
+    device_data = mock_coordinator_switch_fixture.data["devices"][0]
     switch = await setup_switch_entity(
-        hass, mock_coordinator_switch, mock_meraki_api_client_switch, MerakiCameraSenseSwitch, device_data_for_sensor
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraSenseSwitch, device_data
     )
     assert switch.is_on is False
 
     await switch.async_turn_on()
     await hass.async_block_till_done()
 
-    mock_meraki_api_client_switch.update_camera_sense_settings.assert_called_once_with(
-        serial=MOCK_CAMERA_DEVICE_SERIAL, senseEnabled=True
+    mock_meraki_api_client_switch_fixture.update_camera_sense_settings.assert_called_once_with(
+        serial=MOCK_CAMERA_DEVICE_SERIAL, sense_enabled=True # Corrected: sense_enabled
     )
-    mock_coordinator_switch.async_request_refresh.assert_called_once()
-    # Switch state should optimistically update
+    mock_coordinator_switch_fixture.async_request_refresh.assert_called_once()
     assert switch.is_on is True
 
 
-async def test_sense_switch_turn_off(hass: HomeAssistant, mock_coordinator_switch, mock_meraki_api_client_switch):
+async def test_sense_switch_turn_off(hass: HomeAssistant, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture):
     """Test turning OFF the SenseSwitch."""
-    mock_coordinator_switch.data = MOCK_COORD_DATA_SENSE_ON_AUDIO_ON # Start with it on
-    device_data_for_sensor = mock_coordinator_switch.data["devices"][0]
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_SENSE_ON_AUDIO_ON]}
+    device_data = mock_coordinator_switch_fixture.data["devices"][0]
     switch = await setup_switch_entity(
-        hass, mock_coordinator_switch, mock_meraki_api_client_switch, MerakiCameraSenseSwitch, device_data_for_sensor
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraSenseSwitch, device_data
     )
     assert switch.is_on is True
 
     await switch.async_turn_off()
     await hass.async_block_till_done()
 
-    mock_meraki_api_client_switch.update_camera_sense_settings.assert_called_once_with(
-        serial=MOCK_CAMERA_DEVICE_SERIAL, senseEnabled=False
+    mock_meraki_api_client_switch_fixture.update_camera_sense_settings.assert_called_once_with(
+        serial=MOCK_CAMERA_DEVICE_SERIAL, sense_enabled=False # Corrected: sense_enabled
     )
-    mock_coordinator_switch.async_request_refresh.assert_called_once()
+    mock_coordinator_switch_fixture.async_request_refresh.assert_called_once()
     assert switch.is_on is False
 
 
-async def test_sense_switch_update_from_coordinator(hass: HomeAssistant, mock_coordinator_switch, mock_meraki_api_client_switch):
+async def test_sense_switch_update_from_coordinator(hass: HomeAssistant, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture):
     """Test SenseSwitch state updates from coordinator."""
-    device_data_for_sensor = mock_coordinator_switch.data["devices"][0] # Initial: ON
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_SENSE_ON_AUDIO_ON]}
+    device_data = mock_coordinator_switch_fixture.data["devices"][0]
     switch = await setup_switch_entity(
-        hass, mock_coordinator_switch, mock_meraki_api_client_switch, MerakiCameraSenseSwitch, device_data_for_sensor
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraSenseSwitch, device_data
     )
     assert switch.is_on is True
 
-    # Simulate coordinator updating with "senseEnabled": False
-    mock_coordinator_switch.data = MOCK_COORD_DATA_SENSE_OFF_AUDIO_OFF
-    switch._handle_coordinator_update() # Manually trigger
-    await hass.async_block_till_done()
-    assert switch.is_on is False
-
-    # Simulate coordinator updating with "senseEnabled": True
-    mock_coordinator_switch.data = MOCK_COORD_DATA_SENSE_ON_AUDIO_ON
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_SENSE_OFF_AUDIO_OFF]}
     switch._handle_coordinator_update()
     await hass.async_block_till_done()
-    assert switch.is_on is True
+    assert switch.is_on is False
+    assert switch.name == f"{MOCK_DEVICE_SWITCH_SENSE_OFF_AUDIO_OFF['name']} Sense Enabled"
 
 
-async def test_sense_switch_api_error_on_update(hass: HomeAssistant, mock_coordinator_switch, mock_meraki_api_client_switch):
+async def test_sense_switch_api_error_on_update(hass: HomeAssistant, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture):
     """Test API error during SenseSwitch update."""
-    mock_coordinator_switch.data = MOCK_COORD_DATA_SENSE_OFF_AUDIO_OFF
-    device_data_for_sensor = mock_coordinator_switch.data["devices"][0]
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_SENSE_OFF_AUDIO_OFF]}
+    device_data = mock_coordinator_switch_fixture.data["devices"][0]
     switch = await setup_switch_entity(
-        hass, mock_coordinator_switch, mock_meraki_api_client_switch, MerakiCameraSenseSwitch, device_data_for_sensor
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraSenseSwitch, device_data
     )
-    assert switch.is_on is False # Starts off
+    assert switch.is_on is False
 
-    mock_meraki_api_client_switch.update_camera_sense_settings.side_effect = MerakiApiError("API Update Failed")
+    mock_meraki_api_client_switch_fixture.update_camera_sense_settings.side_effect = MerakiApiError("API Update Failed")
 
-    await switch.async_turn_on() # Attempt to turn on
+    await switch.async_turn_on()
     await hass.async_block_till_done()
 
-    mock_meraki_api_client_switch.update_camera_sense_settings.assert_called_once_with(
-        serial=MOCK_CAMERA_DEVICE_SERIAL, senseEnabled=True
+    mock_meraki_api_client_switch_fixture.update_camera_sense_settings.assert_called_once_with(
+        serial=MOCK_CAMERA_DEVICE_SERIAL, sense_enabled=True
     )
-    # async_request_refresh should NOT be called if update fails before it
-    # The current code calls it *after* the try-except block for API call.
-    # This means it would be called. If we want it only on success, it should be in `try`.
-    # Based on current switch code: refresh is called.
-    mock_coordinator_switch.async_request_refresh.assert_called_once()
-
-    # State should remain as it was before the failed call, as no successful update occurred.
-    # The optimistic update in the switch code will set it to True.
-    # This might be desired for immediate feedback, but coordinator will eventually correct it.
+    mock_coordinator_switch_fixture.async_request_refresh.assert_called_once()
     assert switch.is_on is True # Optimistic update
 
-    # Simulate coordinator refresh which would presumably return the actual state (still off)
-    mock_coordinator_switch.data = MOCK_COORD_DATA_SENSE_OFF_AUDIO_OFF # API failed, so it's still off
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_SENSE_OFF_AUDIO_OFF]}
     switch._handle_coordinator_update()
     await hass.async_block_till_done()
-    assert switch.is_on is False # Corrected by coordinator
+    assert switch.is_on is False
 
 
 # --- MerakiCameraAudioDetectionSwitch Tests ---
 
-async def test_audio_switch_creation_and_properties(hass: HomeAssistant, mock_coordinator_switch, mock_meraki_api_client_switch):
+async def test_audio_switch_creation_and_properties(hass: HomeAssistant, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture):
     """Test switch creation and basic properties for AudioDetectionSwitch."""
-    device_data_for_sensor = mock_coordinator_switch.data["devices"][0]
+    device_data = mock_coordinator_switch_fixture.data["devices"][0] # Default is SENSE_ON_AUDIO_ON
     switch = await setup_switch_entity(
-        hass, mock_coordinator_switch, mock_meraki_api_client_switch, MerakiCameraAudioDetectionSwitch, device_data_for_sensor
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraAudioDetectionSwitch, device_data
     )
     assert switch.unique_id == f"{MOCK_CAMERA_DEVICE_SERIAL}_audio_detection_switch"
-    # Similar naming considerations as SenseSwitch
-    # assert switch.name == f"{MOCK_CAMERA_DEVICE_INFO_BASE['name']} Audio Detection"
     assert switch.device_info["identifiers"] == {(DOMAIN, MOCK_CAMERA_DEVICE_SERIAL)}
+    assert switch.available is True
 
 
-async def test_audio_switch_initial_state_on(hass: HomeAssistant, mock_coordinator_switch, mock_meraki_api_client_switch):
+async def test_audio_switch_initial_state_on(hass: HomeAssistant, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture):
     """Test AudioDetectionSwitch initial state when audio is ON."""
-    mock_coordinator_switch.data = MOCK_COORD_DATA_SENSE_ON_AUDIO_ON
-    device_data_for_sensor = mock_coordinator_switch.data["devices"][0]
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_SENSE_ON_AUDIO_ON]}
+    device_data = mock_coordinator_switch_fixture.data["devices"][0]
     switch = await setup_switch_entity(
-        hass, mock_coordinator_switch, mock_meraki_api_client_switch, MerakiCameraAudioDetectionSwitch, device_data_for_sensor
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraAudioDetectionSwitch, device_data
     )
     assert switch.is_on is True
 
 
-async def test_audio_switch_initial_state_off(hass: HomeAssistant, mock_coordinator_switch, mock_meraki_api_client_switch):
+async def test_audio_switch_initial_state_off(hass: HomeAssistant, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture):
     """Test AudioDetectionSwitch initial state when audio is OFF."""
-    mock_coordinator_switch.data = MOCK_COORD_DATA_SENSE_OFF_AUDIO_OFF
-    device_data_for_sensor = mock_coordinator_switch.data["devices"][0]
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_SENSE_OFF_AUDIO_OFF]}
+    device_data = mock_coordinator_switch_fixture.data["devices"][0]
     switch = await setup_switch_entity(
-        hass, mock_coordinator_switch, mock_meraki_api_client_switch, MerakiCameraAudioDetectionSwitch, device_data_for_sensor
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraAudioDetectionSwitch, device_data
     )
     assert switch.is_on is False
 
 
-async def test_audio_switch_turn_on(hass: HomeAssistant, mock_coordinator_switch, mock_meraki_api_client_switch):
+async def test_audio_switch_turn_on(hass: HomeAssistant, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture):
     """Test turning ON the AudioDetectionSwitch."""
-    mock_coordinator_switch.data = MOCK_COORD_DATA_SENSE_OFF_AUDIO_OFF # Audio is off
-    device_data_for_sensor = mock_coordinator_switch.data["devices"][0]
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_SENSE_OFF_AUDIO_OFF]}
+    device_data = mock_coordinator_switch_fixture.data["devices"][0]
     switch = await setup_switch_entity(
-        hass, mock_coordinator_switch, mock_meraki_api_client_switch, MerakiCameraAudioDetectionSwitch, device_data_for_sensor
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraAudioDetectionSwitch, device_data
     )
     assert switch.is_on is False
 
     await switch.async_turn_on()
     await hass.async_block_till_done()
 
-    mock_meraki_api_client_switch.update_camera_sense_settings.assert_called_once_with(
-        serial=MOCK_CAMERA_DEVICE_SERIAL, audioDetection={"enabled": True}
+    mock_meraki_api_client_switch_fixture.update_camera_sense_settings.assert_called_once_with(
+        serial=MOCK_CAMERA_DEVICE_SERIAL, audio_detection_enabled=True # Corrected: audio_detection_enabled
     )
-    mock_coordinator_switch.async_request_refresh.assert_called_once()
-    assert switch.is_on is True # Optimistic
+    mock_coordinator_switch_fixture.async_request_refresh.assert_called_once()
+    assert switch.is_on is True
 
 
-async def test_audio_switch_turn_off(hass: HomeAssistant, mock_coordinator_switch, mock_meraki_api_client_switch):
+async def test_audio_switch_turn_off(hass: HomeAssistant, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture):
     """Test turning OFF the AudioDetectionSwitch."""
-    mock_coordinator_switch.data = MOCK_COORD_DATA_SENSE_ON_AUDIO_ON # Audio is on
-    device_data_for_sensor = mock_coordinator_switch.data["devices"][0]
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_SENSE_ON_AUDIO_ON]}
+    device_data = mock_coordinator_switch_fixture.data["devices"][0]
     switch = await setup_switch_entity(
-        hass, mock_coordinator_switch, mock_meraki_api_client_switch, MerakiCameraAudioDetectionSwitch, device_data_for_sensor
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraAudioDetectionSwitch, device_data
     )
     assert switch.is_on is True
 
     await switch.async_turn_off()
     await hass.async_block_till_done()
 
-    mock_meraki_api_client_switch.update_camera_sense_settings.assert_called_once_with(
-        serial=MOCK_CAMERA_DEVICE_SERIAL, audioDetection={"enabled": False}
+    mock_meraki_api_client_switch_fixture.update_camera_sense_settings.assert_called_once_with(
+        serial=MOCK_CAMERA_DEVICE_SERIAL, audio_detection_enabled=False # Corrected: audio_detection_enabled
     )
-    mock_coordinator_switch.async_request_refresh.assert_called_once()
-    assert switch.is_on is False # Optimistic
+    mock_coordinator_switch_fixture.async_request_refresh.assert_called_once()
+    assert switch.is_on is False
 
 
-async def test_switch_availability(hass: HomeAssistant, mock_coordinator_switch, mock_meraki_api_client_switch):
-    """Test switch availability changes."""
-    device_data_for_sensor = mock_coordinator_switch.data["devices"][0]
-    switch = await setup_switch_entity(
-        hass, mock_coordinator_switch, mock_meraki_api_client_switch, MerakiCameraSenseSwitch, device_data_for_sensor
+async def test_switch_availability_and_specific_keys(hass: HomeAssistant, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture):
+    """Test switch availability based on general coordinator status and specific data keys."""
+    # Default: Sense switch with SENSE_ON_AUDIO_ON data should be available
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_SENSE_ON_AUDIO_ON]}
+    device_data = mock_coordinator_switch_fixture.data["devices"][0]
+    sense_switch = await setup_switch_entity(
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraSenseSwitch, device_data
     )
-    assert switch.available is True
+    audio_switch = await setup_switch_entity(
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraAudioDetectionSwitch, device_data
+    )
+    assert sense_switch.available is True
+    assert audio_switch.available is True
 
-    mock_coordinator_switch.last_update_success = False
-    switch._handle_coordinator_update()
+    # Coordinator update fails
+    mock_coordinator_switch_fixture.last_update_success = False
+    sense_switch._handle_coordinator_update()
+    audio_switch._handle_coordinator_update()
     await hass.async_block_till_done()
-    assert switch.available is False
+    assert sense_switch.available is False
+    assert audio_switch.available is False
+    mock_coordinator_switch_fixture.last_update_success = True # Reset for next test
 
-    mock_coordinator_switch.last_update_success = True
-    mock_coordinator_switch.data = {"devices": []} # Device missing
-    switch._handle_coordinator_update()
+    # Device missing from coordinator
+    mock_coordinator_switch_fixture.data = {"devices": []}
+    sense_switch._handle_coordinator_update() # This will cause _get_current_device_data to return None
+    audio_switch._handle_coordinator_update()
     await hass.async_block_till_done()
-    assert switch.available is False
+    assert sense_switch.available is False
+    assert audio_switch.available is False
 
-    # Device present again
-    mock_coordinator_switch.data = MOCK_COORD_DATA_SENSE_ON_AUDIO_ON
-    switch._handle_coordinator_update()
-    await hass.async_block_till_done()
-    assert switch.available is True
+    # Test Sense switch availability when 'senseEnabled' key is missing
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_SENSE_KEY_MISSING]}
+    sense_switch_key_missing = await setup_switch_entity(
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraSenseSwitch, MOCK_DEVICE_SWITCH_SENSE_KEY_MISSING
+    )
+    assert sense_switch_key_missing.available is False
 
-async def test_switch_handles_unexpected_coord_data(hass: HomeAssistant, mock_coordinator_switch, mock_meraki_api_client_switch):
-    """Test switch handling of unexpected or missing data in coordinator for its specific attribute."""
-    # Data is present for device, but 'senseEnabled' key is missing entirely
-    mock_coordinator_switch.data = {"devices": [MOCK_CAMERA_DEVICE_INFO_BASE]} # No senseEnabled or audioDetection
-    device_data_for_sensor = mock_coordinator_switch.data["devices"][0]
+    # Test Audio switch availability when 'audioDetection' key is missing entirely
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_AUDIO_KEY_MISSING]}
+    audio_switch_key_missing = await setup_switch_entity(
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraAudioDetectionSwitch, MOCK_DEVICE_SWITCH_AUDIO_KEY_MISSING
+    )
+    assert audio_switch_key_missing.available is False
+
+    # Test Audio switch availability when 'audioDetection' is not a dict
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_AUDIO_MALFORMED_NOT_DICT]}
+    audio_switch_not_dict = await setup_switch_entity(
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraAudioDetectionSwitch, MOCK_DEVICE_SWITCH_AUDIO_MALFORMED_NOT_DICT
+    )
+    assert audio_switch_not_dict.available is False
+
+    # Test Audio switch availability when 'audioDetection.enabled' key is missing
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_AUDIO_MALFORMED_NO_ENABLED]}
+    audio_switch_no_enabled_key = await setup_switch_entity(
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraAudioDetectionSwitch, MOCK_DEVICE_SWITCH_AUDIO_MALFORMED_NO_ENABLED
+    )
+    assert audio_switch_no_enabled_key.available is False
+
+
+async def test_switch_handles_unexpected_coord_data(hass: HomeAssistant, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture):
+    """Test switch handling of unexpected or missing data for state calculation."""
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_CAMERA_DEVICE_INFO_BASE]} # Base, no senseEnabled or audioDetection
+    device_data = mock_coordinator_switch_fixture.data["devices"][0]
 
     sense_switch = await setup_switch_entity(
-        hass, mock_coordinator_switch, mock_meraki_api_client_switch, MerakiCameraSenseSwitch, device_data_for_sensor
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraSenseSwitch, device_data
     )
-    # Current switch code defaults to False if key is missing
-    assert sense_switch.is_on is False
+    assert sense_switch.is_on is False # Defaults to False if key missing
 
     audio_switch = await setup_switch_entity(
-        hass, mock_coordinator_switch, mock_meraki_api_client_switch, MerakiCameraAudioDetectionSwitch, device_data_for_sensor
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraAudioDetectionSwitch, device_data
     )
-    # audioDetection.enabled path will fail, defaults to False
-    assert audio_switch.is_on is False
+    assert audio_switch.is_on is False # Defaults to False
 
-    # Test with audioDetection present but 'enabled' key missing
-    mock_coordinator_switch.data = {"devices": [{**MOCK_CAMERA_DEVICE_INFO_BASE, "audioDetection": {"foo": "bar"}}]}
-    device_data_for_sensor_malformed_audio = mock_coordinator_switch.data["devices"][0]
+    mock_coordinator_switch_fixture.data = {"devices": [MOCK_DEVICE_SWITCH_AUDIO_MALFORMED_NO_ENABLED]}
+    device_data_malformed_audio = mock_coordinator_switch_fixture.data["devices"][0]
     audio_switch_malformed = await setup_switch_entity(
-        hass, mock_coordinator_switch, mock_meraki_api_client_switch, MerakiCameraAudioDetectionSwitch, device_data_for_sensor_malformed_audio
+        hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraAudioDetectionSwitch, device_data_malformed_audio
     )
     assert audio_switch_malformed.is_on is False
 

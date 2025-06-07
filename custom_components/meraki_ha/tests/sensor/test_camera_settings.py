@@ -21,31 +21,65 @@ MOCK_CAMERA_DEVICE_INFO = {
     "model": "MV12",
     "productType": "camera",
     "mac": "00:11:22:33:44:55",
-    # Initial placeholder values for sense/audio, as sensors currently use these from device_info
-    # These will be overridden by actual API call mocks in later test stages
-    "senseEnabled": True, # Placeholder, matching sensor's current logic
-    "audioDetection": {"enabled": True} # Placeholder
+    # These keys are now expected to be populated by DataAggregationCoordinator
+    "senseEnabled": True,
+    "audioDetection": {"enabled": True}
 }
 
-MOCK_CAMERA_SENSE_API_DATA_SENSE_ON_AUDIO_ON = {
+# Variations of device data for testing different states and availability
+MOCK_DEVICE_SENSE_ON_AUDIO_ON = {
+    **MOCK_CAMERA_DEVICE_INFO,
     "senseEnabled": True,
     "audioDetection": {"enabled": True},
-    # Other potential fields from API
 }
 
-MOCK_CAMERA_SENSE_API_DATA_SENSE_OFF_AUDIO_OFF = {
+MOCK_DEVICE_SENSE_OFF_AUDIO_OFF = {
+    **MOCK_CAMERA_DEVICE_INFO,
+    "name": "Camera Sense Off", # Different name for clarity in tests
     "senseEnabled": False,
     "audioDetection": {"enabled": False},
 }
 
+MOCK_DEVICE_SENSE_MISSING_KEY = { # Missing 'senseEnabled'
+    **MOCK_CAMERA_DEVICE_INFO,
+    "name": "Camera Sense Key Missing",
+    "audioDetection": {"enabled": True},
+}
+# Remove senseEnabled from this mock, it should not be present
+del MOCK_DEVICE_SENSE_MISSING_KEY["senseEnabled"]
+
+
+MOCK_DEVICE_AUDIO_MISSING_KEY = { # Missing 'audioDetection' entirely
+    **MOCK_CAMERA_DEVICE_INFO,
+    "name": "Camera Audio Key Missing",
+    "senseEnabled": True,
+}
+del MOCK_DEVICE_AUDIO_MISSING_KEY["audioDetection"]
+
+MOCK_DEVICE_AUDIO_MALFORMED = { # 'audioDetection' is not a dict
+    **MOCK_CAMERA_DEVICE_INFO,
+    "name": "Camera Audio Malformed",
+    "senseEnabled": True,
+    "audioDetection": "not_a_dict",
+}
+
 
 @pytest.fixture
-def mock_coordinator():
+def mock_coordinator(hass: HomeAssistant): # Add hass for coordinator if it needs it
     """Fixture for a mock MerakiDataUpdateCoordinator."""
-    coordinator = MagicMock(spec=MerakiDataUpdateCoordinator)
-    coordinator.data = {"devices": [MOCK_CAMERA_DEVICE_INFO]} # Initial data
-    coordinator.async_update_listeners = MagicMock()
-    coordinator.async_add_listener = MagicMock()
+    # Initialize with some default data, tests can override coordinator.data as needed
+    coordinator = MerakiDataUpdateCoordinator(
+        hass=hass,
+        logger=MagicMock(),
+        name="test_meraki_coordinator",
+        meraki_client=MagicMock(spec=AsyncMock), # Mock the API client
+        org_id="test_org_id" # Add org_id
+    )
+    # Set scan_interval if its absence causes issues, though not directly used by these sensor tests' logic
+    coordinator.scan_interval = timedelta(seconds=30) # Example
+    coordinator.data = {"devices": [MOCK_DEVICE_SENSE_ON_AUDIO_ON]} # Default to sense on, audio on
+    # coordinator.async_update_listeners = MagicMock() # Already part of DataUpdateCoordinator
+    # coordinator.async_add_listener = MagicMock() # Already part of DataUpdateCoordinator
     coordinator.last_update_success = True
     return coordinator
 
@@ -54,22 +88,22 @@ def mock_coordinator():
 def mock_meraki_api_client():
     """Fixture for a mock MerakiAPIClient."""
     client = MagicMock()
-    # This will be used when sensors are updated to use specific API data
-    client.get_camera_sense_settings = AsyncMock(
-        return_value=MOCK_CAMERA_SENSE_API_DATA_SENSE_ON_AUDIO_ON
-    )
+    # The mock_meraki_api_client is not directly used by sensors, but by the coordinator.
+    # It's here if we were testing the coordinator's interaction with it.
+    # For sensor tests, we primarily care about the data *already in* the coordinator.
+    client = MagicMock(spec=AsyncMock)
     return client
 
 
 async def setup_sensor_entity(
-    hass: HomeAssistant, coordinator, sensor_class, device_info
+    hass: HomeAssistant, coordinator: MerakiDataUpdateCoordinator, sensor_class, device_info: dict
 ):
     """Helper to setup a sensor entity."""
-    sensor = sensor_class(coordinator, device_info)
-    sensor.hass = hass # Mock hass instance if needed for entity lifecycle
-    sensor.entity_id = f"sensor.test_{sensor.unique_id}" # Example entity_id
+    sensor = sensor_class(coordinator, device_info) # device_info is the specific dict for this device
+    sensor.hass = hass
+    sensor.entity_id = f"sensor.test_{sensor.unique_id.lower()}"
 
-    # Manually call this to simulate entity addition if needed for certain tests
+    # Simulate entity being added to HA for full lifecycle, if necessary for some tests
     # await sensor.async_added_to_hass()
     return sensor
 
@@ -78,281 +112,180 @@ async def setup_sensor_entity(
 
 async def test_sense_status_sensor_creation_and_properties(hass: HomeAssistant, mock_coordinator):
     """Test sensor creation and basic properties for SenseStatusSensor."""
+    # Coordinator data is defaulted to MOCK_DEVICE_SENSE_ON_AUDIO_ON
+    device_data = mock_coordinator.data["devices"][0]
     sensor = await setup_sensor_entity(
-        hass, mock_coordinator, MerakiCameraSenseStatusSensor, MOCK_CAMERA_DEVICE_INFO
+        hass, mock_coordinator, MerakiCameraSenseStatusSensor, device_data
     )
 
     assert sensor.unique_id == f"{MOCK_CAMERA_DEVICE_SERIAL}_camera_sense_status"
-    assert sensor.name == f"{MOCK_CAMERA_DEVICE_INFO['name']} Sense Enabled"
+    assert sensor.name == f"{device_data['name']} Sense Enabled" # Name should use current device name
     assert sensor.device_info["identifiers"] == {(DOMAIN, MOCK_CAMERA_DEVICE_SERIAL)}
-    assert sensor.available is True # Based on initial coordinator state
+    assert sensor.available is True # Initial data has senseEnabled
 
 
-async def test_sense_status_sensor_initial_state(hass: HomeAssistant, mock_coordinator):
-    """Test initial state based on placeholder logic in sensor."""
-    # Sensor currently uses placeholder: sense_enabled = True
-    mock_coordinator.data = {"devices": [{**MOCK_CAMERA_DEVICE_INFO, "senseEnabled": True}]}
-    sensor = await setup_sensor_entity(
-        hass, mock_coordinator, MerakiCameraSenseStatusSensor, MOCK_CAMERA_DEVICE_INFO
+async def test_sense_status_sensor_state_reflects_coordinator_data(hass: HomeAssistant, mock_coordinator):
+    """Test sensor state reflects coordinator data for SenseStatusSensor."""
+    # Case 1: senseEnabled is True
+    mock_coordinator.data = {"devices": [MOCK_DEVICE_SENSE_ON_AUDIO_ON]}
+    device_data_on = mock_coordinator.data["devices"][0]
+    sensor_on = await setup_sensor_entity(
+        hass, mock_coordinator, MerakiCameraSenseStatusSensor, device_data_on
     )
-    # _update_sensor_data is called in __init__
-    assert sensor.native_value == "enabled"
-    assert sensor.icon == "mdi:camera-iris"
+    # _update_sensor_data is called in __init__, then _handle_coordinator_update can be called
+    # For initial state right after setup:
+    assert sensor_on.native_value == "enabled"
+    assert sensor_on.icon == "mdi:camera-iris"
 
-    mock_coordinator.data = {"devices": [{**MOCK_CAMERA_DEVICE_INFO, "senseEnabled": False}]}
+    # Case 2: senseEnabled is False
+    mock_coordinator.data = {"devices": [MOCK_DEVICE_SENSE_OFF_AUDIO_OFF]}
+    device_data_off = mock_coordinator.data["devices"][0]
     sensor_off = await setup_sensor_entity(
-        hass, mock_coordinator, MerakiCameraSenseStatusSensor, MOCK_CAMERA_DEVICE_INFO
+        hass, mock_coordinator, MerakiCameraSenseStatusSensor, device_data_off
     )
-    # _update_sensor_data is called in __init__
-    # Need to manually trigger update or re-initialize for this test structure
-    # For now, the sensor's _update_sensor_data relies on its internal placeholder.
-    # This test reflects the *current* sensor placeholder logic (always True on init)
-    # To test dynamic changes, we'd call _handle_coordinator_update
+    assert sensor_off.native_value == "disabled"
+    assert sensor_off.icon == "mdi:camera-off-outline"
 
-    # Re-evaluating: The sensor's __init__ calls _update_sensor_data(), which uses a hardcoded True.
-    # The test should reflect this, or we need to simulate coordinator updates.
-    # For now, the placeholder logic in the sensor is: sense_enabled = True
-    # So, native_value will be "enabled"
-    current_sensor_placeholder_value = True # This matches the sensor's code
-    expected_state = "enabled" if current_sensor_placeholder_value else "disabled"
-    expected_icon = "mdi:camera-iris" if current_sensor_placeholder_value else "mdi:camera-off-outline"
-
-    assert sensor.native_value == expected_state
-    assert sensor.icon == expected_icon
-
-
-async def test_sense_status_sensor_coordinator_update(hass: HomeAssistant, mock_coordinator):
-    """Test sensor state update from coordinator (still placeholder logic)."""
-    sensor = await setup_sensor_entity(
-        hass, mock_coordinator, MerakiCameraSenseStatusSensor, MOCK_CAMERA_DEVICE_INFO
-    )
-
-    # Current placeholder logic in sensor: sense_enabled = True, so it's always "enabled"
-    # This test will be more meaningful when sensor reads from coordinator actual data
-
-    # Simulate coordinator having updated data (even if sensor doesn't use it yet for this specific field)
-    updated_device_info = {**MOCK_CAMERA_DEVICE_INFO, "name": "Updated Camera Name"}
-    mock_coordinator.data = {"devices": [updated_device_info]}
-    sensor._handle_coordinator_update() # Manually trigger update
-    await hass.async_block_till_done() # Ensure state propagation
-
-    assert sensor.name == "Updated Camera Name Sense Enabled" # Name should update
-    # State remains based on placeholder until sensor logic changes
-    current_sensor_placeholder_value = True
-    expected_state = "enabled" if current_sensor_placeholder_value else "disabled"
-    assert sensor.native_value == expected_state
+    # Case 3: Update coordinator data and call _handle_coordinator_update
+    # Start with sensor_on (senseEnabled: True)
+    mock_coordinator.data = {"devices": [MOCK_DEVICE_SENSE_OFF_AUDIO_OFF]} # Change data to False
+    sensor_on._handle_coordinator_update()
+    await hass.async_block_till_done()
+    assert sensor_on.native_value == "disabled"
+    assert sensor_on.icon == "mdi:camera-off-outline"
+    assert sensor_on.name == f"{MOCK_DEVICE_SENSE_OFF_AUDIO_OFF['name']} Sense Enabled" # Name updates
 
 
 async def test_sense_status_sensor_availability(hass: HomeAssistant, mock_coordinator):
-    """Test sensor availability changes."""
+    """Test sensor availability changes for SenseStatusSensor."""
+    # Initial state: Available (senseEnabled is True in MOCK_DEVICE_SENSE_ON_AUDIO_ON)
+    mock_coordinator.data = {"devices": [MOCK_DEVICE_SENSE_ON_AUDIO_ON]}
+    device_data = mock_coordinator.data["devices"][0]
     sensor = await setup_sensor_entity(
-        hass, mock_coordinator, MerakiCameraSenseStatusSensor, MOCK_CAMERA_DEVICE_INFO
+        hass, mock_coordinator, MerakiCameraSenseStatusSensor, device_data
     )
     assert sensor.available is True
 
-    # Simulate coordinator failure
+    # Scenario 1: Coordinator update fails
     mock_coordinator.last_update_success = False
-    sensor._handle_coordinator_update() # Propagate change
+    # Data might still be there, but super().available will be False
+    sensor._handle_coordinator_update()
     await hass.async_block_till_done()
     assert sensor.available is False
 
-    # Simulate coordinator success but device data missing
+    # Scenario 2: Coordinator successful, but device data missing from coordinator
     mock_coordinator.last_update_success = True
-    mock_coordinator.data = {"devices": []} # Device not in list
+    mock_coordinator.data = {"devices": []}
     sensor._handle_coordinator_update()
     await hass.async_block_till_done()
     assert sensor.available is False
 
-    # Simulate coordinator success and device data present again
-    mock_coordinator.data = {"devices": [MOCK_CAMERA_DEVICE_INFO]}
-    sensor._handle_coordinator_update()
-    await hass.async_block_till_done()
-    assert sensor.available is True
+    # Scenario 3: Device data present, but 'senseEnabled' key is missing
+    mock_coordinator.data = {"devices": [MOCK_DEVICE_SENSE_MISSING_KEY]}
+    # Need to re-init or ensure the specific device_data is passed if setup_sensor_entity doesn't re-fetch from coordinator
+    device_data_missing_key = mock_coordinator.data["devices"][0]
+    sensor_missing_key = await setup_sensor_entity(
+        hass, mock_coordinator, MerakiCameraSenseStatusSensor, device_data_missing_key
+    )
+    # _update_sensor_data and available are called during init
+    assert sensor_missing_key.available is False
+    assert sensor_missing_key.native_value is None # Reflects missing data
+    assert sensor_missing_key.icon == "mdi:camera-question"
 
 
 # --- MerakiCameraAudioDetectionSensor Tests ---
 
 async def test_audio_sensor_creation_and_properties(hass: HomeAssistant, mock_coordinator):
     """Test sensor creation and basic properties for AudioDetectionSensor."""
+    mock_coordinator.data = {"devices": [MOCK_DEVICE_SENSE_ON_AUDIO_ON]}
+    device_data = mock_coordinator.data["devices"][0]
     sensor = await setup_sensor_entity(
-        hass, mock_coordinator, MerakiCameraAudioDetectionSensor, MOCK_CAMERA_DEVICE_INFO
+        hass, mock_coordinator, MerakiCameraAudioDetectionSensor, device_data
     )
 
     assert sensor.unique_id == f"{MOCK_CAMERA_DEVICE_SERIAL}_camera_audio_detection_status"
-    assert sensor.name == f"{MOCK_CAMERA_DEVICE_INFO['name']} Audio Detection"
+    assert sensor.name == f"{device_data['name']} Audio Detection"
     assert sensor.device_info["identifiers"] == {(DOMAIN, MOCK_CAMERA_DEVICE_SERIAL)}
+    assert sensor.available is True # Initial data has audioDetection.enabled
 
 
-async def test_audio_sensor_initial_state(hass: HomeAssistant, mock_coordinator):
-    """Test initial state based on placeholder logic in sensor for AudioDetectionSensor."""
-    # Sensor currently uses placeholder: audio_detection_enabled = True
-    mock_coordinator.data = {"devices": [{**MOCK_CAMERA_DEVICE_INFO, "audioDetection": {"enabled": True}}]}
-    sensor = await setup_sensor_entity(
-        hass, mock_coordinator, MerakiCameraAudioDetectionSensor, MOCK_CAMERA_DEVICE_INFO
+async def test_audio_sensor_state_reflects_coordinator_data(hass: HomeAssistant, mock_coordinator):
+    """Test sensor state reflects coordinator data for AudioDetectionSensor."""
+    # Case 1: audioDetection.enabled is True
+    mock_coordinator.data = {"devices": [MOCK_DEVICE_SENSE_ON_AUDIO_ON]}
+    device_data_on = mock_coordinator.data["devices"][0]
+    sensor_on = await setup_sensor_entity(
+        hass, mock_coordinator, MerakiCameraAudioDetectionSensor, device_data_on
     )
-    # Reflects current placeholder in sensor code: audio_detection_enabled = True
-    current_sensor_placeholder_value = True
-    expected_state = "enabled" if current_sensor_placeholder_value else "disabled"
-    expected_icon = "mdi:microphone" if current_sensor_placeholder_value else "mdi:microphone-off"
+    assert sensor_on.native_value == "enabled"
+    assert sensor_on.icon == "mdi:microphone"
 
-    assert sensor.native_value == expected_state
-    assert sensor.icon == expected_icon
-
-
-async def test_audio_sensor_coordinator_update(hass: HomeAssistant, mock_coordinator):
-    """Test sensor state update from coordinator (still placeholder logic) for AudioDetectionSensor."""
-    sensor = await setup_sensor_entity(
-        hass, mock_coordinator, MerakiCameraAudioDetectionSensor, MOCK_CAMERA_DEVICE_INFO
+    # Case 2: audioDetection.enabled is False
+    mock_coordinator.data = {"devices": [MOCK_DEVICE_SENSE_OFF_AUDIO_OFF]}
+    device_data_off = mock_coordinator.data["devices"][0]
+    sensor_off = await setup_sensor_entity(
+        hass, mock_coordinator, MerakiCameraAudioDetectionSensor, device_data_off
     )
+    assert sensor_off.native_value == "disabled"
+    assert sensor_off.icon == "mdi:microphone-off"
 
-    updated_device_info = {**MOCK_CAMERA_DEVICE_INFO, "name": "Updated Mic Name"}
-    mock_coordinator.data = {"devices": [updated_device_info]}
-    sensor._handle_coordinator_update()
+    # Case 3: Update coordinator data and call _handle_coordinator_update
+    mock_coordinator.data = {"devices": [MOCK_DEVICE_SENSE_ON_AUDIO_ON]} # Back to True
+    sensor_off._handle_coordinator_update() # sensor_off was previously False
     await hass.async_block_till_done()
-
-    assert sensor.name == "Updated Mic Name Audio Detection"
-    current_sensor_placeholder_value = True
-    expected_state = "enabled" if current_sensor_placeholder_value else "disabled"
-    assert sensor.native_value == expected_state
+    assert sensor_off.native_value == "enabled"
+    assert sensor_off.icon == "mdi:microphone"
+    assert sensor_off.name == f"{MOCK_DEVICE_SENSE_ON_AUDIO_ON['name']} Audio Detection"
 
 
-# Future tests (when sensors use actual API data via coordinator):
-# - Mock get_camera_sense_settings to return different data (sense on/off, audio on/off)
-# - Verify sensor state reflects this mocked API data after coordinator update.
-# - Test behavior when get_camera_sense_settings raises an API error (e.g., UpdateFailed).
-#   The sensor should become unavailable or report an error state if appropriate.
-# - Test with unexpected API response structure.
+async def test_audio_sensor_availability_and_malformed_data(hass: HomeAssistant, mock_coordinator):
+    """Test sensor availability for AudioDetectionSensor, including malformed data."""
+    mock_coordinator.data = {"devices": [MOCK_DEVICE_SENSE_ON_AUDIO_ON]}
+    device_data = mock_coordinator.data["devices"][0]
+    sensor = await setup_sensor_entity(
+        hass, mock_coordinator, MerakiCameraAudioDetectionSensor, device_data
+    )
+    assert sensor.available is True
 
-# Example of a future test:
-# async def test_sense_status_sensor_reflects_api_data(hass: HomeAssistant, mock_coordinator, mock_meraki_api_client):
-# """Test sensor state reflects actual (mocked) API data for SenseStatusSensor."""
-# # This test assumes the coordinator is updated to fetch and store camera sense data
-# # and the sensor is updated to read this specific data.
-#
-# # Setup coordinator to use the mock API client
-#     mock_coordinator.meraki_api_client = mock_meraki_api_client
-#
-# # Mock the coordinator's data to include specific sense settings from a (future) API call
-# # This would require the coordinator to fetch and store this.
-# # For now, we'll assume device_info gets updated with this specific data.
-#     mock_coordinator.data = {
-# "devices": [
-#             {
-#                 **MOCK_CAMERA_DEVICE_INFO,
-#                 "senseEnabled": MOCK_CAMERA_SENSE_API_DATA_SENSE_OFF_AUDIO_OFF["senseEnabled"]
-#             }
-# ]
-#     }
-#
-#     sensor = await setup_sensor_entity(
-#         hass, mock_coordinator, MerakiCameraSenseStatusSensor, MOCK_CAMERA_DEVICE_INFO
-#     )
-# # At this point, sensor's _update_sensor_data should use the "senseEnabled" from the coordinator data
-# # which we've mocked to be False.
-#
-# # Manually trigger update to simulate coordinator refresh based on new (mocked) API data
-#     sensor._handle_coordinator_update()
-#     await hass.async_block_till_done()
-#
-#     assert sensor.native_value == "disabled"
-#     assert sensor.icon == "mdi:camera-off-outline"
-#
-# # Test with sense enabled
-#     mock_meraki_api_client.get_camera_sense_settings.return_value = MOCK_CAMERA_SENSE_API_DATA_SENSE_ON_AUDIO_ON
-#     mock_coordinator.data = {
-# "devices": [
-#             {
-#                 **MOCK_CAMERA_DEVICE_INFO,
-#                 "senseEnabled": MOCK_CAMERA_SENSE_API_DATA_SENSE_ON_AUDIO_ON["senseEnabled"]
-#             }
-# ]
-#     }
-#     sensor._handle_coordinator_update()
-#     await hass.async_block_till_done()
-#
-#     assert sensor.native_value == "enabled"
-#     assert sensor.icon == "mdi:camera-iris"
+    # Scenario 1: 'audioDetection' key entirely missing
+    mock_coordinator.data = {"devices": [MOCK_DEVICE_AUDIO_MISSING_KEY]}
+    device_data_key_missing = mock_coordinator.data["devices"][0]
+    sensor_key_missing = await setup_sensor_entity(
+        hass, mock_coordinator, MerakiCameraAudioDetectionSensor, device_data_key_missing
+    )
+    assert sensor_key_missing.available is False
+    assert sensor_key_missing.native_value is None
+    assert sensor_key_missing.icon == "mdi:microphone-question"
 
-# async def test_audio_sensor_reflects_api_data(hass: HomeAssistant, mock_coordinator, mock_meraki_api_client):
-# """Test sensor state reflects actual (mocked) API data for AudioDetectionSensor."""
-#     mock_coordinator.meraki_api_client = mock_meraki_api_client
-#     mock_coordinator.data = {
-# "devices": [
-#             {
-#                 **MOCK_CAMERA_DEVICE_INFO,
-#                 "audioDetection": {
-# "enabled": MOCK_CAMERA_SENSE_API_DATA_SENSE_OFF_AUDIO_OFF["audioDetection"]["enabled"]
-#                 }
-#             }
-# ]
-#     }
-#
-#     sensor = await setup_sensor_entity(
-#         hass, mock_coordinator, MerakiCameraAudioDetectionSensor, MOCK_CAMERA_DEVICE_INFO
-#     )
-#     sensor._handle_coordinator_update()
-#     await hass.async_block_till_done()
-#
-#     assert sensor.native_value == "disabled"
-#     assert sensor.icon == "mdi:microphone-off"
-#
-# # Test with audio enabled
-#     mock_meraki_api_client.get_camera_sense_settings.return_value = MOCK_CAMERA_SENSE_API_DATA_SENSE_ON_AUDIO_ON
-#     mock_coordinator.data = {
-# "devices": [
-#             {
-#                 **MOCK_CAMERA_DEVICE_INFO,
-#                 "audioDetection": {
-# "enabled": MOCK_CAMERA_SENSE_API_DATA_SENSE_ON_AUDIO_ON["audioDetection"]["enabled"]
-#                 }
-#             }
-# ]
-#     }
-#     sensor._handle_coordinator_update()
-#     await hass.async_block_till_done()
-#
-#     assert sensor.native_value == "enabled"
-#     assert sensor.icon == "mdi:microphone"
-#
-# async def test_sensor_api_error_scenario(hass: HomeAssistant, mock_coordinator, mock_meraki_api_client):
-# """Test sensor behavior when API call via coordinator fails."""
-#     mock_coordinator.meraki_api_client = mock_meraki_api_client
-#     mock_meraki_api_client.get_camera_sense_settings.side_effect = UpdateFailed("API Error")
-#
-# # Simulate the coordinator trying to update its data and failing
-# # This part depends on how the coordinator itself handles the UpdateFailed exception
-# # For this test, let's assume the coordinator sets its data to None or last_update_success to False
-#     mock_coordinator.last_update_success = False
-#     mock_coordinator.data = None # Or some indicator of failure
-#
-#     sensor = await setup_sensor_entity(
-#         hass, mock_coordinator, MerakiCameraSenseStatusSensor, MOCK_CAMERA_DEVICE_INFO
-#     )
-#     sensor._handle_coordinator_update() # To reflect new coordinator state
-#     await hass.async_block_till_done()
-#
-#     assert sensor.available is False
-# # Depending on desired behavior, native_value might be None or a specific error state
-#     assert sensor.native_value is None
-#
-# # Restore for other tests
-#     mock_coordinator.last_update_success = True
-#     mock_coordinator.data = {"devices": [MOCK_CAMERA_DEVICE_INFO]}
-#     mock_meraki_api_client.get_camera_sense_settings.side_effect = None
-#     mock_meraki_api_client.get_camera_sense_settings.return_value = MOCK_CAMERA_SENSE_API_DATA_SENSE_ON_AUDIO_ON
+    # Scenario 2: 'audioDetection' is present but not a dictionary (malformed)
+    mock_coordinator.data = {"devices": [MOCK_DEVICE_AUDIO_MALFORMED]}
+    device_data_malformed = mock_coordinator.data["devices"][0]
+    sensor_malformed = await setup_sensor_entity(
+        hass, mock_coordinator, MerakiCameraAudioDetectionSensor, device_data_malformed
+    )
+    assert sensor_malformed.available is False
+    assert sensor_malformed.native_value is None
+    assert sensor_malformed.icon == "mdi:microphone-question"
 
-"""
-Note on current sensor tests:
-The current sensor implementation uses placeholder logic for `senseEnabled` and `audioDetection.enabled`
-(hardcoded to True within their `_update_sensor_data` methods if no specific data is found).
-The tests above reflect this current state.
-The commented-out tests (`test_sense_status_sensor_reflects_api_data`, etc.)
-are designed for a future state where:
-1. The `MerakiDataUpdateCoordinator` is responsible for calling `meraki_api_client.get_camera_sense_settings(serial)`.
-2. The coordinator stores this specific camera sense data, likely keyed by serial, within its `coordinator.data`.
-   For example: `coordinator.data['devices_camera_sense'][serial] = {'senseEnabled': True, ...}`.
-3. The `MerakiCameraSenseStatusSensor` and `MerakiCameraAudioDetectionSensor` are updated
-   in their `_get_current_device_data` (or a new method) to retrieve this specific data from the coordinator,
-   rather than relying on placeholders or generic device data for these states.
-Once these changes are made to the sensors and coordinator, the commented-out tests can be enabled and adapted.
-"""
+    # Scenario 3: 'audioDetection' is a dict, but 'enabled' key is missing
+    malformed_audio_no_enabled_key = {**MOCK_CAMERA_DEVICE_INFO, "audioDetection": {"not_enabled_key": True}}
+    mock_coordinator.data = {"devices": [malformed_audio_no_enabled_key]}
+    device_data_malformed_inner = mock_coordinator.data["devices"][0]
+    sensor_malformed_inner = await setup_sensor_entity(
+        hass, mock_coordinator, MerakiCameraAudioDetectionSensor, device_data_malformed_inner
+    )
+    assert sensor_malformed_inner.available is False
+    assert sensor_malformed_inner.native_value is None
+    assert sensor_malformed_inner.icon == "mdi:microphone-question"
+
+# The note about future tests can be removed or updated as the tests now reflect
+# that the sensor reads from enriched coordinator data.
+# The `mock_meraki_api_client` is not strictly needed for *these specific sensor tests*
+# because we are directly manipulating `mock_coordinator.data`.
+# It would be used if we were testing the coordinator's own `_async_update_data` method
+# where it calls `get_camera_sense_settings`.
+# The `test_sensor_api_error_scenario` would also apply to how the *coordinator* handles API errors,
+# and how that reflects in `coordinator.last_update_success` or `coordinator.data`, which then
+# affects sensor availability. The current availability tests cover `last_update_success = False`
+# and missing data in the coordinator.
+from datetime import timedelta # Add timedelta to imports at the top

@@ -64,11 +64,16 @@ class MerakiCameraSenseStatusSensor(
             self._attr_icon = "mdi:help-rhombus"
             return
 
-        # Placeholder for actual API data
-        # sense_enabled = current_device_data.get("senseEnabled", False) # Example from API doc
-        sense_enabled = True # Placeholder
-        self._attr_native_value = "enabled" if sense_enabled else "disabled"
-        self._attr_icon = "mdi:camera-iris" if sense_enabled else "mdi:camera-off-outline"
+        sense_enabled_value = current_device_data.get("senseEnabled")
+
+        if sense_enabled_value is None: # Explicitly check for None, as False is a valid state
+            self._attr_native_value = None # Or "unknown"
+            self._attr_icon = "mdi:camera-question" # Icon indicating data is missing
+            _LOGGER.debug("senseEnabled data not found for %s", self._device_serial)
+        else:
+            sense_enabled = bool(sense_enabled_value)
+            self._attr_native_value = "enabled" if sense_enabled else "disabled"
+            self._attr_icon = "mdi:camera-iris" if sense_enabled else "mdi:camera-off-outline"
 
         self._attr_extra_state_attributes = {
             "serial_number": self._device_serial,
@@ -83,15 +88,20 @@ class MerakiCameraSenseStatusSensor(
 
     @property
     def available(self) -> bool:
-        """Return True if entity is available."""
-        if not super().available:
+        """Return True if entity is available and data is present."""
+        if not super().available: # Checks coordinator's last_update_success
             return False
-        if self.coordinator.data and self.coordinator.data.get("devices"):
-            return any(
-                dev.get("serial") == self._device_serial
-                for dev in self.coordinator.data["devices"]
-            )
-        return False
+
+        current_device_data = self._get_current_device_data()
+        if not current_device_data:
+            return False # Device not in coordinator data
+
+        # Check for presence of the specific attribute this sensor relies on
+        if "senseEnabled" not in current_device_data:
+            _LOGGER.debug("Sensor %s unavailable, senseEnabled missing from device data", self.unique_id)
+            return False
+
+        return True
 
     @property
     def name(self) -> str:
@@ -151,11 +161,16 @@ class MerakiCameraAudioDetectionSensor(
             self._attr_icon = "mdi:help-rhombus"
             return
 
-        # Placeholder for actual API data
-        # audio_detection_enabled = current_device_data.get("audioDetection", {}).get("enabled", False) # Example from API
-        audio_detection_enabled = True # Placeholder
-        self._attr_native_value = "enabled" if audio_detection_enabled else "disabled"
-        self._attr_icon = "mdi:microphone" if audio_detection_enabled else "mdi:microphone-off"
+        audio_detection_data = current_device_data.get("audioDetection")
+
+        if not isinstance(audio_detection_data, dict) or "enabled" not in audio_detection_data:
+            self._attr_native_value = None # Or "unknown"
+            self._attr_icon = "mdi:microphone-question" # Icon indicating data is missing/malformed
+            _LOGGER.debug("audioDetection.enabled data not found or malformed for %s", self._device_serial)
+        else:
+            audio_enabled = bool(audio_detection_data["enabled"])
+            self._attr_native_value = "enabled" if audio_enabled else "disabled"
+            self._attr_icon = "mdi:microphone" if audio_enabled else "mdi:microphone-off"
 
         self._attr_extra_state_attributes = {
             "serial_number": self._device_serial,
@@ -170,15 +185,21 @@ class MerakiCameraAudioDetectionSensor(
 
     @property
     def available(self) -> bool:
-        """Return True if entity is available."""
-        if not super().available:
+        """Return True if entity is available and data is present."""
+        if not super().available: # Checks coordinator's last_update_success
             return False
-        if self.coordinator.data and self.coordinator.data.get("devices"):
-            return any(
-                dev.get("serial") == self._device_serial
-                for dev in self.coordinator.data["devices"]
-            )
-        return False
+
+        current_device_data = self._get_current_device_data()
+        if not current_device_data:
+            return False # Device not in coordinator data
+
+        # Check for presence and correct structure of the specific attribute
+        audio_data = current_device_data.get("audioDetection")
+        if not isinstance(audio_data, dict) or "enabled" not in audio_data:
+            _LOGGER.debug("Sensor %s unavailable, audioDetection.enabled missing/malformed", self.unique_id)
+            return False
+
+        return True
 
     @property
     def name(self) -> str:
