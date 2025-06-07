@@ -227,6 +227,13 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
         )
         self.entity_description = EntityDescription(key="sense_enabled", name="MV Sense")
 
+    @property
+    def name(self) -> str:
+        """Return the explicit name of the switch."""
+        device_data = self._get_current_device_data()
+        device_name = device_data.get("name", "Camera") if device_data else "Camera"
+        return f"{device_name} {self.entity_description.name}"
+
 
 class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
     """Switch to control the Audio Detection state of a Meraki Camera."""
@@ -246,6 +253,13 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
             "audioDetection.enabled", # attribute_to_check (nested)
         )
         self.entity_description = EntityDescription(key="audio_detection", name="Audio Detection")
+
+    @property
+    def name(self) -> str:
+        """Return the explicit name of the switch."""
+        device_data = self._get_current_device_data()
+        device_name = device_data.get("name", "Camera") if device_data else "Camera"
+        return f"{device_name} {self.entity_description.name}"
 
 # async_setup_entry will be defined in __init__.py for the switch platform
 # and will iterate over camera devices to add these switches.

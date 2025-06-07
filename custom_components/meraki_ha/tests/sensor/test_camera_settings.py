@@ -119,7 +119,7 @@ async def test_sense_status_sensor_creation_and_properties(hass: HomeAssistant, 
     )
 
     assert sensor.unique_id == f"{MOCK_CAMERA_DEVICE_SERIAL}_camera_sense_status"
-    assert sensor.name == f"{device_data['name']} Sense Enabled" # Name should use current device name
+    assert sensor.name == "Sense Enabled" # Should be from EntityDescription
     assert sensor.device_info["identifiers"] == {(DOMAIN, MOCK_CAMERA_DEVICE_SERIAL)}
     assert sensor.available is True # Initial data has senseEnabled
 
@@ -153,7 +153,8 @@ async def test_sense_status_sensor_state_reflects_coordinator_data(hass: HomeAss
     await hass.async_block_till_done()
     assert sensor_on.native_value == "disabled"
     assert sensor_on.icon == "mdi:camera-off-outline"
-    assert sensor_on.name == f"{MOCK_DEVICE_SENSE_OFF_AUDIO_OFF['name']} Sense Enabled" # Name updates
+    # The entity's own .name property should remain "Sense Enabled"
+    assert sensor_on.name == "Sense Enabled" # Name is from EntityDescription
 
 
 async def test_sense_status_sensor_availability(hass: HomeAssistant, mock_coordinator):
@@ -204,7 +205,7 @@ async def test_audio_sensor_creation_and_properties(hass: HomeAssistant, mock_co
     )
 
     assert sensor.unique_id == f"{MOCK_CAMERA_DEVICE_SERIAL}_camera_audio_detection_status"
-    assert sensor.name == f"{device_data['name']} Audio Detection"
+    assert sensor.name == "Audio Detection" # Should be from EntityDescription
     assert sensor.device_info["identifiers"] == {(DOMAIN, MOCK_CAMERA_DEVICE_SERIAL)}
     assert sensor.available is True # Initial data has audioDetection.enabled
 
@@ -235,7 +236,8 @@ async def test_audio_sensor_state_reflects_coordinator_data(hass: HomeAssistant,
     await hass.async_block_till_done()
     assert sensor_off.native_value == "enabled"
     assert sensor_off.icon == "mdi:microphone"
-    assert sensor_off.name == f"{MOCK_DEVICE_SENSE_ON_AUDIO_ON['name']} Audio Detection"
+    # The entity's own .name property should remain "Audio Detection"
+    assert sensor_off.name == "Audio Detection"
 
 
 async def test_audio_sensor_availability_and_malformed_data(hass: HomeAssistant, mock_coordinator):

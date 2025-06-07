@@ -6,7 +6,7 @@ This module defines sensor entities for camera sense and audio detection status.
 import logging
 from typing import Any, Dict, Optional
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, EntityDescription
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -36,6 +36,10 @@ class MerakiCameraSenseStatusSensor(
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)}
+        )
+        self.entity_description = EntityDescription(
+            key="camera_sense_status",
+            name="Sense Enabled"
         )
         self._update_sensor_data()
         _LOGGER.debug(
@@ -103,15 +107,7 @@ class MerakiCameraSenseStatusSensor(
 
         return True
 
-    @property
-    def name(self) -> str:
-        """Return the name of the sensor."""
-        # Fallback name if device_data or its name is not available
-        device_name = "Camera"
-        current_device_data = self._get_current_device_data()
-        if current_device_data and current_device_data.get("name"):
-            device_name = current_device_data.get("name")
-        return f"{device_name} Sense Enabled"
+    # Removed custom name property. Relies on _attr_has_entity_name and self.entity_description.name.
 
 
 class MerakiCameraAudioDetectionSensor(
@@ -133,6 +129,10 @@ class MerakiCameraAudioDetectionSensor(
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)}
+        )
+        self.entity_description = EntityDescription(
+            key="camera_audio_detection_status",
+            name="Audio Detection"
         )
         self._update_sensor_data()
         _LOGGER.debug(
@@ -201,11 +201,4 @@ class MerakiCameraAudioDetectionSensor(
 
         return True
 
-    @property
-    def name(self) -> str:
-        """Return the name of the sensor."""
-        device_name = "Camera" # Fallback name
-        current_device_data = self._get_current_device_data()
-        if current_device_data and current_device_data.get("name"):
-            device_name = current_device_data.get("name")
-        return f"{device_name} Audio Detection"
+    # Removed custom name property. Relies on _attr_has_entity_name and self.entity_description.name.

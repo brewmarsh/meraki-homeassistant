@@ -180,8 +180,8 @@ async def test_sense_switch_update_from_coordinator(hass: HomeAssistant, mock_co
     switch._handle_coordinator_update()
     await hass.async_block_till_done()
     assert switch.is_on is False
-    # After the entity description update, switch.name IS "MV Sense"
-    assert switch.name == "MV Sense"
+    # Switch has an explicit name property: device_name + entity_description.name
+    assert switch.name == f"{MOCK_DEVICE_SWITCH_SENSE_OFF_AUDIO_OFF['name']} MV Sense"
 
 
 async def test_sense_switch_api_error_on_update(hass: HomeAssistant, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture):
@@ -219,7 +219,8 @@ async def test_audio_switch_creation_and_properties(hass: HomeAssistant, mock_co
         hass, mock_coordinator_switch_fixture, mock_meraki_api_client_switch_fixture, MerakiCameraAudioDetectionSwitch, device_data
     )
     assert switch.unique_id == f"{MOCK_CAMERA_DEVICE_SERIAL}_audio_detection_switch"
-    assert switch.name == "Audio Detection" # Check entity_description.name
+    # Switch has an explicit name property: device_name + entity_description.name
+    assert switch.name == f"{device_data['name']} Audio Detection"
     assert switch.device_info["identifiers"] == {(DOMAIN, MOCK_CAMERA_DEVICE_SERIAL)}
     assert switch.available is True
 
