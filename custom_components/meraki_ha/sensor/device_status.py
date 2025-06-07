@@ -12,6 +12,7 @@ from homeassistant.components.sensor import SensorEntity
 
 # Added callback for coordinator updates
 from homeassistant.core import callback
+from homeassistant.helpers.entity import EntityDescription # Corrected import
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -71,7 +72,13 @@ class MerakiDeviceStatusSensor(
         # self.entity_id will be sensor.device_name_status
         # _attr_name is not explicitly set, letting has_entity_name and device name work.
         # If has_entity_name is False or more control is needed:
-        # self._attr_name = f"{device_name_for_registry} Status"
+        # self._attr_name = f"{device_name_for_registry} Status" # This line should be removed if present
+
+        self.entity_description = EntityDescription(
+            key="device_status",
+            name="Status", # This will be the entity-specific part of the name
+            state_class=None # Device status (e.g., "online", "offline") is categorical
+        )
 
         # Initial update of state and attributes
         self._update_sensor_data()

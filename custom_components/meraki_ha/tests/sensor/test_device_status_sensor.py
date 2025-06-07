@@ -49,8 +49,11 @@ class TestMerakiDeviceStatusSensor(unittest.TestCase):
     def test_initialization_and_state(self):
         """Test sensor initialization and initial state."""
         self.assertEqual(self.sensor.unique_id, f"{self.device_serial}_device_status")
-        self.assertEqual(self.sensor.name, None) # Uses _attr_has_entity_name = True
+        # After EntityDescription update, sensor.name should be "Status"
+        self.assertEqual(self.sensor.name, "Status")
         self.assertTrue(self.sensor.has_entity_name)
+        # Verify state_class from EntityDescription
+        self.assertIsNone(self.sensor.entity_description.state_class)
 
         self.assertEqual(self.sensor.native_value, "online")
         self.assertEqual(self.sensor.icon, "mdi:access-point-network") # MR model

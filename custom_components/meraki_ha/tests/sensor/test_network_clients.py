@@ -11,50 +11,49 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from custom_components.meraki_ha.sensor.network_clients import (
     MerakiNetworkClientsSensor,
 )
+# Import the coordinator and API client for proper mocking
+from custom_components.meraki_ha.coordinators import MerakiDataUpdateCoordinator
+from custom_components.meraki_ha.meraki_api import MerakiAPIClient
+
 
 # Constants for testing
 TEST_NETWORK_ID = "N_123456789012345678"
 TEST_NETWORK_NAME = "My Test Network"
 
-# Mock MerakiAPIClient for tests
-# We don't need to define a class MockMerakiAPIClient,
-# MagicMock can be used directly for the instance.
-# However, if MerakiAPIClient is type hinted in the sensor,
-# it might be better to mock the actual class if available for import.
-# For this test, we'll directly mock the instance passed to the sensor.
-
 
 @pytest.fixture
-def mock_coordinator():
-    """Fixture for a mock DataUpdateCoordinator."""
-    coordinator = MagicMock(spec=DataUpdateCoordinator)
-    coordinator.data = {}
+def mock_coordinator(hass: HomeAssistant, mock_api_client: MagicMock): # Add hass and typed mock_api_client
+    """Fixture for a mock MerakiDataUpdateCoordinator."""
+    # Spec with the actual coordinator class used by the sensor
+    coordinator = MagicMock(spec=MerakiDataUpdateCoordinator)
+    # Initialize common attributes HA might expect or the entity might use
+    coordinator.hass = hass
+    coordinator.data = {} # Default to empty data
+    coordinator.meraki_client = mock_api_client # Attach mocked API client if coordinator uses it
+    coordinator.last_update_success = True
     coordinator.async_request_refresh = AsyncMock()
+    # Ensure listeners attribute exists, as DataUpdateCoordinator has it
+    coordinator._listeners = {} # Simplified mock for listeners
     return coordinator
 
 @pytest.fixture
 def mock_api_client():
-    """Fixture for a mock MerakiAPIClient.
-    This mock represents an instance of the actual MerakiAPIClient.
-    """
-    client = MagicMock() # Can be spec'd with the actual class if imported: spec=MerakiAPIClient
+    """Fixture for a mock MerakiAPIClient."""
+    client = MagicMock(spec=MerakiAPIClient) # Spec with actual class
     client.networks = MagicMock()
-    client.networks.getNetworkClients = AsyncMock()
+    # Define the return value structure for getNetworkClients
+    client.networks.getNetworkClients = AsyncMock(return_value=[]) # Default to empty list
     return client
 
 async def test_network_clients_sensor_setup_and_initial_state(
-    hass: HomeAssistant, mock_coordinator, mock_api_client
+    hass: HomeAssistant, mock_coordinator: MerakiDataUpdateCoordinator, mock_api_client: MagicMock
 ):
     """Test sensor setup and its initial state before any API data."""
-    # Initial call during __init__ -> _update_sensor_state uses empty _clients_data
-    # async_update is not called yet here by HA, so getNetworkClients shouldn't be called yet
-    # by the constructor's _update_sensor_state path.
-
     sensor = MerakiNetworkClientsSensor(
         coordinator=mock_coordinator,
         network_id=TEST_NETWORK_ID,
         network_name=TEST_NETWORK_NAME,
-        meraki_api_client=mock_api_client,
+        meraki_api_client=mock_api_client, # Pass the MagicMock instance
     )
     sensor.hass = hass # Simulate adding to HASS
 
@@ -70,24 +69,27 @@ async def test_network_clients_sensor_setup_and_initial_state(
     assert attributes["network_name"] == TEST_NETWORK_NAME
     assert attributes["clients_list"] == []
 
-    # Ensure API was not called during init
+    # API should not be called during init because _clients_data is empty
+    # and _update_sensor_state is called before any async_update.
     mock_api_client.networks.getNetworkClients.assert_not_called()
 
 
 async def test_network_clients_sensor_update_success(
-    hass: HomeAssistant, mock_coordinator, mock_api_client
+    hass: HomeAssistant, mock_coordinator: MerakiDataUpdateCoordinator, mock_api_client: MagicMock
 ):
     """Test sensor update with successful API data fetch."""
     mock_clients_response = [
-        {
+        { # Full data from API
             "description": "Client 1", "mac": "00:11:22:33:44:51", "ip": "192.168.1.101",
             "vlan": 10, "status": "Online", "lastSeen": "2023-01-01T12:00:00Z",
-            "manufacturer": "FakeManu", "os": "FakeOS", "user": "User1", "ssid": "TestSSID1"
+            "manufacturer": "FakeManu", "os": "FakeOS", "user": "User1", "ssid": "TestSSID1",
+            "ip6": "2001:db8::1"
         },
         {
             "description": "Client 2", "mac": "00:11:22:33:44:52", "ip": "192.168.1.102",
             "vlan": 20, "status": "Offline", "lastSeen": "2023-01-01T10:00:00Z",
-            "manufacturer": "FakeManu", "os": "FakeOS", "user": "User2", "ssid": "TestSSID2"
+            "manufacturer": "FakeManu", "os": "FakeOS", "user": "User2", "ssid": "TestSSID2",
+            "ip6": None
         },
     ]
     mock_api_client.networks.getNetworkClients.return_value = mock_clients_response
@@ -96,11 +98,10 @@ async def test_network_clients_sensor_update_success(
         coordinator=mock_coordinator,
         network_id=TEST_NETWORK_ID,
         network_name=TEST_NETWORK_NAME,
-        meraki_api_client=mock_api_client,
+        meraki_api_client=mock_api_client, # Pass the MagicMock instance
     )
     sensor.hass = hass
 
-    # Call async_update to trigger API fetch
     await sensor.async_update()
 
     assert sensor.native_value == 2
@@ -108,22 +109,37 @@ async def test_network_clients_sensor_update_success(
     assert attributes is not None
     assert len(attributes["clients_list"]) == 2
 
+    # Verify only the reduced set of fields is present
     client_attr_1 = attributes["clients_list"][0]
-    assert client_attr_1["description"] == "Client 1"
-    assert client_attr_1["mac"] == "00:11:22:33:44:51"
-    assert client_attr_1["ip"] == "192.168.1.101"
-    assert client_attr_1["vlan"] == 10
-    assert client_attr_1["status"] == "Online"
-    assert client_attr_1["last_seen"] == "2023-01-01T12:00:00Z"
-    assert client_attr_1["manufacturer"] == "FakeManu"
-    assert client_attr_1["os"] == "FakeOS"
-    assert client_attr_1["user"] == "User1"
-    assert client_attr_1["ssid"] == "TestSSID1"
+    assert client_attr_1 == {
+        "mac": "00:11:22:33:44:51",
+        "description": "Client 1",
+        "ip": "192.168.1.101",
+        "status": "Online",
+    }
+    # Check that other fields are NOT present
+    assert "vlan" not in client_attr_1
+    assert "lastSeen" not in client_attr_1
+    assert "manufacturer" not in client_attr_1
+    assert "os" not in client_attr_1
+    assert "user" not in client_attr_1
+    assert "ssid" not in client_attr_1
+    assert "ip6" not in client_attr_1
 
-    mock_api_client.networks.getNetworkClients.assert_called_once_with(networkId=TEST_NETWORK_ID)
+    client_attr_2 = attributes["clients_list"][1]
+    assert client_attr_2 == {
+        "mac": "00:11:22:33:44:52",
+        "description": "Client 2",
+        "ip": "192.168.1.102",
+        "status": "Offline",
+    }
+
+    mock_api_client.networks.getNetworkClients.assert_called_once_with(
+        networkId=TEST_NETWORK_ID, timespan=86400, perPage=1000
+    )
 
 async def test_network_clients_sensor_api_error(
-    hass: HomeAssistant, mock_coordinator, mock_api_client
+    hass: HomeAssistant, mock_coordinator: MerakiDataUpdateCoordinator, mock_api_client: MagicMock
 ):
     """Test sensor update when API fetch fails."""
     mock_api_client.networks.getNetworkClients.side_effect = Exception("API Call Failed")
@@ -132,37 +148,35 @@ async def test_network_clients_sensor_api_error(
         coordinator=mock_coordinator,
         network_id=TEST_NETWORK_ID,
         network_name=TEST_NETWORK_NAME,
-        meraki_api_client=mock_api_client,
+        meraki_api_client=mock_api_client, # Pass the MagicMock instance
     )
     sensor.hass = hass
 
-    # Call async_update to trigger API fetch
     await sensor.async_update()
 
-    # State should remain at initial (or last known good if that were the case)
-    # For a fresh sensor where first update fails, it should be 0 / empty.
     assert sensor.native_value == 0
     attributes = sensor.extra_state_attributes
     assert attributes is not None
     assert attributes["clients_list"] == []
 
-    mock_api_client.networks.getNetworkClients.assert_called_once_with(networkId=TEST_NETWORK_ID)
+    mock_api_client.networks.getNetworkClients.assert_called_once_with(
+        networkId=TEST_NETWORK_ID, timespan=86400, perPage=1000
+    )
 
 async def test_network_clients_sensor_empty_response(
-    hass: HomeAssistant, mock_coordinator, mock_api_client
+    hass: HomeAssistant, mock_coordinator: MerakiDataUpdateCoordinator, mock_api_client: MagicMock
 ):
     """Test sensor update with an empty list response from API (no clients)."""
-    mock_api_client.networks.getNetworkClients.return_value = [] # API returns empty list
+    mock_api_client.networks.getNetworkClients.return_value = []
 
     sensor = MerakiNetworkClientsSensor(
         coordinator=mock_coordinator,
         network_id=TEST_NETWORK_ID,
         network_name=TEST_NETWORK_NAME,
-        meraki_api_client=mock_api_client,
+        meraki_api_client=mock_api_client, # Pass the MagicMock instance
     )
     sensor.hass = hass
 
-    # Call async_update to trigger API fetch
     await sensor.async_update()
 
     assert sensor.native_value == 0
@@ -170,18 +184,19 @@ async def test_network_clients_sensor_empty_response(
     assert attributes is not None
     assert attributes["clients_list"] == []
 
-    mock_api_client.networks.getNetworkClients.assert_called_once_with(networkId=TEST_NETWORK_ID)
+    mock_api_client.networks.getNetworkClients.assert_called_once_with(
+        networkId=TEST_NETWORK_ID, timespan=86400, perPage=1000
+    )
 
 async def test_network_clients_sensor_coordinator_update(
-    hass: HomeAssistant, mock_coordinator, mock_api_client
+    hass: HomeAssistant, mock_coordinator: MerakiDataUpdateCoordinator, mock_api_client: MagicMock
 ):
     """Test sensor state update via coordinator _handle_coordinator_update."""
-    # Initial state
     sensor = MerakiNetworkClientsSensor(
         coordinator=mock_coordinator,
         network_id=TEST_NETWORK_ID,
         network_name=TEST_NETWORK_NAME,
-        meraki_api_client=mock_api_client,
+        meraki_api_client=mock_api_client, # Pass the MagicMock instance
     )
     sensor.hass = hass
     sensor.async_write_ha_state = MagicMock() # Mock this method
