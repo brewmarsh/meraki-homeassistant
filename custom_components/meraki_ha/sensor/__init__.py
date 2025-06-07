@@ -66,6 +66,12 @@ from .network_clients import MerakiNetworkClientsSensor # Added MerakiNetworkCli
 # Import the new Network Identity sensor
 from .network_identity import MerakiNetworkIdentitySensor
 
+# Import camera settings sensors
+from .camera_settings import (
+    MerakiCameraSenseStatusSensor,
+    MerakiCameraAudioDetectionSensor,
+)
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -229,6 +235,23 @@ async def async_setup_entry(
                             sensor_class.__name__,
                             device_info.get("name", serial),
                             product_type,
+                            e,
+                        )
+
+                # Add camera specific sensors if productType is camera (or model starts with MV)
+                # Using productType for now, can be refined with model check if needed.
+                if product_type.lower() == "camera" or (device_info.get("model", "")).upper().startswith("MV"):
+                    try:
+                        entities.append(MerakiCameraSenseStatusSensor(main_coordinator, device_info))
+                        entities.append(MerakiCameraAudioDetectionSensor(main_coordinator, device_info))
+                        _LOGGER.debug(
+                            "Meraki HA: Added camera-specific sensors for %s",
+                            device_info.get("name", serial),
+                        )
+                    except Exception as e:
+                        _LOGGER.error(
+                            "Meraki HA: Error adding camera-specific sensors for %s: %s",
+                            device_info.get("name", serial),
                             e,
                         )
             else:
