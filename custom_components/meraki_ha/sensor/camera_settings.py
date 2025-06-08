@@ -110,6 +110,10 @@ class MerakiCameraSenseStatusSensor(
 
         return True
 
+    @property
+    def options(self) -> list[str] | None:
+        return None
+
     # Removed custom name property. Relies on _attr_has_entity_name and self.entity_description.name.
 
 
@@ -145,6 +149,10 @@ class MerakiCameraAudioDetectionSensor(
             device_data.get("name", self._device_serial),
             self._device_serial,
         )
+
+    @property # Added options here
+    def options(self) -> list[str] | None:
+        return None
 
     def _get_current_device_data(self) -> Optional[Dict[str, Any]]:
         """Retrieve the latest data for this sensor's device from the coordinator."""

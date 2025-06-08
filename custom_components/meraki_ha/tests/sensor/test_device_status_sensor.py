@@ -54,6 +54,8 @@ class TestMerakiDeviceStatusSensor(unittest.TestCase):
         self.assertTrue(self.sensor.has_entity_name)
         # Verify state_class directly on the sensor instance
         self.assertIsNone(self.sensor.state_class)
+        # Verify options property
+        self.assertIsNone(self.sensor.options)
 
         self.assertEqual(self.sensor.native_value, "online")
         self.assertEqual(self.sensor.icon, "mdi:access-point-network") # MR model

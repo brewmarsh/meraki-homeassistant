@@ -183,3 +183,7 @@ class MerakiDeviceStatusSensor(
                 for dev in self.coordinator.data["devices"]
             )
         return False
+
+    @property
+    def options(self) -> list[str] | None:
+        return None
