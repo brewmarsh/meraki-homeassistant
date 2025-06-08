@@ -81,7 +81,7 @@ class MerakiDeviceStatusSensor(
         )
         self._attr_state_class = None # Explicitly set as an attribute
         self._attr_native_unit_of_measurement = None # Explicitly set unit
-        self._attr_suggested_unit_of_measurement = None # Explicitly set suggested unit
+        # self._attr_suggested_unit_of_measurement = None # Removed this line
 
         # Initial update of state and attributes
         self._update_sensor_data()
@@ -188,4 +188,8 @@ class MerakiDeviceStatusSensor(
 
     @property
     def options(self) -> list[str] | None:
+        return None
+
+    @property
+    def suggested_unit_of_measurement(self) -> str | None:
         return None

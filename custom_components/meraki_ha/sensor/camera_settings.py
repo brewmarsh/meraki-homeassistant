@@ -45,7 +45,7 @@ class MerakiCameraSenseStatusSensor(
         )
         self._attr_state_class = None # Explicitly set as an attribute
         self._attr_native_unit_of_measurement = None # Explicitly set unit
-        self._attr_suggested_unit_of_measurement = None # Explicitly set suggested unit
+        # self._attr_suggested_unit_of_measurement = None # Removed this line
         self._update_sensor_data()
         _LOGGER.debug(
             "MerakiCameraSenseStatusSensor Initialized for %s (Serial: %s)",
@@ -116,6 +116,10 @@ class MerakiCameraSenseStatusSensor(
     def options(self) -> list[str] | None:
         return None
 
+    @property
+    def suggested_unit_of_measurement(self) -> str | None:
+        return None
+
     # Removed custom name property. Relies on _attr_has_entity_name and self.entity_description.name.
 
 
@@ -146,7 +150,7 @@ class MerakiCameraAudioDetectionSensor(
         )
         self._attr_state_class = None # Explicitly set as an attribute
         self._attr_native_unit_of_measurement = None # Explicitly set unit
-        self._attr_suggested_unit_of_measurement = None # Explicitly set suggested unit
+        # self._attr_suggested_unit_of_measurement = None # Removed this line
         self._update_sensor_data()
         _LOGGER.debug(
             "MerakiCameraAudioDetectionSensor Initialized for %s (Serial: %s)",
@@ -156,6 +160,10 @@ class MerakiCameraAudioDetectionSensor(
 
     @property # Added options here
     def options(self) -> list[str] | None:
+        return None
+
+    @property
+    def suggested_unit_of_measurement(self) -> str | None:
         return None
 
     def _get_current_device_data(self) -> Optional[Dict[str, Any]]:
