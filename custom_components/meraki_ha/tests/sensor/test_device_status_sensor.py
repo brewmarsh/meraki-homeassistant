@@ -56,6 +56,8 @@ class TestMerakiDeviceStatusSensor(unittest.TestCase):
         self.assertIsNone(self.sensor.state_class)
         # Verify options property
         self.assertIsNone(self.sensor.options)
+        # Verify native_unit_of_measurement
+        self.assertIsNone(self.sensor.native_unit_of_measurement)
 
         self.assertEqual(self.sensor.native_value, "online")
         self.assertEqual(self.sensor.icon, "mdi:access-point-network") # MR model

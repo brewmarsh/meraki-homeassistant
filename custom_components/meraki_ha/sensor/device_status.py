@@ -80,6 +80,7 @@ class MerakiDeviceStatusSensor(
             # state_class=None removed from here
         )
         self._attr_state_class = None # Explicitly set as an attribute
+        self._attr_native_unit_of_measurement = None # Explicitly set unit
 
         # Initial update of state and attributes
         self._update_sensor_data()
