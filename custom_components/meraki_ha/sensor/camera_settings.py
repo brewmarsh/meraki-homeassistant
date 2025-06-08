@@ -120,6 +120,10 @@ class MerakiCameraSenseStatusSensor(
     def suggested_unit_of_measurement(self) -> str | None:
         return None
 
+    @property
+    def suggested_display_precision(self) -> int | None:
+        return None
+
     # Removed custom name property. Relies on _attr_has_entity_name and self.entity_description.name.
 
 
@@ -164,6 +168,10 @@ class MerakiCameraAudioDetectionSensor(
 
     @property
     def suggested_unit_of_measurement(self) -> str | None:
+        return None
+
+    @property
+    def suggested_display_precision(self) -> int | None:
         return None
 
     def _get_current_device_data(self) -> Optional[Dict[str, Any]]:

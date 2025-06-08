@@ -193,3 +193,7 @@ class MerakiDeviceStatusSensor(
     @property
     def suggested_unit_of_measurement(self) -> str | None:
         return None
+
+    @property
+    def suggested_display_precision(self) -> int | None:
+        return None
