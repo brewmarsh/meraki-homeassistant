@@ -187,14 +187,27 @@ async def async_setup_entry(
             serial = device_info.get("serial")
             if not serial:
                 _LOGGER.warning(
-                    f"Skipping device with missing serial: {device_info.get('name', 'Unknown Name')}"
+                    f"Skipping device with missing serial: {device_info.get('name', 'Unnamed Device with no Serial')}" # Updated log
                 )
                 continue
 
+            # Safeguard for device name
+            original_device_name = device_info.get("name")
+            if not original_device_name:
+                # Try to construct a somewhat descriptive name if model is available
+                model_str = device_info.get('model', 'Device')
+                fallback_name = f"Meraki {model_str} {serial}"
+                _LOGGER.warning(
+                    "Device with serial %s has no name. Using fallback name: %s",
+                    serial,
+                    fallback_name
+                )
+                device_info["name"] = fallback_name
+
             _LOGGER.debug(
                 "Meraki HA: Setting up physical device sensors for: %s",
-                device_info.get("name", serial),
-            )  # Adjusted
+                device_info.get("name"), # Now guaranteed to be non-empty due to fallback
+            )
 
             # Add common sensors for all devices
             for sensor_class in COMMON_DEVICE_SENSORS:
