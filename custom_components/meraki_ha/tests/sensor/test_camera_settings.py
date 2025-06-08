@@ -122,7 +122,8 @@ async def test_sense_status_sensor_creation_and_properties(hass: HomeAssistant, 
     assert sensor.name == "Sense Enabled" # Should be from EntityDescription
     assert sensor.state_class is None
     assert sensor.options is None
-    assert sensor.native_unit_of_measurement is None # Verify unit of measurement
+    assert sensor.native_unit_of_measurement is None
+    assert sensor.suggested_unit_of_measurement is None # Verify suggested unit
     assert sensor.device_info["identifiers"] == {(DOMAIN, MOCK_CAMERA_DEVICE_SERIAL)}
     assert sensor.available is True # Initial data has senseEnabled
 
@@ -211,7 +212,8 @@ async def test_audio_sensor_creation_and_properties(hass: HomeAssistant, mock_co
     assert sensor.name == "Audio Detection" # Should be from EntityDescription
     assert sensor.state_class is None
     assert sensor.options is None
-    assert sensor.native_unit_of_measurement is None # Verify unit of measurement
+    assert sensor.native_unit_of_measurement is None
+    assert sensor.suggested_unit_of_measurement is None # Verify suggested unit
     assert sensor.device_info["identifiers"] == {(DOMAIN, MOCK_CAMERA_DEVICE_SERIAL)}
     assert sensor.available is True # Initial data has audioDetection.enabled
 

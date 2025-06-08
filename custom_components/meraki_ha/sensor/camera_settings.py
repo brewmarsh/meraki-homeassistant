@@ -45,6 +45,7 @@ class MerakiCameraSenseStatusSensor(
         )
         self._attr_state_class = None # Explicitly set as an attribute
         self._attr_native_unit_of_measurement = None # Explicitly set unit
+        self._attr_suggested_unit_of_measurement = None # Explicitly set suggested unit
         self._update_sensor_data()
         _LOGGER.debug(
             "MerakiCameraSenseStatusSensor Initialized for %s (Serial: %s)",
@@ -145,6 +146,7 @@ class MerakiCameraAudioDetectionSensor(
         )
         self._attr_state_class = None # Explicitly set as an attribute
         self._attr_native_unit_of_measurement = None # Explicitly set unit
+        self._attr_suggested_unit_of_measurement = None # Explicitly set suggested unit
         self._update_sensor_data()
         _LOGGER.debug(
             "MerakiCameraAudioDetectionSensor Initialized for %s (Serial: %s)",
