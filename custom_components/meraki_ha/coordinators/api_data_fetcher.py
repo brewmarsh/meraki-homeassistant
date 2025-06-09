@@ -290,6 +290,16 @@ class MerakiApiDataFetcher:
                             device, self.meraki_client
                         )
                     )
+                # Check for Camera devices (MV)
+                # Use productType (more reliable) or model prefix (fallback)
+                elif device.get("productType", "").lower() == "camera" or \
+                     device_model.upper().startswith("MV"):
+                    _LOGGER.debug(f"Device {serial} is Camera, scheduling _async_get_camera_video_settings.")
+                    # Initialize rtspServerEnabled to None before task creation
+                    device["rtspServerEnabled"] = None
+                    additional_device_detail_tasks.append(
+                        self._async_get_camera_video_settings(device, self.meraki_client)
+                    )
 
         if additional_device_detail_tasks:  # If there are tasks to run.
             await asyncio.gather(
@@ -726,6 +736,39 @@ class MerakiApiDataFetcher:
             _LOGGER.debug(f"Radio_settings_data was None (call failed) for MR device {serial}. radio_settings remains None.")
 
         _LOGGER.debug(f"Finished _async_get_mr_device_details for {serial}. Client count: {device.get('connected_clients_count')}, Radio settings type: {type(device.get('radio_settings')).__name__}")
+
+    async def _async_get_camera_video_settings(
+        self, device: Dict[str, Any], client: MerakiAPIClient
+    ) -> None:
+        """Fetch and store video settings (specifically rtspServerEnabled) for a camera device.
+
+        Updates the `device` dictionary in-place with `rtspServerEnabled`.
+        Handles API errors by logging and ensuring `rtspServerEnabled` is None if fetch fails.
+
+        Args:
+            device: The camera device dictionary to update.
+            client: The MerakiAPIClient instance for the API call.
+        """
+        serial = device.get("serial")
+        # rtspServerEnabled should have been initialized to None before this task was added.
+
+        video_settings = await self._async_meraki_api_call(
+            client.camera.getDeviceCameraVideoSettings(serial=serial),
+            f"getDeviceCameraVideoSettings(serial={serial})"
+        )
+
+        if video_settings is not None:
+            rtsp_server_enabled = video_settings.get("rtspServerEnabled")
+            device["rtspServerEnabled"] = rtsp_server_enabled
+            _LOGGER.debug(
+                f"Fetched video settings for camera {serial}. RTSP Enabled: {rtsp_server_enabled}"
+            )
+        else:
+            # API call failed or returned no data (error already logged by _async_meraki_api_call)
+            # device["rtspServerEnabled"] remains None (its initialized value)
+            _LOGGER.warning(
+                f"Could not fetch video settings for camera {serial}. rtspServerEnabled will remain None."
+            )
 
     async def async_get_networks(self, org_id: str) -> Optional[List[Dict[str, Any]]]:
         """Fetch all networks for a Meraki organization using the SDK."""

@@ -124,6 +124,56 @@ class MerakiAPIClient:
                 f"Failed to fetch camera sense settings for device {serial}: {e}"
             ) from e
 
+    async def get_camera_video_settings(self, serial: str) -> Any:
+        """Get the video settings for a camera.
+
+        Args:
+            serial: The serial number of the camera.
+
+        Returns:
+            The video settings for the camera.
+        """
+        _LOGGER.debug("Fetching camera video settings for device %s", serial)
+        try:
+            return await self._sdk.camera.getDeviceCameraVideoSettings(serial=serial)
+        except Exception as e:
+            _LOGGER.error("Error fetching camera video settings for device %s: %s", serial, e)
+            raise MerakiApiError(
+                f"Failed to fetch camera video settings for device {serial}: {e}"
+            ) from e
+
+    async def update_camera_video_settings(
+        self, serial: str, rtsp_server_enabled: bool
+    ) -> Any:
+        """Update the video settings for a camera.
+
+        Args:
+            serial: The serial number of the camera.
+            rtsp_server_enabled: Target state for RTSP server.
+
+        Returns:
+            The response from the Meraki API after attempting the update.
+
+        Raises:
+            MerakiApiError: If the API call fails.
+        """
+        _LOGGER.debug(
+            "Updating camera video settings for device %s with rtspServerEnabled=%s",
+            serial,
+            rtsp_server_enabled,
+        )
+        try:
+            return await self._sdk.camera.updateDeviceCameraVideoSettings(
+                serial=serial, rtspServerEnabled=rtsp_server_enabled
+            )
+        except Exception as e:
+            _LOGGER.error(
+                "Error updating camera video settings for device %s: %s", serial, e
+            )
+            raise MerakiApiError(
+                f"Failed to update camera video settings for device {serial}: {e}"
+            ) from e
+
     async def update_camera_sense_settings(
         self,
         serial: str,
@@ -190,4 +240,9 @@ class MerakiAPIClient:
 # Update __all__ based on the refactored client.
 # MerakiApiError might be kept if it serves as a custom base error for the
 # integration.
-__all__ = ["MerakiAPIClient", "MerakiApiError"]
+__all__ = [
+    "MerakiAPIClient",
+    "MerakiApiError",
+    "get_camera_video_settings",
+    "update_camera_video_settings",
+]

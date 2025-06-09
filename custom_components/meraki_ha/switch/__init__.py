@@ -28,6 +28,7 @@ from .meraki_ssid_device_switch import (
 from .camera_settings import (
     MerakiCameraSenseSwitch,
     MerakiCameraAudioDetectionSwitch,
+    MerakiCameraRTSPSwitch,  # Added RTSP Switch
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -98,6 +99,11 @@ async def async_setup_entry(
                     )
                     entities_to_add.append(
                         MerakiCameraAudioDetectionSwitch(
+                            main_coordinator, meraki_api_client, device_info
+                        )
+                    )
+                    entities_to_add.append(
+                        MerakiCameraRTSPSwitch(
                             main_coordinator, meraki_api_client, device_info
                         )
                     )

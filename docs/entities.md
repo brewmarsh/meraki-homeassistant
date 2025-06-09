@@ -64,5 +64,21 @@ These sensors are linked to Meraki SSID "devices" in Home Assistant.
 
 *   *(Details of switch entities for SSID control, text entities for SSID renaming, etc., would go here.)*
 
+### Camera Switches
+
+These switches are available for Meraki MV series cameras and provide control over specific camera features. They are linked to the physical camera device in Home Assistant.
+
+| Entity Type | Name                          | Description                                                         | Availability         |
+| :---------- | :---------------------------- | :------------------------------------------------------------------ | :------------------- |
+| Switch      | `[Camera Name] MV Sense`      | Controls the MV Sense (computer vision) feature on the camera.      | Meraki MV Cameras    |
+| Switch      | `[Camera Name] Audio Detection` | Controls the audio detection feature on the camera.               | Meraki MV Cameras    |
+| Switch      | `[Camera Name] RTSP Server`   | Controls the RTSP stream. Exposes `rtsp_url` attribute when on. | Meraki MV Cameras    |
+
+#### RTSP Server Switch
+
+*   **Functionality:** Controls the RTSP (Real Time Streaming Protocol) server on Meraki cameras. When enabled, this allows viewing the camera feed using an RTSP-compatible player or integration.
+*   **Attribute:**
+    *   `rtsp_url`: When the RTSP Server switch is turned on, it will expose an `rtsp_url` attribute. This attribute contains the full RTSP stream address for the camera, which can be used in media players like VLC or streaming components in Home Assistant (e.g., the generic camera platform or WebRTC). The URL is removed when the switch is turned off.
+
 ---
 *Contributions to expand this section with details on all existing entities are welcome.*
