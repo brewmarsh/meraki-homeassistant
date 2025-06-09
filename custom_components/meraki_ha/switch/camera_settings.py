@@ -228,6 +228,12 @@ class MerakiCameraSettingSwitchBase(
             if not isinstance(audio_data, dict) or "enabled" not in audio_data:
                 _LOGGER.debug("Switch %s unavailable, audioDetection.enabled missing/malformed", self.unique_id)
                 return False
+        elif self._attribute_path == ["externalRtspEnabled"]:
+            # For externalRtspEnabled, we expect it to be a top-level attribute in the device data
+            # after being fetched by the MerakiApiDataFetcher.
+            if "externalRtspEnabled" not in current_device_data:
+                _LOGGER.debug("Switch %s unavailable, externalRtspEnabled missing from coordinator data", self.unique_id)
+                return False
         else:
             _LOGGER.warning("Switch %s has unhandled _attribute_path for availability check: %s", self.unique_id, self._attribute_path)
             return False # Should not happen with defined switches
@@ -295,6 +301,88 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
         device_data = self._get_current_device_data()
         device_name = device_data.get("name", "Camera") if device_data else "Camera"
         return f"{device_name} {self.entity_description.name}"
+
+
+class MerakiCameraRTSPSwitch(MerakiCameraSettingSwitchBase):
+    """Switch to control the RTSP Server state of a Meraki Camera.
+
+    Uses `EntityDescription` for its specific name ("RTSP Server").
+    The `name` property combines the device name with "RTSP Server".
+    This switch also exposes the RTSP URL as a state attribute when enabled.
+    """
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        meraki_client: MerakiAPIClient,
+        device_data: Dict[str, Any],
+    ) -> None:
+        """Initialize the Camera RTSP Server switch."""
+        super().__init__(
+            coordinator,
+            meraki_client,
+            device_data,
+            switch_type="external_rtsp_enabled",  # UPDATED for unique_id consistency
+            attribute_to_check="externalRtspEnabled",  # UPDATED Key in API/coordinator data
+        )
+        self.entity_description = EntityDescription(
+            key="external_rtsp_enabled", name="RTSP Server"  # UPDATED key for HA bookkeeping
+        )
+        # self._attr_extra_state_attributes = {} # Removed
+
+    @property
+    def name(self) -> str:
+        """Return the explicit name of the switch."""
+        device_data = self._get_current_device_data()
+        device_name = device_data.get("name", "Camera") if device_data else "Camera"
+        return f"{device_name} {self.entity_description.name}"
+
+    async def _update_camera_setting(self, value: bool) -> None:
+        """Update the RTSP server setting via the Meraki API.
+
+        Args:
+            value: The new boolean state to set for the RTSP server.
+        """
+        try:
+            _LOGGER.debug(
+                "Calling update_camera_video_settings for %s with rtsp_server_enabled=%s",
+                self._device_serial,
+                value,
+            )
+            await self._meraki_client.update_camera_video_settings(
+                serial=self._device_serial, rtsp_server_enabled=value
+            )
+
+            # After a successful API call, request the coordinator to refresh its data.
+            # This assumes the coordinator will be updated to fetch video settings.
+            await self.coordinator.async_request_refresh()
+            # Update local state immediately for responsiveness
+            self._attr_is_on = value
+            self.async_write_ha_state()
+
+        except Exception as e:
+            _LOGGER.error(
+                "Failed to update RTSP server setting for %s to %s: %s",
+                self._device_serial,
+                value,
+                e,
+            )
+            # State will be reconciled by the coordinator's next update.
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn the switch on (enable RTSP Server)."""
+        await self._update_camera_setting(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn the switch off (disable RTSP Server)."""
+        await self._update_camera_setting(False)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        super()._handle_coordinator_update()
+        # Base class _handle_coordinator_update calls self.async_write_ha_state()
+
 
 # async_setup_entry will be defined in __init__.py for the switch platform
 # and will iterate over camera devices to add these switches.
