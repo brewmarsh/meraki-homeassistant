@@ -1,5 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
+from datetime import datetime # Added import
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -62,6 +63,8 @@ class TestMerakiDeviceStatusSensor(unittest.TestCase):
         self.assertIsNone(self.sensor.suggested_unit_of_measurement)
         # Verify suggested_display_precision
         self.assertIsNone(self.sensor.suggested_display_precision)
+        # Verify last_reset
+        self.assertIsNone(self.sensor.last_reset)
 
         self.assertEqual(self.sensor.native_value, "online")
         self.assertEqual(self.sensor.icon, "mdi:access-point-network") # MR model

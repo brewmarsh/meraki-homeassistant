@@ -7,6 +7,7 @@ of a specific Meraki device.
 
 import logging
 from typing import Any, Dict, Optional  # Added Optional
+from datetime import datetime # Added import
 
 from homeassistant.components.sensor import SensorEntity
 
@@ -196,4 +197,8 @@ class MerakiDeviceStatusSensor(
 
     @property
     def suggested_display_precision(self) -> int | None:
+        return None
+
+    @property
+    def last_reset(self) -> datetime | None:
         return None

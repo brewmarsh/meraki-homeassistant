@@ -5,6 +5,7 @@ This module defines sensor entities for camera sense and audio detection status.
 
 import logging
 from typing import Any, Dict, Optional
+from datetime import datetime # Added import
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import callback
@@ -124,6 +125,10 @@ class MerakiCameraSenseStatusSensor(
     def suggested_display_precision(self) -> int | None:
         return None
 
+    @property
+    def last_reset(self) -> datetime | None:
+        return None
+
     # Removed custom name property. Relies on _attr_has_entity_name and self.entity_description.name.
 
 
@@ -172,6 +177,10 @@ class MerakiCameraAudioDetectionSensor(
 
     @property
     def suggested_display_precision(self) -> int | None:
+        return None
+
+    @property
+    def last_reset(self) -> datetime | None:
         return None
 
     def _get_current_device_data(self) -> Optional[Dict[str, Any]]:

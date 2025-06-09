@@ -124,7 +124,8 @@ async def test_sense_status_sensor_creation_and_properties(hass: HomeAssistant, 
     assert sensor.options is None
     assert sensor.native_unit_of_measurement is None
     assert sensor.suggested_unit_of_measurement is None
-    assert sensor.suggested_display_precision is None # Verify suggested display precision
+    assert sensor.suggested_display_precision is None
+    assert sensor.last_reset is None # Verify last_reset
     assert sensor.device_info["identifiers"] == {(DOMAIN, MOCK_CAMERA_DEVICE_SERIAL)}
     assert sensor.available is True # Initial data has senseEnabled
 
@@ -215,7 +216,8 @@ async def test_audio_sensor_creation_and_properties(hass: HomeAssistant, mock_co
     assert sensor.options is None
     assert sensor.native_unit_of_measurement is None
     assert sensor.suggested_unit_of_measurement is None
-    assert sensor.suggested_display_precision is None # Verify suggested display precision
+    assert sensor.suggested_display_precision is None
+    assert sensor.last_reset is None # Verify last_reset
     assert sensor.device_info["identifiers"] == {(DOMAIN, MOCK_CAMERA_DEVICE_SERIAL)}
     assert sensor.available is True # Initial data has audioDetection.enabled
 
@@ -300,4 +302,4 @@ async def test_audio_sensor_availability_and_malformed_data(hass: HomeAssistant,
 # and how that reflects in `coordinator.last_update_success` or `coordinator.data`, which then
 # affects sensor availability. The current availability tests cover `last_update_success = False`
 # and missing data in the coordinator.
-from datetime import timedelta # Add timedelta to imports at the top
+from datetime import timedelta, datetime # Add datetime to imports
