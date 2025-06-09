@@ -1,3 +1,20 @@
+# [0.8.0](https://github.com/brewmarsh/meraki-homeassistant/compare/v0.7.0...v0.8.0) (2025-06-09)
+
+
+### Bug Fixes
+
+* Correct availability check for RTSP camera switch ([7dc635a](https://github.com/brewmarsh/meraki-homeassistant/commit/7dc635a24fc48d61141720cdb5b7ea62a85e789d))
+* Ensure consistent use of `externalRtspEnabled` for RTSP ([d2f4cc2](https://github.com/brewmarsh/meraki-homeassistant/commit/d2f4cc2c48ac843519354be1dd68fcf3306bf134))
+* Preserve rtspServerEnabled key during data processing ([00bedac](https://github.com/brewmarsh/meraki-homeassistant/commit/00bedacb224aefc8c2094aadf122d252a6d99b6b))
+
+
+### Features
+
+* Add RTSP stream control switch for Meraki cameras ([e0d7395](https://github.com/brewmarsh/meraki-homeassistant/commit/e0d7395c0506385d21440a310b0c68b2a0644bef))
+* Add sensor for Meraki camera RTSP stream URL ([2399452](https://github.com/brewmarsh/meraki-homeassistant/commit/23994525be73df90daf9f414aa1ad84a111d32b4))
+
+
+
 # [0.7.0](https://github.com/brewmarsh/meraki-homeassistant/compare/v0.6.0...v0.7.0) (2025-06-09)
 
 
