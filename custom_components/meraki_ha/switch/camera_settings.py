@@ -228,6 +228,12 @@ class MerakiCameraSettingSwitchBase(
             if not isinstance(audio_data, dict) or "enabled" not in audio_data:
                 _LOGGER.debug("Switch %s unavailable, audioDetection.enabled missing/malformed", self.unique_id)
                 return False
+        elif self._attribute_path == ["rtspServerEnabled"]:
+            # For rtspServerEnabled, we expect it to be a top-level attribute in the device data
+            # after being fetched by the MerakiApiDataFetcher.
+            if "rtspServerEnabled" not in current_device_data:
+                _LOGGER.debug("Switch %s unavailable, rtspServerEnabled missing from coordinator data", self.unique_id)
+                return False
         else:
             _LOGGER.warning("Switch %s has unhandled _attribute_path for availability check: %s", self.unique_id, self._attribute_path)
             return False # Should not happen with defined switches
