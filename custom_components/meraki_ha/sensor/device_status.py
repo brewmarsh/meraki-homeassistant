@@ -9,11 +9,11 @@ import logging
 from typing import Any, Dict, Optional  # Added Optional
 from datetime import datetime # Added import
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorEntityDescription # Updated import
 
 # Added callback for coordinator updates
 from homeassistant.core import callback
-from homeassistant.helpers.entity import EntityDescription # Corrected import
+# from homeassistant.helpers.entity import EntityDescription # No longer needed
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -75,13 +75,14 @@ class MerakiDeviceStatusSensor(
         # If has_entity_name is False or more control is needed:
         # self._attr_name = f"{device_name_for_registry} Status" # This line should be removed if present
 
-        self.entity_description = EntityDescription(
+        self.entity_description = SensorEntityDescription(
             key="device_status",
-            name="Status" # This will be the entity-specific part of the name
-            # state_class=None removed from here
+            name="Status", # This will be the entity-specific part of the name
+            native_unit_of_measurement=None,
+            state_class=None,
         )
-        self._attr_state_class = None # Explicitly set as an attribute
-        self._attr_native_unit_of_measurement = None # Explicitly set unit
+        # self._attr_state_class = None # Removed, handled by SensorEntityDescription
+        # self._attr_native_unit_of_measurement = None # Removed, handled by SensorEntityDescription
         # self._attr_suggested_unit_of_measurement = None # Removed this line
 
         # Initial update of state and attributes

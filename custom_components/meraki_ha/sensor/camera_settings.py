@@ -7,9 +7,9 @@ import logging
 from typing import Any, Dict, Optional
 from datetime import datetime # Added import
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorEntityDescription # Updated import
 from homeassistant.core import callback
-from homeassistant.helpers.entity import EntityDescription # Corrected import path
+# from homeassistant.helpers.entity import EntityDescription # No longer needed
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -39,13 +39,14 @@ class MerakiCameraSenseStatusSensor(
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)}
         )
-        self.entity_description = EntityDescription(
+        self.entity_description = SensorEntityDescription(
             key="camera_sense_status",
-            name="Sense Enabled"
-            # state_class=None removed from here
+            name="Sense Enabled",
+            native_unit_of_measurement=None,
+            state_class=None,
         )
-        self._attr_state_class = None # Explicitly set as an attribute
-        self._attr_native_unit_of_measurement = None # Explicitly set unit
+        # self._attr_state_class = None # Removed, handled by SensorEntityDescription
+        # self._attr_native_unit_of_measurement = None # Removed, handled by SensorEntityDescription
         # self._attr_suggested_unit_of_measurement = None # Removed this line
         self._update_sensor_data()
         _LOGGER.debug(
@@ -152,13 +153,14 @@ class MerakiCameraAudioDetectionSensor(
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)}
         )
-        self.entity_description = EntityDescription(
+        self.entity_description = SensorEntityDescription(
             key="camera_audio_detection_status",
-            name="Audio Detection"
-            # state_class=None removed from here
+            name="Audio Detection",
+            native_unit_of_measurement=None,
+            state_class=None,
         )
-        self._attr_state_class = None # Explicitly set as an attribute
-        self._attr_native_unit_of_measurement = None # Explicitly set unit
+        # self._attr_state_class = None # Removed, handled by SensorEntityDescription
+        # self._attr_native_unit_of_measurement = None # Removed, handled by SensorEntityDescription
         # self._attr_suggested_unit_of_measurement = None # Removed this line
         self._update_sensor_data()
         _LOGGER.debug(
