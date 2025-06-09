@@ -70,6 +70,7 @@ from .network_identity import MerakiNetworkIdentitySensor
 from .camera_settings import (
     MerakiCameraSenseStatusSensor,
     MerakiCameraAudioDetectionSensor,
+    MerakiCameraRTSPUrlSensor,
 )
 
 
@@ -269,8 +270,15 @@ async def async_setup_entry(
                     try:
                         entities.append(MerakiCameraSenseStatusSensor(main_coordinator, device_info))
                         entities.append(MerakiCameraAudioDetectionSensor(main_coordinator, device_info))
+                        # Add the new RTSP URL Sensor
+                        entities.append(
+                            MerakiCameraRTSPUrlSensor(
+                                main_coordinator,
+                                device_info,
+                            )
+                        )
                         _LOGGER.debug(
-                            "Meraki HA: Added camera-specific sensors (Sense Status, Audio Detection) for %s", # Clarified sensor types
+                            "Meraki HA: Added camera-specific sensors (Sense, Audio, RTSP URL) for %s",
                             device_info.get("name"), # Use guaranteed name
                         )
                     except Exception as e:

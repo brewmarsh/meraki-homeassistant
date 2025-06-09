@@ -328,7 +328,7 @@ class MerakiCameraRTSPSwitch(MerakiCameraSettingSwitchBase):
         self.entity_description = EntityDescription(
             key="external_rtsp_enabled", name="RTSP Server"  # UPDATED key for HA bookkeeping
         )
-        self._attr_extra_state_attributes = {}
+        # self._attr_extra_state_attributes = {} # Removed
 
     @property
     def name(self) -> str:
@@ -370,90 +370,18 @@ class MerakiCameraRTSPSwitch(MerakiCameraSettingSwitchBase):
             # State will be reconciled by the coordinator's next update.
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn the RTSP server on and fetch the RTSP URL."""
+        """Turn the switch on (enable RTSP Server)."""
         await self._update_camera_setting(True)
-        # After successful turn on, fetch and store the RTSP URL
-        if self._attr_is_on: # Check if the setting was successfully applied
-            try:
-                video_settings = await self._meraki_client.get_camera_video_settings(
-                    serial=self._device_serial
-                )
-                if video_settings and video_settings.get("rtspUrl"):
-                    self._attr_extra_state_attributes["rtsp_url"] = video_settings[
-                        "rtspUrl"
-                    ]
-                    _LOGGER.debug(
-                        f"RTSP URL for {self._device_serial} set: {video_settings['rtspUrl']}"
-                    )
-                else:
-                    self._attr_extra_state_attributes.pop("rtsp_url", None)
-                    _LOGGER.debug(
-                        f"RTSP URL not found or empty for {self._device_serial} after turning on."
-                    )
-            except Exception as e:
-                self._attr_extra_state_attributes.pop("rtsp_url", None)
-                _LOGGER.error(
-                    f"Error fetching RTSP URL for {self._device_serial} after turning on: {e}"
-                )
-        self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the RTSP server off and clear the RTSP URL."""
+        """Turn the switch off (disable RTSP Server)."""
         await self._update_camera_setting(False)
-        # After successful turn off, clear the RTSP URL
-        if not self._attr_is_on: # Check if the setting was successfully applied
-            if "rtsp_url" in self._attr_extra_state_attributes:
-                self._attr_extra_state_attributes.pop("rtsp_url")
-                _LOGGER.debug(
-                    f"RTSP URL for {self._device_serial} cleared after turning off."
-                )
-        self.async_write_ha_state()
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        super()._handle_coordinator_update()  # Updates self._attr_is_on
-        if not self.is_on:
-            # If switch is off, ensure URL is cleared from attributes
-            if "rtsp_url" in self._attr_extra_state_attributes:
-                self._attr_extra_state_attributes.pop("rtsp_url")
-                _LOGGER.debug(
-                    f"RTSP URL for {self._device_serial} cleared by coordinator update (switch is off)."
-                )
-        # If the switch is on, async_added_to_hass or async_turn_on will handle fetching the URL.
-        # No direct fetch here to keep _handle_coordinator_update synchronous.
-        self.async_write_ha_state()
-
-    async def async_added_to_hass(self) -> None:
-        """Handle entity being added to Home Assistant.
-
-        Fetches initial RTSP URL if the switch is already on.
-        """
-        await super().async_added_to_hass()
-        if self.is_on and "rtsp_url" not in self._attr_extra_state_attributes:
-            _LOGGER.debug(
-                f"RTSP switch {self._device_serial} is on at startup, attempting to fetch initial RTSP URL."
-            )
-            try:
-                video_settings = await self._meraki_client.get_camera_video_settings(
-                    serial=self._device_serial
-                )
-                if video_settings and video_settings.get("rtspUrl"):
-                    self._attr_extra_state_attributes["rtsp_url"] = video_settings[
-                        "rtspUrl"
-                    ]
-                    _LOGGER.debug(
-                        f"Initial RTSP URL for {self._device_serial} set: {video_settings['rtspUrl']}"
-                    )
-                else:
-                    self._attr_extra_state_attributes.pop("rtsp_url", None)
-            except Exception as e:
-                self._attr_extra_state_attributes.pop("rtsp_url", None)
-                _LOGGER.error(
-                    f"Error fetching initial RTSP URL for {self._device_serial}: {e}"
-                )
-            finally:
-                self.async_write_ha_state()
+        super()._handle_coordinator_update()
+        # Base class _handle_coordinator_update calls self.async_write_ha_state()
 
 
 # async_setup_entry will be defined in __init__.py for the switch platform
