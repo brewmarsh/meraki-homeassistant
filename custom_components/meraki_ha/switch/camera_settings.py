@@ -228,11 +228,11 @@ class MerakiCameraSettingSwitchBase(
             if not isinstance(audio_data, dict) or "enabled" not in audio_data:
                 _LOGGER.debug("Switch %s unavailable, audioDetection.enabled missing/malformed", self.unique_id)
                 return False
-        elif self._attribute_path == ["rtspServerEnabled"]:
-            # For rtspServerEnabled, we expect it to be a top-level attribute in the device data
+        elif self._attribute_path == ["externalRtspEnabled"]:
+            # For externalRtspEnabled, we expect it to be a top-level attribute in the device data
             # after being fetched by the MerakiApiDataFetcher.
-            if "rtspServerEnabled" not in current_device_data:
-                _LOGGER.debug("Switch %s unavailable, rtspServerEnabled missing from coordinator data", self.unique_id)
+            if "externalRtspEnabled" not in current_device_data:
+                _LOGGER.debug("Switch %s unavailable, externalRtspEnabled missing from coordinator data", self.unique_id)
                 return False
         else:
             _LOGGER.warning("Switch %s has unhandled _attribute_path for availability check: %s", self.unique_id, self._attribute_path)
@@ -322,11 +322,11 @@ class MerakiCameraRTSPSwitch(MerakiCameraSettingSwitchBase):
             coordinator,
             meraki_client,
             device_data,
-            switch_type="rtsp_server_enabled",
-            attribute_to_check="rtspServerEnabled",  # Key in video settings data
+            switch_type="external_rtsp_enabled",  # UPDATED for unique_id consistency
+            attribute_to_check="externalRtspEnabled",  # UPDATED Key in API/coordinator data
         )
         self.entity_description = EntityDescription(
-            key="rtsp_server_enabled", name="RTSP Server"
+            key="external_rtsp_enabled", name="RTSP Server"  # UPDATED key for HA bookkeeping
         )
         self._attr_extra_state_attributes = {}
 

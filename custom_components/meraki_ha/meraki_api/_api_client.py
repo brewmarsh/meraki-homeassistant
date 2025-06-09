@@ -158,13 +158,13 @@ class MerakiAPIClient:
             MerakiApiError: If the API call fails.
         """
         _LOGGER.debug(
-            "Updating camera video settings for device %s with rtspServerEnabled=%s",
+            "Updating camera video settings for device %s with payload: externalRtspEnabled=%s",
             serial,
             rtsp_server_enabled,
         )
         try:
             return await self._sdk.camera.updateDeviceCameraVideoSettings(
-                serial=serial, rtspServerEnabled=rtsp_server_enabled
+                serial=serial, externalRtspEnabled=rtsp_server_enabled
             )
         except Exception as e:
             _LOGGER.error(
