@@ -100,19 +100,22 @@ class MerakiNetworkClientsSensor(
             "network_name": self._network_name,
             "clients_list": [
                 {
-                    "description": client.get("description"),
                     "mac": client.get("mac"),
-                    "ip": client.get("ip"),
-                    "vlan": client.get("vlan"),
-                    "status": client.get("status"),
-                    "last_seen": client.get("lastSeen"),
-                    "manufacturer": client.get("manufacturer"),
-                    "os": client.get("os"),
-                    "user": client.get("user"), # Added user
-                    "ssid": client.get("ssid"), # Added ssid
+                    "description": client.get("description"),
+                    "ip": client.get("ip"), # Primary IP
+                    # "ip6": client.get("ip6"), # Typically less critical for quick ID
+                    "status": client.get("status"), # Important to know if online/offline
+                    # "last_seen": client.get("lastSeen"), # Can be verbose if timestamp is long
+                    # "manufacturer": client.get("manufacturer"), # Can be long
+                    # "os": client.get("os"), # Can be long
+                    # "user": client.get("user"), # Often None, but can be useful
+                    # "ssid": client.get("ssid"), # Useful for wireless, but adds another field
+                    # "vlan": client.get("vlan"), # Might be useful in complex setups
                 }
                 for client in self._clients_data
             ],
+            # Optionally, add aggregated counts if useful and client_list is further reduced
+            # "online_clients_count": sum(1 for c in self._clients_data if c.get("status") == "Online"),
         }
 
     async def async_update(self) -> None:

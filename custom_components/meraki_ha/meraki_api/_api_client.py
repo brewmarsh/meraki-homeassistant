@@ -106,6 +106,81 @@ class MerakiAPIClient:
             # For now, re-raising the exception to be handled by the caller.
             raise MerakiApiError(f"Failed to fetch clients for network {network_id}: {e}") from e
 
+    async def get_camera_sense_settings(self, serial: str) -> Any:
+        """Get the sense settings for a camera.
+
+        Args:
+            serial: The serial number of the camera.
+
+        Returns:
+            The sense settings for the camera.
+        """
+        try:
+            _LOGGER.debug("Fetching camera sense settings for device %s", serial)
+            return await self._sdk.camera.getDeviceCameraSense(serial=serial)
+        except Exception as e:
+            _LOGGER.error("Error fetching camera sense settings for device %s: %s", serial, e)
+            raise MerakiApiError(
+                f"Failed to fetch camera sense settings for device {serial}: {e}"
+            ) from e
+
+    async def update_camera_sense_settings(
+        self,
+        serial: str,
+        sense_enabled: bool | None = None,
+        audio_detection_enabled: bool | None = None,
+    ) -> Any:
+        """Update the sense settings for a camera.
+
+        Args:
+            serial: The serial number of the camera.
+            sense_enabled: Optional. Target state for MV Sense (`senseEnabled`).
+            audio_detection_enabled: Optional. Target state for audio detection
+                                     (`audioDetection.enabled`).
+
+        Returns:
+            The response from the Meraki API after attempting the update.
+            If no settings are provided to update, returns the current settings.
+
+        Raises:
+            MerakiApiError: If the API call fails.
+        """
+        payload = {}
+        # Construct payload only with provided (non-None) arguments
+        if sense_enabled is not None:
+            payload["senseEnabled"] = sense_enabled
+
+        if audio_detection_enabled is not None:
+            # The API expects audioDetection to be a dictionary
+            payload.setdefault("audioDetection", {})["enabled"] = audio_detection_enabled
+
+        if not payload:
+            _LOGGER.debug(
+                "No camera sense settings provided to update for device %s. "
+                "Returning current settings instead.", serial
+            )
+            # As per previous logic, if no payload, fetch and return current settings.
+            return await self.get_camera_sense_settings(serial)
+
+        _LOGGER.debug(
+            "Updating camera sense settings for device %s with payload: %s",
+            serial,
+            payload,
+        )
+        try:
+            # The meraki.aio SDK's updateDeviceCameraSense method
+            # directly accepts keyword arguments that match the API payload structure.
+            return await self._sdk.camera.updateDeviceCameraSense(
+                serial=serial, **payload
+            )
+        except Exception as e: # Catch specific meraki.APIError if possible/preferred
+            _LOGGER.error(
+                "Error updating camera sense settings for device %s: %s", serial, e
+            )
+            raise MerakiApiError(
+                f"Failed to update camera sense settings for device {serial}: {e}"
+            ) from e
+
     async def close(self) -> None:
         """Closes the underlying aiohttp session managed by the SDK."""
         # Ensure exc_type, exc_val, exc_tb are passed for a clean exit
