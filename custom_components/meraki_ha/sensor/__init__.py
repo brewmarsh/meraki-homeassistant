@@ -268,15 +268,25 @@ async def async_setup_entry(
                 # These sensors rely on data merged by DataAggregationCoordinator ('senseEnabled', 'audioDetection').
                 if product_type.lower() == "camera" or (device_info.get("model", "")).upper().startswith("MV"):
                     try:
+                        _LOGGER.debug("Attempting to add MerakiCameraSenseStatusSensor for %s", device_info.get("name", serial))
                         entities.append(MerakiCameraSenseStatusSensor(main_coordinator, device_info))
+                        _LOGGER.debug("Successfully appended MerakiCameraSenseStatusSensor for %s", device_info.get("name", serial))
+
+                        _LOGGER.debug("Attempting to add MerakiCameraAudioDetectionSensor for %s", device_info.get("name", serial))
                         entities.append(MerakiCameraAudioDetectionSensor(main_coordinator, device_info))
-                        # Add the new RTSP URL Sensor
+                        _LOGGER.debug("Successfully appended MerakiCameraAudioDetectionSensor for %s", device_info.get("name", serial))
+
+                        # Add the new RTSP URL Sensor with specific logging
+                        _LOGGER.debug("Attempting to add MerakiCameraRTSPUrlSensor for %s (Serial: %s)", device_info.get("name"), serial)
                         entities.append(
                             MerakiCameraRTSPUrlSensor(
                                 main_coordinator,
                                 device_info,
                             )
                         )
+                        _LOGGER.debug("Successfully appended MerakiCameraRTSPUrlSensor for %s (Serial: %s)", device_info.get("name"), serial)
+
+                        # This is the overall log message for the camera sensor group
                         _LOGGER.debug(
                             "Meraki HA: Added camera-specific sensors (Sense, Audio, RTSP URL) for %s",
                             device_info.get("name"), # Use guaranteed name
