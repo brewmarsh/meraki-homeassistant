@@ -47,7 +47,6 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         self,
         hass: HomeAssistant,
         scan_interval: timedelta,  # For DataUpdateCoordinator superclass
-        relaxed_tag_match: bool,  # For DataAggregator configuration
         coordinator: "MerakiDataUpdateCoordinator",  # Parent coordinator instance
     ) -> None:
         """Initialize the DataAggregationCoordinator.
@@ -56,8 +55,6 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             hass: The Home Assistant instance.
             scan_interval: The interval for updating data (passed to superclass).
                            This coordinator updates when `_async_update_data` is called.
-            relaxed_tag_match: Boolean indicating if relaxed tag matching is enabled
-                               for SSID status calculation.
             coordinator: The main `MerakiDataUpdateCoordinator` instance, providing
                          context (e.g., for MerakiDataProcessor).
         """
@@ -68,7 +65,6 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             update_interval=scan_interval,
             # For DataUpdateCoordinator's scheduling if used independently.
         )
-        self.relaxed_tag_match: bool = relaxed_tag_match
         # Store parent coordinator
         self.coordinator: "MerakiDataUpdateCoordinator" = coordinator
 
@@ -88,7 +84,6 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # DataAggregator combines processed data and calculates SSID statuses.
         # It no longer takes data_processor as an argument.
         self.data_aggregator: DataAggregator = DataAggregator(
-            relaxed_tag_match=self.relaxed_tag_match,
             ssid_status_calculator=self.ssid_status_calculator,
         )
 
@@ -153,12 +148,11 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         try:
             # Validate that essential input data is available.
             if device_data is None or ssid_data is None or network_data is None:
-                _LOGGER.warning(
+                _LOGGER.error( # Changed to error
                     "Essential data (devices, SSIDs, or networks) is None. "
-                    "Skipping aggregation and returning empty data."
+                    "Cannot proceed with data aggregation."
                 )
-                # Return empty dict to prevent errors in consuming entities.
-                return {}
+                raise UpdateFailed("Essential data missing for aggregation.")
 
             # Step 1: Process raw device data using MerakiDataProcessor.
             # This standardizes the device structure.
@@ -202,12 +196,23 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                                 _LOGGER.debug(
                                     "Successfully merged camera sense settings for %s.", serial
                                 )
-                        except Exception as e:
+                        except MerakiApiError as e: # Specific API error
                             _LOGGER.warning(
-                                "Failed to fetch or merge camera sense settings for %s: %s. "
-                                "Entities for this camera's sense/audio status may be unavailable or show unknown.", # Added impact
-                                serial,
-                                e,
+                                "Meraki API error fetching camera sense settings for %s: %s. Status: %s. "
+                                "Entities for this camera's sense/audio status may be unavailable or show unknown.",
+                                serial, e, e.status if hasattr(e, 'status') else 'N/A'
+                            )
+                        except aiohttp.ClientError as e: # Specific HTTP client error
+                            _LOGGER.warning(
+                                "HTTP client error fetching camera sense settings for %s: %s. "
+                                "Entities for this camera's sense/audio status may be unavailable or show unknown.",
+                                serial, e
+                            )
+                        except Exception as e: # Catch any other unexpected error for this specific camera
+                            _LOGGER.exception( # Log with stack trace for unexpected issues
+                                "Unexpected error fetching or merging camera sense settings for %s: %s. "
+                                "Entities for this camera's sense/audio status may be unavailable or show unknown.",
+                                serial, e
                             )
             else:
                 _LOGGER.warning(
@@ -264,8 +269,8 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             )
             return aggregated_data
 
-        except Exception as e:  # pylint: disable=broad-except # Keep broad except for UpdateFailed
-            _LOGGER.exception("Error during Meraki data aggregation: %s", e) # .exception includes stack trace
-            # Raise UpdateFailed to signal the main coordinator that this
-            # update cycle failed.
+        except UpdateFailed: # Re-raise UpdateFailed explicitly if caught
+            raise
+        except Exception as e:  # pylint: disable=broad-except
+            _LOGGER.exception("Error during Meraki data aggregation: %s", e)
             raise UpdateFailed(f"Error aggregating Meraki data: {e}") from e

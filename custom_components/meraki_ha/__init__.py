@@ -16,7 +16,6 @@ from .coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
 from .const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
-    CONF_RELAXED_TAG_MATCHING,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     PLATFORMS,
@@ -70,7 +69,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         api_key=api_key,
         org_id=org_id,
         scan_interval=interval,
-        relaxed_tag_match=entry.options.get(CONF_RELAXED_TAG_MATCHING, False),
         config_entry=entry,
     )
     # 2. Perform its first refresh

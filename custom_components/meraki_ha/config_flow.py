@@ -21,7 +21,6 @@ from custom_components.meraki_ha.authentication import validate_meraki_credentia
 from custom_components.meraki_ha.const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
-    CONF_RELAXED_TAG_MATCHING,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
@@ -102,9 +101,6 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     "device_name_format": user_input.get(
                         "device_name_format", "omitted"
                     ),  # Default device name format
-                    CONF_RELAXED_TAG_MATCHING: user_input.get(
-                        CONF_RELAXED_TAG_MATCHING, False
-                    ),  # Default relaxed tag matching to False
                 }
 
                 _LOGGER.debug(
@@ -183,13 +179,6 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     )
                 ),
-                # Relaxed tag matching field: optional, boolean (checkbox).
-                vol.Optional(
-                    CONF_RELAXED_TAG_MATCHING,
-                    default=user_input.get(
-                        CONF_RELAXED_TAG_MATCHING, False
-                    ),  # Pre-fill
-                ): bool,
             }
         )
         # Note: UI descriptions for fields like CONF_SCAN_INTERVAL can be
@@ -410,13 +399,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     )
                 ),
-                # Relaxed tag matching field, boolean (checkbox).
-                vol.Optional(
-                    CONF_RELAXED_TAG_MATCHING,
-                    default=self.config_entry.options.get(
-                        CONF_RELAXED_TAG_MATCHING, False  # Default if not set
-                    ),
-                ): bool,
             }
         )
         # Note: UI descriptions for these options fields are typically handled

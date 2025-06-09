@@ -120,11 +120,13 @@ class MerakiApiDataFetcher:
                 f"SDK API error fetching device statuses for org {self.org_id}: "
                 f"Status {results[2].status}, Reason: {results[2].reason}. Device statuses may be incomplete."
             )
+            statuses_data = None # Ensure it's None on error
         elif isinstance(results[2], Exception):
             _LOGGER.exception(
                 f"Unexpected error fetching device statuses for org {self.org_id}: {results[2]}. "
                 "Device statuses may be incomplete."
             )
+            statuses_data = None # Ensure it's None on error
         else:
             statuses_data = results[2]
 
@@ -133,13 +135,13 @@ class MerakiApiDataFetcher:
                 f"SDK API error fetching firmware upgrade data for org {self.org_id}: "
                 f"Status {results[3].status}, Reason: {results[3].reason}. Firmware data may be incomplete."
             )
-            firmware_upgrade_data_raw = {} # Ensure it's an empty dict on error
+            firmware_upgrade_data_raw = {}
         elif isinstance(results[3], Exception):
             _LOGGER.exception(
                 f"Unexpected error fetching firmware upgrade data for org {self.org_id}: {results[3]}. "
                 "Firmware data may be incomplete."
             )
-            firmware_upgrade_data_raw = {} # Ensure it's an empty dict on error
+            firmware_upgrade_data_raw = {}
         else:
             firmware_upgrade_data_raw = results[3]
 
@@ -868,15 +870,23 @@ class MerakiApiDataFetcher:
             f"getDeviceApplianceUplinksSettings(serial={serial})"
         )
 
-        try: # New try for processing, distinct from API call exception handling
+        try:
             interfaces_data = uplink_settings.get("interfaces", {}) if uplink_settings else {}
 
             for wan_key in ["wan1", "wan2"]: # Potentially more like "cellular", etc.
                 interface_specific_settings = interfaces_data.get(wan_key, {})
+                # Ensure interface_specific_settings is a dict before passing
+                if not isinstance(interface_specific_settings, dict):
+                    _LOGGER.warning(
+                        f"Expected dict for {wan_key} settings in uplink_settings for MX {serial}, got {type(interface_specific_settings).__name__}. Skipping."
+                    )
+                    device[f"{wan_key}_dns_servers"] = [] # Initialize to empty
+                    continue
+
                 dns_servers = self._extract_dns_servers_for_wan(
                     interface_name=wan_key,
                     interface_api_settings=interface_specific_settings,
-                    device_global_data=device # Pass the main device dict for fallback
+                    device_global_data=device
                 )
                 device[f"{wan_key}_dns_servers"] = dns_servers
                 _LOGGER.debug(
@@ -889,39 +899,58 @@ class MerakiApiDataFetcher:
                     "Attempting device-level fallbacks for DNS."
                 )
 
-            # This loop will now also serve as the fallback if interfaces_data is empty due to failed API call
             for wan_key in ["wan1", "wan2"]:
                 interface_specific_settings = interfaces_data.get(wan_key, {})
+                if not isinstance(interface_specific_settings, dict):
+                    # Already logged above, just ensure key exists if we skipped
+                    if f"{wan_key}_dns_servers" not in device:
+                         device[f"{wan_key}_dns_servers"] = []
+                    continue
+
                 dns_servers = self._extract_dns_servers_for_wan(
                     interface_name=wan_key,
-                    interface_api_settings=interface_specific_settings, # This might be empty if API failed
+                    interface_api_settings=interface_specific_settings,
                     device_global_data=device
                 )
-                # Only update if extract_dns found something, or ensure key exists
                 if dns_servers:
                     device[f"{wan_key}_dns_servers"] = dns_servers
-                elif f"{wan_key}_dns_servers" not in device: # Ensure key exists if nothing found
+                elif f"{wan_key}_dns_servers" not in device:
                      device[f"{wan_key}_dns_servers"] = []
                 _LOGGER.debug(
                     f"Final {wan_key}_dns_servers for {serial}: {device[f'{wan_key}_dns_servers']}"
                 )
-
-        except Exception as e:  # Catch errors from processing the uplink_settings data itself
+        except TypeError as e:
+            _LOGGER.exception(
+                f"Type error processing uplink settings for MX device {device.get('name', 'Unknown')} (Serial: {serial}): {e}. "
+                "This may indicate unexpected data structure. Ensuring DNS keys exist with fallback."
+            )
+            # Fallback logic from original code
+            for wan_key in ["wan1", "wan2"]:
+                if f"{wan_key}_dns_servers" not in device:
+                    device[f"{wan_key}_dns_servers"] = self._extract_dns_servers_for_wan(
+                        interface_name=wan_key,
+                        interface_api_settings={},
+                        device_global_data=device,
+                        force_device_fallback_check=True
+                    )
+                    _LOGGER.debug(
+                        f"Ensured {wan_key}_dns_servers for {serial} after TypeError: {device[f'{wan_key}_dns_servers']}"
+                    )
+        except Exception as e:  # Catch other unexpected errors from processing
             _LOGGER.exception(
                 f"Unexpected error processing uplink settings for MX device {device.get('name', 'Unknown')} (Serial: {serial}): {e}. "
                 "Ensuring DNS keys exist with fallback."
             )
-            for wan_key in ["wan1", "wan2"]: # Ensure keys exist even if processing failed
+            for wan_key in ["wan1", "wan2"]:
                 if f"{wan_key}_dns_servers" not in device:
-                    # Attempt one last fallback if processing failed badly
                     device[f"{wan_key}_dns_servers"] = self._extract_dns_servers_for_wan(
                         interface_name=wan_key,
-                        interface_api_settings={}, # No API settings to process
+                        interface_api_settings={},
                         device_global_data=device,
-                        force_device_fallback_check=True # Force check of device global data
+                        force_device_fallback_check=True
                     )
                     _LOGGER.debug(
-                        f"Ensured {wan_key}_dns_servers for {serial} after processing error: {device[f'{wan_key}_dns_servers']}"
+                        f"Ensured {wan_key}_dns_servers for {serial} after general processing error: {device[f'{wan_key}_dns_servers']}"
                     )
 
     def _extract_dns_servers_for_wan(

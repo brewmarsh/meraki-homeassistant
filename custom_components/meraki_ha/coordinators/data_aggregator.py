@@ -29,21 +29,17 @@ class DataAggregator:
 
     def __init__(
         self,
-        relaxed_tag_match: bool,
         # data_processor: MerakiDataProcessor, # Removed as it's not used
         ssid_status_calculator: SsidStatusCalculator,
     ) -> None:
         """Initialize the DataAggregator.
 
         Args:
-            relaxed_tag_match: Boolean indicating if relaxed tag matching
-                should be used by the `SsidStatusCalculator`.
             # data_processor: An instance of `MerakiDataProcessor` was previously
             #                 accepted but found to be unused within this class.
             ssid_status_calculator: An instance of `SsidStatusCalculator`
                 used to determine the status of SSIDs.
         """
-        self.relaxed_tag_match: bool = relaxed_tag_match
         # self.data_processor: MerakiDataProcessor = data_processor
         self.ssid_status_calculator: SsidStatusCalculator = ssid_status_calculator
 
@@ -102,7 +98,6 @@ class DataAggregator:
                     devices=processed_devices,
                     # Pass devices; tags are expected within each device.
                     # `device_tags` argument is removed as tags are in `processed_devices`.
-                    relaxed_tag_match=self.relaxed_tag_match,
                 )
             )
 

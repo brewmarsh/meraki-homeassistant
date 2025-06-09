@@ -9,9 +9,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from ..const import DOMAIN, DATA_CLIENT  # Added DATA_CLIENT
-from ..meraki_api import MerakiAPIClient  # Added MerakiAPIClient
-from .api_data_fetcher import MerakiApiDataFetcher  # To access fetched SSIDs
+from ..const import DOMAIN, DATA_CLIENT
+from ..meraki_api import MerakiAPIClient, MerakiApiError # Added MerakiApiError
+import aiohttp # Added aiohttp
+from .api_data_fetcher import MerakiApiDataFetcher
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -174,16 +175,24 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
             return {}
 
         # Retrieve the MerakiAPIClient instance
-        meraki_client: MerakiAPIClient = self.hass.data[DOMAIN][
-            self.config_entry.entry_id
-        ][DATA_CLIENT]
-        if not meraki_client:
+        try:
+            meraki_client: MerakiAPIClient = self.hass.data[DOMAIN][
+                self.config_entry.entry_id
+            ][DATA_CLIENT]
+            if not meraki_client: # Should not happen if KeyError is not raised, but good practice
+                _LOGGER.error(
+                    "MerakiAPIClient is None in hass.data. Cannot fetch SSID details."
+                )
+                raise UpdateFailed(
+                    "MerakiAPIClient not properly initialized for SSID detail fetching."
+                )
+        except (KeyError, TypeError) as e:
             _LOGGER.error(
-                "MerakiAPIClient not found in hass.data. Cannot fetch SSID details."
+                f"Error accessing MerakiAPIClient from hass.data: {e}. Path: {DOMAIN}/{self.config_entry.entry_id}/{DATA_CLIENT}"
             )
             raise UpdateFailed(
-                "MerakiAPIClient not available for SSID detail fetching."
-            )
+                f"MerakiAPIClient not available in hass.data for SSID detail fetching: {e}"
+            ) from e
 
         detailed_ssid_data_map: Dict[str, Dict[str, Any]] = (
             {}
@@ -219,17 +228,32 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
 
             try:
                 # Fetch detailed information for this specific SSID.
-                # This call gets more data than the summary list, like specific auth modes, PSK (if applicable), etc.
                 _LOGGER.debug(
                     f"Fetching details for SSID {ssid_name_summary} ({network_id}/{ssid_number})"
                 )
-                ssid_detail_data = await meraki_client.wireless.getNetworkWirelessSsid(
-                    networkId=network_id,
-                    number=str(ssid_number),  # API expects SSID number as a string.
-                )
+                try:
+                    ssid_detail_data = await meraki_client.wireless.getNetworkWirelessSsid(
+                        networkId=network_id,
+                        number=str(ssid_number),  # API expects SSID number as a string.
+                    )
+                except MerakiApiError as e:
+                    _LOGGER.warning(
+                        f"Meraki API error fetching details for SSID {ssid_name_summary} ({network_id}/{ssid_number}): {e}. Status: {e.status if hasattr(e, 'status') else 'N/A'}. Skipping this SSID."
+                    )
+                    continue # Skip this SSID
+                except aiohttp.ClientError as e:
+                    _LOGGER.warning(
+                        f"HTTP client error fetching details for SSID {ssid_name_summary} ({network_id}/{ssid_number}): {e}. Skipping this SSID."
+                    )
+                    continue # Skip this SSID
+                except Exception as e: # Catch any other unexpected error specifically from the detail fetch
+                    _LOGGER.error(
+                        f"Unexpected error fetching details for SSID {ssid_name_summary} ({network_id}/{ssid_number}): {e}",
+                        exc_info=True,
+                    )
+                    continue # Skip this SSID
 
                 # Merge summary data (which has 'enabled' status) with detailed data.
-                # Detailed data from getNetworkWirelessSsid might not include 'enabled' if called directly.
                 merged_ssid_data = {**ssid_summary_data, **ssid_detail_data}
                 merged_ssid_data["unique_id"] = (
                     unique_ssid_id  # Ensure unique_id is part of the data for entities.
@@ -354,14 +378,24 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 )
                 detailed_ssid_data_map[unique_ssid_id] = merged_ssid_data
 
-            except Exception as e:
+            except (TypeError, ValueError) as e: # Catch errors in data processing/device registration after successful detail fetch
                 _LOGGER.error(
-                    f"Failed to fetch details or register device for SSID {ssid_name_summary} ({network_id}/{ssid_number}): {e}",
+                    f"Data processing or device registration error for SSID {ssid_name_summary} ({network_id}/{ssid_number}): {e}",
                     exc_info=True,
                 )
-                # Optionally, could use ssid_summary_data if detail fetch fails, but PSK would be missing
-                # For now, if detail fetch fails, we skip this SSID for this update.
+                # Skip this SSID if processing its data or registering fails
                 continue
+            # Note: MerakiApiError and aiohttp.ClientError for the detail fetch are handled in the inner try-except.
+            # Other generic exceptions from the detail fetch also result in 'continue'.
+            # So, the outer 'except Exception as e' is less likely to be hit by the API call itself,
+            # but remains as a final catch-all for other logic within the loop.
+            except Exception as e: # Final catch-all for other unexpected issues for this SSID
+                 _LOGGER.error(
+                    f"Generic unhandled exception processing SSID {ssid_name_summary} ({network_id}/{ssid_number}): {e}",
+                    exc_info=True,
+                )
+                 continue
+
 
         _LOGGER.info(
             f"SSIDDeviceCoordinator processed {len(detailed_ssid_data_map)} ENABLED SSID devices with detailed data."

@@ -220,7 +220,18 @@ class DeviceTagUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             )
             raise
         except Exception as e:  # Catch any other unexpected errors
-            # Use .exception to include stack trace
+            )
+            raise
+        except AttributeError as e:
+            _LOGGER.error(
+                "AttributeError while trying to update tags for device %s: %s. This might indicate "
+                "the method 'async_update_device_tags' is missing from MerakiApiDataFetcher.", serial, e
+            )
+            raise UpdateFailed(
+                f"Internal error: Feature to update tags may not be fully implemented for device {serial} ({e})"
+            ) from e
+        except Exception as e:  # Catch any other unexpected errors
+            # Use .exception to include stack trace for any other error
             _LOGGER.exception(
                 "Unexpected error updating tags for device %s: %s", serial, e
             )

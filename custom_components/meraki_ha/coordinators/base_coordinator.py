@@ -65,7 +65,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         api_key: str,
         org_id: str,
         scan_interval: timedelta,
-        relaxed_tag_match: bool,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the Meraki data update coordinator.
@@ -75,14 +74,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             api_key: The Meraki API key.
             org_id: The Meraki Organization ID.
             scan_interval: The interval at which to periodically update data.
-            relaxed_tag_match: Boolean indicating if relaxed tag matching
-                               should be used for SSID status calculation.
             config_entry: The config entry associated with this coordinator instance.
         """
         self.api_key: str = api_key  # Stored for potential direct use (e.g., TagEraser)
         self.org_id: str = org_id
         self.config_entry: ConfigEntry = config_entry  # Access to options, entry_id
-        self.relaxed_tag_match: bool = relaxed_tag_match
         self.erase_tags: bool = config_entry.options.get("erase_tags", False)
 
         # Initialize the MerakiAPIClient for SDK interactions.
@@ -110,7 +106,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 scan_interval,
                 # scan_interval passed for consistency, though DAC updates on
                 # demand.
-                relaxed_tag_match,
                 self,  # Pass self as parent coordinator for context.
             )
         )
@@ -326,60 +321,83 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             "Starting physical device registration process for org %s.", self.org_id
         )
         # device_registry instance is already available from network registration part
-
+        successful_physical_device_registrations = 0
         for device_info in devices:  # 'devices' is all_data.get("devices", [])
-            serial = device_info.get("serial")
-            if not serial:
-                _LOGGER.warning(
-                    "Device found without serial, cannot register: %s", device_info
+            try:
+                serial = device_info.get("serial")
+                if not serial:
+                    _LOGGER.warning(
+                        "Device found without serial, cannot register: %s. Skipping this device.", device_info
+                    )
+                    continue
+
+                device_name_raw = device_info.get("name") or serial
+                # Ensure device_model_str is a string, provide a fallback.
+                device_model_str = device_info.get("model", "Unknown")
+                if not isinstance(device_model_str, str):
+                    _LOGGER.warning(
+                        f"Device model for serial {serial} is not a string (type: {type(device_model_str).__name__}, value: {device_model_str}). Using 'Unknown'."
+                    )
+                    device_model_str = "Unknown"
+
+                firmware_version = device_info.get("firmware")
+
+                formatted_device_name = format_device_name(
+                    device_name_raw=device_name_raw,
+                    device_model=device_model_str,
+                    device_name_format_option=self.device_name_format,
+                    is_org_device=False
                 )
-                continue
 
-            device_name_raw = device_info.get("name") or serial
-            device_model_str = device_info.get("model", "Unknown")
-            firmware_version = device_info.get("firmware")  # Get firmware version here
+                mac_address = device_info.get("mac")
+                connections = None
+                if mac_address and isinstance(mac_address, str):
+                    connections = {(dr.CONNECTION_NETWORK_MAC, mac_address)}
+                elif mac_address: # Log if MAC is present but not a string
+                    _LOGGER.warning(
+                        f"Device serial {serial} has non-string MAC address (type: {type(mac_address).__name__}, value: {mac_address}). Cannot form connection tuple."
+                    )
 
-            # Use the centralized format_device_name helper
-            # The map_meraki_model_to_device_type call is handled inside format_device_name
-            formatted_device_name = format_device_name(
-                device_name_raw=device_name_raw,
-                device_model=device_model_str,
-                device_name_format_option=self.device_name_format, # Use property directly
-                is_org_device=False
-            )
-
-            # Prepare connections set using MAC address
-            mac_address = device_info.get("mac")
-            connections = None
-            if mac_address:
-                connections = {(dr.CONNECTION_NETWORK_MAC, mac_address)}
-
-            # Log the full device_info for debugging before registration attempt
-            # This log was already added in a previous step, ensuring it's correctly placed.
-            # _LOGGER.debug(
-            #     "MERAKI_DEBUG_COORDINATOR: Preparing to register/update physical device. Full device_info: %s",
-            #     device_info
-            # )
-
-            device_registry.async_get_or_create(
-                config_entry_id=self.config_entry.entry_id,
-                identifiers={(DOMAIN, serial)},
-                manufacturer="Cisco Meraki",
-                model=device_model_str,
-                name=formatted_device_name,
-                sw_version=firmware_version,  # firmware_version from device_info.get("firmware")
-                connections=connections,  # Pass the connections set
-            )
-            _LOGGER.debug(
-                "Registered/Updated physical device: %s (Serial: %s, Model: %s, MAC: %s, FW: %s, Status: %s)",
-                formatted_device_name,
-                serial,
-                device_model_str,
-                mac_address or "N/A",  # Log MAC address
-                firmware_version or "N/A",  # Log firmware version
-                device_info.get("status", "N/A"),  # Log status
-            )
-        _LOGGER.debug("Device registration process completed for org %s.", self.org_id)
+                device_registry.async_get_or_create(
+                    config_entry_id=self.config_entry.entry_id,
+                    identifiers={(DOMAIN, serial)},
+                    manufacturer="Cisco Meraki",
+                    model=device_model_str,
+                    name=formatted_device_name,
+                    sw_version=firmware_version,
+                    connections=connections,
+                )
+                _LOGGER.debug(
+                    "Registered/Updated physical device: %s (Serial: %s, Model: %s, MAC: %s, FW: %s, Status: %s)",
+                    formatted_device_name,
+                    serial,
+                    device_model_str,
+                    mac_address or "N/A",
+                    firmware_version or "N/A",
+                    device_info.get("status", "N/A"),
+                )
+                successful_physical_device_registrations += 1
+            except (TypeError, ValueError) as e:
+                _LOGGER.error(
+                    "Error processing or registering physical device (Serial: %s, Name: %s): %s. Device info: %s. Skipping this device.",
+                    device_info.get("serial", "N/A"),
+                    device_info.get("name", "N/A"),
+                    e,
+                    str(device_info)[:200] # Log a snippet of the device_info
+                )
+            except Exception as e: # Catch any other unexpected error for a single device
+                _LOGGER.exception(
+                    "Unexpected error during physical device registration (Serial: %s, Name: %s): %s. Device info: %s. Skipping this device.",
+                    device_info.get("serial", "N/A"),
+                    device_info.get("name", "N/A"),
+                    e,
+                    str(device_info)[:200]
+                )
+        _LOGGER.debug(
+            "Physical device registration process completed for org %s. Successfully registered/updated %d devices.",
+            self.org_id,
+            successful_physical_device_registrations
+        )
         # ---- END DEVICE REGISTRATION LOGIC ----
 
         # Process client data to get network client counts
