@@ -42,6 +42,7 @@ from custom_components.meraki_ha.coordinators.tag_eraser_coordinator import (
     TagEraserCoordinator,
 )
 
+import asyncio # Make sure asyncio is imported
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -147,9 +148,51 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
     @property
     def device_name_format(self) -> str:
         """Return the device name format option."""
+        task_name = "Unknown"
+        current_task = asyncio.current_task()
+        if current_task:
+            task_name = current_task.get_name()
+
+        if not self.config_entry:
+            _LOGGER.error(
+                "Config entry is not available for coordinator of org %s when accessing device_name_format. Current task: %s",
+                self.org_id,
+                task_name
+            )
+            return "omitted"
+
+        if not self.config_entry.options:
+            _LOGGER.error(
+                "Config entry options are not available for coordinator of org %s (config_entry itself is present) when accessing device_name_format. Current task: %s",
+                self.org_id,
+                task_name
+            )
+            return "omitted"
+
         return self.config_entry.options.get("device_name_format", "omitted")
 
     async def _async_update_data(self) -> Dict[str, Any]:
+        task_name = "Unknown"
+        current_task = asyncio.current_task()
+        if current_task:
+            task_name = current_task.get_name()
+
+        if not self.config_entry:
+            _LOGGER.error(
+                "MerakiDataUpdateCoordinator for org %s cannot update: config_entry is None. Current task: %s",
+                self.org_id,
+                task_name
+            )
+            raise UpdateFailed(f"Coordinator configuration is missing for org {self.org_id} (config_entry is None).")
+
+        if not self.config_entry.options:
+            _LOGGER.error(
+                "MerakiDataUpdateCoordinator for org %s cannot update: config_entry.options is None. Current task: %s",
+                self.org_id,
+                task_name
+            )
+            raise UpdateFailed(f"Coordinator configuration options are missing for org {self.org_id} (config_entry.options is None).")
+
         """Fetch, process, and aggregate data from the Meraki API.
 
         This is the core method called periodically by the DataUpdateCoordinator.
