@@ -22,7 +22,13 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiCameraSenseStatusSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
-    """Representation of a Meraki Camera Sense Status sensor."""
+    """Representation of a Meraki Camera Sense Status sensor.
+
+    This sensor entity displays the MV Sense enabled status for a Meraki camera.
+    It uses SensorEntityDescription to define its properties.
+    The state ("enabled"/"disabled") is derived from the 'senseEnabled'
+    key in the device data, fetched and processed by DataAggregationCoordinator.
+    """
 
     _attr_has_entity_name = True
 
@@ -41,13 +47,23 @@ class MerakiCameraSenseStatusSensor(
         )
         self.entity_description = SensorEntityDescription(
             key="camera_sense_status",
-            name="Sense Enabled",
-            native_unit_of_measurement=None,
-            state_class=None,
+            name="Sense Enabled",  # This name is used by HA to generate the friendly name
+            native_unit_of_measurement=None, # Categorical sensor, no unit
+            state_class=None, # Categorical sensor
+            # icon can also be defined here if static, e.g., icon="mdi:camera-iris"
         )
-        # self._attr_state_class = None # Removed, handled by SensorEntityDescription
-        # self._attr_native_unit_of_measurement = None # Removed, handled by SensorEntityDescription
-        # self._attr_suggested_unit_of_measurement = None # Removed this line
+        # Explicitly set attributes that are not part of SensorEntityDescription
+        # or need to be None for this sensor type.
+        # self._attr_state_class = None # Now handled by SensorEntityDescription
+        # self._attr_native_unit_of_measurement = None # Now handled by SensorEntityDescription
+
+        # The following properties are overridden to return None, as they are not applicable.
+        # - options
+        # - suggested_unit_of_measurement (already None via SensorEntityDescription)
+        # - suggested_display_precision
+        # - last_reset
+        # Their explicit @property methods have been removed.
+
         self._update_sensor_data()
         _LOGGER.debug(
             "MerakiCameraSenseStatusSensor Initialized for %s (Serial: %s)",
@@ -56,21 +72,21 @@ class MerakiCameraSenseStatusSensor(
         )
 
     def _get_current_device_data(self) -> Optional[Dict[str, Any]]:
-        """Retrieve the latest data for this sensor's device from the coordinator."""
-        # This will be updated later to fetch actual camera sense data
-        # For now, return the base device data
+        """Retrieve the latest data for this sensor's device from the coordinator.
+
+        The coordinator's data is expected to have camera-specific settings already merged.
+        """
         if self.coordinator.data and self.coordinator.data.get("devices"):
             for dev_data in self.coordinator.data["devices"]:
                 if dev_data.get("serial") == self._device_serial:
-                    # Placeholder: In the future, this should merge/fetch specific sense API data
                     return dev_data
         return None
 
     def _update_sensor_data(self) -> None:
-        """Update sensor state from coordinator data."""
+        """Update sensor state (native_value and icon) from coordinator data."""
         current_device_data = self._get_current_device_data()
 
-        if not current_device_data:
+        if not current_device_data: # Should be caught by `available` property first
             self._attr_native_value = None
             self._attr_icon = "mdi:help-rhombus"
             return
@@ -114,29 +130,37 @@ class MerakiCameraSenseStatusSensor(
 
         return True
 
-    @property
-    def options(self) -> list[str] | None:
-        return None
+    # @property
+    # def options(self) -> list[str] | None:
+    #     return None
+    #
+    # @property
+    # def suggested_unit_of_measurement(self) -> str | None:
+    #     return None
+    #
+    # @property
+    # def suggested_display_precision(self) -> int | None:
+    #     return None
+    #
+    # @property
+    # def last_reset(self) -> datetime | None:
+    #     return None
 
-    @property
-    def suggested_unit_of_measurement(self) -> str | None:
-        return None
-
-    @property
-    def suggested_display_precision(self) -> int | None:
-        return None
-
-    @property
-    def last_reset(self) -> datetime | None:
-        return None
-
-    # Removed custom name property. Relies on _attr_has_entity_name and self.entity_description.name.
+    # Removed custom name property. Relies on _attr_has_entity_name and self.entity_description.name
+    # for the entity-specific part of the name ("Sense Enabled").
+    # The full friendly name is composed by Home Assistant using the device name.
 
 
 class MerakiCameraAudioDetectionSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
-    """Representation of a Meraki Camera Audio Detection Status sensor."""
+    """Representation of a Meraki Camera Audio Detection Status sensor.
+
+    This sensor entity displays the audio detection enabled status for a Meraki camera.
+    It uses SensorEntityDescription to define its properties.
+    The state ("enabled"/"disabled") is derived from the 'audioDetection.enabled'
+    key in the device data, fetched and processed by DataAggregationCoordinator.
+    """
 
     _attr_has_entity_name = True
 
@@ -155,13 +179,23 @@ class MerakiCameraAudioDetectionSensor(
         )
         self.entity_description = SensorEntityDescription(
             key="camera_audio_detection_status",
-            name="Audio Detection",
-            native_unit_of_measurement=None,
-            state_class=None,
+            name="Audio Detection", # This name is used by HA
+            native_unit_of_measurement=None, # Categorical sensor
+            state_class=None, # Categorical sensor
+            # icon can also be defined here if static, e.g., icon="mdi:microphone-settings"
         )
-        # self._attr_state_class = None # Removed, handled by SensorEntityDescription
-        # self._attr_native_unit_of_measurement = None # Removed, handled by SensorEntityDescription
-        # self._attr_suggested_unit_of_measurement = None # Removed this line
+        # Explicitly set attributes that are not part of SensorEntityDescription
+        # or need to be None for this sensor type.
+        # self._attr_state_class = None # Now handled by SensorEntityDescription
+        # self._attr_native_unit_of_measurement = None # Now handled by SensorEntityDescription
+
+        # The following properties are overridden to return None, as they are not applicable.
+        # - options
+        # - suggested_unit_of_measurement (already None via SensorEntityDescription)
+        # - suggested_display_precision
+        # - last_reset
+        # Their explicit @property methods have been removed.
+
         self._update_sensor_data()
         _LOGGER.debug(
             "MerakiCameraAudioDetectionSensor Initialized for %s (Serial: %s)",
@@ -169,38 +203,38 @@ class MerakiCameraAudioDetectionSensor(
             self._device_serial,
         )
 
-    @property # Added options here
-    def options(self) -> list[str] | None:
-        return None
-
-    @property
-    def suggested_unit_of_measurement(self) -> str | None:
-        return None
-
-    @property
-    def suggested_display_precision(self) -> int | None:
-        return None
-
-    @property
-    def last_reset(self) -> datetime | None:
-        return None
+    # @property
+    # def options(self) -> list[str] | None: # Commented out, was "Added options here"
+    #     return None
+    #
+    # @property
+    # def suggested_unit_of_measurement(self) -> str | None:
+    #     return None
+    #
+    # @property
+    # def suggested_display_precision(self) -> int | None:
+    #     return None
+    #
+    # @property
+    # def last_reset(self) -> datetime | None:
+    #     return None
 
     def _get_current_device_data(self) -> Optional[Dict[str, Any]]:
-        """Retrieve the latest data for this sensor's device from the coordinator."""
-        # This will be updated later to fetch actual camera audio detection data
-        # For now, return the base device data
+        """Retrieve the latest data for this sensor's device from the coordinator.
+
+        The coordinator's data is expected to have camera-specific settings already merged.
+        """
         if self.coordinator.data and self.coordinator.data.get("devices"):
             for dev_data in self.coordinator.data["devices"]:
                 if dev_data.get("serial") == self._device_serial:
-                    # Placeholder: In the future, this should merge/fetch specific audio API data
                     return dev_data
         return None
 
     def _update_sensor_data(self) -> None:
-        """Update sensor state from coordinator data."""
+        """Update sensor state (native_value and icon) from coordinator data."""
         current_device_data = self._get_current_device_data()
 
-        if not current_device_data:
+        if not current_device_data: # Should be caught by `available` property first
             self._attr_native_value = None
             self._attr_icon = "mdi:help-rhombus"
             return

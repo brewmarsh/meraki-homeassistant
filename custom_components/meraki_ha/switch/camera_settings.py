@@ -23,9 +23,16 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiCameraSettingSwitchBase(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SwitchEntity
 ):
-    """Base class for Meraki Camera Setting Switches."""
+    """Base class for Meraki Camera Setting Switches.
 
-    _attr_has_entity_name = True
+    This base class handles common logic for camera setting switches, including
+    interaction with the Meraki API client and data coordinator. Derived classes
+    should define their specific `EntityDescription`. The `name` property is
+    explicitly defined in derived classes to combine the device name with the
+    entity-specific name from `EntityDescription`.
+    """
+
+    _attr_has_entity_name = True # Ensures HA uses device name as part of the friendly name
 
     def __init__(
         self,
@@ -33,16 +40,27 @@ class MerakiCameraSettingSwitchBase(
         meraki_client: MerakiAPIClient,
         device_data: Dict[str, Any], # Using device_data similar to sensors
         switch_type: str,
-        attribute_to_check: str, # e.g., "senseEnabled" or "audioDetection.enabled" (will need parsing)
+        attribute_to_check: str,
     ) -> None:
-        """Initialize the base camera setting switch."""
+        """Initialize the base camera setting switch.
+
+        Args:
+            coordinator: The data update coordinator.
+            meraki_client: The Meraki API client for making API calls.
+            device_data: Initial data dictionary for the device this switch belongs to.
+            switch_type: A string to make the unique_id distinct (e.g., "sense_enabled").
+            attribute_to_check: The string path (dot-separated for nested) of the attribute
+                                in the device data that reflects the switch's state
+                                (e.g., "senseEnabled" or "audioDetection.enabled").
+        """
         super().__init__(coordinator)
         self._meraki_client = meraki_client
         self._device_serial: str = device_data["serial"]
 
-        # This attribute determines which key in the (future) API data dict corresponds to this switch's state.
+        # attribute_to_check is used to find the state value in coordinator data.
+        # e.g., "senseEnabled" or "audioDetection.enabled"
         self._attribute_to_check = attribute_to_check
-        # For "audioDetection.enabled", we'll need to navigate a nested dict
+        # _attribute_path is used for easy traversal of nested dictionaries.
         self._attribute_path = attribute_to_check.split('.')
 
         self._attr_unique_id = f"{self._device_serial}_{switch_type}_switch"
@@ -64,20 +82,22 @@ class MerakiCameraSettingSwitchBase(
     # The explicit 'name' property is removed.
     # With _attr_has_entity_name = True and self.entity_description.name set,
     # Home Assistant will automatically generate the name as "Device Name Entity Description Name".
-    # For example, if device is "Living Room Cam" and entity_description.name is "MV Sense",
-    # the full name will be "Living Room Cam MV Sense".
+    # Note: The `name` property is defined in the derived classes as it combines
+    # the device name (from coordinator) and the entity_description.name.
+    # `_attr_has_entity_name = True` assists HA in this process for UI display.
 
     def _get_current_device_data(self) -> Optional[Dict[str, Any]]:
-        """Retrieve the latest data for this switch's device from the coordinator."""
+        """Retrieve the latest data for this switch's device from the coordinator.
+
+        The coordinator's data is expected to have camera-specific settings
+        (like 'senseEnabled' and 'audioDetection') already merged into the device entry.
+        """
         if self.coordinator.data and self.coordinator.data.get("devices"):
             for dev_data in self.coordinator.data["devices"]:
                 if dev_data.get("serial") == self._device_serial:
-                    # Placeholder: In the future, this should merge/fetch specific camera sense API data
-                    # For now, we assume the relevant keys might be part of the main device data
-                    # or will be fetched separately and merged by the coordinator.
                     return dev_data
-        _LOGGER.debug(
-            "Device data for serial '%s' not found in coordinator for switch '%s'.",
+        _LOGGER.debug( # This log occurs if the device is no longer in the coordinator's list
+            "Device data for serial '%s' not found in coordinator for switch '%s'. Entity will likely be unavailable.",
             self._device_serial,
             self.unique_id,
         )
@@ -90,52 +110,58 @@ class MerakiCameraSettingSwitchBase(
         self.async_write_ha_state()
 
     def _update_internal_state(self) -> None:
-        """Update the internal state of the switch based on coordinator data."""
+        """Update the `_attr_is_on` state of the switch based on coordinator data.
+
+        Reads the state from `current_device_data` using `self._attribute_path`.
+        Handles cases where the attribute or its parent dictionary might be missing.
+        """
         current_device_data = self._get_current_device_data()
         if current_device_data:
-            raw_value = None
-            if self._attribute_path == ["senseEnabled"]:
-                raw_value = current_device_data.get("senseEnabled")
-            elif self._attribute_path == ["audioDetection", "enabled"]:
-                audio_data = current_device_data.get("audioDetection")
-                if isinstance(audio_data, dict):
-                    raw_value = audio_data.get("enabled")
+            # Traverse the attribute path to get the raw value
+            raw_value_container = current_device_data
+            valid_path = True
+            for key_part in self._attribute_path[:-1]: # Navigate to parent dict
+                if isinstance(raw_value_container, dict):
+                    raw_value_container = raw_value_container.get(key_part)
                 else:
-                    _LOGGER.debug("audioDetection data is not a dict for %s", self.unique_id)
+                    valid_path = False
+                    break
 
-            if raw_value is None: # Explicitly check for None
-                self._attr_is_on = False # Default state if data is missing/malformed for this specific switch
+            raw_value = None
+            if valid_path and isinstance(raw_value_container, dict):
+                raw_value = raw_value_container.get(self._attribute_path[-1])
+            elif valid_path and len(self._attribute_path) == 1: # For top-level attributes like "senseEnabled"
+                 raw_value = current_device_data.get(self._attribute_path[0])
+
+
+            if raw_value is None:
+                self._attr_is_on = False
                 _LOGGER.debug(
-                    "Attribute %s not found or malformed for %s in coordinator data, setting switch to off.",
+                    "Attribute '%s' not found or its path was invalid for %s in coordinator data. Defaulting to off.",
                     self._attribute_to_check,
                     self.unique_id,
                 )
             else:
                 self._attr_is_on = bool(raw_value)
         else:
-            self._attr_is_on = False # Default if device data itself is missing
-            _LOGGER.warning(
-                "Could not find device data for %s in coordinator, switch state set to False",
+            self._attr_is_on = False
+            _LOGGER.debug( # Changed from warning to debug as availability handles this
+                "Device data for %s not found in coordinator. Defaulting to off and unavailable.",
                 self.unique_id,
             )
 
     async def _update_camera_setting(self, value: bool) -> None:
-        """Update the specific camera setting via API."""
-        _LOGGER.info(
-            "Placeholder: Attempting to set %s for device %s to %s",
-            self._attribute_to_check,
-            self._device_serial,
-            value,
-        )
-        # This is where the actual Meraki API call will be made.
-        # Example:
-        # payload = { self._attribute_to_check: value } # Simplified; actual payload might be nested
-        # await self._meraki_client.camera.updateDeviceCameraSense(serial=self._device_serial, **payload)
+        """Update the specific camera setting (sense or audio) via the Meraki API.
 
-        # For "audioDetection.enabled", the payload would be:
-        # payload = {"audioDetection": {"enabled": value}}
+        Constructs keyword arguments for `meraki_client.update_camera_sense_settings`
+        based on `self._attribute_path` and calls the API. Refreshes coordinator on success.
 
-        # Prepare arguments for the API client method
+        Args:
+            value: The new boolean state to set for the camera setting.
+        """
+        # _LOGGER.info(...) # Removed placeholder log, debug log below is sufficient
+
+        # Prepare keyword arguments for the API client method based on the attribute path
         kwargs_for_api = {}
         if self._attribute_path == ["senseEnabled"]:
             kwargs_for_api["sense_enabled"] = value
@@ -210,7 +236,11 @@ class MerakiCameraSettingSwitchBase(
 
 
 class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
-    """Switch to control the Sense Enabled state of a Meraki Camera."""
+    """Switch to control the MV Sense (Computer Vision) state of a Meraki Camera.
+
+    Uses `EntityDescription` for its specific name ("MV Sense").
+    The `name` property combines the device name with "MV Sense".
+    """
 
     def __init__(
         self,
@@ -237,7 +267,11 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
 
 
 class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
-    """Switch to control the Audio Detection state of a Meraki Camera."""
+    """Switch to control the Audio Detection state of a Meraki Camera.
+
+    Uses `EntityDescription` for its specific name ("Audio Detection").
+    The `name` property combines the device name with "Audio Detection".
+    """
 
     def __init__(
         self,

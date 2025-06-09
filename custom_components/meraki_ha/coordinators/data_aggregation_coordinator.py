@@ -36,9 +36,11 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
     This coordinator is called by `MerakiDataUpdateCoordinator` (the parent)
     with raw data lists for devices, SSIDs, and networks. It uses
-    `MerakiDataProcessor` to transform this raw data into a standardized format
-    and then `DataAggregator` to combine it and calculate SSID statuses.
-    Device tags are expected to be included within the `device_data`.
+    `MerakiDataProcessor` to transform this raw data into a standardized format.
+    For camera devices, it additionally fetches and merges specific sense settings
+    (like `senseEnabled` and `audioDetection`) into the device's data.
+    Finally, it uses `DataAggregator` to combine all processed data and calculate
+    SSID statuses. Device tags are expected to be included within the `device_data`.
     """
 
     def __init__(
@@ -109,21 +111,32 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # The `device_tags` parameter has been removed; tags are in
         # `device_data`.
     ) -> Dict[str, Any]:
-        """Process and aggregate raw Meraki data.
+        """Process and aggregate raw Meraki data, including camera-specific details.
 
         This method is called by the parent `MerakiDataUpdateCoordinator` with the latest
-        raw data fetched by `MerakiApiDataFetcher`. It uses `MerakiDataProcessor`
-        to structure this data and `DataAggregator` to combine it and determine
-        SSID operational statuses.
+        raw data fetched by `MerakiApiDataFetcher`. It performs the following steps:
+        1. Processes raw device, network, and SSID data using `MerakiDataProcessor`.
+        2. For devices identified as cameras (by productType or model prefix 'MV'),
+           it fetches additional camera sense settings (e.g., `senseEnabled`,
+           `audioDetection`) using `self.coordinator.meraki_client.get_camera_sense_settings()`
+           and merges these settings into the respective device's data dictionary.
+           Errors during this fetch are logged, and processing continues without
+           the specific camera settings for the affected device.
+        3. Uses `DataAggregator` to combine all processed data (now including
+           enriched camera data) and determine SSID operational statuses.
 
         Args:
             device_data: A list of raw device dictionaries from the API.
-                         Expected to include tags and MR-specific details.
-                         Can be None if initial fetching failed.
+                         Expected to include tags. Can be None if initial fetching failed.
             ssid_data: A list of raw SSID dictionaries from the API.
                        Can be None if initial fetching failed.
             network_data: A list of raw network dictionaries from the API.
                           Can be None if initial fetching failed.
+            client_data: A list of raw client dictionaries from the API. Can be None.
+            network_client_counts: Dictionary mapping network IDs to client counts. Can be None.
+            clients_on_ssids: Total count of clients connected to SSIDs.
+            clients_on_appliances: Total count of clients connected to appliances.
+            clients_on_wireless: Total count of wireless clients.
 
         Returns:
             A dictionary containing the aggregated and processed data, ready for
@@ -164,8 +177,9 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                     type(device_data),
                 )
 
-            # Step 1.5: Fetch and merge camera-specific settings for camera devices
-            if self.coordinator.meraki_client: # Ensure API client is available
+            # Step 1.5: Fetch and merge camera-specific settings for camera devices.
+            # This enriches the device_dict for cameras with 'senseEnabled' and 'audioDetection' data.
+            if self.coordinator.meraki_client:
                 for device_dict in processed_devices:
                     serial = device_dict.get("serial")
                     product_type = device_dict.get("productType", "").lower()
@@ -180,26 +194,26 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                                 serial=serial
                             )
                             if sense_settings:
-                                # Merge sense_settings into the device_dict
-                                # Example keys from sense_settings: "senseEnabled", "audioDetection"
+                                # Merge relevant sense_settings into the device_dict.
+                                # Entities will look for 'senseEnabled' and 'audioDetection' (which is a dict)
+                                # directly in the device_info dictionary.
                                 device_dict["senseEnabled"] = sense_settings.get("senseEnabled")
                                 device_dict["audioDetection"] = sense_settings.get("audioDetection")
                                 _LOGGER.debug(
-                                    "Successfully merged sense settings for camera %s: %s",
-                                    serial,
-                                    {
-                                        "senseEnabled": device_dict.get("senseEnabled"),
-                                        "audioDetection": device_dict.get("audioDetection")
-                                    }
+                                    "Successfully merged camera sense settings for %s.", serial
                                 )
-                        except Exception as e: # Catch MerakiApiError or other exceptions
+                        except Exception as e:
                             _LOGGER.warning(
-                                "Failed to fetch or merge camera sense settings for %s: %s. Proceeding without them.",
+                                "Failed to fetch or merge camera sense settings for %s: %s. "
+                                "Entities for this camera's sense/audio status may be unavailable or show unknown.", # Added impact
                                 serial,
                                 e,
                             )
             else:
-                _LOGGER.warning("Meraki API client not available on parent coordinator, skipping camera sense settings fetch.")
+                _LOGGER.warning(
+                    "Meraki API client not available on parent coordinator, "
+                    "skipping fetch of camera-specific sense settings."
+                )
 
             # Step 2: Process raw network data.
             processed_networks: List[Dict[str, Any]] = []
@@ -243,15 +257,15 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             )
 
             _LOGGER.debug(
-                "Data aggregation successful. Processed %d devices (passed to aggregator), %d SSIDs, %d networks.",
-                len(processed_devices),
-                len(processed_ssids),
-                len(processed_networks),
+                "Data aggregation successful. Aggregated data for %d devices, %d SSIDs, %d networks.", # Slightly rephrased
+                len(aggregated_data.get("devices", [])), # Log count from aggregated_data for consistency
+                len(aggregated_data.get("ssids", [])),
+                len(aggregated_data.get("networks", [])),
             )
             return aggregated_data
 
-        except Exception as e:  # pylint: disable=broad-except
-            _LOGGER.exception("Error during Meraki data aggregation: %s", e)
+        except Exception as e:  # pylint: disable=broad-except # Keep broad except for UpdateFailed
+            _LOGGER.exception("Error during Meraki data aggregation: %s", e) # .exception includes stack trace
             # Raise UpdateFailed to signal the main coordinator that this
             # update cycle failed.
             raise UpdateFailed(f"Error aggregating Meraki data: {e}") from e

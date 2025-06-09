@@ -134,35 +134,46 @@ class MerakiAPIClient:
 
         Args:
             serial: The serial number of the camera.
-            sense_enabled: Enable or disable sense.
-            audio_detection_enabled: Enable or disable audio detection.
+            sense_enabled: Optional. Target state for MV Sense (`senseEnabled`).
+            audio_detection_enabled: Optional. Target state for audio detection
+                                     (`audioDetection.enabled`).
 
         Returns:
-            The updated sense settings for the camera.
+            The response from the Meraki API after attempting the update.
+            If no settings are provided to update, returns the current settings.
+
+        Raises:
+            MerakiApiError: If the API call fails.
         """
         payload = {}
+        # Construct payload only with provided (non-None) arguments
         if sense_enabled is not None:
             payload["senseEnabled"] = sense_enabled
 
         if audio_detection_enabled is not None:
+            # The API expects audioDetection to be a dictionary
             payload.setdefault("audioDetection", {})["enabled"] = audio_detection_enabled
 
         if not payload:
-            _LOGGER.debug("No camera sense settings provided to update for device %s.", serial)
-            # Optionally, return current settings or a specific message
+            _LOGGER.debug(
+                "No camera sense settings provided to update for device %s. "
+                "Returning current settings instead.", serial
+            )
+            # As per previous logic, if no payload, fetch and return current settings.
             return await self.get_camera_sense_settings(serial)
 
-
+        _LOGGER.debug(
+            "Updating camera sense settings for device %s with payload: %s",
+            serial,
+            payload,
+        )
         try:
-            _LOGGER.debug(
-                "Updating camera sense settings for device %s with payload: %s",
-                serial,
-                payload,
-            )
+            # The meraki.aio SDK's updateDeviceCameraSense method
+            # directly accepts keyword arguments that match the API payload structure.
             return await self._sdk.camera.updateDeviceCameraSense(
                 serial=serial, **payload
             )
-        except Exception as e:
+        except Exception as e: # Catch specific meraki.APIError if possible/preferred
             _LOGGER.error(
                 "Error updating camera sense settings for device %s: %s", serial, e
             )

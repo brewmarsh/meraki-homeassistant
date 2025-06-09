@@ -29,18 +29,21 @@ class MerakiDeviceStatusSensor(
 ):
     """Representation of a Meraki Device Status sensor.
 
-    This sensor displays the actual reported status of the Meraki device
-    (e.g., online, offline, alerting).
-    It also provides additional device details as state attributes and an
-    icon based on the device model.
+    This sensor displays the actual reported status of a Meraki device
+    (e.g., "online", "offline", "alerting"). It uses SensorEntityDescription
+    to define its core properties. The device status is fetched from the
+    coordinator's data. Additional device details are provided as state attributes,
+    and the icon dynamically changes based on the device model.
 
-    Attributes:
-        _attr_name: The name of the sensor.
-        _attr_unique_id: The unique ID of the sensor.
-        _device_serial: Serial number of the device this sensor represents. Used for lookups.
+    The `name` property is derived from the `EntityDescription` ("Status"), and
+    Home Assistant combines this with the device name because `_attr_has_entity_name`
+    is True. Properties like `options`, `suggested_unit_of_measurement`,
+    `suggested_display_precision`, and `last_reset` default to None behavior
+    as they are not applicable or overridden by the base `SensorEntity` or
+    `SensorEntityDescription` defaults for categorical sensors.
     """
 
-    _attr_has_entity_name = True  # Use the device name as the base for the entity name
+    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -77,13 +80,13 @@ class MerakiDeviceStatusSensor(
 
         self.entity_description = SensorEntityDescription(
             key="device_status",
-            name="Status", # This will be the entity-specific part of the name
-            native_unit_of_measurement=None,
-            state_class=None,
+            name="Status",
+            native_unit_of_measurement=None, # Categorical status, no unit
+            state_class=None, # Categorical status
         )
-        # self._attr_state_class = None # Removed, handled by SensorEntityDescription
-        # self._attr_native_unit_of_measurement = None # Removed, handled by SensorEntityDescription
-        # self._attr_suggested_unit_of_measurement = None # Removed this line
+        # Properties like state_class and native_unit_of_measurement are now set by SensorEntityDescription.
+        # Other properties (options, suggested_unit_of_measurement, suggested_display_precision, last_reset)
+        # are intentionally not overridden here and will default to None or appropriate base class behavior.
 
         # Initial update of state and attributes
         self._update_sensor_data()
@@ -107,19 +110,17 @@ class MerakiDeviceStatusSensor(
         return None
 
     def _update_sensor_data(self) -> None:
-        """Update sensor state, icon, and attributes from coordinator data."""
+        """Update sensor state (native_value, icon) and attributes from coordinator data."""
         current_device_data = self._get_current_device_data()
 
-        if not current_device_data:
-            self._attr_native_value = None  # Or "unknown" if preferred when unavailable
-            self._attr_icon = "mdi:help-rhombus"  # Icon for unknown/unavailable state
-            # Keep basic attributes if device data disappears, or clear them
-            # For now, we'll let them be stale if device disappears from data.
-            # Or, to clear: self._attr_extra_state_attributes = {}
+        if not current_device_data: # Should be primarily handled by the `available` property
+            self._attr_native_value = None
+            self._attr_icon = "mdi:help-rhombus"
+            # Consider clearing extra_state_attributes if device becomes unavailable for a long time
+            # self._attr_extra_state_attributes = {}
             return
 
-        # Removed MERAKI_DEBUG_STATUS log line
-
+        # Status is the primary value of this sensor
         device_status: Optional[str] = current_device_data.get("status")
         if isinstance(device_status, str):
             self._attr_native_value = device_status.lower()
@@ -188,18 +189,18 @@ class MerakiDeviceStatusSensor(
             )
         return False
 
-    @property
-    def options(self) -> list[str] | None:
-        return None
-
-    @property
-    def suggested_unit_of_measurement(self) -> str | None:
-        return None
-
-    @property
-    def suggested_display_precision(self) -> int | None:
-        return None
-
-    @property
-    def last_reset(self) -> datetime | None:
-        return None
+    # @property
+    # def options(self) -> list[str] | None:
+    #     return None
+    #
+    # @property
+    # def suggested_unit_of_measurement(self) -> str | None:
+    #     return None
+    #
+    # @property
+    # def suggested_display_precision(self) -> int | None:
+    #     return None
+    #
+    # @property
+    # def last_reset(self) -> datetime | None:
+    #     return None
