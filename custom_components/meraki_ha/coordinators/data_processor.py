@@ -105,6 +105,7 @@ class MerakiDataProcessor:
                     "connected_clients_count"
                 ),
                 "radio_settings": device_raw_data.get("radio_settings"),
+                "rtspServerEnabled": device_raw_data.get("rtspServerEnabled"), # Ensure this line is added
             }
 
             # Fields known to be added by MerakiApiDataFetcher for MX or all devices
