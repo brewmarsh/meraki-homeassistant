@@ -154,27 +154,62 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 )
                 raise UpdateFailed("Essential data missing for aggregation.")
 
-            # Step 1: Process raw device data using MerakiDataProcessor.
-            # This standardizes the device structure.
-            processed_devices: List[Dict[str, Any]] = []
-            if isinstance(device_data, list):
-                processed_devices = await self.data_processor.process_devices(
-                    device_data
-                )
-                # The loop that previously iterated here to log MX devices (and before that, filter MR-only)
-                # has been removed as it currently serves no purpose.
-                # If specific processing for MX devices (or others) is needed at this stage in the future,
-                # it can be re-added here.
-            else:
-                _LOGGER.warning(
-                    "Device data is not a list as expected: %s. Proceeding with empty processed_devices.",
-                    type(device_data),
-                )
+            # Step 0: Validate optional inputs client_data and network_client_counts
+            sanitized_client_data: Optional[List[Dict[str, Any]]] = None
+            if client_data is not None:
+                if isinstance(client_data, list):
+                    sanitized_client_data = []
+                    for i, client_item in enumerate(client_data):
+                        if isinstance(client_item, dict):
+                            sanitized_client_data.append(client_item)
+                        else:
+                            _LOGGER.warning("Item at index %d in client_data is not a dictionary, skipping: %s", i, str(client_item)[:100])
+                else:
+                    _LOGGER.warning("'client_data' provided but is not a list (type: %s). Treating as None.", type(client_data).__name__)
+
+            sanitized_network_client_counts: Optional[Dict[str, int]] = None
+            if network_client_counts is not None:
+                if isinstance(network_client_counts, dict):
+                    sanitized_network_client_counts = network_client_counts
+                else:
+                    _LOGGER.warning("'network_client_counts' provided but is not a dict (type: %s). Treating as None.", type(network_client_counts).__name__)
+
+            # Step 1: Sanitize and Process raw device data
+            sanitized_device_data: List[Dict[str, Any]] = []
+            if isinstance(device_data, list): # device_data itself is confirmed not None by earlier check
+                for i, device_item in enumerate(device_data):
+                    if not isinstance(device_item, dict):
+                        _LOGGER.warning("Item at index %d in device_data is not a dictionary, skipping: %s", i, str(device_item)[:100])
+                        continue
+                    # Basic validation for critical keys (example)
+                    if not device_item.get("serial") or not isinstance(device_item.get("serial"), str):
+                        _LOGGER.warning("Device item at index %d missing or invalid 'serial', skipping: %s", i, str(device_item)[:100])
+                        continue
+                    if not device_item.get("model") or not isinstance(device_item.get("model"), str):
+                        _LOGGER.warning("Device item at index %d missing or invalid 'model', skipping: %s", i, str(device_item)[:100])
+                        continue
+                    raw_tags = device_item.get("tags")
+                    if raw_tags is not None and not isinstance(raw_tags, list):
+                        _LOGGER.warning("Device item at index %d has 'tags' but it's not a list (type: %s). Correcting to empty list. Device: %s",
+                                        i, type(raw_tags).__name__, device_item.get("serial", "N/A"))
+                        device_item["tags"] = []
+                    elif isinstance(raw_tags, list):
+                        device_item["tags"] = [str(tag) for tag in raw_tags if isinstance(tag, str)] # Ensure tags are strings
+
+                    sanitized_device_data.append(device_item)
+                processed_devices = await self.data_processor.process_devices(sanitized_device_data)
+            else: # Should not be reached if initial None check and UpdateFailed is effective
+                _LOGGER.error("Device data is not a list after initial checks, this is unexpected. Proceeding with empty processed_devices.")
+                processed_devices = []
+
 
             # Step 1.5: Fetch and merge camera-specific settings for camera devices.
-            # This enriches the device_dict for cameras with 'senseEnabled' and 'audioDetection' data.
             if self.coordinator.meraki_client:
-                for device_dict in processed_devices:
+                for device_idx, device_dict in enumerate(processed_devices):
+                    if not isinstance(device_dict, dict):
+                        _LOGGER.warning("Item at index %d in processed_devices is not a dictionary, skipping camera sense fetch: %s",
+                                        device_idx, str(device_dict)[:100])
+                        continue
                     serial = device_dict.get("serial")
                     product_type = device_dict.get("productType", "").lower()
                     model = device_dict.get("model", "").upper()
@@ -220,25 +255,43 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                     "skipping fetch of camera-specific sense settings."
                 )
 
-            # Step 2: Process raw network data.
-            processed_networks: List[Dict[str, Any]] = []
-            if isinstance(network_data, list):
-                processed_networks = self.data_processor.process_networks(network_data)
-            else:
-                _LOGGER.warning(
-                    "Network data is not a list as expected: %s. Proceeding with empty processed_networks.",
-                    type(network_data),
-                )
+            # Step 2: Sanitize and Process raw network data.
+            sanitized_network_data: List[Dict[str, Any]] = []
+            if isinstance(network_data, list): # network_data confirmed not None
+                for i, network_item in enumerate(network_data):
+                    if not isinstance(network_item, dict):
+                        _LOGGER.warning("Item at index %d in network_data is not a dictionary, skipping: %s", i, str(network_item)[:100])
+                        continue
+                    if not network_item.get("id") or not isinstance(network_item.get("id"), str):
+                        _LOGGER.warning("Network item at index %d missing or invalid 'id', skipping: %s", i, str(network_item)[:100])
+                        continue
+                    sanitized_network_data.append(network_item)
+                processed_networks = self.data_processor.process_networks(sanitized_network_data)
+            else: # Should not be reached
+                _LOGGER.error("Network data is not a list after initial checks, this is unexpected. Proceeding with empty processed_networks.")
+                processed_networks = []
 
-            # Step 3: Process raw SSID data.
-            processed_ssids: List[Dict[str, Any]] = []
-            if isinstance(ssid_data, list):
-                processed_ssids = self.data_processor.process_ssids(ssid_data)
-            else:
-                _LOGGER.warning(
-                    "SSID data is not a list as expected: %s. Proceeding with empty processed_ssids.",
-                    type(ssid_data),
-                )
+            # Step 3: Sanitize and Process raw SSID data.
+            sanitized_ssid_data: List[Dict[str, Any]] = []
+            if isinstance(ssid_data, list): # ssid_data confirmed not None
+                for i, ssid_item in enumerate(ssid_data):
+                    if not isinstance(ssid_item, dict):
+                        _LOGGER.warning("Item at index %d in ssid_data is not a dictionary, skipping: %s", i, str(ssid_item)[:100])
+                        continue
+                    if ssid_item.get("number") is None: # 'number' is critical for SSIDs
+                        _LOGGER.warning("SSID item at index %d missing 'number', skipping: %s", i, str(ssid_item)[:100])
+                        continue
+                    # Ensure 'enabled' is boolean, default to False if missing or wrong type
+                    enabled_flag = ssid_item.get("enabled")
+                    if not isinstance(enabled_flag, bool):
+                        _LOGGER.warning("SSID item at index %d 'enabled' flag is not bool (type: %s, value: %s). Defaulting to False.",
+                                        i, type(enabled_flag).__name__, enabled_flag)
+                        ssid_item["enabled"] = False
+                    sanitized_ssid_data.append(ssid_item)
+                processed_ssids = self.data_processor.process_ssids(sanitized_ssid_data)
+            else: # Should not be reached
+                _LOGGER.error("SSID data is not a list after initial checks, this is unexpected. Proceeding with empty processed_ssids.")
+                processed_ssids = []
 
             # Note: Device tags are now part of `processed_devices` due to changes in
             # `MerakiApiDataFetcher` and `MerakiDataProcessor`.
@@ -248,17 +301,14 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             # Step 4: Aggregate all processed data using DataAggregator.
             # `DataAggregator.aggregate_data` now expects devices to contain their tags.
             aggregated_data: Dict[str, Any] = await self.data_aggregator.aggregate_data(
-                processed_devices,
-                # Contains device info, including tags and MR-specific details.
-                processed_ssids,
-                processed_networks,
-                client_data,
-                network_client_counts,
+                processed_devices, # Now sanitized list of dicts, processed by data_processor
+                processed_ssids,   # Now sanitized list of dicts, processed by data_processor
+                processed_networks, # Now sanitized list of dicts, processed by data_processor
+                sanitized_client_data, # Optional list of dicts, or None
+                sanitized_network_client_counts, # Optional dict, or None
                 clients_on_ssids=clients_on_ssids,
                 clients_on_appliances=clients_on_appliances,
                 clients_on_wireless=clients_on_wireless,
-                # The fourth `device_tags` argument was removed from
-                # DataAggregator.
             )
 
             _LOGGER.debug(

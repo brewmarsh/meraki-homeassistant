@@ -12,7 +12,7 @@ from meraki.aio import AsyncDashboardAPI  # Changed from DashboardAPI
 # Assuming MerakiApiError might still be used as a base custom error for the integration.
 # If not, this can be removed in a later step if all error handling is
 # done via meraki.APIError
-from .exceptions import MerakiApiError, MerakiApiConnectionError, MerakiApiInvalidApiKeyError
+from .exceptions import MerakiApiError, MerakiApiConnectionError, MerakiApiAuthError # Changed MerakiApiInvalidApiKeyError to MerakiApiAuthError
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
 
@@ -107,7 +107,7 @@ class MerakiAPIClient:
                 f"(Status: {e.status}, Reason: {e.reason}, Action: {e.action}, Response: {str(e.response)[:200]})"
             )
             if e.status == 401:
-                raise MerakiApiInvalidApiKeyError(f"Authentication failed while {method_description}.") from e
+                raise MerakiApiAuthError(f"Authentication failed while {method_description}: {e.message} (Status: {e.status})") from e
             # Example heuristic for connection error - SDK might have better ways or specific error types
             if e.status is None or "Temporary failure in name resolution" in e.message or "Connection timed out" in e.message:
                  raise MerakiApiConnectionError(f"Connection error while {method_description}: {e.message}") from e
@@ -135,7 +135,7 @@ class MerakiAPIClient:
                 f"(Status: {e.status}, Reason: {e.reason}, Action: {e.action}, Response: {str(e.response)[:200]})"
             )
             if e.status == 401:
-                raise MerakiApiInvalidApiKeyError(f"Authentication failed while {method_description}.") from e
+                raise MerakiApiAuthError(f"Authentication failed while {method_description}: {e.message} (Status: {e.status})") from e
             if e.status is None or "Temporary failure in name resolution" in e.message or "Connection timed out" in e.message:
                  raise MerakiApiConnectionError(f"Connection error while {method_description}: {e.message}") from e
             raise MerakiApiError(f"Failed while {method_description}: {e.message} (Status: {e.status})") from e
@@ -162,7 +162,7 @@ class MerakiAPIClient:
                 f"(Status: {e.status}, Reason: {e.reason}, Action: {e.action}, Response: {str(e.response)[:200]})"
             )
             if e.status == 401:
-                raise MerakiApiInvalidApiKeyError(f"Authentication failed while {method_description}.") from e
+                raise MerakiApiAuthError(f"Authentication failed while {method_description}: {e.message} (Status: {e.status})") from e
             if e.status is None or "Temporary failure in name resolution" in e.message or "Connection timed out" in e.message:
                  raise MerakiApiConnectionError(f"Connection error while {method_description}: {e.message}") from e
             raise MerakiApiError(f"Failed while {method_description}: {e.message} (Status: {e.status})") from e
@@ -201,7 +201,7 @@ class MerakiAPIClient:
                 f"(Status: {e.status}, Reason: {e.reason}, Action: {e.action}, Response: {str(e.response)[:200]})"
             )
             if e.status == 401:
-                raise MerakiApiInvalidApiKeyError(f"Authentication failed while {method_description}.") from e
+                raise MerakiApiAuthError(f"Authentication failed while {method_description}: {e.message} (Status: {e.status})") from e
             if e.status is None or "Temporary failure in name resolution" in e.message or "Connection timed out" in e.message:
                  raise MerakiApiConnectionError(f"Connection error while {method_description}: {e.message}") from e
             raise MerakiApiError(f"Failed while {method_description}: {e.message} (Status: {e.status})") from e
@@ -265,7 +265,7 @@ class MerakiAPIClient:
                 f"(Status: {e.status}, Reason: {e.reason}, Action: {e.action}, Response: {str(e.response)[:200]})"
             )
             if e.status == 401:
-                raise MerakiApiInvalidApiKeyError(f"Authentication failed while {method_description}.") from e
+                raise MerakiApiAuthError(f"Authentication failed while {method_description}: {e.message} (Status: {e.status})") from e
             if e.status is None or "Temporary failure in name resolution" in e.message or "Connection timed out" in e.message:
                  raise MerakiApiConnectionError(f"Connection error while {method_description}: {e.message}") from e
             raise MerakiApiError(f"Failed while {method_description}: {e.message} (Status: {e.status})") from e

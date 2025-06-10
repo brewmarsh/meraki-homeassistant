@@ -236,13 +236,33 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
         # Extract data components from `all_data`. Default to empty lists if
         # keys are missing.
-        devices: List[Dict[str, Any]] = all_data.get("devices", [])
-        ssids: List[Dict[str, Any]] = all_data.get("ssids", [])
-        networks: List[Dict[str, Any]] = all_data.get("networks", [])
-        clients_list: List[Dict[str, Any]] = all_data.get(
-            "clients", []
-        )  # New: Extract clients
-        self.org_name = all_data.get("org_name")  # Store org_name from fetched data
+        # Validate structure of data from api_fetcher
+        devices_raw = all_data.get("devices")
+        ssids_raw = all_data.get("ssids")
+        networks_raw = all_data.get("networks")
+        clients_list_raw = all_data.get("clients")
+        self.org_name = all_data.get("org_name") # org_name can be None, handled by registration logic
+
+        if not isinstance(devices_raw, list):
+            _LOGGER.error("Invalid data structure: 'devices' is not a list (type: %s). Cannot proceed.", type(devices_raw).__name__)
+            raise UpdateFailed("Received invalid 'devices' data structure from API fetcher.")
+        devices: List[Dict[str, Any]] = devices_raw
+
+        if not isinstance(ssids_raw, list):
+            _LOGGER.error("Invalid data structure: 'ssids' is not a list (type: %s). Cannot proceed.", type(ssids_raw).__name__)
+            raise UpdateFailed("Received invalid 'ssids' data structure from API fetcher.")
+        ssids: List[Dict[str, Any]] = ssids_raw
+
+        if not isinstance(networks_raw, list):
+            _LOGGER.error("Invalid data structure: 'networks' is not a list (type: %s). Cannot proceed.", type(networks_raw).__name__)
+            raise UpdateFailed("Received invalid 'networks' data structure from API fetcher.")
+        networks: List[Dict[str, Any]] = networks_raw
+
+        if not isinstance(clients_list_raw, list):
+            _LOGGER.warning("Invalid data structure: 'clients' is not a list (type: %s). Proceeding with empty client list.", type(clients_list_raw).__name__)
+            clients_list: List[Dict[str, Any]] = [] # Default to empty list if type is wrong
+        else:
+            clients_list: List[Dict[str, Any]] = clients_list_raw
 
         # Step 2: Device tags are now part of the `devices` list from `all_data`.
         # No separate tag fetching step is needed here.
@@ -259,9 +279,14 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             "Starting Meraki Network device registration process for org %s.",
             self.org_id,
         )
-        device_registry = dr.async_get(self.hass)  # Ensure dr is available
+        device_registry = dr.async_get(self.hass)
         processed_network_devices = 0
-        for network_info in networks:  # 'networks' is all_data.get("networks", [])
+        # networks is now validated to be a list
+        for network_idx, network_info in enumerate(networks):
+            if not isinstance(network_info, dict):
+                _LOGGER.warning("Skipping non-dictionary network_info at index %d: %s", network_idx, str(network_info)[:100])
+                continue
+
             network_id = network_info.get("id")
             network_name = network_info.get("name")
 
@@ -322,12 +347,17 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         )
         # device_registry instance is already available from network registration part
         successful_physical_device_registrations = 0
-        for device_info in devices:  # 'devices' is all_data.get("devices", [])
+        # devices is now validated to be a list
+        for device_idx, device_info in enumerate(devices):
             try:
+                if not isinstance(device_info, dict):
+                    _LOGGER.warning("Skipping non-dictionary device_info at index %d: %s", device_idx, str(device_info)[:100])
+                    continue
+
                 serial = device_info.get("serial")
                 if not serial:
                     _LOGGER.warning(
-                        "Device found without serial, cannot register: %s. Skipping this device.", device_info
+                        "Device at index %d found without serial, cannot register: %s. Skipping this device.", device_idx, str(device_info)[:100]
                     )
                     continue
 
@@ -415,22 +445,37 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
         # Step 4: Aggregate all data using the DataAggregationCoordinator.
         # This coordinator takes the raw lists of devices, SSIDs, and networks.
+        # Ensure all inputs to data_aggregation_coordinator are of expected list types
+        # (already validated for devices, ssids, networks, clients_list).
+        # network_client_counts is Optional[Dict], which is fine.
+        # Integer counts are fine.
+        if not (isinstance(devices, list) and
+                isinstance(ssids, list) and
+                isinstance(networks, list) and
+                isinstance(clients_list, list) and
+                (isinstance(network_client_counts, dict) or network_client_counts is None)):
+            _LOGGER.critical(
+                "Internal data type mismatch before calling data_aggregation_coordinator. This should not happen. "
+                "devices_type: %s, ssids_type: %s, networks_type: %s, clients_list_type: %s, network_client_counts_type: %s",
+                type(devices).__name__, type(ssids).__name__, type(networks).__name__, type(clients_list).__name__, type(network_client_counts).__name__
+            )
+            # This indicates a severe logic error if previous checks passed.
+            raise UpdateFailed("Critical internal data type error before aggregation.")
+
         try:
             combined_data: Dict[str, Any] = (
                 await self.data_aggregation_coordinator._async_update_data(
-                    devices,  # Pass the comprehensive devices list.
-                    ssids,  # Pass the SSIDs list.
-                    networks,  # Pass the networks list.
+                    devices,
+                    ssids,
+                    networks,
                     clients_list,
                     network_client_counts,
                     clients_on_ssids=clients_on_ssids,
                     clients_on_appliances=clients_on_appliances,
                     clients_on_wireless=clients_on_wireless,
-                    # The fourth `device_tags` argument has been removed from
-                    # _async_update_data.
                 )
             )
-        except Exception as e:  # Catch errors specifically from the aggregation step.
+        except Exception as e: # Catch errors specifically from the aggregation step.
             _LOGGER.exception(
                 "Error during data aggregation for org %s: %s", self.org_id, e
             )
@@ -459,9 +504,13 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 "Tag erasing is enabled for organization %s. Processing devices for tag removal.",
                 self.org_id,
             )
-            for (
-                device_to_check
-            ) in devices:  # Use a different variable name to avoid confusion
+            # devices is now validated to be a list
+            for device_idx, device_to_check in enumerate(devices):
+                if not isinstance(device_to_check, dict):
+                    _LOGGER.warning("Skipping non-dictionary device_to_check at index %d for tag erasing: %s",
+                                    device_idx, str(device_to_check)[:100])
+                    continue
+
                 serial = device_to_check.get("serial")
                 if serial:
                     try:

@@ -8,7 +8,7 @@ like client counts and radio settings for MR devices, using the Meraki SDK.
 
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Awaitable # Added Awaitable
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -65,10 +65,12 @@ class MerakiApiDataFetcher:
         connected client count and wireless radio settings using concurrent tasks.
 
         Args:
-            hass: The Home Assistant instance (currently unused but common pattern).
+            hass: The Home Assistant instance. Currently unused but retained for potential
+                  future use or consistency with Home Assistant patterns.
 
         Returns:
-            A dictionary containing lists of devices, networks, and SSIDs.
+            A dictionary containing lists of processed data for devices, networks, SSIDs,
+            clients, client counts, and organization name.
             Example: `{"devices": [...], "networks": [...], "ssids": [...]}`.
             The 'devices' list includes tags, and for MR devices, it also includes
             `connected_clients_count` and `radio_settings`.
@@ -154,36 +156,57 @@ class MerakiApiDataFetcher:
             raise UpdateFailed(
                 f"Could not fetch Meraki networks for org {self.org_id}."
             )
-        if devices is None:
+        if devices is None: # This check is after results unpacking, devices could be None due to fetch error
             _LOGGER.error(
-                f"Could not fetch Meraki devices for org ID: {self.org_id}. Aborting update."
+                f"Meraki devices data is None for org ID: {self.org_id} after fetch. Aborting update."
             )
-            raise UpdateFailed(f"Could not fetch Meraki devices for org {self.org_id}.")
+            raise UpdateFailed(f"Fetched Meraki devices data is None for org {self.org_id}.")
+        if not isinstance(devices, list):
+            _LOGGER.error(
+                f"Fetched Meraki devices data is not a list (type: {type(devices).__name__}) for org ID: {self.org_id}. Aborting update."
+            )
+            raise UpdateFailed(f"Invalid devices data format for org {self.org_id}.")
+        if not isinstance(networks, list): # Networks is checked for None earlier, this is for type
+            _LOGGER.error(
+                f"Fetched Meraki networks data is not a list (type: {type(networks).__name__}) for org ID: {self.org_id}. Aborting update."
+            )
+            raise UpdateFailed(f"Invalid networks data format for org {self.org_id}.")
+
 
         # Step 2.1: Process Device Statuses (already fetched)
         device_statuses_map = {}
-        if statuses_data:  # Check if any status data was returned and successfully processed
+        if statuses_data and not isinstance(statuses_data, list):
+            _LOGGER.warning(
+                f"Device status data was fetched but is not a list (type: {type(statuses_data).__name__}). Cannot process statuses."
+            )
+            statuses_data = None # Treat as if no statuses were fetched
+
+        if statuses_data:
             for status_entry in statuses_data:
-                if status_entry.get("serial"):  # Ensure serial exists.
+                if not isinstance(status_entry, dict):
+                    _LOGGER.warning("Skipping non-dictionary status_entry: %s", str(status_entry)[:100])
+                    continue
+                if status_entry.get("serial"):
                     device_statuses_map[status_entry["serial"]] = status_entry
-        elif devices: # If devices exist but statuses_data is None/empty due to error
-             _LOGGER.warning(f"Device status data was not successfully fetched for org {self.org_id}. Status-dependent info may be missing.")
+        elif devices:
+             _LOGGER.warning(f"Device status data was not successfully fetched or was empty for org {self.org_id}. Status-dependent info may be missing.")
 
+        # Step 2.2: Merge Statuses into Devices
+        if device_statuses_map: # Only proceed if there's something to merge
+            for device_idx, device in enumerate(devices):
+                if not isinstance(device, dict):
+                    _LOGGER.warning("Skipping non-dictionary device item at index %d: %s", device_idx, str(device)[:100])
+                    continue
 
-        # Step 2.2: Merge Statuses into Devices (No change in this block's logic, just its position)
-        if (
-            devices and device_statuses_map
-        ):  # Proceed if both devices and statuses data exist.
-            for (
-                device
-            ) in devices:  # Iterate through each device from the initial fetch.
                 serial = device.get("serial")
-                if (
-                    serial and serial in device_statuses_map
-                ):  # Check if status is available for this device.
+                if serial and serial in device_statuses_map:
                     status_update_data = device_statuses_map[serial]
-                    # Preserve original model and productType before updating.
-                    # This is important because device status API might not include all details
+                    if not isinstance(status_update_data, dict): # Should be a dict if from device_statuses_map
+                        _LOGGER.warning("Skipping non-dictionary status_update_data for serial %s: %s", serial, str(status_update_data)[:100])
+                        continue
+
+                    original_model = device.get("model", "")
+                    original_product_type = device.get("productType")
                     # or might have different productType representations (e.g., null).
                     original_model = device.get("model", "")
                     original_product_type = device.get("productType")
@@ -257,10 +280,14 @@ class MerakiApiDataFetcher:
         # Step 4: Fetch additional details for MR (wireless) and MX (appliance) devices.
         # This is done concurrently using asyncio.gather for efficiency.
         additional_device_detail_tasks = []
-        if devices:  # Only proceed if there are devices.
-            for device in devices:  # Iterate through the list of devices.
-                device_model = device.get("model", "") # No .upper() here yet
-                serial = device.get("serial")
+        # devices is now confirmed to be a list
+        for device_idx, device in enumerate(devices):
+            if not isinstance(device, dict):
+                _LOGGER.warning("Skipping non-dictionary device item at index %d for additional details: %s", device_idx, str(device)[:100])
+                continue
+
+            device_model = device.get("model", "")
+            serial = device.get("serial")
 
                 if (
                     not serial
@@ -283,14 +310,10 @@ class MerakiApiDataFetcher:
                 elif device_model.upper().startswith("MX"): # Keep existing MX logic as is
                     _LOGGER.debug(f"Device {serial} is MX, scheduling MX detail tasks.")
                     additional_device_detail_tasks.append(
-                        self._async_get_mx_device_uplink_settings(
-                            device, self.meraki_client
-                        )
+                        self._async_get_mx_device_uplink_settings(device)
                     )
                     additional_device_detail_tasks.append(
-                        self._async_get_mx_lan_dns_settings(
-                            device, self.meraki_client
-                        )
+                        self._async_get_mx_lan_dns_settings(device)
                     )
                 # Check for Camera devices (MV)
                 # Use productType (more reliable) or model prefix (fallback)
@@ -301,7 +324,7 @@ class MerakiApiDataFetcher:
                     device["externalRtspEnabled"] = None
                     device["rtspUrl"] = None # Initialize rtspUrl as well
                     additional_device_detail_tasks.append(
-                        self._async_get_camera_video_settings(device, self.meraki_client)
+                        self._async_get_camera_video_settings(device)
                     )
 
         if additional_device_detail_tasks:  # If there are tasks to run.
@@ -352,19 +375,47 @@ class MerakiApiDataFetcher:
                         to_version_info = next_upgrade_info.get("toVersion")
                         if isinstance(to_version_info, dict):
                             latest_item_version = to_version_info.get("version", "N/A")
-                            # Has a scheduled upgrade, so not up-to-date with that version yet.
-                            is_item_up_to_date = False
-                        else: # next_upgrade_info exists, but no toVersion
+                            is_item_up_to_date = False # Has a scheduled upgrade
+                        else: # next_upgrade_info is a dict, but no toVersion dict
+                            if to_version_info is not None: # Log if toVersion was present but not a dict
+                                _LOGGER.warning("Firmware upgrade item for serial %s has 'toVersion' but it's not a dictionary: %s. Cannot determine scheduled version.",
+                                                item_serial, str(to_version_info)[:100])
+                            # Fall through to check item_status for current state if no specific version scheduled
                             item_status = str(upgrade_item.get("status", "")).lower()
                             if item_status == "up-to-date":
                                 is_item_up_to_date = True
-                                # latest_item_version will be set based on device's current firmware later
                             elif item_status == "has-newer-stable-version":
                                 is_item_up_to_date = False
                                 available_versions = upgrade_item.get("availableVersions")
                                 if isinstance(available_versions, list) and available_versions:
+                                    if isinstance(available_versions[0], dict):
+                                        latest_item_version = available_versions[0].get("version", "N/A")
+                                    else:
+                                        _LOGGER.warning("First item in 'availableVersions' for serial %s is not a dict: %s. Cannot determine latest available version.",
+                                                        item_serial, str(available_versions[0])[:100])
+                                elif available_versions is not None: # Log if present but not list or empty
+                                     _LOGGER.warning("'availableVersions' for serial %s is not a non-empty list: %s. Cannot determine latest available version.",
+                                                     item_serial, str(available_versions)[:100])
+                    elif next_upgrade_info is not None: # Log if nextUpgrade was present but not a dict
+                        _LOGGER.warning("Firmware upgrade item for serial %s has 'nextUpgrade' but it's not a dictionary: %s.",
+                                        item_serial, str(next_upgrade_info)[:100])
+                        # Fall through to check item_status for current state
+                        item_status = str(upgrade_item.get("status", "")).lower()
+                        if item_status == "up-to-date":
+                            is_item_up_to_date = True
+                        elif item_status == "has-newer-stable-version": # Check again here as it's a separate path
+                            is_item_up_to_date = False
+                            available_versions = upgrade_item.get("availableVersions") # Duplicated check, but paths are distinct
+                            if isinstance(available_versions, list) and available_versions:
+                                if isinstance(available_versions[0], dict):
                                     latest_item_version = available_versions[0].get("version", "N/A")
-                    else: # No nextUpgrade info
+                                else:
+                                    _LOGGER.warning("First item in 'availableVersions' (no nextUpgrade path) for serial %s is not a dict: %s.",
+                                                    item_serial, str(available_versions[0])[:100])
+                            elif available_versions is not None:
+                                 _LOGGER.warning("'availableVersions' (no nextUpgrade path) for serial %s is not a non-empty list: %s.",
+                                                 item_serial, str(available_versions)[:100])
+                    else: # No nextUpgrade info at all
                         item_status = str(upgrade_item.get("status", "")).lower()
                         if item_status == "up-to-date":
                             is_item_up_to_date = True
@@ -461,13 +512,20 @@ class MerakiApiDataFetcher:
 
         # Step 6: Fetch SSIDs for each network.
         ssids: List[Dict[str, Any]] = []
-        for (
-            network
-        ) in networks:  # Iterate through the list of networks obtained earlier.
-            network_id: str = network["id"]  # Get network ID.
+        # networks is now confirmed to be a list
+        for network_idx, network in enumerate(networks):
+            if not isinstance(network, dict):
+                _LOGGER.warning("Skipping non-dictionary network item at index %d for SSID fetching: %s", network_idx, str(network)[:100])
+                continue
+
+            network_id = network.get("id")
+            if not network_id:
+                _LOGGER.warning("Network item at index %d missing 'id'. Skipping SSID fetch for this network: %s", network_idx, str(network)[:100])
+                continue
+
             try:
                 _LOGGER.debug(f"Fetching SSIDs for network ID: {network_id}")
-                ssid_data_for_network = None  # Initialize to None for this iteration.
+                ssid_data_for_network = None
                 try:
                     # Fetch SSIDs for the current network.
                     ssid_data_for_network = await self.async_get_network_ssids(
@@ -513,38 +571,52 @@ class MerakiApiDataFetcher:
 
         # Step 7: Fetch all clients across all networks.
         all_clients: List[Dict[str, Any]] = []
-        if networks:  # Only proceed if networks list is available.
-            for network in networks:  # Iterate through each network.
-                network_id = network["id"]
-                try:
-                    _LOGGER.debug(f"Fetching clients for network ID: {network_id}")
-                    # Fetch clients for the current network. Timespan is set to 3600 seconds (1 hour)
-                    # to get a more stable count of recently active clients over a longer period,
-                    # reducing short-term fluctuations compared to the previous 5-minute window.
-                    network_clients_data = (
-                        await self.meraki_client.networks.getNetworkClients(
-                            network_id,
-                            timespan=3600,  # Updated timespan to 1 hour
-                        )
+        # networks is confirmed to be a list
+        for network_idx, network in enumerate(networks):
+            if not isinstance(network, dict): # Should have been caught already if networks was malformed, but as safety
+                _LOGGER.warning("Skipping non-dictionary network item at index %d for client fetching: %s", network_idx, str(network)[:100])
+                continue
+
+            network_id = network.get("id")
+            if not network_id: # Should have been caught already
+                _LOGGER.warning("Network item at index %d missing 'id'. Skipping client fetch for this network: %s", network_idx, str(network)[:100])
+                continue
+
+            try:
+                _LOGGER.debug(f"Fetching clients for network ID: {network_id}")
+                network_clients_data = (
+                    await self.meraki_client.networks.getNetworkClients(
+                        network_id,
+                        timespan=3600,
                     )
-                    if network_clients_data:  # If clients are found.
-                        for client_data in network_clients_data:  # Process each client.
-                            # Attempt to get AP serial; this helps in linking clients to specific APs if needed.
-                            # Different API versions/device types might use different keys for this.
-                            ap_serial = (
-                                client_data.get(
-                                    "recentDeviceSerial"
-                                )  # Primary key for AP serial.
-                                or client_data.get(
-                                    "recentDeviceMac"
-                                )  # Fallback if serial not present.
-                                or client_data.get("deviceSerial")  # Another fallback.
-                            )
-                            # Construct a standardized client entry dictionary.
-                            client_entry = {
-                                "mac": client_data["mac"],
-                                "ip": client_data.get("ip"),
-                                "description": client_data.get("description"),
+                )
+                if not isinstance(network_clients_data, list):
+                    _LOGGER.warning("Network clients data for network %s is not a list (type: %s). Skipping client processing for this network.",
+                                    network_id, type(network_clients_data).__name__)
+                    continue
+
+                if network_clients_data:
+                    for client_idx, client_data in enumerate(network_clients_data):
+                        if not isinstance(client_data, dict):
+                            _LOGGER.warning("Skipping non-dictionary client_data item at index %d for network %s: %s",
+                                            client_idx, network_id, str(client_data)[:100])
+                            continue
+
+                        mac_address = client_data.get("mac")
+                        if not mac_address:
+                            _LOGGER.warning("Client data item at index %d for network %s missing 'mac'. Skipping this client: %s",
+                                            client_idx, network_id, str(client_data)[:100])
+                            continue
+
+                        ap_serial = (
+                            client_data.get("recentDeviceSerial")
+                            or client_data.get("recentDeviceMac")
+                            or client_data.get("deviceSerial")
+                        )
+                        client_entry = {
+                            "mac": mac_address, # Already validated
+                            "ip": client_data.get("ip"),
+                            "description": client_data.get("description"),
                                 "status": client_data.get(
                                     "status", "Online"
                                 ),  # Default to "Online" if status missing.
@@ -591,40 +663,35 @@ class MerakiApiDataFetcher:
         clients_on_wireless = 0
 
         device_serial_to_type_map = {}
-        if devices:
-            # Ensure 'devices' here is the comprehensive list
-            for device in devices:
-                serial = device.get("serial")
-                model = device.get("model", "") # Ensure model is a string
-                if serial and model: # model can be empty string but map_meraki_model_to_device_type should handle it
-                    device_serial_to_type_map[serial] = (
-                        map_meraki_model_to_device_type(model)
-                    )
+        # devices is confirmed to be a list
+        for device_idx, device in enumerate(devices):
+            if not isinstance(device, dict): # Should have been caught, but for safety
+                _LOGGER.warning("Skipping non-dictionary device item at index %d for serial_to_type_map: %s", device_idx, str(device)[:100])
+                continue
+            serial = device.get("serial")
+            model = device.get("model", "")
+            if not isinstance(model, str): # Ensure model is a string for map_meraki_model_to_device_type
+                _LOGGER.warning("Device serial %s has non-string model (type: %s, value: %s). Using empty string for type mapping.",
+                                serial, type(model).__name__, model)
+                model = ""
+            if serial: # model can be empty string, map_meraki_model_to_device_type should handle
+                device_serial_to_type_map[serial] = map_meraki_model_to_device_type(model)
 
-        # Removed MERAKI_CLIENT_COUNT_DEBUG logs from this section
+        for client_idx, client in enumerate(all_clients):
+            if not isinstance(client, dict): # all_clients should be list of dicts by now
+                _LOGGER.warning("Skipping non-dictionary client item at index %d for counting: %s", client_idx, str(client)[:100])
+                continue
 
-        for client in all_clients:
-            # Removed MERAKI_CLIENT_COUNT_DEBUG logs from this section
-
-            # client_counted_for_wireless_or_appliance = False # Variable not used, can be removed if not intended for future use
-
-            # Count clients on SSIDs
-            if client.get("ssid"):  # Check if client is associated with an SSID
+            if client.get("ssid"):
                 clients_on_ssids += 1
-                # Removed MERAKI_CLIENT_COUNT_DEBUG logs from this section
 
-            # Count clients on Wireless APs or Appliances
             ap_serial = client.get("ap_serial")
-            if ap_serial:
+            if ap_serial: # ap_serial can be None
                 device_type = device_serial_to_type_map.get(ap_serial)
-                # Removed MERAKI_CLIENT_COUNT_DEBUG logs from this section
                 if device_type == "Wireless":
                     clients_on_wireless += 1
-                    # client_counted_for_wireless_or_appliance = True
-                    # Removed MERAKI_CLIENT_COUNT_DEBUG logs from this section
                 elif device_type == "Appliance":
                     clients_on_appliances += 1
-                    # client_counted_for_wireless_or_appliance = True
                     # Removed MERAKI_CLIENT_COUNT_DEBUG logs from this section
             # else: # No specific log needed if no ap_serial, normal case for some clients
                  # Removed MERAKI_CLIENT_COUNT_DEBUG logs from this section
@@ -671,9 +738,19 @@ class MerakiApiDataFetcher:
         }
 
     async def _async_meraki_api_call(
-        self, api_coro: asyncio.Task, call_description: str, return_empty_list_on_404: bool = False
+        self, api_coro: Awaitable[Any], call_description: str, return_empty_list_on_404: bool = False
     ) -> Optional[Any]:
-        """Helper to make a Meraki API call and handle common exceptions."""
+        """Helper to make a Meraki API call and handle common exceptions.
+
+        Args:
+            api_coro: The coroutine representing the API call to execute.
+            call_description: A human-readable description of the API call for logging.
+            return_empty_list_on_404: If True, return an empty list on HTTP 404,
+                                      otherwise returns None for 404.
+
+        Returns:
+            The result of the API call if successful, or None/empty list on error/404.
+        """
         _LOGGER.debug(f"Executing API call: {call_description}")
         try:
             result = await api_coro
@@ -741,22 +818,26 @@ class MerakiApiDataFetcher:
         _LOGGER.debug(f"Finished _async_get_mr_device_details for {serial}. Client count: {device.get('connected_clients_count')}, Radio settings type: {type(device.get('radio_settings')).__name__}")
 
     async def _async_get_camera_video_settings(
-        self, device: Dict[str, Any], client: MerakiAPIClient
+        self, device: Dict[str, Any]
     ) -> None:
-        """Fetch and store video settings (specifically rtspServerEnabled) for a camera device.
+        """Fetch and store video settings (specifically externalRtspEnabled and rtspUrl) for a camera device.
 
-        Updates the `device` dictionary in-place with `rtspServerEnabled`.
-        Handles API errors by logging and ensuring `externalRtspEnabled` and `rtspUrl` are None if fetch fails.
+        Updates the `device` dictionary in-place. Handles API errors by logging
+        and ensuring `externalRtspEnabled` and `rtspUrl` are None if fetch fails.
 
         Args:
-            device: The camera device dictionary to update.
-            client: The MerakiAPIClient instance for the API call.
+            device: The camera device dictionary to update. Must contain 'serial'.
         """
         serial = device.get("serial")
-        # externalRtspEnabled and rtspUrl should have been initialized to None before this task was added.
+        if not serial: # Should be caught by caller, but good practice
+            _LOGGER.warning("Cannot fetch camera video settings: device serial is missing.")
+            device["externalRtspEnabled"] = None
+            device["rtspUrl"] = None
+            return
 
+        # externalRtspEnabled and rtspUrl should have been initialized to None by the caller.
         video_settings = await self._async_meraki_api_call(
-            client.camera.getDeviceCameraVideoSettings(serial=serial),
+            self.meraki_client.camera.getDeviceCameraVideoSettings(serial=serial), # Use self.meraki_client
             f"getDeviceCameraVideoSettings(serial={serial})"
         )
 
@@ -839,7 +920,7 @@ class MerakiApiDataFetcher:
         return ssids_data
 
     async def _async_get_mx_device_uplink_settings(
-        self, device: Dict[str, Any], client: MerakiAPIClient
+        self, device: Dict[str, Any]
     ) -> None:
         """Fetch and store WAN DNS server settings from uplink configuration for an MX (appliance) device.
 
@@ -849,24 +930,22 @@ class MerakiApiDataFetcher:
         gracefully by logging warnings and ensuring default empty lists.
 
         Args:
-            device: The device dictionary to update.
-            client: The MerakiAPIClient instance to use for the API call.
+            device: The device dictionary to update. Must contain 'serial'.
         """
         serial = device.get("serial")
-        if not serial:  # Cannot proceed without a serial number.
-            _LOGGER.warning(
-                f"Cannot fetch uplink settings for MX device {device.get('name', 'Unknown')}: missing serial."
-            )
+        if not serial:
+            _LOGGER.warning("Cannot fetch uplink settings for MX device: missing serial. Device data: %s", str(device)[:100])
+            # Ensure keys are initialized if device dict might be used later
+            device["wan1_dns_servers"] = []
+            device["wan2_dns_servers"] = []
             return
 
         _LOGGER.debug(
             f"Fetching uplink settings for MX device {device.get('name', 'Unknown')} (Serial: {serial})"
         )
 
-        # Add other WANs here if needed, e.g., device["wan3_dns_servers"] = []
-
         uplink_settings = await self._async_meraki_api_call(
-            client.appliance.getDeviceApplianceUplinksSettings(serial=serial),
+            self.meraki_client.appliance.getDeviceApplianceUplinksSettings(serial=serial), # Use self.meraki_client
             f"getDeviceApplianceUplinksSettings(serial={serial})"
         )
 
@@ -1006,7 +1085,7 @@ class MerakiApiDataFetcher:
         return current_wan_dns_ips
 
     async def _async_get_mx_lan_dns_settings(
-        self, device: Dict[str, Any], client: MerakiAPIClient
+        self, device: Dict[str, Any]
     ) -> None:
         """Fetch and store LAN DNS settings from VLAN configurations for an MX (appliance) device.
 
@@ -1016,39 +1095,31 @@ class MerakiApiDataFetcher:
         Handles API errors gracefully.
 
         Args:
-            device: The device dictionary to update.
-            client: The MerakiAPIClient instance to use for the API call.
+            device: The device dictionary to update. Must contain 'networkId' and 'serial'.
         """
-        network_id = device.get(
-            "networkId"
-        )  # Network ID is required to fetch VLANs for the network the MX is in.
-        serial = device.get("serial", "N/A")  # For logging purposes.
-        device_name = device.get("name", "Unknown")  # For logging purposes.
+        network_id = device.get("networkId")
+        serial = device.get("serial", "N/A") # For logging
+        device_name = device.get("name", "Unknown") # For logging
 
-        if not network_id:  # Cannot proceed without network ID.
-            _LOGGER.debug(
-                f"Cannot fetch LAN DNS settings for MX device {device_name} (Serial: {serial}): missing networkId."
+        if not network_id or not isinstance(network_id, str):
+            _LOGGER.warning(
+                f"Cannot fetch LAN DNS settings for MX device {device_name} (Serial: {serial}): 'networkId' is missing or invalid (type: {type(network_id).__name__})."
             )
-            device["lan_dns_settings"] = (
-                {}
-            )  # Ensure the key exists in the device dict, even if empty.
+            device["lan_dns_settings"] = {}
             return
 
         _LOGGER.debug(
             f"Fetching LAN DNS (VLAN settings) for MX device {device_name} (Serial: {serial}, Network: {network_id})"
         )
 
-        lan_dns_by_vlan: Dict[str, Any] = (
-            {}
-        )  # Dictionary to store DNS settings per VLAN.
-        vlan_list_to_iterate: List[Dict[str, Any]] = (
-            []
-        )  # List to hold VLAN data from API for consistent processing.
+        lan_dns_by_vlan: Dict[str, Any] = {}
+        vlan_list_to_iterate: List[Dict[str, Any]] = []
+
         try:
             vlan_settings_response = await self._async_meraki_api_call(
-                client.appliance.getNetworkApplianceVlansSettings(networkId=network_id),
+                self.meraki_client.appliance.getNetworkApplianceVlansSettings(networkId=network_id), # Use self.meraki_client
                 f"getNetworkApplianceVlansSettings(networkId={network_id})",
-                return_empty_list_on_404=True # 404 on VLANs might mean no VLANs configured / not an appliance
+                return_empty_list_on_404=True
             )
 
             # Standardize response to be a list for consistent processing logic.

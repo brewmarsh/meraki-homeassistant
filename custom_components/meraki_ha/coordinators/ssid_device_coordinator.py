@@ -12,7 +12,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from ..const import DOMAIN, DATA_CLIENT
 from ..meraki_api import MerakiAPIClient, MerakiApiError # Added MerakiApiError
 import aiohttp # Added aiohttp
-from .api_data_fetcher import MerakiApiDataFetcher
+from .api_data_fetcher import MerakiApiDataFetcher # Type hint for main coordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -57,19 +57,28 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
         """Fetch SSID data, update/create HA devices, and calculate client counts.
 
         This method performs the following steps:
-        1. Retrieves all SSIDs from the `MerakiApiDataFetcher`.
-        2. Filters for enabled SSIDs.
-        3. For each enabled SSID:
-            a. Fetches detailed SSID information.
+        1. Retrieves all SSIDs from `self.api_data_fetcher.data.get("ssids", [])`.
+           Each item in this list is expected to be a dictionary containing at least:
+           - 'name' (Optional[str])
+           - 'number' (Union[int, str]): SSID number (0-14).
+           - 'enabled' (bool): Whether the SSID is enabled.
+           - 'networkId' (str): The ID of the network this SSID belongs to.
+        2. Filters for enabled SSIDs with valid structure (correct types for above fields).
+        3. For each valid, enabled SSID:
+            a. Fetches detailed SSID information via an API call to `meraki_client.wireless.getNetworkWirelessSsid()`.
+               The response (`ssid_detail_data_raw`) is expected to be a dictionary.
             b. Calculates client count:
-                i. Retrieves all clients for the SSID's parent network (uses a cache
-                   to avoid redundant API calls for multiple SSIDs on the same network).
-                ii. Filters the list of network clients where the client's reported
-                   SSID name (`client.get("ssid")`) matches the configured name of
-                   the current SSID (`ssid_summary_data.get("name")`).
-                iii. The number of matching clients is stored as `client_count`.
-            c. Registers or updates an HA device for the SSID, including the client count.
-        4. Returns a dictionary mapping unique SSID IDs to their processed data.
+                i. Retrieves all clients for the SSID's parent network using `meraki_client.networks.getNetworkClients()`.
+                   This response is cached per network ID for the duration of this update cycle.
+                   The client list from the API (`all_network_clients_response`) is expected to be a list of dictionaries.
+                ii. Each client dictionary in the list is expected to have an 'ssid' (Optional[str]) field for comparison.
+                iii. Filters these network clients locally by comparing the client's 'ssid' field
+                     with the 'name' field of the current SSID being processed.
+                iv. The number of matching clients is stored as `client_count`.
+            c. Registers or updates an HA device for the SSID using Home Assistant's device registry.
+        4. Returns a dictionary mapping unique SSID IDs (typically `f"{network_id}_{ssid_number}"`)
+           to their processed data dictionary. This data includes merged summary and detail info,
+           plus the calculated `client_count` and a `unique_id`.
         """
         _LOGGER.debug("SSIDDeviceCoordinator starting _async_update_data")
 
@@ -96,37 +105,56 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
         #     f"SSIDCoordinator: Retrieved {len(all_ssids_from_fetcher)} total SSIDs from api_data_fetcher before filtering."
         # )
 
-        # --- Filter SSIDs ---
-        # We are only interested in SSIDs that are currently enabled, as these are the ones
-        # that will typically have associated entities (sensors, switches).
-        enabled_ssids: List[Dict[str, Any]] = []
-        disabled_ssids_samples: List[Dict[str, Any]] = []  # For logging
-        enabled_ssids_log_samples: List[Dict[str, Any]] = []  # For logging
+        if not isinstance(all_ssids_from_fetcher, list):
+            _LOGGER.error("SSID data from main fetcher is not a list (type: %s). Cannot process SSIDs.",
+                          type(all_ssids_from_fetcher).__name__)
+            return self.data if self.data else {} # Return last known good data or empty
 
-        for ssid_info in all_ssids_from_fetcher:
-            # Create a smaller dictionary for logging purposes to keep log messages concise.
-            log_sample = {
-                "name": ssid_info.get("name"),
-                "number": ssid_info.get("number"),
-                "enabled": ssid_info.get("enabled"),
-                "networkId": ssid_info.get("networkId"),
-            }
-            if (
-                ssid_info.get("enabled") is True
-            ):  # Check if the 'enabled' flag is explicitly True.
-                enabled_ssids.append(ssid_info)  # Add to the list of SSIDs to process.
-                if (
-                    len(enabled_ssids_log_samples) < 3
-                ):  # Log up to 3 samples for debugging.
-                    enabled_ssids_log_samples.append(log_sample)
-            else:  # SSID is not enabled.
-                if (
-                    len(disabled_ssids_samples) < 3
-                ):  # Log up to 3 samples of disabled SSIDs.
-                    disabled_ssids_samples.append(log_sample)
+        # --- Filter SSIDs ---
+        enabled_ssids: List[Dict[str, Any]] = []
+        # Logging samples for disabled/enabled can be re-added if desired, removed for diff brevity.
+
+        for i, ssid_info in enumerate(all_ssids_from_fetcher):
+            if not isinstance(ssid_info, dict):
+                _LOGGER.warning("Item at index %d in all_ssids_from_fetcher is not a dictionary, skipping: %s",
+                                i, str(ssid_info)[:100])
+                continue
+
+            is_enabled = ssid_info.get("enabled")
+            if not isinstance(is_enabled, bool):
+                _LOGGER.warning("SSID item (Name: %s, Number: %s) 'enabled' flag is not bool (type: %s, value: %s). Defaulting to False for filtering.",
+                                ssid_info.get('name', 'N/A'), ssid_info.get('number', 'N/A'),
+                                type(is_enabled).__name__, str(is_enabled)[:50])
+                is_enabled = False
+
+            network_id_raw = ssid_info.get("networkId")
+            if not network_id_raw or not isinstance(network_id_raw, str):
+                _LOGGER.warning("SSID item (Name: %s, Number: %s) has missing or invalid 'networkId' (type: %s, value: %s). Skipping.",
+                                ssid_info.get('name', 'N/A'), ssid_info.get('number', 'N/A'),
+                                type(network_id_raw).__name__, str(network_id_raw)[:50])
+                continue
+
+            ssid_number_raw = ssid_info.get("number")
+            if ssid_number_raw is None: # Check for None before int conversion
+                _LOGGER.warning("SSID item (Name: %s, NetworkID: %s) has missing 'number'. Skipping.",
+                                ssid_info.get('name', 'N/A'), network_id_raw)
+                continue
+            try:
+                # Validate if number can be an int, as used in unique_id and API calls
+                int(ssid_number_raw)
+            except (ValueError, TypeError):
+                _LOGGER.warning("SSID item (Name: %s, NetworkID: %s) 'number' ('%s') is not a valid integer type. Skipping.",
+                                ssid_info.get('name', 'N/A'), network_id_raw,
+                                str(ssid_number_raw)[:50])
+                continue
+
+            if is_enabled is True:
+                current_ssid_data = ssid_info.copy()
+                current_ssid_data['enabled'] = True
+                enabled_ssids.append(current_ssid_data)
 
         _LOGGER.debug(
-            f"SSIDCoordinator: Found {len(enabled_ssids)} enabled SSIDs after filtering."
+            f"SSIDCoordinator: Found {len(enabled_ssids)} enabled and valid SSIDs after filtering."
         )
 
         # Removed excessive logging of filtered/processed SSID samples
@@ -175,24 +203,16 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
             return {}
 
         # Retrieve the MerakiAPIClient instance
-        try:
-            meraki_client: MerakiAPIClient = self.hass.data[DOMAIN][
-                self.config_entry.entry_id
-            ][DATA_CLIENT]
-            if not meraki_client: # Should not happen if KeyError is not raised, but good practice
-                _LOGGER.error(
-                    "MerakiAPIClient is None in hass.data. Cannot fetch SSID details."
-                )
-                raise UpdateFailed(
-                    "MerakiAPIClient not properly initialized for SSID detail fetching."
-                )
-        except (KeyError, TypeError) as e:
+        meraki_client: MerakiAPIClient = self.hass.data[DOMAIN][
+            self.config_entry.entry_id
+        ][DATA_CLIENT]
+        if not meraki_client:
             _LOGGER.error(
-                f"Error accessing MerakiAPIClient from hass.data: {e}. Path: {DOMAIN}/{self.config_entry.entry_id}/{DATA_CLIENT}"
+                "MerakiAPIClient not found in hass.data. Cannot fetch SSID details."
             )
             raise UpdateFailed(
-                f"MerakiAPIClient not available in hass.data for SSID detail fetching: {e}"
-            ) from e
+                "MerakiAPIClient not available for SSID detail fetching."
+            )
 
         detailed_ssid_data_map: Dict[str, Dict[str, Any]] = (
             {}
@@ -224,7 +244,8 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
 
             # Create a unique identifier for this SSID to be used for the HA "device" entry.
             # This typically combines network_id and ssid_number for uniqueness.
-            unique_ssid_id = f"{network_id}_{ssid_number}"
+            # network_id and ssid_number are now validated from ssid_summary_data
+            unique_ssid_id = f"{network_id}_{str(ssid_number)}" # Ensure ssid_number is string for ID
 
             try:
                 # Fetch detailed information for this specific SSID.
@@ -232,31 +253,36 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                     f"Fetching details for SSID {ssid_name_summary} ({network_id}/{ssid_number})"
                 )
                 try:
-                    ssid_detail_data = await meraki_client.wireless.getNetworkWirelessSsid(
-                        networkId=network_id,
+                    ssid_detail_data_raw = await meraki_client.wireless.getNetworkWirelessSsid(
+                        networkId=network_id, # network_id is str
                         number=str(ssid_number),  # API expects SSID number as a string.
                     )
                 except MerakiApiError as e:
                     _LOGGER.warning(
                         f"Meraki API error fetching details for SSID {ssid_name_summary} ({network_id}/{ssid_number}): {e}. Status: {e.status if hasattr(e, 'status') else 'N/A'}. Skipping this SSID."
                     )
-                    continue # Skip this SSID
+                    continue
                 except aiohttp.ClientError as e:
                     _LOGGER.warning(
                         f"HTTP client error fetching details for SSID {ssid_name_summary} ({network_id}/{ssid_number}): {e}. Skipping this SSID."
                     )
-                    continue # Skip this SSID
-                except Exception as e: # Catch any other unexpected error specifically from the detail fetch
+                    continue
+                except Exception as e:
                     _LOGGER.error(
                         f"Unexpected error fetching details for SSID {ssid_name_summary} ({network_id}/{ssid_number}): {e}",
                         exc_info=True,
                     )
-                    continue # Skip this SSID
+                    continue
 
-                # Merge summary data (which has 'enabled' status) with detailed data.
+                if not isinstance(ssid_detail_data_raw, dict):
+                    _LOGGER.warning(f"SSID detail data for {unique_ssid_id} is not a dictionary (type: {type(ssid_detail_data_raw).__name__}). Skipping this SSID.")
+                    continue
+                ssid_detail_data = ssid_detail_data_raw # Now confirmed as dict
+
+                # Merge summary data (validated dict) with detailed data (validated dict).
+                # ssid_summary_data is confirmed to be a dict from the earlier loop.
                 merged_ssid_data = {**ssid_summary_data, **ssid_detail_data}
-                merged_ssid_data["unique_id"] = (
-                    unique_ssid_id  # Ensure unique_id is part of the data for entities.
+                merged_ssid_data["unique_id"] = unique_ssid_id
                 )
 
                 # Attempt to get channel information. Note: SSID channel isn't directly part of SSID config.
@@ -282,49 +308,58 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                             timespan=900,  # Get clients seen in the last 15 minutes.
                             perPage=1000,  # Attempt to get all clients in one page if possible.
                         )
-                        # Store fetched clients in cache.
-                        network_clients_cache[network_id] = (
-                            all_network_clients_response
-                            if isinstance(all_network_clients_response, list)
-                            else []
-                        )
+                        # Store fetched clients in cache, ensuring it's a list.
+                        if isinstance(all_network_clients_response, list):
+                            network_clients_cache[network_id] = all_network_clients_response
+                        else:
+                            _LOGGER.warning("API response for getNetworkClients (Network: %s) was not a list (type: %s). Caching empty list.",
+                                            network_id, type(all_network_clients_response).__name__)
+                            network_clients_cache[network_id] = []
+
                         _LOGGER.debug(
                             f"Fetched {len(network_clients_cache[network_id])} clients for network {network_id}."
                         )
-                    except AttributeError as e:  # Debugging for SDK method issues.
+                    except AttributeError as e:
                         _LOGGER.error(
                             f"AttributeError when trying to fetch clients for network {network_id} using `meraki_client.networks.getNetworkClients`: {e}"
                         )
-                        # Removed verbose dir() logging for AttributeError
-                        network_clients_cache[network_id] = (
-                            []
-                        )  # Cache empty list on error.
-                    except Exception as e:  # Catch other errors during client fetching.
-                        _LOGGER.warning(
-                            f"Could not fetch clients for network {network_id} using `meraki_client.networks.getNetworkClients`: {e}"
+                        network_clients_cache[network_id] = []
+                    except MerakiApiError as e: # Catch specific API errors for client fetch
+                         _LOGGER.warning(
+                            f"Meraki API error fetching clients for network {network_id}: {e}. Status: {e.status if hasattr(e, 'status') else 'N/A'}. Treating as no clients for this network."
                         )
-                        network_clients_cache[network_id] = (
-                            []
-                        )  # Cache empty list on error.
+                         network_clients_cache[network_id] = []
+                    except aiohttp.ClientError as e: # Catch specific HTTP errors for client fetch
+                        _LOGGER.warning(
+                            f"HTTP client error fetching clients for network {network_id}: {e}. Treating as no clients for this network."
+                        )
+                        network_clients_cache[network_id] = []
+                    except Exception as e:
+                        _LOGGER.warning(
+                            f"Could not fetch clients for network {network_id} using `meraki_client.networks.getNetworkClients`: {e}", exc_info=True
+                        )
+                        network_clients_cache[network_id] = []
 
-                # Filter clients from the network cache that are connected to the current SSID number.
-                current_network_clients = network_clients_cache.get(
-                    network_id, []
-                )  # Use .get for safety.
+                current_network_clients = network_clients_cache.get(network_id, []) # current_network_clients is a list
 
                 if current_network_clients:
-                    current_ssid_clients = [
-                        client
-                        for client in current_network_clients # current_network_clients is already checked for None above indirectly
-                        # Compare the SSID name reported by the client (client.get("ssid"))
-                        # with the configured name of the current SSID (ssid_summary_data.get("name")).
-                        # Both are cast to strings for robust comparison, defaulting to empty strings if None.
-                        if str(client.get("ssid", "")) == str(ssid_summary_data.get("name", ""))
-                    ]
-                    client_count = len(current_ssid_clients)
+                    current_ssid_clients = []
+                    for client_idx, client_item in enumerate(current_network_clients):
+                        if not isinstance(client_item, dict):
+                            _LOGGER.warning("Item at index %d in current_network_clients (Network: %s) is not a dictionary, skipping for client count: %s",
+                                            client_idx, network_id, str(client_item)[:100])
+                            continue
 
-                else: # Should not happen if network_id was in cache and had clients, but good for safety
-                    pass # No specific debug message needed here after removal of SSID_CLIENT_DEBUG
+                        # Compare the SSID name reported by the client with the configured name of the current SSID.
+                        client_ssid_name = str(client_item.get("ssid", ""))
+                        # ssid_summary_data is confirmed a dict with 'name' potentially None
+                        summary_ssid_name = str(ssid_summary_data.get("name", ""))
+
+                        if client_ssid_name == summary_ssid_name:
+                            current_ssid_clients.append(client_item)
+                    client_count = len(current_ssid_clients)
+                # else: # current_network_clients is empty, client_count remains 0
+                #    pass
 
 
                 merged_ssid_data["client_count"] = (
@@ -378,24 +413,14 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 )
                 detailed_ssid_data_map[unique_ssid_id] = merged_ssid_data
 
-            except (TypeError, ValueError) as e: # Catch errors in data processing/device registration after successful detail fetch
+            except Exception as e:
                 _LOGGER.error(
-                    f"Data processing or device registration error for SSID {ssid_name_summary} ({network_id}/{ssid_number}): {e}",
+                    f"Failed to fetch details or register device for SSID {ssid_name_summary} ({network_id}/{ssid_number}): {e}",
                     exc_info=True,
                 )
-                # Skip this SSID if processing its data or registering fails
+                # Optionally, could use ssid_summary_data if detail fetch fails, but PSK would be missing
+                # For now, if detail fetch fails, we skip this SSID for this update.
                 continue
-            # Note: MerakiApiError and aiohttp.ClientError for the detail fetch are handled in the inner try-except.
-            # Other generic exceptions from the detail fetch also result in 'continue'.
-            # So, the outer 'except Exception as e' is less likely to be hit by the API call itself,
-            # but remains as a final catch-all for other logic within the loop.
-            except Exception as e: # Final catch-all for other unexpected issues for this SSID
-                 _LOGGER.error(
-                    f"Generic unhandled exception processing SSID {ssid_name_summary} ({network_id}/{ssid_number}): {e}",
-                    exc_info=True,
-                )
-                 continue
-
 
         _LOGGER.info(
             f"SSIDDeviceCoordinator processed {len(detailed_ssid_data_map)} ENABLED SSID devices with detailed data."
