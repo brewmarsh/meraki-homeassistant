@@ -47,25 +47,26 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         self,
         hass: HomeAssistant,
         scan_interval: timedelta,  # For DataUpdateCoordinator superclass
+        # relaxed_tag_match: bool, # Removed, no longer used
         coordinator: "MerakiDataUpdateCoordinator",  # Parent coordinator instance
     ) -> None:
         """Initialize the DataAggregationCoordinator.
 
         Args:
             hass: The Home Assistant instance.
-            scan_interval: The interval for updating data (passed to superclass).
-                           This coordinator updates when `_async_update_data` is called.
+            scan_interval: The interval for updating data, passed to the superclass.
+                           This coordinator primarily updates when its `_async_update_data`
+                           is explicitly called by the parent coordinator.
             coordinator: The main `MerakiDataUpdateCoordinator` instance, providing
-                         context (e.g., for MerakiDataProcessor).
+                         access to the Meraki API client and other shared context.
         """
         super().__init__(
             hass,
             _LOGGER,
-            name="Meraki Data Aggregation Coordinator",  # More specific name
+            name="Meraki Data Aggregation Coordinator",
             update_interval=scan_interval,
-            # For DataUpdateCoordinator's scheduling if used independently.
         )
-        # Store parent coordinator
+        # self.relaxed_tag_match removed
         self.coordinator: "MerakiDataUpdateCoordinator" = coordinator
 
         # Initialize helper classes for data processing and aggregation.
@@ -84,6 +85,7 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # DataAggregator combines processed data and calculates SSID statuses.
         # It no longer takes data_processor as an argument.
         self.data_aggregator: DataAggregator = DataAggregator(
+            # relaxed_tag_match removed from DataAggregator instantiation
             ssid_status_calculator=self.ssid_status_calculator,
         )
 
@@ -121,49 +123,57 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
            enriched camera data) and determine SSID operational statuses.
 
         Args:
-            device_data: A list of raw device dictionaries from the API.
-                         Expected to include tags. Can be None if initial fetching failed.
-            ssid_data: A list of raw SSID dictionaries from the API.
-                       Can be None if initial fetching failed.
-            network_data: A list of raw network dictionaries from the API.
-                          Can be None if initial fetching failed.
-            client_data: A list of raw client dictionaries from the API. Can be None.
-            network_client_counts: Dictionary mapping network IDs to client counts. Can be None.
-            clients_on_ssids: Total count of clients connected to SSIDs.
-            clients_on_appliances: Total count of clients connected to appliances.
-            clients_on_wireless: Total count of wireless clients.
+            device_data: Optional list of raw device dictionaries from the API.
+                         Each dict is expected to have 'serial' (str), 'model' (str),
+                         'name' (Optional[str]), 'tags' (Optional[List[str]]), etc.
+                         This data is processed by `MerakiDataProcessor.process_devices`.
+            ssid_data: Optional list of raw SSID dictionaries from the API.
+                       Each dict is expected to have 'networkId' (str), 'number' (int/str),
+                       'name' (Optional[str]), 'enabled' (bool), etc.
+                       This data is processed by `MerakiDataProcessor.process_ssids`.
+            network_data: Optional list of raw network dictionaries from the API.
+                          Each dict is expected to have 'id' (str), 'name' (Optional[str]), etc.
+                          This data is processed by `MerakiDataProcessor.process_networks`.
+            client_data: Optional list of raw client dictionaries from the API.
+                         This data is passed through to `DataAggregator` after basic validation.
+            network_client_counts: Optional dictionary mapping network IDs (str) to client counts (int).
+                                   This data is passed through to `DataAggregator`.
+            clients_on_ssids: Total count of clients connected to SSIDs (pre-calculated).
+            clients_on_appliances: Total count of clients connected to appliances (pre-calculated).
+            clients_on_wireless: Total count of wireless clients (pre-calculated).
 
         Returns:
-            A dictionary containing the aggregated and processed data, ready for
-            use by Home Assistant entities. Returns an empty dictionary if
-            essential input data is missing or an error occurs.
+            A dictionary containing the fully aggregated data, typically with keys like
+            "devices", "ssids", "networks", "clients", and client count summaries.
+            An empty dictionary might be returned by `DataAggregator` on its internal error.
 
         Raises:
-            UpdateFailed: If a significant error occurs during data processing
-                          or aggregation that prevents a meaningful update.
+            UpdateFailed: If essential input data is missing or if a significant error
+                          occurs during data processing or aggregation.
         """
         _LOGGER.debug(
             "DataAggregationCoordinator received raw data. Processing and aggregating..."
         )
-        try:
-            # Validate that essential input data is available.
-            if device_data is None or ssid_data is None or network_data is None:
-                _LOGGER.error( # Changed to error
-                    "Essential data (devices, SSIDs, or networks) is None. "
-                    "Cannot proceed with data aggregation."
-                )
-                raise UpdateFailed("Essential data missing for aggregation.")
+        # Import here to resolve potential circular dependency if MerakiApiError is needed
+        from custom_components.meraki_ha.meraki_api import MerakiApiError
+        import aiohttp
 
-            # Step 0: Validate optional inputs client_data and network_client_counts
+        try:
+            # Step 0: Validate essential and optional inputs
+            if not (isinstance(device_data, list) and isinstance(ssid_data, list) and isinstance(network_data, list)):
+                _LOGGER.error(
+                    "Essential data (devices, SSIDs, or networks) is not a list or is None. "
+                    "Cannot proceed with data aggregation. Device type: %s, SSID type: %s, Network type: %s",
+                    type(device_data).__name__, type(ssid_data).__name__, type(network_data).__name__
+                )
+                raise UpdateFailed("Essential input data is not in the expected list format.")
+
             sanitized_client_data: Optional[List[Dict[str, Any]]] = None
             if client_data is not None:
                 if isinstance(client_data, list):
-                    sanitized_client_data = []
-                    for i, client_item in enumerate(client_data):
-                        if isinstance(client_item, dict):
-                            sanitized_client_data.append(client_item)
-                        else:
-                            _LOGGER.warning("Item at index %d in client_data is not a dictionary, skipping: %s", i, str(client_item)[:100])
+                    sanitized_client_data = [item for item in client_data if isinstance(item, dict)]
+                    if len(sanitized_client_data) != len(client_data):
+                        _LOGGER.warning("Some items in client_data were not dictionaries and were filtered out.")
                 else:
                     _LOGGER.warning("'client_data' provided but is not a list (type: %s). Treating as None.", type(client_data).__name__)
 
@@ -174,153 +184,86 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 else:
                     _LOGGER.warning("'network_client_counts' provided but is not a dict (type: %s). Treating as None.", type(network_client_counts).__name__)
 
-            # Step 1: Sanitize and Process raw device data
-            sanitized_device_data: List[Dict[str, Any]] = []
-            if isinstance(device_data, list): # device_data itself is confirmed not None by earlier check
-                for i, device_item in enumerate(device_data):
-                    if not isinstance(device_item, dict):
-                        _LOGGER.warning("Item at index %d in device_data is not a dictionary, skipping: %s", i, str(device_item)[:100])
-                        continue
-                    # Basic validation for critical keys (example)
-                    if not device_item.get("serial") or not isinstance(device_item.get("serial"), str):
-                        _LOGGER.warning("Device item at index %d missing or invalid 'serial', skipping: %s", i, str(device_item)[:100])
-                        continue
-                    if not device_item.get("model") or not isinstance(device_item.get("model"), str):
-                        _LOGGER.warning("Device item at index %d missing or invalid 'model', skipping: %s", i, str(device_item)[:100])
-                        continue
-                    raw_tags = device_item.get("tags")
-                    if raw_tags is not None and not isinstance(raw_tags, list):
-                        _LOGGER.warning("Device item at index %d has 'tags' but it's not a list (type: %s). Correcting to empty list. Device: %s",
-                                        i, type(raw_tags).__name__, device_item.get("serial", "N/A"))
-                        device_item["tags"] = []
-                    elif isinstance(raw_tags, list):
-                        device_item["tags"] = [str(tag) for tag in raw_tags if isinstance(tag, str)] # Ensure tags are strings
+            # Step 1: Process raw data using MerakiDataProcessor
+            # These methods now perform internal validation of list items.
+            _LOGGER.debug("Processing raw device data...")
+            processed_devices = await self.data_processor.process_devices(device_data)
 
-                    sanitized_device_data.append(device_item)
-                processed_devices = await self.data_processor.process_devices(sanitized_device_data)
-            else: # Should not be reached if initial None check and UpdateFailed is effective
-                _LOGGER.error("Device data is not a list after initial checks, this is unexpected. Proceeding with empty processed_devices.")
-                processed_devices = []
+            _LOGGER.debug("Processing raw network data...")
+            processed_networks = self.data_processor.process_networks(network_data)
 
+            _LOGGER.debug("Processing raw SSID data...")
+            processed_ssids = self.data_processor.process_ssids(ssid_data)
 
-            # Step 1.5: Fetch and merge camera-specific settings for camera devices.
-            if self.coordinator.meraki_client:
+            # Step 1.5: Fetch and merge camera-specific sense settings
+            # This enriches the `processed_devices` list for camera devices.
+            if self.coordinator.meraki_client: # Ensure client is available
                 for device_idx, device_dict in enumerate(processed_devices):
-                    if not isinstance(device_dict, dict):
-                        _LOGGER.warning("Item at index %d in processed_devices is not a dictionary, skipping camera sense fetch: %s",
-                                        device_idx, str(device_dict)[:100])
+                    if not isinstance(device_dict, dict): # Should be handled by processor, but good check
+                        _LOGGER.warning("Item at index %d in processed_devices is not a dictionary, skipping camera sense fetch.", device_idx)
                         continue
+
                     serial = device_dict.get("serial")
-                    product_type = device_dict.get("productType", "").lower()
-                    model = device_dict.get("model", "").upper()
+                    product_type = str(device_dict.get("productType", "")).lower() # Ensure string for .lower()
+                    model = str(device_dict.get("model", "")).upper() # Ensure string for .upper()
 
                     if serial and (product_type == "camera" or model.startswith("MV")):
                         try:
-                            _LOGGER.debug(
-                                "Fetching camera sense settings for camera %s", serial
-                            )
-                            sense_settings = await self.coordinator.meraki_client.get_camera_sense_settings(
-                                serial=serial
-                            )
-                            if sense_settings:
-                                # Merge relevant sense_settings into the device_dict.
-                                # Entities will look for 'senseEnabled' and 'audioDetection' (which is a dict)
-                                # directly in the device_info dictionary.
+                            _LOGGER.debug("Fetching camera sense settings for camera %s", serial)
+                            sense_settings = await self.coordinator.meraki_client.get_camera_sense_settings(serial=serial)
+
+                            if sense_settings is not None and isinstance(sense_settings, dict):
                                 device_dict["senseEnabled"] = sense_settings.get("senseEnabled")
                                 device_dict["audioDetection"] = sense_settings.get("audioDetection")
-                                _LOGGER.debug(
-                                    "Successfully merged camera sense settings for %s.", serial
-                                )
-                        except MerakiApiError as e: # Specific API error
+                                _LOGGER.debug("Successfully merged camera sense settings for %s.", serial)
+                            elif sense_settings is not None: # API returned something, but not a dict
+                                _LOGGER.warning("Camera sense settings for %s were not a dictionary: %s", serial, str(sense_settings)[:100])
+                        except MerakiApiError as e:
                             _LOGGER.warning(
-                                "Meraki API error fetching camera sense settings for %s: %s. Status: %s. "
-                                "Entities for this camera's sense/audio status may be unavailable or show unknown.",
+                                "Meraki API error fetching camera sense settings for %s: %s. Status: %s. Details will be missing.",
                                 serial, e, e.status if hasattr(e, 'status') else 'N/A'
                             )
-                        except aiohttp.ClientError as e: # Specific HTTP client error
+                        except aiohttp.ClientError as e:
                             _LOGGER.warning(
-                                "HTTP client error fetching camera sense settings for %s: %s. "
-                                "Entities for this camera's sense/audio status may be unavailable or show unknown.",
+                                "HTTP client error fetching camera sense settings for %s: %s. Details will be missing.",
                                 serial, e
                             )
-                        except Exception as e: # Catch any other unexpected error for this specific camera
-                            _LOGGER.exception( # Log with stack trace for unexpected issues
-                                "Unexpected error fetching or merging camera sense settings for %s: %s. "
-                                "Entities for this camera's sense/audio status may be unavailable or show unknown.",
-                                serial, e
+                        except Exception as e:
+                            _LOGGER.exception(
+                                "Unexpected error fetching or merging camera sense settings for %s. Details will be missing.", serial
                             )
             else:
-                _LOGGER.warning(
-                    "Meraki API client not available on parent coordinator, "
-                    "skipping fetch of camera-specific sense settings."
-                )
+                _LOGGER.warning("Meraki API client not available on parent coordinator, skipping camera sense settings.")
 
-            # Step 2: Sanitize and Process raw network data.
-            sanitized_network_data: List[Dict[str, Any]] = []
-            if isinstance(network_data, list): # network_data confirmed not None
-                for i, network_item in enumerate(network_data):
-                    if not isinstance(network_item, dict):
-                        _LOGGER.warning("Item at index %d in network_data is not a dictionary, skipping: %s", i, str(network_item)[:100])
-                        continue
-                    if not network_item.get("id") or not isinstance(network_item.get("id"), str):
-                        _LOGGER.warning("Network item at index %d missing or invalid 'id', skipping: %s", i, str(network_item)[:100])
-                        continue
-                    sanitized_network_data.append(network_item)
-                processed_networks = self.data_processor.process_networks(sanitized_network_data)
-            else: # Should not be reached
-                _LOGGER.error("Network data is not a list after initial checks, this is unexpected. Proceeding with empty processed_networks.")
-                processed_networks = []
-
-            # Step 3: Sanitize and Process raw SSID data.
-            sanitized_ssid_data: List[Dict[str, Any]] = []
-            if isinstance(ssid_data, list): # ssid_data confirmed not None
-                for i, ssid_item in enumerate(ssid_data):
-                    if not isinstance(ssid_item, dict):
-                        _LOGGER.warning("Item at index %d in ssid_data is not a dictionary, skipping: %s", i, str(ssid_item)[:100])
-                        continue
-                    if ssid_item.get("number") is None: # 'number' is critical for SSIDs
-                        _LOGGER.warning("SSID item at index %d missing 'number', skipping: %s", i, str(ssid_item)[:100])
-                        continue
-                    # Ensure 'enabled' is boolean, default to False if missing or wrong type
-                    enabled_flag = ssid_item.get("enabled")
-                    if not isinstance(enabled_flag, bool):
-                        _LOGGER.warning("SSID item at index %d 'enabled' flag is not bool (type: %s, value: %s). Defaulting to False.",
-                                        i, type(enabled_flag).__name__, enabled_flag)
-                        ssid_item["enabled"] = False
-                    sanitized_ssid_data.append(ssid_item)
-                processed_ssids = self.data_processor.process_ssids(sanitized_ssid_data)
-            else: # Should not be reached
-                _LOGGER.error("SSID data is not a list after initial checks, this is unexpected. Proceeding with empty processed_ssids.")
-                processed_ssids = []
-
-            # Note: Device tags are now part of `processed_devices` due to changes in
-            # `MerakiApiDataFetcher` and `MerakiDataProcessor`.
-            # The separate `device_tags` parameter is no longer needed here or
-            # in `DataAggregator`.
+            # Step 2, 3 are effectively done by passing the processed lists to DataAggregator.
+            # Note: The original Step 2 (network) and Step 3 (SSID) processing are now handled by MerakiDataProcessor.
+            # The `processed_devices`, `processed_ssids`, `processed_networks` variables hold this processed data.
 
             # Step 4: Aggregate all processed data using DataAggregator.
-            # `DataAggregator.aggregate_data` now expects devices to contain their tags.
+            _LOGGER.debug("Passing processed data to DataAggregator...")
             aggregated_data: Dict[str, Any] = await self.data_aggregator.aggregate_data(
-                processed_devices, # Now sanitized list of dicts, processed by data_processor
-                processed_ssids,   # Now sanitized list of dicts, processed by data_processor
-                processed_networks, # Now sanitized list of dicts, processed by data_processor
-                sanitized_client_data, # Optional list of dicts, or None
-                sanitized_network_client_counts, # Optional dict, or None
+                processed_devices=processed_devices,
+                ssid_data=processed_ssids, # This is processed_ssids
+                network_data=processed_networks, # This is processed_networks
+                client_data=sanitized_client_data, # Use sanitized version
+                network_client_counts=sanitized_network_client_counts, # Use sanitized version
                 clients_on_ssids=clients_on_ssids,
                 clients_on_appliances=clients_on_appliances,
                 clients_on_wireless=clients_on_wireless,
             )
 
+            if not aggregated_data: # DataAggregator might return {} on its internal error
+                _LOGGER.error("DataAggregator returned empty data. Aggregation failed.")
+                raise UpdateFailed("Data aggregation by DataAggregator failed, returned empty.")
+
             _LOGGER.debug(
-                "Data aggregation successful. Aggregated data for %d devices, %d SSIDs, %d networks.", # Slightly rephrased
-                len(aggregated_data.get("devices", [])), # Log count from aggregated_data for consistency
-                len(aggregated_data.get("ssids", [])),
-                len(aggregated_data.get("networks", [])),
+                "Data aggregation successful. Aggregated data has keys: %s",
+                aggregated_data.keys()
             )
             return aggregated_data
 
-        except UpdateFailed: # Re-raise UpdateFailed explicitly if caught
+        except UpdateFailed: # Explicitly re-raise UpdateFailed
             raise
-        except Exception as e:  # pylint: disable=broad-except
-            _LOGGER.exception("Error during Meraki data aggregation: %s", e)
-            raise UpdateFailed(f"Error aggregating Meraki data: {e}") from e
+        except Exception as e:  # Catch any other unexpected error during the whole process
+            _LOGGER.exception("Critical error during data aggregation coordination: %s", e)
+            raise UpdateFailed(f"Overall data aggregation coordination failed: {e}") from e

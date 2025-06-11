@@ -90,12 +90,6 @@ class DeviceTagFetcher:
                 "A Meraki API error occurred fetching tags for device %s: %s", serial, e
             )
             return []
-        except AttributeError as e: # Catch if async_get_device_tags doesn't exist on api_fetcher
-            _LOGGER.error(
-                "AttributeError while trying to fetch tags for device %s: %s. This might indicate "
-                "the method 'async_get_device_tags' is missing from MerakiApiDataFetcher.", serial, e
-            )
-            return []
         except Exception as e:  # Catch any other unexpected errors
             _LOGGER.exception(  # Use .exception to include stack trace
                 "Unexpected error fetching tags for device %s: %s", serial, e

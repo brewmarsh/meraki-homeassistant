@@ -45,7 +45,7 @@ class MerakiApiDataFetcher:
         """Initialize the MerakiApiDataFetcher.
 
         Args:
-            meraki_client: An instance of the SDK-based `MerakiAPIClient`.
+            meraki_client: An instance of the SDK-based `MerakiAPIClient` used for API communication.
         """
         self.meraki_client: MerakiAPIClient = meraki_client
         self.org_id: str = meraki_client.org_id  # Organization ID from the client
@@ -54,26 +54,22 @@ class MerakiApiDataFetcher:
         self,
         hass: HomeAssistant,  # pylint: disable=unused-argument
         # hass is retained for potential future use or context.
-        # Other parameters like org_id, scan_interval, device_name_format
-        # are no longer passed here as org_id comes from self.org_id
-        # and others are not directly used in this method's revised logic.
     ) -> Dict[str, Any]:
         """Fetch all necessary data from the Meraki API for the organization.
 
-        This method orchestrates calls to retrieve networks, devices (including their tags),
-        SSIDs. For MR (wireless access point) devices, it additionally fetches the
-        connected client count and wireless radio settings using concurrent tasks.
+        Orchestrates calls to retrieve networks, devices (with their tags & status),
+        SSIDs, clients, and firmware upgrade details. For specific device types (MR, MX, MV),
+        it fetches additional relevant details.
 
         Args:
             hass: The Home Assistant instance. Currently unused but retained for potential
                   future use or consistency with Home Assistant patterns.
 
         Returns:
-            A dictionary containing lists of processed data for devices, networks, SSIDs,
-            clients, client counts, and organization name.
-            Example: `{"devices": [...], "networks": [...], "ssids": [...]}`.
-            The 'devices' list includes tags, and for MR devices, it also includes
-            `connected_clients_count` and `radio_settings`.
+            A dictionary containing lists of processed data for 'devices', 'networks',
+            'ssids', 'clients', and details like 'clients_on_ssids',
+            'clients_on_appliances', 'clients_on_wireless', and 'org_name'.
+            The 'devices' list includes merged status, tags, and device-specific details.
 
         Raises:
             UpdateFailed: If essential data like networks or devices cannot
@@ -122,13 +118,11 @@ class MerakiApiDataFetcher:
                 f"SDK API error fetching device statuses for org {self.org_id}: "
                 f"Status {results[2].status}, Reason: {results[2].reason}. Device statuses may be incomplete."
             )
-            statuses_data = None # Ensure it's None on error
         elif isinstance(results[2], Exception):
             _LOGGER.exception(
                 f"Unexpected error fetching device statuses for org {self.org_id}: {results[2]}. "
                 "Device statuses may be incomplete."
             )
-            statuses_data = None # Ensure it's None on error
         else:
             statuses_data = results[2]
 
@@ -137,13 +131,13 @@ class MerakiApiDataFetcher:
                 f"SDK API error fetching firmware upgrade data for org {self.org_id}: "
                 f"Status {results[3].status}, Reason: {results[3].reason}. Firmware data may be incomplete."
             )
-            firmware_upgrade_data_raw = {}
+            firmware_upgrade_data_raw = {} # Ensure it's an empty dict on error
         elif isinstance(results[3], Exception):
             _LOGGER.exception(
                 f"Unexpected error fetching firmware upgrade data for org {self.org_id}: {results[3]}. "
                 "Firmware data may be incomplete."
             )
-            firmware_upgrade_data_raw = {}
+            firmware_upgrade_data_raw = {} # Ensure it's an empty dict on error
         else:
             firmware_upgrade_data_raw = results[3]
 
@@ -519,7 +513,7 @@ class MerakiApiDataFetcher:
                 continue
 
             network_id = network.get("id")
-            if not network_id:
+            if not network_id: # Should have been validated by caller if networks is from process_networks
                 _LOGGER.warning("Network item at index %d missing 'id'. Skipping SSID fetch for this network: %s", network_idx, str(network)[:100])
                 continue
 
@@ -573,12 +567,12 @@ class MerakiApiDataFetcher:
         all_clients: List[Dict[str, Any]] = []
         # networks is confirmed to be a list
         for network_idx, network in enumerate(networks):
-            if not isinstance(network, dict): # Should have been caught already if networks was malformed, but as safety
+            if not isinstance(network, dict): # Should have been caught if networks is from process_networks
                 _LOGGER.warning("Skipping non-dictionary network item at index %d for client fetching: %s", network_idx, str(network)[:100])
                 continue
 
-            network_id = network.get("id")
-            if not network_id: # Should have been caught already
+            network_id = network.get("id") # Already validated if from process_networks
+            if not network_id:
                 _LOGGER.warning("Network item at index %d missing 'id'. Skipping client fetch for this network: %s", network_idx, str(network)[:100])
                 continue
 
@@ -603,9 +597,9 @@ class MerakiApiDataFetcher:
                             continue
 
                         mac_address = client_data.get("mac")
-                        if not mac_address:
-                            _LOGGER.warning("Client data item at index %d for network %s missing 'mac'. Skipping this client: %s",
-                                            client_idx, network_id, str(client_data)[:100])
+                        if not mac_address or not isinstance(mac_address, str) : # MAC is essential
+                            _LOGGER.warning("Client data item at index %d for network %s missing or invalid 'mac' (type: %s, value: %s). Skipping this client.",
+                                            client_idx, network_id, type(mac_address).__name__, str(mac_address)[:100])
                             continue
 
                         ap_serial = (
@@ -614,7 +608,7 @@ class MerakiApiDataFetcher:
                             or client_data.get("deviceSerial")
                         )
                         client_entry = {
-                            "mac": mac_address, # Already validated
+                            "mac": mac_address, # Validated
                             "ip": client_data.get("ip"),
                             "description": client_data.get("description"),
                                 "status": client_data.get(
@@ -954,18 +948,10 @@ class MerakiApiDataFetcher:
 
             for wan_key in ["wan1", "wan2"]: # Potentially more like "cellular", etc.
                 interface_specific_settings = interfaces_data.get(wan_key, {})
-                # Ensure interface_specific_settings is a dict before passing
-                if not isinstance(interface_specific_settings, dict):
-                    _LOGGER.warning(
-                        f"Expected dict for {wan_key} settings in uplink_settings for MX {serial}, got {type(interface_specific_settings).__name__}. Skipping."
-                    )
-                    device[f"{wan_key}_dns_servers"] = [] # Initialize to empty
-                    continue
-
                 dns_servers = self._extract_dns_servers_for_wan(
                     interface_name=wan_key,
                     interface_api_settings=interface_specific_settings,
-                    device_global_data=device
+                    device_global_data=device # Pass the main device dict for fallback
                 )
                 device[f"{wan_key}_dns_servers"] = dns_servers
                 _LOGGER.debug(
@@ -978,58 +964,39 @@ class MerakiApiDataFetcher:
                     "Attempting device-level fallbacks for DNS."
                 )
 
+            # This loop will now also serve as the fallback if interfaces_data is empty due to failed API call
             for wan_key in ["wan1", "wan2"]:
                 interface_specific_settings = interfaces_data.get(wan_key, {})
-                if not isinstance(interface_specific_settings, dict):
-                    # Already logged above, just ensure key exists if we skipped
-                    if f"{wan_key}_dns_servers" not in device:
-                         device[f"{wan_key}_dns_servers"] = []
-                    continue
-
                 dns_servers = self._extract_dns_servers_for_wan(
                     interface_name=wan_key,
-                    interface_api_settings=interface_specific_settings,
+                    interface_api_settings=interface_specific_settings, # This might be empty if API failed
                     device_global_data=device
                 )
+                # Only update if extract_dns found something, or ensure key exists
                 if dns_servers:
                     device[f"{wan_key}_dns_servers"] = dns_servers
-                elif f"{wan_key}_dns_servers" not in device:
+                elif f"{wan_key}_dns_servers" not in device: # Ensure key exists if nothing found
                      device[f"{wan_key}_dns_servers"] = []
                 _LOGGER.debug(
                     f"Final {wan_key}_dns_servers for {serial}: {device[f'{wan_key}_dns_servers']}"
                 )
-        except TypeError as e:
-            _LOGGER.exception(
-                f"Type error processing uplink settings for MX device {device.get('name', 'Unknown')} (Serial: {serial}): {e}. "
-                "This may indicate unexpected data structure. Ensuring DNS keys exist with fallback."
-            )
-            # Fallback logic from original code
-            for wan_key in ["wan1", "wan2"]:
-                if f"{wan_key}_dns_servers" not in device:
-                    device[f"{wan_key}_dns_servers"] = self._extract_dns_servers_for_wan(
-                        interface_name=wan_key,
-                        interface_api_settings={},
-                        device_global_data=device,
-                        force_device_fallback_check=True
-                    )
-                    _LOGGER.debug(
-                        f"Ensured {wan_key}_dns_servers for {serial} after TypeError: {device[f'{wan_key}_dns_servers']}"
-                    )
-        except Exception as e:  # Catch other unexpected errors from processing
+
+        except Exception as e:  # Catch errors from processing the uplink_settings data itself
             _LOGGER.exception(
                 f"Unexpected error processing uplink settings for MX device {device.get('name', 'Unknown')} (Serial: {serial}): {e}. "
                 "Ensuring DNS keys exist with fallback."
             )
-            for wan_key in ["wan1", "wan2"]:
+            for wan_key in ["wan1", "wan2"]: # Ensure keys exist even if processing failed
                 if f"{wan_key}_dns_servers" not in device:
+                    # Attempt one last fallback if processing failed badly
                     device[f"{wan_key}_dns_servers"] = self._extract_dns_servers_for_wan(
                         interface_name=wan_key,
-                        interface_api_settings={},
+                        interface_api_settings={}, # No API settings to process
                         device_global_data=device,
-                        force_device_fallback_check=True
+                        force_device_fallback_check=True # Force check of device global data
                     )
                     _LOGGER.debug(
-                        f"Ensured {wan_key}_dns_servers for {serial} after general processing error: {device[f'{wan_key}_dns_servers']}"
+                        f"Ensured {wan_key}_dns_servers for {serial} after processing error: {device[f'{wan_key}_dns_servers']}"
                     )
 
     def _extract_dns_servers_for_wan(

@@ -31,69 +31,51 @@ class SsidStatusCalculator:
         """Calculate the operational status of each SSID provided.
 
         The status of an SSID is determined by the state of the wireless access
-        points (APs) that are tagged to broadcast it. The rules are:
+        points (APs) that are tagged to broadcast it. The logic is permissive:
+        if an SSID has tags, an AP needs to match only one of those tags.
+        If an SSID has no tags, any AP is considered a match.
+
+        The rules are:
         - 'disabled': If the SSID itself is administratively disabled.
-        - 'no_matching_devices': If no APs are tagged to broadcast this SSID.
-        - 'online': If all APs tagged for this SSID are online.
-        - 'partially_online': If some, but not all, APs tagged for this SSID are online.
-        - 'offline': If all APs tagged for this SSID are offline (or in an unknown state).
+        - 'no_matching_devices': If no APs are tagged to broadcast this SSID (or match its tags).
+        - 'online': If all APs matching this SSID (by tag) are online.
+        - 'partially_online': If some, but not all, APs matching this SSID are online.
+        - 'offline': If all APs matching this SSID are offline (or in an unknown state).
         - 'unknown_device_data_missing': If the `devices` list is None, preventing status calculation.
 
         Args:
-            ssids: A list of SSID dictionaries. Each dictionary is expected to contain:
-                   - 'id' (any, optional): SSID identifier.
-                   - 'number' (any, optional): SSID number.
-                   - 'name' (str, optional): SSID name.
-                   - 'enabled' (bool): Whether the SSID is enabled.
-                   - 'tags' (List[str], optional): A list of string tags.
+            ssids: A list of SSID dictionaries. Each dictionary should contain
+                   at least 'id', 'name', 'enabled', and optionally 'tags' (a list of strings).
             devices: A list of Meraki device dictionaries. Each dictionary for an AP
-                     (model starting with "MR") is expected to contain:
-                     - 'serial' (str, optional): Device serial number.
-                     - 'status' (str, optional): Device status (e.g., "online").
-                     - 'model' (str): Device model.
-                     - 'tags' (List[str], optional): A list of string tags on the device.
+                     should contain 'serial', 'status' (e.g., "online"), 'model',
+                     and 'tags' (a list of strings).
 
         Returns:
             A list of SSID dictionaries, each updated with new keys:
             'matching_devices_online' (count), 'matching_devices_total' (count),
             and 'status' (string). Returns an empty list if the input `ssids`
-            is None or empty, or if inputs are not lists.
+            is None or empty.
         """
-        if not isinstance(ssids, list):
-            _LOGGER.error("Invalid input: 'ssids' is not a list (type: %s). Returning empty list.", type(ssids).__name__)
-            return []
-        if not ssids:
-            _LOGGER.debug("SSID data is empty in calculate_ssid_status; returning empty list.")
+        if not ssids:  # Handles None or empty list for ssids.
+            _LOGGER.debug(
+                "SSID data is None or empty in calculate_ssid_status; returning empty list."
+            )
             return []
 
-        if not isinstance(devices, list) and devices is not None: # Allow devices to be None, but not other non-list types
-            _LOGGER.error("Invalid input: 'devices' is not a list (type: %s) and not None. SSID statuses cannot be determined accurately.", type(devices).__name__)
-            # Mark all SSIDs as unknown_device_data_missing, similar to when devices is None
-            processed_ssids_on_error = []
-            for ssid_info_item in ssids:
-                if isinstance(ssid_info_item, dict):
-                    ssid_info_item["status"] = "unknown_device_data_missing"
-                    processed_ssids_on_error.append(ssid_info_item)
-                # else: skip non-dict ssid items if ssids list itself was malformed with non-dicts
-            return processed_ssids_on_error
-
-        if devices is None:
+        if devices is None:  # Handles case where device data is missing.
             _LOGGER.warning(
                 "Device data is None in calculate_ssid_status. SSID statuses cannot be determined accurately. "
                 "Marking SSIDs as 'unknown_device_data_missing'."
             )
-            # Ensure all items in ssids are dicts before adding status key
-            processed_ssids_on_none_devices = []
-            for ssid_info_item in ssids:
-                if isinstance(ssid_info_item, dict):
-                    ssid_info_item["status"] = "unknown_device_data_missing"
-                    processed_ssids_on_none_devices.append(ssid_info_item)
-                else:
-                    _LOGGER.warning("Skipping non-dictionary item in ssids list when devices is None: %s", ssid_info_item)
-            return processed_ssids_on_none_devices
+            for ssid in ssids:
+                # Add status field.
+                ssid["status"] = "unknown_device_data_missing"
+            return ssids
+
+        # Comment about device_tags being None is removed as parameter is gone.
 
         _LOGGER.debug(
-            "Calculating SSID status for %d SSIDs using %d devices.",
+            "Calculating SSID status for %d SSIDs using %d devices. Tag matching is permissive (relaxed).",
             len(ssids),
             len(devices),
         )
@@ -110,22 +92,8 @@ class SsidStatusCalculator:
                 "name", f"Unnamed SSID ({ssid_id or ssid_number})"
             )
             is_enabled = ssid_info.get("enabled", False)
-            if not isinstance(is_enabled, bool):
-                _LOGGER.warning("SSID '%s' (ID: %s) 'enabled' flag is not a boolean (type: %s, value: %s). Defaulting to False.",
-                                ssid_name, ssid_id, type(is_enabled).__name__, is_enabled)
-                is_enabled = False
-
             # Tags defined on the SSID configuration.
-            raw_ssid_tags = ssid_info.get("tags", [])
-            if not isinstance(raw_ssid_tags, list):
-                _LOGGER.warning("SSID '%s' (ID: %s) 'tags' attribute is not a list (type: %s). Treating as empty tags list.",
-                                ssid_name, ssid_id, type(raw_ssid_tags).__name__)
-                ssid_configured_tags: List[str] = []
-            else:
-                ssid_configured_tags = [str(tag) for tag in raw_ssid_tags if isinstance(tag, str)]
-                if len(ssid_configured_tags) != len(raw_ssid_tags):
-                    _LOGGER.warning("SSID '%s' (ID: %s) had non-string items in its 'tags' list. Filtered to: %s",
-                                    ssid_name, ssid_id, ssid_configured_tags)
+            ssid_configured_tags: List[str] = ssid_info.get("tags", [])
 
             _LOGGER.debug(
                 "Processing SSID: Name='%s' (ID: %s, Number: %s), Enabled: %s, Configured Tags: %s",
@@ -156,19 +124,9 @@ class SsidStatusCalculator:
                     if isinstance(device_status_raw, str):
                         device_status = device_status_raw.lower()
                     # If device_status_raw was None (or not a string), device_status remains "unknown"
-
                     # Device tags are now expected to be directly within the
                     # device_info dictionary.
-                    raw_device_tags = device_info.get("tags", [])
-                    if not isinstance(raw_device_tags, list):
-                        _LOGGER.warning("Device AP (Serial: %s) 'tags' attribute is not a list (type: %s). Treating as empty tags list.",
-                                        device_serial, type(raw_device_tags).__name__)
-                        current_device_tags: List[str] = []
-                    else:
-                        current_device_tags = [str(tag) for tag in raw_device_tags if isinstance(tag, str)]
-                        if len(current_device_tags) != len(raw_device_tags):
-                            _LOGGER.warning("Device AP (Serial: %s) had non-string items in its 'tags' list. Filtered to: %s",
-                                            device_serial, current_device_tags)
+                    current_device_tags: List[str] = device_info.get("tags", [])
 
                     _LOGGER.debug(
                         "  Checking Wireless AP: Serial=%s, Status='%s', Model='%s', AP Tags=%s",
@@ -201,15 +159,25 @@ class SsidStatusCalculator:
             ssid_info["matching_devices_online"] = matching_devices_online_count
             ssid_info["matching_devices_total"] = matching_devices_total_count
 
+            # Determine the final operational status of the SSID based on its enabled state
+            # and the counts of matching online/total Access Points.
             if not is_enabled:
+                # If the SSID is administratively disabled in Meraki dashboard.
                 ssid_info["status"] = "disabled"
             elif matching_devices_total_count == 0:
+                # If no APs (MR devices) are found that match this SSID's tag criteria.
+                # This implies the SSID is configured but not broadcast by any relevant APs.
                 ssid_info["status"] = "no_matching_devices"
             elif matching_devices_online_count == matching_devices_total_count:
+                # All APs that should be broadcasting this SSID are currently online.
                 ssid_info["status"] = "online"
             elif matching_devices_online_count > 0:
+                # Some, but not all, of the APs that should broadcast this SSID are online.
+                # At least one AP is online, but others are offline/unresponsive.
                 ssid_info["status"] = "partially_online"
-            else:  # matching_devices_total_count > 0 but matching_devices_online_count == 0
+            else:  # This implies matching_devices_total_count > 0 but matching_devices_online_count == 0
+                # All APs that should be broadcasting this SSID are currently offline or in an unknown state.
+                # The SSID is configured on APs, but none of them are reachable/online.
                 ssid_info["status"] = "offline"
 
             _LOGGER.debug(
@@ -235,60 +203,36 @@ class SsidStatusCalculator:
     ) -> bool:
         """Determine if a device's tags match an SSID's tags.
 
-        An AP matches if it shares at least one tag with the SSID.
-        If the SSID has no tags, any AP is considered a match.
+        The logic is permissive (relaxed):
+        - If an SSID has no `ssid_tags`, any device is considered a match.
+        - If an SSID has `ssid_tags`, a device matches if it shares at least one tag with the SSID.
+        - If an SSID has `ssid_tags` but the device has no `device_actual_tags`, it's not a match.
 
         Args:
-            ssid_tags: A list of string tags associated with the SSID from its configuration.
-                       Expected type: List[str].
-            device_actual_tags: A list of string tags currently on the device.
-                                Expected type: List[str].
+            ssid_tags: A list of tags associated with the SSID from its configuration.
+            device_actual_tags: A list of tags currently on the device.
 
         Returns:
             True if the device's tags meet the SSID's tag requirements, False otherwise.
-            Returns False if input types are invalid.
         """
-        if not isinstance(ssid_tags, list):
-            _LOGGER.warning("Invalid input: 'ssid_tags' is not a list (type: %s). Cannot perform tag match.", type(ssid_tags).__name__)
-            return False
-        if not isinstance(device_actual_tags, list):
-            _LOGGER.warning("Invalid input: 'device_actual_tags' is not a list (type: %s). Cannot perform tag match.", type(device_actual_tags).__name__)
-            return False
-
-        if not ssid_tags: # Handles empty list for ssid_tags
+        # If an SSID has no tags defined in its configuration, it implies it should be
+        # broadcast by all APs (that are capable, e.g. in the same network, though network
+        # association is handled elsewhere). So, any device is a match from a
+        # tag perspective.
+        if not ssid_tags:
             return True
 
-        if not device_actual_tags: # Handles empty list for device_actual_tags (if ssid_tags is not empty)
+        # If the SSID configuration requires specific tags, but the device itself has no tags,
+        # it cannot fulfill the requirement.
+        if not device_actual_tags:
             return False
 
-        # Normalize tags to lowercase for case-insensitive comparison.
-        try:
-            ssid_tags_lower = set()
-            for tag in ssid_tags:
-                if isinstance(tag, str):
-                    ssid_tags_lower.add(tag.lower())
-                else:
-                    _LOGGER.warning("Non-string tag found in ssid_tags: %s (type: %s). Skipping.", tag, type(tag).__name__)
+        # Normalize tags to lowercase for case-insensitive comparison. This ensures that
+        # "Office" and "office" are treated as the same tag.
+        ssid_tags_lower = {tag.lower() for tag in ssid_tags}
+        device_tags_lower = {tag.lower() for tag in device_actual_tags}
 
-            device_tags_lower = set()
-            for tag in device_actual_tags:
-                if isinstance(tag, str):
-                    device_tags_lower.add(tag.lower())
-                else:
-                    _LOGGER.warning("Non-string tag found in device_actual_tags: %s (type: %s). Skipping.", tag, type(tag).__name__)
-
-            if not ssid_tags_lower: # If, after filtering, ssid_tags_lower is empty (e.g. original ssid_tags had only non-strings)
-                return True # Behaves like original "if not ssid_tags"
-
-            if not device_tags_lower and ssid_tags_lower : # If device tags became empty after filtering, and ssid tags are not empty
-                 return False
-
-
-        except AttributeError: # Should be largely caught by isinstance checks above
-            _LOGGER.exception("AttributeError during tag processing in _does_device_match_ssid_tags. This is unexpected with type checks.")
-            return False # Safety net
-
-        # Relaxed mode: Returns True if there's any overlap (intersection)
+        # Permissive (Relaxed) mode: Returns True if there's any overlap (intersection)
         # between the SSID's configured tags and the device's actual tags.
         # `isdisjoint()` returns True if the sets have NO common elements.
         return not ssid_tags_lower.isdisjoint(device_tags_lower)

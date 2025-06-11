@@ -21,6 +21,7 @@ from custom_components.meraki_ha.authentication import validate_meraki_credentia
 from custom_components.meraki_ha.const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
+    CONF_RELAXED_TAG_MATCHING,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
@@ -58,10 +59,18 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         It validates these credentials and creates a config entry if valid.
 
         Args:
-            user_input: A dictionary containing the user's input, if any.
+            user_input: Optional dictionary of user input. When not None, it is expected
+                to contain:
+                - CONF_MERAKI_API_KEY (str): The Meraki API key.
+                - CONF_MERAKI_ORG_ID (str): The Meraki Organization ID.
+                - CONF_SCAN_INTERVAL (int): The scan interval in seconds.
+                - "device_name_format" (str): One of "prefix", "suffix", "omitted".
+                - CONF_RELAXED_TAG_MATCHING (bool): Whether relaxed tag matching is enabled.
+                Defaults are applied if optional fields are missing.
 
         Returns:
-            A FlowResult indicating the next step or outcome of the flow.
+            A FlowResult object representing the next step in the config flow. This could be
+            showing the form again with errors, or creating the config entry and finishing.
         """
         _LOGGER.debug("Meraki HA: async_step_user called")
         errors: Dict[str, str] = {}
@@ -101,6 +110,9 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     "device_name_format": user_input.get(
                         "device_name_format", "omitted"
                     ),  # Default device name format
+                    CONF_RELAXED_TAG_MATCHING: user_input.get(
+                        CONF_RELAXED_TAG_MATCHING, False
+                    ),  # Default relaxed tag matching to False
                 }
 
                 _LOGGER.debug(
@@ -179,6 +191,13 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     )
                 ),
+                # Relaxed tag matching field: optional, boolean (checkbox).
+                vol.Optional(
+                    CONF_RELAXED_TAG_MATCHING,
+                    default=user_input.get(
+                        CONF_RELAXED_TAG_MATCHING, False
+                    ),  # Pre-fill
+                ): bool,
             }
         )
         # Note: UI descriptions for fields like CONF_SCAN_INTERVAL can be
@@ -205,10 +224,14 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         It prompts the user to re-enter their API key and Organization ID.
 
         Args:
-            user_input: A dictionary containing the user's input, if any.
+            user_input: Optional dictionary of user input for reauthentication.
+                When not None, it is expected to contain:
+                - CONF_MERAKI_API_KEY (str): The new Meraki API key.
+                - CONF_MERAKI_ORG_ID (str): The new Meraki Organization ID.
 
         Returns:
-            A FlowResult indicating the next step or outcome of the reauth flow.
+            A FlowResult object representing the next step in the reauth flow. This could be
+            showing the form again with errors, or aborting if reauth is successful.
         """
         _LOGGER.debug("Meraki HA: async_step_reauth called")
         errors: Dict[str, str] = {}
@@ -282,10 +305,11 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Return a dynamic title for the config entry.
 
         Args:
-            data: The data associated with the config entry (from entry.data).
+            data: The config entry data dictionary, typically `config_entry.data`.
+                  Expected to contain `CONF_MERAKI_ORG_ID`.
 
         Returns:
-            The title string for the config entry.
+            The desired title string for the config entry.
         """
         # Create a user-friendly title using the Organization ID.
         # Default title if org_id is somehow missing.
@@ -336,10 +360,16 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         If user_input is provided, it means the user has submitted the form.
 
         Args:
-            user_input: A dictionary containing the user's input from the options form.
+            user_input: Optional dictionary of user input from the options form.
+                When not None, it may contain:
+                - CONF_SCAN_INTERVAL (int): The desired scan interval.
+                - "device_name_format" (str): The chosen device name format.
+                - CONF_RELAXED_TAG_MATCHING (bool): The choice for relaxed tag matching.
+                Current values from `self.config_entry.options` are used as defaults in the form.
 
         Returns:
-            A FlowResult indicating the outcome (e.g., show form, create entry for options).
+            A FlowResult object, either showing the options form or creating/updating
+            the config entry's options and finishing the flow.
         """
         # This block executes if the user has submitted the options form.
         if user_input is not None:
@@ -399,6 +429,13 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     )
                 ),
+                # Relaxed tag matching field, boolean (checkbox).
+                vol.Optional(
+                    CONF_RELAXED_TAG_MATCHING,
+                    default=self.config_entry.options.get(
+                        CONF_RELAXED_TAG_MATCHING, False  # Default if not set
+                    ),
+                ): bool,
             }
         )
         # Note: UI descriptions for these options fields are typically handled

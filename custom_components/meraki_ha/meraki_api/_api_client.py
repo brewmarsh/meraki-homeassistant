@@ -5,15 +5,11 @@ leveraging the meraki.aio.DashboardAPI.
 """
 
 import logging
-from typing import Any
-
-from meraki.aio import AsyncDashboardAPI  # Changed from DashboardAPI
-
-# Assuming MerakiApiError might still be used as a base custom error for the integration.
-# If not, this can be removed in a later step if all error handling is
-# done via meraki.APIError
-from .exceptions import MerakiApiError, MerakiApiConnectionError, MerakiApiAuthError # Changed MerakiApiInvalidApiKeyError to MerakiApiAuthError
+from typing import Any, List, Dict, Optional # Added List, Dict, Optional
+from meraki.aio import AsyncDashboardAPI
 from meraki.exceptions import APIError as MerakiSDKAPIError
+
+from .exceptions import MerakiApiError, MerakiApiConnectionError, MerakiApiAuthError
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -96,7 +92,12 @@ class MerakiAPIClient:
             kwargs: Additional arguments to pass to the API call.
 
         Returns:
-            The clients of the network.
+            List[Dict[str, Any]]: Raw list of client dictionaries from the Meraki SDK on success.
+
+        Raises:
+            MerakiApiAuthError: If authentication fails (e.g., HTTP 401).
+            MerakiApiConnectionError: For connection issues to the Meraki API.
+            MerakiApiError: For other Meraki API related errors.
         """
         method_description = f"fetching clients for network {network_id}"
         try:
@@ -108,26 +109,30 @@ class MerakiAPIClient:
             )
             if e.status == 401:
                 raise MerakiApiAuthError(f"Authentication failed while {method_description}: {e.message} (Status: {e.status})") from e
-            # Example heuristic for connection error - SDK might have better ways or specific error types
             if e.status is None or "Temporary failure in name resolution" in e.message or "Connection timed out" in e.message:
                  raise MerakiApiConnectionError(f"Connection error while {method_description}: {e.message}") from e
             raise MerakiApiError(f"Failed while {method_description}: {e.message} (Status: {e.status})") from e
-        except Exception as e: # Catch any non-SDK errors
+        except Exception as e:
             _LOGGER.exception(f"Unexpected error while {method_description}: {e}")
             raise MerakiApiError(f"An unexpected error occurred while {method_description}: {e}") from e
 
-    async def get_camera_sense_settings(self, serial: str) -> Any:
+    async def get_camera_sense_settings(self, serial: str) -> Dict[str, Any]:
         """Get the sense settings for a camera.
 
         Args:
             serial: The serial number of the camera.
 
         Returns:
-            The sense settings for the camera.
+            Dict[str, Any]: Raw dictionary of sense settings from the Meraki SDK on success.
+
+        Raises:
+            MerakiApiAuthError: If authentication fails.
+            MerakiApiConnectionError: For connection issues.
+            MerakiApiError: For other API errors.
         """
+        method_description = f"fetching camera sense settings for device {serial}"
+        _LOGGER.debug("Fetching camera sense settings for device %s", serial)
         try:
-            method_description = f"fetching camera sense settings for device {serial}"
-            _LOGGER.debug("Fetching camera sense settings for device %s", serial)
             return await self._sdk.camera.getDeviceCameraSense(serial=serial)
         except MerakiSDKAPIError as e:
             _LOGGER.error(
@@ -143,14 +148,19 @@ class MerakiAPIClient:
             _LOGGER.exception(f"Unexpected error while {method_description}: {e}")
             raise MerakiApiError(f"An unexpected error occurred while {method_description}: {e}") from e
 
-    async def get_camera_video_settings(self, serial: str) -> Any:
+    async def get_camera_video_settings(self, serial: str) -> Dict[str, Any]:
         """Get the video settings for a camera.
 
         Args:
             serial: The serial number of the camera.
 
         Returns:
-            The video settings for the camera.
+            Dict[str, Any]: Raw dictionary of video settings from the Meraki SDK on success.
+
+        Raises:
+            MerakiApiAuthError: If authentication fails.
+            MerakiApiConnectionError: For connection issues.
+            MerakiApiError: For other API errors.
         """
         method_description = f"fetching camera video settings for device {serial}"
         _LOGGER.debug("Fetching camera video settings for device %s", serial)
@@ -172,7 +182,7 @@ class MerakiAPIClient:
 
     async def update_camera_video_settings(
         self, serial: str, rtsp_server_enabled: bool
-    ) -> Any:
+    ) -> Dict[str, Any]:
         """Update the video settings for a camera.
 
         Args:
@@ -180,17 +190,19 @@ class MerakiAPIClient:
             rtsp_server_enabled: Target state for RTSP server.
 
         Returns:
-            The response from the Meraki API after attempting the update.
+            Dict[str, Any]: Raw dictionary response from the Meraki SDK after attempting the update.
 
         Raises:
-            MerakiApiError: If the API call fails.
+            MerakiApiAuthError: If authentication fails.
+            MerakiApiConnectionError: For connection issues.
+            MerakiApiError: For other API errors.
         """
+        method_description = f"updating camera video settings for device {serial}"
         _LOGGER.debug(
             "Updating camera video settings for device %s with payload: externalRtspEnabled=%s",
             serial,
             rtsp_server_enabled,
         )
-        method_description = f"updating camera video settings for device {serial}"
         try:
             return await self._sdk.camera.updateDeviceCameraVideoSettings(
                 serial=serial, externalRtspEnabled=rtsp_server_enabled
@@ -214,7 +226,7 @@ class MerakiAPIClient:
         serial: str,
         sense_enabled: bool | None = None,
         audio_detection_enabled: bool | None = None,
-    ) -> Any:
+    ) -> Dict[str, Any]:
         """Update the sense settings for a camera.
 
         Args:
@@ -224,11 +236,13 @@ class MerakiAPIClient:
                                      (`audioDetection.enabled`).
 
         Returns:
-            The response from the Meraki API after attempting the update.
+            Dict[str, Any]: Raw dictionary response from the Meraki SDK.
             If no settings are provided to update, returns the current settings.
 
         Raises:
-            MerakiApiError: If the API call fails.
+            MerakiApiAuthError: If authentication fails.
+            MerakiApiConnectionError: For connection issues.
+            MerakiApiError: For other API errors.
         """
         payload = {}
         # Construct payload only with provided (non-None) arguments
@@ -252,7 +266,6 @@ class MerakiAPIClient:
             serial,
             payload,
         )
-        method_description = f"updating camera sense settings for device {serial}"
         try:
             # The meraki.aio SDK's updateDeviceCameraSense method
             # directly accepts keyword arguments that match the API payload structure.
