@@ -9,7 +9,12 @@ from typing import Any, List, Dict, Optional # Added List, Dict, Optional
 from meraki.aio import AsyncDashboardAPI
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
-from .exceptions import MerakiApiError, MerakiApiConnectionError, MerakiApiAuthError
+from .exceptions import (
+    MerakiApiError,
+    MerakiApiConnectionError,
+    MerakiApiAuthError,
+    MerakiApiNotFoundError, # Added import
+)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -295,22 +300,50 @@ class MerakiAPIClient:
     async def async_update_device_tags(self, serial: str, tags: List[str]) -> bool:
         """
         Placeholder for updating device tags.
-        The python-meraki SDK might not support direct tag list replacement
-        via the /devices/{serial} endpoint in the way this method might imply.
-        This function is a placeholder and not fully implemented.
+        The python-meraki SDK's updateDevice method can be used to update tags.
+        This method attempts to replace all existing tags with the provided list.
+
+        Args:
+            serial: The serial number of the device.
+            tags: A list of strings representing the desired tags.
+
+        Returns:
+            True if the update was successful, False otherwise (though exceptions are raised on failure).
+
+        Raises:
+            MerakiApiAuthError: If authentication fails (HTTP 401).
+            MerakiApiNotFoundError: If the device is not found (HTTP 404).
+            MerakiApiConnectionError: For connection issues to the Meraki API.
+            MerakiApiError: For other Meraki API related errors.
         """
-        _LOGGER.warning(
-            "Attempted to call async_update_device_tags for device %s. "
-            "This function is a placeholder or relies on SDK features for tag updates "
-            "that may not be fully supported for direct tag list replacement. "
-            "Tag modification functionalities might not work as expected.",
-            serial
-        )
-        # TODO: Implement actual tag update logic if SDK/API supports it as intended.
-        # Current Meraki SDK (as of recent checks) updates tags by applying and removing
-        # individual tags or using a different method for bulk updates, not direct replacement
-        # via a simple list in the main device update endpoint.
-        return False
+        method_description = f"updating tags for device {serial} to {tags}"
+        _LOGGER.debug("Attempting to %s", method_description)
+
+        try:
+            await self._sdk.devices.updateDevice(serial=serial, tags=tags)
+            _LOGGER.debug("Successfully %s", method_description)
+            return True
+        except MerakiSDKAPIError as e:
+            _LOGGER.error(
+                "Meraki SDK API error while %s: %s (Status: %s, Reason: %s, Action: %s, Response: %s)",
+                method_description,
+                e.message,
+                e.status,
+                e.reason,
+                e.action,
+                str(e.response)[:200],
+            )
+            if e.status == 401:
+                raise MerakiApiAuthError(f"Authentication failed while {method_description}: {e.message} (Status: {e.status})") from e
+            elif e.status == 404:
+                raise MerakiApiNotFoundError(f"Device {serial} not found while {method_description}: {e.message} (Status: {e.status})") from e
+            # Check for connection-related issues based on status or message content
+            if e.status is None or "Temporary failure in name resolution" in e.message or "Connection timed out" in e.message:
+                 raise MerakiApiConnectionError(f"Connection error while {method_description}: {e.message}") from e
+            raise MerakiApiError(f"Failed while {method_description}: {e.message} (Status: {e.status})") from e
+        except Exception as e:
+            _LOGGER.exception("Unexpected error while %s: %s", method_description, e)
+            raise MerakiApiError(f"An unexpected error occurred while {method_description}: {e}") from e
 
 
 __all__ = [
@@ -318,4 +351,5 @@ __all__ = [
     "MerakiApiError",
     "MerakiApiConnectionError",
     "MerakiApiAuthError",
+    "MerakiApiNotFoundError", # Added export
 ]

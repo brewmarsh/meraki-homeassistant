@@ -7,6 +7,7 @@ from typing import Any, Dict # Optional removed
 from homeassistant.components.text import TextEntity, TextMode
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError # Added import
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -125,5 +126,6 @@ class MerakiSSIDNameTextEntity(CoordinatorEntity[SSIDDeviceCoordinator], TextEnt
             await self.coordinator.async_request_refresh()
         except Exception as e:
             _LOGGER.error(f"Failed to set SSID name for {self.name} to '{value}': {e}")
+            raise HomeAssistantError(f"Failed to update SSID name for {self.name} to '{value}': {e}") from e
             # Optionally, force a refresh to revert optimistic update.
             # For now, we rely on the next scheduled or requested refresh.
