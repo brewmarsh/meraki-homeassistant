@@ -78,6 +78,12 @@ ATTR_CONNECTED_CLIENTS: Final[str] = "connected_clients"
 ATTR_SSIDS: Final[str] = "ssids"
 """Device attribute for SSIDs (str)."""
 
+# Configuration options
+CONF_RELAXED_TAG_MATCHING: Final[str] = "relaxed_tag_matching"
+"""Configuration key for relaxed tag matching.
+(bool stored as str in options, but represents a boolean concept).
+"""
+
 ERASE_TAGS_WARNING: Final[str] = (
     "Tag erasing is enabled! This will ERASE ALL TAGS on your Meraki devices. "
     "Proceed with extreme caution!"

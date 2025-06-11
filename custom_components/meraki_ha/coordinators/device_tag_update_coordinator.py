@@ -58,13 +58,14 @@ class DeviceTagUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
         Args:
             hass: The Home Assistant instance.
-            api_key: The Meraki API key.
+            api_key: The Meraki API key. (Note: Stored, but `api_fetcher` uses client from `main_coordinator`).
             scan_interval: The time interval for periodic updates.
-                Primarily for the `_async_update_data` placeholder.
-                Updates are on-demand.
-            org_id: The Meraki Organization ID.
-            main_coordinator: The main `MerakiDataUpdateCoordinator`
-                instance, used for context or shared properties.
+                Primarily for the `_async_update_data` placeholder, as tag
+                updates are typically on-demand.
+            org_id: The Meraki Organization ID. (Note: Stored, but `api_fetcher` uses client from `main_coordinator`).
+            main_coordinator: The main `MerakiDataUpdateCoordinator` instance, which provides
+                the `MerakiAPIClient` (already initialized with API key and Org ID)
+                used by this coordinator's `MerakiApiDataFetcher`.
         """
         super().__init__(
             hass,
@@ -220,18 +221,7 @@ class DeviceTagUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             )
             raise
         except Exception as e:  # Catch any other unexpected errors
-            )
-            raise
-        except AttributeError as e:
-            _LOGGER.error(
-                "AttributeError while trying to update tags for device %s: %s. This might indicate "
-                "the method 'async_update_device_tags' is missing from MerakiApiDataFetcher.", serial, e
-            )
-            raise UpdateFailed(
-                f"Internal error: Feature to update tags may not be fully implemented for device {serial} ({e})"
-            ) from e
-        except Exception as e:  # Catch any other unexpected errors
-            # Use .exception to include stack trace for any other error
+            # Use .exception to include stack trace
             _LOGGER.exception(
                 "Unexpected error updating tags for device %s: %s", serial, e
             )

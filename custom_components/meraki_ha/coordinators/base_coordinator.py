@@ -65,20 +65,23 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         api_key: str,
         org_id: str,
         scan_interval: timedelta,
-        config_entry: ConfigEntry,
+        config_entry: ConfigEntry, # relaxed_tag_match parameter removed
     ) -> None:
         """Initialize the Meraki data update coordinator.
 
         Args:
             hass: The Home Assistant instance.
-            api_key: The Meraki API key.
+            api_key: The Meraki API key, used for initializing MerakiAPIClient and potentially TagEraserCoordinator.
             org_id: The Meraki Organization ID.
             scan_interval: The interval at which to periodically update data.
-            config_entry: The config entry associated with this coordinator instance.
+            config_entry: The config entry associated with this coordinator instance,
+                          used for accessing options (e.g., erase_tags, device_name_format)
+                          and for device registration.
         """
         self.api_key: str = api_key  # Stored for potential direct use (e.g., TagEraser)
         self.org_id: str = org_id
         self.config_entry: ConfigEntry = config_entry  # Access to options, entry_id
+        # self.relaxed_tag_match attribute removed
         self.erase_tags: bool = config_entry.options.get("erase_tags", False)
 
         # Initialize the MerakiAPIClient for SDK interactions.
@@ -106,6 +109,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 scan_interval,
                 # scan_interval passed for consistency, though DAC updates on
                 # demand.
+                # relaxed_tag_match argument removed
                 self,  # Pass self as parent coordinator for context.
             )
         )
@@ -236,33 +240,13 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
         # Extract data components from `all_data`. Default to empty lists if
         # keys are missing.
-        # Validate structure of data from api_fetcher
-        devices_raw = all_data.get("devices")
-        ssids_raw = all_data.get("ssids")
-        networks_raw = all_data.get("networks")
-        clients_list_raw = all_data.get("clients")
-        self.org_name = all_data.get("org_name") # org_name can be None, handled by registration logic
-
-        if not isinstance(devices_raw, list):
-            _LOGGER.error("Invalid data structure: 'devices' is not a list (type: %s). Cannot proceed.", type(devices_raw).__name__)
-            raise UpdateFailed("Received invalid 'devices' data structure from API fetcher.")
-        devices: List[Dict[str, Any]] = devices_raw
-
-        if not isinstance(ssids_raw, list):
-            _LOGGER.error("Invalid data structure: 'ssids' is not a list (type: %s). Cannot proceed.", type(ssids_raw).__name__)
-            raise UpdateFailed("Received invalid 'ssids' data structure from API fetcher.")
-        ssids: List[Dict[str, Any]] = ssids_raw
-
-        if not isinstance(networks_raw, list):
-            _LOGGER.error("Invalid data structure: 'networks' is not a list (type: %s). Cannot proceed.", type(networks_raw).__name__)
-            raise UpdateFailed("Received invalid 'networks' data structure from API fetcher.")
-        networks: List[Dict[str, Any]] = networks_raw
-
-        if not isinstance(clients_list_raw, list):
-            _LOGGER.warning("Invalid data structure: 'clients' is not a list (type: %s). Proceeding with empty client list.", type(clients_list_raw).__name__)
-            clients_list: List[Dict[str, Any]] = [] # Default to empty list if type is wrong
-        else:
-            clients_list: List[Dict[str, Any]] = clients_list_raw
+        devices: List[Dict[str, Any]] = all_data.get("devices", [])
+        ssids: List[Dict[str, Any]] = all_data.get("ssids", [])
+        networks: List[Dict[str, Any]] = all_data.get("networks", [])
+        clients_list: List[Dict[str, Any]] = all_data.get(
+            "clients", []
+        )  # New: Extract clients
+        self.org_name = all_data.get("org_name")  # Store org_name from fetched data
 
         # Step 2: Device tags are now part of the `devices` list from `all_data`.
         # No separate tag fetching step is needed here.
@@ -279,14 +263,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             "Starting Meraki Network device registration process for org %s.",
             self.org_id,
         )
-        device_registry = dr.async_get(self.hass)
+        device_registry = dr.async_get(self.hass)  # Ensure dr is available
         processed_network_devices = 0
-        # networks is now validated to be a list
-        for network_idx, network_info in enumerate(networks):
-            if not isinstance(network_info, dict):
-                _LOGGER.warning("Skipping non-dictionary network_info at index %d: %s", network_idx, str(network_info)[:100])
-                continue
-
+        for network_info in networks:  # 'networks' is all_data.get("networks", [])
             network_id = network_info.get("id")
             network_name = network_info.get("name")
 
@@ -346,88 +325,60 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             "Starting physical device registration process for org %s.", self.org_id
         )
         # device_registry instance is already available from network registration part
-        successful_physical_device_registrations = 0
-        # devices is now validated to be a list
-        for device_idx, device_info in enumerate(devices):
-            try:
-                if not isinstance(device_info, dict):
-                    _LOGGER.warning("Skipping non-dictionary device_info at index %d: %s", device_idx, str(device_info)[:100])
-                    continue
 
-                serial = device_info.get("serial")
-                if not serial:
-                    _LOGGER.warning(
-                        "Device at index %d found without serial, cannot register: %s. Skipping this device.", device_idx, str(device_info)[:100]
-                    )
-                    continue
-
-                device_name_raw = device_info.get("name") or serial
-                # Ensure device_model_str is a string, provide a fallback.
-                device_model_str = device_info.get("model", "Unknown")
-                if not isinstance(device_model_str, str):
-                    _LOGGER.warning(
-                        f"Device model for serial {serial} is not a string (type: {type(device_model_str).__name__}, value: {device_model_str}). Using 'Unknown'."
-                    )
-                    device_model_str = "Unknown"
-
-                firmware_version = device_info.get("firmware")
-
-                formatted_device_name = format_device_name(
-                    device_name_raw=device_name_raw,
-                    device_model=device_model_str,
-                    device_name_format_option=self.device_name_format,
-                    is_org_device=False
+        for device_info in devices:  # 'devices' is all_data.get("devices", [])
+            serial = device_info.get("serial")
+            if not serial:
+                _LOGGER.warning(
+                    "Device found without serial, cannot register: %s", device_info
                 )
+                continue
 
-                mac_address = device_info.get("mac")
-                connections = None
-                if mac_address and isinstance(mac_address, str):
-                    connections = {(dr.CONNECTION_NETWORK_MAC, mac_address)}
-                elif mac_address: # Log if MAC is present but not a string
-                    _LOGGER.warning(
-                        f"Device serial {serial} has non-string MAC address (type: {type(mac_address).__name__}, value: {mac_address}). Cannot form connection tuple."
-                    )
+            device_name_raw = device_info.get("name") or serial
+            device_model_str = device_info.get("model", "Unknown")
+            firmware_version = device_info.get("firmware")  # Get firmware version here
 
-                device_registry.async_get_or_create(
-                    config_entry_id=self.config_entry.entry_id,
-                    identifiers={(DOMAIN, serial)},
-                    manufacturer="Cisco Meraki",
-                    model=device_model_str,
-                    name=formatted_device_name,
-                    sw_version=firmware_version,
-                    connections=connections,
-                )
-                _LOGGER.debug(
-                    "Registered/Updated physical device: %s (Serial: %s, Model: %s, MAC: %s, FW: %s, Status: %s)",
-                    formatted_device_name,
-                    serial,
-                    device_model_str,
-                    mac_address or "N/A",
-                    firmware_version or "N/A",
-                    device_info.get("status", "N/A"),
-                )
-                successful_physical_device_registrations += 1
-            except (TypeError, ValueError) as e:
-                _LOGGER.error(
-                    "Error processing or registering physical device (Serial: %s, Name: %s): %s. Device info: %s. Skipping this device.",
-                    device_info.get("serial", "N/A"),
-                    device_info.get("name", "N/A"),
-                    e,
-                    str(device_info)[:200] # Log a snippet of the device_info
-                )
-            except Exception as e: # Catch any other unexpected error for a single device
-                _LOGGER.exception(
-                    "Unexpected error during physical device registration (Serial: %s, Name: %s): %s. Device info: %s. Skipping this device.",
-                    device_info.get("serial", "N/A"),
-                    device_info.get("name", "N/A"),
-                    e,
-                    str(device_info)[:200]
-                )
-        _LOGGER.debug(
-            "Physical device registration process completed for org %s. Successfully registered/updated %d devices.",
-            self.org_id,
-            successful_physical_device_registrations
-        )
+            # Use the centralized format_device_name helper
+            # The map_meraki_model_to_device_type call is handled inside format_device_name
+            formatted_device_name = format_device_name(
+                device_name_raw=device_name_raw,
+                device_model=device_model_str,
+                device_name_format_option=self.device_name_format, # Use property directly
+                is_org_device=False
+            )
+
+            # Prepare connections set using MAC address
+            mac_address = device_info.get("mac")
+            connections = None
+            if mac_address:
+                connections = {(dr.CONNECTION_NETWORK_MAC, mac_address)}
+
+            # Log the full device_info for debugging before registration attempt
+            # This log was already added in a previous step, ensuring it's correctly placed.
+            # _LOGGER.debug(
+            #     "MERAKI_DEBUG_COORDINATOR: Preparing to register/update physical device. Full device_info: %s",
+            #     device_info
+            # )
+
+            device_registry.async_get_or_create(
+                config_entry_id=self.config_entry.entry_id,
+                identifiers={(DOMAIN, serial)},
+                manufacturer="Cisco Meraki",
+                model=device_model_str,
+                name=formatted_device_name,
+                sw_version=firmware_version,  # firmware_version from device_info.get("firmware")
+                connections=connections,  # Pass the connections set
+            )
+            _LOGGER.debug(
+                "Registered/Updated physical device: %s (Serial: %s, Model: %s, MAC: %s, FW: %s, Status: %s)",
+                formatted_device_name,
+                serial,
+                device_model_str,
+                mac_address or "N/A",  # Log MAC address
+                firmware_version or "N/A",  # Log firmware version
+                device_info.get("status", "N/A"),  # Log status
+            )
+        _LOGGER.debug("Device registration process completed for org %s.", self.org_id)
         # ---- END DEVICE REGISTRATION LOGIC ----
 
         # Process client data to get network client counts
@@ -445,37 +396,22 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
         # Step 4: Aggregate all data using the DataAggregationCoordinator.
         # This coordinator takes the raw lists of devices, SSIDs, and networks.
-        # Ensure all inputs to data_aggregation_coordinator are of expected list types
-        # (already validated for devices, ssids, networks, clients_list).
-        # network_client_counts is Optional[Dict], which is fine.
-        # Integer counts are fine.
-        if not (isinstance(devices, list) and
-                isinstance(ssids, list) and
-                isinstance(networks, list) and
-                isinstance(clients_list, list) and
-                (isinstance(network_client_counts, dict) or network_client_counts is None)):
-            _LOGGER.critical(
-                "Internal data type mismatch before calling data_aggregation_coordinator. This should not happen. "
-                "devices_type: %s, ssids_type: %s, networks_type: %s, clients_list_type: %s, network_client_counts_type: %s",
-                type(devices).__name__, type(ssids).__name__, type(networks).__name__, type(clients_list).__name__, type(network_client_counts).__name__
-            )
-            # This indicates a severe logic error if previous checks passed.
-            raise UpdateFailed("Critical internal data type error before aggregation.")
-
         try:
             combined_data: Dict[str, Any] = (
                 await self.data_aggregation_coordinator._async_update_data(
-                    devices,
-                    ssids,
-                    networks,
+                    devices,  # Pass the comprehensive devices list.
+                    ssids,  # Pass the SSIDs list.
+                    networks,  # Pass the networks list.
                     clients_list,
                     network_client_counts,
                     clients_on_ssids=clients_on_ssids,
                     clients_on_appliances=clients_on_appliances,
                     clients_on_wireless=clients_on_wireless,
+                    # The fourth `device_tags` argument has been removed from
+                    # _async_update_data.
                 )
             )
-        except Exception as e: # Catch errors specifically from the aggregation step.
+        except Exception as e:  # Catch errors specifically from the aggregation step.
             _LOGGER.exception(
                 "Error during data aggregation for org %s: %s", self.org_id, e
             )
@@ -504,13 +440,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 "Tag erasing is enabled for organization %s. Processing devices for tag removal.",
                 self.org_id,
             )
-            # devices is now validated to be a list
-            for device_idx, device_to_check in enumerate(devices):
-                if not isinstance(device_to_check, dict):
-                    _LOGGER.warning("Skipping non-dictionary device_to_check at index %d for tag erasing: %s",
-                                    device_idx, str(device_to_check)[:100])
-                    continue
-
+            for (
+                device_to_check
+            ) in devices:  # Use a different variable name to avoid confusion
                 serial = device_to_check.get("serial")
                 if serial:
                     try:
