@@ -261,6 +261,7 @@ class MerakiAPIClient:
             # As per previous logic, if no payload, fetch and return current settings.
             return await self.get_camera_sense_settings(serial)
 
+        method_description = f"updating camera sense settings for device {serial}" # Define method_description
         _LOGGER.debug(
             "Updating camera sense settings for device %s with payload: %s",
             serial,
@@ -292,12 +293,9 @@ class MerakiAPIClient:
         await self._sdk.__aexit__(None, None, None)
 
 
-# Update __all__ based on the refactored client.
-# MerakiApiError might be kept if it serves as a custom base error for the
-# integration.
 __all__ = [
     "MerakiAPIClient",
     "MerakiApiError",
-    "get_camera_video_settings",
-    "update_camera_video_settings",
+    "MerakiApiConnectionError",
+    "MerakiApiAuthError",
 ]

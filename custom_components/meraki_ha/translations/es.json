@@ -1,0 +1,31 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "scan_interval": "Intervalo de escaneo (segundos)",
+          "device_name_format": "Formato del nombre del dispositivo"
+        },
+        "data_description": {
+          "meraki_api_key": "Su clave API del Dashboard de Meraki. Asegúrese de que tenga acceso de lectura a su organización.",
+          "meraki_org_id": "El ID de su Organización Meraki. Se encuentra en la URL al iniciar sesión en el Dashboard de Meraki (ej., o=SU_ID_ORG).",
+          "scan_interval": "Frecuencia (en segundos) para consultar la API de Meraki en busca de actualizaciones. Predeterminado: 60.",
+          "device_name_format": "Elija cómo se presentan los nombres de los dispositivos. 'Prefijo' añade el nombre del dispositivo Meraki antes del nombre de la entidad, 'Sufijo' lo añade después, 'Omitido' utiliza solo el nombre de la entidad."
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "device_name_format": "Formato del nombre del dispositivo"
+        },
+        "data_description": {
+          "scan_interval": "Con qué frecuencia (en segundos) la integración debe consultar la API del Dashboard de Meraki para obtener actualizaciones. Un intervalo más corto significa sensores más receptivos pero más llamadas API.",
+          "device_name_format": "Elija cómo se presentan los nombres de los dispositivos para las entidades. 'Prefijo' añade el nombre del dispositivo Meraki antes del nombre de la entidad, 'Sufijo' lo añade después, 'Omitido' utiliza solo el nombre de entidad estándar."
+        }
+      }
+    }
+  }
+}

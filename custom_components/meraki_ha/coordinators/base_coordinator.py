@@ -369,15 +369,15 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 sw_version=firmware_version,  # firmware_version from device_info.get("firmware")
                 connections=connections,  # Pass the connections set
             )
-            _LOGGER.debug(
-                "Registered/Updated physical device: %s (Serial: %s, Model: %s, MAC: %s, FW: %s, Status: %s)",
-                formatted_device_name,
-                serial,
-                device_model_str,
-                mac_address or "N/A",  # Log MAC address
-                firmware_version or "N/A",  # Log firmware version
-                device_info.get("status", "N/A"),  # Log status
-            )
+            # _LOGGER.debug(
+            #     "Registered/Updated physical device: %s (Serial: %s, Model: %s, MAC: %s, FW: %s, Status: %s)",
+            #     formatted_device_name,
+            #     serial,
+            #     device_model_str,
+            #     mac_address or "N/A",  # Log MAC address
+            #     firmware_version or "N/A",  # Log firmware version
+            #     device_info.get("status", "N/A"),  # Log status
+            # ) # Removed: too verbose, one per device
         _LOGGER.debug("Device registration process completed for org %s.", self.org_id)
         # ---- END DEVICE REGISTRATION LOGIC ----
 

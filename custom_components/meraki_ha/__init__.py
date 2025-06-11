@@ -1,4 +1,17 @@
-# custom_components/meraki_ha/__init__.py
+"""The Meraki Home Assistant integration.
+
+This component provides integration with the Cisco Meraki cloud-managed
+networking platform. It allows users to monitor and potentially control
+aspects of their Meraki networks and devices within Home Assistant.
+
+Key responsibilities of this `__init__.py` file:
+- Setting up the integration from a configuration entry (`async_setup_entry`).
+- Unloading the integration (`async_unload_entry`).
+- Reloading the integration, typically when options change (`async_reload_entry`).
+- Initializing and coordinating data update coordinators.
+- Registering the Meraki organization as a device in Home Assistant.
+- Forwarding the setup to various platforms (sensor, switch, etc.).
+"""
 
 import logging
 from datetime import timedelta
@@ -16,7 +29,7 @@ from .coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
 from .const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
-    CONF_RELAXED_TAG_MATCHING,
+    # CONF_RELAXED_TAG_MATCHING, # Removed as feature was removed
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     PLATFORMS,
@@ -76,7 +89,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         api_key=api_key,
         org_id=org_id,
         scan_interval=interval,
-        relaxed_tag_match=entry.options.get(CONF_RELAXED_TAG_MATCHING, False),
+        # relaxed_tag_match parameter removed from MerakiDataUpdateCoordinator
         config_entry=entry,
     )
     # 2. Perform its first refresh

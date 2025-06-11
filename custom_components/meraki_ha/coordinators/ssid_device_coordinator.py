@@ -304,7 +304,7 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 # Detailed data takes precedence in case of overlapping keys.
                 merged_ssid_data = {**ssid_summary_data, **ssid_detail_data}
                 merged_ssid_data["unique_id"] = unique_ssid_id # Add the HA unique_id to the merged data.
-                ) # This closing parenthesis seems to be a typo from previous version, removing.
+                # Stray parenthesis removed from here.
 
                 # Attempt to get channel information. Note: SSID channel isn't directly part of SSID config.
                 # It's usually derived from AP radio settings or client connection details.

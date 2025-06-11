@@ -95,14 +95,14 @@ class SsidStatusCalculator:
             # Tags defined on the SSID configuration.
             ssid_configured_tags: List[str] = ssid_info.get("tags", [])
 
-            _LOGGER.debug(
-                "Processing SSID: Name='%s' (ID: %s, Number: %s), Enabled: %s, Configured Tags: %s",
-                ssid_name,
-                ssid_id,
-                ssid_number,
-                is_enabled,
-                ssid_configured_tags,
-            )
+            # _LOGGER.debug(
+            #     "Processing SSID: Name='%s' (ID: %s, Number: %s), Enabled: %s, Configured Tags: %s",
+            #     ssid_name,
+            #     ssid_id,
+            #     ssid_number,
+            #     is_enabled,
+            #     ssid_configured_tags,
+            # ) # Removed: too verbose, one per SSID
 
             matching_devices_online_count = 0
             matching_devices_total_count = 0
@@ -128,13 +128,13 @@ class SsidStatusCalculator:
                     # device_info dictionary.
                     current_device_tags: List[str] = device_info.get("tags", [])
 
-                    _LOGGER.debug(
-                        "  Checking Wireless AP: Serial=%s, Status='%s', Model='%s', AP Tags=%s",
-                        device_serial,
-                        device_status,
-                        device_model,
-                        current_device_tags,
-                    )
+                    # _LOGGER.debug(
+                    #     "  Checking Wireless AP: Serial=%s, Status='%s', Model='%s', AP Tags=%s",
+                    #     device_serial,
+                    #     device_status,
+                    #     device_model,
+                    #     current_device_tags,
+                    # ) # Removed: too verbose, one per AP per SSID
 
                     if SsidStatusCalculator._does_device_match_ssid_tags(
                         ssid_configured_tags,  # Tags from SSID config.
@@ -143,15 +143,15 @@ class SsidStatusCalculator:
                         matching_devices_total_count += 1
                         if device_status == "online":
                             matching_devices_online_count += 1
-                        _LOGGER.debug(
-                            "    AP (Serial: %s) matches SSID tag criteria.",
-                            device_serial,
-                        )
-                    else:
-                        _LOGGER.debug(
-                            "    AP (Serial: %s) does not match SSID tag criteria.",
-                            device_serial,
-                        )
+                        # _LOGGER.debug(
+                        #     "    AP (Serial: %s) matches SSID tag criteria.",
+                        #     device_serial,
+                        # ) # Removed: too verbose
+                    # else: # No need for an explicit log when no match, also too verbose
+                        # _LOGGER.debug(
+                        #     "    AP (Serial: %s) does not match SSID tag criteria.",
+                        #     device_serial,
+                        # )
                 # else: # Devices not starting with "MR" are ignored for SSID calculation.
                 # _LOGGER.debug("    Device (Serial: %s, Model: %s) is not an MR AP; skipping.",
                 # device_info.get("serial"), device_model)

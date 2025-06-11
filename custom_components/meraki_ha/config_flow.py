@@ -65,7 +65,6 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 - CONF_MERAKI_ORG_ID (str): The Meraki Organization ID.
                 - CONF_SCAN_INTERVAL (int): The scan interval in seconds.
                 - "device_name_format" (str): One of "prefix", "suffix", "omitted".
-                - CONF_RELAXED_TAG_MATCHING (bool): Whether relaxed tag matching is enabled.
                 Defaults are applied if optional fields are missing.
 
         Returns:
@@ -87,9 +86,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     user_input[CONF_MERAKI_API_KEY],
                     user_input[CONF_MERAKI_ORG_ID],
                 )
-                # if not validation_result.get("valid"): # Or rely on exceptions for failure
-                #    # Handle error or let exception propagate
-                # Fallback to Org ID if name is missing
+                # Use fetched org_name for the title, fallback to Org ID if name couldn't be fetched.
                 org_name = validation_result.get(
                     "org_name", user_input[CONF_MERAKI_ORG_ID]
                 )
@@ -110,9 +107,6 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     "device_name_format": user_input.get(
                         "device_name_format", "omitted"
                     ),  # Default device name format
-                    CONF_RELAXED_TAG_MATCHING: user_input.get(
-                        CONF_RELAXED_TAG_MATCHING, False
-                    ),  # Default relaxed tag matching to False
                 }
 
                 _LOGGER.debug(
@@ -191,13 +185,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     )
                 ),
-                # Relaxed tag matching field: optional, boolean (checkbox).
-                vol.Optional(
-                    CONF_RELAXED_TAG_MATCHING,
-                    default=user_input.get(
-                        CONF_RELAXED_TAG_MATCHING, False
-                    ),  # Pre-fill
-                ): bool,
+                # CONF_RELAXED_TAG_MATCHING was removed here.
             }
         )
         # Note: UI descriptions for fields like CONF_SCAN_INTERVAL can be
@@ -364,7 +352,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 When not None, it may contain:
                 - CONF_SCAN_INTERVAL (int): The desired scan interval.
                 - "device_name_format" (str): The chosen device name format.
-                - CONF_RELAXED_TAG_MATCHING (bool): The choice for relaxed tag matching.
                 Current values from `self.config_entry.options` are used as defaults in the form.
 
         Returns:
@@ -429,13 +416,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     )
                 ),
-                # Relaxed tag matching field, boolean (checkbox).
-                vol.Optional(
-                    CONF_RELAXED_TAG_MATCHING,
-                    default=self.config_entry.options.get(
-                        CONF_RELAXED_TAG_MATCHING, False  # Default if not set
-                    ),
-                ): bool,
+                # CONF_RELAXED_TAG_MATCHING was removed here.
             }
         )
         # Note: UI descriptions for these options fields are typically handled
