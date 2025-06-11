@@ -67,6 +67,16 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[SSIDDeviceCoordinator], SwitchEntit
             "identifiers": {(DOMAIN, self._ssid_unique_id)},
         }
 
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        # First, check coordinator readiness (includes self.coordinator.data is not None)
+        if not super().available:
+            return False
+        # Then, check if this specific SSID's data key exists in the coordinator's data
+        # self.coordinator.data is Dict[unique_ssid_id, ssid_data_dict]
+        return self._ssid_unique_id in self.coordinator.data
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
