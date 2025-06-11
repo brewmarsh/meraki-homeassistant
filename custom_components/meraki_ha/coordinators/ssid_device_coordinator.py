@@ -273,57 +273,26 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
             unique_ssid_id = f"{network_id}_{str(ssid_number)}" # Ensure ssid_number is string for ID
 
             try:
-                # Step 1: Fetch detailed configuration for this specific SSID via API.
-                # This provides more comprehensive settings than the summary data.
+                # Step 1: Use the SSID data directly from the bulk fetch (ssid_summary_data).
+                # The individual fetch per SSID is removed as the main coordinator's data
+                # is now assumed to be comprehensive.
                 _LOGGER.debug(
-                    f"Fetching details for SSID {ssid_name_summary} (Network: {network_id}, Number: {ssid_number})"
+                    f"Processing SSID {ssid_name_summary} (Network: {network_id}, Number: {ssid_number}) using data from bulk fetch."
                 )
-                try:
-                    ssid_detail_data_raw = await meraki_client.wireless.getNetworkWirelessSsid(
-                        networkId=network_id, # network_id is str and validated
-                        number=str(ssid_number),  # API expects SSID number as a string.
-                    )
-                except MerakiApiError as e:
-                    # If API call for SSID details fails, log and skip this SSID for the current update cycle.
-                    # This SSID will not have its HA device or entities updated.
-                    _LOGGER.warning(
-                        f"Meraki API error fetching details for SSID {ssid_name_summary} (Network: {network_id}, Number: {ssid_number}): {e}. Status: {e.status if hasattr(e, 'status') else 'N/A'}. Skipping this SSID."
-                    )
-                    continue
-                except aiohttp.ClientError as e:
-                    # Network/HTTP level error during API call.
-                    _LOGGER.warning(
-                        f"HTTP client error fetching details for SSID {ssid_name_summary} (Network: {network_id}, Number: {ssid_number}): {e}. Skipping this SSID."
-                    )
-                    continue
-                except Exception as e:
-                    # Any other unexpected error.
-                    _LOGGER.error(
-                        f"Unexpected error fetching details for SSID {ssid_name_summary} (Network: {network_id}, Number: {ssid_number}): {e}",
-                        exc_info=True, # Include stack trace for unexpected errors.
-                    )
-                    continue
+                # Make a copy to allow adding new keys like 'unique_id' and 'client_count'
+                # without modifying the original item in the enabled_ssids list.
+                merged_ssid_data = ssid_summary_data.copy()
+                merged_ssid_data["unique_id"] = unique_ssid_id # Add the HA unique_id
 
-                # Validate the structure of the detailed data received.
-                if not isinstance(ssid_detail_data_raw, dict):
-                    _LOGGER.warning(f"SSID detail data for {unique_ssid_id} (Name: {ssid_name_summary}) is not a dictionary (type: {type(ssid_detail_data_raw).__name__}). Skipping this SSID.")
-                    continue
-                ssid_detail_data = ssid_detail_data_raw # Now confirmed as dict
-
-                # Merge the initial summary data (which is validated) with the newly fetched detailed data.
-                # Detailed data takes precedence in case of overlapping keys.
-                merged_ssid_data = {**ssid_summary_data, **ssid_detail_data}
-                merged_ssid_data["unique_id"] = unique_ssid_id # Add the HA unique_id to the merged data.
-                # Stray parenthesis removed from here.
-
-                # Attempt to get channel information. Note: SSID channel isn't directly part of SSID config.
-                # It's usually derived from AP radio settings or client connection details.
-                # This 'channel' key might be populated by more advanced logic in MerakiApiDataFetcher if available,
-                # or it might often be None here. The .get() handles if 'channel' is not in ssid_detail_data.
-                merged_ssid_data["channel"] = ssid_detail_data.get("channel") # Will be None if not present.
+                # 'channel' information: If the bulk data from MerakiApiDataFetcher includes 'channel'
+                # for SSIDs (e.g., derived from AP radio data or other means), it will be in ssid_summary_data.
+                # If not, merged_ssid_data.get('channel') will correctly return None.
+                # No specific change needed here if 'channel' is already part of ssid_summary_data as fetched.
+                # For clarity, we can ensure it's explicitly accessed via merged_ssid_data if needed by other logic.
+                # merged_ssid_data["channel"] = merged_ssid_data.get("channel") # This line is effectively a no-op if using .copy()
 
                 # Step 2: Calculate client count for this SSID.
-                # This involves fetching all clients for the parent network (if not already cached)
+                # This involves filtering clients from the main coordinator's data
                 # and then filtering them locally to find clients connected to the current SSID.
                 client_count = 0  # Initialize client count to 0.
 
