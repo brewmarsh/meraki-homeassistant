@@ -65,24 +65,23 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         api_key: str,
         org_id: str,
         scan_interval: timedelta,
-        relaxed_tag_match: bool,
-        config_entry: ConfigEntry,
+        config_entry: ConfigEntry, # relaxed_tag_match parameter removed
     ) -> None:
         """Initialize the Meraki data update coordinator.
 
         Args:
             hass: The Home Assistant instance.
-            api_key: The Meraki API key.
+            api_key: The Meraki API key, used for initializing MerakiAPIClient and potentially TagEraserCoordinator.
             org_id: The Meraki Organization ID.
             scan_interval: The interval at which to periodically update data.
-            relaxed_tag_match: Boolean indicating if relaxed tag matching
-                               should be used for SSID status calculation.
-            config_entry: The config entry associated with this coordinator instance.
+            config_entry: The config entry associated with this coordinator instance,
+                          used for accessing options (e.g., erase_tags, device_name_format)
+                          and for device registration.
         """
         self.api_key: str = api_key  # Stored for potential direct use (e.g., TagEraser)
         self.org_id: str = org_id
         self.config_entry: ConfigEntry = config_entry  # Access to options, entry_id
-        self.relaxed_tag_match: bool = relaxed_tag_match
+        # self.relaxed_tag_match attribute removed
         self.erase_tags: bool = config_entry.options.get("erase_tags", False)
 
         # Initialize the MerakiAPIClient for SDK interactions.
@@ -110,7 +109,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 scan_interval,
                 # scan_interval passed for consistency, though DAC updates on
                 # demand.
-                relaxed_tag_match,
+                # relaxed_tag_match argument removed
                 self,  # Pass self as parent coordinator for context.
             )
         )
@@ -370,15 +369,15 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 sw_version=firmware_version,  # firmware_version from device_info.get("firmware")
                 connections=connections,  # Pass the connections set
             )
-            _LOGGER.debug(
-                "Registered/Updated physical device: %s (Serial: %s, Model: %s, MAC: %s, FW: %s, Status: %s)",
-                formatted_device_name,
-                serial,
-                device_model_str,
-                mac_address or "N/A",  # Log MAC address
-                firmware_version or "N/A",  # Log firmware version
-                device_info.get("status", "N/A"),  # Log status
-            )
+            # _LOGGER.debug(
+            #     "Registered/Updated physical device: %s (Serial: %s, Model: %s, MAC: %s, FW: %s, Status: %s)",
+            #     formatted_device_name,
+            #     serial,
+            #     device_model_str,
+            #     mac_address or "N/A",  # Log MAC address
+            #     firmware_version or "N/A",  # Log firmware version
+            #     device_info.get("status", "N/A"),  # Log status
+            # ) # Removed: too verbose, one per device
         _LOGGER.debug("Device registration process completed for org %s.", self.org_id)
         # ---- END DEVICE REGISTRATION LOGIC ----
 

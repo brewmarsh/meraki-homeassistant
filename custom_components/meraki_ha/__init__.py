@@ -1,4 +1,17 @@
-# custom_components/meraki_ha/__init__.py
+"""The Meraki Home Assistant integration.
+
+This component provides integration with the Cisco Meraki cloud-managed
+networking platform. It allows users to monitor and potentially control
+aspects of their Meraki networks and devices within Home Assistant.
+
+Key responsibilities of this `__init__.py` file:
+- Setting up the integration from a configuration entry (`async_setup_entry`).
+- Unloading the integration (`async_unload_entry`).
+- Reloading the integration, typically when options change (`async_reload_entry`).
+- Initializing and coordinating data update coordinators.
+- Registering the Meraki organization as a device in Home Assistant.
+- Forwarding the setup to various platforms (sensor, switch, etc.).
+"""
 
 import logging
 from datetime import timedelta
@@ -16,7 +29,7 @@ from .coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
 from .const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
-    CONF_RELAXED_TAG_MATCHING,
+    # CONF_RELAXED_TAG_MATCHING, # Removed as feature was removed
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     PLATFORMS,
@@ -30,12 +43,18 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Meraki from a config entry.
 
+    This function initializes the Meraki integration by setting up
+    data update coordinators, performing an initial data refresh,
+    registering devices, and forwarding the setup to relevant platforms.
+
     Args:
-        hass: Home Assistant instance.
-        entry: Config entry.
+        hass: The Home Assistant instance, used for storing shared data (e.g., API client, coordinators)
+              and for setting up platforms.
+        entry: The ConfigEntry object representing this integration instance,
+               containing user configuration (API key, Org ID) and options (scan interval).
 
     Returns:
-        True if successful, False otherwise.
+        True if setup is successful, False otherwise.
     """
     _LOGGER.debug(
         "Starting async_setup_entry for Meraki integration (entry_id: %s)",
@@ -70,7 +89,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         api_key=api_key,
         org_id=org_id,
         scan_interval=interval,
-        relaxed_tag_match=entry.options.get(CONF_RELAXED_TAG_MATCHING, False),
+        # relaxed_tag_match parameter removed from MerakiDataUpdateCoordinator
         config_entry=entry,
     )
     # 2. Perform its first refresh
@@ -153,12 +172,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Meraki config entry.
 
+    This function is called when Home Assistant is removing the integration setup.
+    It unloads the platforms, closes the API client session, and cleans up
+    data stored in `hass.data`.
+
     Args:
-        hass: Home Assistant instance.
-        entry: Config entry.
+        hass: The Home Assistant instance, used to access integration data for cleanup
+              and to unload platforms.
+        entry: The ConfigEntry object for this integration instance, used to identify
+               the data and platforms to unload.
 
     Returns:
-        True if successful, False otherwise.
+        True if all unload operations are successful, False otherwise.
     """
     _LOGGER.info(
         "Unloading Meraki integration for entry_id: %s", entry.entry_id
@@ -251,8 +276,8 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     It ensures that the integration is re-initialized with the new options.
 
     Args:
-        hass: Home Assistant instance.
-        entry: Config entry.
+        hass: The Home Assistant instance, passed to unload and setup functions.
+        entry: The ConfigEntry object being reloaded, passed to unload and setup functions.
     """
     _LOGGER.info(
         "Reloading Meraki integration due to option changes for entry: %s",

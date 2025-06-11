@@ -27,17 +27,20 @@ class SsidStatusCalculator:
         devices: Optional[List[Dict[str, Any]]],
         # The `device_tags` parameter (previously a separate dict) has been
         # removed.
-        relaxed_tag_match: bool,
     ) -> List[Dict[str, Any]]:
         """Calculate the operational status of each SSID provided.
 
         The status of an SSID is determined by the state of the wireless access
-        points (APs) that are tagged to broadcast it. The rules are:
+        points (APs) that are tagged to broadcast it. The logic is permissive:
+        if an SSID has tags, an AP needs to match only one of those tags.
+        If an SSID has no tags, any AP is considered a match.
+
+        The rules are:
         - 'disabled': If the SSID itself is administratively disabled.
-        - 'no_matching_devices': If no APs are tagged to broadcast this SSID.
-        - 'online': If all APs tagged for this SSID are online.
-        - 'partially_online': If some, but not all, APs tagged for this SSID are online.
-        - 'offline': If all APs tagged for this SSID are offline (or in an unknown state).
+        - 'no_matching_devices': If no APs are tagged to broadcast this SSID (or match its tags).
+        - 'online': If all APs matching this SSID (by tag) are online.
+        - 'partially_online': If some, but not all, APs matching this SSID are online.
+        - 'offline': If all APs matching this SSID are offline (or in an unknown state).
         - 'unknown_device_data_missing': If the `devices` list is None, preventing status calculation.
 
         Args:
@@ -46,9 +49,6 @@ class SsidStatusCalculator:
             devices: A list of Meraki device dictionaries. Each dictionary for an AP
                      should contain 'serial', 'status' (e.g., "online"), 'model',
                      and 'tags' (a list of strings).
-            relaxed_tag_match: A boolean. If True, an AP matches if it shares
-                               any tag with the SSID. If False (strict mode), an AP
-                               matches only if it has all tags listed on the SSID.
 
         Returns:
             A list of SSID dictionaries, each updated with new keys:
@@ -75,10 +75,9 @@ class SsidStatusCalculator:
         # Comment about device_tags being None is removed as parameter is gone.
 
         _LOGGER.debug(
-            "Calculating SSID status for %d SSIDs using %d devices. Relaxed tag match: %s.",
+            "Calculating SSID status for %d SSIDs using %d devices. Tag matching is permissive (relaxed).",
             len(ssids),
             len(devices),
-            relaxed_tag_match,
         )
 
         updated_ssids_list: List[Dict[str, Any]] = []
@@ -96,14 +95,14 @@ class SsidStatusCalculator:
             # Tags defined on the SSID configuration.
             ssid_configured_tags: List[str] = ssid_info.get("tags", [])
 
-            _LOGGER.debug(
-                "Processing SSID: Name='%s' (ID: %s, Number: %s), Enabled: %s, Configured Tags: %s",
-                ssid_name,
-                ssid_id,
-                ssid_number,
-                is_enabled,
-                ssid_configured_tags,
-            )
+            # _LOGGER.debug(
+            #     "Processing SSID: Name='%s' (ID: %s, Number: %s), Enabled: %s, Configured Tags: %s",
+            #     ssid_name,
+            #     ssid_id,
+            #     ssid_number,
+            #     is_enabled,
+            #     ssid_configured_tags,
+            # ) # Removed: too verbose, one per SSID
 
             matching_devices_online_count = 0
             matching_devices_total_count = 0
@@ -129,31 +128,30 @@ class SsidStatusCalculator:
                     # device_info dictionary.
                     current_device_tags: List[str] = device_info.get("tags", [])
 
-                    _LOGGER.debug(
-                        "  Checking Wireless AP: Serial=%s, Status='%s', Model='%s', AP Tags=%s",
-                        device_serial,
-                        device_status,
-                        device_model,
-                        current_device_tags,
-                    )
+                    # _LOGGER.debug(
+                    #     "  Checking Wireless AP: Serial=%s, Status='%s', Model='%s', AP Tags=%s",
+                    #     device_serial,
+                    #     device_status,
+                    #     device_model,
+                    #     current_device_tags,
+                    # ) # Removed: too verbose, one per AP per SSID
 
                     if SsidStatusCalculator._does_device_match_ssid_tags(
                         ssid_configured_tags,  # Tags from SSID config.
                         current_device_tags,  # Tags from the AP device itself.
-                        relaxed_tag_match,
                     ):
                         matching_devices_total_count += 1
                         if device_status == "online":
                             matching_devices_online_count += 1
-                        _LOGGER.debug(
-                            "    AP (Serial: %s) matches SSID tag criteria.",
-                            device_serial,
-                        )
-                    else:
-                        _LOGGER.debug(
-                            "    AP (Serial: %s) does not match SSID tag criteria.",
-                            device_serial,
-                        )
+                        # _LOGGER.debug(
+                        #     "    AP (Serial: %s) matches SSID tag criteria.",
+                        #     device_serial,
+                        # ) # Removed: too verbose
+                    # else: # No need for an explicit log when no match, also too verbose
+                        # _LOGGER.debug(
+                        #     "    AP (Serial: %s) does not match SSID tag criteria.",
+                        #     device_serial,
+                        # )
                 # else: # Devices not starting with "MR" are ignored for SSID calculation.
                 # _LOGGER.debug("    Device (Serial: %s, Model: %s) is not an MR AP; skipping.",
                 # device_info.get("serial"), device_model)
@@ -161,15 +159,25 @@ class SsidStatusCalculator:
             ssid_info["matching_devices_online"] = matching_devices_online_count
             ssid_info["matching_devices_total"] = matching_devices_total_count
 
+            # Determine the final operational status of the SSID based on its enabled state
+            # and the counts of matching online/total Access Points.
             if not is_enabled:
+                # If the SSID is administratively disabled in Meraki dashboard.
                 ssid_info["status"] = "disabled"
             elif matching_devices_total_count == 0:
+                # If no APs (MR devices) are found that match this SSID's tag criteria.
+                # This implies the SSID is configured but not broadcast by any relevant APs.
                 ssid_info["status"] = "no_matching_devices"
             elif matching_devices_online_count == matching_devices_total_count:
+                # All APs that should be broadcasting this SSID are currently online.
                 ssid_info["status"] = "online"
             elif matching_devices_online_count > 0:
+                # Some, but not all, of the APs that should broadcast this SSID are online.
+                # At least one AP is online, but others are offline/unresponsive.
                 ssid_info["status"] = "partially_online"
-            else:  # matching_devices_total_count > 0 but matching_devices_online_count == 0
+            else:  # This implies matching_devices_total_count > 0 but matching_devices_online_count == 0
+                # All APs that should be broadcasting this SSID are currently offline or in an unknown state.
+                # The SSID is configured on APs, but none of them are reachable/online.
                 ssid_info["status"] = "offline"
 
             _LOGGER.debug(
@@ -192,16 +200,17 @@ class SsidStatusCalculator:
     def _does_device_match_ssid_tags(
         ssid_tags: List[str],  # Tags defined on the SSID configuration.
         device_actual_tags: List[str],  # Tags physically on the device.
-        relaxed_tag_match: bool,
     ) -> bool:
-        """Determine if a device's tags match an SSID's tags based on the matching strategy.
+        """Determine if a device's tags match an SSID's tags.
+
+        The logic is permissive (relaxed):
+        - If an SSID has no `ssid_tags`, any device is considered a match.
+        - If an SSID has `ssid_tags`, a device matches if it shares at least one tag with the SSID.
+        - If an SSID has `ssid_tags` but the device has no `device_actual_tags`, it's not a match.
 
         Args:
             ssid_tags: A list of tags associated with the SSID from its configuration.
             device_actual_tags: A list of tags currently on the device.
-            relaxed_tag_match: If True, the device matches if it shares at least one tag
-                               with the SSID. If False (strict mode), the device matches
-                               only if it possesses all tags listed in the SSID's configuration.
 
         Returns:
             True if the device's tags meet the SSID's tag requirements, False otherwise.
@@ -214,8 +223,7 @@ class SsidStatusCalculator:
             return True
 
         # If the SSID configuration requires specific tags, but the device itself has no tags,
-        # it cannot fulfill the requirement, regardless of matching mode
-        # (strict or relaxed).
+        # it cannot fulfill the requirement.
         if not device_actual_tags:
             return False
 
@@ -224,13 +232,7 @@ class SsidStatusCalculator:
         ssid_tags_lower = {tag.lower() for tag in ssid_tags}
         device_tags_lower = {tag.lower() for tag in device_actual_tags}
 
-        if relaxed_tag_match:
-            # Relaxed mode: Returns True if there's any overlap (intersection)
-            # between the SSID's configured tags and the device's actual tags.
-            # `isdisjoint()` returns True if the sets have NO common elements.
-            return not ssid_tags_lower.isdisjoint(device_tags_lower)
-        else:
-            # Strict mode: Returns True only if all tags specified in the SSID's
-            # configuration are present on the device. This means the set of
-            # SSID tags must be a subset of (or equal to) the device's tags.
-            return ssid_tags_lower.issubset(device_tags_lower)
+        # Permissive (Relaxed) mode: Returns True if there's any overlap (intersection)
+        # between the SSID's configured tags and the device's actual tags.
+        # `isdisjoint()` returns True if the sets have NO common elements.
+        return not ssid_tags_lower.isdisjoint(device_tags_lower)

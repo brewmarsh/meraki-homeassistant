@@ -37,12 +37,14 @@ def format_device_name(
         else:  # "omitted" or any other value
             return device_name_raw
     else:
-        # For physical devices (APs, switches, gateways, etc.)
+        # For physical devices (APs, switches, gateways, cameras, etc.)
         device_type_mapped = map_meraki_model_to_device_type(device_model or "")
 
+        # Apply prefix/suffix only if the device type is known and user selected that option.
+        # If the device type is "Unknown", the raw name is returned to avoid unhelpful "[Unknown]" tags.
         if device_name_format_option == "prefix" and device_type_mapped != "Unknown":
             return f"[{device_type_mapped}] {device_name_raw}"
         elif device_name_format_option == "suffix" and device_type_mapped != "Unknown":
             return f"{device_name_raw} [{device_type_mapped}]"
-        else:  # "omitted" or if device_type_mapped is "Unknown"
+        else:  # "omitted" or if device_type_mapped is "Unknown" or any other format option
             return device_name_raw

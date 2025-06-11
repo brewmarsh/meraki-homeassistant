@@ -3,22 +3,19 @@
 import logging
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed # Added
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from datetime import timedelta
+from typing import Dict, Any # Added
 
 from custom_components.meraki_ha.coordinators.tag_eraser import TagEraser
-
-# MerakiApiDataFetcher is not directly used by TagEraserCoordinator after recent refactors.
-# TagEraser itself will use MerakiAPIClient.
-# from .api_data_fetcher import MerakiApiDataFetcher # Assuming this was
-# for the client
-# For direct client usage
 from custom_components.meraki_ha.meraki_api import MerakiAPIClient
+from ..meraki_api.exceptions import MerakiApiError, MerakiApiAuthError, MerakiApiConnectionError # Added
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class TagEraserCoordinator(DataUpdateCoordinator):
+class TagEraserCoordinator(DataUpdateCoordinator[Dict[str, Any]]): # Added generic type
     """
     Coordinator to erase tags for Meraki devices.
 
@@ -36,31 +33,26 @@ class TagEraserCoordinator(DataUpdateCoordinator):
         hass: HomeAssistant,
         api_key: str,
         org_id: str,
-        base_url: str,
+        # base_url: str, # Removed base_url
     ) -> None:
         """
         Initialize the TagEraserCoordinator.
 
         Args:
             hass: Home Assistant instance.
-            api_key: Meraki API key.
-            org_id: Meraki Organization ID.
-            base_url: Base URL of the Meraki API.
+            api_key: Meraki API key, used to initialize a dedicated MerakiAPIClient.
+            org_id: Meraki Organization ID, used to initialize a dedicated MerakiAPIClient and for coordinator naming.
         """
         super().__init__(
             hass,
             _LOGGER,
-            name="Meraki Tag Eraser",
-            # Default interval, can be adjusted
-            update_interval=timedelta(seconds=60),
+            name=f"Meraki Tag Eraser ({org_id})", # Incorporate org_id for clarity if multiple orgs
+            update_interval=timedelta(seconds=60), # Default, actual updates are on-demand
         )
-        self.api_key = api_key
+        self.api_key = api_key # Stored if needed by TagEraser directly, though client is preferred
         self.org_id = org_id
-        # base_url is likely not needed if MerakiAPIClient handles it.
-        # self.base_url = base_url
 
-        # TagEraser should take a MerakiAPIClient instance.
-        # The MerakiApiDataFetcher is for fetching bulk data, not direct operations like tag erasing.
+        # TagEraser takes a MerakiAPIClient instance.
         # We need to instantiate a MerakiAPIClient here for the TagEraser.
         # This assumes TagEraser's __init__ is updated to accept MerakiAPIClient.
         # If TagEraser still expects MerakiApiDataFetcher, this needs more adjustment.
@@ -81,6 +73,20 @@ class TagEraserCoordinator(DataUpdateCoordinator):
         """
         try:
             await self.tag_eraser.erase_device_tags(serial)
+        except MerakiApiAuthError as e:
+            _LOGGER.error("Authentication error while erasing tags for device %s: %s", serial, e)
+            raise ConfigEntryAuthFailed(f"Authentication error erasing tags for device {serial}: {e}") from e
+        except MerakiApiConnectionError as e:
+            _LOGGER.error("Connection error while erasing tags for device %s: %s", serial, e)
+            raise UpdateFailed(f"Connection error erasing tags for device {serial}: {e}") from e
+        except MerakiApiError as e:
+            _LOGGER.error("Meraki API error while erasing tags for device %s: %s", serial, e)
+            raise UpdateFailed(f"Meraki API error erasing tags for device {serial}: {e}") from e
         except Exception as e:
-            _LOGGER.error(f"Error erasing tags for device {serial}: {e}")
-            raise UpdateFailed(f"Error erasing tags for device {serial}: {e}")
+            _LOGGER.exception(f"Unexpected error erasing tags for device {serial}: {e}")
+            raise UpdateFailed(f"Unexpected error erasing tags for device {serial}: {e}") from e
+
+    async def _async_update_data(self) -> Dict[str, Any]:
+        """Placeholder for DataUpdateCoordinator. Tag erasing is on-demand."""
+        _LOGGER.debug("TagEraserCoordinator._async_update_data called (placeholder).")
+        return {}

@@ -29,22 +29,22 @@ class DataAggregator:
 
     def __init__(
         self,
-        relaxed_tag_match: bool,
         # data_processor: MerakiDataProcessor, # Removed as it's not used
         ssid_status_calculator: SsidStatusCalculator,
     ) -> None:
         """Initialize the DataAggregator.
 
         Args:
-            relaxed_tag_match: Boolean indicating if relaxed tag matching
-                should be used by the `SsidStatusCalculator`.
             # data_processor: An instance of `MerakiDataProcessor` was previously
             #                 accepted but found to be unused within this class.
+            # relaxed_tag_match parameter was removed as SsidStatusCalculator now
+            # always uses permissive (relaxed) tag matching.
             ssid_status_calculator: An instance of `SsidStatusCalculator`
                 used to determine the status of SSIDs.
         """
-        self.relaxed_tag_match: bool = relaxed_tag_match
         # self.data_processor: MerakiDataProcessor = data_processor
+        # self.relaxed_tag_match is no longer needed as SsidStatusCalculator
+        # now defaults to permissive matching.
         self.ssid_status_calculator: SsidStatusCalculator = ssid_status_calculator
 
     async def aggregate_data(
@@ -92,25 +92,29 @@ class DataAggregator:
             # calculation.
 
             # Calculate SSID statuses using the SsidStatusCalculator.
-            # `SsidStatusCalculator.calculate_ssid_status` is a static method.
-            # It now relies on `processed_devices` containing the tags for each
-            # device.
+            # This step enriches the SSID data with an operational 'status' field
+            # (e.g., 'online', 'offline', 'partially_online') based on the
+            # state of associated wireless access points (MR series devices).
+            # The SsidStatusCalculator.calculate_ssid_status method is static and
+            # expects:
+            #   - `ssids`: A list of SSID dictionaries.
+            #   - `devices`: A list of device dictionaries, where each wireless AP
+            #                is expected to have its 'tags' directly included.
+            # The matching logic is now permanently "permissive" (relaxed).
             processed_ssids_with_status: List[Dict[str, Any]] = (
                 SsidStatusCalculator.calculate_ssid_status(
-                    # Pass the list of processed SSIDs.
-                    ssids=ssid_data,
-                    devices=processed_devices,
-                    # Pass devices; tags are expected within each device.
-                    # `device_tags` argument is removed as tags are in `processed_devices`.
-                    relaxed_tag_match=self.relaxed_tag_match,
+                    ssids=ssid_data,  # Original list of processed SSIDs.
+                    devices=processed_devices,  # Devices with tags embedded.
+                    # `relaxed_tag_match` argument was removed; calculator uses permissive logic.
                 )
             )
 
-            # Construct the final combined data structure.
-            # This dictionary holds all the data to be used by the integration.
+            # Assemble the final aggregated data structure.
+            # This dictionary will be the central source of truth for Meraki data
+            # within Home Assistant entities and services.
             combined_data: Dict[str, Any] = {
-                "devices": [],  # To be populated by new logic below
-                "ssids": processed_ssids_with_status,
+                "devices": [],  # Placeholder; will be populated by the SSID-Device linking logic below.
+                "ssids": processed_ssids_with_status,  # SSIDs with their calculated statuses.
                 "networks": network_data,
                 "clients": (
                     client_data if client_data is not None else []
@@ -124,24 +128,36 @@ class DataAggregator:
                 "clients_on_wireless": clients_on_wireless,
             }
 
-            # Implement SSID-Device Linking
-            devices_with_embedded_ssids = []
-            for (
-                device_dict
-            ) in processed_devices:  # processed_devices is the full list here
-                device_clone = device_dict.copy()
+            # Link SSIDs to their respective MR (Wireless AP) devices.
+            # This embeds a list of relevant SSIDs directly within each MR device's dictionary.
+            # This is useful for entities that need to display SSIDs associated with a specific AP.
+            devices_with_embedded_ssids: List[Dict[str, Any]] = []
+            for device_info in processed_devices:  # Iterate through all processed devices.
+                device_clone = device_info.copy()  # Work with a copy to avoid modifying the original list.
+
+                # Check if the device is a Meraki Wireless AP (model starts with "MR").
                 if device_clone.get("model", "").upper().startswith("MR"):
-                    dev_network_id = device_clone.get("networkId")
-                    if dev_network_id:
-                        matching_ssids = [
-                            ssid
-                            for ssid in processed_ssids_with_status
-                            # Make sure ssid_data contains networkId
-                            if ssid.get("networkId") == dev_network_id
+                    device_network_id = device_clone.get("networkId")
+                    device_clone["ssids"] = [] # Initialize with empty list
+
+                    if device_network_id:
+                        # Find all SSIDs that belong to the same network as the current MR device.
+                        # The `processed_ssids_with_status` list contains SSIDs from all networks,
+                        # so filtering by `networkId` is crucial here.
+                        # It's assumed that `networkId` is present in each SSID dictionary.
+                        associated_ssids = [
+                            ssid_info
+                            for ssid_info in processed_ssids_with_status
+                            if ssid_info.get("networkId") == device_network_id
                         ]
-                        # ATTR_SSIDS is "ssids"
-                        device_clone["ssids"] = matching_ssids
+                        # Embed the list of matching SSIDs into the device's dictionary.
+                        # The key "ssids" (defined by ATTR_SSIDS in const.py, effectively)
+                        # is used to store this list.
+                        device_clone["ssids"] = associated_ssids
+
                 devices_with_embedded_ssids.append(device_clone)
+
+            # Replace the placeholder "devices" list with the one containing embedded SSIDs.
             combined_data["devices"] = devices_with_embedded_ssids
 
             _LOGGER.debug(

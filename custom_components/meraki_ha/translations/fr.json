@@ -1,0 +1,31 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "scan_interval": "Intervalle de balayage (secondes)",
+          "device_name_format": "Format du nom de l'appareil"
+        },
+        "data_description": {
+          "meraki_api_key": "Votre clé API du tableau de bord Meraki. Assurez-vous qu'elle dispose d'un accès en lecture à votre organisation.",
+          "meraki_org_id": "L'ID de votre organisation Meraki. Se trouve dans l'URL lorsque vous êtes connecté au tableau de bord Meraki (par ex., o=VOTRE_ID_ORG).",
+          "scan_interval": "Fréquence (en secondes) d'interrogation de l'API Meraki pour les mises à jour. Défaut : 60.",
+          "device_name_format": "Choisissez comment les noms d'appareils sont présentés. 'Préfixe' ajoute le nom de l'appareil Meraki avant le nom de l'entité, 'Suffixe' l'ajoute après, 'Omis' utilise uniquement le nom de l'entité."
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "device_name_format": "Format du nom de l'appareil"
+        },
+        "data_description": {
+          "scan_interval": "Fréquence (en secondes) à laquelle l'intégration doit interroger l'API Meraki Dashboard pour les mises à jour. Un intervalle plus court signifie des capteurs plus réactifs mais plus d'appels API.",
+          "device_name_format": "Choisissez comment les noms d'appareils sont présentés pour les entités. 'Préfixe' ajoute le nom de l'appareil Meraki avant le nom de l'entité, 'Suffixe' l'ajoute après, 'Omis' utilise uniquement le nom d'entité standard."
+        }
+      }
+    }
+  }
+}

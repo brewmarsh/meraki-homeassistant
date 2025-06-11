@@ -24,12 +24,12 @@ DATA_COORDINATOR: Final[str] = "coordinator"
 DATA_COORDINATORS: Final[str] = (
     "coordinators"  # New constant for the coordinators dictionary
 )
-"""Key for storing the dictionary of all coordinators."""
+"""Key for storing the dictionary of all coordinators (str)."""
 
 DATA_SSID_DEVICES_COORDINATOR: Final[str] = (
     "ssid_devices"  # New constant for SSID coordinator key
 )
-"""Key for storing the SSID devices coordinator within the coordinators dictionary."""
+"""Key for storing the SSID devices coordinator within the coordinators dictionary (str)."""
 
 MERAKI_API_CLIENT: Final[str] = "meraki_api_client"
 """Key for storing the MerakiAPIClient instance in hass.data (str)."""
@@ -79,10 +79,7 @@ ATTR_SSIDS: Final[str] = "ssids"
 """Device attribute for SSIDs (str)."""
 
 # Configuration options
-CONF_RELAXED_TAG_MATCHING: Final[str] = "relaxed_tag_matching"
-"""Configuration key for relaxed tag matching.
-(bool stored as str in options, but represents a boolean concept).
-"""
+# CONF_RELAXED_TAG_MATCHING was removed as the feature was removed.
 
 ERASE_TAGS_WARNING: Final[str] = (
     "Tag erasing is enabled! This will ERASE ALL TAGS on your Meraki devices. "

@@ -58,13 +58,14 @@ class DeviceTagUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
         Args:
             hass: The Home Assistant instance.
-            api_key: The Meraki API key.
+            api_key: The Meraki API key. (Note: Stored, but `api_fetcher` uses client from `main_coordinator`).
             scan_interval: The time interval for periodic updates.
-                Primarily for the `_async_update_data` placeholder.
-                Updates are on-demand.
-            org_id: The Meraki Organization ID.
-            main_coordinator: The main `MerakiDataUpdateCoordinator`
-                instance, used for context or shared properties.
+                Primarily for the `_async_update_data` placeholder, as tag
+                updates are typically on-demand.
+            org_id: The Meraki Organization ID. (Note: Stored, but `api_fetcher` uses client from `main_coordinator`).
+            main_coordinator: The main `MerakiDataUpdateCoordinator` instance, which provides
+                the `MerakiAPIClient` (already initialized with API key and Org ID)
+                used by this coordinator's `MerakiApiDataFetcher`.
         """
         super().__init__(
             hass,
