@@ -81,7 +81,7 @@ async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
-) -> None:
+) -> bool:
     """Set up Meraki sensor entities from a config entry.
 
     This function is responsible for initializing and adding sensor entities
@@ -404,3 +404,4 @@ async def async_setup_entry(
         async_add_entities(entities)
     else:
         _LOGGER.info("Meraki HA: No Meraki sensor entities to add.")  # Adjusted
+    return True

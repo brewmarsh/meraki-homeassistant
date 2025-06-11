@@ -38,7 +38,7 @@ async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
-) -> None:
+) -> bool:
     """Set up Meraki switches from a config entry."""
     _LOGGER.info("Meraki HA: Setting up switch platform.")
     entities_to_add = []
@@ -121,6 +121,7 @@ async def async_setup_entry(
         async_add_entities(entities_to_add, update_before_add=True)
     else:
         _LOGGER.info("No Meraki switch entities to add.")
+    return True
 
 
 __all__ = ["async_setup_entry"]

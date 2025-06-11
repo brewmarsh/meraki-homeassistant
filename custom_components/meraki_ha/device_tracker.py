@@ -32,7 +32,7 @@ async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
-) -> None:
+) -> bool:
     """Set up Meraki device tracker entities from a config entry.
 
     This function is called by Home Assistant to initialize device tracker
@@ -78,6 +78,7 @@ async def async_setup_entry(
     if entities:
         async_add_entities(entities)
         _LOGGER.debug("Added %d Meraki client trackers.", len(entities))
+    return True
 
 
 class MerakiDeviceTracker(
