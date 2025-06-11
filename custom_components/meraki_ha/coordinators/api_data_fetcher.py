@@ -49,6 +49,7 @@ class MerakiApiDataFetcher:
         """
         self.meraki_client: MerakiAPIClient = meraki_client
         self.org_id: str = meraki_client.org_id  # Organization ID from the client
+        self._api_call_semaphore = asyncio.Semaphore(5) # Allow up to 5 concurrent API calls
 
     async def fetch_all_data(
         self,
@@ -707,12 +708,13 @@ class MerakiApiDataFetcher:
 
             try:
                 _LOGGER.debug(f"Fetching clients for network ID: {network_id}")
-                network_clients_data = (
-                    await self.meraki_client.networks.getNetworkClients(
-                        network_id,
-                        timespan=3600,
+                async with self._api_call_semaphore:
+                    network_clients_data = (
+                        await self.meraki_client.networks.getNetworkClients(
+                            network_id,
+                            timespan=3600,
+                        )
                     )
-                )
                 if not isinstance(network_clients_data, list):
                     _LOGGER.warning(
                         "Network clients data for network %s is not a list (type: %s). Skipping client processing for this network.",
@@ -957,10 +959,11 @@ class MerakiApiDataFetcher:
         device["connected_clients_count"] = 0
         device["radio_settings"] = None
 
-        clients_data = await self._async_meraki_api_call(
-            self.meraki_client.devices.getDeviceClients(serial=serial),
-            f"getDeviceClients(serial={serial})",
-        )
+        async with self._api_call_semaphore:
+            clients_data = await self._async_meraki_api_call(
+                self.meraki_client.devices.getDeviceClients(serial=serial),
+                f"getDeviceClients(serial={serial})",
+            )
 
         if clients_data is not None:  # Will be a list, potentially empty
             device["connected_clients_count"] = len(clients_data)
@@ -974,10 +977,11 @@ class MerakiApiDataFetcher:
                 f"Clients_data was None (call failed) for MR device {serial}. connected_clients_count remains 0."
             )
 
-        radio_settings_data = await self._async_meraki_api_call(
-            self.meraki_client.wireless.getDeviceWirelessRadioSettings(serial=serial),
-            f"getDeviceWirelessRadioSettings(serial={serial})",
-        )
+        async with self._api_call_semaphore:
+            radio_settings_data = await self._async_meraki_api_call(
+                self.meraki_client.wireless.getDeviceWirelessRadioSettings(serial=serial),
+                f"getDeviceWirelessRadioSettings(serial={serial})",
+            )
 
         if radio_settings_data is not None:
             device["radio_settings"] = radio_settings_data
@@ -1012,12 +1016,13 @@ class MerakiApiDataFetcher:
             return
 
         # externalRtspEnabled and rtspUrl should have been initialized to None by the caller.
-        video_settings = await self._async_meraki_api_call(
-            self.meraki_client.camera.getDeviceCameraVideoSettings(
-                serial=serial
-            ),  # Use self.meraki_client
-            f"getDeviceCameraVideoSettings(serial={serial})",
-        )
+        async with self._api_call_semaphore:
+            video_settings = await self._async_meraki_api_call(
+                self.meraki_client.camera.getDeviceCameraVideoSettings(
+                    serial=serial
+                ),  # Use self.meraki_client
+                f"getDeviceCameraVideoSettings(serial={serial})",
+            )
 
         if video_settings is not None:
             external_rtsp_enabled = video_settings.get("externalRtspEnabled")
@@ -1092,11 +1097,12 @@ class MerakiApiDataFetcher:
     ) -> Optional[List[Dict[str, Any]]]:
         """Fetch all SSIDs for a specific Meraki network using the SDK."""
         call_description = f"getNetworkWirelessSsids(networkId={network_id})"
-        ssids_data = await self._async_meraki_api_call(
-            self.meraki_client.wireless.getNetworkWirelessSsids(networkId=network_id),
-            call_description,
-            return_empty_list_on_404=True,  # Specific for SSIDs, as 404 means no wireless capability / no SSIDs
-        )
+        async with self._api_call_semaphore:
+            ssids_data = await self._async_meraki_api_call(
+                self.meraki_client.wireless.getNetworkWirelessSsids(networkId=network_id),
+                call_description,
+                return_empty_list_on_404=True,  # Specific for SSIDs, as 404 means no wireless capability / no SSIDs
+            )
 
         # If ssids_data is None, it means a non-404 error occurred.
         # If it's an empty list, it means either a 404 occurred and was handled, or the API returned an empty list (no SSIDs).
@@ -1143,12 +1149,13 @@ class MerakiApiDataFetcher:
             f"Fetching uplink settings for MX device {device.get('name', 'Unknown')} (Serial: {serial})"
         )
 
-        uplink_settings = await self._async_meraki_api_call(
-            self.meraki_client.appliance.getDeviceApplianceUplinksSettings(
-                serial=serial
-            ),  # Use self.meraki_client
-            f"getDeviceApplianceUplinksSettings(serial={serial})",
-        )
+        async with self._api_call_semaphore:
+            uplink_settings = await self._async_meraki_api_call(
+                self.meraki_client.appliance.getDeviceApplianceUplinksSettings(
+                    serial=serial
+                ),  # Use self.meraki_client
+                f"getDeviceApplianceUplinksSettings(serial={serial})",
+            )
 
         try:
             interfaces_data = (
@@ -1322,13 +1329,14 @@ class MerakiApiDataFetcher:
         vlan_list_to_iterate: List[Dict[str, Any]] = []
 
         try:
-            vlan_settings_response = await self._async_meraki_api_call(
-                self.meraki_client.appliance.getNetworkApplianceVlansSettings(
-                    networkId=network_id
-                ),  # Use self.meraki_client
-                f"getNetworkApplianceVlansSettings(networkId={network_id})",
-                return_empty_list_on_404=True,
-            )
+            async with self._api_call_semaphore:
+                vlan_settings_response = await self._async_meraki_api_call(
+                    self.meraki_client.appliance.getNetworkApplianceVlansSettings(
+                        networkId=network_id
+                    ),  # Use self.meraki_client
+                    f"getNetworkApplianceVlansSettings(networkId={network_id})",
+                    return_empty_list_on_404=True,
+                )
 
             # Standardize response to be a list for consistent processing logic.
             if isinstance(
