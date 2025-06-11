@@ -236,9 +236,19 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
         )  # Stores detailed data for each enabled SSID.
         device_registry = dr.async_get(self.hass)  # Get device registry instance.
 
-        # Cache for clients per network to avoid redundant API calls for SSIDs on the same network.
-        # This is a performance optimization, especially for organizations with many SSIDs on fewer networks.
-        network_clients_cache: Dict[str, List[Dict[str, Any]]] = {}
+        # Client data will now be sourced from the main coordinator (api_data_fetcher)
+        all_clients_from_main_coordinator: List[Dict[str, Any]] = []
+        if self.api_data_fetcher.data and isinstance(self.api_data_fetcher.data.get("clients"), list):
+            all_clients_from_main_coordinator = self.api_data_fetcher.data["clients"]
+            _LOGGER.debug(f"SSIDCoordinator successfully retrieved {len(all_clients_from_main_coordinator)} clients from main coordinator.")
+        else:
+            _LOGGER.warning(
+                "Client list not available or not a list in main coordinator data (self.api_data_fetcher.data). "
+                "SSID client counts will be 0 or based on stale data if this coordinator had previous data."
+            )
+            # If main coordinator has no client data, this coordinator cannot calculate client counts.
+            # It might return its existing self.data if available, or an empty dict.
+            # For this subtask, assume it will proceed and counts will be 0 if all_clients_from_main_coordinator is empty.
 
         # --- Process each enabled and validated SSID ---
         # This loop iterates through each SSID that has passed the initial filtering.
@@ -317,88 +327,41 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 # and then filtering them locally to find clients connected to the current SSID.
                 client_count = 0  # Initialize client count to 0.
 
-                # Check if clients for this network_id are already in the cache.
-                if network_id not in network_clients_cache:
-                    _LOGGER.debug(
-                        f"Cache miss for network clients. Fetching all clients for network {network_id} "
-                        f"to determine client count for SSID {ssid_name_summary} (Number: {ssid_number})."
-                    )
-                    try:
-                        # API call to fetch all clients for the entire network.
-                        # Parameters like `timespan` and `perPage` are used to optimize the call.
-                        all_network_clients_response = await meraki_client.networks.getNetworkClients(
-                            networkId=network_id,
-                            timespan=900,  # Consider clients seen in the last 15 minutes.
-                            perPage=1000,  # Aim to get all clients in one page.
-                        )
-                        # Validate and store the fetched clients in the cache.
-                        if isinstance(all_network_clients_response, list):
-                            network_clients_cache[network_id] = all_network_clients_response
-                        else:
-                            _LOGGER.warning(
-                                f"API response for getNetworkClients (Network: {network_id}) was not a list "
-                                f"(type: {type(all_network_clients_response).__name__}). Caching empty list for this network."
-                            )
-                            network_clients_cache[network_id] = [] # Cache empty list to prevent re-fetching on this cycle.
+                # Filter all_clients_from_main_coordinator to get clients for the current network_id
+                clients_in_current_network = [
+                    client for client in all_clients_from_main_coordinator
+                    if client.get("networkId") == network_id
+                ]
+                _LOGGER.debug(
+                    f"Found {len(clients_in_current_network)} clients in network {network_id} (from main coordinator data) "
+                    f"for potential matching with SSID {ssid_name_summary}."
+                )
 
-                        _LOGGER.debug(
-                            f"Fetched and cached {len(network_clients_cache[network_id])} clients for network {network_id}."
-                        )
-                    except AttributeError as e: # Should not happen if meraki_client is correctly typed/initialized
-                        _LOGGER.error(
-                            f"AttributeError when trying to fetch clients for network {network_id} via `meraki_client.networks.getNetworkClients`: {e}"
-                        )
-                        network_clients_cache[network_id] = [] # Cache empty list on error.
-                    except MerakiApiError as e: # Handle API-specific errors during client fetch.
-                         _LOGGER.warning(
-                            f"Meraki API error fetching clients for network {network_id}: {e}. Status: {e.status if hasattr(e, 'status') else 'N/A'}. "
-                            "Treating as no clients for this network for this update cycle."
-                        )
-                         network_clients_cache[network_id] = []
-                    except aiohttp.ClientError as e: # Handle HTTP-level errors.
-                        _LOGGER.warning(
-                            f"HTTP client error fetching clients for network {network_id}: {e}. "
-                            "Treating as no clients for this network for this update cycle."
-                        )
-                        network_clients_cache[network_id] = []
-                    except Exception as e: # Catch-all for other unexpected errors.
-                        _LOGGER.warning(
-                            f"Unexpected error fetching clients for network {network_id} via `meraki_client.networks.getNetworkClients`: {e}", exc_info=True
-                        )
-                        network_clients_cache[network_id] = []
-                else:
-                    _LOGGER.debug(f"Cache hit for network clients for network {network_id}.")
-
-                # Retrieve clients for the current network from the cache (or newly fetched).
-                current_network_clients = network_clients_cache.get(network_id, []) # Default to empty list if somehow not set.
-
-                # Filter network clients to count only those connected to the current SSID.
-                if current_network_clients:
+                # Filter clients_in_current_network to count only those connected to the current SSID.
+                if clients_in_current_network:
                     current_ssid_clients = []
-                    for client_idx, client_item in enumerate(current_network_clients):
+                    for client_idx, client_item in enumerate(clients_in_current_network):
                         # Validate individual client item structure.
                         if not isinstance(client_item, dict):
                             _LOGGER.warning(
-                                f"Item at index {client_idx} in current_network_clients (Network: {network_id}) "
+                                f"Item at index {client_idx} in clients_in_current_network (Network: {network_id}) "
                                 f"is not a dictionary, skipping for client count: {str(client_item)[:100]}"
                             )
                             continue
 
                         # Client's 'ssid' field is compared against the current SSID's configured name.
-                        # Ensure case-insensitive or consistent comparison if needed, though direct string match is common.
                         client_ssid_name = str(client_item.get("ssid", "")) # Default to empty string if 'ssid' key is missing.
-                        # `ssid_summary_data` is confirmed a dict, 'name' might be None.
                         summary_ssid_name = str(ssid_summary_data.get("name", "")) # Default to empty string if 'name' is None.
 
                         if client_ssid_name == summary_ssid_name:
                             current_ssid_clients.append(client_item)
                     client_count = len(current_ssid_clients)
-                # If current_network_clients is empty or no clients match, client_count remains 0.
+                # If clients_in_current_network is empty or no clients match, client_count remains 0.
 
                 # Add the calculated client count to the merged SSID data.
                 merged_ssid_data["client_count"] = client_count
                 _LOGGER.debug(
-                    f"Client count for SSID {ssid_name_summary} (Number: {ssid_number}) on network {network_id}: {client_count}"
+                    f"Client count for SSID {ssid_name_summary} (Number: {ssid_number}) on network {network_id}: {client_count} (derived from main coordinator data)."
                 )
 
                 # Determine the authoritative name for the SSID device.
