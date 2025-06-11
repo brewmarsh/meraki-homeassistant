@@ -264,39 +264,8 @@ async def async_setup_entry(
                             e,
                         )
 
-                # Add camera specific sensors if productType is camera (or model starts with MV).
-                # These sensors rely on data merged by DataAggregationCoordinator ('senseEnabled', 'audioDetection').
-                if product_type.lower() == "camera" or (device_info.get("model", "")).upper().startswith("MV"):
-                    try:
-                        _LOGGER.debug("Attempting to add MerakiCameraSenseStatusSensor for %s", device_info.get("name", serial))
-                        entities.append(MerakiCameraSenseStatusSensor(main_coordinator, device_info))
-                        _LOGGER.debug("Successfully appended MerakiCameraSenseStatusSensor for %s", device_info.get("name", serial))
-
-                        _LOGGER.debug("Attempting to add MerakiCameraAudioDetectionSensor for %s", device_info.get("name", serial))
-                        entities.append(MerakiCameraAudioDetectionSensor(main_coordinator, device_info))
-                        _LOGGER.debug("Successfully appended MerakiCameraAudioDetectionSensor for %s", device_info.get("name", serial))
-
-                        # Add the new RTSP URL Sensor with specific logging
-                        _LOGGER.debug("Attempting to add MerakiCameraRTSPUrlSensor for %s (Serial: %s)", device_info.get("name"), serial)
-                        entities.append(
-                            MerakiCameraRTSPUrlSensor(
-                                main_coordinator,
-                                device_info,
-                            )
-                        )
-                        _LOGGER.debug("Successfully appended MerakiCameraRTSPUrlSensor for %s (Serial: %s)", device_info.get("name"), serial)
-
-                        # This is the overall log message for the camera sensor group
-                        _LOGGER.debug(
-                            "Meraki HA: Added camera-specific sensors (Sense, Audio, RTSP URL) for %s",
-                            device_info.get("name"), # Use guaranteed name
-                        )
-                    except Exception as e:
-                        _LOGGER.error(
-                            "Meraki HA: Error adding camera-specific sensors for %s: %s",
-                            device_info.get("name"), # Use guaranteed name
-                            e,
-                        )
+                # Camera-specific sensors are now handled by the SENSOR_REGISTRY.
+                # The generic loop for `sensors_for_type` will add them if product_type is "camera".
             else:
                 _LOGGER.warning( # Changed to warning as this might be unexpected
                     "Meraki HA: No productType found for device %s (Serial: %s), skipping productType-specific sensors.",
@@ -338,7 +307,7 @@ async def async_setup_entry(
                     coordinator=main_coordinator,
                     network_id=network_id,
                     network_name=network_name, # Use potentially fallbacked name
-                    meraki_api_client=meraki_api_client,
+                    # meraki_api_client is no longer passed to MerakiNetworkClientsSensor
                 )
                 entities.append(client_sensor)
             except Exception as e:

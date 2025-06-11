@@ -292,6 +292,26 @@ class MerakiAPIClient:
         # Ensure exc_type, exc_val, exc_tb are passed for a clean exit
         await self._sdk.__aexit__(None, None, None)
 
+    async def async_update_device_tags(self, serial: str, tags: List[str]) -> bool:
+        """
+        Placeholder for updating device tags.
+        The python-meraki SDK might not support direct tag list replacement
+        via the /devices/{serial} endpoint in the way this method might imply.
+        This function is a placeholder and not fully implemented.
+        """
+        _LOGGER.warning(
+            "Attempted to call async_update_device_tags for device %s. "
+            "This function is a placeholder or relies on SDK features for tag updates "
+            "that may not be fully supported for direct tag list replacement. "
+            "Tag modification functionalities might not work as expected.",
+            serial
+        )
+        # TODO: Implement actual tag update logic if SDK/API supports it as intended.
+        # Current Meraki SDK (as of recent checks) updates tags by applying and removing
+        # individual tags or using a different method for bulk updates, not direct replacement
+        # via a simple list in the main device update endpoint.
+        return False
+
 
 __all__ = [
     "MerakiAPIClient",

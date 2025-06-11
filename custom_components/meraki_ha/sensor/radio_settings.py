@@ -21,23 +21,6 @@ from ..const import DOMAIN  # For device_info identifiers
 
 # Assuming this function is correctly defined in the meraki_api package
 # from ..meraki_api.wireless import get_meraki_device_wireless_radio_settings
-# Placeholder for the function if not available for type checking
-
-
-async def get_meraki_device_wireless_radio_settings(
-    api_key: str, org_id: str, serial: str  # org_id seems unused in original call
-) -> Optional[Dict[str, Any]]:
-    """Placeholder: Fetches Meraki device wireless radio settings."""
-    _LOGGER.warning(
-        "Using placeholder for get_meraki_device_wireless_radio_settings for serial %s.",
-        serial,
-    )
-    # Example successful response structure (simplified)
-    # return {"channel": 6, "band": "2.4 GHz", "txPower": 17}
-    # Example error or no data:
-    return None
-
-
 _LOGGER = logging.getLogger(__name__)
 
 # Constants for sensor state if data is unavailable or an error occurs
@@ -165,44 +148,6 @@ class MerakiRadioSettingsSensor(
                 for k, v in self._attr_extra_state_attributes.items()
                 if v is not None
             }
-
-    # If this entity fetches its own data (original behavior):
-    # async def async_update(self) -> None:
-    #     """Update the sensor state by fetching data from the API."""
-    #     _LOGGER.debug("Updating radio settings sensor state for %s", self._attr_name)
-    #     device_serial = self._device_info_data.get("serial")
-    #     if not device_serial:
-    #         _LOGGER.error("Cannot update radio settings sensor for %s: missing serial.", self.name)
-    #         self._attr_native_value = STATE_ERROR_VALUE
-    #         return
-    #
-    #     try:
-    #         # Assuming coordinator holds api_key and org_id directly.
-    #         # The org_id was passed to get_meraki_device_wireless_radio_settings in original code,
-    #         # but the function signature in the placeholder doesn't use it.
-    #         # This indicates a potential mismatch or that org_id is not needed for this specific call.
-    #         radio_settings: Optional[
-    #             Dict[str, Any]
-    #         ] = await get_meraki_device_wireless_radio_settings(
-    #             self.coordinator.api_key, # Assuming api_key is an attribute of coordinator
-    #             self.coordinator.org_id,  # Assuming org_id is an attribute of coordinator
-    #             device_serial,
-    #         )
-    #         if radio_settings and isinstance(radio_settings, dict) and radio_settings.get("channel") is not None:
-    #             self._attr_native_value = str(radio_settings["channel"])
-    #             # Update all radio settings as extra state attributes
-    #             current_attributes = self._attr_extra_state_attributes.copy() # Preserve base attributes
-    #             current_attributes.update(radio_settings)
-    #             self._attr_extra_state_attributes = {k:v for k,v in current_attributes.items() if v is not None}
-    #         else:
-    #             _LOGGER.info("Radio settings unavailable or no channel info for %s.", self.name)
-    #             self._attr_native_value = STATE_UNAVAILABLE_VALUE
-    #     except MerakiApiException as e: # Catch specific API errors
-    #         _LOGGER.error("API error fetching radio settings for %s: %s", self.name, e)
-    #         self._attr_native_value = STATE_ERROR_VALUE
-    #     except Exception as e: # Catch any other unexpected errors
-    #         _LOGGER.exception("Unexpected error fetching radio settings for %s: %s", self.name, e)
-    #         self._attr_native_value = STATE_ERROR_VALUE
 
     @callback
     def _handle_coordinator_update(self) -> None:

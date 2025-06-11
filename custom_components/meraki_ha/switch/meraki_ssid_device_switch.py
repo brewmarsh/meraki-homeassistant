@@ -17,39 +17,6 @@ from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    """Set up Meraki SSID switches from a config entry."""
-    ssid_coordinator: SSIDDeviceCoordinator = hass.data[DOMAIN][config_entry.entry_id][
-        "coordinators"
-    ]["ssid_devices"]
-    meraki_client: MerakiAPIClient = hass.data[DOMAIN][config_entry.entry_id][
-        DATA_CLIENT
-    ]
-
-    if not ssid_coordinator.data:
-        _LOGGER.warning("SSID Coordinator has no data, skipping switch setup")
-        return
-
-    switches_to_add = []
-    for ssid_unique_id, ssid_data in ssid_coordinator.data.items():
-        switches_to_add.append(
-            MerakiSSIDEnabledSwitch(
-                ssid_coordinator, meraki_client, config_entry, ssid_unique_id, ssid_data
-            )
-        )
-        switches_to_add.append(
-            MerakiSSIDBroadcastSwitch(
-                ssid_coordinator, meraki_client, config_entry, ssid_unique_id, ssid_data
-            )
-        )
-
-    async_add_entities(switches_to_add, update_before_add=True)
-
-
 class MerakiSSIDBaseSwitch(CoordinatorEntity[SSIDDeviceCoordinator], SwitchEntity):
     """Base class for Meraki SSID Switches."""
 
