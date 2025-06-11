@@ -794,7 +794,7 @@ class MerakiApiDataFetcher:
                     f"Unexpected error fetching clients for network {network_id}: {e}. Skipping this network's clients."
                 )
         else:  # No networks available to fetch clients from.
-            _LOGGER.warning("No networks available to fetch clients from.")
+            _LOGGER.info("No networks were found or available for this organization. Client data will be empty.")
 
         # Step 8: Aggregate client counts
         clients_on_ssids = 0
