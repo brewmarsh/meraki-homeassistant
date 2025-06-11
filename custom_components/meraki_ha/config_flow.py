@@ -21,7 +21,7 @@ from custom_components.meraki_ha.authentication import validate_meraki_credentia
 from custom_components.meraki_ha.const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
-    CONF_RELAXED_TAG_MATCHING,
+    # CONF_RELAXED_TAG_MATCHING, # Removed as it's no longer used or defined
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
