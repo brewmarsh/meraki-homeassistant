@@ -372,7 +372,7 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 )
                 _LOGGER.debug(
                     f"Registered/Updated HA device for ENABLED SSID: {formatted_ssid_name} (ID: {unique_ssid_id}, Parent Network: {network_id}). "
-                    f"Name Format: {device_name_format}, Channel: {merged_ssid_data['channel']}, Clients: {merged_ssid_data['client_count']}. "
+                    f"Name Format: {device_name_format}, Channel: {merged_ssid_data.get('channel', 'N/A')}, Clients: {merged_ssid_data['client_count']}. "
                     f"Subset of Merged Data: {{name: {merged_ssid_data.get('name')}, enabled: {merged_ssid_data.get('enabled')}}}"
                 )
                 # Store the fully processed data for this SSID, keyed by its unique_ssid_id.
