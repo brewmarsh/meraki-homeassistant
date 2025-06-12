@@ -252,7 +252,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Re-defining the handler as an inner function here to capture `hass` and `entry` correctly.
     async def _async_set_device_tags_service_handler(call):
         # Handles the service call meraki_ha.set_device_tags
-        serial = call.data.get("serial")
+        serial = call.data.get("serial") # Get device serial
         tags_str = call.data.get("tags")
 
         if not serial:
