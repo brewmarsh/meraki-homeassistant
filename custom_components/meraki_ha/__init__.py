@@ -46,19 +46,19 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-# SERVICE_SET_DEVICE_TAGS_SCHEMA = vol.Schema(
-#     {
-#         vol.Required("serial"): cv.string,
-#         vol.Required("tags"): cv.string,
-#     }
-# )
+SERVICE_SET_DEVICE_TAGS_SCHEMA = vol.Schema(
+    {
+        vol.Required("serial"): cv.string,
+        vol.Required("tags"): cv.string,
+    }
+)
 
-# async def async_set_device_tags_service(hass: HomeAssistant, call): # Added hass argument
+# async def async_set_device_tags_service(hass: HomeAssistant, call): # This global version is not used
 #     # Handles the service call meraki_ha.set_device_tags
 #     serial = call.data.get("serial")
-    tags_str = call.data.get("tags")
-
-    if not serial:
+#     tags_str = call.data.get("tags") # This line and below were incorrectly unindented in the previous state
+#
+#     if not serial: # These lines would need to be indented if this function was used
         raise ServiceValidationError("Serial number is required.")
 
     # Process tags_str: split by comma, strip whitespace.
@@ -250,62 +250,62 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Option 2: Use functools.partial to pass hass (if it were not for the single config entry assumption).
 
     # Re-defining the handler as an inner function here to capture `hass` and `entry` correctly.
-    # async def _async_set_device_tags_service_handler(call):
-    #     # Handles the service call meraki_ha.set_device_tags
-    #     serial = call.data.get("serial")
-    #     tags_str = call.data.get("tags")
+    async def _async_set_device_tags_service_handler(call):
+        # Handles the service call meraki_ha.set_device_tags
+        serial = call.data.get("serial")
+        tags_str = call.data.get("tags")
 
-    #     if not serial:
-    #         raise ServiceValidationError("Serial number is required.")
+        if not serial:
+            raise ServiceValidationError("Serial number is required.")
 
-    #     if tags_str == "":
-    #         tag_list = []
-    #     else:
-    #         tag_list = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
+        if tags_str == "":
+            tag_list = []
+        else:
+            tag_list = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
 
-    #     # Get MerakiAPIClient and main_coordinator from the current entry's data
-    #     # This uses `entry.entry_id` directly, which is safer than iterating.
-    #     current_entry_data = hass.data[DOMAIN].get(entry.entry_id)
-    #     if not current_entry_data:
-    #         _LOGGER.error(f"Configuration for entry {entry.entry_id} not found in hass.data.")
-    #         raise HomeAssistantError("Meraki integration configuration not found.")
+        # Get MerakiAPIClient and main_coordinator from the current entry's data
+        # This uses `entry.entry_id` directly, which is safer than iterating.
+        current_entry_data = hass.data[DOMAIN].get(entry.entry_id)
+        if not current_entry_data:
+            _LOGGER.error(f"Configuration for entry {entry.entry_id} not found in hass.data.")
+            raise HomeAssistantError("Meraki integration configuration not found.")
 
-    #     meraki_client: MerakiAPIClient = current_entry_data.get(DATA_CLIENT)
-    #     main_coordinator: MerakiDataUpdateCoordinator = current_entry_data.get("coordinators", {}).get("main")
+        meraki_client: MerakiAPIClient = current_entry_data.get(DATA_CLIENT)
+        main_coordinator: MerakiDataUpdateCoordinator = current_entry_data.get("coordinators", {}).get("main")
 
-    #     if not meraki_client:
-    #         _LOGGER.error(f"Meraki API client not found for entry {entry.entry_id}. Cannot set device tags.")
-    #         raise HomeAssistantError("Meraki API client unavailable for this configuration entry.")
+        if not meraki_client:
+            _LOGGER.error(f"Meraki API client not found for entry {entry.entry_id}. Cannot set device tags.")
+            raise HomeAssistantError("Meraki API client unavailable for this configuration entry.")
 
-    #     _LOGGER.info(f"Service meraki_ha.set_device_tags called for serial {serial} (entry {entry.entry_id}) with tags: {tag_list}")
+        _LOGGER.info(f"Service meraki_ha.set_device_tags called for serial {serial} (entry {entry.entry_id}) with tags: {tag_list}")
 
-    #     try:
-    #         await meraki_client.async_update_device_tags(serial=serial, tags=tag_list)
-    #         _LOGGER.info(f"Successfully updated tags for device {serial}. Requesting coordinator refresh.")
-    #         if main_coordinator:
-    #             await main_coordinator.async_request_refresh()
-    #     except MerakiApiAuthError as e:
-    #         _LOGGER.error(f"Authentication error updating tags for {serial}: {e}")
-    #         raise HomeAssistantError(f"Meraki API authentication error for {serial}: {e}") from e
-    #     except MerakiApiNotFoundError as e:
-    #         _LOGGER.error(f"Device {serial} not found when updating tags: {e}")
-    #         raise HomeAssistantError(f"Meraki device {serial} not found: {e}") from e
-    #     except MerakiApiConnectionError as e:
-    #         _LOGGER.error(f"Connection error updating tags for {serial}: {e}")
-    #         raise HomeAssistantError(f"Meraki API connection error for {serial}: {e}") from e
-    #     except MerakiApiError as e:
-    #         _LOGGER.error(f"Meraki API error updating tags for {serial}: {e}")
-    #         raise HomeAssistantError(f"Meraki API error for {serial}: {e}") from e
-    #     except Exception as e:
-    #         _LOGGER.exception(f"Unexpected error updating tags for {serial}: {e}")
-    #         raise HomeAssistantError(f"Unexpected error updating tags for {serial}: {e}") from e
+        try:
+            await meraki_client.async_update_device_tags(serial=serial, tags=tag_list)
+            _LOGGER.info(f"Successfully updated tags for device {serial}. Requesting coordinator refresh.")
+            if main_coordinator:
+                await main_coordinator.async_request_refresh()
+        except MerakiApiAuthError as e:
+            _LOGGER.error(f"Authentication error updating tags for {serial}: {e}")
+            raise HomeAssistantError(f"Meraki API authentication error for {serial}: {e}") from e
+        except MerakiApiNotFoundError as e:
+            _LOGGER.error(f"Device {serial} not found when updating tags: {e}")
+            raise HomeAssistantError(f"Meraki device {serial} not found: {e}") from e
+        except MerakiApiConnectionError as e:
+            _LOGGER.error(f"Connection error updating tags for {serial}: {e}")
+            raise HomeAssistantError(f"Meraki API connection error for {serial}: {e}") from e
+        except MerakiApiError as e:
+            _LOGGER.error(f"Meraki API error updating tags for {serial}: {e}")
+            raise HomeAssistantError(f"Meraki API error for {serial}: {e}") from e
+        except Exception as e:
+            _LOGGER.exception(f"Unexpected error updating tags for {serial}: {e}")
+            raise HomeAssistantError(f"Unexpected error updating tags for {serial}: {e}") from e
 
-    # hass.services.async_register(
-    #     DOMAIN,
-    #     "set_device_tags",
-    #     _async_set_device_tags_service_handler, # Use the inner handler
-    #     schema=SERVICE_SET_DEVICE_TAGS_SCHEMA,
-    # )
+    hass.services.async_register(
+        DOMAIN,
+        "set_device_tags",
+        _async_set_device_tags_service_handler, # Use the inner handler
+        schema=SERVICE_SET_DEVICE_TAGS_SCHEMA,
+    )
 
     _LOGGER.debug(
         "Completed async_setup_entry for Meraki integration (entry_id: %s) successfully, all platforms loaded.",
