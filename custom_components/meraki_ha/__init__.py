@@ -136,68 +136,52 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     api_key: str = entry.data[CONF_MERAKI_API_KEY]
     org_id: str = entry.data[CONF_MERAKI_ORG_ID]
 
-    scan_interval_seconds_option = entry.options.get(  # Corrected variable name
+    scan_interval_seconds_option = entry.options.get(
         CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
     )
     try:
         scan_interval_seconds = int(
             scan_interval_seconds_option
-        )  # Use corrected var name
+        )
     except ValueError:
         _LOGGER.error(
             "Invalid scan_interval '%s' in options. Using default: %s seconds.",
-            scan_interval_seconds_option,  # Use corrected var name
+            scan_interval_seconds_option,
             DEFAULT_SCAN_INTERVAL,
         )
         scan_interval_seconds = DEFAULT_SCAN_INTERVAL
 
     interval: timedelta = timedelta(seconds=scan_interval_seconds)
 
-    # 1. Initialize Main Coordinator
-    # This coordinator is responsible for fetching primary data like devices, networks, etc.
-    # It serves as the main source of truth for physical device information.
     main_coordinator: MerakiDataUpdateCoordinator = MerakiDataUpdateCoordinator(
         hass=hass,
         api_key=api_key,
         org_id=org_id,
         scan_interval=interval,
-        # relaxed_tag_match parameter removed from MerakiDataUpdateCoordinator
         config_entry=entry,
     )
-    # 2. Perform its first refresh
-    # This initial refresh populates the coordinator with data before entities are set up.
     await main_coordinator.async_config_entry_first_refresh()
 
-    # Register the Meraki Organization itself as a device in Home Assistant.
-    # This call is placed after the first refresh to ensure that the
-    # coordinator has fetched necessary data, like the organization name,
-    # which is used in the device registration process.
     if hasattr(main_coordinator, "async_register_organization_device"):
         _LOGGER.debug("Attempting to register Meraki Organization as a device.")
         await main_coordinator.async_register_organization_device(hass)
     else:
         _LOGGER.warning("main_coordinator does not have async_register_organization_device method.")
 
-    # 3. Populate hass.data with the client from main_coordinator and the main_coordinator itself
-    # hass.data is the central store in Home Assistant for sharing data between components and platforms.
-    # We store the MerakiAPIClient instance for direct API access if needed by other parts
-    # of the integration (e.g., services) and the coordinators themselves.
-    # This assumes main_coordinator has a 'meraki_client' attribute holding the MerakiAPIClient instance.
     meraki_client_instance = getattr(main_coordinator, "meraki_client", None)
     if not meraki_client_instance:
         _LOGGER.error(
             "MerakiAPIClient not available from main_coordinator. Integration setup failed for entry %s.",
             entry.entry_id,
         )
-        return False  # Critical failure if the client isn't initialized.
+        return False
 
     hass.data.setdefault(DOMAIN, {})
-    # Store data per config entry to support multiple Meraki organizations.
     hass.data[DOMAIN][entry.entry_id] = {
-        DATA_CLIENT: meraki_client_instance,  # The shared Meraki API client.
-        "coordinator": main_coordinator,  # Main coordinator (legacy key, might be phased out).
-        "coordinators": {  # Dictionary to hold all coordinators for this config entry.
-            "main": main_coordinator,  # Store the main coordinator.
+        DATA_CLIENT: meraki_client_instance,
+        "coordinator": main_coordinator,
+        "coordinators": {
+            "main": main_coordinator,
         },
     }
     _LOGGER.debug(
@@ -205,51 +189,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.entry_id,
     )
 
-    # 4. Initialize SSIDDeviceCoordinator
-    # This coordinator specifically handles SSID "devices" (logical representations of SSIDs).
-    # It relies on the main_coordinator for the list of SSIDs fetched from the API.
-    # It can now access DATA_CLIENT (the MerakiAPIClient) from hass.data during its first refresh if needed for detailed calls.
     ssid_coordinator = SSIDDeviceCoordinator(
         hass=hass,
         config_entry=entry,
-        api_data_fetcher=main_coordinator,  # main_coordinator acts as the source of the raw SSID list.
-        update_interval=interval,  # Use the same update interval.
+        api_data_fetcher=main_coordinator,
+        update_interval=interval,
     )
-    # 5. Perform its first refresh
-    # This populates the SSID coordinator with its specific data (e.g., enabled SSIDs and their details).
     await ssid_coordinator.async_config_entry_first_refresh()
 
-    # 6. Add ssid_coordinator to the coordinators dictionary in hass.data
-    # This makes the SSID coordinator accessible to platforms that need it (e.g., sensor, switch for SSIDs).
     hass.data[DOMAIN][entry.entry_id]["coordinators"]["ssid_devices"] = ssid_coordinator
     _LOGGER.debug(
         "Added ssid_devices_coordinator to hass.data for entry_id: %s",
         entry.entry_id,
     )
 
-    # Forward the setup to configured platforms (sensor, switch, etc.).
-    # Each platform will look up its relevant coordinator(s) from hass.data.
     platform_setup_success = await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    # Set up a listener for options updates. If options change (e.g., scan interval),
-    # the entry will be reloaded.
-    # This should be set up if the core of the integration (coordinators) loaded.
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     if not platform_setup_success:
         _LOGGER.error("One or more Meraki platforms failed to set up for entry %s. Integration setup failed.", entry.entry_id)
         return False
 
-    # Register the service
-    # We need to wrap async_set_device_tags_service to pass hass if it's not an inner function
-    # However, if we define it as an inner function, it captures hass and entry from the outer scope.
-    # For a module-level function, we need to pass hass.
-    # The service registration itself does not pass hass to the handler, only `call`.
-    # So, the handler needs to be defined in a way it can access hass.
-    # Option 1: Make it an inner function (simplest for single config entry).
-    # Option 2: Use functools.partial to pass hass (if it were not for the single config entry assumption).
-
-    # Re-defining the handler as an inner function here to capture `hass` and `entry` correctly.
     async def _async_set_device_tags_service_handler(call):
         # Handles the service call meraki_ha.set_device_tags
         serial = call.data.get("serial") # Get device serial
@@ -263,8 +224,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         else:
             tag_list = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
 
-        # Get MerakiAPIClient and main_coordinator from the current entry's data
-        # This uses `entry.entry_id` directly, which is safer than iterating.
         current_entry_data = hass.data[DOMAIN].get(entry.entry_id)
         if not current_entry_data:
             _LOGGER.error(f"Configuration for entry {entry.entry_id} not found in hass.data.")
@@ -303,7 +262,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(
         DOMAIN,
         "set_device_tags",
-        _async_set_device_tags_service_handler, # Use the inner handler
+        _async_set_device_tags_service_handler,
         schema=SERVICE_SET_DEVICE_TAGS_SCHEMA,
     )
 
