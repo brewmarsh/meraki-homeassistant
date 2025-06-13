@@ -49,7 +49,7 @@ async def async_setup_entry(
 
     if not meraki_api_client:
         _LOGGER.error("Meraki API client not found. Cannot set up switches.")
-        return
+        return False
 
     # --- SSID Switch Setup (existing functionality) ---
     coordinators_map = entry_data.get("coordinators")
