@@ -53,65 +53,6 @@ SERVICE_SET_DEVICE_TAGS_SCHEMA = vol.Schema(
     }
 )
 
-# async def async_set_device_tags_service(hass: HomeAssistant, call): # This global version is not used
-#     # Handles the service call meraki_ha.set_device_tags
-#     serial = call.data.get("serial")
-#     tags_str = call.data.get("tags") # This line and below were incorrectly unindented in the previous state
-#
-#     if not serial: # These lines would need to be indented if this function was used
-        raise ServiceValidationError("Serial number is required.")
-
-    # Process tags_str: split by comma, strip whitespace.
-    # An empty string for tags_str means remove all tags (empty list).
-    if tags_str == "":
-        tag_list = []
-    else:
-        tag_list = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
-
-    # Get the MerakiAPIClient
-    # This assumes a single config entry for simplicity.
-    # If multiple entries, logic to select the correct one would be needed.
-    entry_id = None
-    if hass.data.get(DOMAIN):
-        # Get the first (and likely only) entry_id
-        entry_id = next(iter(hass.data[DOMAIN]), None)
-
-    if not entry_id or not hass.data[DOMAIN][entry_id].get(DATA_CLIENT):
-        _LOGGER.error("Meraki API client not found. Cannot set device tags.")
-        raise HomeAssistantError("Meraki integration not configured or API client unavailable.")
-
-    meraki_client: MerakiAPIClient = hass.data[DOMAIN][entry_id][DATA_CLIENT]
-    # Ensure 'coordinators' and 'main' exist before trying to access them.
-    coordinators_data = hass.data[DOMAIN][entry_id].get("coordinators", {})
-    main_coordinator: MerakiDataUpdateCoordinator = coordinators_data.get("main")
-
-
-    _LOGGER.info(f"Service meraki_ha.set_device_tags called for serial {serial} with tags: {tag_list}")
-
-    try:
-        # The async_update_device_tags now only returns True or raises an exception
-        await meraki_client.async_update_device_tags(serial=serial, tags=tag_list)
-        _LOGGER.info(f"Successfully updated tags for device {serial}. Requesting coordinator refresh.")
-        # Trigger a refresh of the main coordinator
-        if main_coordinator:
-            await main_coordinator.async_request_refresh()
-        # The success=False case is removed as per method's new behavior (raises exception on failure)
-    except MerakiApiAuthError as e:
-        _LOGGER.error(f"Authentication error updating tags for {serial}: {e}")
-        raise HomeAssistantError(f"Meraki API authentication error for {serial}: {e}") from e
-    except MerakiApiNotFoundError as e:
-        _LOGGER.error(f"Device {serial} not found when updating tags: {e}")
-        raise HomeAssistantError(f"Meraki device {serial} not found: {e}") from e
-    except MerakiApiConnectionError as e:
-        _LOGGER.error(f"Connection error updating tags for {serial}: {e}")
-        raise HomeAssistantError(f"Meraki API connection error for {serial}: {e}") from e
-    except MerakiApiError as e:
-        _LOGGER.error(f"Meraki API error updating tags for {serial}: {e}")
-        raise HomeAssistantError(f"Meraki API error for {serial}: {e}") from e
-    except Exception as e:
-        _LOGGER.exception(f"Unexpected error updating tags for {serial}: {e}")
-        raise HomeAssistantError(f"Unexpected error updating tags for {serial}: {e}") from e
-
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Meraki from a config entry.
 
@@ -219,8 +160,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         tags_str = call.data.get("tags")
 
         if not serial: # 8 spaces
-            # raise ServiceValidationError("Serial number is required.") # 12 spaces
-            _LOGGER.debug("DIAGNOSTIC: Service call an_set_device_tags was made without a serial number.") # 12 spaces
+            # raise ServiceValidationError("Serial number is required.")
+            _LOGGER.debug("DIAGNOSTIC: Service call set_device_tags was made without a serial number.")
 
         if tags_str == "": # 8 spaces
             tag_list = [] # 12 spaces
@@ -263,10 +204,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             except Exception as e: # 8 spaces
                 _LOGGER.exception(f"Unexpected error updating tags for {serial}: {e}") # 12 spaces
                 raise HomeAssistantError(f"Unexpected error updating tags for {serial}: {e}") from e # 12 spaces
-        elif not serial: # If serial was not provided, we've already logged the debug message.
-            # The function will implicitly return None if serial is None,
-            # or we can add an explicit pass or return if desired.
-            pass
+        # Removed redundant 'elif not serial: pass' block
 
 
     hass.services.async_register(
