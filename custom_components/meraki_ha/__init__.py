@@ -144,7 +144,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.entry_id,
     )
 
+    _LOGGER.debug("PLATFORMS constant before forwarding: %s (type: %s, length: %s)", PLATFORMS, type(PLATFORMS), len(PLATFORMS) if isinstance(PLATFORMS, list) else 'N/A')
     platform_setup_success = await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    _LOGGER.debug("Result of async_forward_entry_setups (platform_setup_success): %s (type: %s)", platform_setup_success, type(platform_setup_success))
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
