@@ -23,57 +23,15 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
-    _LOGGER.debug("meraki_ssid_name.py: Setting up Meraki SSID name text entities.")
-    try:
-        # Attempt to retrieve coordinators and client
-        try:
-            ssid_coordinator: SSIDDeviceCoordinator = hass.data[DOMAIN][config_entry.entry_id][
-                "coordinators"
-            ]["ssid_devices"]
-            meraki_client: MerakiAPIClient = hass.data[DOMAIN][config_entry.entry_id][
-                DATA_CLIENT
-            ]
-        except KeyError as e:
-            _LOGGER.error(
-                "meraki_ssid_name.py: Failed to retrieve required data from hass.data (KeyError: %s). Cannot set up text entities.", e,
-                exc_info=True
-            )
-            return False
+    # Ensure _LOGGER is defined, e.g. by having this at the top of the file:
+    # import logging
+    # _LOGGER = logging.getLogger(__name__)
+    # Or by using the fully qualified name if _LOGGER is not standard in all platform files:
+    # logging.getLogger("custom_components.meraki_ha.text.meraki_ssid_name").debug("meraki_ssid_name.py: Minimal async_setup_entry called, doing nothing, returning True.")
 
-        if not ssid_coordinator or not ssid_coordinator.data: # Added check for ssid_coordinator itself
-            _LOGGER.warning("meraki_ssid_name.py: SSID Coordinator not available or has no data, skipping text entity setup but platform reports failure.")
-            return False # Explicitly return False if critical data is missing
-
-        text_entities = []
-        # Loop to create entities, also wrapped in try/except
-        try:
-            for ssid_unique_id, ssid_data in ssid_coordinator.data.items():
-                # Add a try-except for individual entity creation if needed, though often one bad apple might mean stopping all for the platform
-                if not isinstance(ssid_data, dict): # Basic check for data sanity
-                    _LOGGER.warning("meraki_ssid_name.py: ssid_data for id %s is not a dictionary, skipping.", ssid_unique_id)
-                    continue
-                text_entities.append(
-                    MerakiSSIDNameTextEntity(
-                        ssid_coordinator, meraki_client, config_entry, ssid_unique_id, ssid_data
-                    )
-                )
-        except Exception as e_entity_creation: # Catch any error during entity list creation
-            _LOGGER.error("meraki_ssid_name.py: Error creating list of text entities: %s", e_entity_creation, exc_info=True)
-            return False
-
-        if text_entities: # Only add if list is not empty
-            async_add_entities(text_entities, update_before_add=True)
-            _LOGGER.debug("meraki_ssid_name.py: Added %d Meraki SSID name text entities.", len(text_entities))
-        else:
-            _LOGGER.debug("meraki_ssid_name.py: No text entities were created or added.")
-            # If no entities are added, it's still a successful setup of the platform itself (it did its job, found nothing to add).
-
-        _LOGGER.debug("meraki_ssid_name.py: Finished setting up Meraki SSID name text entities, returning True.")
-        return True
-
-    except Exception as e: # Catch-all for the entire function
-        _LOGGER.error("meraki_ssid_name.py: Unexpected error during text entity setup: %s", e, exc_info=True)
-        return False
+    # For simplicity in the subtask, let's assume _LOGGER is available as it was in the original file.
+    _LOGGER.debug("meraki_ssid_name.py: Minimal async_setup_entry called, intentionally doing nothing, returning True for diagnostics.")
+    return True
 
 
 class MerakiSSIDNameTextEntity(CoordinatorEntity[SSIDDeviceCoordinator], TextEntity):
