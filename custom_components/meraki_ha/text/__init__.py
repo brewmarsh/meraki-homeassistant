@@ -18,11 +18,19 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki text entities from a config entry."""
-    _LOGGER.info("Setting up Meraki text platform.")
+    _LOGGER.info("text/__init__.py: Setting up Meraki text platform.")
 
     # Call the setup for SSID Name text entities
-    # This directly calls the async_setup_entry from meraki_ssid_name.py
-    await ssid_name_async_setup_entry(hass, config_entry, async_add_entities)
+    setup_successful = await ssid_name_async_setup_entry(hass, config_entry, async_add_entities)
+    _LOGGER.debug("text/__init__.py: ssid_name_async_setup_entry reported: %s", setup_successful)
 
-    _LOGGER.info("Finished setting up Meraki text platform.")
-    return True  # Must return True if setup is successful
+    # Decide what this platform setup should return.
+    # If ssid_name_async_setup_entry is the only thing this platform does,
+    # its success should determine the platform's success.
+    # However, the plan was to make things return True to see where the HA core error comes from.
+    # For this step, let's keep it returning True but log the internal result.
+    if not setup_successful:
+        _LOGGER.warning("text/__init__.py: Setup of SSID name entities reported failure, but platform setup will still return True for diagnostics.")
+
+    _LOGGER.info("text/__init__.py: Finished setting up Meraki text platform.")
+    return True # Explicitly return True, but log internal success/failure.

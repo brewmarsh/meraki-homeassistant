@@ -22,8 +22,9 @@ async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
-) -> None:
+) -> bool:
     """Set up Meraki SSID name text entities from a config entry."""
+    _LOGGER.debug("meraki_ssid_name.py: Setting up Meraki SSID name text entities.")
     ssid_coordinator: SSIDDeviceCoordinator = hass.data[DOMAIN][config_entry.entry_id][
         "coordinators"
     ]["ssid_devices"]
@@ -32,8 +33,8 @@ async def async_setup_entry(
     ]
 
     if not ssid_coordinator.data:
-        _LOGGER.warning("SSID Coordinator has no data, skipping text entity setup")
-        return
+        _LOGGER.warning("meraki_ssid_name.py: SSID Coordinator has no data, skipping text entity setup but returning True for platform.")
+        return True
 
     text_entities = []
     for ssid_unique_id, ssid_data in ssid_coordinator.data.items():
@@ -44,6 +45,8 @@ async def async_setup_entry(
         )
 
     async_add_entities(text_entities, update_before_add=True)
+    _LOGGER.debug("meraki_ssid_name.py: Finished setting up Meraki SSID name text entities, returning True.")
+    return True
 
 
 class MerakiSSIDNameTextEntity(CoordinatorEntity[SSIDDeviceCoordinator], TextEntity):
