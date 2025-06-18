@@ -159,15 +159,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     platform_setup_success = await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     _LOGGER.debug("Result of async_forward_entry_setups (platform_setup_success): %s (type: %s)", platform_setup_success, type(platform_setup_success))
 
-    # Diagnostic override:
-    original_platform_setup_result = platform_setup_success # Save original for logging
-    platform_setup_success = True
-    _LOGGER.info(
-        "DIAGNOSTIC OVERRIDE: platform_setup_success forced to True. Original async_forward_entry_setups result was: %s (type: %s)",
-        original_platform_setup_result,
-        type(original_platform_setup_result)
-    )
-
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     if not platform_setup_success:
