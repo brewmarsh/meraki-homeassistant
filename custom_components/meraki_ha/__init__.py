@@ -54,9 +54,20 @@ SERVICE_SET_DEVICE_TAGS_SCHEMA = vol.Schema(
 )
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Meraki from a config entry.
+    # Ensure _LOGGER is defined at the module level
+    # Ensure HomeAssistant, ConfigEntry are imported
+    _LOGGER.info("Meraki HA: Ultra-minimal async_setup_entry called for diagnostics.")
 
-    This function initializes the Meraki integration by setting up
+    # Minimal required setup: options listener
+    # Ensure async_reload_entry is defined in the file or imported if it's from elsewhere.
+    # Assuming async_reload_entry is defined in this file.
+    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+
+    _LOGGER.info("Meraki HA: Ultra-minimal async_setup_entry finishing, returning True.")
+    return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     data update coordinators, performing an initial data refresh,
     registering devices, and forwarding the setup to relevant platforms.
 
@@ -223,16 +234,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "set_device_tags",
         _async_set_device_tags_service_handler,
         schema=SERVICE_SET_DEVICE_TAGS_SCHEMA,
-    )
-
-    _LOGGER.debug(
-        "Completed async_setup_entry for Meraki integration (entry_id: %s) successfully, all platforms loaded.",
-        entry.entry_id,
-    )
-    return True
-
-
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Meraki config entry.
 
     This function is called when Home Assistant is removing the integration setup.
