@@ -19,9 +19,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, # Ensure HomeAssistant is imported
-    config_entry: ConfigEntry, # Ensure ConfigEntry is imported
-    async_add_entities: AddEntitiesCallback, # Ensure AddEntitiesCallback is imported
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> bool:
     _LOGGER.debug("meraki_ssid_name.py: Ultra-minimal async_setup_entry called, intentionally doing nothing, returning True for diagnostics.")
     return True
