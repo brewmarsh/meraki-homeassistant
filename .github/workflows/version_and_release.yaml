@@ -138,7 +138,7 @@ jobs:
 
       - name: Commit and push changes
         if: steps.increment.outputs.new_full_version != '' # Only run if changes were made
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_base_version }} and CHANGELOG'
           # Ensure all changed files are included
