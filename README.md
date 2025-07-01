@@ -135,27 +135,27 @@ This section provides a brief overview for developers looking to extend the inte
 ### Coordinators
 
 The integration uses a coordinator pattern to manage data fetching and updates:
-*   **`MerakiDataUpdateCoordinator` (`custom_components/meraki_ha/coordinators/base_coordinator.py`):** This is the main coordinator. It fetches general data for all physical devices (APs, switches, MX appliances) and networks within the organization. It uses `MerakiApiDataFetcher` for API calls and `DataAggregationCoordinator` to process and structure the data. Entities related to physical devices (like Device Status, Uplink Status, Connected Clients per AP) rely on this coordinator.
-*   **`SSIDDeviceCoordinator` (`custom_components/meraki_ha/coordinators/ssid_device_coordinator.py`):** This coordinator is specifically responsible for managing SSIDs. It fetches detailed SSID information, registers each enabled SSID as a logical "device" in Home Assistant, and provides data for SSID-specific entities (like SSID Availability, SSID Client Count, SSID Channel, and SSID control switches/text entities). It gets the initial list of SSIDs from the `MerakiDataUpdateCoordinator` (via `api_data_fetcher` attribute) and then fetches further details itself.
+*   **`MerakiDataUpdateCoordinator` (`custom_components/meraki-ha/coordinators/base_coordinator.py`):** This is the main coordinator. It fetches general data for all physical devices (APs, switches, MX appliances) and networks within the organization. It uses `MerakiApiDataFetcher` for API calls and `DataAggregationCoordinator` to process and structure the data. Entities related to physical devices (like Device Status, Uplink Status, Connected Clients per AP) rely on this coordinator.
+*   **`SSIDDeviceCoordinator` (`custom_components/meraki-ha/coordinators/ssid_device_coordinator.py`):** This coordinator is specifically responsible for managing SSIDs. It fetches detailed SSID information, registers each enabled SSID as a logical "device" in Home Assistant, and provides data for SSID-specific entities (like SSID Availability, SSID Client Count, SSID Channel, and SSID control switches/text entities). It gets the initial list of SSIDs from the `MerakiDataUpdateCoordinator` (via `api_data_fetcher` attribute) and then fetches further details itself.
 
 ### Adding Support for New Meraki Device Types
 
-1.  **Data Fetching:** If the new device type requires fetching new API endpoints or processing existing data differently, modifications will be needed in `custom_components/meraki_ha/coordinators/api_data_fetcher.py`. Add new methods or update existing ones to retrieve the necessary information.
+1.  **Data Fetching:** If the new device type requires fetching new API endpoints or processing existing data differently, modifications will be needed in `custom_components/meraki-ha/coordinators/api_data_fetcher.py`. Add new methods or update existing ones to retrieve the necessary information.
 2.  **Entity Registration:**
-    *   Define new sensor/switch/etc. classes in the respective directories (e.g., `custom_components/meraki_ha/sensor/`).
-    *   Update `custom_components/meraki_ha/sensor_registry.py` (or a similar registry for other entity types) to map the new device's `productType` (as reported by the Meraki API) to the new entity classes.
-    *   Ensure the `async_setup_entry` function in the relevant platform's `__init__.py` (e.g., `custom_components/meraki_ha/sensor/__init__.py`) correctly iterates through devices and uses the registry to create your new entities.
+    *   Define new sensor/switch/etc. classes in the respective directories (e.g., `custom_components/meraki-ha/sensor/`).
+    *   Update `custom_components/meraki-ha/sensor_registry.py` (or a similar registry for other entity types) to map the new device's `productType` (as reported by the Meraki API) to the new entity classes.
+    *   Ensure the `async_setup_entry` function in the relevant platform's `__init__.py` (e.g., `custom_components/meraki-ha/sensor/__init__.py`) correctly iterates through devices and uses the registry to create your new entities.
 3.  **Coordinator Logic:** If the new device type has significantly different data patterns or requires unique handling not covered by the main coordinator, you might consider:
     *   Adding specific processing logic to `MerakiDataProcessor` and `DataAggregator`.
     *   For very distinct devices, potentially introducing a new dedicated `DataUpdateCoordinator` similar to `SSIDDeviceCoordinator`.
-4.  **Device Typing:** Update `custom_components/meraki_ha/coordinators/meraki_device_types.py` if the new device model needs a specific type mapping for display name formatting or other logic.
+4.  **Device Typing:** Update `custom_components/meraki-ha/coordinators/meraki_device_types.py` if the new device model needs a specific type mapping for display name formatting or other logic.
 
 ### Adding New Sensors/Switches for Existing Device Types
 
-1.  **Data Fetching:** Ensure the data required for your new entity is being fetched by `custom_components/meraki_ha/coordinators/api_data_fetcher.py` and is available in the data provided by the relevant coordinator (`MerakiDataUpdateCoordinator` for physical devices, `SSIDDeviceCoordinator` for SSIDs).
-2.  **Entity Class:** Create your new sensor or switch class in the appropriate directory (e.g., `custom_components/meraki_ha/sensor/my_new_sensor.py`). This class will typically inherit from `MerakiEntity` (or a more specific base like `CoordinatorEntity`) and implement the necessary properties and methods.
-3.  **Sensor Registry (for physical device sensors):** If it's a sensor for a physical device, add your new sensor class to `custom_components/meraki_ha/sensor_registry.py`, either to `COMMON_DEVICE_SENSORS` (if applicable to all devices) or to the list for the specific `productType` it applies to.
-4.  **SSID Entities:** For SSID-specific entities, you'll likely add the instantiation of your new entity class within the `create_ssid_sensors` factory function in `custom_components/meraki_ha/sensor/ssid.py` (or a similar factory for switches/text entities if they are created that way).
+1.  **Data Fetching:** Ensure the data required for your new entity is being fetched by `custom_components/meraki-ha/coordinators/api_data_fetcher.py` and is available in the data provided by the relevant coordinator (`MerakiDataUpdateCoordinator` for physical devices, `SSIDDeviceCoordinator` for SSIDs).
+2.  **Entity Class:** Create your new sensor or switch class in the appropriate directory (e.g., `custom_components/meraki-ha/sensor/my_new_sensor.py`). This class will typically inherit from `MerakiEntity` (or a more specific base like `CoordinatorEntity`) and implement the necessary properties and methods.
+3.  **Sensor Registry (for physical device sensors):** If it's a sensor for a physical device, add your new sensor class to `custom_components/meraki-ha/sensor_registry.py`, either to `COMMON_DEVICE_SENSORS` (if applicable to all devices) or to the list for the specific `productType` it applies to.
+4.  **SSID Entities:** For SSID-specific entities, you'll likely add the instantiation of your new entity class within the `create_ssid_sensors` factory function in `custom_components/meraki-ha/sensor/ssid.py` (or a similar factory for switches/text entities if they are created that way).
 5.  **Platform Setup:** Ensure the `async_setup_entry` in the platform's `__init__.py` correctly passes the coordinator and device/SSID data to your new entity's constructor.
 
 Remember to test thoroughly, including API error handling and UI representation.
@@ -164,7 +164,7 @@ Remember to test thoroughly, including API error handling and UI representation.
 
 This project uses an automated versioning and release process triggered by merging Pull Requests (PRs) into the `main` branch.
 
-*   **Automatic Version Increment:** When a PR is merged, the version number in `custom_components/meraki_ha/manifest.json` and `package.json` is automatically incremented.
+*   **Automatic Version Increment:** When a PR is merged, the version number in `custom_components/meraki-ha/manifest.json` and `package.json` is automatically incremented.
 *   **Determining Increment Type:** The type of version increment (major, minor, or patch) is determined by the PR title:
     *   `[major]` in the PR title (e.g., `[major] Implement new dashboard feature`) will trigger a major version update (e.g., `1.2.3` -> `2.0.0`).
     *   `[minor]` in the PR title (e.g., `[minor] Add support for new sensor type`) will trigger a minor version update (e.g., `1.2.3` -> `1.3.0`).

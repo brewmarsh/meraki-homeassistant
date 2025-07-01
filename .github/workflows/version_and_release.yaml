@@ -45,10 +45,10 @@ jobs:
           echo "--- end .bumpversion.cfg ---"
 
           echo "--- manifest.json (before) ---"
-          cat custom_components/meraki_ha/manifest.json
+          cat custom_components/meraki-ha/manifest.json
           echo "--- end manifest.json (before) ---"
 
-          current_version=$(jq -r .version custom_components/meraki_ha/manifest.json)
+          current_version=$(jq -r .version custom_components/meraki-ha/manifest.json)
           echo "Current Version: $current_version" # e.g., 0.1.1+build.81
 
           increment_type="patch" # Default increment type
@@ -90,15 +90,15 @@ jobs:
 
           # Temporarily set manifest to base version for bump2version to find it
           echo "Temporarily setting manifest version to: $base_version_from_manifest for bump2version"
-          jq --arg ver "$base_version_from_manifest" '.version = $ver' custom_components/meraki_ha/manifest.json > tmp_manifest.json && mv tmp_manifest.json custom_components/meraki_ha/manifest.json
+          jq --arg ver "$base_version_from_manifest" '.version = $ver' custom_components/meraki-ha/manifest.json > tmp_manifest.json && mv tmp_manifest.json custom_components/meraki-ha/manifest.json
           echo "--- manifest.json (temporarily set to base for bump2version) ---"
-          cat custom_components/meraki_ha/manifest.json
+          cat custom_components/meraki-ha/manifest.json
           echo "--- end manifest.json ---"
 
           # Bump version in manifest.json using the calculated new version
-          bump2version --verbose --allow-dirty --current-version "$base_version_from_manifest" --new-version "$calculated_new_version_string" custom_components/meraki_ha/manifest.json
+          bump2version --verbose --allow-dirty --current-version "$base_version_from_manifest" --new-version "$calculated_new_version_string" custom_components/meraki-ha/manifest.json
           
-          base_version_after_bump=$(jq -r .version custom_components/meraki_ha/manifest.json) # This will be the new base, e.g., 0.2.0
+          base_version_after_bump=$(jq -r .version custom_components/meraki-ha/manifest.json) # This will be the new base, e.g., 0.2.0
           echo "Base Version from manifest after bump: $base_version_after_bump"
 
           # Append build metadata
@@ -106,7 +106,7 @@ jobs:
           echo "Version with Build Metadata: $version_with_build"
 
           # Update manifest.json with the version including build metadata
-          jq --arg ver "$version_with_build" '.version = $ver' custom_components/meraki_ha/manifest.json > tmp_manifest.json && mv tmp_manifest.json custom_components/meraki_ha/manifest.json
+          jq --arg ver "$version_with_build" '.version = $ver' custom_components/meraki-ha/manifest.json > tmp_manifest.json && mv tmp_manifest.json custom_components/meraki-ha/manifest.json
           
           echo "Updated manifest.json with build metadata."
           # Output the new_version (including build metadata) for subsequent steps
@@ -115,7 +115,7 @@ jobs:
 
           # Log manifest.json content AFTER bump2version and adding build metadata
           echo "--- manifest.json (after all modifications) ---"
-          cat custom_components/meraki_ha/manifest.json
+          cat custom_components/meraki-ha/manifest.json
           echo "--- end manifest.json (after all modifications) ---"
 
       - name: Update package.json version
@@ -123,7 +123,7 @@ jobs:
         run: |
           echo "Synchronizing package.json version to: ${{ steps.increment.outputs.new_base_version }}"
           # The script `npm run set-version` is: `node get-version.js && npm version $(node get-version.js) --no-git-tag-version`
-          # Ensure get-version.js reads from custom_components/meraki_ha/manifest.json
+          # Ensure get-version.js reads from custom_components/meraki-ha/manifest.json
           # For this step, we'll directly use the new_base_version from the previous step.
           # This avoids relying on get-version.js to re-read, which might cause issues if it reads an old cached value.
           # Overwrite package.json version directly or use npm version with the specific version
@@ -142,7 +142,7 @@ jobs:
         with:
           commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_base_version }} and CHANGELOG'
           # Ensure all changed files are included
-          file_pattern: 'custom_components/meraki_ha/manifest.json CHANGELOG.md package.json .bumpversion.cfg package-lock.json'
+          file_pattern: 'custom_components/meraki-ha/manifest.json CHANGELOG.md package.json .bumpversion.cfg package-lock.json'
           # push_options: '' # Removed --force, default push behavior
           # Using default push options by removing the line is safer.
           # Configure committer details
