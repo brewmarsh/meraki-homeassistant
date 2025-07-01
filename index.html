@@ -1,0 +1,803 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+        <link rel="next" href="configuration/">
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Meraki Home Assistant Integration</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.342714a4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#meraki-home-assistant-integration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="Meraki Home Assistant Integration" class="md-header__button md-logo" aria-label="Meraki Home Assistant Integration" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Meraki Home Assistant Integration
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="Meraki Home Assistant Integration" class="md-nav__button md-logo" aria-label="Meraki Home Assistant Integration" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Meraki Home Assistant Integration
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installation-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation Steps
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#obtaining-a-meraki-api-key-and-organization-id" class="md-nav__link">
+    <span class="md-ellipsis">
+      Obtaining a Meraki API Key and Organization ID
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#entities-provided" class="md-nav__link">
+    <span class="md-ellipsis">
+      Entities Provided
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#versioning-and-releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Versioning and Releases
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dependencies
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Known Issues
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#disclaimer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disclaimer
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Entities
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installation-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation Steps
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#obtaining-a-meraki-api-key-and-organization-id" class="md-nav__link">
+    <span class="md-ellipsis">
+      Obtaining a Meraki API Key and Organization ID
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#entities-provided" class="md-nav__link">
+    <span class="md-ellipsis">
+      Entities Provided
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#versioning-and-releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Versioning and Releases
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dependencies
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Known Issues
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#disclaimer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disclaimer
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="meraki-home-assistant-integration">Meraki Home Assistant Integration</h1>
+<p>This Home Assistant integration allows you to monitor and manage your Cisco Meraki network, including devices, networks, and SSIDs. It leverages the Meraki API to bring data from your Meraki dashboard into Home Assistant, enabling you to gain insights into your network and automate actions based on its status.</p>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>Device Discovery:</strong> Automatically discovers Meraki hardware devices within your organization and networks.</li>
+<li><strong>Supported Devices:</strong><ul>
+<li>Wireless Access Points (MR series, GR series)</li>
+<li>Switches (MS series, GS series)</li>
+<li>Security Appliances (MX series)</li>
+<li>Cameras (MV series) - Snapshot generation.</li>
+<li>Environmental Sensors (MT series)</li>
+</ul>
+</li>
+<li><strong>Entity Creation:</strong> Creates Home Assistant entities for:<ul>
+<li>Meraki physical devices (APs, switches, appliances, cameras, sensors)</li>
+<li>Meraki networks (represented as devices in HA for grouping)</li>
+<li>Meraki SSIDs (wireless networks)</li>
+</ul>
+</li>
+<li><strong>Data Monitoring:</strong><ul>
+<li>Device status (online/offline, product type)</li>
+<li>Connected client counts (for APs, networks)</li>
+<li>Appliance uplink status and potentially other data points (if specific sensors are developed).</li>
+<li>Basic camera device status; snapshot URL generation to be explicitly integrated (e.g., as sensor attribute or service).</li>
+<li>Sensor values for MT series sensors (Future).</li>
+<li>Wireless radio settings for MR/GR access points (e.g., channel).</li>
+<li>SSID Availability (Enabled/Disabled administrative status).</li>
+<li>SSID Channel (current operational channel).</li>
+<li>SSID Client Count.</li>
+</ul>
+</li>
+<li><strong>Switch Entities:</strong><ul>
+<li>Control SSID enabled/disabled state (via a tagging strategy).</li>
+</ul>
+</li>
+<li><strong>Configuration:</strong><ul>
+<li>API key and Organization ID via Home Assistant configuration flow.</li>
+<li>Configurable scan interval for data refresh.</li>
+<li>Device name formatting options (prefix, suffix, or omit device type in HA entity names).</li>
+<li>Relaxed tag matching option for SSID-to-device association.</li>
+</ul>
+</li>
+<li><strong>Authentication:</strong><ul>
+<li>Handles initial API key validation.</li>
+<li>Supports re-authentication flow if credentials become invalid.</li>
+</ul>
+</li>
+</ul>
+<h2 id="installation">Installation</h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li>Home Assistant installation (ensure you are on a compatible version).</li>
+<li>A Cisco Meraki account with API access enabled.</li>
+<li>Your Meraki API key.</li>
+<li>Your Meraki Organization ID.</li>
+</ul>
+<h3 id="installation-steps">Installation Steps</h3>
+<ol>
+<li><strong>Ensure HACS is installed:</strong> If you haven't already, install the <a href="https://hacs.xyz/">Home Assistant Community Store (HACS)</a>.</li>
+<li><strong>Add Custom Repository:</strong><ul>
+<li>In HACS, go to "Integrations".</li>
+<li>Click the three dots in the top right and select "Custom repositories".</li>
+<li>In the "Repository" field, enter the URL of this custom integration's GitHub repository.</li>
+<li>For "Category", select "Integration".</li>
+<li>Click "Add".</li>
+</ul>
+</li>
+<li><strong>Install Integration:</strong><ul>
+<li>Search for "Meraki" or the name of this integration in HACS.</li>
+<li>Click "Install" and follow the prompts.</li>
+</ul>
+</li>
+<li><strong>Restart Home Assistant:</strong> After installation, restart your Home Assistant instance to load the integration.</li>
+</ol>
+<h2 id="configuration">Configuration</h2>
+<ol>
+<li>Navigate to <strong>Settings</strong> &gt; <strong>Devices &amp; Services</strong> in your Home Assistant UI.</li>
+<li>Click the <strong>+ ADD INTEGRATION</strong> button in the bottom right.</li>
+<li>Search for "Meraki" (or the specific name given to this integration) and select it.</li>
+<li>Follow the on-screen prompts:<ul>
+<li><strong>API Key:</strong> Enter your Cisco Meraki API key.</li>
+<li><strong>Organization ID:</strong> Enter the ID of the Meraki organization you want to integrate.</li>
+<li><strong>Scan Interval (seconds):</strong> Define how often (in seconds) Home Assistant should fetch data from the Meraki API. The default is 60 seconds. Adjust this based on the size of your network and the number of devices to avoid exceeding Meraki API rate limits. Shorter intervals provide more real-time data but increase API load.</li>
+<li><strong>Device Name Format:</strong> (Optional) Choose how device names from Meraki should be formatted in Home Assistant (e.g., with a type prefix like "[Wireless] AP Name", a suffix, or omitted).</li>
+<li><strong>Relaxed Tag Matching:</strong> (Optional) Enable if you want SSIDs to be associated with access points if <em>any</em> of the SSID's tags match any of the AP's tags. If disabled (strict mode), <em>all</em> of an SSID's tags must be present on an AP for association.</li>
+</ul>
+</li>
+</ol>
+<p>Once configured, the integration will start discovering your Meraki devices and creating corresponding entities in Home Assistant.</p>
+<h2 id="obtaining-a-meraki-api-key-and-organization-id">Obtaining a Meraki API Key and Organization ID</h2>
+<ol>
+<li><strong>Log in to the Meraki Dashboard:</strong> Go to <a href="https://dashboard.meraki.com/">https://dashboard.meraki.com/</a>.</li>
+<li><strong>Enable API Access:</strong><ul>
+<li>Navigate to <strong>Organization</strong> &gt; <strong>Settings</strong>.</li>
+<li>Under the <strong>Dashboard API access</strong> section, ensure API access is enabled.</li>
+</ul>
+</li>
+<li><strong>Generate API Key:</strong><ul>
+<li>Go to your <strong>Profile</strong> (click your name/email in the top right) &gt; <strong>My profile</strong>.</li>
+<li>Scroll down to the <strong>API access</strong> section.</li>
+<li>Click <strong>Generate new API key</strong>.</li>
+<li><strong>Important:</strong> Copy the generated API key and store it securely. You will not be able to see it again after navigating away from this page.</li>
+</ul>
+</li>
+<li><strong>Find Organization ID:</strong><ul>
+<li>The Organization ID is not directly visible in an obvious "Org ID" field.</li>
+<li>One way to find it is to look at the URL when you are viewing your organization dashboard. It might be part of the URL structure (e.g., <code>nXX...</code>).</li>
+<li>Alternatively, you can often find it by making a simple API call (e.g., using <code>curl</code> or Postman) to the <code>/organizations</code> endpoint with your API key. The response will list your accessible organizations and their IDs.
+<code>bash
+curl -L -H 'X-Cisco-Meraki-API-Key: &lt;your_api_key&gt;' -H 'Content-Type: application/json' 'https://api.meraki.com/api/v1/organizations'</code></li>
+</ul>
+</li>
+</ol>
+<h2 id="entities-provided">Entities Provided</h2>
+<p>Entities are dynamically created based on your Meraki setup.</p>
+<ul>
+<li>
+<p><strong>Sensor Entities:</strong></p>
+<ul>
+<li><strong>Device Status:</strong> Shows the product type of Meraki devices (e.g., "Wireless", "Switch").</li>
+<li><strong>Connected Clients (per AP):</strong> Number of clients connected to specific MR/GR access points.</li>
+<li><strong>Radio Settings (per AP):</strong> Displays information like the current channel for AP radios.</li>
+<li><strong>Uplink Status (per MX):</strong> Status of the primary uplink for MX security appliances.</li>
+<li><strong>Network Client Count (per Network):</strong> Total clients active on a network within a timespan.</li>
+<li><strong>SSID Availability:</strong> Administrative status (Enabled/Disabled) of an SSID.</li>
+<li><strong>SSID Channel:</strong> Current operational channel for an SSID (derived from APs broadcasting it).</li>
+<li><strong>SSID Client Count:</strong> Number of clients connected to a specific SSID.</li>
+<li><em>(Future)</em> Sensor values for MT series environmental sensors.</li>
+<li><em>(Future)</em> More detailed appliance/switch port statistics if API data is available and processed.</li>
+</ul>
+</li>
+<li>
+<p><strong>Switch Entities:</strong></p>
+<ul>
+<li><strong>SSID Control:</strong> Allows enabling/disabling SSIDs (achieved by managing device tags on associated APs).</li>
+</ul>
+</li>
+<li>
+<p><strong>Device Trackers:</strong></p>
+<ul>
+<li>Tracks connected client devices.</li>
+</ul>
+</li>
+<li>
+<p><strong>Home Assistant Devices:</strong></p>
+<ul>
+<li>Physical Meraki Devices (APs, switches, appliances, cameras, sensors) are registered.</li>
+<li>Meraki Networks are registered as "devices" to act as parents for physical devices and network-wide entities.</li>
+<li>Meraki SSIDs are registered as "devices", typically parented by the network or the APs broadcasting them, to group SSID-specific entities.</li>
+</ul>
+</li>
+</ul>
+<h2 id="versioning-and-releases">Versioning and Releases</h2>
+<p>This project uses an automated versioning and release process triggered by merging Pull Requests (PRs) into the <code>main</code> branch.</p>
+<ul>
+<li><strong>Automatic Version Increment:</strong> When a PR is merged, the version number in <code>custom_components/meraki_ha/manifest.json</code> and <code>package.json</code> is automatically incremented.</li>
+<li><strong>Determining Increment Type:</strong> The type of version increment (major, minor, or patch) is determined by the PR title:<ul>
+<li><code>[major]</code> in the PR title (e.g., <code>[major] Implement new dashboard feature</code>) will trigger a major version update (e.g., <code>1.2.3</code> -&gt; <code>2.0.0</code>).</li>
+<li><code>[minor]</code> in the PR title (e.g., <code>[minor] Add support for new sensor type</code>) will trigger a minor version update (e.g., <code>1.2.3</code> -&gt; <code>1.3.0</code>).</li>
+<li><code>[patch]</code> in the PR title (e.g., <code>[patch] Fix API error handling</code>) or if no specific prefix is found, will trigger a patch version update (e.g., <code>1.2.3</code> -&gt; <code>1.2.4</code>).</li>
+</ul>
+</li>
+<li><strong>Changelog Generation:</strong> A <code>CHANGELOG.md</code> file is automatically updated with commit messages from the PR.</li>
+<li><strong>GitHub Release:</strong> A new GitHub Release is automatically created, tagged with the new version number (e.g., <code>v1.2.4</code>), and includes the changelog entries.</li>
+</ul>
+<p>Please ensure your PR titles are descriptive and include the appropriate prefix if you intend to trigger a specific type of version bump.</p>
+<h2 id="dependencies">Dependencies</h2>
+<ul>
+<li><code>aiohttp</code>: For asynchronous HTTP requests to the Meraki API.</li>
+</ul>
+<h2 id="known-issues">Known Issues</h2>
+<ul>
+<li><strong>API Rate Limits:</strong> Frequent polling with a short scan interval on large networks can lead to exceeding Meraki API rate limits. Adjust the scan interval appropriately.</li>
+<li><strong>SSID Control:</strong> Enabling/disabling SSIDs is managed by adding/removing specific tags on access points, not by direct administrative status change of the SSID. This is an indirect control method and relies on consistent tag management.</li>
+<li><strong>Radio profiles might not be available or fully detailed for all wireless device models through the currently used API endpoints.</strong></li>
+</ul>
+<h2 id="disclaimer">Disclaimer</h2>
+<p>This is a custom Home Assistant integration. It is not officially endorsed or supported by Cisco Meraki or Home Assistant. Use at your own risk.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": ".", "features": [], "search": "assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+    
+  </body>
+</html>
