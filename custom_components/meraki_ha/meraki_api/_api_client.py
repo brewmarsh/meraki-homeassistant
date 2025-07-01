@@ -9,7 +9,12 @@ from typing import Any, List, Dict, Optional # Added List, Dict, Optional
 from meraki.aio import AsyncDashboardAPI
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
-from .exceptions import MerakiApiError, MerakiApiConnectionError, MerakiApiAuthError
+from .exceptions import (
+    MerakiApiError,
+    MerakiApiConnectionError,
+    MerakiApiAuthError,
+    MerakiApiNotFoundError, # Added import
+)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -292,10 +297,59 @@ class MerakiAPIClient:
         # Ensure exc_type, exc_val, exc_tb are passed for a clean exit
         await self._sdk.__aexit__(None, None, None)
 
+    async def async_update_device_tags(self, serial: str, tags: List[str]) -> bool:
+        """
+        Placeholder for updating device tags.
+        The python-meraki SDK's updateDevice method can be used to update tags.
+        This method attempts to replace all existing tags with the provided list.
+
+        Args:
+            serial: The serial number of the device.
+            tags: A list of strings representing the desired tags.
+
+        Returns:
+            True if the update was successful, False otherwise (though exceptions are raised on failure).
+
+        Raises:
+            MerakiApiAuthError: If authentication fails (HTTP 401).
+            MerakiApiNotFoundError: If the device is not found (HTTP 404).
+            MerakiApiConnectionError: For connection issues to the Meraki API.
+            MerakiApiError: For other Meraki API related errors.
+        """
+        method_description = f"updating tags for device {serial} to {tags}"
+        _LOGGER.debug("Attempting to %s", method_description)
+
+        try:
+            await self._sdk.devices.updateDevice(serial=serial, tags=tags)
+            _LOGGER.debug("Successfully %s", method_description)
+            return True
+        except MerakiSDKAPIError as e:
+            _LOGGER.error(
+                "Meraki SDK API error while %s: %s (Status: %s, Reason: %s, Action: %s, Response: %s)",
+                method_description,
+                e.message,
+                e.status,
+                e.reason,
+                e.action,
+                str(e.response)[:200],
+            )
+            if e.status == 401:
+                raise MerakiApiAuthError(f"Authentication failed while {method_description}: {e.message} (Status: {e.status})") from e
+            elif e.status == 404:
+                raise MerakiApiNotFoundError(f"Device {serial} not found while {method_description}: {e.message} (Status: {e.status})") from e
+            # Check for connection-related issues based on status or message content
+            if e.status is None or "Temporary failure in name resolution" in e.message or "Connection timed out" in e.message:
+                 raise MerakiApiConnectionError(f"Connection error while {method_description}: {e.message}") from e
+            raise MerakiApiError(f"Failed while {method_description}: {e.message} (Status: {e.status})") from e
+        except Exception as e:
+            _LOGGER.exception("Unexpected error while %s: %s", method_description, e)
+            raise MerakiApiError(f"An unexpected error occurred while {method_description}: {e}") from e
+
 
 __all__ = [
     "MerakiAPIClient",
     "MerakiApiError",
     "MerakiApiConnectionError",
     "MerakiApiAuthError",
+    "MerakiApiNotFoundError", # Added export
 ]

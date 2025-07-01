@@ -13,7 +13,7 @@
           "device_name_format": "Choose how device names are presented. 'Prefix' adds the Meraki device name before the entity name, 'Suffix' adds it after, 'Omitted' uses only the entity name.",
           "meraki_api_key": "Your Meraki Dashboard API key. Ensure it has read access to your organization.",
           "meraki_org_id": "The ID of your Meraki Organization. Found in the URL when logged into the Meraki Dashboard (e.g., o=YOUR_ORG_ID).",
-          "scan_interval": "How often (in seconds) to poll the Meraki API for updates. Default: 60."
+          "scan_interval": "How often (in seconds) to poll the Meraki API for updates. Default: 300. A shorter interval means more responsive sensors but significantly increases API calls to Meraki Cloud and may lead to rate limiting."
         }
       }
     },
@@ -34,7 +34,7 @@
         },
         "data_description": {
           "device_name_format": "Choose how device names are presented for entities. 'Prefix' adds the Meraki device name before the entity name, 'Suffix' adds it after, 'Omitted' uses only the standard entity name.",
-          "scan_interval": "How often (in seconds) the integration should poll the Meraki Dashboard API for updates. A shorter interval means more responsive sensors but more API calls."
+          "scan_interval": "How often (in seconds) the integration should poll the Meraki Dashboard API for updates. Default: 300. A shorter interval means more responsive sensors but significantly increases API calls to Meraki Cloud and may lead to rate limiting."
         }
       }
     }

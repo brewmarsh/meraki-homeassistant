@@ -19,7 +19,7 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from custom_components.meraki_ha.const import DOMAIN, ERASE_TAGS_WARNING
+from ..const import DOMAIN, ERASE_TAGS_WARNING # Changed to relative import
 from custom_components.meraki_ha.coordinators.api_data_fetcher import (
     MerakiApiDataFetcher,
 )

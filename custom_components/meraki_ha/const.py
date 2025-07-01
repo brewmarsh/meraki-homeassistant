@@ -34,7 +34,7 @@ DATA_SSID_DEVICES_COORDINATOR: Final[str] = (
 MERAKI_API_CLIENT: Final[str] = "meraki_api_client"
 """Key for storing the MerakiAPIClient instance in hass.data (str)."""
 
-DEFAULT_SCAN_INTERVAL: Final[int] = 60
+DEFAULT_SCAN_INTERVAL: Final[int] = 300
 """Default scan interval in seconds for the Meraki API data (int)."""
 
 # Platform types
@@ -53,8 +53,8 @@ PLATFORM_TEXT: Final[str] = "text"
 
 
 PLATFORMS: Final[List[str]] = [
-    PLATFORM_SENSOR,
-    PLATFORM_DEVICE_TRACKER,
+    # PLATFORM_SENSOR,
+    # PLATFORM_DEVICE_TRACKER,
     PLATFORM_SWITCH,
     PLATFORM_TEXT,
 ]

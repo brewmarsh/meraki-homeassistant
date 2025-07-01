@@ -19,20 +19,20 @@ class MerakiNetworkClientsSensor(
     """Representation of a Meraki Network Clients sensor.
 
     This sensor displays the number of clients connected to a specific
-    Meraki network and lists their details as attributes.
+    Meraki network using data from the MerakiDataUpdateCoordinator.
+    It lists client details as attributes.
     """
 
     _attr_icon = "mdi:account-multiple"
     _attr_native_unit_of_measurement = "clients"
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_should_poll = True # Add this line
+    _attr_should_poll = False  # Data is updated by the coordinator
 
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
         network_id: str,
         network_name: str,
-        meraki_api_client: MerakiAPIClient,
     ) -> None:
         """Initialize the Meraki Network Clients sensor.
 
@@ -40,61 +40,62 @@ class MerakiNetworkClientsSensor(
             coordinator: The data update coordinator.
             network_id: The ID of the Meraki network this sensor is for.
             network_name: The name of the Meraki network.
-            meraki_api_client: The Meraki API client.
         """
         super().__init__(coordinator)
         self._network_id = network_id
         self._network_name = network_name
-        self._meraki_api_client = meraki_api_client
         self._attr_name = f"{network_name} Clients"
         self._attr_unique_id = f"meraki_network_clients_{network_id}"
-        self._clients_data: List[Dict[str, Any]] = []
-
-        self._update_sensor_state()
-
-    async def _fetch_clients_data(self) -> List[Dict[str, Any]]:
-        """Fetch clients data from the Meraki API."""
-        try:
-            clients = await self._meraki_api_client.networks.getNetworkClients(
-                networkId=self._network_id,
-                timespan=86400,
-                perPage=1000,
-            )
-            if clients is None:
-                _LOGGER.debug(
-                    "API call for network clients for network %s (ID: %s) returned None. Treating as zero clients.", self._network_name, self._network_id
-                )
-                return []
-            if not clients:  # Empty list
-                _LOGGER.debug(
-                    "API call for network clients for network %s (ID: %s) returned an empty list. Zero clients.", self._network_name, self._network_id
-                )
-                return []
-            # If clients is not None and not empty, it's a non-empty list
-            _LOGGER.debug(
-                "Successfully fetched %d clients for network %s (ID: %s).", len(clients), self._network_name, self._network_id
-            )
-            return clients
-        except Exception as e:
-            _LOGGER.error(
-                "Error fetching clients for network %s (ID: %s): %s", self._network_name, self._network_id, e
-            )
-            return []
+        # Initialize with empty state, coordinator will update it
+        self._attr_native_value = 0
+        self._attr_extra_state_attributes: Dict[str, Any] = {
+            "network_id": self._network_id,
+            "network_name": self._network_name,
+            "clients_list": [],
+        }
+        # Set initial state
+        self._update_state_from_coordinator()
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        # By calling async_schedule_update_ha_state with force_refresh=True,
-        # we ensure that our own async_update method (which calls _fetch_clients_data)
-        # is run when the coordinator signals an update.
-        self.async_schedule_update_ha_state(force_refresh=True)
+        self._update_state_from_coordinator()
+        self.async_write_ha_state()
 
+    def _update_state_from_coordinator(self) -> None:
+        """Update the sensor's state from coordinator data.
 
-    def _update_sensor_state(self) -> None:
-        """Update the native value and attributes of the sensor based on fetched client data."""
-        # This method now relies on self._clients_data being up-to-date.
-        # `async_update` will be responsible for updating `self._clients_data`.
-        self._attr_native_value = len(self._clients_data)
+        Filters clients for the current network and updates native value
+        and attributes.
+        """
+        _LOGGER.debug(
+            "Updating Meraki Network Clients sensor for network %s (ID: %s) from coordinator data.",
+            self._network_name,
+            self._network_id,
+        )
+        if self.coordinator.data is None or "clients" not in self.coordinator.data:
+            _LOGGER.debug(
+                "Coordinator data or 'clients' key is missing for network %s (ID: %s). Setting to 0 clients.",
+                self._network_name,
+                self._network_id,
+            )
+            self._attr_native_value = 0
+            clients_for_network: List[Dict[str, Any]] = []
+        else:
+            all_clients: List[Dict[str, Any]] = self.coordinator.data.get("clients", [])
+            clients_for_network = [
+                client
+                for client in all_clients
+                if client.get("networkId") == self._network_id # Assuming client data has 'networkId'
+            ]
+            self._attr_native_value = len(clients_for_network)
+            _LOGGER.debug(
+                "Found %d clients for network %s (ID: %s) after filtering.",
+                len(clients_for_network),
+                self._network_name,
+                self._network_id,
+            )
+
         self._attr_extra_state_attributes = {
             "network_id": self._network_id,
             "network_name": self._network_name,
@@ -102,33 +103,21 @@ class MerakiNetworkClientsSensor(
                 {
                     "mac": client.get("mac"),
                     "description": client.get("description"),
-                    "ip": client.get("ip"), # Primary IP
-                    # "ip6": client.get("ip6"), # Typically less critical for quick ID
-                    "status": client.get("status"), # Important to know if online/offline
-                    # "last_seen": client.get("lastSeen"), # Can be verbose if timestamp is long
-                    # "manufacturer": client.get("manufacturer"), # Can be long
-                    # "os": client.get("os"), # Can be long
-                    # "user": client.get("user"), # Often None, but can be useful
-                    # "ssid": client.get("ssid"), # Useful for wireless, but adds another field
-                    # "vlan": client.get("vlan"), # Might be useful in complex setups
+                    "ip": client.get("ip"),
+                    "status": client.get("status"),
                 }
-                for client in self._clients_data
+                for client in clients_for_network # Use the filtered list
             ],
-            # Optionally, add aggregated counts if useful and client_list is further reduced
-            # "online_clients_count": sum(1 for c in self._clients_data if c.get("status") == "Online"),
         }
 
-    async def async_update(self) -> None:
-        """Fetch new state data for the sensor.
-
-        This method is responsible for fetching the latest client data.
-        """
-        _LOGGER.debug(
-            "Fetching Meraki Network Clients sensor data for network: %s",
-            self._network_name,
+    @property
+    def available(self) -> bool:
+        """Return True if coordinator has data and the 'clients' key is present."""
+        return (
+            super().available
+            and self.coordinator.data is not None
+            and "clients" in self.coordinator.data
         )
-        self._clients_data = await self._fetch_clients_data()
-        self._update_sensor_state() # Update internal state based on new data
 
     @property
     def device_info(self) -> DeviceInfo:

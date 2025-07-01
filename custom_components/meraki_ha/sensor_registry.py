@@ -11,12 +11,16 @@ from .sensor.uplink_status import MerakiUplinkStatusSensor
 from .sensor.connected_clients import (
     MerakiDeviceConnectedClientsSensor,
 )  # For MR devices
+from .sensor.radio_settings import MerakiRadioSettingsSensor # Added import
 
 # MX-specific sensors
 from .sensor.meraki_wan1_connectivity import MerakiWAN1ConnectivitySensor
 from .sensor.meraki_wan2_connectivity import MerakiWAN2ConnectivitySensor
 from .sensor.meraki_network_info import MerakiNetworkInfoSensor
 from .sensor.meraki_firmware_status import MerakiFirmwareStatusSensor
+
+# Camera-specific sensors
+from .sensor.camera_settings import MerakiCameraSenseStatusSensor, MerakiCameraAudioDetectionSensor, MerakiCameraRTSPUrlSensor # Added imports
 
 # SSID-specific sensors (These are typically handled by SSIDDeviceCoordinator,
 # but listed here for completeness or future refactoring if structure changes.
@@ -44,13 +48,17 @@ SENSOR_REGISTRY: Dict[str, SensorClassList] = {
     ],
     "wireless": [  # For MR devices
         MerakiDeviceConnectedClientsSensor,
-        # Add other MR-specific sensors here if any, e.g., radio_settings could be a sensor
+        MerakiRadioSettingsSensor, # Added sensor
+        # Add other MR-specific sensors here if any
     ],
     "switch": [  # For MS devices
         # Add MS-specific sensors here, e.g., port status summaries, PoE consumption
     ],
     "camera": [  # For MV devices
-        # Add MV-specific sensors here
+        MerakiCameraSenseStatusSensor, # Added sensor
+        MerakiCameraAudioDetectionSensor, # Added sensor
+        MerakiCameraRTSPUrlSensor, # Added sensor
+        # Add other MV-specific sensors here
     ],
     "sensor": [  # For MT devices
         # Add MT-specific sensors here
