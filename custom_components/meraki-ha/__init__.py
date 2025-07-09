@@ -37,7 +37,7 @@ from .const import (
     DATA_CLIENT,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(DOMAIN)
 
 # SERVICE_SET_DEVICE_TAGS_SCHEMA = vol.Schema(
 #     {
