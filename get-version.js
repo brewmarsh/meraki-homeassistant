@@ -2,7 +2,7 @@ const fs = require('fs');
 
 try {
   const manifest = JSON.parse(
-    fs.readFileSync('custom_components/meraki_ha/manifest.json', 'utf8')
+    fs.readFileSync('custom_components/meraki-ha/manifest.json', 'utf8')
   );
   console.log(manifest.version);
 } catch (error) {
