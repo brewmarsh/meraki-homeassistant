@@ -330,9 +330,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     device name format) after the initial setup.
     """
 
-    # __init__ is inherited from config_entries.OptionsFlow,
-    # which already sets self.config_entry.
-    # Removing custom __init__ to avoid deprecation warning.
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        super().__init__(config_entry)
+        # self.config_entry is already set by super().__init__
 
     async def async_step_init(
         self, user_input: Optional[Dict[str, Any]] = None
