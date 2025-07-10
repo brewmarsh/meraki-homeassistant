@@ -14,7 +14,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
-from custom_components.meraki_ha.meraki_api import MerakiAPIClient
+from custom_components.meraki-ha.meraki-api import MerakiAPIClient
 from ..coordinators.meraki_device_types import (
     map_meraki_model_to_device_type,
 )

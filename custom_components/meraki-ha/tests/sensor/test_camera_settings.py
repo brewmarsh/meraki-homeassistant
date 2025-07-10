@@ -6,12 +6,12 @@ import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from custom_components.meraki_ha.const import DOMAIN
-from custom_components.meraki_ha.sensor.camera_settings import (
+from custom_components.meraki-ha.const import DOMAIN
+from custom_components.meraki-ha.sensor.camera_settings import (
     MerakiCameraSenseStatusSensor,
     MerakiCameraAudioDetectionSensor,
 )
-from custom_components.meraki_ha.coordinators import MerakiDataUpdateCoordinator
+from custom_components.meraki-ha.coordinators import MerakiDataUpdateCoordinator
 
 # Mock device data as it would appear in the coordinator for a camera
 MOCK_CAMERA_DEVICE_SERIAL = "Q234-ABCD-5678"

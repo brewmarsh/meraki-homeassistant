@@ -20,13 +20,13 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from ..const import DOMAIN, ERASE_TAGS_WARNING # Changed to relative import
-from custom_components.meraki_ha.coordinators.api_data_fetcher import (
+from custom_components.meraki-ha.coordinators.api_data_fetcher import (
     MerakiApiDataFetcher,
 )
 
 # MerakiApiError for exception handling
-from custom_components.meraki_ha.meraki_api import MerakiApiError
-from custom_components.meraki_ha.coordinators.data_aggregation_coordinator import (
+from custom_components.meraki-ha.meraki-api import MerakiApiError
+from custom_components.meraki-ha.coordinators.data_aggregation_coordinator import (
     DataAggregationCoordinator,
 )
 
@@ -38,7 +38,7 @@ from ..helpers.naming_utils import format_device_name
 
 # Obsolete coordinators (DeviceTagFetchCoordinator,
 # MerakiNetworkCoordinator, MerakiSsidCoordinator) removed.
-from custom_components.meraki_ha.coordinators.tag_eraser_coordinator import (
+from custom_components.meraki-ha.coordinators.tag_eraser_coordinator import (
     TagEraserCoordinator,
 )
 
@@ -88,7 +88,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # This client is passed to the api_fetcher and its lifecycle managed
         # here.
         # Local import to avoid potential circulars
-        from custom_components.meraki_ha.meraki_api import MerakiAPIClient
+        from custom_components.meraki-ha.meraki-api import MerakiAPIClient
 
         self.meraki_client: MerakiAPIClient = MerakiAPIClient(
             api_key=api_key,
@@ -382,7 +382,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # ---- END DEVICE REGISTRATION LOGIC ----
 
         # Process client data to get network client counts
-        from custom_components.meraki_ha.coordinators.data_processor import (
+        from custom_components.meraki-ha.coordinators.data_processor import (
             MerakiDataProcessor,
         )  # Ensure import
 

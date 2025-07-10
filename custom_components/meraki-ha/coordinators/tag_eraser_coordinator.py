@@ -8,9 +8,9 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from datetime import timedelta
 from typing import Dict, Any # Added
 
-from custom_components.meraki_ha.coordinators.tag_eraser import TagEraser
-from custom_components.meraki_ha.meraki_api import MerakiAPIClient
-from ..meraki_api.exceptions import MerakiApiError, MerakiApiAuthError, MerakiApiConnectionError # Added
+from custom_components.meraki-ha.coordinators.tag_eraser import TagEraser
+from custom_components.meraki-ha.meraki-api import MerakiAPIClient
+from ..meraki-api.exceptions import MerakiApiError, MerakiApiAuthError, MerakiApiConnectionError # Added
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -10,8 +10,8 @@ import logging
 from typing import Any, Dict, List, Optional
 
 # For type hinting data_processor
-from custom_components.meraki_ha.coordinators.data_processor import MerakiDataProcessor
-from custom_components.meraki_ha.helpers.ssid_status_calculator import (
+from custom_components.meraki-ha.coordinators.data_processor import MerakiDataProcessor
+from custom_components.meraki-ha.helpers.ssid_status_calculator import (
     SsidStatusCalculator,
 )
 

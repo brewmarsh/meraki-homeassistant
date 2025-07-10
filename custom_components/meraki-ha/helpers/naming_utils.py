@@ -2,7 +2,7 @@
 
 from typing import Optional
 
-from custom_components.meraki_ha.coordinators.meraki_device_types import (
+from custom_components.meraki-ha.coordinators.meraki_device_types import (
     map_meraki_model_to_device_type,
 )
 

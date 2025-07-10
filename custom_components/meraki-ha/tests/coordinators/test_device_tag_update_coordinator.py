@@ -8,10 +8,10 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
-from custom_components.meraki_ha.coordinators.device_tag_update_coordinator import DeviceTagUpdateCoordinator
-from custom_components.meraki_ha.coordinators.base_coordinator import MerakiDataUpdateCoordinator # For parent type hint
-from custom_components.meraki_ha.meraki_api import MerakiAPIClient # For mocking client
-from custom_components.meraki_ha.coordinators.api_data_fetcher import MerakiApiDataFetcher # For mocking
+from custom_components.meraki-ha.coordinators.device_tag_update_coordinator import DeviceTagUpdateCoordinator
+from custom_components.meraki-ha.coordinators.base_coordinator import MerakiDataUpdateCoordinator # For parent type hint
+from custom_components.meraki-ha.meraki-api import MerakiAPIClient # For mocking client
+from custom_components.meraki-ha.coordinators.api_data_fetcher import MerakiApiDataFetcher # For mocking
 
 import unittest
 
@@ -33,7 +33,7 @@ class TestDeviceTagUpdateCoordinator(unittest.IsolatedAsyncioTestCase):
         self.mock_main_coordinator.config_entry = MOCK_CONFIG_ENTRY # Main coordinator should have config_entry
 
         # Patch MerakiApiDataFetcher that DeviceTagUpdateCoordinator tries to instantiate
-        self.patcher_api_fetcher = patch('custom_components.meraki_ha.coordinators.device_tag_update_coordinator.MerakiApiDataFetcher', spec=MerakiApiDataFetcher)
+        self.patcher_api_fetcher = patch('custom_components.meraki-ha.coordinators.device_tag_update_coordinator.MerakiApiDataFetcher', spec=MerakiApiDataFetcher)
         self.mock_api_fetcher_class = self.patcher_api_fetcher.start()
         self.mock_api_fetcher_instance = self.mock_api_fetcher_class.return_value
         self.mock_api_fetcher_instance.async_update_device_tags = AsyncMock()
@@ -46,7 +46,7 @@ class TestDeviceTagUpdateCoordinator(unittest.IsolatedAsyncioTestCase):
             main_coordinator=self.mock_main_coordinator
         )
 
-        self.patcher_logger = patch('custom_components.meraki_ha.coordinators.device_tag_update_coordinator._LOGGER', new_callable=MagicMock)
+        self.patcher_logger = patch('custom_components.meraki-ha.coordinators.device_tag_update_coordinator._LOGGER', new_callable=MagicMock)
         self.mock_logger = self.patcher_logger.start()
 
     def tearDown(self):

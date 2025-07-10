@@ -7,11 +7,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.config_entries import ConfigEntry
 
-from custom_components.meraki_ha.coordinators.data_aggregation_coordinator import DataAggregationCoordinator
-from custom_components.meraki_ha.coordinators.data_processor import MerakiDataProcessor
-from custom_components.meraki_ha.coordinators.data_aggregator import DataAggregator
-from custom_components.meraki_ha.helpers.ssid_status_calculator import SsidStatusCalculator # Needed for DataAggregator mock
-from custom_components.meraki_ha.coordinators.base_coordinator import MerakiDataUpdateCoordinator # For parent coordinator type hint
+from custom_components.meraki-ha.coordinators.data_aggregation_coordinator import DataAggregationCoordinator
+from custom_components.meraki-ha.coordinators.data_processor import MerakiDataProcessor
+from custom_components.meraki-ha.coordinators.data_aggregator import DataAggregator
+from custom_components.meraki-ha.helpers.ssid_status_calculator import SsidStatusCalculator # Needed for DataAggregator mock
+from custom_components.meraki-ha.coordinators.base_coordinator import MerakiDataUpdateCoordinator # For parent coordinator type hint
 
 import unittest
 
@@ -36,19 +36,19 @@ class TestDataAggregationCoordinator(unittest.IsolatedAsyncioTestCase):
         self.relaxed_tag_match = False
 
         # Patch dependencies of DataAggregationCoordinator
-        self.patcher_data_processor = patch('custom_components.meraki_ha.coordinators.data_aggregation_coordinator.MerakiDataProcessor', spec=MerakiDataProcessor)
+        self.patcher_data_processor = patch('custom_components.meraki-ha.coordinators.data_aggregation_coordinator.MerakiDataProcessor', spec=MerakiDataProcessor)
         self.mock_data_processor_class = self.patcher_data_processor.start()
         self.mock_data_processor_instance = self.mock_data_processor_class.return_value
         self.mock_data_processor_instance.process_devices = AsyncMock(return_value=[{"id": "processed_dev1"}])
         self.mock_data_processor_instance.process_networks = MagicMock(return_value=[{"id": "processed_net1"}])
         self.mock_data_processor_instance.process_ssids = MagicMock(return_value=[{"id": "processed_ssid1"}])
 
-        self.patcher_data_aggregator = patch('custom_components.meraki_ha.coordinators.data_aggregation_coordinator.DataAggregator', spec=DataAggregator)
+        self.patcher_data_aggregator = patch('custom_components.meraki-ha.coordinators.data_aggregation_coordinator.DataAggregator', spec=DataAggregator)
         self.mock_data_aggregator_class = self.patcher_data_aggregator.start()
         self.mock_data_aggregator_instance = self.mock_data_aggregator_class.return_value
         self.mock_data_aggregator_instance.aggregate_data = AsyncMock(return_value={"aggregated": "data"})
 
-        self.patcher_ssid_calculator = patch('custom_components.meraki_ha.coordinators.data_aggregation_coordinator.SsidStatusCalculator', spec=SsidStatusCalculator)
+        self.patcher_ssid_calculator = patch('custom_components.meraki-ha.coordinators.data_aggregation_coordinator.SsidStatusCalculator', spec=SsidStatusCalculator)
         self.mock_ssid_calculator_class = self.patcher_ssid_calculator.start()
         self.mock_ssid_calculator_instance = self.mock_ssid_calculator_class.return_value
 
@@ -60,7 +60,7 @@ class TestDataAggregationCoordinator(unittest.IsolatedAsyncioTestCase):
             coordinator=self.mock_parent_coordinator
         )
 
-        self.patcher_logger = patch('custom_components.meraki_ha.coordinators.data_aggregation_coordinator._LOGGER', new_callable=MagicMock)
+        self.patcher_logger = patch('custom_components.meraki-ha.coordinators.data_aggregation_coordinator._LOGGER', new_callable=MagicMock)
         self.mock_logger = self.patcher_logger.start()
 
     def tearDown(self):
