@@ -5,6 +5,6 @@
   "content_in_root": false,
   "zip_release": false,
   "country": ["US", "CA", "GB", "AU", "DE", "FR", "JP"],
-  "filename": "meraki-ha.zip",
+  "filename": "meraki_ha.zip",
   "hide_default_branch": true
 }
