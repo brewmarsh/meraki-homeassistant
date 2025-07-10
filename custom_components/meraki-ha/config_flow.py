@@ -17,8 +17,8 @@ from homeassistant.core import callback
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import selector
 
-from custom_components.meraki_ha.authentication import validate_meraki_credentials
-from custom_components.meraki_ha.const import (
+from custom_components.meraki-ha.authentication import validate_meraki_credentials
+from custom_components.meraki-ha.const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     # CONF_RELAXED_TAG_MATCHING, # Removed as it's no longer used or defined

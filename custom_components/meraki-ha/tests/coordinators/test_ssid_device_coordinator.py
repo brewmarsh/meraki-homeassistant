@@ -7,10 +7,10 @@ from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import device_registry as dr # For mocking device_registry
 
-from custom_components.meraki_ha.coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
-from custom_components.meraki_ha.coordinators.api_data_fetcher import MerakiApiDataFetcher # For type hint
-from custom_components.meraki_ha.meraki_api import MerakiAPIClient # For mocking
-from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki-ha.coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+from custom_components.meraki-ha.coordinators.api_data_fetcher import MerakiApiDataFetcher # For type hint
+from custom_components.meraki-ha.meraki-api import MerakiAPIClient # For mocking
+from custom_components.meraki-ha.const import DOMAIN
 
 import unittest
 
@@ -52,10 +52,10 @@ class TestSSIDDeviceCoordinator(unittest.IsolatedAsyncioTestCase):
             update_interval=self.update_interval
         )
 
-        self.patcher_logger = patch('custom_components.meraki_ha.coordinators.ssid_device_coordinator._LOGGER', new_callable=MagicMock)
+        self.patcher_logger = patch('custom_components.meraki-ha.coordinators.ssid_device_coordinator._LOGGER', new_callable=MagicMock)
         self.mock_logger = self.patcher_logger.start()
 
-        self.patcher_device_registry = patch('custom_components.meraki_ha.coordinators.ssid_device_coordinator.dr.async_get', new_callable=MagicMock)
+        self.patcher_device_registry = patch('custom_components.meraki-ha.coordinators.ssid_device_coordinator.dr.async_get', new_callable=MagicMock)
         self.mock_device_registry_get = self.patcher_device_registry.start()
         self.mock_device_registry_instance = self.mock_device_registry_get.return_value
         self.mock_device_registry_instance.async_get_or_create = MagicMock()

@@ -7,9 +7,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
-from custom_components.meraki_ha.coordinators.api_data_fetcher import MerakiApiDataFetcher
-from custom_components.meraki_ha.meraki_api import MerakiAPIClient
-from custom_components.meraki_ha.coordinators.meraki_device_types import MerakiDeviceType
+from custom_components.meraki-ha.coordinators.api_data_fetcher import MerakiApiDataFetcher
+from custom_components.meraki-ha.meraki-api import MerakiAPIClient
+from custom_components.meraki-ha.coordinators.meraki_device_types import MerakiDeviceType
 
 import unittest
 
@@ -34,11 +34,11 @@ class TestMerakiApiDataFetcher(unittest.IsolatedAsyncioTestCase):
 
         self.fetcher = MerakiApiDataFetcher(meraki_client=self.mock_meraki_client)
 
-        self.patcher_logger = patch('custom_components.meraki_ha.coordinators.api_data_fetcher._LOGGER', new_callable=MagicMock)
+        self.patcher_logger = patch('custom_components.meraki-ha.coordinators.api_data_fetcher._LOGGER', new_callable=MagicMock)
         self.mock_logger = self.patcher_logger.start()
 
         # Patch map_meraki_model_to_device_type as it's external to the class but used within
-        self.patcher_map_model = patch('custom_components.meraki_ha.coordinators.api_data_fetcher.map_meraki_model_to_device_type')
+        self.patcher_map_model = patch('custom_components.meraki-ha.coordinators.api_data_fetcher.map_meraki_model_to_device_type')
         self.mock_map_model = self.patcher_map_model.start()
         self.mock_map_model.return_value = MerakiDeviceType.WIRELESS # Default mock
 
