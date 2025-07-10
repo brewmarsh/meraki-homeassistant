@@ -53,10 +53,10 @@ PLATFORM_TEXT: Final[str] = "text"
 
 
 PLATFORMS: Final[List[str]] = [
-    PLATFORM_SWITCH,
     # PLATFORM_SENSOR,
     # PLATFORM_DEVICE_TRACKER,
-    # PLATFORM_TEXT,
+    PLATFORM_SWITCH,
+    PLATFORM_TEXT,
 ]
 """List of platforms supported by the integration (List[str])."""
 
