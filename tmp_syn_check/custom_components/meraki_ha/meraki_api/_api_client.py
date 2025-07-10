@@ -1,4 +1,4 @@
-# /config/custom_components/meraki_ha/meraki_api/_api_client.py
+# /config/custom_components/meraki-ha/meraki_api/_api_client.py
 """
 This module provides a centralized client for interacting with the Meraki API,
 managing API requests and the aiohttp ClientSession.

@@ -54,17 +54,5 @@
         "name": "Firmware Status"
       }
     }
-  },
-  "state": {
-    "sensor__meraki_wan1_connectivity": {
-      "connected": "Connected",
-      "disconnected": "Disconnected",
-      "unknown": "Unknown"
-    },
-    "sensor__meraki_wan2_connectivity": {
-      "connected": "Connected",
-      "disconnected": "Disconnected",
-      "unknown": "Unknown"
-    }
   }
 }
