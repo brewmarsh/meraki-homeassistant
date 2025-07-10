@@ -10,4 +10,5 @@ mypy
 pre-commit
 mkdocs
 mkdocs-material
-pymdown-extensions           
+pymdown-extensions
+pytest-homeassistant-custom-component
