@@ -151,15 +151,13 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             UpdateFailed: If essential input data is missing or if a significant error
                           occurs during data processing or aggregation.
         """
-        _LOGGER.debug(
-            "DataAggregationCoordinator received raw data. Processing and aggregating..."
-        )
-        # Import here to resolve potential circular dependency if MerakiApiError is needed
+        # _LOGGER.debug(
+        #     "DataAggregationCoordinator received raw data. Processing and aggregating..."
+        # ) # Reduced verbosity
         from custom_components.meraki_ha.meraki_api import MerakiApiError
         import aiohttp
 
         try:
-            # Step 0: Validate essential and optional inputs
             if not (isinstance(device_data, list) and isinstance(ssid_data, list) and isinstance(network_data, list)):
                 _LOGGER.error(
                     "Essential data (devices, SSIDs, or networks) is not a list or is None. "
@@ -184,19 +182,13 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 else:
                     _LOGGER.warning("'network_client_counts' provided but is not a dict (type: %s). Treating as None.", type(network_client_counts).__name__)
 
-            # Step 1: Process raw data using MerakiDataProcessor
-            # These methods now perform internal validation of list items.
-            _LOGGER.debug("Processing raw device data...")
+            # _LOGGER.debug("Processing raw device data...") # Reduced verbosity
             processed_devices = await self.data_processor.process_devices(device_data)
-
-            _LOGGER.debug("Processing raw network data...")
+            # _LOGGER.debug("Processing raw network data...") # Reduced verbosity
             processed_networks = self.data_processor.process_networks(network_data)
-
-            _LOGGER.debug("Processing raw SSID data...")
+            # _LOGGER.debug("Processing raw SSID data...") # Reduced verbosity
             processed_ssids = self.data_processor.process_ssids(ssid_data)
 
-            # Step 1.5: Fetch and merge camera-specific sense settings
-            # This enriches the `processed_devices` list for camera devices.
             if self.coordinator.meraki_client: # Ensure client is available
                 for device_idx, device_dict in enumerate(processed_devices):
                     if not isinstance(device_dict, dict): # Should be handled by processor, but good check
@@ -209,14 +201,14 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
                     if serial and (product_type == "camera" or model.startswith("MV")):
                         try:
-                            _LOGGER.debug("Fetching camera sense settings for camera %s", serial)
+                            # _LOGGER.debug("Fetching camera sense settings for camera %s", serial) # Reduced verbosity
                             sense_settings = await self.coordinator.meraki_client.get_camera_sense_settings(serial=serial)
 
                             if sense_settings is not None and isinstance(sense_settings, dict):
                                 device_dict["senseEnabled"] = sense_settings.get("senseEnabled")
                                 device_dict["audioDetection"] = sense_settings.get("audioDetection")
-                                _LOGGER.debug("Successfully merged camera sense settings for %s.", serial)
-                            elif sense_settings is not None: # API returned something, but not a dict
+                                # _LOGGER.debug("Successfully merged camera sense settings for %s.", serial) # Reduced verbosity
+                            elif sense_settings is not None:
                                 _LOGGER.warning("Camera sense settings for %s were not a dictionary: %s", serial, str(sense_settings)[:100])
                         except MerakiApiError as e:
                             _LOGGER.warning(
@@ -235,15 +227,10 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             else:
                 _LOGGER.warning("Meraki API client not available on parent coordinator, skipping camera sense settings.")
 
-            # Step 2, 3 are effectively done by passing the processed lists to DataAggregator.
-            # Note: The original Step 2 (network) and Step 3 (SSID) processing are now handled by MerakiDataProcessor.
-            # The `processed_devices`, `processed_ssids`, `processed_networks` variables hold this processed data.
-
-            # Step 4: Aggregate all processed data using DataAggregator.
-            _LOGGER.debug("Passing processed data to DataAggregator...")
+            # _LOGGER.debug("Passing processed data to DataAggregator...") # Reduced verbosity
             aggregated_data: Dict[str, Any] = await self.data_aggregator.aggregate_data(
                 processed_devices=processed_devices,
-                ssid_data=processed_ssids, # This is processed_ssids
+                ssid_data=processed_ssids,
                 network_data=processed_networks, # This is processed_networks
                 client_data=sanitized_client_data, # Use sanitized version
                 network_client_counts=sanitized_network_client_counts, # Use sanitized version
@@ -256,14 +243,14 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 _LOGGER.error("DataAggregator returned empty data. Aggregation failed.")
                 raise UpdateFailed("Data aggregation by DataAggregator failed, returned empty.")
 
-            _LOGGER.debug(
-                "Data aggregation successful. Aggregated data has keys: %s",
-                aggregated_data.keys()
-            )
+            # _LOGGER.debug(
+            #     "Data aggregation successful. Aggregated data has keys: %s",
+            #     aggregated_data.keys()
+            # ) # Reduced verbosity
             return aggregated_data
 
-        except UpdateFailed: # Explicitly re-raise UpdateFailed
+        except UpdateFailed:
             raise
-        except Exception as e:  # Catch any other unexpected error during the whole process
+        except Exception as e:
             _LOGGER.exception("Critical error during data aggregation coordination: %s", e)
             raise UpdateFailed(f"Overall data aggregation coordination failed: {e}") from e

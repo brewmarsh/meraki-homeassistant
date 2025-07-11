@@ -171,24 +171,22 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         return self.config_entry.options.get("device_name_format", "omitted")
 
     async def _async_update_data(self) -> Dict[str, Any]:
-        task_name = "Unknown"
-        current_task = asyncio.current_task()
-        if current_task:
-            task_name = current_task.get_name()
+        # task_name = "Unknown" # Removed for brevity
+        # current_task = asyncio.current_task()
+        # if current_task:
+        #     task_name = current_task.get_name()
 
         if not self.config_entry:
             _LOGGER.error(
-                "MerakiDataUpdateCoordinator for org %s cannot update: config_entry is None. Current task: %s",
-                self.org_id,
-                task_name
+                "MerakiDataUpdateCoordinator for org %s cannot update: config_entry is None.", # Removed task_name
+                self.org_id
             )
             raise UpdateFailed(f"Coordinator configuration is missing for org {self.org_id} (config_entry is None).")
 
         if not self.config_entry.options:
             _LOGGER.error(
-                "MerakiDataUpdateCoordinator for org %s cannot update: config_entry.options is None. Current task: %s",
-                self.org_id,
-                task_name
+                "MerakiDataUpdateCoordinator for org %s cannot update: config_entry.options is None.", # Removed task_name
+                self.org_id
             )
             raise UpdateFailed(f"Coordinator configuration options are missing for org {self.org_id} (config_entry.options is None).")
 
@@ -259,13 +257,13 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         self.device_data = devices
 
         # ---- START NETWORK DEVICE REGISTRATION LOGIC ----
-        _LOGGER.debug(
-            "Starting Meraki Network device registration process for org %s.",
-            self.org_id,
-        )
-        device_registry = dr.async_get(self.hass)  # Ensure dr is available
+        # _LOGGER.debug(
+        #     "Starting Meraki Network device registration process for org %s.",
+        #     self.org_id,
+        # ) # Reduced verbosity
+        device_registry = dr.async_get(self.hass)
         processed_network_devices = 0
-        for network_info in networks:  # 'networks' is all_data.get("networks", [])
+        for network_info in networks:
             network_id = network_info.get("id")
             network_name = network_info.get("name")
 
@@ -275,7 +273,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                     network_info,
                 )
                 continue
-            if not network_name:  # Fallback name if network name is missing
+            if not network_name:
                 original_network_name = f"Meraki Network {network_id}"
                 _LOGGER.warning(
                     "Found network with missing name (ID: %s), using fallback name: %s",
@@ -285,48 +283,41 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             else:
                 original_network_name = network_name
 
-            # Apply device_name_format for Network devices
             current_device_name_format = self.device_name_format
-
-            # Use the centralized format_device_name helper
             formatted_network_name = format_device_name(
                 device_name_raw=original_network_name,
-                device_model="Network",  # Specific model string for network type devices
+                device_model="Network",
                 device_name_format_option=current_device_name_format,
                 is_org_device=False
             )
 
-            _LOGGER.debug(
-                "Registering Meraki Network device: %s (ID: %s), Format: %s",
-                formatted_network_name,
-                network_id,
-                current_device_name_format,
-            )
+            # _LOGGER.debug(
+            #     "Registering Meraki Network device: %s (ID: %s), Format: %s",
+            #     formatted_network_name,
+            #     network_id,
+            #     current_device_name_format,
+            # ) # Reduced verbosity
             device_registry.async_get_or_create(
                 config_entry_id=self.config_entry.entry_id,
-                identifiers={
-                    (DOMAIN, network_id)
-                },  # Unique identifier for this network device
-                name=formatted_network_name,  # Use the formatted name
-                model=f"Network (ID: {network_id})",  # Model for these logical network devices
+                identifiers={(DOMAIN, network_id)},
+                name=formatted_network_name,
+                model=f"Network (ID: {network_id})",
                 manufacturer="Cisco Meraki",
-                # No via_device for these, they are parented by the ConfigEntry implicitly
             )
             processed_network_devices += 1
-        _LOGGER.debug(
-            "Processed %d Meraki Network devices for registration for org %s.",
-            processed_network_devices,
-            self.org_id,
-        )
+        # _LOGGER.debug(
+        #     "Processed %d Meraki Network devices for registration for org %s.",
+        #     processed_network_devices,
+        #     self.org_id,
+        # ) # Reduced verbosity
         # ---- END NETWORK DEVICE REGISTRATION LOGIC ----
 
         # ---- START PHYSICAL DEVICE REGISTRATION LOGIC ----
-        _LOGGER.debug(
-            "Starting physical device registration process for org %s.", self.org_id
-        )
-        # device_registry instance is already available from network registration part
+        # _LOGGER.debug(
+        #     "Starting physical device registration process for org %s.", self.org_id
+        # ) # Reduced verbosity
 
-        for device_info in devices:  # 'devices' is all_data.get("devices", [])
+        for device_info in devices:
             serial = device_info.get("serial")
             if not serial:
                 _LOGGER.warning(
@@ -336,29 +327,19 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
             device_name_raw = device_info.get("name") or serial
             device_model_str = device_info.get("model", "Unknown")
-            firmware_version = device_info.get("firmware")  # Get firmware version here
+            firmware_version = device_info.get("firmware")
 
-            # Use the centralized format_device_name helper
-            # The map_meraki_model_to_device_type call is handled inside format_device_name
             formatted_device_name = format_device_name(
                 device_name_raw=device_name_raw,
                 device_model=device_model_str,
-                device_name_format_option=self.device_name_format, # Use property directly
+                device_name_format_option=self.device_name_format,
                 is_org_device=False
             )
 
-            # Prepare connections set using MAC address
             mac_address = device_info.get("mac")
             connections = None
             if mac_address:
                 connections = {(dr.CONNECTION_NETWORK_MAC, mac_address)}
-
-            # Log the full device_info for debugging before registration attempt
-            # This log was already added in a previous step, ensuring it's correctly placed.
-            # _LOGGER.debug(
-            #     "MERAKI_DEBUG_COORDINATOR: Preparing to register/update physical device. Full device_info: %s",
-            #     device_info
-            # )
 
             device_registry.async_get_or_create(
                 config_entry_id=self.config_entry.entry_id,
@@ -366,19 +347,10 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 manufacturer="Cisco Meraki",
                 model=device_model_str,
                 name=formatted_device_name,
-                sw_version=firmware_version,  # firmware_version from device_info.get("firmware")
-                connections=connections,  # Pass the connections set
+                sw_version=firmware_version,
+                connections=connections,
             )
-            # _LOGGER.debug(
-            #     "Registered/Updated physical device: %s (Serial: %s, Model: %s, MAC: %s, FW: %s, Status: %s)",
-            #     formatted_device_name,
-            #     serial,
-            #     device_model_str,
-            #     mac_address or "N/A",  # Log MAC address
-            #     firmware_version or "N/A",  # Log firmware version
-            #     device_info.get("status", "N/A"),  # Log status
-            # ) # Removed: too verbose, one per device
-        _LOGGER.debug("Device registration process completed for org %s.", self.org_id)
+        # _LOGGER.debug("Device registration process completed for org %s.", self.org_id) # Reduced verbosity
         # ---- END DEVICE REGISTRATION LOGIC ----
 
         # Process client data to get network client counts
@@ -407,11 +379,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                     clients_on_ssids=clients_on_ssids,
                     clients_on_appliances=clients_on_appliances,
                     clients_on_wireless=clients_on_wireless,
-                    # The fourth `device_tags` argument has been removed from
-                    # _async_update_data.
                 )
             )
-        except Exception as e:  # Catch errors specifically from the aggregation step.
+except Exception as e:
             _LOGGER.exception(
                 "Error during data aggregation for org %s: %s", self.org_id, e
             )
@@ -419,46 +389,33 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 f"Failed to aggregate Meraki data for org {self.org_id}: {e}"
             ) from e
 
-        # Step 5: Update `self.data` with the fully processed and combined data.
-        # This data becomes available to all entities listening to this
-        # coordinator.
         self.data = combined_data
-        # Obsolete comment about self.data["devices"] = devices removed.
 
-        _LOGGER.debug(
-            "Meraki data update completed for org %s. Processed: %d devices, %d SSIDs, %d networks.",
-            self.org_id,
-            len(devices),
-            len(ssids),
-            len(networks),
-        )
+# _LOGGER.debug(
+#     "Meraki data update completed for org %s. Processed: %d devices, %d SSIDs, %d networks.",
+#     self.org_id,
+#     len(devices),
+#     len(ssids),
+#     len(networks),
+# ) # Reduced verbosity
 
-        # Step 6: Handle tag erasing if the feature is enabled.
-        # This iterates through the fetched devices and calls the tag eraser.
         if self.erase_tags and self.tag_eraser_coordinator:
             _LOGGER.warning(
                 "Tag erasing is enabled for organization %s. Processing devices for tag removal.",
                 self.org_id,
             )
-            for (
-                device_to_check
-            ) in devices:  # Use a different variable name to avoid confusion
+    for device_to_check in devices:
                 serial = device_to_check.get("serial")
                 if serial:
                     try:
-                        await self.tag_eraser_coordinator.async_erase_device_tags(
-                            serial
-                        )
-                    except (
-                        MerakiApiError
-                    ) as e:  # Handle errors during tag erasing for a single device.
+                await self.tag_eraser_coordinator.async_erase_device_tags(serial)
+            except MerakiApiError as e:
                         _LOGGER.error(
                             "Failed to erase tags for device %s (org %s): %s",
                             serial,
                             self.org_id,
                             e,
                         )
-        # Return the final, combined data.
         return self.data
 
     async def async_register_organization_device(self, hass: HomeAssistant) -> None:
@@ -467,17 +424,14 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             _LOGGER.error("Organization ID not available, cannot register organization device.")
             return
 
-        # Use self.org_name if fetched, otherwise a default name.
         raw_org_name = self.org_name if self.org_name else f"Meraki Organization {self.org_id}"
+    device_name_format_option = self.device_name_format
 
-        # Get the device name format option
-        device_name_format_option = self.device_name_format # Uses the existing property
-
-        _LOGGER.debug(
-            "OrgDevReg: Raw org name: '%s', Name format option: '%s'",
-            raw_org_name,
-            device_name_format_option
-        )
+    # _LOGGER.debug(
+    #     "OrgDevReg: Raw org name: '%s', Name format option: '%s'",
+    #     raw_org_name,
+    #     device_name_format_option
+    # ) # Reduced verbosity
 
         formatted_org_name = format_device_name(
             device_name_raw=raw_org_name,
@@ -485,7 +439,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             device_name_format_option=device_name_format_option,
             is_org_device=True
         )
-        _LOGGER.debug("OrgDevReg: Formatted org name: '%s'", formatted_org_name)
+    # _LOGGER.debug("OrgDevReg: Formatted org name: '%s'", formatted_org_name) # Reduced verbosity
         self.formatted_org_display_name = formatted_org_name
 
         _LOGGER.info(
@@ -499,12 +453,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             config_entry_id=self.config_entry.entry_id,
             identifiers={(DOMAIN, self.org_id)},
             name=formatted_org_name,
-            model="Organization",  # Static model name for the Organization device itself
+        model="Organization",
             manufacturer="Cisco Meraki",
-            # No via_device for the top-level organization device
         )
-        _LOGGER.debug(
-            "Organization device registration attempt complete for %s.", self.org_id
+    # _LOGGER.debug(
+    #     "Organization device registration attempt complete for %s.", self.org_id
         )
 
     async def _async_shutdown(self) -> None:

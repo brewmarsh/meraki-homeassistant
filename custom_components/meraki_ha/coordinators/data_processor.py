@@ -68,23 +68,19 @@ class MerakiDataProcessor:
             )
             return []
 
-        _LOGGER.debug("Processing %d devices.", len(devices))
+        # _LOGGER.debug("Processing %d devices.", len(devices)) # Reduced verbosity
         processed_devices_list: List[Dict[str, Any]] = []
 
-        for (
-            device_raw_data
-        ) in devices:  # Renamed device_data to device_raw_data for clarity with prompt
+        for device_raw_data in devices:
             original_mx_product_type = None
             is_mx_device = False
-            if isinstance(device_raw_data, dict):  # Basic check
+            if isinstance(device_raw_data, dict):
                 model = device_raw_data.get("model", "").upper()
                 if model.startswith("MX"):
                     is_mx_device = True
                     original_mx_product_type = device_raw_data.get("productType")
-                    # Removed MERAKI_INFO_PROCESSOR_PRE log
 
             # Extract basic device information.
-            # The input `device_raw_data` is expected to have all fields
             # pre-fetched by ApiDataFetcher.
             # Name this `processed_device_data` to avoid confusion with device_raw_data
             processed_device_data: Dict[str, Any] = {
@@ -171,7 +167,7 @@ class MerakiDataProcessor:
 
             processed_devices_list.append(processed_device_data)
 
-        _LOGGER.debug("Finished processing %d devices.", len(processed_devices_list))
+        # _LOGGER.debug("Finished processing %d devices.", len(processed_devices_list)) # Reduced verbosity
         return processed_devices_list
 
     @staticmethod
@@ -212,7 +208,7 @@ class MerakiDataProcessor:
                 # e.g., "timeZone": network.get("timeZone"), "tags": network.get("tags", []),
             }
             processed_networks_list.append(processed_network)
-        _LOGGER.debug("Processed %d networks.", len(processed_networks_list))
+        # _LOGGER.debug("Processed %d networks.", len(processed_networks_list)) # Reduced verbosity
         return processed_networks_list
 
     @staticmethod
@@ -257,7 +253,7 @@ class MerakiDataProcessor:
                 # e.g., "ipAssignmentMode": ssid.get("ipAssignmentMode"),
             }
             processed_ssids_list.append(processed_ssid)
-        _LOGGER.debug("Processed %d SSIDs.", len(processed_ssids_list))
+        # _LOGGER.debug("Processed %d SSIDs.", len(processed_ssids_list)) # Reduced verbosity
         return processed_ssids_list
 
     @staticmethod
@@ -282,5 +278,5 @@ class MerakiDataProcessor:
             network_id = client.get("networkId")
             if network_id:
                 counts[network_id] = counts.get(network_id, 0) + 1
-        _LOGGER.debug("Processed network client counts: %s", counts)
+        # _LOGGER.debug("Processed network client counts: %s", counts) # Reduced verbosity
         return counts

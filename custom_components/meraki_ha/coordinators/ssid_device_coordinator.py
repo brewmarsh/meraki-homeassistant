@@ -250,37 +250,16 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
             # It might return its existing self.data if available, or an empty dict.
             # For this subtask, assume it will proceed and counts will be 0 if all_clients_from_main_coordinator is empty.
 
-        # --- Process each enabled and validated SSID ---
-        # This loop iterates through each SSID that has passed the initial filtering.
-        # For each SSID, it fetches detailed configuration, calculates client count,
-        # and registers/updates its corresponding "device" in Home Assistant.
-        for (
-            ssid_summary_data
-        ) in (
-            enabled_ssids
-        ):  # Iterate through the list of SSIDs that are marked as enabled.
-            network_id = ssid_summary_data.get("networkId") # Already validated as str
-            ssid_number = ssid_summary_data.get("number")  # Already validated as int-convertible
-            ssid_name_summary = ssid_summary_data.get(
-                "name", f"SSID {ssid_number}"
-            )  # Fallback name for logging.
-
-            # Note: network_id and ssid_number were already validated during the filtering phase.
-            # A check like `if not network_id or ssid_number is None:` would be redundant here.
-
-            # Create a unique identifier for this SSID to be used for the HA "device" entry.
-            # This typically combines network_id and ssid_number for uniqueness.
-            unique_ssid_id = f"{network_id}_{str(ssid_number)}" # Ensure ssid_number is string for ID
+        for ssid_summary_data in enabled_ssids:
+            network_id = ssid_summary_data.get("networkId")
+            ssid_number = ssid_summary_data.get("number")
+            ssid_name_summary = ssid_summary_data.get("name", f"SSID {ssid_number}")
+            unique_ssid_id = f"{network_id}_{str(ssid_number)}"
 
             try:
-                # Step 1: Use the SSID data directly from the bulk fetch (ssid_summary_data).
-                # The individual fetch per SSID is removed as the main coordinator's data
-                # is now assumed to be comprehensive.
-                _LOGGER.debug(
-                    f"Processing SSID {ssid_name_summary} (Network: {network_id}, Number: {ssid_number}) using data from bulk fetch."
-                )
-                # Make a copy to allow adding new keys like 'unique_id' and 'client_count'
-                # without modifying the original item in the enabled_ssids list.
+                # _LOGGER.debug(
+                #     f"Processing SSID {ssid_name_summary} (Network: {network_id}, Number: {ssid_number}) using data from bulk fetch."
+                # ) # Reduced verbosity
                 merged_ssid_data = ssid_summary_data.copy()
                 merged_ssid_data["unique_id"] = unique_ssid_id # Add the HA unique_id
 
@@ -301,12 +280,11 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                     client for client in all_clients_from_main_coordinator
                     if client.get("networkId") == network_id
                 ]
-                _LOGGER.debug(
-                    f"Found {len(clients_in_current_network)} clients in network {network_id} (from main coordinator data) "
-                    f"for potential matching with SSID {ssid_name_summary}."
-                )
+                # _LOGGER.debug(
+                #     f"Found {len(clients_in_current_network)} clients in network {network_id} (from main coordinator data) "
+                #     f"for potential matching with SSID {ssid_name_summary}."
+                # ) # Reduced verbosity
 
-                # Filter clients_in_current_network to count only those connected to the current SSID.
                 if clients_in_current_network:
                     current_ssid_clients = []
                     for client_idx, client_item in enumerate(clients_in_current_network):
@@ -327,13 +305,11 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                     client_count = len(current_ssid_clients)
                 # If clients_in_current_network is empty or no clients match, client_count remains 0.
 
-                # Add the calculated client count to the merged SSID data.
                 merged_ssid_data["client_count"] = client_count
-                _LOGGER.debug(
-                    f"Client count for SSID {ssid_name_summary} (Number: {ssid_number}) on network {network_id}: {client_count} (derived from main coordinator data)."
-                )
+                # _LOGGER.debug(
+                #     f"Client count for SSID {ssid_name_summary} (Number: {ssid_number}) on network {network_id}: {client_count} (derived from main coordinator data)."
+                # ) # Reduced verbosity
 
-                # Determine the authoritative name for the SSID device.
                 authoritative_ssid_name = merged_ssid_data.get("name")
                 if (
                     not authoritative_ssid_name
@@ -367,27 +343,21 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                     model=f"SSID (Net: {network_id}, Num: {ssid_number})",  # Model type for these logical SSID devices.
                     manufacturer="Cisco Meraki",
                     # Link this SSID "device" to its parent Network "device" in HA.
-                    # This establishes a clear hierarchy: Config Entry -> Network Device -> SSID Device -> Entities.
-                    via_device=(DOMAIN, network_id), # `network_id` is the identifier of the parent network device.
+                    via_device=(DOMAIN, network_id),
                 )
-                _LOGGER.debug(
-                    f"Registered/Updated HA device for ENABLED SSID: {formatted_ssid_name} (ID: {unique_ssid_id}, Parent Network: {network_id}). "
-                    f"Name Format: {device_name_format}, Channel: {merged_ssid_data.get('channel', 'N/A')}, Clients: {merged_ssid_data['client_count']}. "
-                    f"Subset of Merged Data: {{name: {merged_ssid_data.get('name')}, enabled: {merged_ssid_data.get('enabled')}}}"
-                )
-                # Store the fully processed data for this SSID, keyed by its unique_ssid_id.
-                # This map will be the return value of _async_update_data.
+                # _LOGGER.debug(
+                #     f"Registered/Updated HA device for ENABLED SSID: {formatted_ssid_name} (ID: {unique_ssid_id}, Parent Network: {network_id}). "
+                #     f"Name Format: {device_name_format}, Channel: {merged_ssid_data.get('channel', 'N/A')}, Clients: {merged_ssid_data['client_count']}. "
+                #     f"Subset of Merged Data: {{name: {merged_ssid_data.get('name')}, enabled: {merged_ssid_data.get('enabled')}}}"
+                # ) # Reduced verbosity
                 detailed_ssid_data_map[unique_ssid_id] = merged_ssid_data
 
-            except Exception as e: # Catch-all for errors within the main processing loop for an SSID.
+            except Exception as e:
                 _LOGGER.error(
                     f"Unexpected error during processing of SSID {ssid_name_summary} (Network: {network_id}, Number: {ssid_number}): {e}",
-                    exc_info=True, # Include stack trace for unexpected errors.
+                    exc_info=True,
                 )
-                # If an error occurs (e.g., detail fetch failed earlier, or device registration failed),
-                # this SSID will be skipped for the current update cycle.
-                # It will not be included in `detailed_ssid_data_map`.
-                continue # Move to the next SSID.
+                continue
 
         _LOGGER.info(
             f"SSIDDeviceCoordinator successfully processed and updated {len(detailed_ssid_data_map)} ENABLED SSID devices with detailed data."

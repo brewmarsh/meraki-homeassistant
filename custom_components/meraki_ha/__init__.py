@@ -117,16 +117,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unique_platforms = list(set(PLATFORMS))
 
     platforms_to_load = []
-    loaded_components_for_entry = hass.config_entries.async_get_loaded_components(entry.entry_id)
+    # Use entry.loaded_platforms to check which platforms are already loaded for this entry.
+    # entry.loaded_platforms contains just the platform name, e.g., 'switch', 'sensor'.
     for platform in unique_platforms:
-        component_name = f"{DOMAIN}.{platform}" # Changed from self.domain to DOMAIN
-        if component_name not in loaded_components_for_entry:
+        if platform not in entry.loaded_platforms:
             platforms_to_load.append(platform)
         else:
-            _LOGGER.warning("MERAKI_HA_DEBUG: Platform %s (component %s) for entry %s already loaded/setup, skipping forward.", platform, component_name, entry.entry_id)
+            _LOGGER.warning("MERAKI_HA_DEBUG: Platform '%s' for entry %s already in entry.loaded_platforms, skipping forward.", platform, entry.entry_id)
 
     if not platforms_to_load:
-        _LOGGER.info("MERAKI_HA_DEBUG: All platforms %s already considered loaded for entry %s.", unique_platforms, entry.entry_id)
+        _LOGGER.info("MERAKI_HA_DEBUG: All platforms %s already considered loaded (present in entry.loaded_platforms) for entry %s.", unique_platforms, entry.entry_id)
         platform_setup_success = True
     else:
         _LOGGER.info("MERAKI_HA_DEBUG: Before forwarding platform setups for entry_id: %s. PLATFORMS to forward: %s", entry.entry_id, platforms_to_load)
