@@ -116,22 +116,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     unique_platforms = list(set(PLATFORMS))
 
-    platforms_to_load = []
-    # Use entry.loaded_platforms to check which platforms are already loaded for this entry.
-    # entry.loaded_platforms contains just the platform name, e.g., 'switch', 'sensor'.
-    for platform in unique_platforms:
-        if platform not in entry.loaded_platforms:
-            platforms_to_load.append(platform)
-        else:
-            _LOGGER.warning("MERAKI_HA_DEBUG: Platform '%s' for entry %s already in entry.loaded_platforms, skipping forward.", platform, entry.entry_id)
-
-    if not platforms_to_load:
-        _LOGGER.info("MERAKI_HA_DEBUG: All platforms %s already considered loaded (present in entry.loaded_platforms) for entry %s.", unique_platforms, entry.entry_id)
-        platform_setup_success = True
-    else:
-        _LOGGER.info("MERAKI_HA_DEBUG: Before forwarding platform setups for entry_id: %s. PLATFORMS to forward: %s", entry.entry_id, platforms_to_load)
-        platform_setup_success = await hass.config_entries.async_forward_entry_setups(entry, platforms_to_load)
-        _LOGGER.info("MERAKI_HA_DEBUG: After forwarding platform setups for entry_id: %s. Success: %s", entry.entry_id, platform_setup_success)
+    _LOGGER.info("MERAKI_HA_DEBUG: Before forwarding platform setups for entry_id: %s. Unique PLATFORMS to forward: %s", entry.entry_id, unique_platforms)
+    platform_setup_success = await hass.config_entries.async_forward_entry_setups(entry, unique_platforms)
+    _LOGGER.info("MERAKI_HA_DEBUG: After forwarding platform setups for entry_id: %s. Success: %s", entry.entry_id, platform_setup_success)
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
