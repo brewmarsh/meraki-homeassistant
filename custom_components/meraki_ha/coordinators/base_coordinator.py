@@ -425,13 +425,13 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             return
 
         raw_org_name = self.org_name if self.org_name else f"Meraki Organization {self.org_id}"
-    device_name_format_option = self.device_name_format
+        device_name_format_option = self.device_name_format
 
-    # _LOGGER.debug(
-    #     "OrgDevReg: Raw org name: '%s', Name format option: '%s'",
-    #     raw_org_name,
-    #     device_name_format_option
-    # ) # Reduced verbosity
+        # _LOGGER.debug(
+        #     "OrgDevReg: Raw org name: '%s', Name format option: '%s'",
+        #     raw_org_name,
+        #     device_name_format_option
+        # ) # Reduced verbosity
 
         formatted_org_name = format_device_name(
             device_name_raw=raw_org_name,
@@ -439,7 +439,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             device_name_format_option=device_name_format_option,
             is_org_device=True
         )
-    # _LOGGER.debug("OrgDevReg: Formatted org name: '%s'", formatted_org_name) # Reduced verbosity
+        # _LOGGER.debug("OrgDevReg: Formatted org name: '%s'", formatted_org_name) # Reduced verbosity
         self.formatted_org_display_name = formatted_org_name
 
         _LOGGER.info(
@@ -453,11 +453,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             config_entry_id=self.config_entry.entry_id,
             identifiers={(DOMAIN, self.org_id)},
             name=formatted_org_name,
-        model="Organization",
+            model="Organization",
             manufacturer="Cisco Meraki",
         )
-    # _LOGGER.debug(
-    #     "Organization device registration attempt complete for %s.", self.org_id
+        # _LOGGER.debug(
+        #     "Organization device registration attempt complete for %s.", self.org_id
         )
 
     async def _async_shutdown(self) -> None:
