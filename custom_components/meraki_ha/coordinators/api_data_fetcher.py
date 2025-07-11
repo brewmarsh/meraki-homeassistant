@@ -951,7 +951,7 @@ class MerakiApiDataFetcher:
 
         # _LOGGER.debug(
         #     f"Finished _async_get_mr_device_details for {serial}. Client count: {device.get('connected_clients_count')}, Radio settings type: {type(device.get('radio_settings')).__name__}"
-        )
+        # ) # Corrected: Removed stray parenthesis here
 
     async def _async_get_camera_video_settings(self, device: Dict[str, Any]) -> None:
         """Fetch and store video settings (specifically externalRtspEnabled and rtspUrl) for a camera device.
