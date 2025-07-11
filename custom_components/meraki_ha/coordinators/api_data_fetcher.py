@@ -377,9 +377,9 @@ class MerakiApiDataFetcher:
                 )
                 # If list is empty, all devices will assume up-to-date status later.
             else:
-                _LOGGER.debug(
-                    f"Processing firmware upgrade data (raw) to build a map for org {self.org_id}."
-                )
+                # _LOGGER.debug(
+                #     f"Processing firmware upgrade data (raw) to build a map for org {self.org_id}."
+                # ) # Removed
                 for (
                     upgrade_item
                 ) in firmware_upgrade_data_raw:  # Use the raw data variable
@@ -394,31 +394,24 @@ class MerakiApiDataFetcher:
                         # _LOGGER.debug("Skipping firmware item with no serial.")
                         continue
 
-                    # Determine firmware status for this item_serial
-                    # This logic is moved from per-device iteration to here, processing each upgrade_item once.
-                    # We need a way to get current_device_firmware if needed, but the goal is to pre-process.
-                    # For now, we'll store what the API tells us about latest/next version.
-                    # The final comparison with current_device_firmware will happen during device iteration.
-
-                    is_item_up_to_date = False  # Default for this item
-                    latest_item_version = "N/A"  # Default for this item
+                    is_item_up_to_date = False
+                    latest_item_version = "N/A"
 
                     next_upgrade_info = upgrade_item.get("nextUpgrade")
                     if isinstance(next_upgrade_info, dict):
                         to_version_info = next_upgrade_info.get("toVersion")
                         if isinstance(to_version_info, dict):
                             latest_item_version = to_version_info.get("version", "N/A")
-                            is_item_up_to_date = False  # Has a scheduled upgrade
-                        else:  # next_upgrade_info is a dict, but no toVersion dict
+                            is_item_up_to_date = False
+                        else:
                             if (
                                 to_version_info is not None
-                            ):  # Log if toVersion was present but not a dict
+                            ):
                                 _LOGGER.warning(
                                     "Firmware upgrade item for serial %s has 'toVersion' but it's not a dictionary: %s. Cannot determine scheduled version.",
                                     item_serial,
                                     str(to_version_info)[:100],
                                 )
-                            # Fall through to check item_status for current state if no specific version scheduled
                             item_status = str(upgrade_item.get("status", "")).lower()
                             if item_status == "up-to-date":
                                 is_item_up_to_date = True
@@ -443,7 +436,7 @@ class MerakiApiDataFetcher:
                                         )
                                 elif (
                                     available_versions is not None
-                                ):  # Log if present but not list or empty
+                                ):
                                     _LOGGER.warning(
                                         "'availableVersions' for serial %s is not a non-empty list: %s. Cannot determine latest available version.",
                                         item_serial,
@@ -451,23 +444,22 @@ class MerakiApiDataFetcher:
                                     )
                     elif (
                         next_upgrade_info is not None
-                    ):  # Log if nextUpgrade was present but not a dict
+                    ):
                         _LOGGER.warning(
                             "Firmware upgrade item for serial %s has 'nextUpgrade' but it's not a dictionary: %s.",
                             item_serial,
                             str(next_upgrade_info)[:100],
                         )
-                        # Fall through to check item_status for current state
                         item_status = str(upgrade_item.get("status", "")).lower()
                         if item_status == "up-to-date":
                             is_item_up_to_date = True
                         elif (
                             item_status == "has-newer-stable-version"
-                        ):  # Check again here as it's a separate path
+                        ):
                             is_item_up_to_date = False
                             available_versions = upgrade_item.get(
                                 "availableVersions"
-                            )  # Duplicated check, but paths are distinct
+                            )
                             if (
                                 isinstance(available_versions, list)
                                 and available_versions
@@ -488,17 +480,15 @@ class MerakiApiDataFetcher:
                                     item_serial,
                                     str(available_versions)[:100],
                                 )
-                    else:  # No nextUpgrade info at all
+                    else:
                         item_status = str(upgrade_item.get("status", "")).lower()
                         if item_status == "up-to-date":
                             is_item_up_to_date = True
-                            # latest_item_version will be set based on device's current firmware later
                         elif upgrade_item.get("latestVersion"):
                             latest_item_version = upgrade_item.get("latestVersion")
-                            # is_item_up_to_date will be determined by comparing with device's current firmware
                         elif (
                             item_status == "has-newer-stable-version"
-                        ):  # Another explicit status
+                        ):
                             is_item_up_to_date = False
                             available_versions = upgrade_item.get("availableVersions")
                             if (
@@ -512,15 +502,11 @@ class MerakiApiDataFetcher:
                     firmware_info_map[item_serial] = {
                         "api_reported_up_to_date": is_item_up_to_date,
                         "api_latest_version": latest_item_version,
-                        # We also need the raw status if available, for more nuanced checks later
                         "api_status": upgrade_item.get("status", "").lower(),
                     }
-                    # _LOGGER.debug(f"Stored firmware map info for {item_serial}: {firmware_info_map[item_serial]}")
 
-            # Now iterate through devices and apply firmware status using the map
             for device in devices:
                 device_serial = device.get("serial")
-                device_model = device.get("model", "") # Not used in this loop, but good for context
                 current_device_firmware = device.get("firmware")
 
                 is_up_to_date_bool = False
@@ -538,51 +524,31 @@ class MerakiApiDataFetcher:
 
                     if api_status == "up-to-date":
                         is_up_to_date_bool = True
-                        latest_known_version = (
-                            current_device_firmware
-                            if current_device_firmware
-                            else "N/A"
-                        )
+                        latest_known_version = current_device_firmware if current_device_firmware else "N/A"
                     elif api_latest_version and api_latest_version != "N/A":
                         latest_known_version = api_latest_version
-                        if (
-                            current_device_firmware
-                            and current_device_firmware == latest_known_version
-                        ):
+                        if current_device_firmware and current_device_firmware == latest_known_version:
                             is_up_to_date_bool = True
                         else:
-                            is_up_to_date_bool = False  # Newer version known from API
-                    elif (
-                        api_reported_up_to_date
-                    ):  # API says up-to-date but didn't give a specific latest version
+                            is_up_to_date_bool = False
+                    elif api_reported_up_to_date:
                         is_up_to_date_bool = True
-                        latest_known_version = (
-                            current_device_firmware
-                            if current_device_firmware
-                            else "N/A"
-                        )
-                    else:  # No specific info, or API says not up-to-date
+                        latest_known_version = current_device_firmware if current_device_firmware else "N/A"
+                    else:
                         is_up_to_date_bool = False
                         if api_latest_version and api_latest_version != "N/A":
                             latest_known_version = api_latest_version
-                        # else latest_known_version remains current device firmware or N/A
 
-                    # Final override: if current matches latest known, it must be up-to-date
-                    if (
-                        current_device_firmware
-                        and current_device_firmware == latest_known_version
-                    ):
+                    if current_device_firmware and current_device_firmware == latest_known_version:
                         is_up_to_date_bool = True
-
-                else:  # Device serial not in map, or map couldn't be built properly
-                    _LOGGER.debug(
-                        f"No specific firmware upgrade info found for device {device_serial} in map. Using defaults."
-                    )
-                    # Defaults are: is_up_to_date_bool = False, latest_known_version = current_device_firmware or "N/A"
-                    if current_device_firmware: # Correctly indented under the outer else
+                else:
+                    # _LOGGER.debug( # This log was already removed, but the block is being modified
+                    #     f"No specific firmware upgrade info found for device {device_serial} in map. Using defaults."
+                    # )
+                    if current_device_firmware:
                         is_up_to_date_bool = True
                         latest_known_version = current_device_firmware
-                    else: # Correctly indented under the outer else
+                    else:
                         is_up_to_date_bool = False
                         latest_known_version = "N/A"
 
