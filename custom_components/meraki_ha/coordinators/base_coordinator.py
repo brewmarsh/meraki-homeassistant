@@ -371,9 +371,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         try:
             combined_data: Dict[str, Any] = (
                 await self.data_aggregation_coordinator._async_update_data(
-                    devices,  # Pass the comprehensive devices list.
-                    ssids,  # Pass the SSIDs list.
-                    networks,  # Pass the networks list.
+                    devices,
+                    ssids,
+                    networks,
                     clients_list,
                     network_client_counts,
                     clients_on_ssids=clients_on_ssids,
@@ -381,7 +381,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                     clients_on_wireless=clients_on_wireless,
                 )
             )
-except Exception as e:
+        except Exception as e:  # Catch errors specifically from the aggregation step.
             _LOGGER.exception(
                 "Error during data aggregation for org %s: %s", self.org_id, e
             )
