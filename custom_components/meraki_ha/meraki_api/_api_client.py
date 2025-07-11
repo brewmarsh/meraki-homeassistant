@@ -136,7 +136,7 @@ class MerakiAPIClient:
             MerakiApiError: For other API errors.
         """
         method_description = f"fetching camera sense settings for device {serial}"
-        _LOGGER.debug("Fetching camera sense settings for device %s", serial)
+        # _LOGGER.debug("Fetching camera sense settings for device %s", serial) # Removed
         try:
             return await self._sdk.camera.getDeviceCameraSense(serial=serial)
         except MerakiSDKAPIError as e:
@@ -168,7 +168,7 @@ class MerakiAPIClient:
             MerakiApiError: For other API errors.
         """
         method_description = f"fetching camera video settings for device {serial}"
-        _LOGGER.debug("Fetching camera video settings for device %s", serial)
+        # _LOGGER.debug("Fetching camera video settings for device %s", serial) # Removed
         try:
             return await self._sdk.camera.getDeviceCameraVideoSettings(serial=serial)
         except MerakiSDKAPIError as e:
@@ -203,11 +203,11 @@ class MerakiAPIClient:
             MerakiApiError: For other API errors.
         """
         method_description = f"updating camera video settings for device {serial}"
-        _LOGGER.debug(
-            "Updating camera video settings for device %s with payload: externalRtspEnabled=%s",
-            serial,
-            rtsp_server_enabled,
-        )
+        # _LOGGER.debug(
+        #     "Updating camera video settings for device %s with payload: externalRtspEnabled=%s",
+        #     serial,
+        #     rtsp_server_enabled,
+        # ) # Removed
         try:
             return await self._sdk.camera.updateDeviceCameraVideoSettings(
                 serial=serial, externalRtspEnabled=rtsp_server_enabled
@@ -266,14 +266,13 @@ class MerakiAPIClient:
             # As per previous logic, if no payload, fetch and return current settings.
             return await self.get_camera_sense_settings(serial)
 
-        method_description = f"updating camera sense settings for device {serial}" # Define method_description
-        _LOGGER.debug(
-            "Updating camera sense settings for device %s with payload: %s",
-            serial,
-            payload,
-        )
+        method_description = f"updating camera sense settings for device {serial}"
+        # _LOGGER.debug(
+        #     "Updating camera sense settings for device %s with payload: %s",
+        #     serial,
+        #     payload,
+        # ) # Removed
         try:
-            # The meraki.aio SDK's updateDeviceCameraSense method
             # directly accepts keyword arguments that match the API payload structure.
             return await self._sdk.camera.updateDeviceCameraSense(
                 serial=serial, **payload
@@ -317,11 +316,11 @@ class MerakiAPIClient:
             MerakiApiError: For other Meraki API related errors.
         """
         method_description = f"updating tags for device {serial} to {tags}"
-        _LOGGER.debug("Attempting to %s", method_description)
+        # _LOGGER.debug("Attempting to %s", method_description) # Removed
 
         try:
             await self._sdk.devices.updateDevice(serial=serial, tags=tags)
-            _LOGGER.debug("Successfully %s", method_description)
+            # _LOGGER.debug("Successfully %s", method_description) # Removed
             return True
         except MerakiSDKAPIError as e:
             _LOGGER.error(

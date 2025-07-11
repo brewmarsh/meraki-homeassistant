@@ -68,21 +68,18 @@ class MerakiDataProcessor:
             )
             return []
 
-        # _LOGGER.debug("Processing %d devices.", len(devices)) # Reduced verbosity
+            # _LOGGER.debug("Processing %d devices.", len(devices))
         processed_devices_list: List[Dict[str, Any]] = []
 
         for device_raw_data in devices:
-            original_mx_product_type = None
-            is_mx_device = False
+            original_mx_product_type = None # Not used currently, but kept for potential future logic
+            is_mx_device = False # Not used currently
             if isinstance(device_raw_data, dict):
                 model = device_raw_data.get("model", "").upper()
                 if model.startswith("MX"):
-                    is_mx_device = True
-                    original_mx_product_type = device_raw_data.get("productType")
+                    is_mx_device = True # Mark if it's an MX device
+                    original_mx_product_type = device_raw_data.get("productType") # Store original for MX
 
-            # Extract basic device information.
-            # pre-fetched by ApiDataFetcher.
-            # Name this `processed_device_data` to avoid confusion with device_raw_data
             processed_device_data: Dict[str, Any] = {
                 "name": device_raw_data.get("name"),
                 "serial": device_raw_data.get("serial"),
@@ -167,26 +164,13 @@ class MerakiDataProcessor:
 
             processed_devices_list.append(processed_device_data)
 
-        # _LOGGER.debug("Finished processing %d devices.", len(processed_devices_list)) # Reduced verbosity
+            # _LOGGER.debug("Finished processing %d devices.", len(processed_devices_list))
         return processed_devices_list
 
     @staticmethod
     def process_networks(networks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Process a list of pre-fetched network data.
-
-        Extracts key information for each network.
-
-        Args:
-            networks: A list of dictionaries, where each dictionary is a
-                representation of a network with data pre-fetched.
-
-        Returns:
-            A list of processed network dictionaries. Each dictionary
-            contains selected fields like 'id', 'name', and 'type'.
-            Example: `[{"id": "N_123", "name": "Main Office", "type": "wireless"}, ...]`
-        """
         processed_networks_list: List[Dict[str, Any]] = []
-        if not isinstance(networks, list):  # Basic type check.
+        if not isinstance(networks, list):
             _LOGGER.warning(
                 "Network data is not a list as expected: %s. Returning empty list.",
                 type(networks),
@@ -194,7 +178,6 @@ class MerakiDataProcessor:
             return processed_networks_list
 
         for network in networks:
-            # Ensure each item is a dictionary.
             if not isinstance(network, dict):
                 _LOGGER.warning(
                     "Network item is not a dict: %s. Skipping item.", type(network)
@@ -204,31 +187,15 @@ class MerakiDataProcessor:
                 "id": network.get("id"),
                 "name": network.get("name"),
                 "type": network.get("type"),
-                # Other relevant network attributes can be added here if needed in the future.
-                # e.g., "timeZone": network.get("timeZone"), "tags": network.get("tags", []),
             }
             processed_networks_list.append(processed_network)
-        # _LOGGER.debug("Processed %d networks.", len(processed_networks_list)) # Reduced verbosity
+        # _LOGGER.debug("Processed %d networks.", len(processed_networks_list))
         return processed_networks_list
 
     @staticmethod
     def process_ssids(ssids: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Process a list of pre-fetched SSID data.
-
-        Extracts key information for each SSID.
-
-        Args:
-            ssids: A list of dictionaries, where each dictionary is a
-                representation of an SSID with data pre-fetched.
-
-        Returns:
-            A list of processed SSID dictionaries. Each dictionary
-            contains selected fields like 'name', 'enabled', 'number',
-            'splashPage', and 'authMode'.
-            Example: `[{"name": "Guest SSID", "enabled": True, "number": 0, ...}, ...]`
-        """
         processed_ssids_list: List[Dict[str, Any]] = []
-        if not isinstance(ssids, list):  # Basic type check.
+        if not isinstance(ssids, list):
             _LOGGER.warning(
                 "SSID data is not a list as expected: %s. Returning empty list.",
                 type(ssids),
@@ -236,7 +203,7 @@ class MerakiDataProcessor:
             return processed_ssids_list
 
         for ssid in ssids:
-            if not isinstance(ssid, dict):  # Ensure each item is a dictionary.
+            if not isinstance(ssid, dict):
                 _LOGGER.warning(
                     "SSID item is not a dict: %s. Skipping item.", type(ssid)
                 )
@@ -244,16 +211,13 @@ class MerakiDataProcessor:
             processed_ssid: Dict[str, Any] = {
                 "name": ssid.get("name"),
                 "enabled": ssid.get("enabled"),
-                # SSID number (0-14 for MR devices).
                 "number": ssid.get("number"),
                 "splashPage": ssid.get("splashPage"),
                 "authMode": ssid.get("authMode"),
-                "networkId": ssid.get("networkId"),  # Added networkId
-                # Other relevant SSID attributes can be added here if needed in the future.
-                # e.g., "ipAssignmentMode": ssid.get("ipAssignmentMode"),
+                "networkId": ssid.get("networkId"),
             }
             processed_ssids_list.append(processed_ssid)
-        # _LOGGER.debug("Processed %d SSIDs.", len(processed_ssids_list)) # Reduced verbosity
+        # _LOGGER.debug("Processed %d SSIDs.", len(processed_ssids_list))
         return processed_ssids_list
 
     @staticmethod

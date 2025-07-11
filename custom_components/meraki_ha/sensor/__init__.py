@@ -183,43 +183,33 @@ async def async_setup_entry(
 
 
     # --- Physical Device Sensor Setup ---
-    # Iterate through physical devices fetched by the main_coordinator
-    # and create sensors based on COMMON_DEVICE_SENSORS and productType-specific sensors.
     if main_coordinator and main_coordinator.data:
         physical_devices = main_coordinator.data.get("devices", [])
-        _LOGGER.debug(
-            "Meraki HA: Found %d physical devices for sensor setup.",
-            len(physical_devices),
-        )  # Adjusted
-        for (
-            device_info
-        ) in physical_devices:  # For each physical Meraki device (AP, switch, gateway)
+        # _LOGGER.debug("Meraki HA: Found %d physical devices for sensor setup.", len(physical_devices)) # Removed
+        for device_info in physical_devices:
             serial = device_info.get("serial")
             if not serial:
                 _LOGGER.warning(
-                    f"Skipping device with missing serial: {device_info.get('name', 'Unnamed Device with no Serial')}" # Updated log
+                    f"Skipping device with missing serial: {device_info.get('name', 'Unnamed Device with no Serial')}"
                 )
                 continue
 
-            # Safeguard for device name
             original_device_name = device_info.get("name")
             if not original_device_name:
-                # Try to construct a somewhat descriptive name if model is available.
-                # This ensures the device_info passed to sensor constructors always has a 'name'.
-                model_str = device_info.get('model', 'Device') # Default to 'Device' if model is also missing
+                model_str = device_info.get('model', 'Device')
                 fallback_name = f"Meraki {model_str} {serial}"
                 _LOGGER.warning(
-                    "Device with serial %s has no name from API. Using fallback name: %s", # Clarified log
+                    "Device with serial %s has no name from API. Using fallback name: %s",
                     serial,
                     fallback_name
                 )
                 device_info["name"] = fallback_name
 
-            _LOGGER.debug( # This log now correctly reflects the device name that will be used.
-                "Meraki HA: Setting up physical device sensors for: %s (Serial: %s)",
-                device_info.get("name"),
-                serial,
-            )
+            # _LOGGER.debug(
+            #     "Meraki HA: Setting up physical device sensors for: %s (Serial: %s)",
+            #     device_info.get("name"),
+            #     serial,
+            # ) # Removed
 
             # Add common sensors for all devices
             for sensor_class in COMMON_DEVICE_SENSORS:
@@ -235,23 +225,23 @@ async def async_setup_entry(
 
             # Add productType-specific sensors
             product_type = device_info.get("productType")
-            _LOGGER.debug(
-                "Meraki HA: Processing device for productType-specific sensors. Serial: %s, Model: %s, Name: %s, ProductType: %s", # Slightly rephrased for clarity
-                serial,
-                device_info.get("model"),
-                device_info.get("name"), # This name is now guaranteed
-                product_type,
-            )
+            # _LOGGER.debug(
+            #     "Meraki HA: Processing device for productType-specific sensors. Serial: %s, Model: %s, Name: %s, ProductType: %s",
+            #     serial,
+            #     device_info.get("model"),
+            #     device_info.get("name"),
+            #     product_type,
+            # ) # Removed
 
             if product_type:
-                # Add sensors specific to this device's productType (e.g., MX, MR, MS specific sensors)
                 sensors_for_type = get_sensors_for_device_type(product_type)
                 if not sensors_for_type:
-                    _LOGGER.debug(
-                        "Meraki HA: No specific sensor classes defined in SENSOR_REGISTRY for productType '%s' for device %s", # Clarified registry name
-                        product_type,
-                        device_info.get("name"), # Use guaranteed name
-                    )
+                    # _LOGGER.debug(
+                    #     "Meraki HA: No specific sensor classes defined in SENSOR_REGISTRY for productType '%s' for device %s",
+                    #     product_type,
+                    #     device_info.get("name"),
+                    # ) # Removed
+                    pass # No need to log if nothing to add
                 for sensor_class in sensors_for_type:
                     try:
                         entities.append(sensor_class(main_coordinator, device_info))
@@ -281,33 +271,26 @@ async def async_setup_entry(
     # --- Network-specific Sensor Setup ---
     if main_coordinator and main_coordinator.data and meraki_api_client:
         networks = main_coordinator.data.get("networks", [])
-        _LOGGER.debug(
-            "Meraki HA: Found %d networks for network-specific sensor setup.", len(networks) # Clarified log
-        )
+        # _LOGGER.debug("Meraki HA: Found %d networks for network-specific sensor setup.", len(networks)) # Removed
         for network_data in networks:
             network_id = network_data.get("id")
-            # Ensure network_name is also safeguarded, similar to device_name, if it can be missing.
-            # For now, assuming network_name from API is generally reliable.
             network_name = network_data.get("name", f"Unnamed Network {network_id}")
-            if not network_name: # If name is empty string after .get fallback
-                 network_name = f"Meraki Network {network_id}" # Final fallback
+            if not network_name:
+                 network_name = f"Meraki Network {network_id}"
                  _LOGGER.warning("Network with ID %s has no name. Using fallback: %s", network_id, network_name)
 
-
-            if not network_id: # network_id is crucial
+            if not network_id:
                 _LOGGER.warning(
                     "Skipping network with missing ID for client sensor: %s",
-                    network_data.get("name", "Unnamed Network"), # Use .get for safety in log
+                    network_data.get("name", "Unnamed Network"),
                 )
                 continue
 
-            # MerakiNetworkClientsSensor - requires API client
             try:
                 client_sensor = MerakiNetworkClientsSensor(
                     coordinator=main_coordinator,
                     network_id=network_id,
-                    network_name=network_name, # Use potentially fallbacked name
-                    # meraki_api_client is no longer passed to MerakiNetworkClientsSensor
+                    network_name=network_name,
                 )
                 entities.append(client_sensor)
             except Exception as e:
@@ -317,8 +300,6 @@ async def async_setup_entry(
                     network_id,
                     e,
                 )
-
-            # MerakiNetworkIdentitySensor
             try:
                 identity_sensor = MerakiNetworkIdentitySensor(
                     coordinator=main_coordinator,
@@ -332,18 +313,15 @@ async def async_setup_entry(
                     network_id,
                     e,
                 )
-    elif not meraki_api_client: # Specific check for API client missing for NetworkClientsSensor
+    elif not meraki_api_client:
         _LOGGER.warning(
             "Meraki API client not available; skipping MerakiNetworkClientsSensor setup."
         )
-    # General warning if main coordinator or its data is missing, affecting all network sensors
     elif not main_coordinator or not main_coordinator.data :
         _LOGGER.warning(
             "Main coordinator not available or has no data; skipping all network-specific sensors."
         )
 
-    # Get the SSID device coordinator.
-    # This coordinator manages SSIDs as logical "devices" in Home Assistant.
     coordinators_map = entry_data.get("coordinators")
     if coordinators_map:
         ssid_coordinator: Optional[SSIDDeviceCoordinator] = coordinators_map.get(DATA_SSID_DEVICES_COORDINATOR)
@@ -351,37 +329,21 @@ async def async_setup_entry(
         ssid_coordinator = None
 
     # --- SSID "Device" Sensor Setup ---
-    # Iterate through enabled SSIDs fetched by the ssid_coordinator
-    # and create a set of sensors for each SSID using the create_ssid_sensors factory.
     if ssid_coordinator and ssid_coordinator.data:
-        # ssid_coordinator.data is a dict of {unique_ssid_id: ssid_info_dict}
-        # Values are the actual data dictionaries for each SSID
-        enabled_ssids_info_list = list(
-            ssid_coordinator.data.values()
-        )  # Get list of SSID data dicts
-        _LOGGER.debug(
-            "Meraki HA: Found %d enabled SSIDs for sensor setup from SSIDDeviceCoordinator.",
-            len(enabled_ssids_info_list),
-        )  # Adjusted
+        enabled_ssids_info_list = list(ssid_coordinator.data.values())
+        # _LOGGER.debug("Meraki HA: Found %d enabled SSIDs for sensor setup from SSIDDeviceCoordinator.", len(enabled_ssids_info_list)) # Removed
 
-        for ssid_info_data in enabled_ssids_info_list:  # For each enabled SSID
-            # `unique_id` within ssid_info_data is the identifier for the SSID "device" in HA.
-            # This was created by the SSIDDeviceCoordinator.
-            # For MerakiEntity-based SSID sensors, `ssid_info_data` is passed as both `device_data` (for MerakiEntity's _device_info_data)
-            # and `ssid_data` (for MerakiEntity's _ssid_info_data). This allows the entity to
-            # correctly link to the SSID "device" and access SSID-specific attributes.
-            unique_identifier_for_log = (
-                ssid_info_data.get("unique_id")
-                or f"{ssid_info_data.get('networkId')}_{ssid_info_data.get('number')}"
-            )
-            _LOGGER.debug(
-                "Meraki HA: Setting up SSID sensors for: %s (Name: %s)",
-                unique_identifier_for_log,
-                ssid_info_data.get("name", "Unknown SSID"),
-            )  # Adjusted
+        for ssid_info_data in enabled_ssids_info_list:
+            # unique_identifier_for_log = ( # Only used in removed log
+            #     ssid_info_data.get("unique_id")
+            #     or f"{ssid_info_data.get('networkId')}_{ssid_info_data.get('number')}"
+            # )
+            # _LOGGER.debug(
+            #     "Meraki HA: Setting up SSID sensors for: %s (Name: %s)",
+            #     unique_identifier_for_log,
+            #     ssid_info_data.get("name", "Unknown SSID"),
+            # ) # Removed
 
-            # Call the factory function to create all standard sensors for this SSID
-            # (e.g., availability, channel, client count).
             new_ssid_sensors = create_ssid_sensors(
                 ssid_coordinator, ssid_info_data, ssid_info_data
             )
@@ -391,17 +353,17 @@ async def async_setup_entry(
             "SSID coordinator (SSIDDeviceCoordinator) not available or has no data; skipping SSID sensors."
         )
 
-    _LOGGER.debug(
-        "Meraki HA: FINAL check before async_add_entities. Total entities in list: %d. First 5 unique_ids: %s. Last 5 unique_ids: %s",
-        len(entities),
-        [e.unique_id for e in entities[:5] if hasattr(e, "unique_id")],
-        [e.unique_id for e in entities[-5:] if hasattr(e, "unique_id")],
-    )
+    # _LOGGER.debug(
+    #     "Meraki HA: FINAL check before async_add_entities. Total entities in list: %d. First 5 unique_ids: %s. Last 5 unique_ids: %s",
+    #     len(entities),
+    #     [e.unique_id for e in entities[:5] if hasattr(e, "unique_id")],
+    #     [e.unique_id for e in entities[-5:] if hasattr(e, "unique_id")],
+    # ) # Removed
     if entities:
         _LOGGER.info(
             "Meraki HA: Adding %d Meraki sensor entities.", len(entities)
-        )  # Adjusted
+        )
         async_add_entities(entities)
     else:
-        _LOGGER.info("Meraki HA: No Meraki sensor entities to add.")  # Adjusted
+        _LOGGER.info("Meraki HA: No Meraki sensor entities to add.")
     return True

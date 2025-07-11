@@ -65,11 +65,11 @@ class MerakiCameraSenseStatusSensor(
         # Their explicit @property methods have been removed.
 
         self._update_sensor_data()
-        _LOGGER.debug(
-            "MerakiCameraSenseStatusSensor Initialized for %s (Serial: %s)",
-            device_data.get("name", self._device_serial),
-            self._device_serial,
-        )
+        # _LOGGER.debug(
+        #     "MerakiCameraSenseStatusSensor Initialized for %s (Serial: %s)",
+        #     device_data.get("name", self._device_serial),
+        #     self._device_serial,
+        # ) # Removed
 
     def _get_current_device_data(self) -> Optional[Dict[str, Any]]:
         """Retrieve the latest data for this sensor's device from the coordinator.
@@ -93,10 +93,10 @@ class MerakiCameraSenseStatusSensor(
 
         sense_enabled_value = current_device_data.get("senseEnabled")
 
-        if sense_enabled_value is None: # Explicitly check for None, as False is a valid state
-            self._attr_native_value = None # Or "unknown"
-            self._attr_icon = "mdi:camera-question" # Icon indicating data is missing
-            _LOGGER.debug("senseEnabled data not found for %s", self._device_serial)
+        if sense_enabled_value is None:
+            self._attr_native_value = None
+            self._attr_icon = "mdi:camera-question"
+            # _LOGGER.debug("senseEnabled data not found for %s", self._device_serial) # Removed
         else:
             sense_enabled = bool(sense_enabled_value)
             self._attr_native_value = "enabled" if sense_enabled else "disabled"
@@ -125,7 +125,7 @@ class MerakiCameraSenseStatusSensor(
 
         # Check for presence of the specific attribute this sensor relies on
         if "senseEnabled" not in current_device_data:
-            _LOGGER.debug("Sensor %s unavailable, senseEnabled missing from device data", self.unique_id)
+            # _LOGGER.debug("Sensor %s unavailable, senseEnabled missing from device data", self.unique_id) # Removed
             return False
 
         return True
@@ -197,11 +197,11 @@ class MerakiCameraAudioDetectionSensor(
         # Their explicit @property methods have been removed.
 
         self._update_sensor_data()
-        _LOGGER.debug(
-            "MerakiCameraAudioDetectionSensor Initialized for %s (Serial: %s)",
-            device_data.get("name", self._device_serial),
-            self._device_serial,
-        )
+        # _LOGGER.debug(
+        #     "MerakiCameraAudioDetectionSensor Initialized for %s (Serial: %s)",
+        #     device_data.get("name", self._device_serial),
+        #     self._device_serial,
+        # ) # Removed
 
     # @property
     # def options(self) -> list[str] | None: # Commented out, was "Added options here"
@@ -242,9 +242,9 @@ class MerakiCameraAudioDetectionSensor(
         audio_detection_data = current_device_data.get("audioDetection")
 
         if not isinstance(audio_detection_data, dict) or "enabled" not in audio_detection_data:
-            self._attr_native_value = None # Or "unknown"
-            self._attr_icon = "mdi:microphone-question" # Icon indicating data is missing/malformed
-            _LOGGER.debug("audioDetection.enabled data not found or malformed for %s", self._device_serial)
+            self._attr_native_value = None
+            self._attr_icon = "mdi:microphone-question"
+            # _LOGGER.debug("audioDetection.enabled data not found or malformed for %s", self._device_serial) # Removed
         else:
             audio_enabled = bool(audio_detection_data["enabled"])
             self._attr_native_value = "enabled" if audio_enabled else "disabled"
@@ -274,7 +274,7 @@ class MerakiCameraAudioDetectionSensor(
         # Check for presence and correct structure of the specific attribute
         audio_data = current_device_data.get("audioDetection")
         if not isinstance(audio_data, dict) or "enabled" not in audio_data:
-            _LOGGER.debug("Sensor %s unavailable, audioDetection.enabled missing/malformed", self.unique_id)
+            # _LOGGER.debug("Sensor %s unavailable, audioDetection.enabled missing/malformed", self.unique_id) # Removed
             return False
 
         return True
@@ -315,12 +315,12 @@ class MerakiCameraRTSPUrlSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], 
 
         # Initialize state
         self._update_state()
-        _LOGGER.debug(
-            "%s initialized for %s (Serial: %s)",
-            self.__class__.__name__,
-            device_info_data.get("name", self._device_serial),
-            self._device_serial,
-        )
+        # _LOGGER.debug(
+        #     "%s initialized for %s (Serial: %s)",
+        #     self.__class__.__name__,
+        #     device_info_data.get("name", self._device_serial),
+        #     self._device_serial,
+        # ) # Removed
 
     @property
     def native_value(self) -> Optional[str]:
@@ -352,12 +352,12 @@ class MerakiCameraRTSPUrlSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], 
             else:
                 self._attr_native_value = None # Or an empty string, or "Unavailable"
         else:
-            self._attr_native_value = None # Or an empty string
-            _LOGGER.debug(
-                "Device data for serial '%s' not found in coordinator for sensor '%s'.",
-                self._device_serial,
-                self.unique_id,
-            )
+                self._attr_native_value = None
+            # _LOGGER.debug(
+            #     "Device data for serial '%s' not found in coordinator for sensor '%s'.",
+            #     self._device_serial,
+            #     self.unique_id,
+            # ) # Removed
 
     @property
     def available(self) -> bool:
@@ -375,8 +375,7 @@ class MerakiCameraRTSPUrlSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], 
                     # even if their values might lead to a None state.
                     # If externalRtspEnabled is missing, we can't determine if URL should be shown.
                     if "externalRtspEnabled" not in dev_data:
-                         _LOGGER.debug("Sensor %s unavailable, externalRtspEnabled missing from coordinator data", self.unique_id)
+                         # _LOGGER.debug("Sensor %s unavailable, externalRtspEnabled missing from coordinator data", self.unique_id) # Removed
                          return False
-                    # rtspUrl can be optional if not enabled, so its absence when externalRtspEnabled is false is fine.
                     return True
         return False

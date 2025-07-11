@@ -257,10 +257,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         self.device_data = devices
 
         # ---- START NETWORK DEVICE REGISTRATION LOGIC ----
-        # _LOGGER.debug(
-        #     "Starting Meraki Network device registration process for org %s.",
-        #     self.org_id,
-        # ) # Reduced verbosity
         device_registry = dr.async_get(self.hass)
         processed_network_devices = 0
         for network_info in networks:
@@ -290,13 +286,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 device_name_format_option=current_device_name_format,
                 is_org_device=False
             )
-
-            # _LOGGER.debug(
-            #     "Registering Meraki Network device: %s (ID: %s), Format: %s",
-            #     formatted_network_name,
-            #     network_id,
-            #     current_device_name_format,
-            # ) # Reduced verbosity
             device_registry.async_get_or_create(
                 config_entry_id=self.config_entry.entry_id,
                 identifiers={(DOMAIN, network_id)},
@@ -305,17 +294,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 manufacturer="Cisco Meraki",
             )
             processed_network_devices += 1
-        # _LOGGER.debug(
-        #     "Processed %d Meraki Network devices for registration for org %s.",
-        #     processed_network_devices,
-        #     self.org_id,
-        # ) # Reduced verbosity
-        # ---- END NETWORK DEVICE REGISTRATION LOGIC ----
-
-        # ---- START PHYSICAL DEVICE REGISTRATION LOGIC ----
-        # _LOGGER.debug(
-        #     "Starting physical device registration process for org %s.", self.org_id
-        # ) # Reduced verbosity
 
         for device_info in devices:
             serial = device_info.get("serial")
@@ -350,10 +328,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 sw_version=firmware_version,
                 connections=connections,
             )
-        # _LOGGER.debug("Device registration process completed for org %s.", self.org_id) # Reduced verbosity
-        # ---- END DEVICE REGISTRATION LOGIC ----
-
-        # Process client data to get network client counts
         from custom_components.meraki_ha.coordinators.data_processor import (
             MerakiDataProcessor,
         )  # Ensure import

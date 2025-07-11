@@ -248,113 +248,64 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
             )
             # If main coordinator has no client data, this coordinator cannot calculate client counts.
             # It might return its existing self.data if available, or an empty dict.
-            # For this subtask, assume it will proceed and counts will be 0 if all_clients_from_main_coordinator is empty.
-
         for ssid_summary_data in enabled_ssids:
             network_id = ssid_summary_data.get("networkId")
             ssid_number = ssid_summary_data.get("number")
-            ssid_name_summary = ssid_summary_data.get("name", f"SSID {ssid_number}")
+            # ssid_name_summary = ssid_summary_data.get("name", f"SSID {ssid_number}") # Only used in removed log
             unique_ssid_id = f"{network_id}_{str(ssid_number)}"
 
             try:
-                # _LOGGER.debug(
-                #     f"Processing SSID {ssid_name_summary} (Network: {network_id}, Number: {ssid_number}) using data from bulk fetch."
-                # ) # Reduced verbosity
                 merged_ssid_data = ssid_summary_data.copy()
-                merged_ssid_data["unique_id"] = unique_ssid_id # Add the HA unique_id
+                merged_ssid_data["unique_id"] = unique_ssid_id
 
-                # 'channel' information: If the bulk data from MerakiApiDataFetcher includes 'channel'
-                # for SSIDs (e.g., derived from AP radio data or other means), it will be in ssid_summary_data.
-                # If not, merged_ssid_data.get('channel') will correctly return None.
-                # No specific change needed here if 'channel' is already part of ssid_summary_data as fetched.
-                # For clarity, we can ensure it's explicitly accessed via merged_ssid_data if needed by other logic.
-                # merged_ssid_data["channel"] = merged_ssid_data.get("channel") # This line is effectively a no-op if using .copy()
-
-                # Step 2: Calculate client count for this SSID.
-                # This involves filtering clients from the main coordinator's data
-                # and then filtering them locally to find clients connected to the current SSID.
-                client_count = 0  # Initialize client count to 0.
-
-                # Filter all_clients_from_main_coordinator to get clients for the current network_id
+                client_count = 0
                 clients_in_current_network = [
                     client for client in all_clients_from_main_coordinator
                     if client.get("networkId") == network_id
                 ]
-                # _LOGGER.debug(
-                #     f"Found {len(clients_in_current_network)} clients in network {network_id} (from main coordinator data) "
-                #     f"for potential matching with SSID {ssid_name_summary}."
-                # ) # Reduced verbosity
 
                 if clients_in_current_network:
                     current_ssid_clients = []
                     for client_idx, client_item in enumerate(clients_in_current_network):
-                        # Validate individual client item structure.
                         if not isinstance(client_item, dict):
                             _LOGGER.warning(
                                 f"Item at index {client_idx} in clients_in_current_network (Network: {network_id}) "
                                 f"is not a dictionary, skipping for client count: {str(client_item)[:100]}"
                             )
                             continue
-
-                        # Client's 'ssid' field is compared against the current SSID's configured name.
-                        client_ssid_name = str(client_item.get("ssid", "")) # Default to empty string if 'ssid' key is missing.
-                        summary_ssid_name = str(ssid_summary_data.get("name", "")) # Default to empty string if 'name' is None.
-
+                        client_ssid_name = str(client_item.get("ssid", ""))
+                        summary_ssid_name = str(ssid_summary_data.get("name", ""))
                         if client_ssid_name == summary_ssid_name:
                             current_ssid_clients.append(client_item)
                     client_count = len(current_ssid_clients)
-                # If clients_in_current_network is empty or no clients match, client_count remains 0.
 
                 merged_ssid_data["client_count"] = client_count
-                # _LOGGER.debug(
-                #     f"Client count for SSID {ssid_name_summary} (Number: {ssid_number}) on network {network_id}: {client_count} (derived from main coordinator data)."
-                # ) # Reduced verbosity
 
                 authoritative_ssid_name = merged_ssid_data.get("name")
-                if (
-                    not authoritative_ssid_name
-                ):  # Handles if name is None or empty string.
-                    # Fallback if the detailed data (or summary) doesn't provide a name.
-                    authoritative_ssid_name = (
-                        f"SSID {merged_ssid_data.get('number', 'Unknown')}"
-                    )
+                if not authoritative_ssid_name:
+                    authoritative_ssid_name = f"SSID {merged_ssid_data.get('number', 'Unknown')}"
 
-                # Apply device name formatting based on user's config option.
-                device_name_format = self.config_entry.options.get(
-                    "device_name_format", "omitted"
-                )
-
+                device_name_format = self.config_entry.options.get("device_name_format", "omitted")
                 formatted_ssid_name = authoritative_ssid_name
                 if device_name_format == "prefix":
                     formatted_ssid_name = f"[SSID] {authoritative_ssid_name}"
                 elif device_name_format == "suffix":
                     formatted_ssid_name = f"{authoritative_ssid_name} [SSID]"
-                # If "omitted" or other, authoritative_ssid_name is used as is.
 
-                # --- Register SSID as an HA "Device" ---
-                # This creates a logical device in Home Assistant's device registry for each SSID.
-                # Entities (sensors, switches) for this SSID will then be linked to this HA device.
                 device_registry.async_get_or_create(
-                    config_entry_id=self.config_entry.entry_id,  # Link to the integration's config entry.
-                    identifiers={
-                        (DOMAIN, unique_ssid_id)
-                    },  # Unique identifier for this SSID "device".
-                    name=formatted_ssid_name,  # User-friendly name for the SSID "device".
-                    model=f"SSID (Net: {network_id}, Num: {ssid_number})",  # Model type for these logical SSID devices.
+                    config_entry_id=self.config_entry.entry_id,
+                    identifiers={(DOMAIN, unique_ssid_id)},
+                    name=formatted_ssid_name,
+                    model=f"SSID (Net: {network_id}, Num: {ssid_number})",
                     manufacturer="Cisco Meraki",
-                    # Link this SSID "device" to its parent Network "device" in HA.
                     via_device=(DOMAIN, network_id),
                 )
-                # _LOGGER.debug(
-                #     f"Registered/Updated HA device for ENABLED SSID: {formatted_ssid_name} (ID: {unique_ssid_id}, Parent Network: {network_id}). "
-                #     f"Name Format: {device_name_format}, Channel: {merged_ssid_data.get('channel', 'N/A')}, Clients: {merged_ssid_data['client_count']}. "
-                #     f"Subset of Merged Data: {{name: {merged_ssid_data.get('name')}, enabled: {merged_ssid_data.get('enabled')}}}"
-                # ) # Reduced verbosity
                 detailed_ssid_data_map[unique_ssid_id] = merged_ssid_data
-
             except Exception as e:
+                # Use ssid_summary_data for name in error log as ssid_name_summary might not be defined if first log is removed
+                ssid_name_for_error = ssid_summary_data.get("name", f"SSID {ssid_summary_data.get('number', 'Unknown')}")
                 _LOGGER.error(
-                    f"Unexpected error during processing of SSID {ssid_name_summary} (Network: {network_id}, Number: {ssid_number}): {e}",
+                    f"Unexpected error during processing of SSID {ssid_name_for_error} (Network: {network_id}, Number: {ssid_number}): {e}",
                     exc_info=True,
                 )
                 continue

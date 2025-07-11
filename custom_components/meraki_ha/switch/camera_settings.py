@@ -72,12 +72,12 @@ class MerakiCameraSettingSwitchBase(
 
         # Set initial state
         self._update_internal_state()
-        _LOGGER.debug(
-            "%s initialized for %s (Serial: %s)",
-            self.__class__.__name__,
-            device_data.get("name", self._device_serial),
-            self._device_serial,
-        )
+        # _LOGGER.debug(
+        #     "%s initialized for %s (Serial: %s)",
+        #     self.__class__.__name__,
+        #     device_data.get("name", self._device_serial),
+        #     self._device_serial,
+        # ) # Removed
 
     # The explicit 'name' property is removed.
     # With _attr_has_entity_name = True and self.entity_description.name set,
@@ -136,19 +136,19 @@ class MerakiCameraSettingSwitchBase(
 
             if raw_value is None:
                 self._attr_is_on = False
-                _LOGGER.debug(
-                    "Attribute '%s' not found or its path was invalid for %s in coordinator data. Defaulting to off.",
-                    self._attribute_to_check,
-                    self.unique_id,
-                )
+                # _LOGGER.debug(
+                #     "Attribute '%s' not found or its path was invalid for %s in coordinator data. Defaulting to off.",
+                #     self._attribute_to_check,
+                #     self.unique_id,
+                # ) # Removed
             else:
                 self._attr_is_on = bool(raw_value)
         else:
             self._attr_is_on = False
-            _LOGGER.debug( # Changed from warning to debug as availability handles this
-                "Device data for %s not found in coordinator. Defaulting to off and unavailable.",
-                self.unique_id,
-            )
+            # _LOGGER.debug(
+            #     "Device data for %s not found in coordinator. Defaulting to off and unavailable.",
+            #     self.unique_id,
+            # ) # Removed
 
     async def _update_camera_setting(self, value: bool) -> None:
         """Update the specific camera setting (sense or audio) via the Meraki API.
@@ -174,11 +174,11 @@ class MerakiCameraSettingSwitchBase(
             return
 
         try:
-            _LOGGER.debug(
-                "Calling update_camera_sense_settings for %s with args: %s",
-                self._device_serial,
-                kwargs_for_api,
-            )
+            # _LOGGER.debug(
+            #     "Calling update_camera_sense_settings for %s with args: %s",
+            #     self._device_serial,
+            #     kwargs_for_api,
+            # ) # Removed
             await self._meraki_client.update_camera_sense_settings(
                 serial=self._device_serial, **kwargs_for_api
             )
@@ -221,18 +221,16 @@ class MerakiCameraSettingSwitchBase(
         # Check for presence of the specific attribute this switch relies on
         if self._attribute_path == ["senseEnabled"]:
             if "senseEnabled" not in current_device_data:
-                _LOGGER.debug("Switch %s unavailable, senseEnabled missing", self.unique_id)
+                # _LOGGER.debug("Switch %s unavailable, senseEnabled missing", self.unique_id) # Removed
                 return False
         elif self._attribute_path == ["audioDetection", "enabled"]:
             audio_data = current_device_data.get("audioDetection")
             if not isinstance(audio_data, dict) or "enabled" not in audio_data:
-                _LOGGER.debug("Switch %s unavailable, audioDetection.enabled missing/malformed", self.unique_id)
+                # _LOGGER.debug("Switch %s unavailable, audioDetection.enabled missing/malformed", self.unique_id) # Removed
                 return False
         elif self._attribute_path == ["externalRtspEnabled"]:
-            # For externalRtspEnabled, we expect it to be a top-level attribute in the device data
-            # after being fetched by the MerakiApiDataFetcher.
             if "externalRtspEnabled" not in current_device_data:
-                _LOGGER.debug("Switch %s unavailable, externalRtspEnabled missing from coordinator data", self.unique_id)
+                # _LOGGER.debug("Switch %s unavailable, externalRtspEnabled missing from coordinator data", self.unique_id) # Removed
                 return False
         else:
             _LOGGER.warning("Switch %s has unhandled _attribute_path for availability check: %s", self.unique_id, self._attribute_path)
@@ -344,11 +342,11 @@ class MerakiCameraRTSPSwitch(MerakiCameraSettingSwitchBase):
             value: The new boolean state to set for the RTSP server.
         """
         try:
-            _LOGGER.debug(
-                "Calling update_camera_video_settings for %s with rtsp_server_enabled=%s",
-                self._device_serial,
-                value,
-            )
+            # _LOGGER.debug(
+            #     "Calling update_camera_video_settings for %s with rtsp_server_enabled=%s",
+            #     self._device_serial,
+            #     value,
+            # ) # Removed
             await self._meraki_client.update_camera_video_settings(
                 serial=self._device_serial, rtsp_server_enabled=value
             )

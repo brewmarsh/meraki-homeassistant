@@ -43,9 +43,11 @@ class MerakiSSIDNameText(CoordinatorEntity[SSIDDeviceCoordinator], TextEntity):
         # EntityDescription can be used for name, icon etc.
         self.entity_description = EntityDescription(
             key=f"{self._ssid_unique_id}_ssid_name",
-            name="SSID Name",
-            icon="mdi:form-textbox",
+            name="SSID Name", # This will be part of the friendly name if _attr_has_entity_name = True
+            icon="mdi:form-textbox"
         )
+        self._attr_native_min_length = 1
+        self._attr_native_max_length = 32
 
         self._attr_unique_id = f"{self._ssid_unique_id}_name_text"
         # The name will be derived from device name + entity_description.name if _attr_has_entity_name = True
