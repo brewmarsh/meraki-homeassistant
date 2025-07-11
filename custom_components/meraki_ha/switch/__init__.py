@@ -1,22 +1,8 @@
-# custom_components/meraki_ha/switch/__init__.py
-"""Switch platform for Meraki to control SSID and Camera settings (Ultra-minimal for diagnostics)."""
-
 import logging
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
-# Comment out other imports if they are specific to the full functionality and might interfere
-# For example:
-# from .meraki_ssid_device_switch import MerakiSSIDDeviceSwitch # Example
-# from .camera_settings import (
-#     MerakiCameraSenseSwitch,
-#     MerakiCameraAudioDetectionSwitch,
-#     MerakiCameraRTSPSwitch,
-# )
-# from ..const import DOMAIN, DATA_CLIENT, DATA_COORDINATOR, DATA_SSID_DEVICES_COORDINATOR # Example
-# from ..meraki_api import MerakiAPIClient # Example
-# from ..coordinators import MerakiDataUpdateCoordinator, SSIDDeviceCoordinator # Example
+from ..const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,10 +11,20 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
-    _LOGGER.info("switch/__init__.py: Ultra-minimal async_setup_entry FORCED for diagnostics.")
-    # All other logic originally in this function (getting coordinators, creating entities, calling async_add_entities)
-    # MUST be commented out or removed for this diagnostic step.
-    return True
+    """Set up Meraki switches from a config entry."""
+    _LOGGER.info("Attempting to set up Meraki switch platform for entry %s", config_entry.entry_id)
+    try:
+        # Ensure coordinators structure exists and the main coordinator is accessible
+        main_coordinator_key = "main" # Or whatever key is used for the main data coordinator
+        coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinators"].get(main_coordinator_key)
+        if not coordinator:
+            _LOGGER.error("Switch platform: Main coordinator ('%s') not found for entry %s", main_coordinator_key, config_entry.entry_id)
+            return False
+    except KeyError as e:
+        _LOGGER.error("Switch platform: Coordinators structure not found in hass.data for entry %s. Error: %s", config_entry.entry_id, e)
+        return False
 
-# Ensure any other functions or significant logic in this file are also commented out if they could affect loading.
-# __all__ = ["async_setup_entry"] # Keep if standard, or remove if part of the "ultra-minimal" approach
+    # entities = []
+    # async_add_entities(entities) # No entities added yet in this version
+    _LOGGER.info("Meraki switch platform setup nominally complete for entry %s (no entities added in this version).", config_entry.entry_id)
+    return True
