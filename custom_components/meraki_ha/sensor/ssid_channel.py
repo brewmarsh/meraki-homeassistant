@@ -59,14 +59,14 @@ class MerakiSSIDChannelSensor(CoordinatorEntity[SSIDDeviceCoordinator], SensorEn
 
         # Set initial state
         self._update_sensor_state()
-        _LOGGER.debug(
-            "MerakiSSIDChannelSensor Initialized: Name: %s, Unique ID: %s, SSID Data: %s",
-            self._attr_name,
-            self._attr_unique_id,
-            {
-                key: ssid_data.get(key) for key in ["name", "unique_id", "channel"]
-            },  # Log subset
-        )
+        # _LOGGER.debug(
+        #     "MerakiSSIDChannelSensor Initialized: Name: %s, Unique ID: %s, SSID Data: %s",
+        #     self._attr_name,
+        #     self._attr_unique_id,
+        #     {
+        #         key: ssid_data.get(key) for key in ["name", "unique_id", "channel"]
+        #     },
+        # ) # Removed
 
     def _update_sensor_state(self) -> None:
         """Update the sensor's state based on coordinator data for this SSID."""
@@ -88,15 +88,15 @@ class MerakiSSIDChannelSensor(CoordinatorEntity[SSIDDeviceCoordinator], SensorEn
                     # If channel can be "Auto" or include text like "(20MHz)"
                     self._attr_state_class = None
             else:
-                _LOGGER.debug(
-                    "SSID '%s' (ID: %s) has no 'channel' information. Setting to None.",
-                    self._ssid_data.get("name"),
-                    self._ssid_data.get("unique_id"),
-                )
+                # _LOGGER.debug( # State will be None, this log is not critical
+                #     "SSID '%s' (ID: %s) has no 'channel' information. Setting to None.",
+                #     self._ssid_data.get("name"),
+                #     self._ssid_data.get("unique_id"),
+                # ) # Removed
                 self._attr_native_value = None
                 self._attr_state_class = None
         else:
-            _LOGGER.warning(
+            _LOGGER.warning( # Keep warning for missing data
                 "SSID data for ID '%s' not found in coordinator. Channel sensor state set to None.",
                 self._ssid_data.get("unique_id"),
             )

@@ -85,7 +85,7 @@ class MerakiRadioSettingsSensor(
         }
         # Set initial state
         self._update_sensor_state()
-        _LOGGER.debug("Meraki Radio Settings Sensor Initialized: %s", self._attr_name)
+        # _LOGGER.debug("Meraki Radio Settings Sensor Initialized: %s", self._attr_name) # Removed
 
     def _update_sensor_state(self) -> None:
         """Update sensor state and attributes from coordinator data.

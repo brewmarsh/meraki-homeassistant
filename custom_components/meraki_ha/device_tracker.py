@@ -77,7 +77,7 @@ async def async_setup_entry(
 
     if entities:
         async_add_entities(entities)
-        _LOGGER.debug("Added %d Meraki client trackers.", len(entities))
+        # _LOGGER.debug("Added %d Meraki client trackers.", len(entities)) # Removed
     return True
 
 
@@ -147,18 +147,18 @@ class MerakiDeviceTracker(
                     self._client_info_data.update(client_data)
                     break
 
-        _LOGGER.debug(
-            "Client tracker %s (MAC: %s) is_connected: %s",
-            self._attr_name,
-            client_mac,
-            self._attr_is_connected,
-        )
-        if not self._attr_is_connected:
-            _LOGGER.debug(  # More specific log if client not found in active list
-                "Client tracker %s (MAC: %s) not found in coordinator's active client list.",
-                self._attr_name,
-                client_mac,
-            )
+        # _LOGGER.debug(
+        #     "Client tracker %s (MAC: %s) is_connected: %s",
+        #     self._attr_name,
+        #     client_mac,
+        #     self._attr_is_connected,
+        # ) # Removed
+        # if not self._attr_is_connected: # This log is also too verbose for each disconnected client
+        #     _LOGGER.debug(
+        #         "Client tracker %s (MAC: %s) not found in coordinator's active client list.",
+        #         self._attr_name,
+        #         client_mac,
+        #     ) # Removed
 
     @property
     def source_type(self) -> SourceType:

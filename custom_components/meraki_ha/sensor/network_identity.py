@@ -53,15 +53,15 @@ class MerakiNetworkIdentitySensor(
             identifiers={(DOMAIN, self._network_id)},
             name=self._network_name, # So it's grouped with other entities for this network device
             manufacturer="Cisco Meraki",
-            model="Network Information", # Or just "Network"
+            model="Network Information",
         )
-        _LOGGER.debug(
-            "MerakiNetworkIdentitySensor Initialized: Name: %s, Unique ID: %s, Network ID: %s, Type: %s",
-            self._attr_name,
-            self._attr_unique_id,
-            self._network_id,
-            self._network_type,
-        )
+        # _LOGGER.debug(
+        #     "MerakiNetworkIdentitySensor Initialized: Name: %s, Unique ID: %s, Network ID: %s, Type: %s",
+        #     self._attr_name,
+        #     self._attr_unique_id,
+        #     self._network_id,
+        #     self._network_type,
+        # ) # Removed
 
     def _update_sensor_state(self) -> None:
         """Update the native value and attributes of the sensor."""

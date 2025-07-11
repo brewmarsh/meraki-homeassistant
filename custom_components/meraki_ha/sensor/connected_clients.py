@@ -102,16 +102,16 @@ class MerakiDeviceConnectedClientsSensor(
             # Original code here used 'connected_clients'. Let's try to be
             # robust.
             client_count = found_device_data.get("connected_clients_count")
-            if client_count is None:  # Fallback if the primary key isn't found
+            if client_count is None:
                 client_count = found_device_data.get("connected_clients")
 
             if isinstance(client_count, int):
-                _LOGGER.debug(
-                    "Client count for device '%s' (Serial: %s): %d",
-                    self._device_info_data.get("name", "N/A"),
-                    device_serial,
-                    client_count,
-                )
+                # _LOGGER.debug(
+                #     "Client count for device '%s' (Serial: %s): %d",
+                #     self._device_info_data.get("name", "N/A"),
+                #     device_serial,
+                #     client_count,
+                # ) # Removed
                 return client_count
             else:
                 _LOGGER.warning(

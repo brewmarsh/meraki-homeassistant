@@ -95,11 +95,11 @@ class MerakiSSIDNameText(CoordinatorEntity[SSIDDeviceCoordinator], TextEntity):
             # self._attr_name = f"{new_base_name} {self.entity_description.name}"
             # For now, relying on _attr_has_entity_name and entity_description.name
         else:
-            self._attr_native_value = None # Or some default/unknown state
-            _LOGGER.debug(
-                "Could not find data for SSID %s in coordinator for text entity, state set to None",
-                 self._ssid_unique_id
-            )
+            self._attr_native_value = None
+            # _LOGGER.debug( # Covered by available property or if state is intentionally None
+            #     "Could not find data for SSID %s in coordinator for text entity, state set to None",
+            #      self._ssid_unique_id
+            # ) # Removed
 
     async def async_set_value(self, value: str) -> None:
         """Change the SSID name."""
@@ -110,12 +110,12 @@ class MerakiSSIDNameText(CoordinatorEntity[SSIDDeviceCoordinator], TextEntity):
             )
             return
 
-        _LOGGER.debug(
-            "Attempting to set SSID name for network %s, SSID number %s to: %s",
-            self._network_id,
-            self._ssid_number,
-            value,
-        )
+        # _LOGGER.debug(
+        #     "Attempting to set SSID name for network %s, SSID number %s to: %s",
+        #     self._network_id,
+        #     self._ssid_number,
+        #     value,
+        # ) # Removed
         try:
             await self._meraki_client.wireless.updateNetworkWirelessSsid(
                 networkId=self._network_id,

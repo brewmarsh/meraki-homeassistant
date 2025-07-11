@@ -185,7 +185,6 @@ async def async_setup_entry(
     # --- Physical Device Sensor Setup ---
     if main_coordinator and main_coordinator.data:
         physical_devices = main_coordinator.data.get("devices", [])
-        # _LOGGER.debug("Meraki HA: Found %d physical devices for sensor setup.", len(physical_devices)) # Removed
         for device_info in physical_devices:
             serial = device_info.get("serial")
             if not serial:
@@ -205,13 +204,6 @@ async def async_setup_entry(
                 )
                 device_info["name"] = fallback_name
 
-            # _LOGGER.debug(
-            #     "Meraki HA: Setting up physical device sensors for: %s (Serial: %s)",
-            #     device_info.get("name"),
-            #     serial,
-            # ) # Removed
-
-            # Add common sensors for all devices
             for sensor_class in COMMON_DEVICE_SENSORS:
                 try:
                     entities.append(sensor_class(main_coordinator, device_info))
@@ -225,23 +217,11 @@ async def async_setup_entry(
 
             # Add productType-specific sensors
             product_type = device_info.get("productType")
-            # _LOGGER.debug(
-            #     "Meraki HA: Processing device for productType-specific sensors. Serial: %s, Model: %s, Name: %s, ProductType: %s",
-            #     serial,
-            #     device_info.get("model"),
-            #     device_info.get("name"),
-            #     product_type,
-            # ) # Removed
 
             if product_type:
                 sensors_for_type = get_sensors_for_device_type(product_type)
-                if not sensors_for_type:
-                    # _LOGGER.debug(
-                    #     "Meraki HA: No specific sensor classes defined in SENSOR_REGISTRY for productType '%s' for device %s",
-                    #     product_type,
-                    #     device_info.get("name"),
-                    # ) # Removed
-                    pass # No need to log if nothing to add
+                # if not sensors_for_type: # Removed: Redundant log, handled by empty list iteration
+                #     pass
                 for sensor_class in sensors_for_type:
                     try:
                         entities.append(sensor_class(main_coordinator, device_info))
@@ -271,7 +251,6 @@ async def async_setup_entry(
     # --- Network-specific Sensor Setup ---
     if main_coordinator and main_coordinator.data and meraki_api_client:
         networks = main_coordinator.data.get("networks", [])
-        # _LOGGER.debug("Meraki HA: Found %d networks for network-specific sensor setup.", len(networks)) # Removed
         for network_data in networks:
             network_id = network_data.get("id")
             network_name = network_data.get("name", f"Unnamed Network {network_id}")
@@ -280,90 +259,35 @@ async def async_setup_entry(
                  _LOGGER.warning("Network with ID %s has no name. Using fallback: %s", network_id, network_name)
 
             if not network_id:
-                _LOGGER.warning(
-                    "Skipping network with missing ID for client sensor: %s",
-                    network_data.get("name", "Unnamed Network"),
-                )
+                _LOGGER.warning("Skipping network with missing ID for client sensor: %s", network_data.get("name", "Unnamed Network"))
                 continue
-
             try:
-                client_sensor = MerakiNetworkClientsSensor(
-                    coordinator=main_coordinator,
-                    network_id=network_id,
-                    network_name=network_name,
-                )
-                entities.append(client_sensor)
+                entities.append(MerakiNetworkClientsSensor(main_coordinator, network_id, network_name))
+                entities.append(MerakiNetworkIdentitySensor(main_coordinator, network_data))
             except Exception as e:
-                _LOGGER.error(
-                    "Meraki HA: Error adding MerakiNetworkClientsSensor for network %s (ID: %s): %s",
-                    network_name,
-                    network_id,
-                    e,
-                )
-            try:
-                identity_sensor = MerakiNetworkIdentitySensor(
-                    coordinator=main_coordinator,
-                    network_data=network_data,
-                )
-                entities.append(identity_sensor)
-            except Exception as e:
-                _LOGGER.error(
-                    "Meraki HA: Error adding MerakiNetworkIdentitySensor for network %s (ID: %s): %s",
-                    network_name,
-                    network_id,
-                    e,
-                )
+                _LOGGER.error("Meraki HA: Error adding network sensors for %s (ID: %s): %s", network_name, network_id, e)
     elif not meraki_api_client:
-        _LOGGER.warning(
-            "Meraki API client not available; skipping MerakiNetworkClientsSensor setup."
-        )
+        _LOGGER.warning("Meraki API client not available; skipping MerakiNetworkClientsSensor setup.")
     elif not main_coordinator or not main_coordinator.data :
-        _LOGGER.warning(
-            "Main coordinator not available or has no data; skipping all network-specific sensors."
-        )
+        _LOGGER.warning("Main coordinator not available or has no data; skipping all network-specific sensors.")
 
     coordinators_map = entry_data.get("coordinators")
+    ssid_coordinator: Optional[SSIDDeviceCoordinator] = None # Initialize
     if coordinators_map:
-        ssid_coordinator: Optional[SSIDDeviceCoordinator] = coordinators_map.get(DATA_SSID_DEVICES_COORDINATOR)
-    else:
-        ssid_coordinator = None
+        ssid_coordinator = coordinators_map.get(DATA_SSID_DEVICES_COORDINATOR)
 
     # --- SSID "Device" Sensor Setup ---
     if ssid_coordinator and ssid_coordinator.data:
         enabled_ssids_info_list = list(ssid_coordinator.data.values())
-        # _LOGGER.debug("Meraki HA: Found %d enabled SSIDs for sensor setup from SSIDDeviceCoordinator.", len(enabled_ssids_info_list)) # Removed
-
         for ssid_info_data in enabled_ssids_info_list:
-            # unique_identifier_for_log = ( # Only used in removed log
-            #     ssid_info_data.get("unique_id")
-            #     or f"{ssid_info_data.get('networkId')}_{ssid_info_data.get('number')}"
-            # )
-            # _LOGGER.debug(
-            #     "Meraki HA: Setting up SSID sensors for: %s (Name: %s)",
-            #     unique_identifier_for_log,
-            #     ssid_info_data.get("name", "Unknown SSID"),
-            # ) # Removed
-
-            new_ssid_sensors = create_ssid_sensors(
-                ssid_coordinator, ssid_info_data, ssid_info_data
-            )
+            new_ssid_sensors = create_ssid_sensors(ssid_coordinator, ssid_info_data, ssid_info_data)
             entities.extend(new_ssid_sensors)
     else:
-        _LOGGER.warning(
-            "SSID coordinator (SSIDDeviceCoordinator) not available or has no data; skipping SSID sensors."
-        )
+        _LOGGER.warning("SSID coordinator (SSIDDeviceCoordinator) not available or has no data; skipping SSID sensors.")
 
-    # _LOGGER.debug(
-    #     "Meraki HA: FINAL check before async_add_entities. Total entities in list: %d. First 5 unique_ids: %s. Last 5 unique_ids: %s",
-    #     len(entities),
-    #     [e.unique_id for e in entities[:5] if hasattr(e, "unique_id")],
-    #     [e.unique_id for e in entities[-5:] if hasattr(e, "unique_id")],
-    # ) # Removed
     if entities:
-        _LOGGER.info(
-            "Meraki HA: Adding %d Meraki sensor entities.", len(entities)
-        )
+        _LOGGER.info("Meraki HA: Adding %d Meraki sensor entities.", len(entities))
         async_add_entities(entities)
     else:
-        _LOGGER.info("Meraki HA: No Meraki sensor entities to add.")
+        _LOGGER.info("Meraki HA: No Meraki sensor entities were added.")
     return True

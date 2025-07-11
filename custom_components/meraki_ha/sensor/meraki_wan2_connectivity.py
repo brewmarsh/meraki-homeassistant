@@ -85,13 +85,13 @@ class MerakiWAN2ConnectivitySensor(
         self._attr_extra_state_attributes = {
             "wan2_ip_address": wan2_ip if wan2_ip else "N/A"
         }
-        _LOGGER.debug(
-            "WAN2 Sensor update for %s: wan2_ip=%s, device_status=%s, state=%s",
-            self._device_serial,
-            wan2_ip,
-            device_status,
-            self._attr_native_value,
-        )
+        # _LOGGER.debug(
+        #     "WAN2 Sensor update for %s: wan2_ip=%s, device_status=%s, state=%s",
+        #     self._device_serial,
+        #     wan2_ip,
+        #     device_status,
+        #     self._attr_native_value,
+        # ) # Removed
 
     @callback
     def _handle_coordinator_update(self) -> None:

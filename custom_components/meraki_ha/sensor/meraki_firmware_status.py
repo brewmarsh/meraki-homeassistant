@@ -61,39 +61,31 @@ class MerakiFirmwareStatusSensor(
         if not current_device_data:
             self._attr_native_value = "Unknown"
             self._attr_extra_state_attributes = {}
-            _LOGGER.debug(
-                "Device %s not found in coordinator data for firmware status sensor.",
-                self._device_serial,
-            )
+            # _LOGGER.debug( # Covered by available property
+            #     "Device %s not found in coordinator data for firmware status sensor.",
+            #     self._device_serial,
+            # ) # Removed
             return
 
-        # The state of this sensor will be the current firmware version
         self._attr_native_value = current_device_data.get("firmware", "N/A")
 
         attributes = {
-            "current_firmware_version": current_device_data.get(
-                "firmware"
-            ),  # Redundant with state, but explicit
-            "firmware_up_to_date": current_device_data.get(
-                "firmware_up_to_date", False
-            ),
-            "latest_available_firmware_version": current_device_data.get(
-                "latest_firmware_version", "N/A"
-            ),
+            "current_firmware_version": current_device_data.get("firmware"),
+            "firmware_up_to_date": current_device_data.get("firmware_up_to_date", False),
+            "latest_available_firmware_version": current_device_data.get("latest_firmware_version", "N/A"),
             "model": current_device_data.get("model"),
         }
 
-        # Filter out attributes with None values to keep it clean
         self._attr_extra_state_attributes = {
             k: v for k, v in attributes.items() if v is not None
         }
 
-        _LOGGER.debug(
-            "Firmware Status Sensor update for %s: state=%s, attributes=%s",
-            self._device_serial,
-            self._attr_native_value,
-            self._attr_extra_state_attributes,
-        )
+        # _LOGGER.debug(
+        #     "Firmware Status Sensor update for %s: state=%s, attributes=%s",
+        #     self._device_serial,
+        #     self._attr_native_value,
+        #     self._attr_extra_state_attributes,
+        # ) # Removed
 
     @callback
     def _handle_coordinator_update(self) -> None:

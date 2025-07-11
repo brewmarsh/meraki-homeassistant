@@ -111,9 +111,9 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[SSIDDeviceCoordinator], SwitchEntit
         # The payload for the API call uses the `_attribute_to_check` (e.g., 'enabled' or 'visible')
         # as the key, and the new boolean `value` as its value.
         payload = {self._attribute_to_check: value}
-        _LOGGER.debug(
-            f"Updating SSID {self._network_id}/{self._ssid_number}: {payload}"
-        )
+        # _LOGGER.debug(
+        #     f"Updating SSID {self._network_id}/{self._ssid_number}: {payload}"
+        # ) # Removed
 
         try:
             # Make the API call to update the specific SSID setting.

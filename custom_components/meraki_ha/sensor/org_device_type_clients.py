@@ -61,19 +61,19 @@ class MerakiOrgDeviceTypeClientsSensor(CoordinatorEntity[MerakiDataUpdateCoordin
                                       (self._clients_on_appliances or 0) + \
                                       (self._clients_on_wireless or 0)
 
-            _LOGGER.debug(
-                "Sensor %s: SSID Clients: %s, Appliance Clients: %s, Wireless Clients: %s, Total State: %s",
-                self.unique_id,
-                self._clients_on_ssids,
-                self._clients_on_appliances,
-                self._clients_on_wireless,
-                self._attr_native_value
-            )
+            # _LOGGER.debug(
+            #     "Sensor %s: SSID Clients: %s, Appliance Clients: %s, Wireless Clients: %s, Total State: %s",
+            #     self.unique_id,
+            #     self._clients_on_ssids,
+            #     self._clients_on_appliances,
+            #     self._clients_on_wireless,
+            #     self._attr_native_value
+            # ) # Removed
         else:
-            _LOGGER.debug(
-                "Coordinator data not available for sensor %s. Setting states to 0.",
-                self.unique_id
-            )
+            # _LOGGER.debug(
+            #     "Coordinator data not available for sensor %s. Setting states to 0.",
+            #     self.unique_id
+            # ) # Removed
             self._clients_on_ssids = 0
             self._clients_on_appliances = 0
             self._clients_on_wireless = 0

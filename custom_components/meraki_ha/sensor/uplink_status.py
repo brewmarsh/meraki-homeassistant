@@ -76,15 +76,15 @@ class MerakiUplinkStatusSensor(
 
         # Set initial state by calling the update method
         self._update_sensor_state()
-        _LOGGER.debug(
-            "MerakiUplinkStatusSensor Initialized: Name: %s, Unique ID: %s, Initial Device Data (subset): %s",
-            self._attr_name,
-            self._attr_unique_id,
-            {
-                k: self._initial_device_data.get(k)
-                for k in ["name", "serial", "status", "publicIp", "wan1Ip", "wan2Ip"]
-            },
-        )
+        # _LOGGER.debug(
+        #     "MerakiUplinkStatusSensor Initialized: Name: %s, Unique ID: %s, Initial Device Data (subset): %s",
+        #     self._attr_name,
+        #     self._attr_unique_id,
+        #     {
+        #         k: self._initial_device_data.get(k)
+        #         for k in ["name", "serial", "status", "publicIp", "wan1Ip", "wan2Ip"]
+        #     },
+        # ) # Removed
 
     def _update_sensor_state(self) -> None:
         """Update sensor state and attributes from coordinator data."""
@@ -135,14 +135,14 @@ class MerakiUplinkStatusSensor(
         self._attr_extra_state_attributes = {
             k: v for k, v in current_attributes.items() if v is not None
         }
-        _LOGGER.debug(
-            "Uplink Sensor Updated: %s, State: %s, WAN1: %s, WAN2: %s, PublicIP: %s",
-            self._attr_name,
-            self._attr_native_value,
-            current_attributes.get("wan1_ip"),
-            current_attributes.get("wan2_ip"),
-            current_attributes.get("public_ip"),
-        )
+        # _LOGGER.debug(
+        #     "Uplink Sensor Updated: %s, State: %s, WAN1: %s, WAN2: %s, PublicIP: %s",
+        #     self._attr_name,
+        #     self._attr_native_value,
+        #     current_attributes.get("wan1_ip"),
+        #     current_attributes.get("wan2_ip"),
+        #     current_attributes.get("public_ip"),
+        # ) # Removed
 
     @callback
     def _handle_coordinator_update(self) -> None:
