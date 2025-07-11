@@ -579,10 +579,10 @@ class MerakiApiDataFetcher:
                         f"No specific firmware upgrade info found for device {device_serial} in map. Using defaults."
                     )
                     # Defaults are: is_up_to_date_bool = False, latest_known_version = current_device_firmware or "N/A"
-                        if current_device_firmware:
-                            is_up_to_date_bool = True
+                    if current_device_firmware: # Correctly indented under the outer else
+                        is_up_to_date_bool = True
                         latest_known_version = current_device_firmware
-                        else:
+                    else: # Correctly indented under the outer else
                         is_up_to_date_bool = False
                         latest_known_version = "N/A"
 
