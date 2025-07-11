@@ -458,7 +458,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         )
         # _LOGGER.debug(
         #     "Organization device registration attempt complete for %s.", self.org_id
-        )
+        # ) # Corrected: Removed stray parenthesis here
 
     async def _async_shutdown(self) -> None:
         """Clean up resources when the coordinator is shut down.
