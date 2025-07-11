@@ -115,9 +115,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     unique_platforms = list(set(PLATFORMS))
-    _LOGGER.info("MERAKI_HA_DEBUG: Before forwarding platform setups for entry_id: %s. Unique PLATFORMS to forward: %s", entry.entry_id, unique_platforms)
-    platform_setup_success = await hass.config_entries.async_forward_entry_setups(entry, unique_platforms)
-    _LOGGER.info("MERAKI_HA_DEBUG: After forwarding platform setups for entry_id: %s. Success: %s", entry.entry_id, platform_setup_success)
+
+    platforms_to_load = []
+    loaded_components_for_entry = hass.config_entries.async_get_loaded_components(entry.entry_id)
+    for platform in unique_platforms:
+        component_name = f"{DOMAIN}.{platform}" # Changed from self.domain to DOMAIN
+        if component_name not in loaded_components_for_entry:
+            platforms_to_load.append(platform)
+        else:
+            _LOGGER.warning("MERAKI_HA_DEBUG: Platform %s (component %s) for entry %s already loaded/setup, skipping forward.", platform, component_name, entry.entry_id)
+
+    if not platforms_to_load:
+        _LOGGER.info("MERAKI_HA_DEBUG: All platforms %s already considered loaded for entry %s.", unique_platforms, entry.entry_id)
+        platform_setup_success = True
+    else:
+        _LOGGER.info("MERAKI_HA_DEBUG: Before forwarding platform setups for entry_id: %s. PLATFORMS to forward: %s", entry.entry_id, platforms_to_load)
+        platform_setup_success = await hass.config_entries.async_forward_entry_setups(entry, platforms_to_load)
+        _LOGGER.info("MERAKI_HA_DEBUG: After forwarding platform setups for entry_id: %s. Success: %s", entry.entry_id, platform_setup_success)
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
