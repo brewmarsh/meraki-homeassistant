@@ -404,12 +404,12 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 "Tag erasing is enabled for organization %s. Processing devices for tag removal.",
                 self.org_id,
             )
-    for device_to_check in devices:
+            for device_to_check in devices:
                 serial = device_to_check.get("serial")
                 if serial:
                     try:
-                await self.tag_eraser_coordinator.async_erase_device_tags(serial)
-            except MerakiApiError as e:
+                        await self.tag_eraser_coordinator.async_erase_device_tags(serial)
+                    except MerakiApiError as e:
                         _LOGGER.error(
                             "Failed to erase tags for device %s (org %s): %s",
                             serial,
