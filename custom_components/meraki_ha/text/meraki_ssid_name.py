@@ -4,8 +4,7 @@ from typing import Any, Dict, Optional
 
 from homeassistant.components.text import TextEntity, TextMode
 from homeassistant.config_entries import ConfigEntry # Required for type hinting in __init__
-from homeassistant.core import HomeAssistant, callback # Added HomeAssistant and callback
-from homeassistant.helpers.entity import EntityDescription
+from homeassistant.components.text import TextEntity, TextEntityDescription, TextMode
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
@@ -41,12 +40,12 @@ class MerakiSSIDNameText(CoordinatorEntity[SSIDDeviceCoordinator], TextEntity):
         self._ssid_number: Optional[Any] = ssid_data.get("number") # Can be int or str depending on source
 
         # EntityDescription can be used for name, icon etc.
-        self.entity_description = EntityDescription(
+        self.entity_description = TextEntityDescription(
             key=f"{self._ssid_unique_id}_ssid_name",
             name="SSID Name",
             icon="mdi:form-textbox",
-            native_min=1, # Attempting to add native_min to EntityDescription
-            native_max=32  # Attempting to add native_max to EntityDescription
+            native_min=1,
+            native_max=32
         )
 
         self._attr_unique_id = f"{self._ssid_unique_id}_name_text"
