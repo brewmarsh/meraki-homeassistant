@@ -123,7 +123,7 @@ Entities are dynamically created based on your Meraki setup.
 
 This project uses an automated versioning and release process triggered by merging Pull Requests (PRs) into the `main` branch.
 
-*   **Automatic Version Increment:** When a PR is merged, the version number in `custom_components/meraki-ha/manifest.json` and `package.json` is automatically incremented.
+*   **Automatic Version Increment:** When a PR is merged, the version number in `custom_components/meraki_ha/manifest.json` and `package.json` is automatically incremented.
 *   **Determining Increment Type:** The type of version increment (major, minor, or patch) is determined by the PR title:
     *   `[major]` in the PR title (e.g., `[major] Implement new dashboard feature`) will trigger a major version update (e.g., `1.2.3` -> `2.0.0`).
     *   `[minor]` in the PR title (e.g., `[minor] Add support for new sensor type`) will trigger a minor version update (e.g., `1.2.3` -> `1.3.0`).
