@@ -286,8 +286,5 @@ async def async_setup_entry(
         _LOGGER.warning("SSID coordinator (SSIDDeviceCoordinator) not available or has no data; skipping SSID sensors.")
 
     if entities:
-        _LOGGER.info("Meraki HA: Adding %d Meraki sensor entities.", len(entities))
         async_add_entities(entities)
-    else:
-        _LOGGER.info("Meraki HA: No Meraki sensor entities were added.")
     return True

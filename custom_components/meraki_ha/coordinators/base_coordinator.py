@@ -365,14 +365,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
         self.data = combined_data
 
-# _LOGGER.debug(
-#     "Meraki data update completed for org %s. Processed: %d devices, %d SSIDs, %d networks.",
-#     self.org_id,
-#     len(devices),
-#     len(ssids),
-#     len(networks),
-# ) # Reduced verbosity
-
         if self.erase_tags and self.tag_eraser_coordinator:
             _LOGGER.warning(
                 "Tag erasing is enabled for organization %s. Processing devices for tag removal.",

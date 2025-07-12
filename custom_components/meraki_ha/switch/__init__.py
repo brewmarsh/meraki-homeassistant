@@ -104,8 +104,5 @@ async def async_setup_entry(
 
     if new_entities:
         async_add_entities(new_entities)
-        _LOGGER.info("Added %d Meraki switch entities.", len(new_entities))
-    else:
-        _LOGGER.info("No Meraki switch entities were added.")
 
     return True

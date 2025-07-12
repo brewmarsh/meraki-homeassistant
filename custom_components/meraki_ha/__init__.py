@@ -88,9 +88,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         return False
 
     hass.data.setdefault(DOMAIN, {})
+    # Check if coordinators have already been set up for this entry
+    if "coordinators" in hass.data[DOMAIN].get(entry.entry_id, {}):
+        _LOGGER.debug(
+            "Coordinators already exist for entry %s, skipping setup.", entry.entry_id
+        )
+        return True
+
     hass.data[DOMAIN][entry.entry_id] = {
         DATA_CLIENT: meraki_client_instance,
-        "coordinator": main_coordinator, # Legacy key
+        "coordinator": main_coordinator,  # Legacy key
         "coordinators": {
             "main": main_coordinator,
         },
@@ -116,15 +123,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     unique_platforms = list(set(PLATFORMS))
 
-    _LOGGER.info("MERAKI_HA_DEBUG: Before forwarding platform setups for entry_id: %s. Unique PLATFORMS to forward: %s", entry.entry_id, unique_platforms)
-    platform_setup_success = await hass.config_entries.async_forward_entry_setups(entry, unique_platforms)
-    _LOGGER.info("MERAKI_HA_DEBUG: After forwarding platform setups for entry_id: %s. Success: %s", entry.entry_id, platform_setup_success)
+    await hass.config_entries.async_forward_entry_setups(entry, unique_platforms)
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
-
-    if not platform_setup_success:
-        _LOGGER.error("One or more Meraki platforms failed to set up for entry %s. Integration setup failed.", entry.entry_id)
-        return False
 
     _LOGGER.debug(
         "Completed async_setup_entry for Meraki integration (entry_id: %s) successfully, all platforms loaded.",
