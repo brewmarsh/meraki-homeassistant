@@ -44,9 +44,10 @@ class MerakiSSIDNameText(CoordinatorEntity[SSIDDeviceCoordinator], TextEntity):
         self.entity_description = EntityDescription(
             key=f"{self._ssid_unique_id}_ssid_name",
             name="SSID Name",
-            icon="mdi:form-textbox"
+            icon="mdi:form-textbox",
+            native_min=1, # Attempting to add native_min to EntityDescription
+            native_max=32  # Attempting to add native_max to EntityDescription
         )
-        # Removed self._attr_native_min_length and self._attr_native_max_length
 
         self._attr_unique_id = f"{self._ssid_unique_id}_name_text"
         # The name will be derived from device name + entity_description.name if _attr_has_entity_name = True
@@ -137,12 +138,12 @@ class MerakiSSIDNameText(CoordinatorEntity[SSIDDeviceCoordinator], TextEntity):
             # Optionally, force a refresh to revert optimistic update if API call failed
             # await self.coordinator.async_request_refresh()
 
-    @property
-    def native_min_length(self) -> int:
-        """Return the minimum number of characters."""
-        return 1
+    # @property
+    # def native_min_length(self) -> int:
+    #     """Return the minimum number of characters."""
+    #     return 1
 
-    @property
-    def native_max_length(self) -> int:
-        """Return the maximum number of characters."""
-        return 32
+    # @property
+    # def native_max_length(self) -> int:
+    #     """Return the maximum number of characters."""
+    #     return 32
