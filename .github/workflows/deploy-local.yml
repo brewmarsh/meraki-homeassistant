@@ -1,0 +1,68 @@
+name: Deploy Latest Code to Local Folder on Windows
+
+# This workflow will run on 'push' events to the specified branch.
+# A 'push' event occurs when someone updates the branch remotely.
+on:
+  push:
+    branches:
+      - main # IMPORTANT: Change 'main' to the name of your primary branch (e.g., master, develop)
+      # You can add more branches to monitor, e.g.:
+      # - develop
+      # - feature/* # To trigger on any branch starting with 'feature/'
+
+jobs:
+  deploy-to-windows-folder:
+    # Specifies that this job should run on a self-hosted runner.
+    # Ensure your Windows self-hosted runner is online and configured.
+    runs-on: self-hosted
+
+    # Define environment variables that will be available to the steps in this job.
+    env:
+      # DESTINATION_PATH: This is the absolute path on your Windows machine
+      # where you want the latest code to be copied.
+      # IMPORTANT: Replace 'D:\Deployment\my-app' with your actual desired path.
+      DESTINATION_PATH: 'D:\Deployment\my-app'
+
+    steps:
+      - name: Checkout repository
+        # The 'actions/checkout' action checks out your repository code
+        # into the runner's workspace directory (e.g., C:\actions-runner\_work\<repo-name>\<repo-name>).
+        uses: actions/checkout@v3
+
+      - name: Copy files to destination folder
+        # 'shell: pwsh' specifies that the following 'run' commands should be executed using PowerShell Core.
+        # If you only have Windows PowerShell, you can use 'shell: powershell'.
+        shell: pwsh
+        run: |
+          # GITHUB_WORKSPACE is an environment variable automatically provided by GitHub Actions.
+          # It points to the root directory where your repository's code has been checked out.
+          $SourcePath = $env:GITHUB_WORKSPACE
+
+          # Retrieve the destination path from the environment variable defined above.
+          $DestinationPath = $env:DESTINATION_PATH
+
+          Write-Host "Starting deployment..."
+          Write-Host "Source path: $SourcePath"
+          Write-Host "Destination path: $DestinationPath"
+
+          # Check if the destination directory exists. If not, create it.
+          if (-not (Test-Path -Path $DestinationPath)) {
+              Write-Host "Destination directory does not exist. Creating: $DestinationPath"
+              New-Item -Path $DestinationPath -ItemType Directory -Force
+          } else {
+              Write-Host "Destination directory already exists: $DestinationPath"
+              # OPTIONAL: Uncomment the following lines if you want to clear
+              # the destination folder before copying new files.
+              # This ensures a clean deployment and removes old files.
+              # Write-Host "Clearing existing content in $DestinationPath..."
+              # Remove-Item -Path (Join-Path -Path $DestinationPath -ChildPath "*") -Recurse -Force -ErrorAction SilentlyContinue
+              # Write-Host "Existing content cleared."
+          }
+
+          # Copy all files and subdirectories from the source to the destination.
+          # -Recurse ensures subdirectories and their contents are copied.
+          # -Force overwrites existing files without prompting.
+          Copy-Item -Path (Join-Path -Path $SourcePath -ChildPath "*") -Destination $DestinationPath -Recurse -Force
+
+          Write-Host "Successfully copied latest code to $DestinationPath."
+          Write-Host "Deployment complete."
