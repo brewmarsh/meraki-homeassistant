@@ -237,8 +237,74 @@ async def test_async_setup_entry_switches(
     assert entities_added[3].unique_id == f"{MOCK_SSID_UNIQUE_ID_2}_broadcast_switch"
 
 
-# TODO: Add similar test for MerakiSSIDBroadcastSwitch
-# TODO: Add test for when coordinator has no data during setup
-# TODO: Add test for entity name updates if SSID name changes in coordinator
-# TODO: Test _update_internal_state more directly, especially missing data scenarios
-# TODO: Test error handling in API calls within turn_on/turn_off
+async def test_async_setup_entry_no_coordinator_data(
+    hass: HomeAssistant,
+    mock_meraki_client: MagicMock,
+    mock_ssid_coordinator: MagicMock,
+    mock_config_entry: MagicMock,
+):
+    """Test async_setup_entry when the coordinator has no data."""
+    mock_ssid_coordinator.data = {}  # No SSIDs in coordinator data
+    hass.data = {
+        DOMAIN: {
+            mock_config_entry.entry_id: {
+                "coordinators": {"ssid_devices": mock_ssid_coordinator},
+                DATA_CLIENT: mock_meraki_client,
+            }
+        }
+    }
+
+    async_add_entities_mock = AsyncMock()
+
+    await async_setup_entry(hass, mock_config_entry, async_add_entities_mock)
+
+    async_add_entities_mock.assert_not_called()
+
+
+async def test_entity_name_update(
+    hass: HomeAssistant,
+    mock_meraki_client: MagicMock,
+    mock_ssid_coordinator: MagicMock,
+    mock_config_entry: MagicMock,
+):
+    """Test that the entity name updates when the SSID name changes."""
+    switch = MerakiSSIDEnabledSwitch(
+        coordinator=mock_ssid_coordinator,
+        meraki_client=mock_meraki_client,
+        config_entry=mock_config_entry,
+        ssid_unique_id=MOCK_SSID_UNIQUE_ID_1,
+        ssid_data=MOCK_SSID_DATA_1_ENABLED,
+    )
+    switch.hass = hass
+    switch._handle_coordinator_update()
+    assert switch.name == "Test SSID 1 Enabled Control"
+
+    updated_ssid_data = MOCK_SSID_DATA_1_ENABLED.copy()
+    updated_ssid_data["name"] = "New SSID Name"
+    mock_ssid_coordinator.data[MOCK_SSID_UNIQUE_ID_1] = updated_ssid_data
+    switch._handle_coordinator_update()
+    assert switch.name == "New SSID Name Enabled Control"
+
+
+async def test_api_error_handling(
+    hass: HomeAssistant,
+    mock_meraki_client: MagicMock,
+    mock_ssid_coordinator: MagicMock,
+    mock_config_entry: MagicMock,
+):
+    """Test that API errors are handled gracefully."""
+    mock_meraki_client.wireless.updateNetworkWirelessSsid.side_effect = Exception(
+        "API Error"
+    )
+    switch = MerakiSSIDEnabledSwitch(
+        coordinator=mock_ssid_coordinator,
+        meraki_client=mock_meraki_client,
+        config_entry=mock_config_entry,
+        ssid_unique_id=MOCK_SSID_UNIQUE_ID_1,
+        ssid_data=MOCK_SSID_DATA_1_ENABLED,
+    )
+    switch.hass = hass
+    switch._handle_coordinator_update()
+    await switch.async_turn_off()
+    mock_meraki_client.wireless.updateNetworkWirelessSsid.assert_called_once()
+    mock_ssid_coordinator.async_request_refresh.assert_called_once()

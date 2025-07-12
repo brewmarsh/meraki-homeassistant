@@ -6,6 +6,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from custom_components.meraki_ha.sensor.org_device_type_clients import MerakiOrgDeviceTypeClientsSensor
 from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki_ha.coordinators import MerakiDataUpdateCoordinator
 
 ORGANIZATION_ID = "test_org_id"
 ORGANIZATION_NAME = "Test Organization"
@@ -13,35 +14,27 @@ ORGANIZATION_NAME = "Test Organization"
 @pytest.fixture
 def mock_coordinator():
     """Fixture for a mock MerakiDataUpdateCoordinator."""
-    coordinator = MagicMock(spec=DataUpdateCoordinator)
+    coordinator = MagicMock(spec=MerakiDataUpdateCoordinator)
     coordinator.data = {
         "clients_on_ssids": 10,
         "clients_on_appliances": 5,
         "clients_on_wireless": 12,
-        # Other data that might be in the coordinator
         "organization_info": {"name": ORGANIZATION_NAME}
     }
-    # Mock the meraki_client and its org_id as it's used in sensor setup
-    coordinator.meraki_client = MagicMock()
-    coordinator.meraki_client.org_id = ORGANIZATION_ID
-    # Mock org_name on the client as well, as sensor/__init__.py might try to access it
-    coordinator.meraki_client.org_name = ORGANIZATION_NAME
+    coordinator.org_id = ORGANIZATION_ID
+    coordinator.org_name = ORGANIZATION_NAME
     return coordinator
 
 async def test_sensor_creation_and_initial_state(
-    hass: HomeAssistant, mock_coordinator: MagicMock
+    mock_coordinator: MagicMock
 ):
     """Test sensor creation and its initial state based on coordinator data."""
 
     sensor = MerakiOrgDeviceTypeClientsSensor(
         coordinator=mock_coordinator,
         organization_id=ORGANIZATION_ID,
-        organization_name=ORGANIZATION_NAME # Name passed during init
+        organization_name=ORGANIZATION_NAME
     )
-
-    # Initial state update happens in __init__ via _update_sensor_state()
-    # For CoordinatorEntity, the first update is often triggered by _handle_coordinator_update
-    # or by the coordinator itself. Let's assume _update_sensor_state was called.
 
     assert sensor.unique_id == f"meraki_org_{ORGANIZATION_ID}_client_types"
     assert sensor.name == f"{ORGANIZATION_NAME} Client Types"
@@ -73,7 +66,7 @@ async def test_sensor_creation_and_initial_state(
 
 
 async def test_sensor_state_update_from_coordinator(
-    hass: HomeAssistant, mock_coordinator: MagicMock
+    mock_coordinator: MagicMock
 ):
     """Test sensor state updates when coordinator data changes."""
     sensor = MerakiOrgDeviceTypeClientsSensor(
@@ -110,12 +103,11 @@ async def test_sensor_state_update_from_coordinator(
 
 
 async def test_sensor_missing_data_in_coordinator(
-    hass: HomeAssistant, mock_coordinator: MagicMock
+    mock_coordinator: MagicMock
 ):
     """Test sensor behavior when specific data is missing from coordinator."""
     mock_coordinator.data = {
         "organization_info": {"name": ORGANIZATION_NAME}
-        # Missing: "clients_on_ssids", "clients_on_appliances", "clients_on_wireless"
     }
 
     sensor = MerakiOrgDeviceTypeClientsSensor(
@@ -124,9 +116,7 @@ async def test_sensor_missing_data_in_coordinator(
         organization_name=ORGANIZATION_NAME
     )
 
-    # _update_sensor_state is called in __init__
-
-    assert sensor.native_value == 0 # Should default to 0
+    assert sensor.native_value == 0
     expected_attributes_missing = {
         "organization_id": ORGANIZATION_ID,
         "clients_on_ssids": 0,
@@ -136,7 +126,7 @@ async def test_sensor_missing_data_in_coordinator(
     assert sensor.extra_state_attributes == expected_attributes_missing
 
 async def test_sensor_coordinator_data_is_none(
-    hass: HomeAssistant, mock_coordinator: MagicMock
+    mock_coordinator: MagicMock
 ):
     """Test sensor behavior when coordinator.data is None."""
     mock_coordinator.data = None
@@ -147,9 +137,7 @@ async def test_sensor_coordinator_data_is_none(
         organization_name=ORGANIZATION_NAME
     )
 
-    # _update_sensor_state is called in __init__
-
-    assert sensor.native_value == 0 # Should default to 0
+    assert sensor.native_value == 0
     expected_attributes_none = {
         "organization_id": ORGANIZATION_ID,
         "clients_on_ssids": 0,

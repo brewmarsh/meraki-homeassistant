@@ -22,18 +22,15 @@ TEST_NETWORK_NAME = "My Test Network"
 
 
 @pytest.fixture
-def mock_coordinator(hass: HomeAssistant, mock_api_client: MagicMock): # Add hass and typed mock_api_client
+def mock_coordinator(hass: HomeAssistant, mock_api_client: MagicMock):
     """Fixture for a mock MerakiDataUpdateCoordinator."""
-    # Spec with the actual coordinator class used by the sensor
     coordinator = MagicMock(spec=MerakiDataUpdateCoordinator)
-    # Initialize common attributes HA might expect or the entity might use
     coordinator.hass = hass
-    coordinator.data = {} # Default to empty data
-    coordinator.meraki_client = mock_api_client # Attach mocked API client if coordinator uses it
+    coordinator.data = {}
+    coordinator.meraki_client = mock_api_client
     coordinator.last_update_success = True
     coordinator.async_request_refresh = AsyncMock()
-    # Ensure listeners attribute exists, as DataUpdateCoordinator has it
-    coordinator._listeners = {} # Simplified mock for listeners
+    coordinator._listeners = {}
     return coordinator
 
 @pytest.fixture

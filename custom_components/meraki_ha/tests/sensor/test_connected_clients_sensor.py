@@ -9,12 +9,9 @@ from custom_components.meraki_ha.sensor.connected_clients import MerakiDeviceCon
 from custom_components.meraki_ha.coordinators.base_coordinator import MerakiDataUpdateCoordinator # For coordinator type
 from custom_components.meraki_ha.const import DOMAIN
 
-MOCK_HASS = MagicMock(spec=HomeAssistant)
-
 class TestMerakiDeviceConnectedClientsSensor(unittest.TestCase):
 
     def setUp(self):
-        self.hass = MOCK_HASS
         self.mock_coordinator = MagicMock(spec=MerakiDataUpdateCoordinator)
 
         self.device_serial = "QCLIENT-TEST-0001"
@@ -36,7 +33,6 @@ class TestMerakiDeviceConnectedClientsSensor(unittest.TestCase):
             coordinator=self.mock_coordinator,
             device_data=self.initial_device_data_from_setup
         )
-        self.sensor.hass = self.hass
         self.sensor.async_write_ha_state = MagicMock()
 
         self.patcher_logger = patch('custom_components.meraki_ha.sensor.connected_clients._LOGGER', new_callable=MagicMock)

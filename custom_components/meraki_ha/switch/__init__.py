@@ -28,8 +28,6 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki switch entities from a config entry."""
-    _LOGGER.info("Setting up Meraki switch platform for entry %s", config_entry.entry_id)
-
     try:
         entry_data = hass.data[DOMAIN][config_entry.entry_id]
         meraki_client: MerakiAPIClient = entry_data[DATA_CLIENT]
@@ -60,7 +58,6 @@ async def async_setup_entry(
     if main_coordinator and main_coordinator.data and "devices" in main_coordinator.data:
         for device_info in main_coordinator.data["devices"]:
             if not isinstance(device_info, dict):
-                _LOGGER.warning("Skipping non-dictionary device_info in main_coordinator data for camera switches.")
                 continue
 
             serial = device_info.get("serial")
@@ -85,7 +82,6 @@ async def async_setup_entry(
         # _LOGGER.debug("SSID Coordinator data available, setting up SSID switches. %s SSIDs found.", len(ssid_coordinator.data)) # Removed
         for ssid_unique_id, ssid_data in ssid_coordinator.data.items():
             if not isinstance(ssid_data, dict):
-                _LOGGER.warning("Skipping non-dictionary ssid_data for SSID unique_id %s", ssid_unique_id)
                 continue
 
             # _LOGGER.debug("Setting up switches for SSID: %s (Data: %s)", ssid_data.get('name', ssid_unique_id), ssid_data) # Removed

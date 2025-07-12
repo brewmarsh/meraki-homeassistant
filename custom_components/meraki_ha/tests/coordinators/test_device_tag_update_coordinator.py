@@ -40,7 +40,6 @@ class TestDeviceTagUpdateCoordinator(unittest.IsolatedAsyncioTestCase):
 
         self.coordinator = DeviceTagUpdateCoordinator(
             hass=self.hass,
-            api_key=SAMPLE_API_KEY, # Though not directly used by coordinator anymore, it's in signature
             scan_interval=timedelta(seconds=600),
             org_id=SAMPLE_ORG_ID,
             main_coordinator=self.mock_main_coordinator

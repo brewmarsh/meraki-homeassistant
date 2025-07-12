@@ -71,7 +71,6 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
     *   **Organization ID:** Enter the ID of the Meraki organization you want to integrate.
     *   **Scan Interval (seconds):** Define how often (in seconds) Home Assistant should fetch data from the Meraki API. The default is 60 seconds. Adjust this based on the size of your network and the number of devices to avoid exceeding Meraki API rate limits. Shorter intervals provide more real-time data but increase API load.
     *   **Device Name Format:** (Optional) Choose how device names from Meraki should be formatted in Home Assistant (e.g., with a type prefix like "[Wireless] AP Name", a suffix, or omitted).
-    *   **Relaxed Tag Matching:** (Optional) Enable if you want SSIDs to be associated with access points if *any* of the SSID's tags match any of the AP's tags. If disabled (strict mode), *all* of an SSID's tags must be present on an AP for association.
 
 Once configured, the integration will start discovering your Meraki devices and creating corresponding entities in Home Assistant.
 
@@ -110,8 +109,8 @@ Entities are dynamically created based on your Meraki setup.
     *   **SSID Availability:** Administrative status (Enabled/Disabled) of an SSID, represented as ON/OFF.
     *   **SSID Channel:** Current operational channel for an SSID (derived data, may not be available for all SSIDs).
     *   **SSID Client Count:** Number of clients connected to a specific SSID.
-    *   *(Future)* Sensor values for MT series environmental sensors.
-    *   *(Future)* More detailed appliance/switch port statistics.
+    *   Sensor values for MT series environmental sensors.
+    *   More detailed appliance/switch port statistics.
 
 *   **Switch Entities:**
     *   **SSID Enabled Control:** Allows enabling or disabling an SSID.
@@ -176,7 +175,8 @@ Please ensure your PR titles are descriptive and include the appropriate prefix 
 
 ##   Dependencies
 
-*   `aiohttp`: For asynchronous HTTP requests to the Meraki API.
+*   `meraki`: The official Meraki SDK for Python, used for all API interactions.
+*   `aiohttp`: Used by the Meraki SDK for asynchronous HTTP requests.
 
 ##   Known Issues
 

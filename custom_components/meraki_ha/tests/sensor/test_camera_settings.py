@@ -78,33 +78,18 @@ def mock_coordinator(hass: HomeAssistant): # Add hass for coordinator if it need
     # Set scan_interval if its absence causes issues, though not directly used by these sensor tests' logic
     coordinator.scan_interval = timedelta(seconds=30) # Example
     coordinator.data = {"devices": [MOCK_DEVICE_SENSE_ON_AUDIO_ON]} # Default to sense on, audio on
-    # coordinator.async_update_listeners = MagicMock() # Already part of DataUpdateCoordinator
-    # coordinator.async_add_listener = MagicMock() # Already part of DataUpdateCoordinator
     coordinator.last_update_success = True
     return coordinator
-
-
-@pytest.fixture
-def mock_meraki_api_client():
-    """Fixture for a mock MerakiAPIClient."""
-    client = MagicMock()
-    # The mock_meraki_api_client is not directly used by sensors, but by the coordinator.
-    # It's here if we were testing the coordinator's interaction with it.
-    # For sensor tests, we primarily care about the data *already in* the coordinator.
-    client = MagicMock(spec=AsyncMock)
-    return client
 
 
 async def setup_sensor_entity(
     hass: HomeAssistant, coordinator: MerakiDataUpdateCoordinator, sensor_class, device_info: dict
 ):
     """Helper to setup a sensor entity."""
-    sensor = sensor_class(coordinator, device_info) # device_info is the specific dict for this device
+    sensor = sensor_class(coordinator, device_info)
     sensor.hass = hass
     sensor.entity_id = f"sensor.test_{sensor.unique_id.lower()}"
 
-    # Simulate entity being added to HA for full lifecycle, if necessary for some tests
-    # await sensor.async_added_to_hass()
     return sensor
 
 
@@ -292,14 +277,4 @@ async def test_audio_sensor_availability_and_malformed_data(hass: HomeAssistant,
     assert sensor_malformed_inner.native_value is None
     assert sensor_malformed_inner.icon == "mdi:microphone-question"
 
-# The note about future tests can be removed or updated as the tests now reflect
-# that the sensor reads from enriched coordinator data.
-# The `mock_meraki_api_client` is not strictly needed for *these specific sensor tests*
-# because we are directly manipulating `mock_coordinator.data`.
-# It would be used if we were testing the coordinator's own `_async_update_data` method
-# where it calls `get_camera_sense_settings`.
-# The `test_sensor_api_error_scenario` would also apply to how the *coordinator* handles API errors,
-# and how that reflects in `coordinator.last_update_success` or `coordinator.data`, which then
-# affects sensor availability. The current availability tests cover `last_update_success = False`
-# and missing data in the coordinator.
-from datetime import timedelta, datetime # Add datetime to imports
+from datetime import timedelta, datetime
