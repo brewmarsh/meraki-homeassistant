@@ -135,6 +135,7 @@ class MerakiSSIDNameText(CoordinatorEntity[SSIDDeviceCoordinator], TextEntity):
                 value,
                 e,
             )
+            raise HomeAssistantError(f"Failed to set SSID name to '{value}': {e}") from e
             # Optionally, force a refresh to revert optimistic update if API call failed
             # await self.coordinator.async_request_refresh()
 

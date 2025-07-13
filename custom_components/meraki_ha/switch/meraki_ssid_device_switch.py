@@ -131,6 +131,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[SSIDDeviceCoordinator], SwitchEntit
             _LOGGER.error(
                 f"Failed to update SSID {self.name} ({self._attribute_to_check} to {value}): {e}"
             )
+            raise HomeAssistantError(f"Failed to update SSID {self.name}: {e}") from e
             # If the API call fails, an error is logged. The state in HA might become stale
             # until the next successful coordinator refresh. Consider if immediate refresh
             # or error state handling is needed here.

@@ -143,6 +143,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         self.data: Dict[str, Any] = {}
         self.org_name: Optional[str] = None  # Initialize org_name
         self.formatted_org_display_name: Optional[str] = None
+        self._is_available = True
 
     @property
     def device_name_format(self) -> str:
@@ -176,20 +177,24 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 # device_name_format are no longer needed here.
             )
         except MerakiApiError as e:  # Specific API errors from the fetcher.
-            _LOGGER.error(
-                "API error during Meraki data fetch for org %s: %s", self.org_id, e
-            )
+            if self._is_available:
+                _LOGGER.error(
+                    "API error during Meraki data fetch for org %s: %s", self.org_id, e
+                )
+                self._is_available = False
             raise UpdateFailed(
                 f"Failed to fetch data from Meraki API for org {self.org_id}: {e}"
             ) from e
         except (
             Exception
         ) as e:  # Catch any other unexpected errors during the main fetch.
-            _LOGGER.exception(
-                "Unexpected error during Meraki data fetch for org %s: %s",
-                self.org_id,
-                e,
-            )
+            if self._is_available:
+                _LOGGER.exception(
+                    "Unexpected error during Meraki data fetch for org %s: %s",
+                    self.org_id,
+                    e,
+                )
+                self._is_available = False
             raise UpdateFailed(
                 f"Unexpected error fetching data for org {self.org_id}: {e}"
             ) from e
@@ -297,6 +302,10 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         clients_on_ssids = all_data.get("clients_on_ssids", 0)
         clients_on_appliances = all_data.get("clients_on_appliances", 0)
         clients_on_wireless = all_data.get("clients_on_wireless", 0)
+
+        if not self._is_available:
+            _LOGGER.info("Connection to Meraki API restored for org %s", self.org_id)
+            self._is_available = True
 
         # Step 4: Aggregate all data using the DataAggregationCoordinator.
         # This coordinator takes the raw lists of devices, SSIDs, and networks.

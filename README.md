@@ -74,6 +74,13 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
 
 Once configured, the integration will start discovering your Meraki devices and creating corresponding entities in Home Assistant.
 
+##   Removal
+
+1.  Navigate to **Settings** > **Devices & Services** in your Home Assistant UI.
+2.  Find the Meraki integration and click the three dots.
+3.  Select **Delete**.
+4.  If you also want to remove the integration from HACS, go to the HACS page, find the Meraki integration, and select **Remove**.
+
 ##   Obtaining a Meraki API Key and Organization ID
 
 1.  **Log in to the Meraki Dashboard:** Go to [https://dashboard.meraki.com/](https://dashboard.meraki.com/).
