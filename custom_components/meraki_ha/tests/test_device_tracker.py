@@ -5,12 +5,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from homeassistant.components.device_tracker import SourceType
 from homeassistant.config_entries import ConfigEntry
-
-# STATE_HOME, STATE_NOT_HOME removed F401
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
-)  # UpdateFailed removed F401
+)
 
 from custom_components.meraki_ha.const import DATA_COORDINATOR, DOMAIN
 from custom_components.meraki_ha.device_tracker import (
@@ -184,14 +182,6 @@ def test_meraki_device_tracker_properties_connected_to_ap(
     device_info = tracker.device_info
     assert device_info is not None
     assert device_info["identifiers"] == {(DOMAIN, MOCK_CLIENT_1["ap_serial"])}
-    # The actual device_info in code only provides identifiers.
-    # Name, model, manufacturer for the parent device are not set by MerakiDeviceTracker itself.
-    # These would be inherited if MerakiDeviceTracker subclassed MerakiEntity, or if the
-    # parent device (AP/Network) was registered separately with these details by another part
-    # of the integration, and HA links them. The test was over-asserting.
-    # assert device_info["name"] == f"Meraki Client on {MOCK_CLIENT_1['ap_serial']}" # This is not set by current code
-    # assert device_info["model"] == "Client Device" # This is not set
-    # assert device_info["manufacturer"] == MOCK_CLIENT_1["manufacturer"] # This is not set
 
 
 def test_meraki_device_tracker_properties_connected_to_network(
@@ -211,11 +201,6 @@ def test_meraki_device_tracker_properties_connected_to_network(
     assert device_info is not None
     # Linked to networkId as ap_serial is missing
     assert device_info["identifiers"] == {(DOMAIN, MOCK_CLIENT_2["networkId"])}
-    # Similar to above, name, model, manufacturer for the parent (Network in this case)
-    # are not set by MerakiDeviceTracker's device_info property.
-    # assert device_info["name"] == f"Meraki Client on {MOCK_CLIENT_2['networkId']}"
-    # assert device_info["model"] == "Client Device"
-    # assert device_info["manufacturer"] == MOCK_CLIENT_2["manufacturer"]
 
 
 def test_meraki_device_tracker_properties_disconnected(
@@ -253,12 +238,6 @@ def test_meraki_device_tracker_name_fallback(
     # 'ip' is not in client_no_desc_no_ip
     mock_coordinator.data = {"clients": [client_no_desc_no_ip]}
     tracker_mac = MerakiDeviceTracker(mock_coordinator, client_no_desc_no_ip)
-    # Based on current implementation, name attribute is set in init.
-    # If description and IP are None, _attr_name will be None.
-    # Home Assistant might then use entity_id or device name.
-    # For this test, we check it's None as per current code.
-    # Or it could be the MAC address if we want to implement that fallback for
-    # _attr_name
     assert tracker_mac.name is None
 
 
@@ -282,8 +261,6 @@ async def test_coordinator_updates_client_disconnects(
     # Manually call the update handler (as the actual coordinator update is
     # mocked)
     tracker._handle_coordinator_update()
-    # await hass.async_block_till_done() # Not strictly necessary here as we
-    # call directly
 
     assert tracker.is_connected is False
     assert tracker.icon == "mdi:lan-disconnect"
@@ -336,10 +313,7 @@ async def test_coordinator_updates_client_info_changes(
 
     tracker._handle_coordinator_update()
 
-    # Name is set at __init__ and not updated by _handle_coordinator_update by default.
-    # This is standard HA behavior for `name` unless explicitly coded.
-    # The test confirms _client_info_data IS updated.
-    assert tracker.name == MOCK_CLIENT_1["description"]  # Name remains initial
+    assert tracker.name == MOCK_CLIENT_1["description"]
     assert tracker._client_info_data["description"] == "Client One Updated"
     assert tracker._client_info_data["ip"] == "192.168.1.201"
     assert tracker.is_connected is True  # Still connected
@@ -370,21 +344,10 @@ async def test_entity_added_to_platform_and_coordinator(
         # Simulate Home Assistant adding the entity to the platform
         await tracker.async_added_to_hass()
 
-        # Check that it called the original async_added_to_hass (which calls
-        # super)
         mock_added_to_hass.assert_called_once()
 
-        # Check that it registered itself with the coordinator
-        # This is implicitly tested by _handle_coordinator_update being callable
-        # and the fact that CoordinatorEntity.__init__ sets this up.
-        # We can also check if add_listener was called on coordinator by CoordinatorEntity.
-        # The CoordinatorEntity's async_added_to_hass calls self.coordinator.async_add_listener(self._handle_coordinator_update)
-        # So, if our mock_coordinator.async_add_listener was called, it means
-        # setup is correct.
         mock_coordinator.async_add_listener.assert_called_with(
             tracker._handle_coordinator_update
         )
 
-        # Also, the initial state should be set by calling
-        # _handle_coordinator_update
-        mock_handle_update.assert_called_once()  # Called during __init__
+        mock_handle_update.assert_called_once()

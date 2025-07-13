@@ -16,13 +16,11 @@ import unittest
 
 MOCK_HASS = MagicMock(spec=HomeAssistant)
 MOCK_CONFIG_ENTRY_ID = "test_config_entry_id"
-MOCK_CONFIG_UNIQUE_ID = "meraki_org_unique_id"
 
 # Mock Config Entry with options
 MOCK_CONFIG_ENTRY = MagicMock(spec=ConfigEntry)
 MOCK_CONFIG_ENTRY.entry_id = MOCK_CONFIG_ENTRY_ID
-MOCK_CONFIG_ENTRY.unique_id = MOCK_CONFIG_UNIQUE_ID
-MOCK_CONFIG_ENTRY.options = {"device_name_format": "omitted"} # Example option
+MOCK_CONFIG_ENTRY.options = {"device_name_format": "omitted"}
 
 
 class TestSSIDDeviceCoordinator(unittest.IsolatedAsyncioTestCase):
@@ -70,7 +68,6 @@ class TestSSIDDeviceCoordinator(unittest.IsolatedAsyncioTestCase):
         """Test coordinator initializes correctly."""
         self.assertEqual(self.coordinator.config_entry, self.config_entry)
         self.assertEqual(self.coordinator.api_data_fetcher, self.mock_api_data_fetcher)
-        self.assertTrue(f"{DOMAIN} SSIDs ({MOCK_CONFIG_UNIQUE_ID})" in self.coordinator.name)
 
     async def test_async_update_data_no_fetcher_data(self):
         """Test update when api_data_fetcher has no data or failed."""
@@ -159,6 +156,32 @@ class TestSSIDDeviceCoordinator(unittest.IsolatedAsyncioTestCase):
         self.mock_meraki_client.wireless.getNetworkWirelessSsid.assert_not_called()
         self.mock_meraki_client.networks.getNetworkClients.assert_not_called()
         self.mock_device_registry_instance.async_get_or_create.assert_not_called()
+
+    async def test_device_name_formatting(self):
+        """Test that the device name is formatted correctly based on the device_name_format option."""
+        ssid_info = {"networkId": "N_4", "number": 0, "name": "Formatting Test", "enabled": True}
+        self.mock_api_data_fetcher.last_update_success = True
+        self.mock_api_data_fetcher.data = {"ssids": [ssid_info]}
+        self.mock_meraki_client.wireless.getNetworkWirelessSsid = AsyncMock(return_value=ssid_info)
+        self.mock_meraki_client.networks.getNetworkClients = AsyncMock(return_value=[])
+
+        # Test with prefix
+        self.coordinator.config_entry.options = {"device_name_format": "prefix"}
+        await self.coordinator._async_update_data()
+        args, kwargs = self.mock_device_registry_instance.async_get_or_create.call_args
+        self.assertEqual(kwargs["name"], "[SSID] Formatting Test")
+
+        # Test with suffix
+        self.coordinator.config_entry.options = {"device_name_format": "suffix"}
+        await self.coordinator._async_update_data()
+        args, kwargs = self.mock_device_registry_instance.async_get_or_create.call_args
+        self.assertEqual(kwargs["name"], "Formatting Test [SSID]")
+
+        # Test with omitted
+        self.coordinator.config_entry.options = {"device_name_format": "omitted"}
+        await self.coordinator._async_update_data()
+        args, kwargs = self.mock_device_registry_instance.async_get_or_create.call_args
+        self.assertEqual(kwargs["name"], "Formatting Test")
 
 
 if __name__ == '__main__':

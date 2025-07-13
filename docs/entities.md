@@ -9,11 +9,11 @@ The integration represents different aspects of your Meraki setup as devices wit
 *   **Physical Meraki Devices:** Your actual hardware (APs, switches, security appliances, cameras, environmental sensors) are registered as devices. Entities related to a specific piece of hardware (e.g., its status, IP address, connected clients for an AP) are linked to these devices.
 *   **Meraki Networks:** Each Meraki network defined in your dashboard is also registered as a "device" in Home Assistant. This allows for grouping; physical devices belonging to a network are often parented by their respective Meraki Network device in Home Assistant. Some network-wide sensors may also be linked here.
 *   **Meraki SSIDs:** Wireless SSIDs are registered as "devices," typically parented by their Meraki Network device. Entities specific to an SSID (e.g., its availability, client count, control switches) are linked to these SSID devices.
-*   **Meraki Organization (New):** A single device entry is created to represent the Meraki Organization itself. This device acts as a parent for organization-wide sensors.
+*   **Meraki Organization:** A single device entry is created to represent the Meraki Organization itself. This device acts as a parent for organization-wide sensors.
 
 ## Organization Device
 
-A new conceptual device representing your entire Meraki Organization is now created.
+A conceptual device representing your entire Meraki Organization is created.
 
 *   **Naming:** The name of this device is based on the Organization Name fetched from the Meraki Dashboard.
     *   It can be prefixed (e.g., `[Org] Your Org Name`) or suffixed (e.g., `Your Org Name [Org]`) based on the "Device Name Format" option chosen during integration setup or in the options flow. If the format is "omitted", the raw organization name is used.

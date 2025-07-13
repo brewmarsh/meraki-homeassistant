@@ -14,18 +14,14 @@ from custom_components.meraki_ha.sensor.meraki_wan1_connectivity import (
     STATE_UNKNOWN,
 )
 
-# Automatically patch the MerakiAPIClient for all tests in this module
-pytestmark = pytest.mark.usefixtures("mock_meraki_client")
-
-
 @pytest.fixture
-def mock_coordinator(hass: HomeAssistant, mock_meraki_client_instance):
+def mock_coordinator(hass: HomeAssistant):
     """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MerakiDataUpdateCoordinator(
-        hass, client=mock_meraki_client_instance, org_id="test_org_id"
+        hass, client=MagicMock(), org_id="test_org_id"
     )
-    coordinator.data = {"devices": []}  # Initial empty data
-    coordinator.async_update_listeners = MagicMock()  # Mock listeners
+    coordinator.data = {"devices": []}
+    coordinator.async_update_listeners = MagicMock()
     return coordinator
 
 

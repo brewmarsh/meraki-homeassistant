@@ -9,12 +9,9 @@ from custom_components.meraki_ha.sensor.device_status import MerakiDeviceStatusS
 from custom_components.meraki_ha.coordinators.base_coordinator import MerakiDataUpdateCoordinator # For coordinator type
 from custom_components.meraki_ha.const import DOMAIN
 
-MOCK_HASS = MagicMock(spec=HomeAssistant)
-
 class TestMerakiDeviceStatusSensor(unittest.TestCase):
 
     def setUp(self):
-        self.hass = MOCK_HASS
         self.mock_coordinator = MagicMock(spec=MerakiDataUpdateCoordinator)
 
         self.device_serial = "QTEST-SERIAL-0001"
@@ -22,6 +19,7 @@ class TestMerakiDeviceStatusSensor(unittest.TestCase):
             "serial": self.device_serial,
             "name": "Test AP",
             "model": "MR33",
+            "productType": "wireless",
             "status": "online",
             "firmware": "29.1",
             "mac": "00:11:22:aa:bb:cc",
@@ -38,7 +36,6 @@ class TestMerakiDeviceStatusSensor(unittest.TestCase):
             coordinator=self.mock_coordinator,
             device_data=self.initial_device_data
         )
-        self.sensor.hass = self.hass # Simulate being added to HASS for async_write_ha_state
         self.sensor.async_write_ha_state = MagicMock()
 
         self.patcher_logger = patch('custom_components.meraki_ha.sensor.device_status._LOGGER', new_callable=MagicMock)

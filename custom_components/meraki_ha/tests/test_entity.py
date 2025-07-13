@@ -8,8 +8,6 @@ from custom_components.meraki_ha.entity import MerakiEntity
 from custom_components.meraki_ha.coordinators.base_coordinator import MerakiDataUpdateCoordinator # For type hint
 from custom_components.meraki_ha.const import DOMAIN
 
-MOCK_HASS = MagicMock(spec=HomeAssistant)
-
 class TestMerakiEntity(unittest.TestCase):
 
     def setUp(self):

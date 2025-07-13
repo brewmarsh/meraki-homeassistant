@@ -2,7 +2,6 @@ import asyncio
 from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.config_entries import ConfigEntry
@@ -33,7 +32,6 @@ class TestDataAggregationCoordinator(unittest.IsolatedAsyncioTestCase):
         self.mock_parent_coordinator.device_name_format = "device_name_only" # Example option
 
         self.scan_interval = timedelta(seconds=300)
-        self.relaxed_tag_match = False
 
         # Patch dependencies of DataAggregationCoordinator
         self.patcher_data_processor = patch('custom_components.meraki_ha.coordinators.data_aggregation_coordinator.MerakiDataProcessor', spec=MerakiDataProcessor)
@@ -56,7 +54,6 @@ class TestDataAggregationCoordinator(unittest.IsolatedAsyncioTestCase):
         self.coordinator = DataAggregationCoordinator(
             hass=self.hass,
             scan_interval=self.scan_interval,
-            relaxed_tag_match=self.relaxed_tag_match,
             coordinator=self.mock_parent_coordinator
         )
 

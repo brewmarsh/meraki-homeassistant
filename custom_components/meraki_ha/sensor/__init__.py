@@ -110,7 +110,6 @@ async def async_setup_entry(
         config_entry: The configuration entry for this Meraki integration instance.
         async_add_entities: Callback function to add entities to Home Assistant.
     """
-    _LOGGER.info("Meraki HA: Setting up sensor platform.")  # Adjusted
     entities = []
 
     # Get the entry specific data store
@@ -124,8 +123,6 @@ async def async_setup_entry(
 
     if not meraki_api_client:
         _LOGGER.error("Meraki API client not found in entry_data. Cannot set up network client sensors.")
-        # Depending on the integration's design, you might want to return or handle this differently.
-        # For now, subsequent blocks that depend on meraki_api_client will check for it.
 
     # --- Organization-level Sensor Setup ---
     if main_coordinator and main_coordinator.data:
@@ -197,11 +194,6 @@ async def async_setup_entry(
             if not original_device_name:
                 model_str = device_info.get('model', 'Device')
                 fallback_name = f"Meraki {model_str} {serial}"
-                _LOGGER.warning(
-                    "Device with serial %s has no name from API. Using fallback name: %s",
-                    serial,
-                    fallback_name
-                )
                 device_info["name"] = fallback_name
 
             for sensor_class in COMMON_DEVICE_SENSORS:
@@ -256,7 +248,6 @@ async def async_setup_entry(
             network_name = network_data.get("name", f"Unnamed Network {network_id}")
             if not network_name:
                  network_name = f"Meraki Network {network_id}"
-                 _LOGGER.warning("Network with ID %s has no name. Using fallback: %s", network_id, network_name)
 
             if not network_id:
                 _LOGGER.warning("Skipping network with missing ID for client sensor: %s", network_data.get("name", "Unnamed Network"))
@@ -286,8 +277,5 @@ async def async_setup_entry(
         _LOGGER.warning("SSID coordinator (SSIDDeviceCoordinator) not available or has no data; skipping SSID sensors.")
 
     if entities:
-        _LOGGER.info("Meraki HA: Adding %d Meraki sensor entities.", len(entities))
         async_add_entities(entities)
-    else:
-        _LOGGER.info("Meraki HA: No Meraki sensor entities were added.")
     return True

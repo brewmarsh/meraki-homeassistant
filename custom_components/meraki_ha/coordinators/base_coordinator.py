@@ -147,48 +147,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
     @property
     def device_name_format(self) -> str:
         """Return the device name format option."""
-        task_name = "Unknown"
-        current_task = asyncio.current_task()
-        if current_task:
-            task_name = current_task.get_name()
-
-        if not self.config_entry:
-            _LOGGER.error(
-                "Config entry is not available for coordinator of org %s when accessing device_name_format. Current task: %s",
-                self.org_id,
-                task_name
-            )
-            return "omitted"
-
-        if not self.config_entry.options:
-            _LOGGER.error(
-                "Config entry options are not available for coordinator of org %s (config_entry itself is present) when accessing device_name_format. Current task: %s",
-                self.org_id,
-                task_name
-            )
-            return "omitted"
-
         return self.config_entry.options.get("device_name_format", "omitted")
 
     async def _async_update_data(self) -> Dict[str, Any]:
-        # task_name = "Unknown" # Removed for brevity
-        # current_task = asyncio.current_task()
-        # if current_task:
-        #     task_name = current_task.get_name()
-
-        if not self.config_entry:
-            _LOGGER.error(
-                "MerakiDataUpdateCoordinator for org %s cannot update: config_entry is None.", # Removed task_name
-                self.org_id
-            )
-            raise UpdateFailed(f"Coordinator configuration is missing for org {self.org_id} (config_entry is None).")
-
-        if not self.config_entry.options:
-            _LOGGER.error(
-                "MerakiDataUpdateCoordinator for org %s cannot update: config_entry.options is None.", # Removed task_name
-                self.org_id
-            )
-            raise UpdateFailed(f"Coordinator configuration options are missing for org {self.org_id} (config_entry.options is None).")
 
         """Fetch, process, and aggregate data from the Meraki API.
 
@@ -206,9 +167,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             UpdateFailed: If a critical error occurs during data fetching or processing
                           that prevents a meaningful update for the integration.
         """
-        _LOGGER.debug(
-            "Starting Meraki data update for organization ID: %s", self.org_id
-        )
         try:
             # Step 1: Fetch all primary data using the api_fetcher.
             # `fetch_all_data` now returns devices with tags, client counts, and radio settings included.
@@ -365,14 +323,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
         self.data = combined_data
 
-# _LOGGER.debug(
-#     "Meraki data update completed for org %s. Processed: %d devices, %d SSIDs, %d networks.",
-#     self.org_id,
-#     len(devices),
-#     len(ssids),
-#     len(networks),
-# ) # Reduced verbosity
-
         if self.erase_tags and self.tag_eraser_coordinator:
             _LOGGER.warning(
                 "Tag erasing is enabled for organization %s. Processing devices for tag removal.",
@@ -416,12 +366,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # _LOGGER.debug("OrgDevReg: Formatted org name: '%s'", formatted_org_name) # Reduced verbosity
         self.formatted_org_display_name = formatted_org_name
 
-        _LOGGER.info(
-            "Registering Meraki Organization device: %s (ID: %s)",
-            formatted_org_name,
-            self.org_id,
-        )
-
         device_registry = dr.async_get(hass)
         device_registry.async_get_or_create(
             config_entry_id=self.config_entry.entry_id,
@@ -441,16 +385,10 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         config entry is being unloaded. It should close any open connections,
         such as the Meraki API client session.
         """
-        _LOGGER.debug(
-            "MerakiDataUpdateCoordinator shutting down for org %s.", self.org_id
-        )
         # Close the Meraki API client session.
         if hasattr(self, "meraki_client") and self.meraki_client:
             try:
                 await self.meraki_client.close()
-                _LOGGER.info(
-                    "Meraki API client session closed for org %s.", self.org_id
-                )
             except Exception as e:
                 _LOGGER.error(
                     "Error closing Meraki API client session for org %s: %s",
@@ -468,9 +406,4 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         set up to perform an initial data fetch. It ensures that data is
         available before entities are created and added to Home Assistant.
         """
-        _LOGGER.debug(
-            "Performing first data refresh for Meraki config entry (org %s).",
-            self.org_id,
-        )
         await super().async_config_entry_first_refresh()
-        _LOGGER.debug("First data refresh completed for org %s.", self.org_id)
