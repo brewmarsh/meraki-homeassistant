@@ -70,11 +70,6 @@ NETWORK_CLIENT_COUNTS = {"N1": 2, "N2": 0}
 
 
 @pytest.fixture
-def mock_data_processor():
-    return MagicMock()
-
-
-@pytest.fixture
 def mock_ssid_status_calculator():
     # Mock the SsidStatusCalculator.calculate_ssid_status static method
     # to return SSIDs with a mock 'status' field.
@@ -184,51 +179,6 @@ async def test_successful_aggregation(aggregator, mock_ssid_status_calculator):
 def test_placeholder():
     assert True
 
-
-# Example of how you might test device_details merging if DataAggregator handled it:
-# (This is NOT testing current DataAggregator behavior, but for future reference)
-#
-# RAW_DEVICES_FOR_MERGE = [
-#     {"serial": "MR1", "model": "MR52", "networkId": "N1", "tags": ["tag1"], "name": "AP1_raw"},
-#     {"serial": "MS1", "model": "MS220", "networkId": "N1", "name": "Switch1_raw"},
-# ]
-# DEVICE_DETAILS_FOR_MERGE = {
-#     "MR1": {"lanIp": "192.168.1.1", "firmware": "MR 29.6.1", "connected_clients_count": 5},
-#     "MS1": {"status": "online", "usingDhcp": True}
-# }
-#
-# @pytest.mark.skip(reason="DataAggregator does not currently merge device_details this way")
-# async def test_device_details_merging(aggregator):
-#     # Assume aggregator's aggregate_data was modified to take raw_devices and device_details
-#     # and perform merging. This is a hypothetical test.
-#
-#     # Patched aggregate_data might look like:
-#     # def aggregate_data(self, raw_devices, device_details, ...):
-#     #     processed_devices = []
-#     #     for dev in raw_devices:
-#     #         dev_copy = dev.copy()
-#     #         if dev['serial'] in device_details:
-#     #             dev_copy.update(device_details[dev['serial']])
-#     #         processed_devices.append(dev_copy)
-#     #     # ... rest of current aggregation logic ...
-#     #     return {"devices": processed_devices, ...}
-#
-#     # This test would need DataAggregator to be re-written or this logic placed elsewhere.
-#     # For now, this is a conceptual placeholder.
-#
-#     # Example call (hypothetical)
-#     # aggregated_data = await aggregator.aggregate_data(
-#     #     raw_devices=RAW_DEVICES_FOR_MERGE,
-#     #     device_details=DEVICE_DETAILS_FOR_MERGE,
-#     #     ssid_data=[], network_data=[], client_data=[], network_client_counts={}
-#     # )
-#     #
-#     # mr1_merged = next(d for d in aggregated_data["devices"] if d["serial"] == "MR1")
-#     # assert mr1_merged["name"] == "AP1_raw" # Original data
-#     # assert mr1_merged["lanIp"] == "192.168.1.1" # Merged detail
-#     # assert mr1_merged["connected_clients_count"] == 5 # Merged detail
-#     pass
-
 @pytest.mark.asyncio
 async def test_aggregation_with_empty_inputs(aggregator, mock_ssid_status_calculator):
     """Test aggregation with empty lists for devices, SSIDs, and networks."""
@@ -330,4 +280,3 @@ async def test_aggregation_ssid_device_linking_ssids_not_in_device_network(aggre
         ssids=ALL_SSID_DATA, devices=mr1_device_list, relaxed_tag_match=False
     )
 
-# print("test_data_aggregator.py created") # Removed print
