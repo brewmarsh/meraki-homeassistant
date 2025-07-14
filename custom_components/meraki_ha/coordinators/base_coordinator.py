@@ -89,7 +89,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # here.
         # Local import to avoid potential circulars
         from custom_components.meraki_ha.meraki_api import MerakiAPIClient
-
         self.meraki_client: MerakiAPIClient = MerakiAPIClient(
             api_key=api_key,
             org_id=org_id,
@@ -143,6 +142,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         self.data: Dict[str, Any] = {}
         self.org_name: Optional[str] = None  # Initialize org_name
         self.formatted_org_display_name: Optional[str] = None
+        self._is_available = True
 
     @property
     def device_name_format(self) -> str:
@@ -176,20 +176,24 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 # device_name_format are no longer needed here.
             )
         except MerakiApiError as e:  # Specific API errors from the fetcher.
-            _LOGGER.error(
-                "API error during Meraki data fetch for org %s: %s", self.org_id, e
-            )
+            if self._is_available:
+                _LOGGER.error(
+                    "API error during Meraki data fetch for org %s: %s", self.org_id, e
+                )
+                self._is_available = False
             raise UpdateFailed(
                 f"Failed to fetch data from Meraki API for org {self.org_id}: {e}"
             ) from e
         except (
             Exception
         ) as e:  # Catch any other unexpected errors during the main fetch.
-            _LOGGER.exception(
-                "Unexpected error during Meraki data fetch for org %s: %s",
-                self.org_id,
-                e,
-            )
+            if self._is_available:
+                _LOGGER.exception(
+                    "Unexpected error during Meraki data fetch for org %s: %s",
+                    self.org_id,
+                    e,
+                )
+                self._is_available = False
             raise UpdateFailed(
                 f"Unexpected error fetching data for org {self.org_id}: {e}"
             ) from e
@@ -298,6 +302,10 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         clients_on_appliances = all_data.get("clients_on_appliances", 0)
         clients_on_wireless = all_data.get("clients_on_wireless", 0)
 
+        if not self._is_available:
+            _LOGGER.info("Connection to Meraki API restored for org %s", self.org_id)
+            self._is_available = True
+
         # Step 4: Aggregate all data using the DataAggregationCoordinator.
         # This coordinator takes the raw lists of devices, SSIDs, and networks.
         try:
@@ -340,6 +348,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                             self.org_id,
                             e,
                         )
+        await self._device_registry_cleanup()
         return self.data
 
     async def async_register_organization_device(self, hass: HomeAssistant) -> None:
@@ -377,6 +386,22 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # _LOGGER.debug(
         #     "Organization device registration attempt complete for %s.", self.org_id
         # ) # Corrected: Removed stray parenthesis here
+
+    async def _device_registry_cleanup(self) -> None:
+        """Remove stale devices from the device registry."""
+        device_registry = dr.async_get(self.hass)
+        current_devices = {
+            (DOMAIN, device["serial"])
+            for device in self.data.get("devices", [])
+            if "serial" in device
+        }
+        for device in dr.async_entries_for_config_entry(
+            device_registry, self.config_entry.entry_id
+        ):
+            if not any(
+                identifier in current_devices for identifier in device.identifiers
+            ):
+                device_registry.async_remove_device(device.id)
 
     async def _async_shutdown(self) -> None:
         """Clean up resources when the coordinator is shut down.

@@ -53,6 +53,7 @@ class MerakiRadioSettingsSensor(
     """
 
     _attr_icon = "mdi:wifi-settings"  # Icon representing WiFi settings
+    _attr_entity_registry_enabled_default = False
 
     def __init__(
         self,

@@ -3,7 +3,7 @@
 import logging
 from typing import Any, Dict, Optional
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -25,6 +25,7 @@ class MerakiWAN2ConnectivitySensor(
 
     _attr_icon = "mdi:wan"
     _attr_has_entity_name = True  # Home Assistant will prepend the device name
+    _attr_device_class = "connectivity"
 
     def __init__(
         self,

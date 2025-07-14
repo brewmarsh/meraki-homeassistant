@@ -22,6 +22,10 @@
       "invalid_org_id": "Invalid Organization ID.",
       "cannot_connect": "Cannot connect to Meraki API.",
       "unknown": "An unknown error occurred."
+    },
+    "abort": {
+      "reauth_successful": "Re-authentication successful.",
+      "already_configured": "This Meraki organization is already configured."
     }
   },
   "options": {
@@ -51,7 +55,53 @@
         "name": "Network Information"
       },
       "meraki_firmware_status": {
-        "name": "Firmware Status"
+        "name": "Firmware Status",
+        "state": {
+          "up-to-date": "Up-to-date",
+          "out-of-date": "Out-of-date",
+          "unknown": "Unknown"
+        }
+      },
+      "device_status": {
+        "name": "Status",
+        "state": {
+          "online": "Online",
+          "offline": "Offline",
+          "alerting": "Alerting",
+          "dormant": "Dormant",
+          "unknown": "Unknown"
+        },
+        "icon": {
+          "online": "mdi:access-point-network",
+          "offline": "mdi:access-point-network-off",
+          "alerting": "mdi:access-point-network-off",
+          "dormant": "mdi:access-point-network-off"
+        }
+      },
+      "radio_settings": {
+        "name": "Radio Settings"
+      }
+    },
+    "switch": {
+      "meraki_ssid_enabled_switch": {
+        "name": "SSID Enabled"
+      },
+      "meraki_ssid_broadcast_switch": {
+        "name": "SSID Broadcast"
+      },
+      "meraki_camera_sense_switch": {
+        "name": "MV Sense"
+      },
+      "meraki_camera_audio_detection_switch": {
+        "name": "Audio Detection"
+      },
+      "meraki_camera_rtsp_switch": {
+        "name": "RTSP Server"
+      }
+    },
+    "text": {
+      "meraki_ssid_name": {
+        "name": "SSID Name"
       }
     }
   }

@@ -135,6 +135,9 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             except ConfigEntryAuthFailed:
                 # Authentication failed (e.g., invalid API key).
                 _LOGGER.warning("Authentication failed with provided credentials.")
+                from .repairs import async_create_api_key_issue
+
+                await async_create_api_key_issue(self.hass, self.context["entry_id"])
                 errors["base"] = "invalid_auth"  # Error key for UI message
             except ValueError:
                 # Invalid organization ID (e.g., not found for the given API
@@ -286,6 +289,50 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="reauth", data_schema=CONFIG_SCHEMA, errors=errors
         )
 
+    async def async_step_reconfigure(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> config_entries.FlowResult:
+        """Handle a reconfiguration flow."""
+        entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+        assert entry
+
+        if user_input is not None:
+            return self.async_update_reload_and_abort(
+                entry,
+                options={
+                    **entry.options,
+                    "scan_interval": user_input["scan_interval"],
+                    "device_name_format": user_input["device_name_format"],
+                },
+            )
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        "scan_interval",
+                        default=entry.options.get(
+                            "scan_interval", DEFAULT_SCAN_INTERVAL
+                        ),
+                    ): int,
+                    vol.Optional(
+                        "device_name_format",
+                        default=entry.options.get("device_name_format", "omitted"),
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=[
+                                {"value": "prefix", "label": "Prefix"},
+                                {"value": "suffix", "label": "Suffix"},
+                                {"value": "omitted", "label": "Omitted"},
+                            ],
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                        )
+                    ),
+                }
+            ),
+        )
+
     # This method seems to be for dynamically setting the title of the
     # config entry, but it's not directly called by the config flow steps.
     # It might be used by HA UI when displaying existing config entries.
@@ -329,11 +376,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     This class allows users to modify integration options (like scan interval,
     device name format) after the initial setup.
     """
-
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
-        config_entries.OptionsFlow.__init__(self, config_entry)
-        # self.config_entry is already set by super().__init__
+        self.config_entry = config_entry
 
     async def async_step_init(
         self, user_input: Optional[Dict[str, Any]] = None

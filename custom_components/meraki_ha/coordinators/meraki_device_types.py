@@ -38,7 +38,7 @@ def map_meraki_model_to_device_type(model: str) -> str:
     elif model_upper.startswith("MS") or model_upper.startswith("GS"):
         # Meraki Switches (MS series, GS is older/alt)
         return "Switch"
-    elif model_upper.startswith("MX"):
+    elif model_upper.startswith("MX") or model_upper.startswith("Z"):
         # Meraki Security Appliances/Routers
         return "Appliance"
     elif model_upper.startswith("MV"):

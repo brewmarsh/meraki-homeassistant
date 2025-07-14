@@ -93,14 +93,14 @@ class MerakiSSIDChannelSensor(CoordinatorEntity[SSIDDeviceCoordinator], SensorEn
                 #     self._ssid_data.get("name"),
                 #     self._ssid_data.get("unique_id"),
                 # ) # Removed
-                self._attr_native_value = None
+                self._attr_native_value = "Unknown"
                 self._attr_state_class = None
         else:
             _LOGGER.warning( # Keep warning for missing data
                 "SSID data for ID '%s' not found in coordinator. Channel sensor state set to None.",
                 self._ssid_data.get("unique_id"),
             )
-            self._attr_native_value = None
+            self._attr_native_value = "Unknown"
             self._attr_state_class = None
 
     @callback

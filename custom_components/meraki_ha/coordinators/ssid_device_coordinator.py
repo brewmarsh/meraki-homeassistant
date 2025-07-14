@@ -12,7 +12,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from ..const import DOMAIN, DATA_CLIENT
 from ..meraki_api import MerakiAPIClient, MerakiApiError # Added MerakiApiError
 import aiohttp # Added aiohttp
-from .api_data_fetcher import MerakiApiDataFetcher # Type hint for main coordinator
+from ..coordinators.base_coordinator import MerakiDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
         self,
         hass: HomeAssistant,
         config_entry: ConfigEntry,
-        api_data_fetcher: MerakiApiDataFetcher,
+        api_data_fetcher: MerakiDataUpdateCoordinator,
         update_interval: timedelta,
     ):
         """Initialize SSIDDeviceCoordinator."""

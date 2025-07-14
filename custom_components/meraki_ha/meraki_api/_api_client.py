@@ -5,6 +5,7 @@ leveraging the meraki.aio.DashboardAPI.
 """
 
 import logging
+import aiohttp
 from typing import Any, List, Dict, Optional # Added List, Dict, Optional
 from meraki.aio import AsyncDashboardAPI
 from meraki.exceptions import APIError as MerakiSDKAPIError
@@ -256,7 +257,7 @@ class MerakiAPIClient:
 
         if audio_detection_enabled is not None:
             # The API expects audioDetection to be a dictionary
-            payload.setdefault("audioDetection", {})["enabled"] = audio_detection_enabled
+            payload["audioDetection"] = audio_detection_enabled
 
         if not payload:
             _LOGGER.debug(

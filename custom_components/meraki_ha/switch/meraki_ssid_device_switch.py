@@ -7,6 +7,7 @@ from typing import Any, Dict # Optional removed
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -17,8 +18,13 @@ from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
+from homeassistant.helpers.entity import EntityCategory
+
+
 class MerakiSSIDBaseSwitch(CoordinatorEntity[SSIDDeviceCoordinator], SwitchEntity):
     """Base class for Meraki SSID Switches."""
+
+    entity_category = EntityCategory.CONFIG
 
     def __init__(
         self,
@@ -131,6 +137,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[SSIDDeviceCoordinator], SwitchEntit
             _LOGGER.error(
                 f"Failed to update SSID {self.name} ({self._attribute_to_check} to {value}): {e}"
             )
+            raise HomeAssistantError(f"Failed to update SSID {self.name}: {e}") from e
             # If the API call fails, an error is logged. The state in HA might become stale
             # until the next successful coordinator refresh. Consider if immediate refresh
             # or error state handling is needed here.

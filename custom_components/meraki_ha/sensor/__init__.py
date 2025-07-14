@@ -138,12 +138,13 @@ async def async_setup_entry(
 
         # Add the existing MerakiOrgDeviceTypeClientsSensor
         try:
-            org_device_type_sensor = MerakiOrgDeviceTypeClientsSensor(
-                coordinator=main_coordinator,
-                organization_id=organization_id,
-                organization_name=org_name_for_sensors, # Use the new variable
+            entities.append(
+                MerakiOrgDeviceTypeClientsSensor(
+                    coordinator=main_coordinator,
+                    organization_id=organization_id,
+                    organization_name=org_name_for_sensors,
+                )
             )
-            entities.append(org_device_type_sensor)
         except Exception as e:
             _LOGGER.error(
                 "Meraki HA: Error adding MerakiOrgDeviceTypeClientsSensor for organization %s: %s",
@@ -165,7 +166,7 @@ async def async_setup_entry(
         ]
         for sensor in new_org_sensors:
             try:
-                entities.append(sensor)
+                entities.append(sensor) # type: ignore
             except Exception as e:
                 _LOGGER.error(
                     "Meraki HA: Error adding organization sensor %s for %s: %s",

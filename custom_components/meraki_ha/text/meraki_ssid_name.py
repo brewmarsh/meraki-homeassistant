@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 from homeassistant.components.text import TextEntity, TextMode
 from homeassistant.config_entries import ConfigEntry # Required for type hinting in __init__
 from homeassistant.components.text import TextEntity, TextEntityDescription, TextMode
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -17,10 +18,14 @@ from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
+from homeassistant.helpers.entity import EntityCategory
+
+
 class MerakiSSIDNameText(CoordinatorEntity[SSIDDeviceCoordinator], TextEntity):
     """Representation of a Meraki SSID Name text entity."""
 
     _attr_mode = TextMode.TEXT  # Or TextMode.PASSWORD if it were a password
+    entity_category = EntityCategory.CONFIG
 
     def __init__(
         self,
@@ -135,6 +140,7 @@ class MerakiSSIDNameText(CoordinatorEntity[SSIDDeviceCoordinator], TextEntity):
                 value,
                 e,
             )
+            raise HomeAssistantError(f"Failed to set SSID name to '{value}': {e}") from e
             # Optionally, force a refresh to revert optimistic update if API call failed
             # await self.coordinator.async_request_refresh()
 

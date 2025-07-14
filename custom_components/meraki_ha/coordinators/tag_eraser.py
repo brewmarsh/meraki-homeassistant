@@ -40,7 +40,7 @@ class TagEraser:
             of `api_fetcher.async_update_device_tags`.
         """
         try:
-            await self.api_fetcher.async_update_device_tags(serial, [])
+            await self.api_fetcher.meraki_client.async_update_device_tags(serial, [])
             _LOGGER.info(f"Tags erased for device: {serial}")
         except MerakiApiConnectionError as e:
             _LOGGER.error(f"Connection error erasing tags: {e}")

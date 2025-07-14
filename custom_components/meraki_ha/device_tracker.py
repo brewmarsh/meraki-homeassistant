@@ -32,7 +32,7 @@ async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
-) -> bool:
+) -> None:
     """Set up Meraki device tracker entities from a config entry.
 
     This function is called by Home Assistant to initialize device tracker
@@ -78,7 +78,7 @@ async def async_setup_entry(
     if entities:
         async_add_entities(entities)
         # _LOGGER.debug("Added %d Meraki client trackers.", len(entities)) # Removed
-    return True
+    return
 
 
 class MerakiDeviceTracker(
@@ -87,7 +87,7 @@ class MerakiDeviceTracker(
     """Representation of an individual client device connected to a Meraki network.
 
     This entity tracks the connectivity of a single client (e.g., a laptop,
-    phone) by checking its presence in the Meraki coordinator's data.
+    phone) by checking its presence in the Meraki coordinator's list of active clients.
     """
 
     # For Home Assistant 2022.11+ to use device name as base
@@ -123,7 +123,7 @@ class MerakiDeviceTracker(
         """Handle updated data from the coordinator.
 
         This method is called when the coordinator has new data. It triggers
-        an update of the entity's attributes and state.
+        an update of the entity's state and attributes.
         """
         self._update_attributes()
         self.async_write_ha_state()
@@ -161,7 +161,7 @@ class MerakiDeviceTracker(
         #     ) # Removed
 
     @property
-    def source_type(self) -> SourceType:
+    def source_type(self) -> str:
         """Return the source type of the device tracker.
 
         Returns:
@@ -204,3 +204,8 @@ class MerakiDeviceTracker(
             The icon string, dynamically chosen based on connection state.
         """
         return "mdi:lan-connect" if self._attr_is_connected else "mdi:lan-disconnect"
+
+    @property
+    def is_connected(self) -> bool:
+        """Return true if the device is connected to the network."""
+        return self._attr_is_connected

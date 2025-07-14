@@ -9,7 +9,7 @@ import logging
 from typing import Any, Dict, Optional  # Added Optional
 from datetime import datetime # Added import
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription # Updated import
+from homeassistant.components.sensor import SensorEntity, SensorEntityDescription, SensorDeviceClass # Updated import
 
 # Added callback for coordinator updates
 from homeassistant.core import callback
@@ -83,7 +83,10 @@ class MerakiDeviceStatusSensor(
             name="Status",
             native_unit_of_measurement=None, # Categorical status, no unit
             state_class=None, # Categorical status
+            device_class=SensorDeviceClass.ENUM,
+            icon="mdi:help-network-outline",
         )
+        self._attr_options = ["online", "offline", "alerting", "dormant", "unknown"]
         # Properties like state_class and native_unit_of_measurement are now set by SensorEntityDescription.
         # Other properties (options, suggested_unit_of_measurement, suggested_display_precision, last_reset)
         # are intentionally not overridden here and will default to None or appropriate base class behavior.
@@ -127,26 +130,6 @@ class MerakiDeviceStatusSensor(
         else:
             self._attr_native_value = "unknown"  # Default if status is not a string
 
-        # Icon logic based on model
-        model: Optional[str] = current_device_data.get("model")
-        if isinstance(model, str):
-            model_upper = model.upper()
-            if model_upper.startswith("MR"):  # Wireless AP
-                self._attr_icon = "mdi:access-point-network"
-            elif model_upper.startswith("MX"):  # Security Appliance
-                self._attr_icon = "mdi:router-network"
-            elif model_upper.startswith("MS"):  # Switch
-                self._attr_icon = "mdi:switch"
-            elif model_upper.startswith("MV"):  # Camera
-                self._attr_icon = "mdi:cctv"
-            elif model_upper.startswith("MT"):  # Sensor
-                self._attr_icon = "mdi:thermometer-lines"
-            else:  # Default for other models
-                self._attr_icon = "mdi:help-network-outline"
-        else:
-            self._attr_icon = (
-                "mdi:help-network-outline"  # Default if model is not a string
-            )
 
         # Populate attributes from the latest device data
         self._attr_extra_state_attributes = {

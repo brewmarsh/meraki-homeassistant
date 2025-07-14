@@ -58,8 +58,9 @@ class TagEraserCoordinator(DataUpdateCoordinator[Dict[str, Any]]): # Added gener
         # If TagEraser still expects MerakiApiDataFetcher, this needs more adjustment.
         # For now, let's assume TagEraser is refactored or we provide a client.
         # A dedicated client for tag erasing ensures separation of concerns.
+        from ..coordinators.api_data_fetcher import MerakiApiDataFetcher
         self.meraki_client_for_eraser = MerakiAPIClient(api_key=api_key, org_id=org_id)
-        self.tag_eraser = TagEraser(self.meraki_client_for_eraser)  # Pass the client
+        self.tag_eraser = TagEraser(MerakiApiDataFetcher(self.meraki_client_for_eraser))  # Pass the client
 
     async def async_erase_device_tags(self, serial: str) -> None:
         """
