@@ -99,6 +99,17 @@ class MerakiDeviceStatusSensor(
         #     self._device_serial,
         # ) # Removed
 
+    @property
+    def icon(self) -> str:
+        """Return the icon of the sensor."""
+        status_icon_map = {
+            "online": "mdi:access-point-network",
+            "offline": "mdi:access-point-network-off",
+            "alerting": "mdi:access-point-network-off",
+            "dormant": "mdi:access-point-network-off",
+        }
+        return status_icon_map.get(self.native_value, "mdi:help-network-outline")
+
     def _get_current_device_data(self) -> Optional[Dict[str, Any]]:
         """Retrieve the latest data for this sensor's device from the coordinator."""
         if self.coordinator.data and self.coordinator.data.get("devices"):

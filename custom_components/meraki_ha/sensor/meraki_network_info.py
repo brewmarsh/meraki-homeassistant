@@ -29,12 +29,12 @@ class MerakiNetworkInfoSensor(
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._device_serial: str = device_data["serial"]
-        self._attr_unique_id = f"{self._device_serial}_network_info"
-        # self.entity_id = f"sensor.{DOMAIN}_{self._device_serial}_network_info" # Let HA generate
+        self._network_id: str = device_data["id"]
+        self._attr_unique_id = f"{self._network_id}_network_info"
+        # self.entity_id = f"sensor.{DOMAIN}_{self._network_id}_network_info" # Let HA generate
 
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._device_serial)}
+            identifiers={(DOMAIN, self._network_id)}
             # No other fields like name, model, manufacturer, sw_version.
             # These should be inherited from the device entry already created by MerakiDataUpdateCoordinator.
         )
@@ -51,25 +51,25 @@ class MerakiNetworkInfoSensor(
         current_device_data: Optional[Dict[str, Any]] = None
         if (
             self.coordinator.data
-            and self.coordinator.data.get("devices")
-            and isinstance(self.coordinator.data["devices"], list)
+            and self.coordinator.data.get("networks")
+            and isinstance(self.coordinator.data["networks"], list)
         ):
-            for device in self.coordinator.data["devices"]:
-                if device.get("serial") == self._device_serial:
-                    current_device_data = device
+            for network in self.coordinator.data["networks"]:
+                if network.get("id") == self._network_id:
+                    current_device_data = network
                     break
 
         if not current_device_data:
             self._attr_native_value = "Unknown"
             self._attr_extra_state_attributes = {}
             _LOGGER.debug(
-                "Device %s not found in coordinator data for network info sensor.",
-                self._device_serial,
+                "Network %s not found in coordinator data for network info sensor.",
+                self._network_id,
             )
             return
 
         # The state of this sensor will be the device's reported name or serial
-        self._attr_native_value = current_device_data.get("name", self._device_serial)
+        self._attr_native_value = current_device_data.get("name", self._network_id)
 
         attributes = {
             "hostname": current_device_data.get("name"),
@@ -121,10 +121,10 @@ class MerakiNetworkInfoSensor(
         """Return if entity is available."""
         if not super().available:
             return False
-        if not self.coordinator.data or not self.coordinator.data.get("devices"):
+        if not self.coordinator.data or not self.coordinator.data.get("networks"):
             return False
         # Check if the specific device data is available
-        for device in self.coordinator.data["devices"]:
-            if device.get("serial") == self._device_serial:
+        for network in self.coordinator.data["networks"]:
+            if network.get("id") == self._network_id:
                 return True
         return False
