@@ -25,7 +25,7 @@ class MerakiWAN2ConnectivitySensor(
 
     _attr_icon = "mdi:wan"
     _attr_has_entity_name = True  # Home Assistant will prepend the device name
-    _attr_device_class = SensorDeviceClass.CONNECTIVITY
+    _attr_device_class = "connectivity"
 
     def __init__(
         self,

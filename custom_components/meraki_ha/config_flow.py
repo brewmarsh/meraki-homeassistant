@@ -41,7 +41,7 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-class ConfigFlowHandler(config_entries.ConfigFlow):
+class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config or options flow for the Meraki integration."""
 
     VERSION = 1

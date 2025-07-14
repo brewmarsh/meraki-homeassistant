@@ -89,14 +89,10 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # here.
         # Local import to avoid potential circulars
         from custom_components.meraki_ha.meraki_api import MerakiAPIClient
-        from homeassistant.helpers.aiohttp_client import async_get_clientsession
-
-        session = async_get_clientsession(hass)
         self.meraki_client: MerakiAPIClient = MerakiAPIClient(
             api_key=api_key,
             org_id=org_id,
             # Base URL is handled by the SDK itself.
-            session=session,
         )
 
         # Initialize the main API data fetcher.
