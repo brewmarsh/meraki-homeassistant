@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 from homeassistant.components.text import TextEntity, TextMode
 from homeassistant.config_entries import ConfigEntry # Required for type hinting in __init__
 from homeassistant.components.text import TextEntity, TextEntityDescription, TextMode
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo

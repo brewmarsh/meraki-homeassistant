@@ -16,7 +16,7 @@
   ],
   "diagnostics": true,
   "repairs": true,
-  "quality_scale": "gold",
+  "quality_scale": "platinum",
   "requirements": [
     "meraki>=1.36.0",
     "aiohttp"

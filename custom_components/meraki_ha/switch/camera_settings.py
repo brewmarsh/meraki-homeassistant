@@ -119,7 +119,7 @@ class MerakiCameraSettingSwitchBase(
         current_device_data = self._get_current_device_data()
         if current_device_data:
             # Traverse the attribute path to get the raw value
-            raw_value_container = current_device_data
+            raw_value_container: dict[str, Any] | None = current_device_data
             valid_path = True
             for key_part in self._attribute_path[:-1]: # Navigate to parent dict
                 if isinstance(raw_value_container, dict):

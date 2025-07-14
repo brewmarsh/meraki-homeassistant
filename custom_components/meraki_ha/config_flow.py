@@ -41,7 +41,7 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+class ConfigFlowHandler(config_entries.ConfigFlow):
     """Handle a config or options flow for the Meraki integration."""
 
     VERSION = 1
@@ -137,7 +137,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.warning("Authentication failed with provided credentials.")
                 from .repairs import async_create_api_key_issue
 
-                async_create_api_key_issue(self.hass, self.context["entry_id"])
+                await async_create_api_key_issue(self.hass, self.context["entry_id"])
                 errors["base"] = "invalid_auth"  # Error key for UI message
             except ValueError:
                 # Invalid organization ID (e.g., not found for the given API

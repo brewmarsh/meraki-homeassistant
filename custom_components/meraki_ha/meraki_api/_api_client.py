@@ -5,6 +5,7 @@ leveraging the meraki.aio.DashboardAPI.
 """
 
 import logging
+import aiohttp
 from typing import Any, List, Dict, Optional # Added List, Dict, Optional
 from meraki.aio import AsyncDashboardAPI
 from meraki.exceptions import APIError as MerakiSDKAPIError
@@ -23,12 +24,13 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiAPIClient:
     """Central client for interacting with the Meraki API using meraki.aio.DashboardAPI."""
 
-    def __init__(self, api_key: str, org_id: str) -> None:
+    def __init__(self, api_key: str, org_id: str, session: aiohttp.ClientSession | None = None) -> None:
         """Initialize the Meraki API client.
 
         Args:
             api_key (str): The Meraki API key.
             org_id (str): The Meraki organization ID.
+            session (aiohttp.ClientSession, optional): The websession to use. Defaults to None.
         """
         self._api_key = api_key
         self._org_id = org_id  # Store org_id if needed for specific calls
@@ -41,6 +43,7 @@ class MerakiAPIClient:
             print_console=False,  # Set to True for SDK-level console output if needed
             suppress_logging=True,  # Prefer HA's logging mechanisms
             # org_id is generally passed to specific SDK method calls
+            session=session,
         )
 
     @property
@@ -256,7 +259,7 @@ class MerakiAPIClient:
 
         if audio_detection_enabled is not None:
             # The API expects audioDetection to be a dictionary
-            payload.setdefault("audioDetection", {})["enabled"] = audio_detection_enabled
+            payload["audioDetection"] = audio_detection_enabled
 
         if not payload:
             _LOGGER.debug(

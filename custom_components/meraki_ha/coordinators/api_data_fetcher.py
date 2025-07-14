@@ -50,6 +50,9 @@ class MerakiApiDataFetcher:
         self.meraki_client: MerakiAPIClient = meraki_client
         self.org_id: str = meraki_client.org_id  # Organization ID from the client
         self._api_call_semaphore = asyncio.Semaphore(5) # Allow up to 5 concurrent API calls
+        self.devices: list[dict[str, Any]] | None = None
+        # Fetched on demand, can be empty
+        self.networks: list[dict[str, Any]] | None = None
 
     async def fetch_all_data(
         self,
@@ -134,13 +137,13 @@ class MerakiApiDataFetcher:
                 f"SDK API error fetching firmware upgrade data for org {self.org_id}: "
                 f"Status {results[3].status}, Reason: {results[3].reason}. Firmware data may be incomplete."
             )
-            firmware_upgrade_data_raw = {}  # Ensure it's an empty dict on error
+            firmware_upgrade_data_raw = None
         elif isinstance(results[3], Exception):
             _LOGGER.exception(
                 f"Unexpected error fetching firmware upgrade data for org {self.org_id}: {results[3]}. "
                 "Firmware data may be incomplete."
             )
-            firmware_upgrade_data_raw = {}  # Ensure it's an empty dict on error
+            firmware_upgrade_data_raw = None
         else:
             firmware_upgrade_data_raw = results[3]
 
@@ -401,7 +404,11 @@ class MerakiApiDataFetcher:
                     if isinstance(next_upgrade_info, dict):
                         to_version_info = next_upgrade_info.get("toVersion")
                         if isinstance(to_version_info, dict):
-                            latest_item_version = to_version_info.get("version", "N/A")
+                            latest_item_version_val = to_version_info.get("version", "N/A")
+                            if latest_item_version_val:
+                                latest_item_version = latest_item_version_val
+                            else:
+                                pass
                             is_item_up_to_date = False
                         else:
                             if (
@@ -425,9 +432,11 @@ class MerakiApiDataFetcher:
                                     and available_versions
                                 ):
                                     if isinstance(available_versions[0], dict):
-                                        latest_item_version = available_versions[0].get(
+                                        latest_item_version_val = available_versions[0].get(
                                             "version", "N/A"
                                         )
+                                        if latest_item_version_val:
+                                            latest_item_version = latest_item_version_val
                                     else:
                                         _LOGGER.warning(
                                             "First item in 'availableVersions' for serial %s is not a dict: %s. Cannot determine latest available version.",
@@ -485,7 +494,9 @@ class MerakiApiDataFetcher:
                         if item_status == "up-to-date":
                             is_item_up_to_date = True
                         elif upgrade_item.get("latestVersion"):
-                            latest_item_version = upgrade_item.get("latestVersion")
+                            latest_item_version_val = upgrade_item.get("latestVersion")
+                            if latest_item_version_val:
+                                latest_item_version = latest_item_version_val
                         elif (
                             item_status == "has-newer-stable-version"
                         ):

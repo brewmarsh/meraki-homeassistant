@@ -7,6 +7,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
 
 
+from .const import DOMAIN
+
+
 async def async_create_api_key_issue(hass: HomeAssistant, entry_id: str) -> None:
     """Create an issue for an invalid API key."""
     async_create_issue(
