@@ -3,7 +3,7 @@
 import logging
 from typing import Any, Dict, Optional
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -21,6 +21,8 @@ class MerakiFirmwareStatusSensor(
 
     _attr_icon = "mdi:package-up"  # Icon suggesting updates or package version
     _attr_has_entity_name = True  # Home Assistant will prepend the device name
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = ["up-to-date", "out-of-date", "unknown"]
 
     def __init__(
         self,
@@ -59,7 +61,7 @@ class MerakiFirmwareStatusSensor(
                     break
 
         if not current_device_data:
-            self._attr_native_value = "Unknown"
+            self._attr_native_value = "unknown"
             self._attr_extra_state_attributes = {}
             # _LOGGER.debug( # Covered by available property
             #     "Device %s not found in coordinator data for firmware status sensor.",
@@ -67,7 +69,14 @@ class MerakiFirmwareStatusSensor(
             # ) # Removed
             return
 
-        self._attr_native_value = current_device_data.get("firmware", "N/A")
+        firmware_up_to_date = current_device_data.get("firmware_up_to_date")
+        if firmware_up_to_date is True:
+            self._attr_native_value = "up-to-date"
+        elif firmware_up_to_date is False:
+            self._attr_native_value = "out-of-date"
+        else:
+            self._attr_native_value = "unknown"
+
 
         attributes = {
             "current_firmware_version": current_device_data.get("firmware"),

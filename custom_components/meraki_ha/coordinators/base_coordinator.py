@@ -349,6 +349,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                             self.org_id,
                             e,
                         )
+        await self._device_registry_cleanup()
         return self.data
 
     async def async_register_organization_device(self, hass: HomeAssistant) -> None:
@@ -386,6 +387,22 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # _LOGGER.debug(
         #     "Organization device registration attempt complete for %s.", self.org_id
         # ) # Corrected: Removed stray parenthesis here
+
+    async def _device_registry_cleanup(self) -> None:
+        """Remove stale devices from the device registry."""
+        device_registry = dr.async_get(self.hass)
+        current_devices = {
+            (DOMAIN, device["serial"])
+            for device in self.data.get("devices", [])
+            if "serial" in device
+        }
+        for device in dr.async_entries_for_config_entry(
+            device_registry, self.config_entry.entry_id
+        ):
+            if not any(
+                identifier in current_devices for identifier in device.identifiers
+            ):
+                device_registry.async_remove_device(device.id)
 
     async def _async_shutdown(self) -> None:
         """Clean up resources when the coordinator is shut down.

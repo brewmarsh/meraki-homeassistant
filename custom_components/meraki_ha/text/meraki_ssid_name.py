@@ -17,10 +17,14 @@ from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
+from homeassistant.helpers.entity import EntityCategory
+
+
 class MerakiSSIDNameText(CoordinatorEntity[SSIDDeviceCoordinator], TextEntity):
     """Representation of a Meraki SSID Name text entity."""
 
     _attr_mode = TextMode.TEXT  # Or TextMode.PASSWORD if it were a password
+    entity_category = EntityCategory.CONFIG
 
     def __init__(
         self,

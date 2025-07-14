@@ -2,15 +2,17 @@
 
 This Home Assistant integration allows you to monitor and manage your Cisco Meraki network, including devices, networks, and SSIDs. It leverages the Meraki API to bring data from your Meraki dashboard into Home Assistant, enabling you to gain insights into your network and automate actions based on its status.
 
+##   Supported Devices
+
+*   Wireless Access Points (MR series, GR series)
+*   Switches (MS series, GS series)
+*   Security Appliances (MX series)
+*   Cameras (MV series) - Snapshot generation.
+*   Environmental Sensors (MT series)
+
 ##   Features
 
 * **Device Discovery:** Automatically discovers Meraki hardware devices within your organization and networks.
-* **Supported Devices:**
-    * Wireless Access Points (MR series, GR series)
-    * Switches (MS series, GS series)
-    * Security Appliances (MX series)
-    * Cameras (MV series) - Snapshot generation.
-    * Environmental Sensors (MT series)
 * **Entity Creation:** Creates Home Assistant entities for:
     * Meraki physical devices (APs, switches, appliances, cameras, sensors)
     * Meraki networks (represented as devices in HA for grouping)
@@ -100,7 +102,16 @@ Once configured, the integration will start discovering your Meraki devices and 
     curl -L -H 'X-Cisco-Meraki-API-Key: <your_api_key>' -H 'Content-Type: application/json' 'https://api.meraki.com/api/v1/organizations'
     ```
 
-##   Entities Provided
+##   Supported Functionality
+
+This integration supports the following platforms:
+
+*   `sensor`
+*   `switch`
+*   `text`
+*   `device_tracker`
+
+###   Entities
 
 Entities are dynamically created based on your Meraki setup.
 
@@ -137,6 +148,10 @@ Entities are dynamically created based on your Meraki setup.
 ## Developer Guide
 
 This section provides a brief overview for developers looking to extend the integration.
+
+### Data Update
+
+The integration polls the Meraki API for data at a user-defined interval. The default interval is 60 seconds. The `MerakiDataUpdateCoordinator` is responsible for fetching all data from the Meraki API. The data is then processed and stored in the coordinator's `data` attribute. The entities then get their state from the coordinator's data.
 
 ### Coordinators
 
@@ -185,11 +200,60 @@ Please ensure your PR titles are descriptive and include the appropriate prefix 
 *   `meraki`: The official Meraki SDK for Python, used for all API interactions.
 *   `aiohttp`: Used by the Meraki SDK for asynchronous HTTP requests.
 
-##   Known Issues
+##   Troubleshooting
+
+###   Known Limitations
 
 *   **API Rate Limits:** Frequent polling with a short scan interval on large networks can lead to exceeding Meraki API rate limits. Adjust the scan interval appropriately.
 *   **SSID Control:** Enabling/disabling SSIDs and controlling broadcast status are direct API calls to modify SSID settings.
 *   **Radio profiles might not be available or fully detailed for all wireless device models through the currently used API endpoints.**
+
+###   Reporting Issues
+
+If you encounter any issues with this integration, please report them on the [GitHub issue tracker](https://github.com/brewmarsh/meraki-homeassistant/issues). Please include the following information in your issue report:
+
+*   Home Assistant version
+*   Integration version
+*   A description of the issue
+*   Relevant logs from Home Assistant
+
+##   Automation Examples
+
+Here are a few examples of how you can use this integration in your automations:
+
+###   Turn off a guest SSID when no one is home
+
+```yaml
+automation:
+  - alias: "Turn off guest SSID when no one is home"
+    trigger:
+      - platform: state
+        entity_id: group.all_devices
+        to: "not_home"
+    action:
+      - service: switch.turn_off
+        entity_id: switch.guest_ssid_enabled_control
+```
+
+###   Get a notification when a new device connects to the network
+
+```yaml
+automation:
+  - alias: "Notify when a new device connects"
+    trigger:
+      - platform: state
+        entity_id: sensor.meraki_network_clients
+    action:
+      - service: notify.mobile_app_my_phone
+        data:
+          message: "A new device has connected to the network."
+```
+
+##   Use Cases
+
+*   **Monitor your network status:** Get a quick overview of your network status, including the number of connected devices, uplink status, and more.
+*   **Automate your network:** Create automations to turn on/off guest SSIDs, get notifications when new devices connect, and more.
+*   **Track devices:** Track the location of your devices and get notifications when they connect or disconnect from the network.
 
 ##   Disclaimer
 

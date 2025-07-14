@@ -7,7 +7,7 @@ When changing the quality scale of an integration, make sure you have completed 
 - [x] `appropriate-polling` - If it's a polling integration, set an appropriate polling interval
 - [x] `brands` - Has branding assets available for the integration
 - [x] `common-modules` - Place common patterns in common modules
-- [ ] `config-flow-test-coverage` - Full test coverage for the config flow
+- [x] `config-flow-test-coverage` - Full test coverage for the config flow
 - [x] `config-flow` - Integration needs to be able to be set up via the UI
 - [x] `data_description` - Uses `data_description` to give context to fields
 - [x] `uses-config-entry-data-and-options-correctly` - Uses `ConfigEntry.data` and `ConfigEntry.options` correctly
@@ -34,30 +34,30 @@ When changing the quality scale of an integration, make sure you have completed 
 - [x] `log-when-unavailable` - If internet/device/service is unavailable, log once when unavailable and once when back connected
 - [x] `parallel-updates` - Number of parallel updates is specified (N/A)
 - [x] `reauthentication-flow` - Reauthentication needs to be available via the UI
-- [ ] `test-coverage` - Above 95% test coverage for all integration modules
+- [x] `test-coverage` - Above 95% test coverage for all integration modules
 
 ## Gold
-- [ ] `devices` - The integration creates devices
-- [ ] `diagnostics` - Implements diagnostics
-- [ ] `discovery-update-info` - Integration uses discovery info to update network information
-- [ ] `discovery` - Devices can be discovered
-- [ ] `docs-data-update` - The documentation describes how data is updated
-- [ ] `docs-examples` - The documentation provides automation examples the user can use.
-- [ ] `docs-known-limitations` - The documentation describes known limitations of the integration (not to be confused with bugs)
-- [ ] `docs-supported-devices` - The documentation describes known supported / unsupported devices
-- [ ] `docs-supported-functions` - The documentation describes the supported functionality, including entities, and platforms
-- [ ] `docs-troubleshooting` - The documentation provides troubleshooting information
-- [ ] `docs-use-cases` - The documentation describes use cases to illustrate how this integration can be used
-- [ ] `dynamic-devices` - Devices added after integration setup
-- [ ] `entity-category` - Entities are assigned an appropriate EntityCategory
-- [ ] `entity-device-class` - Entities use device classes where possible
-- [ ] `entity-disabled-by-default` - Integration disables less popular (or noisy) entities
-- [ ] `entity-translations` - Entities have translated names
-- [ ] `exception-translations` - Exception messages are translatable
-- [ ] `icon-translations` - Entities implement icon translations
-- [ ] `reconfiguration-flow` - Integrations should have a reconfigure flow
-- [ ] `repair-issues` - Repair issues and repair flows are used when user intervention is needed
-- [ ] `stale-devices` - Stale devices are removed
+- [x] `devices` - The integration creates devices
+- [x] `diagnostics` - Implements diagnostics
+- [x] `discovery-update-info` - Integration uses discovery info to update network information (N/A)
+- [x] `discovery` - Devices can be discovered (N/A)
+- [x] `docs-data-update` - The documentation describes how data is updated
+- [x] `docs-examples` - The documentation provides automation examples the user can use.
+- [x] `docs-known-limitations` - The documentation describes known limitations of the integration (not to be confused with bugs)
+- [x] `docs-supported-devices` - The documentation describes known supported / unsupported devices
+- [x] `docs-supported-functions` - The documentation describes the supported functionality, including entities, and platforms
+- [x] `docs-troubleshooting` - The documentation provides troubleshooting information
+- [x] `docs-use-cases` - The documentation describes use cases to illustrate how this integration can be used
+- [x] `dynamic-devices` - Devices added after integration setup
+- [x] `entity-category` - Entities are assigned an appropriate EntityCategory
+- [x] `entity-device-class` - Entities use device classes where possible
+- [x] `entity-disabled-by-default` - Integration disables less popular (or noisy) entities
+- [x] `entity-translations` - Entities have translated names
+- [x] `exception-translations` - Exception messages are translatable
+- [x] `icon-translations` - Entities implement icon translations
+- [x] `reconfiguration-flow` - Integrations should have a reconfigure flow
+- [x] `repair-issues` - Repair issues and repair flows are used when user intervention is needed
+- [x] `stale-devices` - Stale devices are removed
 
 ## Platinum
 - [ ] `async-dependency` - Dependency is async

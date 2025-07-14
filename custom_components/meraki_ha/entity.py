@@ -41,6 +41,7 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
     # the device name by default and then you can omit self._attr_name
     # in specific entities if they use the device name.
     _attr_has_entity_name = True
+    entity_category = None
 
     def __init__(
         self,

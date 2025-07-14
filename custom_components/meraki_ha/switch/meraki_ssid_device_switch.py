@@ -17,8 +17,13 @@ from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
+from homeassistant.helpers.entity import EntityCategory
+
+
 class MerakiSSIDBaseSwitch(CoordinatorEntity[SSIDDeviceCoordinator], SwitchEntity):
     """Base class for Meraki SSID Switches."""
+
+    entity_category = EntityCategory.CONFIG
 
     def __init__(
         self,
