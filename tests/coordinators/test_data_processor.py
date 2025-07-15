@@ -11,8 +11,8 @@ async def test_meraki_data_processor() -> None:
     coordinator = MagicMock()
     processor = MerakiDataProcessor(coordinator)
     devices = [
-        {"serial": "Q234-ABCD-5678", "tags": "tag1 tag2"},
-        {"serial": "Q234-ABCD-5679", "tags": "tag3 tag4"},
+            {"serial": "Q234-ABCD-5678", "tags": ["tag1", "tag2"]},
+            {"serial": "Q234-ABCD-5679", "tags": ["tag3", "tag4"]},
     ]
     processed_devices = await processor.process_devices(devices)
     assert processed_devices[0]["tags"] == ["tag1", "tag2"]
