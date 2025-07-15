@@ -91,7 +91,7 @@ class MerakiDataProcessor:
                     "productType"
                 ),  # Ensure productType is copied initially
                 # Default to empty list if tags are missing.
-                "tags": device_raw_data.get("tags", []),
+                "tags": device_raw_data.get("tags", "").split(),
                 # `connected_clients_count` and `radio_settings` are expected from ApiDataFetcher for MR devices.
                 # For other device types, these might be None or absent.
                 "connected_clients_count": device_raw_data.get(

@@ -1,5 +1,7 @@
 #   Meraki Home Assistant Integration
 
+[![codecov](https://codecov.io/gh/brewmarsh/meraki-homeassistant/graph/badge.svg?token=GDR26G8S42)](https://codecov.io/gh/brewmarsh/meraki-homeassistant)
+
 This Home Assistant integration allows you to monitor and manage your Cisco Meraki network, including devices, networks, and SSIDs. It leverages the Meraki API to bring data from your Meraki dashboard into Home Assistant, enabling you to gain insights into your network and automate actions based on its status.
 
 ##   Supported Devices

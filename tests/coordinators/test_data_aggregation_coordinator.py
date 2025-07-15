@@ -29,5 +29,12 @@ async def test_data_aggregation_coordinator() -> None:
     coordinator = DataAggregationCoordinator(
         main_coordinator, data_processor, data_aggregator
     )
-    await coordinator._async_update_data()
+    coordinator.data = await coordinator._async_update_data(
+        main_coordinator.data["devices"],
+        main_coordinator.data["ssids"],
+        main_coordinator.data["networks"],
+        main_coordinator.data["clients"],
+        {},
+    )
+    assert "devices" in coordinator.data
     assert coordinator.data["devices"][0]["tags"] == ["tag1", "tag2"]

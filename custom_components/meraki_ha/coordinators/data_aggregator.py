@@ -136,7 +136,7 @@ class DataAggregator:
                 device_clone = device_info.copy()  # Work with a copy to avoid modifying the original list.
 
                 # Check if the device is a Meraki Wireless AP (model starts with "MR").
-                if device_clone.get("model", "").upper().startswith("MR"):
+                if device_clone.get("model") and device_clone.get("model", "").upper().startswith("MR"):
                     device_network_id = device_clone.get("networkId")
                     device_clone["ssids"] = [] # Initialize with empty list
 
@@ -174,4 +174,6 @@ class DataAggregator:
             # to propagate the error to the calling coordinator.
             # Example: raise UpdateFailed(f"Aggregation failed due to: {e}")
             # from e
-            return {}
+            if "devices" not in combined_data:
+                combined_data["devices"] = []
+            return combined_data
