@@ -14,8 +14,6 @@
   "loggers": [
     "meraki_ha"
   ],
-  "diagnostics": true,
-  "repairs": true,
   "quality_scale": "platinum",
   "requirements": [
     "meraki>=1.36.0",

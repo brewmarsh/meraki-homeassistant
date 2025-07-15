@@ -70,12 +70,6 @@
           "alerting": "Alerting",
           "dormant": "Dormant",
           "unknown": "Unknown"
-        },
-        "icon": {
-          "online": "mdi:access-point-network",
-          "offline": "mdi:access-point-network-off",
-          "alerting": "mdi:access-point-network-off",
-          "dormant": "mdi:access-point-network-off"
         }
       },
       "radio_settings": {

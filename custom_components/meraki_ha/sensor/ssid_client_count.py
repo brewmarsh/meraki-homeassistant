@@ -90,7 +90,7 @@ class MerakiSSIDClientCountSensor(
         if current_ssid_data:
             self._ssid_data = current_ssid_data  # Update internal data
             # The 'client_count' field is populated by the SSIDDeviceCoordinator.
-            client_count: Optional[int] = self._ssid_data.get("client_count")
+            client_count: Optional[int] = current_ssid_data.get("client_count")
 
             if isinstance(client_count, int):
                 self._attr_native_value = client_count

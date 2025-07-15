@@ -78,7 +78,7 @@ class MerakiSSIDChannelSensor(CoordinatorEntity[SSIDDeviceCoordinator], SensorEn
             # This field would need to be populated by SSIDDeviceCoordinator from another source
             # (e.g., AP radio settings or specific client details if this sensor means client's channel).
             # For now, we expect it might be in self._ssid_data if enriched by the coordinator.
-            channel_value: Union[str, int, None] = self._ssid_data.get("channel")
+            channel_value: Union[str, int, None] = current_ssid_data.get("channel")
 
             if channel_value is not None:
                 self._attr_native_value = str(channel_value)

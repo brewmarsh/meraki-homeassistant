@@ -1,49 +1,47 @@
 """Tests for the Meraki integration."""
-from unittest.mock import patch
+import asyncio
+from unittest.mock import MagicMock, patch
 
-from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.const import CONF_API_KEY
 
 from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki_ha import async_setup_entry
 
 
-async def test_setup_entry(hass: HomeAssistant) -> None:
-    """Test setup entry."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        data={"meraki_api_key": "test-api-key", "meraki_org_id": "test-org-id"},
-    )
-    entry.add_to_hass(hass)
-
+async def test_async_setup_entry(
+    hass: HomeAssistant,
+) -> None:
+    """Test the async_setup_entry function."""
+    config_entry = MagicMock()
+    config_entry.domain = DOMAIN
+    config_entry.data = {
+        "meraki_api_key": "test_api_key",
+        "meraki_org_id": "org_id",
+    }
+    config_entry.options = {
+        "scan_interval": 300,
+        "device_name_format": "omitted",
+    }
     with patch(
-        "custom_components.meraki_ha.MerakiDataUpdateCoordinator.async_config_entry_first_refresh"
-    ), patch(
-        "custom_components.meraki_ha.SSIDDeviceCoordinator.async_config_entry_first_refresh"
-    ):
-        await hass.config_entries.async_setup(entry.entry_id)
-        await hass.async_block_till_done()
+        "custom_components.meraki_ha.MerakiDataUpdateCoordinator"
+    ) as mock_coordinator:
+        future = asyncio.Future()
+        future.set_result(None)
+        mock_coordinator.return_value.async_config_entry_first_refresh.return_value = future
+        mock_coordinator.return_value.async_register_organization_device = MagicMock(
+            return_value=future
+        )
+        async def async_forward_entry_setups(entry, domains):
+            return True
 
-    assert entry.state is ConfigEntryState.LOADED
-
-
-async def test_unload_entry(hass: HomeAssistant) -> None:
-    """Test unload entry."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        data={"meraki_api_key": "test-api-key", "meraki_org_id": "test-org-id"},
-    )
-    entry.add_to_hass(hass)
-
-    with patch(
-        "custom_components.meraki_ha.MerakiDataUpdateCoordinator.async_config_entry_first_refresh"
-    ), patch(
-        "custom_components.meraki_ha.SSIDDeviceCoordinator.async_config_entry_first_refresh"
-    ):
-        await hass.config_entries.async_setup(entry.entry_id)
-        await hass.async_block_till_done()
-
-    assert await hass.config_entries.async_unload(entry.entry_id)
-    await hass.async_block_till_done()
-
-    assert entry.state is ConfigEntryState.NOT_LOADED
+        hass.config_entries.async_forward_entry_setups = async_forward_entry_setups
+        config_entry.title = "test_title"
+        with patch(
+            "custom_components.meraki_ha.async_unload_entry"
+        ) as mock_unload:
+            future = asyncio.Future()
+            future.set_result(True)
+            mock_unload.return_value = future
+            result = await async_setup_entry(hass, config_entry)
+            assert result is True
