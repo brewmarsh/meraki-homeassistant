@@ -12,66 +12,29 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-# Assuming these consts correctly point to the keys used in hass.data for coordinators
 from ..const import (
     DOMAIN,
     DATA_COORDINATOR,
-    # DATA_COORDINATORS, # Unused
     DATA_SSID_DEVICES_COORDINATOR,
-    DATA_CLIENT, # Correct key for the API client
+    DATA_CLIENT,
 )
-
-# Import coordinator types
 from ..coordinators.base_coordinator import MerakiDataUpdateCoordinator
 from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
-from ..meraki_api import MerakiAPIClient # Added MerakiAPIClient
-
-# Import sensor entity classes for physical devices - These are now dynamically loaded via sensor_registry
-# from .device_status import MerakiDeviceStatusSensor # Unused
-# from .uplink_status import MerakiUplinkStatusSensor # Unused
-# Import for connected clients sensor for physical APs
-# from .connected_clients import MerakiDeviceConnectedClientsSensor # Unused
-
-# Import new MX-specific sensors - These are now dynamically loaded via sensor_registry
-# from .meraki_wan1_connectivity import MerakiWAN1ConnectivitySensor # Unused
-# from .meraki_wan2_connectivity import MerakiWAN2ConnectivitySensor # Unused
-# from .meraki_network_info import MerakiNetworkInfoSensor # Unused
-# from .meraki_firmware_status import MerakiFirmwareStatusSensor # Unused
-
-# Import from sensor_registry
+from ..api.meraki_api import MerakiAPIClient
 from ..sensor_registry import (
     COMMON_DEVICE_SENSORS,
     get_sensors_for_device_type,
 )
-
-# Import sensor entity classes for SSIDs
-# from .ssid_availability import MerakiSSIDAvailabilitySensor # Now created by factory
-# from .ssid_channel import MerakiSSIDChannelSensor # Now created by factory
-# from .ssid_client_count import MerakiSSIDClientCountSensor # Now created by factory
-
-# Import the factory function for SSID sensors
-from .ssid import create_ssid_sensors
-
-# Import the new organization-level sensor
-from .org_device_type_clients import MerakiOrgDeviceTypeClientsSensor
-from .org_clients import (
+from .network.ssid import create_ssid_sensors
+from .org.org_device_type_clients import MerakiOrgDeviceTypeClientsSensor
+from .org.org_clients import (
     MerakiOrganizationSSIDClientsSensor,
     MerakiOrganizationWirelessClientsSensor,
     MerakiOrganizationApplianceClientsSensor,
 )
-
-# Import the new Network Clients sensor
-from .network_clients import MerakiNetworkClientsSensor # Added MerakiNetworkClientsSensor
-
-# Import the new Network Identity sensor
-from .network_identity import MerakiNetworkIdentitySensor
-
-# Import camera settings sensors
-from .camera_settings import (
-    MerakiCameraSenseStatusSensor,
-    MerakiCameraAudioDetectionSensor,
-    MerakiCameraRTSPUrlSensor,
-)
+from .network.network_clients import MerakiNetworkClientsSensor
+from .network.network_identity import MerakiNetworkIdentitySensor
+from .network.meraki_network_info import MerakiNetworkInfoSensor
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -82,34 +45,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
-    """Set up Meraki sensor entities from a config entry.
-
-    This function is responsible for initializing and adding sensor entities
-    for both physical Meraki devices (APs, switches, gateways, cameras) and Meraki
-    SSIDs. It retrieves data from the main data coordinator (which includes
-    camera-specific settings merged by DataAggregationCoordinator) and the
-    SSID device coordinator, then creates sensor entities based on this data.
-
-    Physical device sensors are determined by common sensors applicable to all
-    devices (defined in COMMON_DEVICE_SENSORS) and productType-specific sensors
-    (obtained via get_sensors_for_device_type from the SENSOR_REGISTRY).
-    If a device lacks a name from the API, a fallback name is generated using its
-    model and serial number to ensure it can be registered and identified in
-    Home Assistant. Camera devices also have specific sensors created for MV Sense
-    and Audio Detection statuses.
-
-    SSID sensors (e.g., availability, channel, client count) are created
-    using a factory function for each enabled SSID managed by the
-    SSIDDeviceCoordinator.
-
-    Organization-level sensors and network-specific sensors (like client counts
-    per network and network identity) are also initialized here.
-
-    Args:
-        hass: The Home Assistant instance.
-        config_entry: The configuration entry for this Meraki integration instance.
-        async_add_entities: Callback function to add entities to Home Assistant.
-    """
+    """Set up Meraki sensor entities from a config entry."""
     entities = []
 
     # Get the entry specific data store
@@ -256,60 +192,10 @@ async def async_setup_entry(
             try:
                 entities.append(MerakiNetworkClientsSensor(main_coordinator, network_id, network_name))
                 entities.append(MerakiNetworkIdentitySensor(main_coordinator, network_data))
+                entities.append(MerakiNetworkInfoSensor(main_coordinator, network_data))
             except Exception as e:
                 _LOGGER.error("Meraki HA: Error adding network sensors for %s (ID: %s): %s", network_name, network_id, e)
 
-        # Add a separate loop for devices to avoid creating network sensors for them
-        physical_devices = main_coordinator.data.get("devices", [])
-        for device_info in physical_devices:
-            serial = device_info.get("serial")
-            if not serial:
-                _LOGGER.warning(
-                    f"Skipping device with missing serial: {device_info.get('name', 'Unnamed Device with no Serial')}"
-                )
-                continue
-
-            original_device_name = device_info.get("name")
-            if not original_device_name:
-                model_str = device_info.get('model', 'Device')
-                fallback_name = f"Meraki {model_str} {serial}"
-                device_info["name"] = fallback_name
-
-            for sensor_class in COMMON_DEVICE_SENSORS:
-                try:
-                    entities.append(sensor_class(main_coordinator, device_info))
-                except Exception as e:
-                    _LOGGER.error(
-                        "Meraki HA: Error adding common sensor %s for %s: %s",
-                        sensor_class.__name__,
-                        device_info.get("name", serial),
-                        e,
-                    )
-
-            # Add productType-specific sensors
-            product_type = device_info.get("productType")
-
-            if product_type:
-                sensors_for_type = get_sensors_for_device_type(product_type)
-                # if not sensors_for_type: # Removed: Redundant log, handled by empty list iteration
-                #     pass
-                for sensor_class in sensors_for_type:
-                    try:
-                        entities.append(sensor_class(main_coordinator, device_info))
-                    except Exception as e:
-                        _LOGGER.error(
-                            "Meraki HA: Error adding sensor %s for %s (productType: %s): %s",
-                            sensor_class.__name__,
-                            device_info.get("name", serial),
-                            product_type,
-                            e,
-                        )
-            else:
-                _LOGGER.warning( # Changed to warning as this might be unexpected
-                    "Meraki HA: No productType found for device %s (Serial: %s), skipping productType-specific sensors.",
-                    device_info.get("name"), # Use guaranteed name
-                    serial,
-                )
 
     elif not meraki_api_client:
         _LOGGER.warning("Meraki API client not available; skipping MerakiNetworkClientsSensor setup.")
