@@ -6,21 +6,21 @@ from homeassistant.helpers.entity import Entity
 
 # Import sensor classes
 # Physical device sensors
-from .sensor.device_status import MerakiDeviceStatusSensor
-from .sensor.uplink_status import MerakiUplinkStatusSensor
-from .sensor.connected_clients import (
+from .sensor.device.device_status import MerakiDeviceStatusSensor
+from .sensor.device.uplink_status import MerakiUplinkStatusSensor
+from .sensor.device.connected_clients import (
     MerakiDeviceConnectedClientsSensor,
 )  # For MR devices
-from .sensor.radio_settings import MerakiRadioSettingsSensor # Added import
+from .sensor.device.radio_settings import MerakiRadioSettingsSensor # Added import
 
 # MX-specific sensors
-from .sensor.meraki_wan1_connectivity import MerakiWAN1ConnectivitySensor
-from .sensor.meraki_wan2_connectivity import MerakiWAN2ConnectivitySensor
-from .sensor.meraki_network_info import MerakiNetworkInfoSensor
-from .sensor.meraki_firmware_status import MerakiFirmwareStatusSensor
+from .sensor.device.meraki_wan1_connectivity import MerakiWAN1ConnectivitySensor
+from .sensor.device.meraki_wan2_connectivity import MerakiWAN2ConnectivitySensor
+from .sensor.network.meraki_network_info import MerakiNetworkInfoSensor
+from .sensor.device.meraki_firmware_status import MerakiFirmwareStatusSensor
 
 # Camera-specific sensors
-from .sensor.camera_settings import MerakiCameraSenseStatusSensor, MerakiCameraAudioDetectionSensor, MerakiCameraRTSPUrlSensor # Added imports
+from .sensor.device.camera_settings import MerakiCameraSenseStatusSensor, MerakiCameraAudioDetectionSensor, MerakiCameraRTSPUrlSensor # Added imports
 
 # SSID-specific sensors (These are typically handled by SSIDDeviceCoordinator,
 # but listed here for completeness or future refactoring if structure changes.

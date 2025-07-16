@@ -10,9 +10,9 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from ..const import DOMAIN, DATA_CLIENT
-from ..meraki_api import MerakiAPIClient, MerakiApiError # Added MerakiApiError
+from ..api.meraki_api import MerakiAPIClient, MerakiApiError # Added MerakiApiError
 import aiohttp # Added aiohttp
-from ..coordinators.base_coordinator import MerakiDataUpdateCoordinator
+from .base_coordinator import MerakiDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
