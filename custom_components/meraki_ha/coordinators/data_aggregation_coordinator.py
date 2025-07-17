@@ -77,7 +77,7 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         )
 
         # Initialize SsidStatusCalculator first
-from ..helpers.ssid_status_calculator import (
+        from ..helpers.ssid_status_calculator import (
             SsidStatusCalculator,
         )
         self.ssid_status_calculator: SsidStatusCalculator = SsidStatusCalculator()
