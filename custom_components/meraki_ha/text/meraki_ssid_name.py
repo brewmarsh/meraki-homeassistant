@@ -12,7 +12,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 
 
 from ..const import DOMAIN, DATA_CLIENT
-from ..meraki_api import MerakiAPIClient
+from ..api.meraki_api import MerakiAPIClient
 from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
 
 _LOGGER = logging.getLogger(__name__)

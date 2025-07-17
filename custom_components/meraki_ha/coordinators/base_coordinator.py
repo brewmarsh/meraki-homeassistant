@@ -20,13 +20,13 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from ..const import DOMAIN, ERASE_TAGS_WARNING # Changed to relative import
-from custom_components.meraki_ha.coordinators.api_data_fetcher import (
+from .api_data_fetcher import (
     MerakiApiDataFetcher,
 )
 
 # MerakiApiError for exception handling
-from custom_components.meraki_ha.meraki_api import MerakiApiError
-from custom_components.meraki_ha.coordinators.data_aggregation_coordinator import (
+from ..api.meraki_api import MerakiApiError
+from .data_aggregation_coordinator import (
     DataAggregationCoordinator,
 )
 
@@ -38,7 +38,7 @@ from ..helpers.naming_utils import format_device_name
 
 # Obsolete coordinators (DeviceTagFetchCoordinator,
 # MerakiNetworkCoordinator, MerakiSsidCoordinator) removed.
-from custom_components.meraki_ha.coordinators.tag_eraser_coordinator import (
+from .tag_eraser_coordinator import (
     TagEraserCoordinator,
 )
 
@@ -88,7 +88,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # This client is passed to the api_fetcher and its lifecycle managed
         # here.
         # Local import to avoid potential circulars
-        from custom_components.meraki_ha.meraki_api import MerakiAPIClient
+        from ..api.meraki_api import MerakiAPIClient
         self.meraki_client: MerakiAPIClient = MerakiAPIClient(
             api_key=api_key,
             org_id=org_id,
@@ -290,7 +290,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 sw_version=firmware_version,
                 connections=connections,
             )
-        from custom_components.meraki_ha.coordinators.data_processor import (
+        from .data_processor import (
             MerakiDataProcessor,
         )  # Ensure import
 

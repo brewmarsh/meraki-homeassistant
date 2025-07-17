@@ -8,8 +8,8 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..const import DOMAIN
-from ..coordinators import MerakiDataUpdateCoordinator
+from ...const import DOMAIN
+from ...coordinators import MerakiDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiNetworkInfoSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
-    """Representation of a Meraki Device Network Information Sensor."""
+    """Representation of a Meraki Network Information Sensor."""
 
     _attr_icon = "mdi:information-outline"
     _attr_has_entity_name = True  # Home Assistant will prepend the device name
@@ -25,16 +25,17 @@ class MerakiNetworkInfoSensor(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: Dict[str, Any],
+        network_data: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._network_id: str = device_data["id"]
+        self._network_id: str = network_data["id"]
         self._attr_unique_id = f"{self._network_id}_network_info"
         # self.entity_id = f"sensor.{DOMAIN}_{self._network_id}_network_info" # Let HA generate
 
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._network_id)}
+            identifiers={(DOMAIN, self._network_id)},
+            name=network_data.get("name"),
             # No other fields like name, model, manufacturer, sw_version.
             # These should be inherited from the device entry already created by MerakiDataUpdateCoordinator.
         )
@@ -48,18 +49,16 @@ class MerakiNetworkInfoSensor(
     @callback
     def _update_state(self) -> None:
         """Update the state of the sensor."""
-        current_device_data: Optional[Dict[str, Any]] = None
-        if (
-            self.coordinator.data
-            and self.coordinator.data.get("networks")
-            and isinstance(self.coordinator.data["networks"], list)
-        ):
-            for network in self.coordinator.data["networks"]:
-                if network.get("id") == self._network_id:
-                    current_device_data = network
-                    break
+        if not self.coordinator.data or not self.coordinator.data.get("networks"):
+            self._attr_native_value = "Unknown"
+            self._attr_extra_state_attributes = {}
+            return
 
-        if not current_device_data:
+        for network in self.coordinator.data["networks"]:
+            if network.get("id") == self._network_id:
+                current_network_data = network
+                break
+        else:
             self._attr_native_value = "Unknown"
             self._attr_extra_state_attributes = {}
             _LOGGER.debug(
@@ -68,37 +67,19 @@ class MerakiNetworkInfoSensor(
             )
             return
 
-        # The state of this sensor will be the device's reported name or serial
-        self._attr_native_value = current_device_data.get("name", self._network_id)
+        self._attr_native_value = current_network_data.get("name", self._network_id)
 
         attributes = {
-            "hostname": current_device_data.get("name"),
-            "serial_number": current_device_data.get("serial"),
-            "model": current_device_data.get("model"),
-            "mac_address": current_device_data.get("mac"),  # Added MAC address
-            "wan1_ip_address": current_device_data.get("wan1Ip"),
-            "wan1_dns_servers": current_device_data.get("wan1_dns_servers", []),
-            "wan2_ip_address": current_device_data.get("wan2Ip"),
-            "wan2_dns_servers": current_device_data.get("wan2_dns_servers", []),
-            "lan_ip_address": current_device_data.get("lanIp"),
-            "public_ip_address": current_device_data.get("publicIp"),
-            "network_id": current_device_data.get("networkId"),  # Added Network ID
-            "tags": current_device_data.get("tags", []),
-            "firmware_version": current_device_data.get(
-                "firmware"
-            ),  # Added firmware from base device data
-            "firmware_up_to_date": current_device_data.get(
-                "firmware_up_to_date"
-            ),  # From data fetcher
-            "latest_firmware_version": current_device_data.get(
-                "latest_firmware_version"
-            ),  # From data fetcher
-            "lan_dns_settings": current_device_data.get(
-                "lan_dns_settings"
-            ),  # LAN DNS settings from fetcher
+            "hostname": current_network_data.get("name"),
+            "notes": current_network_data.get("notes"),
+            "network_id": current_network_data.get("id"),
+            "organization_id": current_network_data.get("organizationId"),
+            "product_types": current_network_data.get("productTypes"),
+            "tags": current_network_data.get("tags", []),
+            "time_zone": current_network_data.get("timeZone"),
+            "url": current_network_data.get("url"),
         }
 
-        # Filter out attributes with None values to keep it clean
         self._attr_extra_state_attributes = {
             k: v for k, v in attributes.items() if v is not None
         }

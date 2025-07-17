@@ -13,7 +13,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
 # Import the refactored client
-from custom_components.meraki_ha.meraki_api import MerakiAPIClient
+from .api.meraki_api import MerakiAPIClient
 
 _LOGGER = logging.getLogger(__name__)
 

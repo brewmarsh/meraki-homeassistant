@@ -10,24 +10,15 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from ..const import DOMAIN, DATA_CLIENT
-from ..meraki_api import MerakiAPIClient, MerakiApiError # Added MerakiApiError
+from ..api.meraki_api import MerakiAPIClient, MerakiApiError # Added MerakiApiError
 import aiohttp # Added aiohttp
-from ..coordinators.base_coordinator import MerakiDataUpdateCoordinator
+from .base_coordinator import MerakiDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
-    """Manages fetching SSID data, updating corresponding HA devices, and calculating client counts.
-
-    This coordinator retrieves information for all enabled SSIDs within a Meraki network.
-    It registers each enabled SSID as a distinct HA device.
-    Client counts for each SSID are determined by:
-    1. Fetching all clients for the parent network of the SSID (cached per network).
-    2. Filtering these network clients locally by comparing the `ssid` attribute reported
-       by each client against the configured name of the current SSID.
-    The resulting count is then stored within the SSID's data.
-    """
+    """Coordinator for Meraki SSID Devices."""
 
     def __init__(
         self,
@@ -54,43 +45,7 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
         )
 
     async def _async_update_data(self) -> Dict[str, Dict[str, Any]]:
-        """Fetch SSID data, update/create HA devices, and calculate client counts.
-
-        This method performs the following steps:
-        1. Retrieves all SSIDs from `self.api_data_fetcher.data.get("ssids", [])`.
-           Each item in this list (`ssid_info`) is expected to be a dictionary, ideally
-           output by `MerakiDataProcessor.process_ssids()`, containing fields like:
-           - 'name' (Optional[str]): SSID name.
-           - 'number' (Union[int, str]): SSID number (e.g., 0-14), critical for API calls.
-           - 'enabled' (bool): Whether the SSID is enabled, critical for filtering.
-           - 'networkId' (str): The ID of the network this SSID belongs to, critical.
-           - 'authMode' (Optional[str]), 'splashPage' (Optional[str]), etc.
-        2. Filters these SSIDs to get valid, enabled ones. Validation includes
-           checking for the presence and correct types of 'enabled', 'networkId',
-           and 'number' fields in each `ssid_info` dictionary.
-        3. For each valid, enabled SSID (`ssid_summary_data`):
-            a. Fetches detailed SSID information via an API call to
-               `meraki_client.wireless.getNetworkWirelessSsid()`. The raw response
-               (`ssid_detail_data_raw`) is expected to be a dictionary containing
-               comprehensive SSID configuration details (e.g., 'psk', 'encryptionMode').
-            b. Calculates client count:
-                i. Retrieves all clients for the SSID's parent network using
-                   `meraki_client.networks.getNetworkClients()`. This response
-                   (`all_network_clients_response`) is cached per `networkId` for
-                   the duration of this update cycle and is expected to be a list
-                   of client dictionaries.
-                ii. Each client dictionary (`client_item`) in this list is expected to
-                    have an 'ssid' (Optional[str]) field for comparison against the
-                    current SSID's name.
-                iii. Filters these network clients locally.
-                iv. The number of matching clients is stored as `client_count`.
-            c. Merges `ssid_summary_data` with the validated `ssid_detail_data` and adds
-               `unique_id` (typically `f"{network_id}_{ssid_number}"`) and `client_count`.
-            d. Registers or updates an HA device for the SSID using Home Assistant's
-               device registry, linking it to the parent network device.
-        4. Returns a dictionary where keys are `unique_ssid_id` and values are the
-           `merged_ssid_data` dictionaries for each successfully processed SSID.
-        """
+        """Fetch and process SSID data."""
         _LOGGER.debug("SSIDDeviceCoordinator starting _async_update_data")
 
         # Ensure the main data fetcher has run and has data
@@ -291,6 +246,26 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                     formatted_ssid_name = f"[SSID] {authoritative_ssid_name}"
                 elif device_name_format == "suffix":
                     formatted_ssid_name = f"{authoritative_ssid_name} [SSID]"
+
+                # Ensure the parent network device exists
+                parent_device = device_registry.async_get_device(
+                    identifiers={(DOMAIN, network_id)}
+                )
+                if not parent_device:
+                    # Find network name for the device
+                    network_name = "Unknown Network"
+                    if self.api_data_fetcher.data and self.api_data_fetcher.data.get("networks"):
+                        for network in self.api_data_fetcher.data["networks"]:
+                            if network.get("id") == network_id:
+                                network_name = network.get("name", f"Unnamed Network {network_id}")
+                                break
+                    device_registry.async_get_or_create(
+                        config_entry_id=self.config_entry.entry_id,
+                        identifiers={(DOMAIN, network_id)},
+                        name=network_name,
+                        manufacturer="Cisco Meraki",
+                        model="Network",
+                    )
 
                 device_registry.async_get_or_create(
                     config_entry_id=self.config_entry.entry_id,

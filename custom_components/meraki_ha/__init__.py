@@ -26,7 +26,7 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
 from .coordinators import MerakiDataUpdateCoordinator
 from .coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
-from .meraki_api import MerakiAPIClient, MerakiApiError, MerakiApiAuthError, MerakiApiNotFoundError, MerakiApiConnectionError
+from .api.meraki_api import MerakiAPIClient, MerakiApiError, MerakiApiAuthError, MerakiApiNotFoundError, MerakiApiConnectionError
 
 from .const import (
     CONF_MERAKI_API_KEY,
