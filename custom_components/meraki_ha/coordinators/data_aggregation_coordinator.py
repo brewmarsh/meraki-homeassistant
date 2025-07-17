@@ -18,8 +18,8 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 # SsidStatusCalculator is used by DataAggregator, not directly here.
-from ...coordinators.data_aggregator import DataAggregator
-from ...coordinators.data_processor import MerakiDataProcessor
+from .data_aggregator import DataAggregator
+from .data_processor import MerakiDataProcessor
 
 if TYPE_CHECKING:
     # To avoid circular import issues, type hint the parent coordinator.
