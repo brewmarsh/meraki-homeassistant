@@ -12,16 +12,16 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from custom_components.meraki_haconst import (
+from ..const import (
     DOMAIN,
     DATA_COORDINATOR,
     DATA_SSID_DEVICES_COORDINATOR,
     DATA_CLIENT,
 )
-from custom_components.meraki_hacoordinators.base_coordinator import MerakiDataUpdateCoordinator
-from custom_components.meraki_hacoordinators.ssid_device_coordinator import SSIDDeviceCoordinator
-from custom_components.meraki_haapi.meraki_api import MerakiAPIClient
-from custom_components.meraki_hasensor_registry import (
+from ..coordinators.base_coordinator import MerakiDataUpdateCoordinator
+from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+from ..api.meraki_api import MerakiAPIClient
+from ..sensor_registry import (
     COMMON_DEVICE_SENSORS,
     get_sensors_for_device_type,
 )

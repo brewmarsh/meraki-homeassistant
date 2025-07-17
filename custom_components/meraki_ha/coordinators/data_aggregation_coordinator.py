@@ -18,12 +18,12 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 # SsidStatusCalculator is used by DataAggregator, not directly here.
-from custom_components.meraki_ha.coordinators.data_aggregator import DataAggregator
-from custom_components.meraki_ha.coordinators.data_processor import MerakiDataProcessor
+from ...coordinators.data_aggregator import DataAggregator
+from ...coordinators.data_processor import MerakiDataProcessor
 
 if TYPE_CHECKING:
     # To avoid circular import issues, type hint the parent coordinator.
-    from custom_components.meraki_ha.coordinators.base_coordinator import (
+    from ...coordinators.base_coordinator import (
         MerakiDataUpdateCoordinator,
     )
 
@@ -77,7 +77,7 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         )
 
         # Initialize SsidStatusCalculator first
-        from custom_components.meraki_ha.helpers.ssid_status_calculator import (
+        from ...helpers.ssid_status_calculator import (
             SsidStatusCalculator,
         )
         self.ssid_status_calculator: SsidStatusCalculator = SsidStatusCalculator()
@@ -154,7 +154,7 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # _LOGGER.debug(
         #     "DataAggregationCoordinator received raw data. Processing and aggregating..."
         # ) # Reduced verbosity
-        from custom_components.meraki_haapi.meraki_api import MerakiApiError
+        from ..api.meraki_api import MerakiApiError
         import aiohttp
 
         try:

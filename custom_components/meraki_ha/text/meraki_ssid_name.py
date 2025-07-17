@@ -11,9 +11,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
 
-from custom_components.meraki_haconst import DOMAIN, DATA_CLIENT
-from custom_components.meraki_haapi.meraki_api import MerakiAPIClient
-from custom_components.meraki_hacoordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+from ..const import DOMAIN, DATA_CLIENT
+from ..api.meraki_api import MerakiAPIClient
+from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 

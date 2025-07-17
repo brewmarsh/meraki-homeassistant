@@ -6,9 +6,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from custom_components.meraki_haconst import DOMAIN, DATA_CLIENT, DATA_COORDINATORS # Use DATA_COORDINATORS
-from custom_components.meraki_haapi.meraki_api import MerakiAPIClient
-from custom_components.meraki_hacoordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+from ..const import DOMAIN, DATA_CLIENT, DATA_COORDINATORS # Use DATA_COORDINATORS
+from ..api.meraki_api import MerakiAPIClient
+from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
 from .meraki_ssid_device_switch import (
     MerakiSSIDEnabledSwitch,
     MerakiSSIDBroadcastSwitch,

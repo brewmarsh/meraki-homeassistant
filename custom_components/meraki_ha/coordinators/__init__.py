@@ -10,28 +10,28 @@ distribution from the Meraki API.
 
 # Import and re-export key coordinator classes for simpler access from
 # other modules.
-from custom_components.meraki_ha.coordinators.base_coordinator import (
+from ...coordinators.base_coordinator import (
     MerakiDataUpdateCoordinator,
 )
-from custom_components.meraki_ha.coordinators.api_data_fetcher import (
+from ...coordinators.api_data_fetcher import (
     MerakiApiDataFetcher,
 )
-from custom_components.meraki_ha.coordinators.data_aggregation_coordinator import (
+from ...coordinators.data_aggregation_coordinator import (
     DataAggregationCoordinator,
 )
 
 # Added for completeness if used externally
-from custom_components.meraki_ha.coordinators.data_processor import MerakiDataProcessor
+from ...coordinators.data_processor import MerakiDataProcessor
 
 # Added for completeness if used externally
-from custom_components.meraki_ha.coordinators.data_aggregator import DataAggregator
+from ...coordinators.data_aggregator import DataAggregator
 
 # MerakiDeviceCoordinator import removed as file is deleted
 # DeviceTagUpdateCoordinator import removed as file is deleted
-from custom_components.meraki_ha.coordinators.tag_eraser_coordinator import (
+from ...coordinators.tag_eraser_coordinator import (
     TagEraserCoordinator,
 )  # If still used
-from custom_components.meraki_ha.coordinators.ssid_device_coordinator import (
+from ...coordinators.ssid_device_coordinator import (
     SSIDDeviceCoordinator,
 )
 

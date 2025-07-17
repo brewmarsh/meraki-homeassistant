@@ -13,8 +13,8 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from custom_components.meraki_hacoordinators import MerakiDataUpdateCoordinator # Ensure this is the correct path
-from custom_components.meraki_haconst import DOMAIN
+from ...coordinators import MerakiDataUpdateCoordinator # Ensure this is the correct path
+from ...const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -15,7 +15,7 @@ from .ssid_channel import MerakiSSIDChannelSensor
 from .ssid_client_count import MerakiSSIDClientCountSensor
 
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
-# from custom_components.meraki_hacoordinator import MerakiDataUpdateCoordinator
+# from ...coordinator import MerakiDataUpdateCoordinator
 # Placeholder for type hinting if the actual coordinator class is complex
 # or causes circular imports
 MerakiDataUpdateCoordinator = Any

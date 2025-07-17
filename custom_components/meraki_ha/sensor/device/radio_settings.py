@@ -16,11 +16,11 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
-from custom_components.meraki_hacoordinators import MerakiDataUpdateCoordinator
-from custom_components.meraki_haconst import DOMAIN  # For device_info identifiers
+from ...coordinators import MerakiDataUpdateCoordinator
+from ...const import DOMAIN  # For device_info identifiers
 
 # Assuming this function is correctly defined in the meraki_api package
-# from custom_components.meraki_hameraki_api.wireless import get_meraki_device_wireless_radio_settings
+# from ...meraki_api.wireless import get_meraki_device_wireless_radio_settings
 _LOGGER = logging.getLogger(__name__)
 
 # Constants for sensor state if data is unavailable or an error occurs
