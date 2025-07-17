@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     # Avoid circular import at runtime, only for type checking
     # Ensure this path is correct; if coordinator.py was deleted, it might be
     # base_coordinator
-    from ...coordinators.base_coordinator import (
+    from ..coordinators.base_coordinator import (
         MerakiDataUpdateCoordinator,
     )
 

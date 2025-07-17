@@ -23,7 +23,7 @@ from .data_processor import MerakiDataProcessor
 
 if TYPE_CHECKING:
     # To avoid circular import issues, type hint the parent coordinator.
-    from ...coordinators.base_coordinator import (
+    from ..coordinators.base_coordinator import (
         MerakiDataUpdateCoordinator,
     )
 
