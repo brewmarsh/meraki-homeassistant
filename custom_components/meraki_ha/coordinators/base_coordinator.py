@@ -19,13 +19,13 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from ..const import DOMAIN, ERASE_TAGS_WARNING # Changed to relative import
+from custom_components.meraki_haconst import DOMAIN, ERASE_TAGS_WARNING # Changed to relative import
 from .api_data_fetcher import (
     MerakiApiDataFetcher,
 )
 
 # MerakiApiError for exception handling
-from ..api.meraki_api import MerakiApiError
+from custom_components.meraki_haapi.meraki_api import MerakiApiError
 from .data_aggregation_coordinator import (
     DataAggregationCoordinator,
 )
@@ -33,7 +33,7 @@ from .data_aggregation_coordinator import (
 # Added imports for device registration
 from homeassistant.helpers import device_registry as dr
 from .meraki_device_types import map_meraki_model_to_device_type
-from ..helpers.naming_utils import format_device_name
+from custom_components.meraki_hahelpers.naming_utils import format_device_name
 
 
 # Obsolete coordinators (DeviceTagFetchCoordinator,
@@ -88,7 +88,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # This client is passed to the api_fetcher and its lifecycle managed
         # here.
         # Local import to avoid potential circulars
-        from ..api.meraki_api import MerakiAPIClient
+        from custom_components.meraki_haapi.meraki_api import MerakiAPIClient
         self.meraki_client: MerakiAPIClient = MerakiAPIClient(
             api_key=api_key,
             org_id=org_id,

@@ -154,7 +154,7 @@ class DataAggregationCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # _LOGGER.debug(
         #     "DataAggregationCoordinator received raw data. Processing and aggregating..."
         # ) # Reduced verbosity
-        from ..api.meraki_api import MerakiApiError
+        from custom_components.meraki_haapi.meraki_api import MerakiApiError
         import aiohttp
 
         try:
