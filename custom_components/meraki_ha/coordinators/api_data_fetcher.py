@@ -872,16 +872,14 @@ class MerakiApiDataFetcher:
             _LOGGER.error(f"UnboundLocalError during {call_description}: {e}. This is a bug in the meraki library.")
             return None
         except MerakiSDKAPIError as e:
-            _LOGGER.warning(
-                f"SDK API error during {call_description} for org {self.org_id}: Status {e.status}, Reason: {e.reason}."
-            )
             if e.status == 404:
-                _LOGGER.info(
-                    f"Resource not found (404) for {call_description} in org {self.org_id}."
+                _LOGGER.warning(
+                    f"Meraki API call to {call_description} returned a 404, which is handled as an empty list."
                 )
-                if return_empty_list_on_404:
-                    # _LOGGER.debug(f"Returning empty list for 404 on {call_description}") # Reduced verbosity
-                    return []
+                return []
+            _LOGGER.error(
+                f"Meraki SDK API error during {call_description} for org {self.org_id}: Status {e.status}, Reason: {e.reason}."
+            )
             return None
         except Exception as e:
             _LOGGER.exception(
