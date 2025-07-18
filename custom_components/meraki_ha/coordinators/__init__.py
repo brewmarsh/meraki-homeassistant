@@ -10,33 +10,33 @@ distribution from the Meraki API.
 
 # Import and re-export key coordinator classes for simpler access from
 # other modules.
-from ..base_coordinator import (
+from .base_coordinator import (
     MerakiDataUpdateCoordinator,
 )
-from ..api_data_fetcher import (
+from .api_data_fetcher import (
     MerakiApiDataFetcher,
 )
-from ..data_aggregation_coordinator import (
+from .data_aggregation_coordinator import (
     DataAggregationCoordinator,
 )
 
 # Added for completeness if used externally
-from ..data_processor import MerakiDataProcessor
+from .data_processor import MerakiDataProcessor
 
 # Added for completeness if used externally
-from ..data_aggregator import DataAggregator
+from .data_aggregator import DataAggregator
 
 # MerakiDeviceCoordinator import removed as file is deleted
 # DeviceTagUpdateCoordinator import removed as file is deleted
-from ..tag_eraser_coordinator import (
+from .tag_eraser_coordinator import (
     TagEraserCoordinator,
 )  # If still used
-from ..ssid_device_coordinator import (
+from .ssid_device_coordinator import (
     SSIDDeviceCoordinator,
 )
 
 
-# __all__ defines the public API of this module when `from ..coordinators import *`
+# __all__ defines the public API of this module when `from .coordinators import *`
 # is used. It's generally better to use direct imports, but __all__ is provided
 # for completeness and to explicitly state what is intended for export.
 __all__ = [

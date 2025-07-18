@@ -2,8 +2,8 @@
 
 import logging
 
-from ..api_data_fetcher import MerakiApiDataFetcher
-from ..api.meraki_api.exceptions import (
+from .api_data_fetcher import MerakiApiDataFetcher
+from .api.meraki_api.exceptions import (
     MerakiApiConnectionError,
     MerakiApiAuthError,  # This replaces MerakiApiInvalidApiKeyError
 )

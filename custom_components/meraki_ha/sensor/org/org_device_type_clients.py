@@ -6,8 +6,8 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..coordinators import MerakiDataUpdateCoordinator # Correct coordinator
-from ..const import DOMAIN # CONF_MERAKI_ORG_ID removed as it's not used directly for device ID key, DOMAIN is sufficient with org_id value
+from .coordinators import MerakiDataUpdateCoordinator # Correct coordinator
+from .const import DOMAIN # CONF_MERAKI_ORG_ID removed as it's not used directly for device ID key, DOMAIN is sufficient with org_id value
 
 _LOGGER = logging.getLogger(__name__)
 
