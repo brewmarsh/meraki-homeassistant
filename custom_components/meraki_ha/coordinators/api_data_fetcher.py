@@ -1346,14 +1346,12 @@ class MerakiApiDataFetcher:
             # If vlan_list_to_iterate is empty (e.g., from None response or unexpected type), this loop is skipped.
 
         except MerakiSDKAPIError:
-            # Error already logged by _async_meraki_api_call if vlan_settings_response is None due to API error.
-            # If it's None (non-404 error) or an empty list (e.g. from 404 handled by helper), lan_dns_by_vlan remains {}.
-            if vlan_settings_response is None:  # Indicates a non-404 error from helper
+            if vlan_settings_response is None:
                 _LOGGER.warning(
                     f"LAN DNS settings could not be fetched for MX device {device_name} (Serial: {serial}, Network: {network_id})."
                 )
 
-        except Exception as e:  # Should be rare if helper catches most things
+        except Exception as e:
             _LOGGER.exception(
                 f"Unexpected error structure in _async_get_mx_lan_dns_settings for {device_name} (Serial: {serial}, Network: {network_id}): {e}."
             )
