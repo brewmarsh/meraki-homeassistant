@@ -1136,26 +1136,18 @@ class MerakiApiDataFetcher:
                 elif f"{wan_key}_dns_servers" not in device:
                     device[f"{wan_key}_dns_servers"] = []
 
-        except (
-            Exception
-        ) as e:  # Catch errors from processing the uplink_settings data itself
+        except Exception as e:
             _LOGGER.exception(
                 f"Unexpected error processing uplink settings for MX device {device.get('name', 'Unknown')} (Serial: {serial}): {e}. "
                 "Ensuring DNS keys exist with fallback."
             )
-            for wan_key in [
-                "wan1",
-                "wan2",
-            ]:  # Ensure keys exist even if processing failed
+            for wan_key in ["wan1", "wan2"]:
                 if f"{wan_key}_dns_servers" not in device:
-                    # Attempt one last fallback if processing failed badly
-                    device[f"{wan_key}_dns_servers"] = (
-                        self._extract_dns_servers_for_wan(
-                            interface_name=wan_key,
-                            interface_api_settings={},  # No API settings to process
-                            device_global_data=device,
-                            force_device_fallback_check=True,  # Force check of device global data
-                        )
+                    device[f"{wan_key}_dns_servers"] = self._extract_dns_servers_for_wan(
+                        interface_name=wan_key,
+                        interface_api_settings={},
+                        device_global_data=device,
+                        force_device_fallback_check=True,
                     )
                     # _LOGGER.debug(
                     #     f"Ensured {wan_key}_dns_servers for {serial} after processing error: {device[f'{wan_key}_dns_servers']}"
