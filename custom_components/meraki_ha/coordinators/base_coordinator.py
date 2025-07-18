@@ -25,7 +25,7 @@ from .api_data_fetcher import (
 )
 
 # MerakiApiError for exception handling
-from .api.meraki_api import MerakiApiError
+from ..api.meraki_api import MerakiApiError
 from .data_aggregation_coordinator import (
     DataAggregationCoordinator,
 )
@@ -88,7 +88,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # This client is passed to the api_fetcher and its lifecycle managed
         # here.
         # Local import to avoid potential circulars
-        from .api.meraki_api import MerakiAPIClient
+        from ..api.meraki_api import MerakiAPIClient
         self.meraki_client: MerakiAPIClient = MerakiAPIClient(
             api_key=api_key,
             org_id=org_id,

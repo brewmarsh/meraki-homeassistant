@@ -9,8 +9,8 @@ from datetime import timedelta
 from typing import Dict, Any # Added
 
 from .tag_eraser import TagEraser
-from .api.meraki_api import MerakiAPIClient
-from .api.meraki_api.exceptions import MerakiApiError, MerakiApiAuthError, MerakiApiConnectionError # Added
+from ..api.meraki_api import MerakiAPIClient
+from ..api.meraki_api.exceptions import MerakiApiError, MerakiApiAuthError, MerakiApiConnectionError # Added
 
 _LOGGER = logging.getLogger(__name__)
 
