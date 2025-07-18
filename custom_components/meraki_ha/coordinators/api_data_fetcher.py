@@ -628,9 +628,7 @@ class MerakiApiDataFetcher:
                     _LOGGER.info(
                         f"SSID data result was None for network {network_id}, SSIDs for this network will be skipped."
                     )
-            except (
-                Exception
-            ) as e:  # Catch any other unexpected errors during processing of a network.
+            except Exception as e:
                 _LOGGER.exception(
                     f"Unexpected error processing network {network_id} for SSID data: {e}. Skipping this network's SSIDs."
                 )
