@@ -1,14 +1,2 @@
-meraki>=1.36.0
-aiohttp
-bump2version
-pytest
-pytest-aiohttp
-pytest-asyncio
-pytest-cov
-flake8
-mypy
-pre-commit
-mkdocs
-mkdocs-material
-pymdown-extensions
-pytest-homeassistant-custom-component
+homeassistant
+voluptuous

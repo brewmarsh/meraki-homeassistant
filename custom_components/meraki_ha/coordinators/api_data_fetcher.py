@@ -88,6 +88,7 @@ class MerakiApiDataFetcher:
         # Step 1: Concurrently fetch foundational data
         # Networks, Devices, Device Statuses, Firmware Upgrades
         results = await asyncio.gather(
+            self.meraki_client.organizations.getOrganizations(),
             self.async_get_networks(self.org_id),
             self.async_get_organization_devices(self.org_id),
             self.meraki_client.organizations.getOrganizationDevicesStatuses(
@@ -96,8 +97,16 @@ class MerakiApiDataFetcher:
             self.meraki_client.organizations.getOrganizationFirmwareUpgrades(
                 organizationId=self.org_id
             ),
-            return_exceptions=True,  # Allows us to handle individual failures
+            return_exceptions=True,
         )
+
+        organizations = results[0]
+        org_details = None
+        if isinstance(organizations, list):
+            for org in organizations:
+                if org.get("id") == self.org_id:
+                    org_details = org
+                    break
 
         # Unpack results and handle errors
         networks: Optional[List[Dict[str, Any]]] = None
@@ -859,6 +868,9 @@ class MerakiApiDataFetcher:
             result = await api_coro
             # _LOGGER.debug(f"Successfully executed API call: {call_description}") # Reduced verbosity
             return result
+        except UnboundLocalError as e:
+            _LOGGER.error(f"UnboundLocalError during {call_description}: {e}. This is a bug in the meraki library.")
+            return None
         except MerakiSDKAPIError as e:
             _LOGGER.warning(
                 f"SDK API error during {call_description} for org {self.org_id}: Status {e.status}, Reason: {e.reason}."

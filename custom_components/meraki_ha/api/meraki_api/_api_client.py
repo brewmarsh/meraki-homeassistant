@@ -7,6 +7,7 @@ leveraging the meraki.aio.DashboardAPI.
 import logging
 import aiohttp
 from typing import Any, List, Dict, Optional # Added List, Dict, Optional
+from ...patched_meraki_session import PatchedAsyncRestSession
 from meraki.aio import AsyncDashboardAPI
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
@@ -35,13 +36,17 @@ class MerakiAPIClient:
         self._org_id = org_id  # Store org_id if needed for specific calls
 
         # Initialize the Meraki SDK
-        self._sdk = AsyncDashboardAPI(  # Changed from DashboardAPI
+        self._sdk = AsyncDashboardAPI(
             api_key=api_key,
-            base_url="https://api.meraki.com/api/v1",  # Standard base URL
-            output_log=False,  # Set to True for SDK-level debug logging if needed
-            print_console=False,  # Set to True for SDK-level console output if needed
-            suppress_logging=True,  # Prefer HA's logging mechanisms
-            # org_id is generally passed to specific SDK method calls
+            base_url="https://api.meraki.com/api/v1",
+            output_log=False,
+            print_console=False,
+            suppress_logging=True,
+        )
+        self._sdk._session = PatchedAsyncRestSession(
+            logger=_LOGGER,
+            api_key=api_key,
+            base_url="https://api.meraki.com/api/v1",
         )
 
     @property
