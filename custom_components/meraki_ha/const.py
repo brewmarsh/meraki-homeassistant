@@ -15,6 +15,9 @@ CONF_MERAKI_API_KEY: Final[str] = "meraki_api_key"
 CONF_MERAKI_ORG_ID: Final[str] = "meraki_org_id"
 """Configuration key for the Meraki organization ID (str)."""
 
+CONF_SCAN_INTERVAL: Final[str] = "scan_interval"
+"""Configuration key for the scan interval in seconds (str)."""
+
 DATA_CLIENT: Final[str] = "client"
 """Key for storing the Meraki API client in Home Assistant's data (str)."""
 
