@@ -739,10 +739,10 @@ class MerakiApiDataFetcher:
                 _LOGGER.error(
                     f"Meraki SDK API error fetching clients for network {network_id}: {e}. Status: {e.status}, Reason: {e.reason}. Skipping this network's clients."
                 )
-            except Exception as e:  # Handle other unexpected errors.
-                _LOGGER.exception(
-                    f"Unexpected error fetching clients for network {network_id}: {e}. Skipping this network's clients."
-                )
+        except Exception as e:
+            _LOGGER.exception(
+                f"Unexpected error fetching clients for network {network_id}: {e}. Skipping this network's clients."
+            )
         else:  # No networks available to fetch clients from.
             _LOGGER.info("No networks were found or available for this organization. Client data will be empty.")
 
