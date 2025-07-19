@@ -64,8 +64,8 @@ class MerakiFirmwareStatusSensor(
             self._attr_native_value = "unknown"
             self._attr_extra_state_attributes = {}
             # _LOGGER.debug( # Covered by available property
-            #     "Device %s not found in coordinator data for firmware status sensor.",
-            #     self._device_serial,
+            #   "Device %s not found in coordinator data for firmware status sensor.",
+            #   self._device_serial,
             # ) # Removed
             return
 
@@ -77,11 +77,14 @@ class MerakiFirmwareStatusSensor(
         else:
             self._attr_native_value = "unknown"
 
-
         attributes = {
             "current_firmware_version": current_device_data.get("firmware"),
-            "firmware_up_to_date": current_device_data.get("firmware_up_to_date", False),
-            "latest_available_firmware_version": current_device_data.get("latest_firmware_version", "N/A"),
+            "firmware_up_to_date": current_device_data.get(
+                "firmware_up_to_date", False
+            ),
+            "latest_available_firmware_version": current_device_data.get(
+                "latest_firmware_version", "N/A"
+            ),
             "model": current_device_data.get("model"),
         }
 
@@ -90,10 +93,10 @@ class MerakiFirmwareStatusSensor(
         }
 
         # _LOGGER.debug(
-        #     "Firmware Status Sensor update for %s: state=%s, attributes=%s",
-        #     self._device_serial,
-        #     self._attr_native_value,
-        #     self._attr_extra_state_attributes,
+        #   "Firmware Status Sensor update for %s: state=%s, attributes=%s",
+        #   self._device_serial,
+        #   self._attr_native_value,
+        #   self._attr_extra_state_attributes,
         # ) # Removed
 
     @callback

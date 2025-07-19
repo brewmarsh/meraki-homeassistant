@@ -1,6 +1,6 @@
 """Switch platform for Meraki."""
+
 import logging
-from typing import Any, Dict
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -35,27 +35,39 @@ async def async_setup_entry(
         # Get the main data coordinator for physical device switches (like camera settings)
         main_coordinator = entry_data[DATA_COORDINATORS].get("main")
         if not main_coordinator:
-            _LOGGER.error("Switch platform: Main coordinator not found for entry %s", config_entry.entry_id)
+            _LOGGER.error(
+                "Switch platform: Main coordinator not found for entry %s",
+                config_entry.entry_id,
+            )
             return False
 
         # Get the SSID device coordinator for SSID switches
-        ssid_coordinator: SSIDDeviceCoordinator = entry_data[DATA_COORDINATORS].get("ssid_devices")
+        ssid_coordinator: SSIDDeviceCoordinator = entry_data[DATA_COORDINATORS].get(
+            "ssid_devices"
+        )
         if not ssid_coordinator:
-            _LOGGER.error("Switch platform: SSID Device coordinator not found for entry %s", config_entry.entry_id)
+            _LOGGER.error(
+                "Switch platform: SSID Device coordinator not found for entry %s",
+                config_entry.entry_id,
+            )
             # Depending on design, this might not be fatal if no SSIDs or if other switches exist
             # For now, let's allow proceeding if main_coordinator is there for camera switches.
     except KeyError as e:
         _LOGGER.error(
             "Switch platform: Essential data not found in hass.data for entry %s. Error: %s",
             config_entry.entry_id,
-            e
+            e,
         )
         return False
 
     new_entities: list = []
 
     # Setup Camera Setting Switches
-    if main_coordinator and main_coordinator.data and "devices" in main_coordinator.data:
+    if (
+        main_coordinator
+        and main_coordinator.data
+        and "devices" in main_coordinator.data
+    ):
         for device_info in main_coordinator.data["devices"]:
             if not isinstance(device_info, dict):
                 continue
@@ -68,14 +80,21 @@ async def async_setup_entry(
                 # _LOGGER.debug("Found camera %s (%s), adding setting switches.", device_info.get('name', serial), serial) # Removed
                 new_entities.extend(
                     [
-                        MerakiCameraSenseSwitch(main_coordinator, meraki_client, device_info),
-                        MerakiCameraAudioDetectionSwitch(main_coordinator, meraki_client, device_info),
-                        MerakiCameraRTSPSwitch(main_coordinator, meraki_client, device_info),
+                        MerakiCameraSenseSwitch(
+                            main_coordinator, meraki_client, device_info
+                        ),
+                        MerakiCameraAudioDetectionSwitch(
+                            main_coordinator, meraki_client, device_info
+                        ),
+                        MerakiCameraRTSPSwitch(
+                            main_coordinator, meraki_client, device_info
+                        ),
                     ]
                 )
     else:
-        _LOGGER.info("No camera devices found or main coordinator data missing for camera switches.")
-
+        _LOGGER.info(
+            "No camera devices found or main coordinator data missing for camera switches."
+        )
 
     # Setup SSID Switches
     if ssid_coordinator and ssid_coordinator.data:
@@ -88,15 +107,25 @@ async def async_setup_entry(
             new_entities.extend(
                 [
                     MerakiSSIDEnabledSwitch(
-                        ssid_coordinator, meraki_client, config_entry, ssid_unique_id, ssid_data
+                        ssid_coordinator,
+                        meraki_client,
+                        config_entry,
+                        ssid_unique_id,
+                        ssid_data,
                     ),
                     MerakiSSIDBroadcastSwitch(
-                        ssid_coordinator, meraki_client, config_entry, ssid_unique_id, ssid_data
+                        ssid_coordinator,
+                        meraki_client,
+                        config_entry,
+                        ssid_unique_id,
+                        ssid_data,
                     ),
                 ]
             )
     else:
-        _LOGGER.info("SSID Coordinator data not available or no SSIDs found for setting up SSID switches.")
+        _LOGGER.info(
+            "SSID Coordinator data not available or no SSIDs found for setting up SSID switches."
+        )
 
     if new_entities:
         async_add_entities(new_entities)

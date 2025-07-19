@@ -1,8 +1,8 @@
 """Tests for the Meraki config flow."""
+
 from unittest.mock import patch
 
 from homeassistant.core import HomeAssistant
-from homeassistant.const import CONF_API_KEY
 
 from custom_components.meraki_ha.const import DOMAIN
 

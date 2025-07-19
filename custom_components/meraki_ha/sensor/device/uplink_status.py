@@ -6,7 +6,7 @@ MX security appliance.
 """
 
 import logging
-from typing import Any, Dict, Optional # List removed
+from typing import Any, Dict, Optional  # List removed
 
 # SensorStateClass not needed if state is string
 from homeassistant.components.sensor import SensorEntity
@@ -47,9 +47,9 @@ class MerakiUplinkStatusSensor(
         """Initialize the Meraki MX Appliance Uplink Status sensor.
 
         Args:
-            coordinator: The data update coordinator.
-            device_data: A dictionary containing information about the Meraki MX
-                         appliance (e.g., name, serial, model, status, wan1Ip, publicIp).
+          coordinator: The data update coordinator.
+          device_data: A dictionary containing information about the Meraki MX
+                 appliance (e.g., name, serial, model, status, wan1Ip, publicIp).
         """
         super().__init__(coordinator)
         # Store the initial device_data to set up unique_id, name, etc.
@@ -77,13 +77,13 @@ class MerakiUplinkStatusSensor(
         # Set initial state by calling the update method
         self._update_sensor_state()
         # _LOGGER.debug(
-        #     "MerakiUplinkStatusSensor Initialized: Name: %s, Unique ID: %s, Initial Device Data (subset): %s",
-        #     self._attr_name,
-        #     self._attr_unique_id,
-        #     {
-        #         k: self._initial_device_data.get(k)
-        #         for k in ["name", "serial", "status", "publicIp", "wan1Ip", "wan2Ip"]
-        #     },
+        #   "MerakiUplinkStatusSensor Initialized: Name: %s, Unique ID: %s, Initial Device Data (subset): %s",
+        #   self._attr_name,
+        #   self._attr_unique_id,
+        #   {
+        #     k: self._initial_device_data.get(k)
+        #     for k in ["name", "serial", "status", "publicIp", "wan1Ip", "wan2Ip"]
+        #   },
         # ) # Removed
 
     def _update_sensor_state(self) -> None:
@@ -110,13 +110,17 @@ class MerakiUplinkStatusSensor(
             return
 
         # Update state based on the device's overall status
-        device_status = current_device_info.get("status", STATE_UNKNOWN_UPLINK).lower()
-        if device_status == "online":
-            self._attr_native_value = "Online"
-        elif device_status in ["offline", "dormant"]:
-            self._attr_native_value = "Offline"
-        else:  # e.g., "alerting", "connecting"
-            self._attr_native_value = device_status.capitalize()
+        device_status = current_device_info.get("status")
+        if device_status is None:
+            self._attr_native_value = STATE_UNKNOWN_UPLINK
+        else:
+            device_status = device_status.lower()
+            if device_status == "online":
+                self._attr_native_value = "Online"
+            elif device_status in ["offline", "dormant"]:
+                self._attr_native_value = "Offline"
+            else:  # e.g., "alerting", "connecting"
+                self._attr_native_value = device_status.capitalize()
 
         # Update attributes
         # Start with base attributes that might have been in initial_device_data but need refresh
@@ -136,12 +140,12 @@ class MerakiUplinkStatusSensor(
             k: v for k, v in current_attributes.items() if v is not None
         }
         # _LOGGER.debug(
-        #     "Uplink Sensor Updated: %s, State: %s, WAN1: %s, WAN2: %s, PublicIP: %s",
-        #     self._attr_name,
-        #     self._attr_native_value,
-        #     current_attributes.get("wan1_ip"),
-        #     current_attributes.get("wan2_ip"),
-        #     current_attributes.get("public_ip"),
+        #   "Uplink Sensor Updated: %s, State: %s, WAN1: %s, WAN2: %s, PublicIP: %s",
+        #   self._attr_name,
+        #   self._attr_native_value,
+        #   current_attributes.get("wan1_ip"),
+        #   current_attributes.get("wan2_ip"),
+        #   current_attributes.get("public_ip"),
         # ) # Removed
 
     @callback
@@ -167,3 +171,33 @@ class MerakiUplinkStatusSensor(
             # No other fields like name, model, manufacturer, sw_version.
             # These should be inherited from the device entry already created by MerakiDataUpdateCoordinator.
         )
+
+    def _get_uplink_status(self, device_data: Dict[str, Any]) -> str:
+        """Get the status of the primary uplink for this device.
+
+        Args:
+          device_data: Device data dictionary from the coordinator
+
+        Returns:
+          String representing the uplink status
+        """
+        if not device_data:
+            return STATE_UNAVAILABLE_UPLINK
+
+        uplink_info = device_data.get("uplinks", [{}])[0]
+        if not isinstance(uplink_info, dict):
+            return STATE_UNKNOWN_UPLINK
+
+        status = uplink_info.get("status")
+        if not status:
+            return STATE_UNKNOWN_UPLINK
+
+        try:
+            return str(status).lower()
+        except (AttributeError, TypeError):
+            _LOGGER.warning(
+                "Invalid uplink status value for device %s: %s",
+                device_data.get("name", "Unknown device"),
+                status,
+            )
+            return STATE_UNKNOWN_UPLINK

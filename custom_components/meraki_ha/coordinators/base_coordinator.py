@@ -19,20 +19,13 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from ..const import DOMAIN, ERASE_TAGS_WARNING # Changed to relative import
-from .api_data_fetcher import (
-    MerakiApiDataFetcher,
-)
-
-# MerakiApiError for exception handling
+from ..const import DOMAIN, ERASE_TAGS_WARNING  # Changed to relative import
 from ..api.meraki_api import MerakiApiError
-from .data_aggregation_coordinator import (
-    DataAggregationCoordinator,
-)
+from .api_data_fetcher import MerakiApiDataFetcher
+from .data_aggregation_coordinator import DataAggregationCoordinator
 
 # Added imports for device registration
 from homeassistant.helpers import device_registry as dr
-from .meraki_device_types import map_meraki_model_to_device_type
 from .helpers.naming_utils import format_device_name
 
 
@@ -42,7 +35,8 @@ from .tag_eraser_coordinator import (
     TagEraserCoordinator,
 )
 
-import asyncio # Make sure asyncio is imported
+import asyncio  # Make sure asyncio is imported
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -65,7 +59,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         api_key: str,
         org_id: str,
         scan_interval: timedelta,
-        config_entry: ConfigEntry, # relaxed_tag_match parameter removed
+        config_entry: ConfigEntry,  # relaxed_tag_match parameter removed
     ) -> None:
         """Initialize the Meraki data update coordinator.
 
@@ -89,6 +83,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # here.
         # Local import to avoid potential circulars
         from ..api.meraki_api import MerakiAPIClient
+
         self.meraki_client: MerakiAPIClient = MerakiAPIClient(
             api_key=api_key,
             org_id=org_id,
@@ -150,7 +145,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         return self.config_entry.options.get("device_name_format", "omitted")
 
     async def _async_update_data(self) -> Dict[str, Any]:
-
         """Fetch, process, and aggregate data from the Meraki API.
 
         This is the core method called periodically by the DataUpdateCoordinator.
@@ -175,10 +169,16 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 # Other arguments like org_id, scan_interval,
                 # device_name_format are no longer needed here.
             )
-        except MerakiApiError as e:  # Specific API errors from the fetcher.
+        except (
+            MerakiApiError,
+            asyncio.TimeoutError,
+        ) as e:  # Handle both API and timeout errors
             if self._is_available:
                 _LOGGER.error(
-                    "API error during Meraki data fetch for org %s: %s", self.org_id, e
+                    "API/Network error during Meraki data fetch for org %s: %s. Type: %s",
+                    self.org_id,
+                    str(e),
+                    type(e).__name__,
                 )
                 self._is_available = False
             raise UpdateFailed(
@@ -186,12 +186,13 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             ) from e
         except (
             Exception
-        ) as e:  # Catch any other unexpected errors during the main fetch.
+        ) as e:  # Catch any other unexpected errors during the main fetch
             if self._is_available:
                 _LOGGER.exception(
-                    "Unexpected error during Meraki data fetch for org %s: %s",
+                    "Unexpected error during Meraki data fetch for org %s: %s. Error type: %s",
                     self.org_id,
-                    e,
+                    str(e),
+                    type(e).__name__,
                 )
                 self._is_available = False
             raise UpdateFailed(
@@ -246,7 +247,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 device_name_raw=original_network_name,
                 device_model="Network",
                 device_name_format_option=current_device_name_format,
-                is_org_device=False
+                is_org_device=False,
             )
             device_registry.async_get_or_create(
                 config_entry_id=self.config_entry.entry_id,
@@ -273,7 +274,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 device_name_raw=device_name_raw,
                 device_model=device_model_str,
                 device_name_format_option=self.device_name_format,
-                is_org_device=False
+                is_org_device=False,
             )
 
             mac_address = device_info.get("mac")
@@ -321,13 +322,18 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                     clients_on_wireless=clients_on_wireless,
                 )
             )
-        except Exception as e:  # Catch errors specifically from the aggregation step.
-            _LOGGER.exception(
-                "Error during data aggregation for org %s: %s", self.org_id, e
-            )
-            raise UpdateFailed(
-                f"Failed to aggregate Meraki data for org {self.org_id}: {e}"
-            ) from e
+        except (
+            KeyError,
+            ValueError,
+            TypeError,
+        ) as e:  # Handle data structure/type errors
+            error_msg = f"Data structure error during aggregation for org {self.org_id}: {str(e)}"
+            _LOGGER.error("%s. Error type: %s", error_msg, type(e).__name__)
+            raise UpdateFailed(error_msg) from e
+        except Exception as e:  # Catch any other unexpected errors
+            error_msg = f"Unexpected error during data aggregation for org {self.org_id}: {str(e)}"
+            _LOGGER.exception("%s. Error type: %s", error_msg, type(e).__name__)
+            raise UpdateFailed(error_msg) from e
 
         self.data = combined_data
 
@@ -340,13 +346,29 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 serial = device_to_check.get("serial")
                 if serial:
                     try:
-                        await self.tag_eraser_coordinator.async_erase_device_tags(serial)
+                        await self.tag_eraser_coordinator.async_erase_device_tags(
+                            serial
+                        )
                     except MerakiApiError as e:
                         _LOGGER.error(
-                            "Failed to erase tags for device %s (org %s): %s",
+                            "Failed to erase tags for device %s (org %s): %s. Error type: %s",
                             serial,
                             self.org_id,
-                            e,
+                            str(e),
+                            type(e).__name__,
+                        )
+                    except asyncio.TimeoutError:
+                        _LOGGER.error(
+                            "Network timeout while erasing tags for device %s (org %s)",
+                            serial,
+                            self.org_id,
+                        )
+                    except Exception as e:
+                        _LOGGER.exception(
+                            "Unexpected error erasing tags for device %s (org %s): %s",
+                            serial,
+                            self.org_id,
+                            str(e),
                         )
         await self._device_registry_cleanup()
         return self.data
@@ -354,10 +376,14 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
     async def async_register_organization_device(self, hass: HomeAssistant) -> None:
         """Register the Meraki Organization as a device in Home Assistant."""
         if not self.org_id:
-            _LOGGER.error("Organization ID not available, cannot register organization device.")
+            _LOGGER.error(
+                "Organization ID not available, cannot register organization device."
+            )
             return
 
-        raw_org_name = self.org_name if self.org_name else f"Meraki Organization {self.org_id}"
+        raw_org_name = (
+            self.org_name if self.org_name else f"Meraki Organization {self.org_id}"
+        )
         device_name_format_option = self.device_name_format
 
         # _LOGGER.debug(
@@ -370,7 +396,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             device_name_raw=raw_org_name,
             device_model="Organization",
             device_name_format_option=device_name_format_option,
-            is_org_device=True
+            is_org_device=True,
         )
         # _LOGGER.debug("OrgDevReg: Formatted org name: '%s'", formatted_org_name) # Reduced verbosity
         self.formatted_org_display_name = formatted_org_name
@@ -414,11 +440,18 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         if hasattr(self, "meraki_client") and self.meraki_client:
             try:
                 await self.meraki_client.close()
+            except (asyncio.TimeoutError, ConnectionError) as e:
+                _LOGGER.warning(
+                    "Network error while closing Meraki API client session for org %s: %s",
+                    self.org_id,
+                    str(e),
+                )
             except Exception as e:
                 _LOGGER.error(
-                    "Error closing Meraki API client session for org %s: %s",
+                    "Unexpected error closing Meraki API client session for org %s: %s. Error type: %s",
                     self.org_id,
-                    e,
+                    str(e),
+                    type(e).__name__,
                 )
 
         # Call superclass shutdown for any base class cleanup.

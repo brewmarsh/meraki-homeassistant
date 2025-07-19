@@ -46,10 +46,10 @@ class MerakiRadioSettingsSensor(
     This revision assumes it will become a true CoordinatorEntity.
 
     Attributes:
-        _attr_name: The name of the sensor.
-        _attr_unique_id: The unique ID of the sensor.
-        _attr_icon: The icon for the sensor.
-        _device_info_data: Raw dictionary data for the associated Meraki device.
+      _attr_name: The name of the sensor.
+      _attr_unique_id: The unique ID of the sensor.
+      _attr_icon: The icon for the sensor.
+      _device_info_data: Raw dictionary data for the associated Meraki device.
     """
 
     _attr_icon = "mdi:wifi-settings"  # Icon representing WiFi settings
@@ -64,9 +64,9 @@ class MerakiRadioSettingsSensor(
         """Initialize the Meraki Radio Settings sensor.
 
         Args:
-            coordinator: The data update coordinator.
-            device_data: A dictionary containing information about the Meraki device
-                         (e.g., name, serial, model).
+          coordinator: The data update coordinator.
+          device_data: A dictionary containing information about the Meraki device
+                 (e.g., name, serial, model).
         """
         super().__init__(coordinator)
         self._device_info_data: Dict[str, Any] = device_data

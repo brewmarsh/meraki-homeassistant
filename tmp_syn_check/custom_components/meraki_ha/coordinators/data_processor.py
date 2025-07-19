@@ -32,8 +32,8 @@ class MerakiDataProcessor:
         """Initialize the MerakiDataProcessor.
 
         Args:
-            coordinator: The main MerakiDataUpdateCoordinator instance, used to
-                access shared information like the API key and org_id.
+          coordinator: The main MerakiDataUpdateCoordinator instance, used to
+            access shared information like the API key and org_id.
         """
         self.coordinator: "MerakiDataUpdateCoordinator" = coordinator
         # self.api_key: str = coordinator.api_key # Can be removed if not used directly elsewhere
@@ -52,14 +52,14 @@ class MerakiDataProcessor:
         asynchronously.
 
         Args:
-            devices: A list of dictionaries, where each dictionary is a raw
-                representation of a device from the Meraki API.
+          devices: A list of dictionaries, where each dictionary is a raw
+            representation of a device from the Meraki API.
 
         Returns:
-            A list of processed device dictionaries. Each dictionary contains
-            selected fields like 'name', 'serial', 'mac', 'model', 'networkId',
-            'tags', and potentially 'connected_clients' and 'radio_settings'
-            for MR devices.
+          A list of processed device dictionaries. Each dictionary contains
+          selected fields like 'name', 'serial', 'mac', 'model', 'networkId',
+          'tags', and potentially 'connected_clients' and 'radio_settings'
+          for MR devices.
         """
         _LOGGER.debug("Processing %d devices.", len(devices))
         processed_devices_list: List[Dict[str, Any]] = []
@@ -203,13 +203,13 @@ class MerakiDataProcessor:
         Extracts key information for each network.
 
         Args:
-            networks: A list of dictionaries, where each dictionary is a raw
-                representation of a network from the Meraki API.
+          networks: A list of dictionaries, where each dictionary is a raw
+            representation of a network from the Meraki API.
 
         Returns:
-            A list of processed network dictionaries. Each dictionary contains
-            selected fields like 'id', 'name', and 'type'.
-            Example: `[{"id": "N_123", "name": "Main Office", "type": "wireless"}, ...]`
+          A list of processed network dictionaries. Each dictionary contains
+          selected fields like 'id', 'name', and 'type'.
+          Example: `[{"id": "N_123", "name": "Main Office", "type": "wireless"}, ...]`
         """
         processed_networks_list: List[Dict[str, Any]] = []
         if not isinstance(networks, list):
@@ -239,14 +239,14 @@ class MerakiDataProcessor:
         Extracts key information for each SSID.
 
         Args:
-            ssids: A list of dictionaries, where each dictionary is a raw
-                representation of an SSID from the Meraki API.
+          ssids: A list of dictionaries, where each dictionary is a raw
+            representation of an SSID from the Meraki API.
 
         Returns:
-            A list of processed SSID dictionaries. Each dictionary contains
-            selected fields like 'name' and 'enabled'.
-            Example: `[{"name": "Guest SSID", "enabled": True, "number": 0}, ...]`
-            (assuming 'number' is also a relevant field from SSID details)
+          A list of processed SSID dictionaries. Each dictionary contains
+          selected fields like 'name' and 'enabled'.
+          Example: `[{"name": "Guest SSID", "enabled": True, "number": 0}, ...]`
+          (assuming 'number' is also a relevant field from SSID details)
         """
         processed_ssids_list: List[Dict[str, Any]] = []
         if not isinstance(ssids, list):

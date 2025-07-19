@@ -1,4 +1,5 @@
 """Tests for the Meraki SSID status calculator."""
+
 from custom_components.meraki_ha.helpers.ssid_status_calculator import (
     SsidStatusCalculator as calc,
 )

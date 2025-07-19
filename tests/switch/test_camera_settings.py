@@ -1,4 +1,5 @@
 """Tests for the Meraki camera settings switches."""
+
 from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant
@@ -27,9 +28,7 @@ async def test_meraki_camera_sense_switch(
     device_data = {
         "serial": "Q234-ABCD-5678",
     }
-    switch = MerakiCameraSenseSwitch(
-        coordinator, meraki_client, device_data
-    )
+    switch = MerakiCameraSenseSwitch(coordinator, meraki_client, device_data)
     switch._update_internal_state()
     assert switch.is_on is True
 
@@ -51,9 +50,7 @@ async def test_meraki_camera_audio_detection_switch(
     device_data = {
         "serial": "Q234-ABCD-5678",
     }
-    switch = MerakiCameraAudioDetectionSwitch(
-        coordinator, meraki_client, device_data
-    )
+    switch = MerakiCameraAudioDetectionSwitch(coordinator, meraki_client, device_data)
     switch._update_internal_state()
     assert switch.is_on is True
 
@@ -75,8 +72,6 @@ async def test_meraki_camera_rtsp_switch(
     device_data = {
         "serial": "Q234-ABCD-5678",
     }
-    switch = MerakiCameraRTSPSwitch(
-        coordinator, meraki_client, device_data
-    )
+    switch = MerakiCameraRTSPSwitch(coordinator, meraki_client, device_data)
     switch._update_internal_state()
     assert switch.is_on is True

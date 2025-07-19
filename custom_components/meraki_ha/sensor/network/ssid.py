@@ -33,16 +33,16 @@ def create_ssid_sensors(
     channel, and client count.
 
     Args:
-        coordinator: The data update coordinator instance for these sensors.
-        device_data: A dictionary containing information about the parent Meraki
-                     device (e.g., an access point) to which the SSID belongs.
-                     Expected to contain at least 'serial' and 'name'.
-        ssid_data: A dictionary containing information about the specific SSID.
-                   Expected to contain at least 'name' and 'number'.
+      coordinator: The data update coordinator instance for these sensors.
+      device_data: A dictionary containing information about the parent Meraki
+             device (e.g., an access point) to which the SSID belongs.
+             Expected to contain at least 'serial' and 'name'.
+      ssid_data: A dictionary containing information about the specific SSID.
+            Expected to contain at least 'name' and 'number'.
 
     Returns:
-        A list of initialized sensor entities (subclasses of `SensorEntity`)
-        for the given SSID.
+      A list of initialized sensor entities (subclasses of `SensorEntity`)
+      for the given SSID.
     """
     sensors: List[SensorEntity] = []
 

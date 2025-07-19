@@ -1,4 +1,5 @@
 """Tests for the Meraki naming utils."""
+
 from custom_components.meraki_ha.helpers.naming_utils import format_device_name
 
 

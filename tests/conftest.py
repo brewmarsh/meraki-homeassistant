@@ -1,6 +1,6 @@
 """Global fixtures for meraki_ha integration."""
-import pytest
 
+import pytest
 
 
 @pytest.fixture(autouse=True)

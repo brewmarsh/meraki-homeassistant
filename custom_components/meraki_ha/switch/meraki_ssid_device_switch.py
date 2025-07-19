@@ -2,23 +2,20 @@
 """Switch entities for controlling Meraki SSID devices."""
 
 import logging
-from typing import Any, Dict # Optional removed
+from typing import Any, Dict  # Optional removed
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..const import DOMAIN, DATA_CLIENT
+from ..const import DOMAIN
 from ..api.meraki_api import MerakiAPIClient
 from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+from homeassistant.helpers.entity import EntityCategory
 
 _LOGGER = logging.getLogger(__name__)
-
-
-from homeassistant.helpers.entity import EntityCategory
 
 
 class MerakiSSIDBaseSwitch(CoordinatorEntity[SSIDDeviceCoordinator], SwitchEntity):
@@ -118,7 +115,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[SSIDDeviceCoordinator], SwitchEntit
         # as the key, and the new boolean `value` as its value.
         payload = {self._attribute_to_check: value}
         # _LOGGER.debug(
-        #     f"Updating SSID {self._network_id}/{self._ssid_number}: {payload}"
+        #   f"Updating SSID {self._network_id}/{self._ssid_number}: {payload}"
         # ) # Removed
 
         try:

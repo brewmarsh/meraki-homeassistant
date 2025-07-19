@@ -1,4 +1,5 @@
 """Tests for the Meraki device types."""
+
 from custom_components.meraki_ha.coordinators.meraki_device_types import (
     map_meraki_model_to_device_type,
 )

@@ -56,18 +56,18 @@ async def _async_api_request(
     Makes an asynchronous request to the Meraki API using a centralized session.
 
     Args:
-        method: The HTTP method to use (e.g., "GET", "POST", "PUT", "DELETE").
-        url: The full URL to the API endpoint.
-        headers: A dictionary of HTTP headers to include in the request.
-        data: (Optional) The data to send in the request body (for POST, PUT).
-        params: (Optional) Query parameters to include in the URL.
+      method: The HTTP method to use (e.g., "GET", "POST", "PUT", "DELETE").
+      url: The full URL to the API endpoint.
+      headers: A dictionary of HTTP headers to include in the request.
+      data: (Optional) The data to send in the request body (for POST, PUT).
+      params: (Optional) Query parameters to include in the URL.
 
     Returns:
-        The JSON response from the API (or bytes for binary data).
+      The JSON response from the API (or bytes for binary data).
 
     Raises:
-        aiohttp.ClientResponseError: If the API returns an error status code.
-        Exception: For other errors during the API request.
+      aiohttp.ClientResponseError: If the API returns an error status code.
+      Exception: For other errors during the API request.
     """
 
     session = await _get_client_session()  # Get the session
@@ -120,8 +120,8 @@ class MerakiAPIClient:
         """Initialize the Meraki API client.
 
         Args:
-            api_key (str): The Meraki API key.
-            org_id (str): The Meraki organization ID.
+          api_key (str): The Meraki API key.
+          org_id (str): The Meraki organization ID.
         """
         self._api_key = api_key
         self._org_id = org_id
@@ -145,16 +145,16 @@ class MerakiAPIClient:
         """Internal method to make asynchronous Meraki API requests.
 
         Args:
-            method (str): The HTTP method (e.g., "GET", "POST").
-            endpoint (str): The API endpoint path (relative to the base URL).
-            params (dict, optional): Query parameters for the request. Defaults to None.
-            json (dict, optional): JSON data for the request body (for POST, PUT). Defaults to None.
+          method (str): The HTTP method (e.g., "GET", "POST").
+          endpoint (str): The API endpoint path (relative to the base URL).
+          params (dict, optional): Query parameters for the request. Defaults to None.
+          json (dict, optional): JSON data for the request body (for POST, PUT). Defaults to None.
 
         Returns:
-            dict | list: The JSON response from the Meraki API.
+          dict | list: The JSON response from the Meraki API.
 
         Raises:
-            MerakiApiError: If there is an error communicating with the Meraki API.
+          MerakiApiError: If there is an error communicating with the Meraki API.
         """
         headers = {
             "X-Cisco-Meraki-API-Key": self._api_key,

@@ -1,7 +1,7 @@
 # custom_components/meraki_ha/sensor_registry.py
 """Sensor registry for Meraki Home Assistant integration."""
 
-from typing import List, Type, Dict # Any removed
+from typing import List, Type, Dict  # Any removed
 from homeassistant.helpers.entity import Entity
 
 # Import sensor classes
@@ -11,7 +11,7 @@ from .sensor.device.uplink_status import MerakiUplinkStatusSensor
 from .sensor.device.connected_clients import (
     MerakiDeviceConnectedClientsSensor,
 )  # For MR devices
-from .sensor.device.radio_settings import MerakiRadioSettingsSensor # Added import
+from .sensor.device.radio_settings import MerakiRadioSettingsSensor  # Added import
 
 # MX-specific sensors
 from .sensor.device.meraki_wan1_connectivity import MerakiWAN1ConnectivitySensor
@@ -20,7 +20,11 @@ from .sensor.network.meraki_network_info import MerakiNetworkInfoSensor
 from .sensor.device.meraki_firmware_status import MerakiFirmwareStatusSensor
 
 # Camera-specific sensors
-from .sensor.device.camera_settings import MerakiCameraSenseStatusSensor, MerakiCameraAudioDetectionSensor, MerakiCameraRTSPUrlSensor # Added imports
+from .sensor.device.camera_settings import (
+    MerakiCameraSenseStatusSensor,
+    MerakiCameraAudioDetectionSensor,
+    MerakiCameraRTSPUrlSensor,
+)  # Added imports
 
 # SSID-specific sensors (These are typically handled by SSIDDeviceCoordinator,
 # but listed here for completeness or future refactoring if structure changes.
@@ -48,16 +52,16 @@ SENSOR_REGISTRY: Dict[str, SensorClassList] = {
     ],
     "wireless": [  # For MR devices
         MerakiDeviceConnectedClientsSensor,
-        MerakiRadioSettingsSensor, # Added sensor
+        MerakiRadioSettingsSensor,  # Added sensor
         # Add other MR-specific sensors here if any
     ],
     "switch": [  # For MS devices
         # Add MS-specific sensors here, e.g., port status summaries, PoE consumption
     ],
     "camera": [  # For MV devices
-        MerakiCameraSenseStatusSensor, # Added sensor
-        MerakiCameraAudioDetectionSensor, # Added sensor
-        MerakiCameraRTSPUrlSensor, # Added sensor
+        MerakiCameraSenseStatusSensor,  # Added sensor
+        MerakiCameraAudioDetectionSensor,  # Added sensor
+        MerakiCameraRTSPUrlSensor,  # Added sensor
         # Add other MV-specific sensors here
     ],
     "sensor": [  # For MT devices
@@ -77,10 +81,10 @@ def get_sensors_for_device_type(product_type: str) -> SensorClassList:
     """Return a list of sensor classes for a given Meraki product type.
 
     Args:
-        product_type: The product type string (e.g., "appliance", "wireless").
+      product_type: The product type string (e.g., "appliance", "wireless").
 
     Returns:
-        A list of sensor classes applicable to the given product type.
-        Returns an empty list if the product type is not found in the registry.
+      A list of sensor classes applicable to the given product type.
+      Returns an empty list if the product type is not found in the registry.
     """
     return SENSOR_REGISTRY.get(product_type, [])

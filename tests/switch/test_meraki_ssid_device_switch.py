@@ -1,4 +1,5 @@
 """Tests for the Meraki SSID device switch."""
+
 from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant

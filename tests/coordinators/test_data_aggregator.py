@@ -1,4 +1,5 @@
 """Tests for the Meraki data aggregator."""
+
 from unittest.mock import MagicMock
 
 from custom_components.meraki_ha.coordinators.data_aggregator import (

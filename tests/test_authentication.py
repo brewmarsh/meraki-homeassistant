@@ -1,5 +1,6 @@
 """Tests for the Meraki authentication."""
-from unittest.mock import patch, AsyncMock, MagicMock
+
+from unittest.mock import patch, AsyncMock
 
 import pytest
 from homeassistant.core import HomeAssistant

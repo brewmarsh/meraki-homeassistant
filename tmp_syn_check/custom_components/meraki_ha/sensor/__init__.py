@@ -52,9 +52,9 @@ async def async_setup_entry(
     the Meraki setup (device status, client counts, radio settings, SSIDs, etc.).
 
     Args:
-        hass: The Home Assistant instance.
-        config_entry: The configuration entry for this Meraki integration instance.
-        async_add_entities: Callback function to add entities to Home Assistant.
+      hass: The Home Assistant instance.
+      config_entry: The configuration entry for this Meraki integration instance.
+      async_add_entities: Callback function to add entities to Home Assistant.
     """
     coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id][
         DATA_COORDINATOR

@@ -1,7 +1,7 @@
 """Sensor for Meraki Device Network Information."""
 
 import logging
-from typing import Any, Dict, Optional # List removed
+from typing import Any, Dict  # List removed
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import callback
@@ -29,7 +29,7 @@ class MerakiNetworkInfoSensor(
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._network_id: str = network_data["id"]
+        self._network_id: str = network_data.get("id", "")
         self._attr_unique_id = f"{self._network_id}_network_info"
         # self.entity_id = f"sensor.{DOMAIN}_{self._network_id}_network_info" # Let HA generate
 
@@ -49,12 +49,20 @@ class MerakiNetworkInfoSensor(
     @callback
     def _update_state(self) -> None:
         """Update the state of the sensor."""
-        if not self.coordinator.data or not self.coordinator.data.get("networks"):
+        if not self.coordinator.data:
             self._attr_native_value = "Unknown"
             self._attr_extra_state_attributes = {}
             return
 
-        for network in self.coordinator.data["networks"]:
+        networks = self.coordinator.data.get("networks", [])
+        if not networks:
+            self._attr_native_value = "Unknown"
+            self._attr_extra_state_attributes = {}
+            _LOGGER.debug("No networks found in coordinator data")
+            return
+
+        current_network_data = None
+        for network in networks:
             if network.get("id") == self._network_id:
                 current_network_data = network
                 break

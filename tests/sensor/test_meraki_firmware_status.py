@@ -1,4 +1,5 @@
 """Tests for the Meraki firmware status sensor."""
+
 from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant

@@ -1,4 +1,5 @@
 """Tests for the Meraki device tracker."""
+
 from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant
@@ -21,8 +22,6 @@ async def test_async_setup_entry(
             {"id": "2", "description": "Client 2", "mac": "00:00:00:00:00:02"},
         ]
     }
-    hass.data["meraki_ha"] = {
-        config_entry.entry_id: {"coordinator": coordinator}
-    }
+    hass.data["meraki_ha"] = {config_entry.entry_id: {"coordinator": coordinator}}
     await async_setup_entry(hass, config_entry, async_add_entities)
     assert async_add_entities.call_count == 1
