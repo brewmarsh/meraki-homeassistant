@@ -33,7 +33,7 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
             UpdateFailed: If update fails
         """
         try:
-            devices = await self.api_client.get_devices(self.api_client.org_id)
+            devices = await self.api_client.get_devices(self.api_client.organization_id)
             processed_devices = []
 
             for device in devices:
