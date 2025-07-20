@@ -28,7 +28,7 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
             UpdateFailed: If update fails
         """
         try:
-            networks = await self.api_client.get_networks(self.api_client.org_id)
+            networks = await self.api_client.get_networks()
             processed_networks = []
 
             for network in networks:
