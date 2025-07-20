@@ -48,7 +48,7 @@ class MerakiApiDataFetcher:
             meraki_client: An instance of the SDK-based `MerakiAPIClient` used for API communication.
         """
         self.meraki_client: MerakiAPIClient = meraki_client
-        self.org_id: str = meraki_client.org_id  # Organization ID from the client
+        self.org_id: str = meraki_client.organization_id  # Organization ID from the client
         self._api_call_semaphore = asyncio.Semaphore(
             5
         )  # Allow up to 5 concurrent API calls
@@ -85,19 +85,19 @@ class MerakiApiDataFetcher:
                                that are not handled by individual fetch methods and
                                escalate to this level.
         """
-        _LOGGER.debug(f"Fetching all data for organization ID: {self.org_id} using SDK")
+        _LOGGER.debug(f"Fetching all data for organization ID: {self.meraki_client.organization_id} using SDK")
 
         # Step 1: Concurrently fetch foundational data
         # Networks, Devices, Device Statuses, Firmware Upgrades
         results = await asyncio.gather(
             self.meraki_client.organizations.getOrganizations(),
-            self.async_get_networks(self.org_id),
-            self.async_get_organization_devices(self.org_id),
+            self.async_get_networks(self.meraki_client.organization_id),
+            self.async_get_organization_devices(self.meraki_client.organization_id),
             self.meraki_client.organizations.getOrganizationDevicesStatuses(
-                organizationId=self.org_id, total_pages="all"
+                organizationId=self.meraki_client.organization_id, total_pages="all"
             ),
             self.meraki_client.organizations.getOrganizationFirmwareUpgrades(
-                organizationId=self.org_id
+                organizationId=self.meraki_client.organization_id
             ),
             return_exceptions=True,
         )
@@ -106,7 +106,7 @@ class MerakiApiDataFetcher:
         org_details = None
         if isinstance(organizations, list):
             for org in organizations:
-                if org.get("id") == self.org_id:
+                if org.get("id") == self.meraki_client.organization_id:
                     org_details = org
                     break
 
@@ -118,26 +118,26 @@ class MerakiApiDataFetcher:
 
         if isinstance(results[0], Exception):
             _LOGGER.error(
-                f"Critical error fetching networks for org {self.org_id}: {results[0]}"
+                f"Critical error fetching networks for org {self.meraki_client.organization_id}: {results[0]}"
             )
         else:
             networks = results[0]
 
         if isinstance(results[1], Exception):
             _LOGGER.error(
-                f"Critical error fetching devices for org {self.org_id}: {results[1]}"
+                f"Critical error fetching devices for org {self.meraki_client.organization_id}: {results[1]}"
             )
         else:
             devices = results[1]
 
         if isinstance(results[2], MerakiSDKAPIError):
             _LOGGER.warning(
-                f"SDK API error fetching device statuses for org {self.org_id}: "
+                f"SDK API error fetching device statuses for org {self.meraki_client.organization_id}: "
                 f"Status {results[2].status}, Reason: {results[2].reason}. Device statuses may be incomplete."
             )
         elif isinstance(results[2], Exception):
             _LOGGER.exception(
-                f"Unexpected error fetching device statuses for org {self.org_id}: {results[2]}. "
+                f"Unexpected error fetching device statuses for org {self.meraki_client.organization_id}: {results[2]}. "
                 "Device statuses may be incomplete."
             )
         else:
@@ -145,13 +145,13 @@ class MerakiApiDataFetcher:
 
         if isinstance(results[3], MerakiSDKAPIError):
             _LOGGER.warning(
-                f"SDK API error fetching firmware upgrade data for org {self.org_id}: "
+                f"SDK API error fetching firmware upgrade data for org {self.meraki_client.organization_id}: "
                 f"Status {results[3].status}, Reason: {results[3].reason}. Firmware data may be incomplete."
             )
             firmware_upgrade_data_raw = None
         elif isinstance(results[3], Exception):
             _LOGGER.exception(
-                f"Unexpected error fetching firmware upgrade data for org {self.org_id}: {results[3]}. "
+                f"Unexpected error fetching firmware upgrade data for org {self.meraki_client.organization_id}: {results[3]}. "
                 "Firmware data may be incomplete."
             )
             firmware_upgrade_data_raw = None
@@ -161,32 +161,32 @@ class MerakiApiDataFetcher:
         # Critical data checks
         if networks is None:
             _LOGGER.error(
-                f"Could not fetch Meraki networks for org ID: {self.org_id}. Aborting update."
+                f"Could not fetch Meraki networks for org ID: {self.meraki_client.organization_id}. Aborting update."
             )
             raise UpdateFailed(
-                f"Could not fetch Meraki networks for org {self.org_id}."
+                f"Could not fetch Meraki networks for org {self.meraki_client.organization_id}."
             )
         if (
             devices is None
         ):  # This check is after results unpacking, devices could be None due to fetch error
             _LOGGER.error(
-                f"Meraki devices data is None for org ID: {self.org_id} after fetch. Aborting update."
+                f"Meraki devices data is None for org ID: {self.meraki_client.organization_id} after fetch. Aborting update."
             )
             raise UpdateFailed(
-                f"Fetched Meraki devices data is None for org {self.org_id}."
+                f"Fetched Meraki devices data is None for org {self.meraki_client.organization_id}."
             )
         if not isinstance(devices, list):
             _LOGGER.error(
-                f"Fetched Meraki devices data is not a list (type: {type(devices).__name__}) for org ID: {self.org_id}. Aborting update."
+                f"Fetched Meraki devices data is not a list (type: {type(devices).__name__}) for org ID: {self.meraki_client.organization_id}. Aborting update."
             )
-            raise UpdateFailed(f"Invalid devices data format for org {self.org_id}.")
+            raise UpdateFailed(f"Invalid devices data format for org {self.meraki_client.organization_id}.")
         if not isinstance(
             networks, list
         ):  # Networks is checked for None earlier, this is for type
             _LOGGER.error(
-                f"Fetched Meraki networks data is not a list (type: {type(networks).__name__}) for org ID: {self.org_id}. Aborting update."
+                f"Fetched Meraki networks data is not a list (type: {type(networks).__name__}) for org ID: {self.meraki_client.organization_id}. Aborting update."
             )
-            raise UpdateFailed(f"Invalid networks data format for org {self.org_id}.")
+            raise UpdateFailed(f"Invalid networks data format for org {self.meraki_client.organization_id}.")
 
         # Step 2.1: Process Device Statuses (already fetched)
         device_statuses_map = {}
@@ -208,7 +208,7 @@ class MerakiApiDataFetcher:
                     device_statuses_map[status_entry["serial"]] = status_entry
         elif devices:
             _LOGGER.warning(
-                f"Device status data was not successfully fetched or was empty for org {self.org_id}. Status-dependent info may be missing."
+                f"Device status data was not successfully fetched or was empty for org {self.meraki_client.organization_id}. Status-dependent info may be missing."
             )
 
         # Step 2.2: Merge Statuses into Devices
@@ -387,12 +387,12 @@ class MerakiApiDataFetcher:
             elif not firmware_upgrade_data_raw:  # Use the raw data variable
                 _LOGGER.debug(
                     f"firmware_upgrade_data_raw is an empty list. "  # Use the raw data variable
-                    f"No specific upgrade information available for org {self.org_id}."
+                f"No specific upgrade information available for org {self.meraki_client.organization_id}."
                 )
                 # If list is empty, all devices will assume up-to-date status later.
             else:
                 # _LOGGER.debug(
-                #     f"Processing firmware upgrade data (raw) to build a map for org {self.org_id}."
+            #     f"Processing firmware upgrade data (raw) to build a map for org {self.meraki_client.organization_id}."
                 # ) # Removed
                 for (
                     upgrade_item
@@ -588,7 +588,7 @@ class MerakiApiDataFetcher:
                 device["latest_firmware_version"] = latest_known_version
         else:
             _LOGGER.debug(
-                f"No devices available to process firmware data for org {self.org_id}."
+                f"No devices available to process firmware data for org {self.meraki_client.organization_id}."
             )
 
         # Step 6: Fetch SSIDs for each network.
@@ -829,14 +829,14 @@ class MerakiApiDataFetcher:
         org_details: Optional[Dict[str, Any]] = None
         org_name: Optional[str] = None
         try:
-            # _LOGGER.debug(f"Fetching organization details for org ID: {self.org_id}")
+            # _LOGGER.debug(f"Fetching organization details for org ID: {self.meraki_client.organization_id}")
             org_details = await self.meraki_client.organizations.getOrganization(
-                organizationId=self.org_id
+                organizationId=self.meraki_client.organization_id
             )
             if org_details and isinstance(org_details, dict):
                 org_name = org_details.get("name")
                 # _LOGGER.debug(
-                #     f"Successfully fetched organization name: {org_name} for org ID: {self.org_id}"
+                #     f"Successfully fetched organization name: {org_name} for org ID: {self.meraki_client.organization_id}"
                 # )
             else:
                 _LOGGER.warning(
@@ -844,11 +844,11 @@ class MerakiApiDataFetcher:
                 )
         except MerakiSDKAPIError as e:
             _LOGGER.warning(
-                f"SDK API error fetching organization details for org {self.org_id}: Status {e.status}, Reason: {e.reason}. Organization name will be unavailable."
+                f"SDK API error fetching organization details for org {self.meraki_client.organization_id}: Status {e.status}, Reason: {e.reason}. Organization name will be unavailable."
             )
         except Exception as e:
             _LOGGER.exception(
-                f"Unexpected error fetching organization details for org {self.org_id}: {e}. Organization name will be unavailable."
+                f"Unexpected error fetching organization details for org {self.meraki_client.organization_id}: {e}. Organization name will be unavailable."
             )
 
         # Step 10: Return all fetched and processed data.
