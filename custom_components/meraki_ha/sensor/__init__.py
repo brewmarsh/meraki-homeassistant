@@ -98,17 +98,17 @@ async def async_setup_entry(
         new_org_sensors = [
             MerakiOrganizationSSIDClientsSensor(
                 coordinator=main_coordinator,
-                org_id=organization_id,
+                organization_id=organization_id,
                 org_name=org_name_for_sensors,  # Use the new variable
             ),
             MerakiOrganizationWirelessClientsSensor(
                 coordinator=main_coordinator,
-                org_id=organization_id,
+                organization_id=organization_id,
                 org_name=org_name_for_sensors,  # Use the new variable
             ),
             MerakiOrganizationApplianceClientsSensor(
                 coordinator=main_coordinator,
-                org_id=organization_id,
+                organization_id=organization_id,
                 org_name=org_name_for_sensors,  # Use the new variable
             ),
         ]

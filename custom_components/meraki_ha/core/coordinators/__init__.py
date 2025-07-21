@@ -46,7 +46,6 @@ class MerakiDataCoordinator(BaseMerakiCoordinator):
         )
 
         self.config_entry = config_entry
-        self.organization_id = api_client.organization_id
         self.device_coordinator = MerakiDeviceCoordinator(
             hass=hass,
             api_client=api_client,
@@ -76,7 +75,7 @@ class MerakiDataCoordinator(BaseMerakiCoordinator):
             return {
                 **device_data,
                 **network_data,
-                "org_id": self.api_client.organization_id,
+                "org_id": self.api_client.org_id,
             }
 
         except Exception as err:

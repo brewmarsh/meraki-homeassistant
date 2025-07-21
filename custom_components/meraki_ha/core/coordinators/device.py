@@ -3,7 +3,7 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from homeassistant.helpers.update_coordinator import UpdateFailed
+from homeassistant.exceptions import UpdateFailed
 
 from .base import BaseMerakiCoordinator
 from ..utils import map_meraki_model_to_device_type
@@ -33,7 +33,7 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
             UpdateFailed: If update fails
         """
         try:
-            devices = await self.api_client.get_devices()
+            devices = await self.api_client.get_devices(self.api_client.org_id)
             processed_devices = []
 
             for device in devices:

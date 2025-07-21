@@ -25,17 +25,17 @@ class MerakiOrganizationSSIDClientsSensor(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        organization_id: str,
+        org_id: str,
         org_name: str,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._organization_id = organization_id
+        self._org_id = org_id
         self._org_name = org_name
 
         self._attr_name = f"{org_name} SSID Clients"
-        self._attr_unique_id = f"{organization_id}_clients_ssid"
-        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, organization_id)})
+        self._attr_unique_id = f"{org_id}_clients_ssid"
+        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, org_id)})
 
         # Initialize value from coordinator data if available
         self._update_internal_state()
@@ -72,17 +72,17 @@ class MerakiOrganizationWirelessClientsSensor(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        organization_id: str,
+        org_id: str,
         org_name: str,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._organization_id = organization_id
+        self._org_id = org_id
         self._org_name = org_name
 
         self._attr_name = f"{org_name} Wireless Clients"
-        self._attr_unique_id = f"{organization_id}_clients_wireless"
-        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, organization_id)})
+        self._attr_unique_id = f"{org_id}_clients_wireless"
+        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, org_id)})
 
         self._update_internal_state()
 
@@ -120,17 +120,17 @@ class MerakiOrganizationApplianceClientsSensor(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        organization_id: str,
+        org_id: str,
         org_name: str,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._organization_id = organization_id
+        self._org_id = org_id
         self._org_name = org_name
 
         self._attr_name = f"{org_name} Appliance Clients"
-        self._attr_unique_id = f"{organization_id}_clients_appliance"
-        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, organization_id)})
+        self._attr_unique_id = f"{org_id}_clients_appliance"
+        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, org_id)})
 
         self._update_internal_state()
 
