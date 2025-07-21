@@ -3,7 +3,7 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from homeassistant.exceptions import UpdateFailed
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from .base import BaseMerakiCoordinator
 
@@ -28,7 +28,7 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
             UpdateFailed: If update fails
         """
         try:
-            networks = await self.api_client.get_networks()
+            networks = await self.api_client.get_networks(self.api_client.org_id)
             processed_networks = []
 
             for network in networks:
