@@ -79,19 +79,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         config_entry=entry,
     )
 
-    # Perform initial data update
-    try:
-        await coordinator.async_config_entry_first_refresh()
-    except Exception as err:
-        _LOGGER.error("Failed to perform initial data update: %s", err)
-        return False
-
     # Store the coordinator and API client
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
         DATA_COORDINATOR: coordinator,
         DATA_CLIENT: coordinator.meraki_client,
     }
+
+    # Perform initial data update
+    try:
+        await coordinator.async_config_entry_first_refresh()
+    except Exception as err:
+        _LOGGER.error("Failed to perform initial data update: %s", err)
+        return False
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

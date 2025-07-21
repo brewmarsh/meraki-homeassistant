@@ -1,2 +1,4 @@
 homeassistant
 voluptuous
+flake8
+bandit
