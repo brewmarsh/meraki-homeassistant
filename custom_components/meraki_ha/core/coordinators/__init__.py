@@ -75,7 +75,7 @@ class MerakiDataCoordinator(BaseMerakiCoordinator):
             return {
                 **device_data,
                 **network_data,
-                "org_id": self.api_client.org_id,
+                "org_id": self.api_client.organization_id,
             }
 
         except Exception as err:
