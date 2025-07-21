@@ -73,7 +73,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                           and for device registration.
         """
         self.api_key: str = api_key  # Stored for potential direct use (e.g., TagEraser)
-        self.org_id: str = org_id
+        self.organization_id: str = org_id
         self.config_entry: ConfigEntry = config_entry  # Access to options, entry_id
         # self.relaxed_tag_match attribute removed
         self.erase_tags: bool = config_entry.options.get("erase_tags", False)
@@ -86,7 +86,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
         self.meraki_client: MerakiAPIClient = MerakiAPIClient(
             api_key=api_key,
-            org_id=org_id,
+            org_id=self.organization_id,
             # Base URL is handled by the SDK itself.
         )
 
@@ -115,7 +115,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 hass,
                 api_key,
                 # TagEraser might need direct API key for write operations.
-                org_id,
+                self.organization_id,
             )
             _LOGGER.warning(ERASE_TAGS_WARNING)
 
@@ -129,7 +129,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         super().__init__(
             hass,
             _LOGGER,
-            name=f"{DOMAIN} (Org: {org_id})",  # More descriptive name.
+            name=f"{DOMAIN} (Org: {self.organization_id})",  # More descriptive name.
             update_interval=scan_interval,
         )
         # Ensure `self.data` is initialized to an empty dict, as expected by
@@ -176,13 +176,13 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             if self._is_available:
                 _LOGGER.error(
                     "API/Network error during Meraki data fetch for org %s: %s. Type: %s",
-                    self.org_id,
+                    self.organization_id,
                     str(e),
                     type(e).__name__,
                 )
                 self._is_available = False
             raise UpdateFailed(
-                f"Failed to fetch data from Meraki API for org {self.org_id}: {e}"
+                f"Failed to fetch data from Meraki API for org {self.organization_id}: {e}"
             ) from e
         except (
             Exception
@@ -190,13 +190,13 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             if self._is_available:
                 _LOGGER.exception(
                     "Unexpected error during Meraki data fetch for org %s: %s. Error type: %s",
-                    self.org_id,
+                    self.organization_id,
                     str(e),
                     type(e).__name__,
                 )
                 self._is_available = False
             raise UpdateFailed(
-                f"Unexpected error fetching data for org {self.org_id}: {e}"
+                f"Unexpected error fetching data for org {self.organization_id}: {e}"
             ) from e
 
         # Extract data components from `all_data`. Default to empty lists if
@@ -304,7 +304,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         clients_on_wireless = all_data.get("clients_on_wireless", 0)
 
         if not self._is_available:
-            _LOGGER.info("Connection to Meraki API restored for org %s", self.org_id)
+            _LOGGER.info("Connection to Meraki API restored for org %s", self.organization_id)
             self._is_available = True
 
         # Step 4: Aggregate all data using the DataAggregationCoordinator.
@@ -327,11 +327,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             ValueError,
             TypeError,
         ) as e:  # Handle data structure/type errors
-            error_msg = f"Data structure error during aggregation for org {self.org_id}: {str(e)}"
+            error_msg = f"Data structure error during aggregation for org {self.organization_id}: {str(e)}"
             _LOGGER.error("%s. Error type: %s", error_msg, type(e).__name__)
             raise UpdateFailed(error_msg) from e
         except Exception as e:  # Catch any other unexpected errors
-            error_msg = f"Unexpected error during data aggregation for org {self.org_id}: {str(e)}"
+            error_msg = f"Unexpected error during data aggregation for org {self.organization_id}: {str(e)}"
             _LOGGER.exception("%s. Error type: %s", error_msg, type(e).__name__)
             raise UpdateFailed(error_msg) from e
 
@@ -340,7 +340,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         if self.erase_tags and self.tag_eraser_coordinator:
             _LOGGER.warning(
                 "Tag erasing is enabled for organization %s. Processing devices for tag removal.",
-                self.org_id,
+                self.organization_id,
             )
             for device_to_check in devices:
                 serial = device_to_check.get("serial")
@@ -353,7 +353,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                         _LOGGER.error(
                             "Failed to erase tags for device %s (org %s): %s. Error type: %s",
                             serial,
-                            self.org_id,
+                            self.organization_id,
                             str(e),
                             type(e).__name__,
                         )
@@ -361,13 +361,13 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                         _LOGGER.error(
                             "Network timeout while erasing tags for device %s (org %s)",
                             serial,
-                            self.org_id,
+                            self.organization_id,
                         )
                     except Exception as e:
                         _LOGGER.exception(
                             "Unexpected error erasing tags for device %s (org %s): %s",
                             serial,
-                            self.org_id,
+                            self.organization_id,
                             str(e),
                         )
         await self._device_registry_cleanup()
@@ -375,14 +375,14 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
     async def async_register_organization_device(self, hass: HomeAssistant) -> None:
         """Register the Meraki Organization as a device in Home Assistant."""
-        if not self.org_id:
+        if not self.organization_id:
             _LOGGER.error(
                 "Organization ID not available, cannot register organization device."
             )
             return
 
         raw_org_name = (
-            self.org_name if self.org_name else f"Meraki Organization {self.org_id}"
+            self.org_name if self.org_name else f"Meraki Organization {self.organization_id}"
         )
         device_name_format_option = self.device_name_format
 
@@ -404,7 +404,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         device_registry = dr.async_get(hass)
         device_registry.async_get_or_create(
             config_entry_id=self.config_entry.entry_id,
-            identifiers={(DOMAIN, self.org_id)},
+            identifiers={(DOMAIN, self.organization_id)},
             name=formatted_org_name,
             model="Organization",
             manufacturer="Cisco Meraki",
@@ -443,13 +443,13 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             except (asyncio.TimeoutError, ConnectionError) as e:
                 _LOGGER.warning(
                     "Network error while closing Meraki API client session for org %s: %s",
-                    self.org_id,
+                    self.organization_id,
                     str(e),
                 )
             except Exception as e:
                 _LOGGER.error(
                     "Unexpected error closing Meraki API client session for org %s: %s. Error type: %s",
-                    self.org_id,
+                    self.organization_id,
                     str(e),
                     type(e).__name__,
                 )
