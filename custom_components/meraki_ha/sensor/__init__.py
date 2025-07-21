@@ -64,7 +64,7 @@ async def async_setup_entry(
 
     # --- Organization-level Sensor Setup ---
     if main_coordinator and main_coordinator.data:
-        organization_id = main_coordinator.org_id
+        organization_id = main_coordinator.organization_id
         raw_organization_name_for_fallback = (
             main_coordinator.org_name if main_coordinator.org_name else organization_id
         )
@@ -98,17 +98,17 @@ async def async_setup_entry(
         new_org_sensors = [
             MerakiOrganizationSSIDClientsSensor(
                 coordinator=main_coordinator,
-                org_id=organization_id,
+                organization_id=organization_id,
                 org_name=org_name_for_sensors,  # Use the new variable
             ),
             MerakiOrganizationWirelessClientsSensor(
                 coordinator=main_coordinator,
-                org_id=organization_id,
+                organization_id=organization_id,
                 org_name=org_name_for_sensors,  # Use the new variable
             ),
             MerakiOrganizationApplianceClientsSensor(
                 coordinator=main_coordinator,
-                org_id=organization_id,
+                organization_id=organization_id,
                 org_name=org_name_for_sensors,  # Use the new variable
             ),
         ]

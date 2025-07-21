@@ -39,6 +39,7 @@ class MerakiAPIClient:
             print_console=False,
             suppress_logging=True,
             maximum_retries=3,
+            calls_per_second=10,
             wait_on_rate_limit=True,
             nginx_429_retry_wait_time=2,
         )
