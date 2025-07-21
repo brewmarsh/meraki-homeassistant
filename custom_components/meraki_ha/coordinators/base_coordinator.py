@@ -73,7 +73,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                           and for device registration.
         """
         self.api_key: str = api_key  # Stored for potential direct use (e.g., TagEraser)
-        self.organization_id: str = org_id
+        self.org_id: str = org_id
         self.config_entry: ConfigEntry = config_entry  # Access to options, entry_id
         # self.relaxed_tag_match attribute removed
         self.erase_tags: bool = config_entry.options.get("erase_tags", False)
