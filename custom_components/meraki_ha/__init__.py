@@ -20,9 +20,9 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     PLATFORMS,
+    DATA_COORDINATOR,
 )
-from .core.api import MerakiAPIClient
-from .core.coordinators import MerakiDataCoordinator
+from .coordinators.base_coordinator import MerakiDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -70,18 +70,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     update_interval = timedelta(seconds=scan_interval_seconds)
 
-    # Create API client
-    api_client = MerakiAPIClient(
+    # Create the main coordinator
+    coordinator = MerakiDataUpdateCoordinator(
+        hass=hass,
         api_key=api_key,
         org_id=org_id,
-    )
-
-    # Create the main coordinator
-    coordinator = MerakiDataCoordinator(
-        hass=hass,
+        scan_interval=update_interval,
         config_entry=entry,
-        api_client=api_client,
-        update_interval=update_interval,
     )
 
     # Perform initial data update
@@ -94,8 +89,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Store the coordinator and API client
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
-        "coordinator": coordinator,
-        DATA_CLIENT: api_client,
+        DATA_COORDINATOR: coordinator,
+        DATA_CLIENT: coordinator.meraki_client,
     }
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
