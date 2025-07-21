@@ -32,7 +32,7 @@ class TagEraserCoordinator(DataUpdateCoordinator[Dict[str, Any]]): # Added gener
         self,
         hass: HomeAssistant,
         api_key: str,
-        org_id: str,
+        organization_id: str,
         # base_url: str, # Removed base_url
     ) -> None:
         """
@@ -41,16 +41,16 @@ class TagEraserCoordinator(DataUpdateCoordinator[Dict[str, Any]]): # Added gener
         Args:
             hass: Home Assistant instance.
             api_key: Meraki API key, used to initialize a dedicated MerakiAPIClient.
-            org_id: Meraki Organization ID, used to initialize a dedicated MerakiAPIClient and for coordinator naming.
+            organization_id: Meraki Organization ID, used to initialize a dedicated MerakiAPIClient and for coordinator naming.
         """
         super().__init__(
             hass,
             _LOGGER,
-            name=f"Meraki Tag Eraser ({org_id})", # Incorporate org_id for clarity if multiple orgs
+            name=f"Meraki Tag Eraser ({organization_id})", # Incorporate organization_id for clarity if multiple orgs
             update_interval=timedelta(seconds=60), # Default, actual updates are on-demand
         )
         self.api_key = api_key # Stored if needed by TagEraser directly, though client is preferred
-        self.org_id = org_id
+        self.organization_id = organization_id
 
         # TagEraser takes a MerakiAPIClient instance.
         # We need to instantiate a MerakiAPIClient here for the TagEraser.
@@ -59,7 +59,7 @@ class TagEraserCoordinator(DataUpdateCoordinator[Dict[str, Any]]): # Added gener
         # For now, let's assume TagEraser is refactored or we provide a client.
         # A dedicated client for tag erasing ensures separation of concerns.
         from .api_data_fetcher import MerakiApiDataFetcher
-        self.meraki_client_for_eraser = MerakiAPIClient(api_key=api_key, org_id=org_id)
+        self.meraki_client_for_eraser = MerakiAPIClient(api_key=api_key, org_id=organization_id)
         self.tag_eraser = TagEraser(MerakiApiDataFetcher(self.meraki_client_for_eraser))  # Pass the client
 
     async def async_erase_device_tags(self, serial: str) -> None:
