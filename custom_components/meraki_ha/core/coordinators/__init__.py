@@ -46,6 +46,7 @@ class MerakiDataCoordinator(BaseMerakiCoordinator):
         )
 
         self.config_entry = config_entry
+        self.organization_id = api_client.organization_id
         self.device_coordinator = MerakiDeviceCoordinator(
             hass=hass,
             api_client=api_client,
