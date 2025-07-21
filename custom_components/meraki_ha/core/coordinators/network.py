@@ -3,7 +3,7 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from homeassistant.exceptions import UpdateFailed
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from .base import BaseMerakiCoordinator
 
