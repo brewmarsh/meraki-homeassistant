@@ -883,7 +883,7 @@ class MerakiApiDataFetcher:
             result = await api_coro
             return result
         except MerakiSDKAPIError as e:
-            if _is_network_feature_not_found(e):
+            if hasattr(e, "status") and e.status == 404:
                 if return_empty_list_on_404:
                     _LOGGER.info(
                         "Network feature not available: %s - This is normal for networks without this capability",

@@ -22,7 +22,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # Assuming MerakiDataUpdateCoordinator is the central coordinator for
 # the Meraki integration and it's correctly defined in .coordinator
-from .const import DATA_COORDINATOR, DOMAIN
+from .const import DATA_COORDINATORS, DOMAIN
 from .coordinators import MerakiDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -45,8 +45,8 @@ async def async_setup_entry(
         async_add_entities: Callback function to add entities to Home Assistant.
     """
     coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id][
-        DATA_COORDINATOR
-    ]
+        DATA_COORDINATORS
+    ]["main"]
 
     # Ensure coordinator data is available
     if (
