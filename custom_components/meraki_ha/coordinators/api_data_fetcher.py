@@ -760,15 +760,6 @@ class MerakiApiDataFetcher:
                     _LOGGER.debug(
                         f"No clients found for network {network_id} in the given timespan."
                     )
-            except MerakiSDKAPIError as e:
-                if e.status == 404:
-                    _LOGGER.warning(
-                        f"Meraki API call to get clients for network {network_id} returned a 404, which is handled as an empty list."
-                    )
-                else:
-                    _LOGGER.error(
-                        f"Meraki SDK API error fetching clients for network {network_id}: {e}. Status: {e.status}, Reason: {e.reason}. Skipping this network's clients."
-                    )
             except Exception as e:
                 _LOGGER.exception(
                     f"Unexpected error fetching clients for network {network_id}: {e}. Skipping this network's clients."
