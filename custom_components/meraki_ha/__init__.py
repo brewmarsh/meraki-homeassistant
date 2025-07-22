@@ -77,7 +77,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass=hass,
         api_key=api_key,
         org_id=org_id,
-        update_interval=update_interval,
+        scan_interval=update_interval,
         config_entry=entry,
     )
 
