@@ -700,14 +700,14 @@ class MerakiApiDataFetcher:
                     )
                     continue
             if not isinstance(network_clients_data, list):
-                    _LOGGER.warning(
-                        "Network clients data for network %s is not a list (type: %s). Skipping client processing for this network.",
-                        network_id,
-                        type(network_clients_data).__name__,
-                    )
-                    continue
+                _LOGGER.warning(
+                    "Network clients data for network %s is not a list (type: %s). Skipping client processing for this network.",
+                    network_id,
+                    type(network_clients_data).__name__,
+                )
+                continue
 
-                if network_clients_data:
+            if network_clients_data:
                     for client_idx, client_data in enumerate(network_clients_data):
                         if not isinstance(client_data, dict):
                             _LOGGER.warning(
