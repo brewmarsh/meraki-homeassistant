@@ -6,7 +6,6 @@ from .const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     DEFAULT_SCAN_INTERVAL,
-    CONF_SCAN_INTERVAL,
 )
 
 CONFIG_SCHEMA = vol.Schema(

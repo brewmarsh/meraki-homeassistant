@@ -1,6 +1,5 @@
 """Utility functions for formatting device names in the Meraki Home Assistant integration."""
 
-from typing import Optional
 
 from ..meraki_device_types import (
     map_meraki_model_to_device_type,

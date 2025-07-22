@@ -1,19 +1,22 @@
 import asyncio
 import json
-import logging
 import random
-import ssl
-import sys
-import time
 import urllib.parse
-from datetime import datetime
+import time
 
 import aiohttp
-from meraki.__init__ import __version__
 from meraki.aio.rest_session import AsyncRestSession
-from meraki.config import *
-from meraki.exceptions import *
-from meraki.rest_session import user_agent_extended
+from meraki.config import (
+    SINGLE_REQUEST_TIMEOUT,
+    REQUESTS_PROXY,
+    NGINX_429_RETRY_WAIT_TIME,
+    ACTION_BATCH_RETRY_WAIT_TIME,
+    NETWORK_DELETE_RETRY_WAIT_TIME,
+    RETRY_4XX_ERROR,
+    RETRY_4XX_ERROR_WAIT_TIME,
+    MAXIMUM_RETRIES,
+)
+from meraki.exceptions import APIError, AsyncAPIError
 
 
 class PatchedAsyncRestSession(AsyncRestSession):
@@ -90,27 +93,25 @@ class PatchedAsyncRestSession(AsyncRestSession):
                     # For non-empty response to GET, ensure valid JSON
                     try:
                         if method == "GET":
-                            await response.json(content_type = None)
+                            await response.json(content_type=None)
                         return response
                     except (
-                            json.decoder.JSONDecodeError,
-                            aiohttp.client_exceptions.ContentTypeError,
+                        json.decoder.JSONDecodeError,
+                        aiohttp.client_exceptions.ContentTypeError,
                     ) as e:
                         if self._logger:
                             self._logger.warning(
                                 f"{tag}, {operation} > {abs_url} - {e}, retrying in 1 second"
                             )
                         await asyncio.sleep(1)
-                # Handle 3XX redirects automatically
                 elif 300 <= status < 400:
                     abs_url = response.headers["Location"]
                     substring = "meraki.com/api/v"
                     if substring not in abs_url:
                         substring = "meraki.cn/api/v"
                     self._base_url = abs_url[
-                                     : abs_url.find(substring) + len(substring) + 1
-                                     ]
-                # Rate limit 429 errors
+                        : abs_url.find(substring) + len(substring) + 1
+                    ]
                 elif status == 429:
                     if "Retry-After" in response.headers:
                         wait = int(response.headers["Retry-After"])
@@ -121,23 +122,21 @@ class PatchedAsyncRestSession(AsyncRestSession):
                             f"{tag}, {operation} > {abs_url} - {status} {reason}, retrying in {wait} seconds"
                         )
                     await asyncio.sleep(wait)
-                # 5XX errors
                 elif status >= 500:
                     if self._logger:
                         self._logger.warning(
                             f"{tag}, {operation} > {abs_url} - {status} {reason}, retrying in 1 second"
                         )
                     await asyncio.sleep(1)
-                # 4XX errors
                 else:
                     try:
-                        message = await response.json(content_type = None)
+                        message = await response.json(content_type=None)
                         message_is_dict = True
                     except aiohttp.client_exceptions.ContentTypeError:
                         try:
                             message = (await response.text())[:100]
                             message_is_dict = True
-                        except:
+                        except Exception:
                             message = None
                             message_is_dict = False
 

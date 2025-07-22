@@ -20,7 +20,6 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     PLATFORMS,
-    DATA_COORDINATOR,
     DATA_COORDINATORS,
 )
 from .coordinators.base_coordinator import MerakiDataUpdateCoordinator

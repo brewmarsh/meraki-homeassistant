@@ -3,19 +3,19 @@
 import logging
 
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed # Added
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from datetime import timedelta
-from typing import Dict, Any # Added
+from typing import Dict, Any
 
 from .tag_eraser import TagEraser
 from ..api.meraki_api import MerakiAPIClient
-from ..api.meraki_api.exceptions import MerakiApiError, MerakiApiAuthError, MerakiApiConnectionError # Added
+from ..api.meraki_api.exceptions import MerakiApiError, MerakiApiAuthError, MerakiApiConnectionError
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class TagEraserCoordinator(DataUpdateCoordinator[Dict[str, Any]]): # Added generic type
+class TagEraserCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
     """
     Coordinator to erase tags for Meraki devices.
 
@@ -33,7 +33,6 @@ class TagEraserCoordinator(DataUpdateCoordinator[Dict[str, Any]]): # Added gener
         hass: HomeAssistant,
         api_key: str,
         org_id: str,
-        # base_url: str, # Removed base_url
     ) -> None:
         """
         Initialize the TagEraserCoordinator.
@@ -46,21 +45,15 @@ class TagEraserCoordinator(DataUpdateCoordinator[Dict[str, Any]]): # Added gener
         super().__init__(
             hass,
             _LOGGER,
-            name=f"Meraki Tag Eraser ({org_id})", # Incorporate org_id for clarity if multiple orgs
-            update_interval=timedelta(seconds=60), # Default, actual updates are on-demand
+            name=f"Meraki Tag Eraser ({org_id})",
+            update_interval=timedelta(seconds=60),
         )
-        self.api_key = api_key # Stored if needed by TagEraser directly, though client is preferred
+        self.api_key = api_key
         self.org_id = org_id
 
-        # TagEraser takes a MerakiAPIClient instance.
-        # We need to instantiate a MerakiAPIClient here for the TagEraser.
-        # This assumes TagEraser's __init__ is updated to accept MerakiAPIClient.
-        # If TagEraser still expects MerakiApiDataFetcher, this needs more adjustment.
-        # For now, let's assume TagEraser is refactored or we provide a client.
-        # A dedicated client for tag erasing ensures separation of concerns.
         from .api_data_fetcher import MerakiApiDataFetcher
         self.meraki_client_for_eraser = MerakiAPIClient(api_key=api_key, org_id=org_id)
-        self.tag_eraser = TagEraser(MerakiApiDataFetcher(self.meraki_client_for_eraser))  # Pass the client
+        self.tag_eraser = TagEraser(MerakiApiDataFetcher(self.meraki_client_for_eraser))
 
     async def async_erase_device_tags(self, serial: str) -> None:
         """

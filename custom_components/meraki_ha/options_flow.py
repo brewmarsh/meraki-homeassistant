@@ -3,10 +3,8 @@
 import logging
 from typing import Any, Dict, Optional
 
-import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_SCAN_INTERVAL
-from homeassistant.helpers import selector
 
 from .const import DEFAULT_SCAN_INTERVAL
 from .schemas import RECONFIGURE_SCHEMA

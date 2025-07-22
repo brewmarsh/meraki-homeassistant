@@ -106,7 +106,7 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
             self._ssid_name = self._ssid_info_data.get("name")
             self._ssid_number = self._ssid_info_data.get("number")
 
-        _LOGGER.debug( # Changed from .error to .debug
+        _LOGGER.debug(
             "MerakiEntity: Initializing for device S/N: %s, Name: %s",
             self._device_serial,
             self._device_name,

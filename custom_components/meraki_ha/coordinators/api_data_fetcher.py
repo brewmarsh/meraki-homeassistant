@@ -863,39 +863,50 @@ class MerakiApiDataFetcher:
         }
 
     async def _async_meraki_api_call(
-        self, api_coro: Awaitable[Any], return_empty_list_on_404: bool = False
+        self, api_coro: Awaitable[Any], call_description: str, return_empty_list_on_404: bool = False
     ) -> Optional[Any]:
         """Wrapper for Meraki API calls with error handling.
 
         Args:
-            api_coro: The API coroutine to execute
-            return_empty_list_on_404: If True, return [] on 404 errors
+            api_coro: The API coroutine to execute.
+            call_description: A string describing the API call for logging purposes.
+            return_empty_list_on_404: If True, return [] on 404 errors.
 
         Returns:
-            The API response or None on error
+            The API response, an empty list on 404 if specified, or None on other errors.
         """
         try:
-            result = await api_coro
-            return result
+            async with self._api_call_semaphore:
+                return await api_coro
         except MerakiSDKAPIError as e:
-            if hasattr(e, "status") and e.status == 404:
+            if e.status == 404:
                 if return_empty_list_on_404:
                     _LOGGER.info(
-                        "Network feature not available: %s - This is normal for networks without this capability",
-                        getattr(api_coro, "__name__", "Unknown operation"),
+                        "Meraki API call '%s' returned 404, handled as empty list.",
+                        call_description
                     )
                     return []
-                _LOGGER.debug(
-                    "Network feature not available: %s - Returning None",
-                    getattr(api_coro, "__name__", "Unknown operation"),
-                )
-                return None
+                else:
+                    _LOGGER.warning(
+                        "Meraki API call '%s' returned 404, but not handled as empty list. Returning None.",
+                        call_description
+                    )
+                    return None
             _LOGGER.error(
-                "Unexpected error during %s for org %s: %s (Status: %s). Returning None.",
-                getattr(api_coro, "__name__", "Unknown operation"),
+                "Meraki SDK API error during '%s' for org %s: %s. Status: %s, Reason: %s.",
+                call_description,
                 self.org_id,
-                str(e),
-                getattr(e, "status", "Unknown"),
+                e,
+                e.status,
+                e.reason,
+            )
+            return None
+        except Exception as e:
+            _LOGGER.exception(
+                "Unexpected error during '%s' for org %s: %s",
+                call_description,
+                self.org_id,
+                e,
             )
             return None
         _LOGGER.debug(f"Fetching all data for organization ID: {self.org_id} using SDK")
@@ -983,11 +994,10 @@ class MerakiApiDataFetcher:
         device["connected_clients_count"] = 0
         device["radio_settings"] = None
 
-        async with self._api_call_semaphore:
-            clients_data = await self._async_meraki_api_call(
-                self.meraki_client.devices.getDeviceClients(serial=serial),
-                "getDeviceClients",
-            )
+        clients_data = await self._async_meraki_api_call(
+            self.meraki_client.devices.getDeviceClients(serial=serial),
+            f"getDeviceClients(serial={serial})",
+        )
 
         if clients_data is not None:
             device["connected_clients_count"] = len(clients_data)
@@ -1000,13 +1010,10 @@ class MerakiApiDataFetcher:
             #     f"Clients_data was None (call failed) for MR device {serial}. connected_clients_count remains 0."
             # )
 
-        async with self._api_call_semaphore:
-            radio_settings_data = await self._async_meraki_api_call(
-                self.meraki_client.wireless.getDeviceWirelessRadioSettings(
-                    serial=serial
-                ),
-                "getDeviceWirelessRadioSettings",
-            )
+        radio_settings_data = await self._async_meraki_api_call(
+            self.meraki_client.wireless.getDeviceWirelessRadioSettings(serial=serial),
+            f"getDeviceWirelessRadioSettings(serial={serial})",
+        )
 
         if radio_settings_data is not None:
             device["radio_settings"] = radio_settings_data
@@ -1039,14 +1046,10 @@ class MerakiApiDataFetcher:
             device["rtspUrl"] = None
             return
 
-        # externalRtspEnabled and rtspUrl should have been initialized to None by the caller.
-        async with self._api_call_semaphore:
-            video_settings = await self._async_meraki_api_call(
-                self.meraki_client.camera.getDeviceCameraVideoSettings(
-                    serial=serial
-                ),  # Use self.meraki_client
-                "getDeviceCameraVideoSettings",
-            )
+        video_settings = await self._async_meraki_api_call(
+            self.meraki_client.camera.getDeviceCameraVideoSettings(serial=serial),
+            f"getDeviceCameraVideoSettings(serial={serial})",
+        )
 
         if video_settings is not None:
             external_rtsp_enabled = video_settings.get("externalRtspEnabled")
@@ -1063,18 +1066,16 @@ class MerakiApiDataFetcher:
 
     async def async_get_networks(self, org_id: str) -> Optional[List[Dict[str, Any]]]:
         """Fetch all networks for a Meraki organization using the SDK."""
-        call_description = f"getOrganizationNetworks(organizationId={org_id})"
         org_networks = await self._async_meraki_api_call(
-            self.meraki_client.organizations.getOrganizationNetworks(
-                organizationId=org_id
-            ),
-            call_description,
+            self.meraki_client.organizations.getOrganizationNetworks(organizationId=org_id),
+            f"getOrganizationNetworks(organizationId={org_id})",
+            return_empty_list_on_404=True,
         )
 
-        if org_networks is None:  # API call failed or returned None (handled by helper)
+        if org_networks is None:
             _LOGGER.warning(
-                f"{call_description} returned None or failed."
-            )  # Helper already logs specifics
+                f"getOrganizationNetworks(organizationId={org_id}) returned None or failed."
+            )
             return None
         if not org_networks:  # Empty list is a valid response
             _LOGGER.info(
@@ -1092,16 +1093,16 @@ class MerakiApiDataFetcher:
         self, org_id: str
     ) -> Optional[List[Dict[str, Any]]]:
         """Get all devices in the Meraki organization using the SDK."""
-        call_description = f"getOrganizationDevices(organizationId={org_id})"
         devices_data = await self._async_meraki_api_call(
-            self.meraki_client.organizations.getOrganizationDevices(
-                organizationId=org_id
-            ),
-            call_description,
+            self.meraki_client.organizations.getOrganizationDevices(organizationId=org_id),
+            f"getOrganizationDevices(organizationId={org_id})",
+            return_empty_list_on_404=True,
         )
 
         if devices_data is None:
-            _LOGGER.warning(f"{call_description} returned None or failed.")
+            _LOGGER.warning(
+                f"getOrganizationDevices(organizationId={org_id}) returned None or failed."
+            )
             return None
         if not devices_data:
             _LOGGER.info(f"No devices found for organization ID {org_id}.")
@@ -1116,19 +1117,16 @@ class MerakiApiDataFetcher:
         self, network_id: str
     ) -> Optional[List[Dict[str, Any]]]:
         """Fetch all SSIDs for a specific Meraki network using the SDK."""
-        call_description = f"getNetworkWirelessSsids(networkId={network_id})"
-        async with self._api_call_semaphore:
-            ssids_data = await self._async_meraki_api_call(
-                self.meraki_client.wireless.getNetworkWirelessSsids(
-                    networkId=network_id
-                ),
-                return_empty_list_on_404=True,
-            )
+        ssids_data = await self._async_meraki_api_call(
+            self.meraki_client.wireless.getNetworkWirelessSsids(networkId=network_id),
+            f"getNetworkWirelessSsids(networkId={network_id})",
+            return_empty_list_on_404=True,
+        )
 
         if ssids_data is None:
             _LOGGER.warning(
-                f"{call_description} returned None or failed."
-            )  # Helper already logs specifics
+                f"getNetworkWirelessSsids(networkId={network_id}) returned None or failed."
+            )
             return None
         if not ssids_data:
             _LOGGER.info(
