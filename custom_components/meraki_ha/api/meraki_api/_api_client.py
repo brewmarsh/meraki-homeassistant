@@ -63,6 +63,7 @@ class MerakiAPIClient:
         """Initialize the API client."""
         if self._session is None:
             self._session = PatchedAsyncRestSession(
+                logger=_LOGGER,
                 api_key=self.api_key,
                 base_url="https://api.meraki.com/api/v1",
                 single_request_timeout=60,
