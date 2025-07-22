@@ -24,12 +24,12 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
         self,
         hass: HomeAssistant,
         config_entry: ConfigEntry,
-        api_data_fetcher: MerakiDataUpdateCoordinator,
+        api_fetcher: MerakiDataUpdateCoordinator,
         update_interval: timedelta,
     ):
         """Initialize SSIDDeviceCoordinator."""
         self.config_entry = config_entry
-        self.api_data_fetcher = api_data_fetcher
+        self.api_fetcher = api_fetcher
         # The unique identifier for this coordinator will be based on the config entry's unique ID
         # to ensure it's distinct per Meraki organization setup.
         coordinator_name = (
@@ -50,8 +50,8 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
 
         # Ensure the main data fetcher has run and has data
         if (
-            not self.api_data_fetcher.last_update_success
-            or self.api_data_fetcher.data is None
+            not self.api_fetcher.last_update_success
+            or self.api_fetcher.data is None
         ):
             _LOGGER.warning(
                 "Main API data fetcher has not successfully updated or has no data. Skipping SSID device update."
@@ -64,7 +64,7 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 return self.data
             raise UpdateFailed("Main API data fetcher has no data available for SSIDs.")
 
-        all_ssids_from_fetcher: List[Dict[str, Any]] = self.api_data_fetcher.data.get(
+        all_ssids_from_fetcher: List[Dict[str, Any]] = self.api_fetcher.data.get(
             "ssids", []
         )
         # _LOGGER.debug( # Removed: too verbose
@@ -191,10 +191,10 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
         )  # Stores detailed data for each enabled SSID.
         device_registry = dr.async_get(self.hass)  # Get device registry instance.
 
-        # Client data will now be sourced from the main coordinator (api_data_fetcher)
+        # Client data will now be sourced from the main coordinator (api_fetcher)
         all_clients_from_main_coordinator: List[Dict[str, Any]] = []
-        if self.api_data_fetcher.data and isinstance(self.api_data_fetcher.data.get("clients"), list):
-            all_clients_from_main_coordinator = self.api_data_fetcher.data["clients"]
+        if self.api_fetcher.data and isinstance(self.api_fetcher.data.get("clients"), list):
+            all_clients_from_main_coordinator = self.api_fetcher.data["clients"]
             _LOGGER.debug(f"SSIDCoordinator successfully retrieved {len(all_clients_from_main_coordinator)} clients from main coordinator.")
         else:
             _LOGGER.warning(
@@ -254,8 +254,8 @@ class SSIDDeviceCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]]):
                 if not parent_device:
                     # Find network name for the device
                     network_name = "Unknown Network"
-                    if self.api_data_fetcher.data and self.api_data_fetcher.data.get("networks"):
-                        for network in self.api_data_fetcher.data["networks"]:
+                    if self.api_fetcher.data and self.api_fetcher.data.get("networks"):
+                        for network in self.api_fetcher.data["networks"]:
                             if network.get("id") == network_id:
                                 network_name = network.get("name", f"Unnamed Network {network_id}")
                                 break
