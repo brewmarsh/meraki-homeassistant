@@ -162,12 +162,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                           that prevents a meaningful update for the integration.
         """
         try:
-            # Step 1: Fetch all primary data using the api_fetcher.
-            # `fetch_all_data` now returns devices with tags, client counts, and radio settings included.
+            await self.meraki_client.initialize()
             all_data: Dict[str, Any] = await self.api_fetcher.fetch_all_data(
                 self.hass,
-                # Other arguments like org_id, scan_interval,
-                # device_name_format are no longer needed here.
             )
         except (
             MerakiApiError,
