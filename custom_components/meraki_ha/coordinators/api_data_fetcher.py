@@ -706,69 +706,56 @@ class MerakiApiDataFetcher:
                     type(network_clients_data).__name__,
                 )
                 continue
-
             if network_clients_data:
-                    for client_idx, client_data in enumerate(network_clients_data):
-                        if not isinstance(client_data, dict):
-                            _LOGGER.warning(
-                                "Skipping non-dictionary client_data item at index %d for network %s: %s",
-                                client_idx,
-                                network_id,
-                                str(client_data)[:100],
-                            )
-                            continue
-
-                        mac_address = client_data.get("mac")
-                        if not mac_address or not isinstance(mac_address, str):
-                            _LOGGER.warning(
-                                "Client data item at index %d for network %s missing or invalid 'mac' (type: %s, value: %s). Skipping this client.",
-                                client_idx,
-                                network_id,
-                                type(mac_address).__name__,
-                                str(mac_address)[:100],
-                            )
-                            continue
-
-                        ap_serial = (
-                            client_data.get("recentDeviceSerial")
-                            or client_data.get("recentDeviceMac")
-                            or client_data.get("deviceSerial")
+                for client_idx, client_data in enumerate(network_clients_data):
+                    if not isinstance(client_data, dict):
+                        _LOGGER.warning(
+                            "Skipping non-dictionary client_data item at index %d for network %s: %s",
+                            client_idx,
+                            network_id,
+                            str(client_data)[:100],
                         )
-                        client_entry = {
-                            "mac": mac_address,
-                            "ip": client_data.get("ip"),
-                            "description": client_data.get("description"),
-                            "status": client_data.get("status", "Online"),
-                            "networkId": network_id,
-                            "ap_serial": ap_serial,
-                            "usage": client_data.get("usage"),
-                            "vlan": client_data.get("vlan"),
-                            "switchport": client_data.get("switchport"),
-                            "ip6": client_data.get("ip6"),
-                            "manufacturer": client_data.get("manufacturer"),
-                            "os": client_data.get("os"),
-                            "user": client_data.get("user"),
-                            "firstSeen": client_data.get("firstSeen"),
-                            "lastSeen": client_data.get("lastSeen"),
-                            "ssid": client_data.get("ssid"),
-                        }
-                        all_clients.append(client_entry)
-                    # _LOGGER.debug(
-                    #     f"Fetched {len(network_clients_data)} clients for network {network_id}"
-                    # ) # Reduced verbosity
-                else:
-                    _LOGGER.debug(
-                        f"No clients found for network {network_id} in the given timespan."
-                    )
-            except Exception as e:
-                _LOGGER.exception(
-                    f"Unexpected error fetching clients for network {network_id}: {e}. Skipping this network's clients."
-                )
-        else:  # No networks available to fetch clients from.
-            _LOGGER.info(
-                "No networks were found or available for this organization. Client data will be empty."
-            )
+                        continue
 
+                    mac_address = client_data.get("mac")
+                    if not mac_address or not isinstance(mac_address, str):
+                        _LOGGER.warning(
+                            "Client data item at index %d for network %s missing or invalid 'mac' (type: %s, value: %s). Skipping this client.",
+                            client_idx,
+                            network_id,
+                            type(mac_address).__name__,
+                            str(mac_address)[:100],
+                        )
+                        continue
+
+                    ap_serial = (
+                        client_data.get("recentDeviceSerial")
+                        or client_data.get("recentDeviceMac")
+                        or client_data.get("deviceSerial")
+                    )
+                    client_entry = {
+                        "mac": mac_address,
+                        "ip": client_data.get("ip"),
+                        "description": client_data.get("description"),
+                        "status": client_data.get("status", "Online"),
+                        "networkId": network_id,
+                        "ap_serial": ap_serial,
+                        "usage": client_data.get("usage"),
+                        "vlan": client_data.get("vlan"),
+                        "switchport": client_data.get("switchport"),
+                        "ip6": client_data.get("ip6"),
+                        "manufacturer": client_data.get("manufacturer"),
+                        "os": client_data.get("os"),
+                        "user": client_data.get("user"),
+                        "firstSeen": client_data.get("firstSeen"),
+                        "lastSeen": client_data.get("lastSeen"),
+                        "ssid": client_data.get("ssid"),
+                    }
+                    all_clients.append(client_entry)
+            else:
+                _LOGGER.debug(
+                    f"No clients found for network {network_id} in the given timespan."
+                )
         # Step 8: Prepare device type mapping and aggregate client counts
         device_serial_to_type_map = {}
         # devices is confirmed to be a list
