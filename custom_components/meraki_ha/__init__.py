@@ -21,8 +21,10 @@ from .const import (
     DOMAIN,
     PLATFORMS,
     DATA_COORDINATOR,
+    DATA_COORDINATORS,
 )
 from .coordinators.base_coordinator import MerakiDataUpdateCoordinator
+from .coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -79,10 +81,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         config_entry=entry,
     )
 
-    # Store the coordinator and API client
+    # Create the SSID device coordinator
+    ssid_coordinator = SSIDDeviceCoordinator(
+        hass=hass,
+        meraki_client=coordinator.meraki_client,
+        scan_interval=update_interval,
+        config_entry=entry,
+    )
+
+    # Store the coordinators and API client
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
-        DATA_COORDINATOR: coordinator,
+        DATA_COORDINATORS: {
+            "main": coordinator,
+            "ssid_devices": ssid_coordinator,
+        },
         DATA_CLIENT: coordinator.meraki_client,
     }
 

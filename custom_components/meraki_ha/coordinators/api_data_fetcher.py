@@ -326,8 +326,11 @@ class MerakiApiDataFetcher:
             if (
                 not serial
             ):  # Skip if device serial is missing, as it's needed for API calls.
-                _LOGGER.debug(
-                    f"Device {device.get('name', 'N/A')} (MAC: {device.get('mac', 'N/A')}) has no serial, skipping additional detail tasks."
+                _LOGGER.warning(
+                    "Device %s (MAC: %s, Model: %s) has no serial number. This may be a temporary issue or the device may not be fully claimed. Skipping additional detail tasks.",
+                    device.get("name", "N/A"),
+                    device.get("mac", "N/A"),
+                    device_model,
                 )
                 continue
 
@@ -988,7 +991,7 @@ class MerakiApiDataFetcher:
         async with self._api_call_semaphore:
             clients_data = await self._async_meraki_api_call(
                 self.meraki_client.devices.getDeviceClients(serial=serial),
-                f"getDeviceClients(serial={serial})",
+                "getDeviceClients",
             )
 
         if clients_data is not None:
@@ -1007,7 +1010,7 @@ class MerakiApiDataFetcher:
                 self.meraki_client.wireless.getDeviceWirelessRadioSettings(
                     serial=serial
                 ),
-                f"getDeviceWirelessRadioSettings(serial={serial})",
+                "getDeviceWirelessRadioSettings",
             )
 
         if radio_settings_data is not None:
@@ -1047,7 +1050,7 @@ class MerakiApiDataFetcher:
                 self.meraki_client.camera.getDeviceCameraVideoSettings(
                     serial=serial
                 ),  # Use self.meraki_client
-                f"getDeviceCameraVideoSettings(serial={serial})",
+                "getDeviceCameraVideoSettings",
             )
 
         if video_settings is not None:
@@ -1124,7 +1127,6 @@ class MerakiApiDataFetcher:
                 self.meraki_client.wireless.getNetworkWirelessSsids(
                     networkId=network_id
                 ),
-                call_description,
                 return_empty_list_on_404=True,
             )
 
