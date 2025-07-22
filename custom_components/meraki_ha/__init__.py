@@ -84,7 +84,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Create the SSID device coordinator
     ssid_coordinator = SSIDDeviceCoordinator(
         hass=hass,
-        meraki_client=coordinator.meraki_client,
         scan_interval=update_interval,
         config_entry=entry,
     )
