@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+export PYTHONPATH=$PYTHONPATH:.
+echo "PYTHONPATH: $PYTHONPATH"
+
 echo "Running tests..."
 pytest
 

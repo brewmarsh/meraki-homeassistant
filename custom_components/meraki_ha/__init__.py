@@ -93,6 +93,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.error("Failed to perform initial data update: %s", err)
         return False
 
+    # Set up the platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     # Register update listener to handle configuration changes
