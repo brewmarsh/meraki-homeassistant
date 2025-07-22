@@ -625,9 +625,15 @@ class MerakiApiDataFetcher:
                         network_id
                     )
                 except MerakiSDKAPIError as e:
-                    _LOGGER.warning(
-                        f"Error fetching SSIDs for network {network_id} was not handled by async_get_network_ssids: {e}. Status: {e.status}, Reason: {e.reason}. Skipping."
-                    )
+                    if e.status == 404:
+                        _LOGGER.warning(
+                            f"Meraki API call to get SSIDs for network {network_id} returned a 404, which is handled as an empty list."
+                        )
+                        ssid_data_for_network = []
+                    else:
+                        _LOGGER.error(
+                            f"Meraki SDK API error fetching SSIDs for network {network_id}: {e}. Status: {e.status}, Reason: {e.reason}. Skipping this network's SSIDs."
+                        )
                 if ssid_data_for_network:
                     for ssid_obj in ssid_data_for_network:
                         if isinstance(ssid_obj, dict):
@@ -682,7 +688,18 @@ class MerakiApiDataFetcher:
                             timespan=3600,
                         )
                     )
-                if not isinstance(network_clients_data, list):
+            except MerakiSDKAPIError as e:
+                if e.status == 404:
+                    _LOGGER.warning(
+                        f"Meraki API call to get clients for network {network_id} returned a 404, which is handled as an empty list."
+                    )
+                    network_clients_data = []
+                else:
+                    _LOGGER.error(
+                        f"Meraki SDK API error fetching clients for network {network_id}: {e}. Status: {e.status}, Reason: {e.reason}. Skipping this network's clients."
+                    )
+                    continue
+            if not isinstance(network_clients_data, list):
                     _LOGGER.warning(
                         "Network clients data for network %s is not a list (type: %s). Skipping client processing for this network.",
                         network_id,
