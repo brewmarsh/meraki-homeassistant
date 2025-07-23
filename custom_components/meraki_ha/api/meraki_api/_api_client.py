@@ -8,7 +8,7 @@ import logging
 from typing import Any, List, Dict, Optional
 
 from ...patched_meraki_session import PatchedAsyncRestSession
-from meraki import DashboardAPI
+from meraki.aio import AsyncDashboardAPI
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
 from .api_endpoints import (
@@ -34,7 +34,7 @@ class MerakiAPIClient:
         self.api_key: str = api_key
         self.org_id: str = org_id
         self._session: Optional[PatchedAsyncRestSession] = None
-        self._api: Optional["DashboardAPI"] = None
+        self._api: Optional[AsyncDashboardAPI] = None
 
     @property
     def session(self) -> PatchedAsyncRestSession:
@@ -44,7 +44,7 @@ class MerakiAPIClient:
         return self._session
 
     @property
-    def api(self) -> "DashboardAPI":
+    def api(self) -> AsyncDashboardAPI:
         """Return the API object."""
         if self._api is None:
             raise MerakiApiError("API not initialized")
@@ -79,10 +79,10 @@ class MerakiAPIClient:
                 simulate=False,
             )
         if self._api is None:
-            self._api = DashboardAPI(
+            self._api = AsyncDashboardAPI(
                 api_key=self.api_key,
                 base_url="https://api.meraki.com/api/v1",
-                use_iterator_for_get_pages=False,
+                session=self._session,
             )
 
     async def close(self) -> None:
