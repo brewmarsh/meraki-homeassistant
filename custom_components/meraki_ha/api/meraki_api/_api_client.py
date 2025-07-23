@@ -56,7 +56,7 @@ class MerakiAPIClient:
             self._api = AsyncDashboardAPI(
                 api_key=self.api_key,
                 base_url="https://api.meraki.com/api/v1",
-                log_path='/dev/null',
+                suppress_logging=True,
             )
 
     async def close(self) -> None:
