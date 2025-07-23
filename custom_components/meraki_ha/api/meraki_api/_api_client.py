@@ -82,7 +82,6 @@ class MerakiAPIClient:
             self._api = DashboardAPI(
                 api_key=self.api_key,
                 base_url="https://api.meraki.com/api/v1",
-                session=self._session,
                 use_iterator_for_get_pages=False,
             )
 
