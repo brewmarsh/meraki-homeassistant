@@ -79,7 +79,7 @@ class MerakiAPIClient:
         return self._org_id
 
     @handle_meraki_errors
-    async def get_organization(self) -> List[Dict[str, Any]]:
+    async def get_organization(self) -> Dict[str, Any]:
         """Get organization details."""
         cache_key = self._get_cache_key("get_organization")
 
@@ -91,7 +91,7 @@ class MerakiAPIClient:
         )
         validated = validate_response(org)
         self._cache_data(cache_key, validated)
-        return [validated]
+        return validated
 
     @handle_meraki_errors
     async def get_networks(self) -> List[Dict[str, Any]]:
@@ -221,7 +221,7 @@ class MerakiAPIClient:
         return validated
 
     @handle_meraki_errors
-    async def get_wireless_settings(self, serial: str) -> List[Dict[str, Any]]:
+    async def get_wireless_settings(self, serial: str) -> Dict[str, Any]:
         """Get wireless radio settings for an access point."""
         cache_key = self._get_cache_key("get_wireless_settings", serial)
 
@@ -233,4 +233,4 @@ class MerakiAPIClient:
         )
         validated = validate_response(settings)
         self._cache_data(cache_key, validated)
-        return [validated]
+        return validated

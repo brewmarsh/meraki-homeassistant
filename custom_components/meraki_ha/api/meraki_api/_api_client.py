@@ -229,6 +229,15 @@ class MerakiAPIClient:
         except MerakiSDKAPIError as e:
             raise MerakiApiError(f"Error updating network wireless SSID: {e}") from e
 
+    async def get_organization(self, org_id: str) -> Dict[str, Any]:
+        """Get information for an organization."""
+        try:
+            return await self.api.organizations.getOrganization(
+                organizationId=org_id
+            )
+        except MerakiSDKAPIError as e:
+            raise MerakiApiError(f"Error getting organization: {e}") from e
+
     def __getattr__(self, name: str) -> Any:
         """Delegate attribute access to the API object."""
         return getattr(self.api, name)
