@@ -7,7 +7,6 @@ This module provides a client for the Meraki API.
 import logging
 from typing import Any, List, Dict, Optional
 
-from ...patched_meraki_session import PatchedAsyncRestSession
 from meraki.aio import AsyncDashboardAPI
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
@@ -33,15 +32,7 @@ class MerakiAPIClient:
         """Initialize the Meraki API client."""
         self.api_key: str = api_key
         self.org_id: str = org_id
-        self._session: Optional[PatchedAsyncRestSession] = None
         self._api: Optional[AsyncDashboardAPI] = None
-
-    @property
-    def session(self) -> PatchedAsyncRestSession:
-        """Return the API session."""
-        if self._session is None:
-            raise MerakiApiError("Session not initialized")
-        return self._session
 
     @property
     def api(self) -> AsyncDashboardAPI:
@@ -61,35 +52,16 @@ class MerakiAPIClient:
 
     async def initialize(self) -> None:
         """Initialize the API client."""
-        if self._session is None:
-            self._session = PatchedAsyncRestSession(
-                logger=_LOGGER,
-                api_key=self.api_key,
-                base_url="https://api.meraki.com/api/v1",
-                single_request_timeout=60,
-                certificate_path="",
-                requests_proxy="",
-                wait_on_rate_limit=True,
-                nginx_429_retry_wait_time=60,
-                action_batch_retry_wait_time=60,
-                network_delete_retry_wait_time=240,
-                retry_4xx_error=False,
-                retry_4xx_error_wait_time=60,
-                maximum_retries=2,
-                simulate=False,
-            )
         if self._api is None:
             self._api = AsyncDashboardAPI(
                 api_key=self.api_key,
                 base_url="https://api.meraki.com/api/v1",
-                session=self._session,
             )
 
     async def close(self) -> None:
         """Close the API client session."""
-        if self._session:
-            await self._session.close()
-            self._session = None
+        if self._api:
+            await self._api.close()
             self._api = None
 
     @property
