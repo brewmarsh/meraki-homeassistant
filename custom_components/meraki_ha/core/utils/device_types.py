@@ -60,10 +60,6 @@ VALID_DEVICE_TYPES: Final[List[str]] = [
 ]
 
 
-
-
-
-
 class DeviceType(str, Enum):
     """Enum for Meraki device types."""
 
@@ -80,17 +76,17 @@ class DeviceType(str, Enum):
 # Map device prefixes to types
 DEVICE_PREFIX_MAPPINGS: Final[dict[tuple[str, ...], str]] = {
     # Wireless Access Points (both traditional MR and cloud-managed GR series)
-    ("MR", "GR"): "wireless",
+    ("MR", "GR"): DeviceType.WIRELESS,
     # Switches (both traditional MS and cloud-managed GS series)
-    ("MS", "GS"): "switch",
+    ("MS", "GS"): DeviceType.SWITCH,
     # Security Appliances
-    ("MX",): "appliance",
+    ("MX",): DeviceType.APPLIANCE,
     # Cameras
-    ("MV",): "camera",
+    ("MV",): DeviceType.CAMERA,
     # Environmental Sensors
-    ("MT",): "sensor",
+    ("MT",): DeviceType.SENSOR,
     # Cellular Gateways
-    ("MG",): "cellular",
+    ("MG",): DeviceType.CELLULAR,
 }
 
 # Device type descriptions for UI and logging
@@ -104,6 +100,19 @@ DEVICE_TYPE_DESCRIPTIONS: Final[dict[str, str]] = {
     DEVICE_TYPE_NETWORK: "Virtual Network Device",
     DEVICE_TYPE_UNKNOWN: "Unknown Device",
 }
+
+
+class DeviceType(str, Enum):
+    """Enum for Meraki device types."""
+
+    WIRELESS = DEVICE_TYPE_WIRELESS
+    SWITCH = DEVICE_TYPE_SWITCH
+    APPLIANCE = DEVICE_TYPE_APPLIANCE
+    CAMERA = DEVICE_TYPE_CAMERA
+    SENSOR = DEVICE_TYPE_SENSOR
+    CELLULAR = DEVICE_TYPE_CELLULAR
+    NETWORK = DEVICE_TYPE_NETWORK
+    UNKNOWN = DEVICE_TYPE_UNKNOWN
 
 
 def map_meraki_model_to_device_type(model: Optional[str]) -> str:

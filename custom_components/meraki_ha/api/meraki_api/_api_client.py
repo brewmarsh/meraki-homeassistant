@@ -200,44 +200,6 @@ class MerakiAPIClient:
         except MerakiSDKAPIError as e:
             raise MerakiApiError(f"Error provisioning network clients: {e}") from e
 
-    async def get_device_uplink(self, serial: str) -> Dict[str, Any]:
-        """Get uplink settings for a device."""
-        try:
-            return await self.api.devices.getDeviceUplink(serial=serial)
-        except MerakiSDKAPIError as e:
-            raise MerakiApiError(f"Error getting device uplink: {e}") from e
-
-    async def get_network_appliance_settings(self, network_id: str) -> Dict[str, Any]:
-        """Get appliance settings for a network."""
-        try:
-            return await self.api.networks.getNetworkApplianceSettings(
-                networkId=network_id
-            )
-        except MerakiSDKAPIError as e:
-            raise MerakiApiError(
-                f"Error getting network appliance settings: {e}"
-            ) from e
-
-    async def update_network_wireless_ssid(
-        self, network_id: str, number: int, **kwargs
-    ) -> Dict[str, Any]:
-        """Update a wireless SSID."""
-        try:
-            return await self.api.wireless.updateNetworkWirelessSsid(
-                networkId=network_id, number=number, **kwargs
-            )
-        except MerakiSDKAPIError as e:
-            raise MerakiApiError(f"Error updating network wireless SSID: {e}") from e
-
-    async def get_organization(self, org_id: str) -> Dict[str, Any]:
-        """Get information for an organization."""
-        try:
-            return await self.api.organizations.getOrganization(
-                organizationId=org_id
-            )
-        except MerakiSDKAPIError as e:
-            raise MerakiApiError(f"Error getting organization: {e}") from e
-
     def __getattr__(self, name: str) -> Any:
         """Delegate attribute access to the API object."""
         return getattr(self.api, name)

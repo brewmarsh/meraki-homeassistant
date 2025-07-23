@@ -29,7 +29,3 @@ class Organizations:
     ) -> List[Dict[str, Any]]:
         """Mock for getOrganizationFirmwareUpgrades."""
         return await self._client.get_organization_firmware_upgrades()
-
-    async def getOrganization(self, org_id: str) -> Dict[str, Any]:
-        """Mock for getOrganization."""
-        return await self._client.get_organization(org_id)

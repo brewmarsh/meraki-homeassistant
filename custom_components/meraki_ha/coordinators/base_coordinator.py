@@ -195,8 +195,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             raise UpdateFailed(
                 f"Unexpected error fetching data for org {self.org_id}: {e}"
             ) from e
-        if not all_data:
-            raise UpdateFailed("No data received from Meraki API")
 
         if not all_data:
             raise UpdateFailed("No data received from Meraki API")

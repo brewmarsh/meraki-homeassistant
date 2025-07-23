@@ -83,7 +83,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Create the SSID device coordinator
     ssid_coordinator = SSIDDeviceCoordinator(
         hass=hass,
-        api_fetcher=coordinator,
+        api_fetcher=coordinator.api_fetcher,
         update_interval=update_interval,
         config_entry=entry,
     )

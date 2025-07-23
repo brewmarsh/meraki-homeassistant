@@ -122,7 +122,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[SSIDDeviceCoordinator], SwitchEntit
             # Make the API call to update the specific SSID setting.
             await self._meraki_client.wireless.updateNetworkWirelessSsid(
                 networkId=self._network_id,
-                number=int(self._ssid_number),  # Meraki API expects SSID number as int.
+                number=self._ssid_number,  # Meraki API expects SSID number as string or int depending on SDK version/method.
                 # The SDK handles type consistency here.
                 **payload,  # Pass the specific setting to update (e.g., enabled=True).
             )

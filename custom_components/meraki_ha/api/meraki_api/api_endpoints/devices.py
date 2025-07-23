@@ -13,7 +13,3 @@ class Devices:
     async def getDeviceClients(self, serial: str) -> List[Dict[str, Any]]:
         """Mock for getDeviceClients."""
         return await self._client.get_device_clients(serial)
-
-    async def getDeviceUplink(self, serial: str) -> Dict[str, Any]:
-        """Mock for getDeviceUplink."""
-        return await self._client.get_device_uplink(serial)

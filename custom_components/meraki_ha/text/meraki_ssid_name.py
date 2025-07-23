@@ -129,7 +129,7 @@ class MerakiSSIDNameText(CoordinatorEntity[SSIDDeviceCoordinator], TextEntity):
         try:
             await self._meraki_client.wireless.updateNetworkWirelessSsid(
                 networkId=self._network_id,
-                number=int(self._ssid_number),  # API often expects number as int
+                number=str(self._ssid_number),  # API often expects number as string
                 name=value,
             )
             # Update the local state immediately for better UX
