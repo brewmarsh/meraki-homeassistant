@@ -33,6 +33,7 @@ _LOGGER = logging.getLogger(__name__)
 _LOGGER.debug("meraki_ha config_flow.py loaded")
 
 
+@config_entries.HANDLERS.register(DOMAIN)
 class ConfigFlowHandler(config_entries.ConfigFlow):
     """Handle a config or options flow for the Meraki integration."""
 
