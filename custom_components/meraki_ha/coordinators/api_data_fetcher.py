@@ -596,166 +596,59 @@ class MerakiApiDataFetcher:
 
         # Step 6: Fetch SSIDs for each network.
         ssids: List[Dict[str, Any]] = []
-        # networks is now confirmed to be a list
-        for network_idx, network in enumerate(networks):
-            if not isinstance(network, dict):
-                _LOGGER.warning(
-                    "Skipping non-dictionary network item at index %d for SSID fetching: %s",
-                    network_idx,
-                    str(network)[:100],
-                )
-                continue
-
-            network_id = network.get("id")
-            if (
-                not network_id
-            ):  # Should have been validated by caller if networks is from process_networks
-                _LOGGER.warning(
-                    "Network item at index %d missing 'id'. Skipping SSID fetch for this network: %s",
-                    network_idx,
-                    str(network)[:100],
-                )
-                continue
-
-            try:
-                # _LOGGER.debug(f"Fetching SSIDs for network ID: {network_id}")
-                ssid_data_for_network = None
+        if networks:
+            for network in networks:
+                network_id = network.get("id")
+                if not network_id:
+                    continue
                 try:
                     ssid_data_for_network = await self.async_get_network_ssids(
                         network_id
                     )
+                    if ssid_data_for_network:
+                        ssids.extend(ssid_data_for_network)
                 except MerakiSDKAPIError as e:
-                    if hasattr(e, "status") and e.status == 404:
+                    if e.status == 404:
                         _LOGGER.warning(
-                            f"Meraki API call to get SSIDs for network {network_id} returned a 404, which is handled as an empty list."
+                            "Meraki API call to get SSIDs for network %s returned a 404, which is handled as an empty list.",
+                            network_id,
                         )
-                        ssid_data_for_network = []
                     else:
                         _LOGGER.error(
-                            f"Meraki SDK API error fetching SSIDs for network {network_id}: {e}. Status: {e.status}, Reason: {e.reason}. Skipping this network's SSIDs."
+                            "Meraki SDK API error fetching SSIDs for network %s: %s. Status: %s, Reason: %s.",
+                            network_id,
+                            e,
+                            e.status,
+                            e.reason,
                         )
-                if ssid_data_for_network:
-                    for ssid_obj in ssid_data_for_network:
-                        if isinstance(ssid_obj, dict):
-                            if ssid_obj.get("networkId") is None:
-                                ssid_obj["networkId"] = network_id
-                                # _LOGGER.debug(
-                                #     f"Added/updated networkId '{network_id}' for SSID '{ssid_obj.get('name')}' (Number: {ssid_obj.get('number')})"
-                                # )
-                        else:
-                            _LOGGER.warning(
-                                f"Found non-dict item in ssid_data_for_network: {ssid_obj}"
-                            )
-                    ssids.extend(ssid_data_for_network)
-                elif ssid_data_for_network is None:
-                    _LOGGER.info(
-                        f"SSID data result was None for network {network_id}, SSIDs for this network will be skipped."
-                    )
-            except Exception as e:
-                _LOGGER.exception(
-                    f"Unexpected error processing network {network_id} for SSID data: {e}. Skipping this network's SSIDs."
-                )
 
         # Step 7: Fetch all clients across all networks.
         all_clients: List[Dict[str, Any]] = []
-        # networks is confirmed to be a list
-        for network_idx, network in enumerate(networks):
-            if not isinstance(
-                network, dict
-            ):  # Should have been caught if networks is from process_networks
-                _LOGGER.warning(
-                    "Skipping non-dictionary network item at index %d for client fetching: %s",
-                    network_idx,
-                    str(network)[:100],
-                )
-                continue
-
-            network_id = network.get("id")  # Already validated if from process_networks
-            if not network_id:
-                _LOGGER.warning(
-                    "Network item at index %d missing 'id'. Skipping client fetch for this network: %s",
-                    network_idx,
-                    str(network)[:100],
-                )
-                continue
-
-            try:
-                # _LOGGER.debug(f"Fetching clients for network ID: {network_id}")
-                async with self._api_call_semaphore:
-                    network_clients_data = (
-                        await self.meraki_client.networks.getNetworkClients(
-                            network_id,
-                            timespan=3600,
-                        )
-                    )
-            except MerakiSDKAPIError as e:
-                if hasattr(e, "status") and e.status == 404:
-                    _LOGGER.warning(
-                        f"Meraki API call to get clients for network {network_id} returned a 404, which is handled as an empty list."
-                    )
-                    network_clients_data = []
-                else:
-                    _LOGGER.error(
-                        f"Meraki SDK API error fetching clients for network {network_id}: {e}. Status: {e.status}, Reason: {e.reason}. Skipping this network's clients."
-                    )
+        if networks:
+            for network in networks:
+                network_id = network.get("id")
+                if not network_id:
                     continue
-            if not isinstance(network_clients_data, list):
-                _LOGGER.warning(
-                    "Network clients data for network %s is not a list (type: %s). Skipping client processing for this network.",
-                    network_id,
-                    type(network_clients_data).__name__,
-                )
-                continue
-            if network_clients_data:
-                for client_idx, client_data in enumerate(network_clients_data):
-                    if not isinstance(client_data, dict):
-                        _LOGGER.warning(
-                            "Skipping non-dictionary client_data item at index %d for network %s: %s",
-                            client_idx,
-                            network_id,
-                            str(client_data)[:100],
-                        )
-                        continue
-
-                    mac_address = client_data.get("mac")
-                    if not mac_address or not isinstance(mac_address, str):
-                        _LOGGER.warning(
-                            "Client data item at index %d for network %s missing or invalid 'mac' (type: %s, value: %s). Skipping this client.",
-                            client_idx,
-                            network_id,
-                            type(mac_address).__name__,
-                            str(mac_address)[:100],
-                        )
-                        continue
-
-                    ap_serial = (
-                        client_data.get("recentDeviceSerial")
-                        or client_data.get("recentDeviceMac")
-                        or client_data.get("deviceSerial")
+                try:
+                    network_clients_data = await self.meraki_client.networks.getNetworkClients(
+                        network_id, timespan=3600
                     )
-                    client_entry = {
-                        "mac": mac_address,
-                        "ip": client_data.get("ip"),
-                        "description": client_data.get("description"),
-                        "status": client_data.get("status", "Online"),
-                        "networkId": network_id,
-                        "ap_serial": ap_serial,
-                        "usage": client_data.get("usage"),
-                        "vlan": client_data.get("vlan"),
-                        "switchport": client_data.get("switchport"),
-                        "ip6": client_data.get("ip6"),
-                        "manufacturer": client_data.get("manufacturer"),
-                        "os": client_data.get("os"),
-                        "user": client_data.get("user"),
-                        "firstSeen": client_data.get("firstSeen"),
-                        "lastSeen": client_data.get("lastSeen"),
-                        "ssid": client_data.get("ssid"),
-                    }
-                    all_clients.append(client_entry)
-            else:
-                _LOGGER.debug(
-                    f"No clients found for network {network_id} in the given timespan."
-                )
+                    if network_clients_data:
+                        all_clients.extend(network_clients_data)
+                except MerakiSDKAPIError as e:
+                    if e.status == 404:
+                        _LOGGER.warning(
+                            "Meraki API call to get clients for network %s returned a 404, which is handled as an empty list.",
+                            network_id,
+                        )
+                    else:
+                        _LOGGER.error(
+                            "Meraki SDK API error fetching clients for network %s: %s. Status: %s, Reason: %s.",
+                            network_id,
+                            e,
+                            e.status,
+                            e.reason,
+                        )
         # Step 8: Prepare device type mapping and aggregate client counts
         device_serial_to_type_map = {}
         # devices is confirmed to be a list
