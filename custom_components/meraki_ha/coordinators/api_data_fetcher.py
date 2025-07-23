@@ -596,58 +596,54 @@ class MerakiApiDataFetcher:
 
         # Step 6: Fetch SSIDs for each network.
         ssids: List[Dict[str, Any]] = []
+        ssid_tasks = []
         if networks:
             for network in networks:
                 network_id = network.get("id")
                 if not network_id:
                     continue
-                try:
-                    ssid_data_for_network = await self.async_get_network_ssids(
-                        network_id
-                    )
-                    if ssid_data_for_network:
-                        ssids.extend(ssid_data_for_network)
-                except MerakiSDKAPIError as e:
-                    if e.status == 404:
+                ssid_tasks.append(self.async_get_network_ssids(network_id))
+            if ssid_tasks:
+                results = await asyncio.gather(*ssid_tasks, return_exceptions=True)
+                for result in results:
+                    if isinstance(result, list):
+                        ssids.extend(result)
+                    elif isinstance(result, MerakiSDKAPIError) and result.status == 404:
                         _LOGGER.warning(
-                            "Meraki API call to get SSIDs for network %s returned a 404, which is handled as an empty list.",
-                            network_id,
+                            "Meraki API call to get SSIDs for a network returned a 404, which is handled as an empty list."
                         )
-                    else:
+                    elif isinstance(result, Exception):
                         _LOGGER.error(
-                            "Meraki SDK API error fetching SSIDs for network %s: %s. Status: %s, Reason: %s.",
-                            network_id,
-                            e,
-                            e.status,
-                            e.reason,
+                            "Meraki SDK API error fetching SSIDs for a network: %s",
+                            result,
                         )
 
         # Step 7: Fetch all clients across all networks.
         all_clients: List[Dict[str, Any]] = []
+        client_tasks = []
         if networks:
             for network in networks:
                 network_id = network.get("id")
                 if not network_id:
                     continue
-                try:
-                    network_clients_data = await self.meraki_client.networks.getNetworkClients(
+                client_tasks.append(
+                    self.meraki_client.networks.getNetworkClients(
                         network_id, timespan=3600
                     )
-                    if network_clients_data:
-                        all_clients.extend(network_clients_data)
-                except MerakiSDKAPIError as e:
-                    if e.status == 404:
+                )
+            if client_tasks:
+                results = await asyncio.gather(*client_tasks, return_exceptions=True)
+                for result in results:
+                    if isinstance(result, list):
+                        all_clients.extend(result)
+                    elif isinstance(result, MerakiSDKAPIError) and result.status == 404:
                         _LOGGER.warning(
-                            "Meraki API call to get clients for network %s returned a 404, which is handled as an empty list.",
-                            network_id,
+                            "Meraki API call to get clients for a network returned a 404, which is handled as an empty list."
                         )
-                    else:
+                    elif isinstance(result, Exception):
                         _LOGGER.error(
-                            "Meraki SDK API error fetching clients for network %s: %s. Status: %s, Reason: %s.",
-                            network_id,
-                            e,
-                            e.status,
-                            e.reason,
+                            "Meraki SDK API error fetching clients for a network: %s",
+                            result,
                         )
         # Step 8: Prepare device type mapping and aggregate client counts
         device_serial_to_type_map = {}
