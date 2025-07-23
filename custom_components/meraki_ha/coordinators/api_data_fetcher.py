@@ -1478,7 +1478,6 @@ class MerakiApiDataFetcher:
                 e,
             )
             return None
-        return None
         _LOGGER.debug(f"Fetching all data for organization ID: {self.org_id} using SDK")
 
         try:

@@ -198,6 +198,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         if not all_data:
             raise UpdateFailed("No data received from Meraki API")
 
+        if not all_data:
+            raise UpdateFailed("No data received from Meraki API")
         # Extract data components from `all_data`. Default to empty lists if
         # keys are missing.
         devices: List[Dict[str, Any]] = all_data.get("devices", [])
