@@ -5,7 +5,6 @@ This module provides a client for the Meraki API.
 """
 
 import logging
-import queue
 from typing import Any, List, Dict, Optional
 
 from ...patched_meraki_session import PatchedAsyncRestSession
@@ -19,7 +18,6 @@ from .api_endpoints import (
     Wireless,
     Camera,
 )
-from ...async_logging import QueueHandler, QueueListener
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -63,11 +61,6 @@ class MerakiAPIClient:
 
     async def initialize(self) -> None:
         """Initialize the API client."""
-        log_queue = queue.Queue()
-        queue_handler = QueueHandler(log_queue)
-        _LOGGER.addHandler(queue_handler)
-        listener = QueueListener(log_queue, logging.StreamHandler())
-        listener.start()
         if self._session is None:
             self._session = PatchedAsyncRestSession(
                 logger=_LOGGER,
@@ -89,6 +82,7 @@ class MerakiAPIClient:
             self._api = AsyncDashboardAPI(
                 api_key=self.api_key,
                 base_url="https://api.meraki.com/api/v1",
+                session=self._session,
             )
 
     async def close(self) -> None:

@@ -625,7 +625,7 @@ class MerakiApiDataFetcher:
                         network_id
                     )
                 except MerakiSDKAPIError as e:
-                    if e.status == 404:
+                    if hasattr(e, "status") and e.status == 404:
                         _LOGGER.warning(
                             f"Meraki API call to get SSIDs for network {network_id} returned a 404, which is handled as an empty list."
                         )
@@ -689,7 +689,7 @@ class MerakiApiDataFetcher:
                         )
                     )
             except MerakiSDKAPIError as e:
-                if e.status == 404:
+                if hasattr(e, "status") and e.status == 404:
                     _LOGGER.warning(
                         f"Meraki API call to get clients for network {network_id} returned a 404, which is handled as an empty list."
                     )
