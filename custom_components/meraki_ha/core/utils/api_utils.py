@@ -17,7 +17,7 @@ from ..errors import (
 T = TypeVar("T")
 
 
-def handle_meraki_errors(func: Callable[..., T]) -> Callable[..., T]:
+async def handle_meraki_errors(func: Callable[..., T]) -> Callable[..., T]:
     """Decorator to handle Meraki API errors consistently.
 
     This decorator:

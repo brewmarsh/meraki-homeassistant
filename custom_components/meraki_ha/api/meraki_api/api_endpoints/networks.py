@@ -35,3 +35,7 @@ class Networks:
     async def getNetworkWirelessSsids(self, networkId: str) -> List[Dict[str, Any]]:
         """Mock for getNetworkWirelessSsids."""
         return await self._client.get_network_wireless_ssids(networkId)
+
+    async def getNetworkApplianceSettings(self, networkId: str) -> Dict[str, Any]:
+        """Mock for getNetworkApplianceSettings."""
+        return await self._client.get_network_appliance_settings(networkId)

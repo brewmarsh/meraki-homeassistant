@@ -2,7 +2,7 @@
 
 import logging
 from datetime import timedelta
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -82,10 +82,10 @@ class MerakiDataCoordinator(BaseMerakiCoordinator):
             _LOGGER.error("Error updating Meraki data: %s", err)
             raise UpdateFailed(f"Error updating Meraki data: {err}")
 
-    def get_device_by_serial(self, serial: str) -> Dict[str, Any]:
+    def get_device_by_serial(self, serial: str) -> Optional[Dict[str, Any]]:
         """Get device data by serial number."""
         return self.device_coordinator.get_device_by_serial(serial)
 
-    def get_network_by_id(self, network_id: str) -> Dict[str, Any]:
+    def get_network_by_id(self, network_id: str) -> Optional[Dict[str, Any]]:
         """Get network data by network ID."""
         return self.network_coordinator.get_network_by_id(network_id)
