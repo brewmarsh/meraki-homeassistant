@@ -879,17 +879,17 @@ class MerakiApiDataFetcher:
             async with self._api_call_semaphore:
                 return await api_coro
         except MerakiSDKAPIError as e:
-            if e.status == 404:
+            if hasattr(e, "status") and e.status == 404:
                 if return_empty_list_on_404:
                     _LOGGER.info(
                         "Meraki API call '%s' returned 404, handled as empty list.",
-                        call_description
+                        call_description,
                     )
                     return []
                 else:
                     _LOGGER.warning(
                         "Meraki API call '%s' returned 404, but not handled as empty list. Returning None.",
-                        call_description
+                        call_description,
                     )
                     return None
             _LOGGER.error(
