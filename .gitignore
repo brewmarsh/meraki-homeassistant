@@ -1,4 +1,4 @@
-node_modules/.cache/**
-.cache/
+# Python
+*.py[cod]
+*$py.class
 __pycache__/
-*.pyc
