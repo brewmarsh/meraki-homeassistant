@@ -609,7 +609,7 @@ class MerakiApiDataFetcher:
                     if isinstance(result, list):
                         ssids.extend(result)
                     elif isinstance(result, MerakiSDKAPIError) and result.status == 404:
-                        _LOGGER.warning(
+                        _LOGGER.info(
                             "Meraki API call to get SSIDs for a network returned a 404, which is handled as an empty list."
                         )
                     elif isinstance(result, Exception):
@@ -637,7 +637,7 @@ class MerakiApiDataFetcher:
                     if isinstance(result, list):
                         all_clients.extend(result)
                     elif isinstance(result, MerakiSDKAPIError) and result.status == 404:
-                        _LOGGER.warning(
+                        _LOGGER.info(
                             "Meraki API call to get clients for a network returned a 404, which is handled as an empty list."
                         )
                     elif isinstance(result, Exception):
