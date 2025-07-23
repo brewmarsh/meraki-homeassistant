@@ -90,14 +90,23 @@ class MerakiApiDataFetcher:
         # Step 1: Concurrently fetch foundational data
         # Networks, Devices, Device Statuses, Firmware Upgrades
         results = await asyncio.gather(
-            self.meraki_client.organizations.getOrganizations(),
+            self._async_meraki_api_call(
+                self.meraki_client.organizations.getOrganizations(),
+                "getOrganizations",
+            ),
             self.async_get_networks(self.org_id),
             self.async_get_organization_devices(self.org_id),
-            self.meraki_client.organizations.getOrganizationDevicesStatuses(
-                organizationId=self.org_id, total_pages="all"
+            self._async_meraki_api_call(
+                self.meraki_client.organizations.getOrganizationDevicesStatuses(
+                    organizationId=self.org_id, total_pages="all"
+                ),
+                "getOrganizationDevicesStatuses",
             ),
-            self.meraki_client.organizations.getOrganizationFirmwareUpgrades(
-                organizationId=self.org_id
+            self._async_meraki_api_call(
+                self.meraki_client.organizations.getOrganizationFirmwareUpgrades(
+                    organizationId=self.org_id
+                ),
+                "getOrganizationFirmwareUpgrades",
             ),
             return_exceptions=True,
         )
@@ -608,10 +617,6 @@ class MerakiApiDataFetcher:
                 for result in results:
                     if isinstance(result, list):
                         ssids.extend(result)
-                    elif isinstance(result, MerakiSDKAPIError) and result.status == 404:
-                        _LOGGER.info(
-                            "Meraki API call to get SSIDs for a network returned a 404, which is handled as an empty list."
-                        )
                     elif isinstance(result, Exception):
                         _LOGGER.error(
                             "Meraki SDK API error fetching SSIDs for a network: %s",
@@ -627,8 +632,12 @@ class MerakiApiDataFetcher:
                 if not network_id:
                     continue
                 client_tasks.append(
-                    self.meraki_client.networks.getNetworkClients(
-                        network_id, timespan=3600
+                    self._async_meraki_api_call(
+                        self.meraki_client.networks.getNetworkClients(
+                            network_id, timespan=3600
+                        ),
+                        f"getNetworkClients(networkId={network_id})",
+                        return_empty_list_on_404=True,
                     )
                 )
             if client_tasks:
@@ -636,10 +645,6 @@ class MerakiApiDataFetcher:
                 for result in results:
                     if isinstance(result, list):
                         all_clients.extend(result)
-                    elif isinstance(result, MerakiSDKAPIError) and result.status == 404:
-                        _LOGGER.info(
-                            "Meraki API call to get clients for a network returned a 404, which is handled as an empty list."
-                        )
                     elif isinstance(result, Exception):
                         _LOGGER.error(
                             "Meraki SDK API error fetching clients for a network: %s",
