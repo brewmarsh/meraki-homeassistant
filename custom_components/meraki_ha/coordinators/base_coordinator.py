@@ -21,7 +21,6 @@ from homeassistant.helpers.update_coordinator import (
 
 from ..const import DOMAIN, ERASE_TAGS_WARNING  # Changed to relative import
 from ..api.meraki_api import MerakiApiError
-from .api_data_fetcher import MerakiApiDataFetcher
 from .data_aggregation_coordinator import DataAggregationCoordinator
 
 # Added imports for device registration

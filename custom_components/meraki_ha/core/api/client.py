@@ -6,7 +6,7 @@ import logging
 from typing import Any, Dict, List, Optional
 import time
 
-import meraki
+import meraki  # type: ignore
 
 from ..utils.api_utils import handle_meraki_errors, validate_response
 

@@ -10,7 +10,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 # For type hinting data_processor
-from .helpers.ssid_status_calculator import (
+from ..helpers.ssid_status_calculator import (
     SsidStatusCalculator,
 )
 

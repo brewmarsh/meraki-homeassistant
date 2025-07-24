@@ -7,8 +7,8 @@ This module provides a client for the Meraki API.
 import logging
 from typing import Any, List, Dict, Optional
 
-from meraki.aio import AsyncDashboardAPI
-from meraki.exceptions import APIError as MerakiSDKAPIError
+from meraki.aio import AsyncDashboardAPI  # type: ignore
+from meraki.exceptions import APIError as MerakiSDKAPIError  # type: ignore
 
 from .api_endpoints import (
     Organizations,

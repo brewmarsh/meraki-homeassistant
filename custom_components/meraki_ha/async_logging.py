@@ -1,6 +1,8 @@
 import logging
 import threading
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class QueueHandler(logging.Handler):
     """A logging handler that puts records into a queue."""
@@ -33,5 +35,5 @@ class QueueListener(threading.Thread):
                 if record is None:
                     break
                 self.handler.handle(record)
-	            except Exception as e:
-	                _LOGGER.error(f"Error handling log record: {e}")
+            except Exception as e:
+                _LOGGER.error(f"Error handling log record: {e}")

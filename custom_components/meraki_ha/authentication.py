@@ -10,7 +10,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from meraki.exceptions import APIError as MerakiSDKAPIError
+from meraki.exceptions import APIError as MerakiSDKAPIError  # type: ignore
 
 # Import the refactored client
 from .api.meraki_api import MerakiAPIClient

@@ -4,7 +4,7 @@ import asyncio
 import functools
 from typing import Any, Callable, Dict, TypeVar, cast
 from aiohttp import ClientError
-from meraki.exceptions import APIError
+from meraki.exceptions import APIError  # type: ignore
 
 from ..errors import (
     MerakiAuthenticationError,
