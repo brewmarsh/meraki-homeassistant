@@ -560,13 +560,21 @@ class MerakiApiDataFetcher:
                     network_id = network.get("id")
                     if not network_id:
                         continue
-                    ssid_tasks.append(self.async_get_network_ssids(network_id))
+                    ssid_tasks.append(
+                        self._async_meraki_api_call(
+                            self.meraki_client.wireless.getNetworkWirelessSsids(
+                                network_id
+                            ),
+                            f"getNetworkWirelessSsids(networkId={network_id})",
+                            return_empty_list_on_404=True,
+                        )
+                    )
                 if ssid_tasks:
                     results = await asyncio.gather(*ssid_tasks, return_exceptions=True)
                     for result in results:
                         if isinstance(result, list):
                             ssids.extend(result)
-                        elif isinstance(result, Exception):
+                        elif result is not None:
                             _LOGGER.error(
                                 "Meraki SDK API error fetching SSIDs for a network: %s",
                                 result,
@@ -594,7 +602,7 @@ class MerakiApiDataFetcher:
                     for result in results:
                         if isinstance(result, list):
                             all_clients.extend(result)
-                        elif isinstance(result, Exception):
+                        elif result is not None:
                             _LOGGER.error(
                                 "Meraki SDK API error fetching clients for a network: %s",
                                 result,
