@@ -1441,11 +1441,12 @@ class MerakiApiDataFetcher:
                     call_description,
                 )
                 return []
-            _LOGGER.error(
-                "Meraki API error during '%s': %s",
-                call_description,
-                e,
-            )
+            else:
+                _LOGGER.error(
+                    "Meraki API error during '%s': %s",
+                    call_description,
+                    e,
+                )
             return None
         except Exception as e:
             _LOGGER.exception(
