@@ -66,7 +66,16 @@ class MerakiNetworkInfoSensor(
             if network.get("id") == self._network_id:
                 current_network_data = network
                 break
-        else:
+        current_network_data = next(
+            (
+                network
+                for network in networks
+                if network.get("id") == self._network_id
+            ),
+            None,
+        )
+
+        if current_network_data is None:
             self._attr_native_value = "Unknown"
             self._attr_extra_state_attributes = {}
             _LOGGER.debug(
