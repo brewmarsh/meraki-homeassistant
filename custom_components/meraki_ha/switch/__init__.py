@@ -6,7 +6,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..const import DOMAIN, DATA_CLIENT, DATA_COORDINATOR, DATA_COORDINATORS
+from ..const import (
+    DOMAIN,
+    DATA_CLIENT,
+    DATA_COORDINATOR,
+    DATA_COORDINATORS,
+    DATA_SSID_DEVICES_COORDINATOR,
+)
 from ..api.meraki_api import MerakiAPIClient
 from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
 from .meraki_ssid_device_switch import (

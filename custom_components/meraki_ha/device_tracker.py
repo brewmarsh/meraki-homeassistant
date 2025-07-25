@@ -45,8 +45,8 @@ async def async_setup_entry(
         async_add_entities: Callback function to add entities to Home Assistant.
     """
     coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id][
-        DATA_COORDINATORS
-    ]["main"]
+        DATA_COORDINATOR
+    ]
 
     # Ensure coordinator data is available
     if (
