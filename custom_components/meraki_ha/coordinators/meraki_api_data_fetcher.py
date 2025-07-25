@@ -582,31 +582,8 @@ class MerakiApiDataFetcher:
 
             # Step 7: Fetch all clients across all networks.
             all_clients: List[Dict[str, Any]] = []
-            client_tasks = []
             if networks:
-                for network in networks:
-                    network_id = network.get("id")
-                    if not network_id:
-                        continue
-                    client_tasks.append(
-                        self._async_meraki_api_call(
-                            self.meraki_client.networks.getNetworkClients(
-                                network_id, timespan=3600
-                            ),
-                            f"getNetworkClients(networkId={network_id})",
-                            return_empty_list_on_404=True,
-                        )
-                    )
-                if client_tasks:
-                    results = await asyncio.gather(*client_tasks, return_exceptions=True)
-                    for result in results:
-                        if isinstance(result, list):
-                            all_clients.extend(result)
-                        elif result is not None:
-                            _LOGGER.error(
-                                "Meraki SDK API error fetching clients for a network: %s",
-                                result,
-                            )
+                all_clients = await self._fetch_all_clients(networks)
             # Step 8: Prepare device type mapping and aggregate client counts
             device_serial_to_type_map = {}
             # devices is confirmed to be a list
@@ -1778,3 +1755,33 @@ from .meraki_api_helpers import (
     is_valid_device,
     log_skipped_device,
 )
+
+
+    async def _fetch_all_clients(self, networks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Fetch all clients for a list of networks."""
+        all_clients: List[Dict[str, Any]] = []
+        client_tasks = []
+        for network in networks:
+            network_id = network.get("id")
+            if not network_id:
+                continue
+            client_tasks.append(
+                self._async_meraki_api_call(
+                    self.meraki_client.networks.getNetworkClients(
+                        network_id, timespan=3600
+                    ),
+                    f"getNetworkClients(networkId={network_id})",
+                    return_empty_list_on_404=True,
+                )
+            )
+        if client_tasks:
+            results = await asyncio.gather(*client_tasks, return_exceptions=True)
+            for result in results:
+                if isinstance(result, list):
+                    all_clients.extend(result)
+                elif result is not None:
+                    _LOGGER.error(
+                        "Meraki SDK API error fetching clients for a network: %s",
+                        result,
+                    )
+        return all_clients
