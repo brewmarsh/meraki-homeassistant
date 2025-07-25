@@ -91,8 +91,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Store the coordinators and API client
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
+        DATA_COORDINATOR: coordinator,
         DATA_COORDINATORS: {
-            "main": coordinator,
             "ssid_devices": ssid_coordinator,
         },
         DATA_CLIENT: coordinator.meraki_client,
