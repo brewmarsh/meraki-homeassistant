@@ -11,12 +11,11 @@ The Meraki Home Assistant integration allows users to monitor and control their 
 The integration is divided into the following components:
 
 *   **`__init__.py`**: The main entry point for the integration. It sets up the coordinators and platforms.
-*   **`api`**: A wrapper around the Meraki Dashboard API that provides a simplified interface for making API calls.
-*   **`coordinators`**: The data update coordinators that fetch data from the Meraki API and manage the state of the integration.
-*   **`sensor`**: The sensor platform, which provides sensors for monitoring the status of Meraki devices and networks.
-*   **`switch`**: The switch platform, which provides switches for controlling Meraki devices and SSIDs.
-*   **`device_tracker`**: The device tracker platform, which provides device trackers for monitoring the presence of clients on the network.
-*   **`text`**: The text platform, which provides text entities for displaying information about Meraki devices and SSIDs.
+*   **`core`**: A directory containing the core components of the integration, including the API client, coordinators, and entities.
+*   **`api`**: A wrapper around the Meraki Dashboard API that provides a simplified interface for making API calls. This is implemented in the `core/api/client.py` file.
+*   **`coordinators`**: The data update coordinators that fetch data from the Meraki API and manage the state of the integration. These are implemented in the `core/coordinators` directory.
+*   **`entities`**: The base classes for the entities in the integration. These are implemented in the `core/entities` directory.
+*   **`platforms`**: The platform-specific implementations of the entities, such as sensors, switches, and device trackers.
 *   **`const.py`**: A file that contains all of the constants used in the integration.
 *   **`AGENTS.md`**: A file that contains guidelines for agents working on the codebase.
 
@@ -30,7 +29,7 @@ The data flow for the integration is as follows:
 
 ## Coordinators
 
-The integration uses two coordinators:
+The integration uses two coordinators, which are located in the `core/coordinators` directory:
 
 *   **`MerakiDataUpdateCoordinator`**: The main coordinator that fetches data for all of the devices and networks in the organization.
 *   **`SSIDDeviceCoordinator`**: A coordinator that fetches data for the SSIDs in the organization.

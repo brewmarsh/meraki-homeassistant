@@ -2,6 +2,14 @@
 
 This document provides guidelines for agents working on this codebase.
 
+## High-Level Recommendations
+
+Based on a recent analysis of the codebase, the following high-level recommendations should be followed:
+
+*   **Refactor to use `core` components:** The highest priority is to refactor the codebase to use the new `core` components and remove the old, redundant code. This will involve updating the platforms to use the new `core` entities and coordinators, and removing the old API client, coordinators, and entities.
+*   **Improve Error Handling and Logging:** Enhance error catching, provide more user-friendly error messages, and ensure consistent logging across the integration.
+*   **Optimize Data Retrieval:** Review API call patterns to optimize for performance and minimize API rate limit impact, especially for large organizations.
+
 ## 1. Code Style
 
 - All Python code must adhere to the PEP 8 style guide.
