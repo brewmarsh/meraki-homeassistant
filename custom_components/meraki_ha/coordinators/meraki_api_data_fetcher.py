@@ -1562,7 +1562,7 @@ from .meraki_api_helpers import (
                     ),
                     f"getNetworkClients(networkId={network_id})",
                     return_empty_list_on_404=True,
-                )
+                    )
             )
         if client_tasks:
             results = await asyncio.gather(*client_tasks, return_exceptions=True)
