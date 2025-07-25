@@ -9,6 +9,27 @@ from typing import Any, Dict, List, Optional
 _LOGGER = logging.getLogger(__name__)
 
 
+class MerakiDataProcessor:
+    """Processes Meraki data."""
+
+    def __init__(self, coordinator) -> None:
+        """Initialize the data processor."""
+        self.coordinator = coordinator
+
+    def process_network_client_counts(
+        self, clients_list: List[Dict[str, Any]]
+    ) -> Dict[str, int]:
+        """Process client counts for each network."""
+        network_client_counts = {}
+        for client in clients_list:
+            network_id = client.get("networkId")
+            if network_id:
+                network_client_counts[network_id] = (
+                    network_client_counts.get(network_id, 0) + 1
+                )
+        return network_client_counts
+
+
 def process_firmware_upgrades(
     devices: List[Dict[str, Any]],
     firmware_upgrade_data_raw: Optional[List[Dict[str, Any]]],
