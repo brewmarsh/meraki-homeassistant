@@ -140,8 +140,8 @@ class MerakiApiDataFetcher:
             device_model = device.get("model", "")
             generic_device_type = map_meraki_model_to_device_type(device_model)
 
-            if generic_device_type == "Wireless":
-                tasks.append(self._async_get_mr_device_details(device))
+            if map_meraki_model_to_device_type(device.get("model", "")) == "Wireless" or "MR" in device.get("model", "") or "GR" in device.get("model", "") or "CW" in device.get("model", ""):
+                tasks.append(self._async_get_mr_device_details(device, device.get("serial")))
             elif device_model.upper().startswith("MX"):
                 tasks.append(self._async_get_mx_device_uplink_settings(device))
                 tasks.append(self._async_get_mx_lan_dns_settings(device))
@@ -203,9 +203,8 @@ class MerakiApiDataFetcher:
 
         return clients_on_ssids, clients_on_appliances, clients_on_wireless
 
-    async def _async_get_mr_device_details(self, device: Dict[str, Any]) -> None:
+    async def _async_get_mr_device_details(self, device: Dict[str, Any], serial: str) -> None:
         """Fetch details for MR (wireless) devices."""
-        serial = device.get("serial")
         if not serial:
             return
 
