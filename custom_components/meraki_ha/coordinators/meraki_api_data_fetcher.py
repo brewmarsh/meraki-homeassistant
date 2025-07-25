@@ -1425,49 +1425,32 @@ class MerakiApiDataFetcher:
             }
 
     async def _async_meraki_api_call(
-        self, api_coro: Awaitable[Any], call_description: str, return_empty_list_on_404: bool = False
+        self,
+        api_coro: Awaitable[Any],
+        call_description: str,
+        return_empty_list_on_404: bool = False,
     ) -> Optional[Any]:
-        """Wrapper for Meraki API calls with error handling.
-
-        Args:
-            api_coro: The API coroutine to execute.
-            call_description: A string describing the API call for logging purposes.
-            return_empty_list_on_404: If True, return [] on 404 errors.
-
-        Returns:
-            The API response, an empty list on 404 if specified, or None on other errors.
-        """
+        """Wrapper for Meraki API calls with error handling."""
         try:
             async with self._api_call_semaphore:
                 return await api_coro
         except MerakiSDKAPIError as e:
-            if hasattr(e, "status") and e.status == 404:
-                if return_empty_list_on_404:
-                    _LOGGER.info(
-                        "Meraki API call '%s' returned 404, handled as empty list.",
-                        call_description,
-                    )
-                    return []
-                else:
-                    _LOGGER.warning(
-                        "Meraki API call '%s' returned 404, but not handled as empty list. Returning None.",
-                        call_description,
-                    )
-                    return None
+            if e.status == 404 and return_empty_list_on_404:
+                _LOGGER.debug(
+                    "Handled 404 for '%s' by returning an empty list.",
+                    call_description,
+                )
+                return []
             _LOGGER.error(
-                "Meraki SDK API error during '%s' for org %s: %s. Status: %s, Reason: %s.",
+                "Meraki API error during '%s': %s",
                 call_description,
-                self.org_id,
                 e,
-                e.status,
-                e.reason,
             )
             return None
         except Exception as e:
             _LOGGER.exception(
-                "Unexpected error during '%s' for org %s: %s",
+                "Unexpected error during '%s': %s",
                 call_description,
-                self.org_id,
                 e,
             )
             return None
@@ -1783,49 +1766,7 @@ class MerakiApiDataFetcher:
             return None
 
 
-def _is_network_feature_not_found(error: MerakiSDKAPIError) -> bool:
-    """Determine if the error is due to a network feature not being found.
-
-    Args:
-        error: The MerakiSDKAPIError instance to check.
-
-    Returns:
-        True if the error indicates a network feature not found, False otherwise.
-    """
-    # Check if the error message or reason indicates a feature not found scenario
-    return (
-        error.status == 404
-        and "not found" in (error.reason or "").lower()
-        and "feature" in (error.message or "").lower()
-    )
-
-
-def _is_valid_device(device: Dict[str, Any]) -> bool:
-    """Check if the device dictionary has all required attributes.
-
-    Args:
-        device: The device dictionary to check.
-
-    Returns:
-        True if the device is valid, False otherwise.
-    """
-    required_attributes = ["serial", "model", "mac", "name"]
-    return all(
-        attr in device and device[attr] is not None for attr in required_attributes
-    )
-
-
-def _log_skipped_device(device: Dict[str, Any], reason: str) -> None:
-    """Log a skipped device due to missing attributes or other issues.
-
-    Args:
-        device: The device dictionary that was skipped.
-        reason: The reason why the device was skipped.
-    """
-    _LOGGER.info(
-        "Skipping device %s (Serial: %s, MAC: %s) - %s",
-        device.get("name", "Unknown"),
-        device.get("serial", "Unknown"),
-        device.get("mac", "Unknown"),
-        reason,
-    )
+from .meraki_api_helpers import (
+    is_valid_device,
+    log_skipped_device,
+)
