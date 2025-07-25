@@ -33,25 +33,10 @@ async def async_setup_entry(
         meraki_client: MerakiAPIClient = entry_data[DATA_CLIENT]
 
         # Get the main data coordinator for physical device switches (like camera settings)
-        main_coordinator = entry_data[DATA_COORDINATORS].get("main")
-        if not main_coordinator:
-            _LOGGER.error(
-                "Switch platform: Main coordinator not found for entry %s",
-                config_entry.entry_id,
-            )
-            return False
-
-        # Get the SSID device coordinator for SSID switches
-        ssid_coordinator: SSIDDeviceCoordinator = entry_data[DATA_COORDINATORS].get(
-            "ssid_devices"
+        main_coordinator = entry_data[DATA_COORDINATOR]
+        ssid_coordinator: SSIDDeviceCoordinator = entry_data.get(
+            DATA_SSID_DEVICES_COORDINATOR
         )
-        if not ssid_coordinator:
-            _LOGGER.error(
-                "Switch platform: SSID Device coordinator not found for entry %s",
-                config_entry.entry_id,
-            )
-            # Depending on design, this might not be fatal if no SSIDs or if other switches exist
-            # For now, let's allow proceeding if main_coordinator is there for camera switches.
     except KeyError as e:
         _LOGGER.error(
             "Switch platform: Essential data not found in hass.data for entry %s. Error: %s",

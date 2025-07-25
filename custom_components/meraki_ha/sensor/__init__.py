@@ -65,63 +65,36 @@ async def async_setup_entry(
     # --- Organization-level Sensor Setup ---
     if main_coordinator and main_coordinator.data:
         organization_id = main_coordinator.org_id
-        raw_organization_name_for_fallback = (
-            main_coordinator.org_name if main_coordinator.org_name else organization_id
-        )
+        org_name = main_coordinator.data.get("org_name", organization_id)
 
-        # Use the formatted display name stored in the coordinator from Step 1
-        # Fall back to raw name if formatted_org_display_name is somehow None or empty
-        # (it should be populated by async_register_organization_device before this sensor setup)
-        org_name_for_sensors = (
-            main_coordinator.formatted_org_display_name
-            if main_coordinator.formatted_org_display_name
-            else raw_organization_name_for_fallback
-        )
-
-        # Add the existing MerakiOrgDeviceTypeClientsSensor
-        try:
-            entities.append(
-                MerakiOrgDeviceTypeClientsSensor(
-                    coordinator=main_coordinator,
-                    organization_id=organization_id,
-                    organization_name=org_name_for_sensors,
-                )
+        entities.append(
+            MerakiOrgDeviceTypeClientsSensor(
+                coordinator=main_coordinator,
+                organization_id=organization_id,
+                organization_name=org_name,
             )
-        except Exception as e:
-            _LOGGER.error(
-                "Meraki HA: Error adding MerakiOrgDeviceTypeClientsSensor for organization %s: %s",
-                org_name_for_sensors,
-                e,
-            )
-
-        # Add the new specific organization client count sensors
-        new_org_sensors = [
+        )
+        entities.append(
             MerakiOrganizationSSIDClientsSensor(
                 coordinator=main_coordinator,
                 org_id=organization_id,
-                org_name=org_name_for_sensors,  # Use the new variable
-            ),
+                org_name=org_name,
+            )
+        )
+        entities.append(
             MerakiOrganizationWirelessClientsSensor(
                 coordinator=main_coordinator,
                 org_id=organization_id,
-                org_name=org_name_for_sensors,  # Use the new variable
-            ),
+                org_name=org_name,
+            )
+        )
+        entities.append(
             MerakiOrganizationApplianceClientsSensor(
                 coordinator=main_coordinator,
                 org_id=organization_id,
-                org_name=org_name_for_sensors,  # Use the new variable
-            ),
-        ]
-        for sensor in new_org_sensors:
-            try:
-                entities.append(sensor)  # type: ignore
-            except Exception as e:
-                _LOGGER.error(
-                    "Meraki HA: Error adding organization sensor %s for %s: %s",
-                    sensor.name if hasattr(sensor, "name") else type(sensor).__name__,
-                    org_name_for_sensors,
-                    e,
-                )
+                org_name=org_name,
+            )
+        )
     else:
         _LOGGER.warning(
             "Main coordinator not available or has no data; skipping organization-level sensors."
