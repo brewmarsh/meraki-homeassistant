@@ -79,7 +79,7 @@ class SsidStatusCalculator:
 
             is_enabled = ssid_info.get("enabled", False)
             ssid_configured_tags: List[str] = ssid_info.get("tags", [])
-            network_id = ssid_info.get("networkId") # Keep for warning log
+            network_id = ssid_info.get("networkId")
 
             matching_devices_online_count = 0
             matching_devices_total_count = 0
@@ -112,7 +112,7 @@ class SsidStatusCalculator:
 
             if not is_enabled:
                 ssid_info["status"] = "disabled"
-            elif not network_id: # Check added from previous logic, though network_id is not directly used for status calc here
+            elif not network_id:
                 _LOGGER.warning(f"SSID '{ssid_info.get('name', 'Unknown SSID')}' is missing networkId, cannot determine status accurately. Setting to 'unknown'.")
                 ssid_info["status"] = "unknown"
             elif matching_devices_total_count == 0:

@@ -1,1 +1,4 @@
-node_modules/.cache/prettier/.prettier-caches/2757de8e75ddd777ce1277145ed7d0a5789942b0.json
+# Python
+*.py[cod]
+*$py.class
+__pycache__/

@@ -1,63 +1,31 @@
-"""Base data update coordinator for the Meraki Home Assistant integration.
+"""Base data update coordinator for the Meraki Home Assistant integration."""
 
-This module defines `MerakiDataUpdateCoordinator`, the primary coordinator
-responsible for orchestrating data fetching and updates from the Meraki API.
-It uses `MerakiApiDataFetcher` to retrieve all data (networks, devices with
-tags, SSIDs, etc.) and `DataAggregationCoordinator` to process this data into
-a unified structure for the integration. It also manages optional tag erasing
-via `TagEraserCoordinator`.
-"""
-
+import asyncio
 import logging
 from datetime import timedelta
 from typing import Any, Dict, List, Optional
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
 
-from ..const import DOMAIN, ERASE_TAGS_WARNING # Changed to relative import
-from .api_data_fetcher import (
-    MerakiApiDataFetcher,
-)
+from ..api.meraki_api import MerakiAPIClient, MerakiApiError
+from ..const import DOMAIN, ERASE_TAGS_WARNING
+from .helpers.utils import format_device_name
+from .meraki_api_data_fetcher import MerakiApiDataFetcher
+from .meraki_data_aggregator import MerakiDataAggregator
+from .meraki_data_processor import MerakiDataProcessor
+from .tag_eraser_coordinator import TagEraserCoordinator
 
-# MerakiApiError for exception handling
-from ..api.meraki_api import MerakiApiError
-from .data_aggregation_coordinator import (
-    DataAggregationCoordinator,
-)
-
-# Added imports for device registration
-from homeassistant.helpers import device_registry as dr
-from .meraki_device_types import map_meraki_model_to_device_type
-from ..helpers.naming_utils import format_device_name
-
-
-# Obsolete coordinators (DeviceTagFetchCoordinator,
-# MerakiNetworkCoordinator, MerakiSsidCoordinator) removed.
-from .tag_eraser_coordinator import (
-    TagEraserCoordinator,
-)
-
-import asyncio # Make sure asyncio is imported
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
-    """Manages fetching and processing of Meraki data for Home Assistant.
-
-    This coordinator orchestrates the overall data flow:
-    1. Uses `MerakiApiDataFetcher` to fetch all required data from the Meraki API
-       (networks, devices including tags, SSIDs, client counts for MRs, etc.).
-    2. Passes the fetched data to `DataAggregationCoordinator` which processes
-       and structures it.
-    3. If configured, uses `TagEraserCoordinator` to remove specified tags
-       from devices.
-    The resulting aggregated data is stored in `self.data` for HASS entities.
-    """
+    """Manages fetching and processing of Meraki data for Home Assistant."""
 
     def __init__(
         self,
@@ -65,84 +33,38 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         api_key: str,
         org_id: str,
         scan_interval: timedelta,
-        config_entry: ConfigEntry, # relaxed_tag_match parameter removed
+        config_entry: ConfigEntry,
     ) -> None:
-        """Initialize the Meraki data update coordinator.
-
-        Args:
-            hass: The Home Assistant instance.
-            api_key: The Meraki API key, used for initializing MerakiAPIClient and potentially TagEraserCoordinator.
-            org_id: The Meraki Organization ID.
-            scan_interval: The interval at which to periodically update data.
-            config_entry: The config entry associated with this coordinator instance,
-                          used for accessing options (e.g., erase_tags, device_name_format)
-                          and for device registration.
-        """
-        self.api_key: str = api_key  # Stored for potential direct use (e.g., TagEraser)
+        """Initialize the Meraki data update coordinator."""
+        self.hass = hass
+        self.api_key: str = api_key
         self.org_id: str = org_id
-        self.config_entry: ConfigEntry = config_entry  # Access to options, entry_id
-        # self.relaxed_tag_match attribute removed
+        self.config_entry: ConfigEntry = config_entry
         self.erase_tags: bool = config_entry.options.get("erase_tags", False)
 
-        # Initialize the MerakiAPIClient for SDK interactions.
-        # This client is passed to the api_fetcher and its lifecycle managed
-        # here.
-        # Local import to avoid potential circulars
-        from ..api.meraki_api import MerakiAPIClient
-        self.meraki_client: MerakiAPIClient = MerakiAPIClient(
-            api_key=api_key,
-            org_id=org_id,
-            # Base URL is handled by the SDK itself.
-        )
+        self.meraki_client = MerakiAPIClient(api_key=api_key, org_id=org_id)
+        self.api_fetcher = MerakiApiDataFetcher(meraki_client=self.meraki_client)
+        self.data_aggregator = MerakiDataAggregator(self)
+        self.data_processor = MerakiDataProcessor(self)
 
-        # Initialize the main API data fetcher.
-        self.api_fetcher: MerakiApiDataFetcher = MerakiApiDataFetcher(
-            meraki_client=self.meraki_client
-        )
-
-        # Initialize the DataAggregationCoordinator.
-        # This sub-coordinator processes data fetched by api_fetcher.
-        self.data_aggregation_coordinator: DataAggregationCoordinator = (
-            DataAggregationCoordinator(
-                hass,
-                scan_interval,
-                # scan_interval passed for consistency, though DAC updates on
-                # demand.
-                # relaxed_tag_match argument removed
-                self,  # Pass self as parent coordinator for context.
-            )
-        )
-
-        # Initialize TagEraserCoordinator if tag erasing is enabled.
         self.tag_eraser_coordinator: Optional[TagEraserCoordinator] = None
         if self.erase_tags:
             self.tag_eraser_coordinator = TagEraserCoordinator(
-                hass,
-                api_key,
-                # TagEraser might need direct API key for write operations.
-                org_id,
+                hass, api_key, org_id
             )
             _LOGGER.warning(ERASE_TAGS_WARNING)
 
-        # `self.device_data` will store the list of devices after fetching.
-        # This is primarily for internal use before aggregation or for tag
-        # erasing.
         self.device_data: List[Dict[str, Any]] = []
-        # Obsolete comments for self.ssid_data and self.network_data removed.
+        self.org_name: Optional[str] = None
+        self.formatted_org_display_name: Optional[str] = None
+        self._is_available = True
 
-        # Call superclass constructor to set up periodic updates.
         super().__init__(
             hass,
             _LOGGER,
-            name=f"{DOMAIN} (Org: {org_id})",  # More descriptive name.
+            name=f"{DOMAIN} (Org: {org_id})",
             update_interval=scan_interval,
         )
-        # Ensure `self.data` is initialized to an empty dict, as expected by
-        # DataUpdateCoordinator.
-        self.data: Dict[str, Any] = {}
-        self.org_name: Optional[str] = None  # Initialize org_name
-        self.formatted_org_display_name: Optional[str] = None
-        self._is_available = True
 
     @property
     def device_name_format(self) -> str:
@@ -150,229 +72,137 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         return self.config_entry.options.get("device_name_format", "omitted")
 
     async def _async_update_data(self) -> Dict[str, Any]:
-
-        """Fetch, process, and aggregate data from the Meraki API.
-
-        This is the core method called periodically by the DataUpdateCoordinator.
-        It orchestrates the entire data refresh cycle:
-        1. Fetches all raw data (networks, devices with tags, SSIDs, etc.) using `api_fetcher`.
-        2. Passes this raw data to `data_aggregation_coordinator` for processing and structuring.
-        3. If tag erasing is enabled, iterates through devices and calls `tag_eraser_coordinator`.
-        The final, aggregated data is returned and stored in `self.data`.
-
-        Returns:
-            A dictionary containing the fully processed and aggregated data for the integration.
-
-        Raises:
-            UpdateFailed: If a critical error occurs during data fetching or processing
-                          that prevents a meaningful update for the integration.
-        """
+        """Fetch, process, and aggregate data from the Meraki API."""
         try:
-            # Step 1: Fetch all primary data using the api_fetcher.
-            # `fetch_all_data` now returns devices with tags, client counts, and radio settings included.
-            all_data: Dict[str, Any] = await self.api_fetcher.fetch_all_data(
-                self.hass,
-                # Other arguments like org_id, scan_interval,
-                # device_name_format are no longer needed here.
-            )
-        except MerakiApiError as e:  # Specific API errors from the fetcher.
+            await self.meraki_client.initialize()
+            all_data = await self.api_fetcher.fetch_all_data(self.hass)
+        except (MerakiApiError, asyncio.TimeoutError) as e:
             if self._is_available:
-                _LOGGER.error(
-                    "API error during Meraki data fetch for org %s: %s", self.org_id, e
-                )
+                _LOGGER.error(f"Error fetching Meraki data for org {self.org_id}: {e}")
                 self._is_available = False
-            raise UpdateFailed(
-                f"Failed to fetch data from Meraki API for org {self.org_id}: {e}"
-            ) from e
-        except (
-            Exception
-        ) as e:  # Catch any other unexpected errors during the main fetch.
+            raise UpdateFailed(f"Failed to fetch data: {e}") from e
+        except Exception as e:
             if self._is_available:
-                _LOGGER.exception(
-                    "Unexpected error during Meraki data fetch for org %s: %s",
-                    self.org_id,
-                    e,
-                )
+                _LOGGER.exception(f"Unexpected error fetching data for org {self.org_id}: {e}")
                 self._is_available = False
-            raise UpdateFailed(
-                f"Unexpected error fetching data for org {self.org_id}: {e}"
-            ) from e
+            raise UpdateFailed(f"Unexpected error: {e}") from e
 
-        # Extract data components from `all_data`. Default to empty lists if
-        # keys are missing.
-        devices: List[Dict[str, Any]] = all_data.get("devices", [])
-        ssids: List[Dict[str, Any]] = all_data.get("ssids", [])
-        networks: List[Dict[str, Any]] = all_data.get("networks", [])
-        clients_list: List[Dict[str, Any]] = all_data.get(
-            "clients", []
-        )  # New: Extract clients
-        self.org_name = all_data.get("org_name")  # Store org_name from fetched data
-
-        # Step 2: Device tags are now part of the `devices` list from `all_data`.
-        # No separate tag fetching step is needed here.
-
-        # Step 3: Obsolete step for updating separate network/SSID coordinators removed.
-        # Data is passed directly to the DataAggregationCoordinator.
-
-        # Store the fetched devices list internally. This list includes tags
-        # and MR-specific details.
-        self.device_data = devices
-
-        # ---- START NETWORK DEVICE REGISTRATION LOGIC ----
-        device_registry = dr.async_get(self.hass)
-        processed_network_devices = 0
-        for network_info in networks:
-            network_id = network_info.get("id")
-            network_name = network_info.get("name")
-
-            if not network_id:
-                _LOGGER.warning(
-                    "Found a network with missing ID, cannot register as HA device: %s",
-                    network_info,
-                )
-                continue
-            if not network_name:
-                original_network_name = f"Meraki Network {network_id}"
-                _LOGGER.warning(
-                    "Found network with missing name (ID: %s), using fallback name: %s",
-                    network_id,
-                    original_network_name,
-                )
-            else:
-                original_network_name = network_name
-
-            current_device_name_format = self.device_name_format
-            formatted_network_name = format_device_name(
-                device_name_raw=original_network_name,
-                device_model="Network",
-                device_name_format_option=current_device_name_format,
-                is_org_device=False
-            )
-            device_registry.async_get_or_create(
-                config_entry_id=self.config_entry.entry_id,
-                identifiers={(DOMAIN, network_id)},
-                name=formatted_network_name,
-                model=f"Network (ID: {network_id})",
-                manufacturer="Cisco Meraki",
-            )
-            processed_network_devices += 1
-
-        for device_info in devices:
-            serial = device_info.get("serial")
-            if not serial:
-                _LOGGER.warning(
-                    "Device found without serial, cannot register: %s", device_info
-                )
-                continue
-
-            device_name_raw = device_info.get("name") or serial
-            device_model_str = device_info.get("model", "Unknown")
-            firmware_version = device_info.get("firmware")
-
-            formatted_device_name = format_device_name(
-                device_name_raw=device_name_raw,
-                device_model=device_model_str,
-                device_name_format_option=self.device_name_format,
-                is_org_device=False
-            )
-
-            mac_address = device_info.get("mac")
-            connections = None
-            if mac_address:
-                connections = {(dr.CONNECTION_NETWORK_MAC, mac_address)}
-
-            device_registry.async_get_or_create(
-                config_entry_id=self.config_entry.entry_id,
-                identifiers={(DOMAIN, serial)},
-                manufacturer="Cisco Meraki",
-                model=device_model_str,
-                name=formatted_device_name,
-                sw_version=firmware_version,
-                connections=connections,
-            )
-        from .data_processor import (
-            MerakiDataProcessor,
-        )  # Ensure import
-
-        processor = MerakiDataProcessor(self)  # Instantiate processor
-        network_client_counts = processor.process_network_client_counts(clients_list)
-
-        # Extract the new organization-wide client counts from all_data
-        clients_on_ssids = all_data.get("clients_on_ssids", 0)
-        clients_on_appliances = all_data.get("clients_on_appliances", 0)
-        clients_on_wireless = all_data.get("clients_on_wireless", 0)
+        if not all_data:
+            raise UpdateFailed("No data received from Meraki API")
 
         if not self._is_available:
-            _LOGGER.info("Connection to Meraki API restored for org %s", self.org_id)
+            _LOGGER.info(f"Connection to Meraki API restored for org {self.org_id}")
             self._is_available = True
 
-        # Step 4: Aggregate all data using the DataAggregationCoordinator.
-        # This coordinator takes the raw lists of devices, SSIDs, and networks.
-        try:
-            combined_data: Dict[str, Any] = (
-                await self.data_aggregation_coordinator._async_update_data(
-                    devices,
-                    ssids,
-                    networks,
-                    clients_list,
-                    network_client_counts,
-                    clients_on_ssids=clients_on_ssids,
-                    clients_on_appliances=clients_on_appliances,
-                    clients_on_wireless=clients_on_wireless,
-                )
-            )
-        except Exception as e:  # Catch errors specifically from the aggregation step.
-            _LOGGER.exception(
-                "Error during data aggregation for org %s: %s", self.org_id, e
-            )
-            raise UpdateFailed(
-                f"Failed to aggregate Meraki data for org {self.org_id}: {e}"
-            ) from e
+        self.org_name = all_data.get("org_name")
+        self.device_data = all_data.get("devices", [])
+        await self._register_devices(all_data.get("networks", []), self.device_data)
+
+        network_client_counts = self.data_processor.process_network_client_counts(
+            all_data.get("clients", [])
+        )
+        combined_data = self.data_aggregator.aggregate_data(
+            devices=self.device_data,
+            ssids=all_data.get("ssids", []),
+            networks=all_data.get("networks", []),
+            clients_list=all_data.get("clients", []),
+            network_client_counts=network_client_counts,
+            clients_on_ssids=all_data.get("clients_on_ssids", 0),
+            clients_on_appliances=all_data.get("clients_on_appliances", 0),
+            clients_on_wireless=all_data.get("clients_on_wireless", 0),
+        )
 
         self.data = combined_data
-
         if self.erase_tags and self.tag_eraser_coordinator:
-            _LOGGER.warning(
-                "Tag erasing is enabled for organization %s. Processing devices for tag removal.",
-                self.org_id,
-            )
-            for device_to_check in devices:
-                serial = device_to_check.get("serial")
-                if serial:
-                    try:
-                        await self.tag_eraser_coordinator.async_erase_device_tags(serial)
-                    except MerakiApiError as e:
-                        _LOGGER.error(
-                            "Failed to erase tags for device %s (org %s): %s",
-                            serial,
-                            self.org_id,
-                            e,
-                        )
+            await self._erase_device_tags()
+
         await self._device_registry_cleanup()
         return self.data
+
+    async def _register_devices(
+        self, networks: List[Dict[str, Any]], devices: List[Dict[str, Any]]
+    ) -> None:
+        """Register networks and devices with Home Assistant."""
+        device_registry = dr.async_get(self.hass)
+        for network_info in networks:
+            self._register_network_device(device_registry, network_info)
+        for device_info in devices:
+            self._register_physical_device(device_registry, device_info)
+
+    def _register_network_device(
+        self, device_registry: dr.DeviceRegistry, network_info: Dict[str, Any]
+    ) -> None:
+        """Register a network as a device."""
+        network_id = network_info.get("id")
+        if not network_id:
+            _LOGGER.warning("Network with missing ID: %s", network_info)
+            return
+
+        network_name = format_device_name(
+            network_info.get("name", f"Meraki Network {network_id}"),
+            "Network",
+            self.device_name_format,
+            is_org_device=False,
+        )
+        device_registry.async_get_or_create(
+            config_entry_id=self.config_entry.entry_id,
+            identifiers={(DOMAIN, network_id)},
+            name=network_name,
+            model=f"Network (ID: {network_id})",
+            manufacturer="Cisco Meraki",
+        )
+
+    def _register_physical_device(
+        self, device_registry: dr.DeviceRegistry, device_info: Dict[str, Any]
+    ) -> None:
+        """Register a physical device."""
+        serial = device_info.get("serial")
+        if not serial:
+            _LOGGER.warning("Device without serial: %s", device_info)
+            return
+
+        device_name = format_device_name(
+            device_info.get("name", serial),
+            device_info.get("model", "Unknown"),
+            self.device_name_format,
+            is_org_device=False,
+        )
+        mac_address = device_info.get("mac")
+        connections = {(dr.CONNECTION_NETWORK_MAC, mac_address)} if mac_address else None
+
+        device_registry.async_get_or_create(
+            config_entry_id=self.config_entry.entry_id,
+            identifiers={(DOMAIN, serial)},
+            manufacturer="Cisco Meraki",
+            model=device_info.get("model", "Unknown"),
+            name=device_name,
+            sw_version=device_info.get("firmware"),
+            connections=connections,
+        )
+
+    async def _erase_device_tags(self) -> None:
+        """Erase tags from devices if configured."""
+        _LOGGER.warning("Erasing tags for org %s", self.org_id)
+        for device in self.device_data:
+            serial = device.get("serial")
+            if serial and self.tag_eraser_coordinator:
+                try:
+                    await self.tag_eraser_coordinator.async_erase_device_tags(serial)
+                except (MerakiApiError, asyncio.TimeoutError) as e:
+                    _LOGGER.error(f"Failed to erase tags for device {serial}: {e}")
+                except Exception as e:
+                    _LOGGER.exception(f"Unexpected error erasing tags for {serial}: {e}")
 
     async def async_register_organization_device(self, hass: HomeAssistant) -> None:
         """Register the Meraki Organization as a device in Home Assistant."""
         if not self.org_id:
-            _LOGGER.error("Organization ID not available, cannot register organization device.")
+            _LOGGER.error("Org ID not available for device registration.")
             return
 
-        raw_org_name = self.org_name if self.org_name else f"Meraki Organization {self.org_id}"
-        device_name_format_option = self.device_name_format
-
-        # _LOGGER.debug(
-        #     "OrgDevReg: Raw org name: '%s', Name format option: '%s'",
-        #     raw_org_name,
-        #     device_name_format_option
-        # ) # Reduced verbosity
-
+        raw_org_name = self.org_name or f"Meraki Organization {self.org_id}"
         formatted_org_name = format_device_name(
-            device_name_raw=raw_org_name,
-            device_model="Organization",
-            device_name_format_option=device_name_format_option,
-            is_org_device=True
+            raw_org_name, "Organization", self.device_name_format, is_org_device=True
         )
-        # _LOGGER.debug("OrgDevReg: Formatted org name: '%s'", formatted_org_name) # Reduced verbosity
         self.formatted_org_display_name = formatted_org_name
 
         device_registry = dr.async_get(hass)
@@ -414,11 +244,18 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         if hasattr(self, "meraki_client") and self.meraki_client:
             try:
                 await self.meraki_client.close()
+            except (asyncio.TimeoutError, ConnectionError) as e:
+                _LOGGER.warning(
+                    "Network error while closing Meraki API client session for org %s: %s",
+                    self.org_id,
+                    str(e),
+                )
             except Exception as e:
                 _LOGGER.error(
-                    "Error closing Meraki API client session for org %s: %s",
+                    "Unexpected error closing Meraki API client session for org %s: %s. Error type: %s",
                     self.org_id,
-                    e,
+                    str(e),
+                    type(e).__name__,
                 )
 
         # Call superclass shutdown for any base class cleanup.

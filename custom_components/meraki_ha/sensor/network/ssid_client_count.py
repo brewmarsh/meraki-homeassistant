@@ -45,12 +45,12 @@ class MerakiSSIDClientCountSensor(
         """Initialize the Meraki SSID Client Count sensor.
 
         Args:
-            coordinator: The `SSIDDeviceCoordinator` instance that provides updates
-                         for this SSID's data, including the client count.
-            ssid_data: A dictionary containing initial information about the SSID,
-                       including 'unique_id' (for identifying the SSID in coordinator data),
-                       'name' (for display purposes), and potentially 'client_count'
-                       as calculated by the coordinator.
+          coordinator: The `SSIDDeviceCoordinator` instance that provides updates
+                 for this SSID's data, including the client count.
+          ssid_data: A dictionary containing initial information about the SSID,
+                including 'unique_id' (for identifying the SSID in coordinator data),
+                'name' (for display purposes), and potentially 'client_count'
+                as calculated by the coordinator.
         """
         super().__init__(coordinator)
         self._ssid_data = ssid_data
@@ -69,12 +69,12 @@ class MerakiSSIDClientCountSensor(
         # Set initial state
         self._update_sensor_state()
         # _LOGGER.debug(
-        #     "MerakiSSIDClientCountSensor Initialized: Name: %s, Unique ID: %s, SSID Data: %s",
-        #     self._attr_name,
-        #     self._attr_unique_id,
-        #     {
-        #         key: ssid_data.get(key) for key in ["name", "unique_id", "client_count"]
-        #     },
+        #   "MerakiSSIDClientCountSensor Initialized: Name: %s, Unique ID: %s, SSID Data: %s",
+        #   self._attr_name,
+        #   self._attr_unique_id,
+        #   {
+        #     key: ssid_data.get(key) for key in ["name", "unique_id", "client_count"]
+        #   },
         # ) # Removed
 
     def _update_sensor_state(self) -> None:
@@ -96,13 +96,13 @@ class MerakiSSIDClientCountSensor(
                 self._attr_native_value = client_count
             else:
                 # _LOGGER.debug( # State will be 0, this log is not critical
-                #     "SSID '%s' (ID: %s) has no 'client_count' information or it's not an int. Setting to 0.",
-                #     self._ssid_data.get("name"),
-                #     self._ssid_data.get("unique_id"),
+                #   "SSID '%s' (ID: %s) has no 'client_count' information or it's not an int. Setting to 0.",
+                #   self._ssid_data.get("name"),
+                #   self._ssid_data.get("unique_id"),
                 # ) # Removed
                 self._attr_native_value = 0
         else:
-            _LOGGER.warning( # Keep warning for missing data
+            _LOGGER.warning(  # Keep warning for missing data
                 "SSID data for ID '%s' not found in coordinator. Client count set to 0.",
                 self._ssid_data.get("unique_id"),
             )

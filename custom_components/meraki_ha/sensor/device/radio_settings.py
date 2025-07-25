@@ -17,10 +17,10 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 from ...coordinators import MerakiDataUpdateCoordinator
-from ...const import DOMAIN  # For device_info identifiers
+from ...const import DOMAIN
 
 # Assuming this function is correctly defined in the meraki_api package
-# from ..meraki_api.wireless import get_meraki_device_wireless_radio_settings
+# from .meraki_api.wireless import get_meraki_device_wireless_radio_settings
 _LOGGER = logging.getLogger(__name__)
 
 # Constants for sensor state if data is unavailable or an error occurs
@@ -46,10 +46,10 @@ class MerakiRadioSettingsSensor(
     This revision assumes it will become a true CoordinatorEntity.
 
     Attributes:
-        _attr_name: The name of the sensor.
-        _attr_unique_id: The unique ID of the sensor.
-        _attr_icon: The icon for the sensor.
-        _device_info_data: Raw dictionary data for the associated Meraki device.
+      _attr_name: The name of the sensor.
+      _attr_unique_id: The unique ID of the sensor.
+      _attr_icon: The icon for the sensor.
+      _device_info_data: Raw dictionary data for the associated Meraki device.
     """
 
     _attr_icon = "mdi:wifi-settings"  # Icon representing WiFi settings
@@ -64,9 +64,9 @@ class MerakiRadioSettingsSensor(
         """Initialize the Meraki Radio Settings sensor.
 
         Args:
-            coordinator: The data update coordinator.
-            device_data: A dictionary containing information about the Meraki device
-                         (e.g., name, serial, model).
+          coordinator: The data update coordinator.
+          device_data: A dictionary containing information about the Meraki device
+                 (e.g., name, serial, model).
         """
         super().__init__(coordinator)
         self._device_info_data: Dict[str, Any] = device_data

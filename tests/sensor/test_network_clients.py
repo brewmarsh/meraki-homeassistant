@@ -1,4 +1,5 @@
 """Tests for the Meraki network clients sensor."""
+
 from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant
@@ -19,8 +20,6 @@ async def test_network_clients_sensor(
             {"id": "2", "description": "Client 2", "networkId": "N_123"},
         ],
     }
-    sensor = MerakiNetworkClientsSensor(
-        coordinator, "N_123", "Test Network"
-    )
+    sensor = MerakiNetworkClientsSensor(coordinator, "N_123", "Test Network")
     sensor._update_state_from_coordinator()
     assert sensor.native_value == 2

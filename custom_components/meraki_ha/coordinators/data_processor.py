@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     # Avoid circular import at runtime, only for type checking
     # Ensure this path is correct; if coordinator.py was deleted, it might be
     # base_coordinator
-    from custom_components.meraki_ha.coordinators.base_coordinator import (
+    from .base_coordinator import (
         MerakiDataUpdateCoordinator,
     )
 
@@ -72,13 +72,13 @@ class MerakiDataProcessor:
         processed_devices_list: List[Dict[str, Any]] = []
 
         for device_raw_data in devices:
-            original_mx_product_type = None # Not used currently, but kept for potential future logic
-            is_mx_device = False # Not used currently
+            # These variables are kept for future MX device-specific logic
+            original_mx_product_type = None  # noqa: F841
+            is_mx_device = False  # noqa: F841
             if isinstance(device_raw_data, dict):
                 model = device_raw_data.get("model", "").upper()
-                if model.startswith("MX"):
-                    is_mx_device = True # Mark if it's an MX device
-                    original_mx_product_type = device_raw_data.get("productType") # Store original for MX
+                # Note: Previously collected MX-specific data that wasn't used
+                # TODO: Consider if we need to handle MX devices specially
 
             processed_device_data: Dict[str, Any] = {
                 "name": device_raw_data.get("name"),
@@ -91,7 +91,11 @@ class MerakiDataProcessor:
                     "productType"
                 ),  # Ensure productType is copied initially
                 # Default to empty list if tags are missing.
-                "tags": device_raw_data.get("tags", "").split() if isinstance(device_raw_data.get("tags"), str) else device_raw_data.get("tags", []),
+                "tags": (
+                    device_raw_data.get("tags", "").split()
+                    if isinstance(device_raw_data.get("tags"), str)
+                    else device_raw_data.get("tags", [])
+                ),
                 # `connected_clients_count` and `radio_settings` are expected from ApiDataFetcher for MR devices.
                 # For other device types, these might be None or absent.
                 "connected_clients_count": device_raw_data.get(
@@ -99,7 +103,7 @@ class MerakiDataProcessor:
                 ),
                 "radio_settings": device_raw_data.get("radio_settings"),
                 "externalRtspEnabled": device_raw_data.get("externalRtspEnabled"),
-                "rtspUrl": device_raw_data.get("rtspUrl"), # ADD THIS LINE
+                "rtspUrl": device_raw_data.get("rtspUrl"),  # ADD THIS LINE
             }
 
             # Fields known to be added by MerakiApiDataFetcher for MX or all devices
@@ -123,44 +127,39 @@ class MerakiDataProcessor:
                 if field in device_raw_data:
                     processed_device_data[field] = device_raw_data[field]
 
-            if is_mx_device:  # Check the flag set at the beginning of the loop
-                # Preserve "appliance" if that's what came in, otherwise force it.
-                # This ensures that if api_data_fetcher correctly set it to "appliance", it's kept.
-                # If it was somehow None or different despite api_data_fetcher's efforts, this also corrects it.
+            from ..coordinators.meraki_device_types import (
+                map_meraki_model_to_device_type,
+            )
+
+            model = processed_device_data.get("model")
+            if model:
+                device_type = map_meraki_model_to_device_type(model)
                 current_ptype_before_override = processed_device_data.get("productType")
-                if original_mx_product_type == "appliance":
-                    processed_device_data["productType"] = "appliance"
-                else:  # If original wasn't appliance, or was None, force it for MX.
-                    processed_device_data["productType"] = "appliance"
+                if device_type != "unknown":
+                    processed_device_data["productType"] = device_type
 
                 if (
                     current_ptype_before_override
                     != processed_device_data["productType"]
                 ):
                     _LOGGER.debug(
-                        "MX Device %s (Serial: %s) productType was '%s', overridden/set to '%s' in process_devices.",
+                        "Device %s (Serial: %s) productType was '%s', overridden/set to '%s' in process_devices.",
                         processed_device_data.get("name", "Unknown"),
                         processed_device_data.get("serial", "N/A"),
                         current_ptype_before_override,
                         processed_device_data["productType"],
                     )
-                elif (
-                    original_mx_product_type != processed_device_data["productType"]
-                ):  # Log if original was different but override resulted in same (e.g. both None, now appliance)
-                    _LOGGER.debug(
-                        "MX Device %s (Serial: %s) productType was originally '%s', now set to '%s' in process_devices.",
-                        processed_device_data.get("name", "Unknown"),
-                        processed_device_data.get("serial", "N/A"),
-                        original_mx_product_type,  # original_mx_product_type is from device_raw_data
-                        processed_device_data["productType"],
-                    )
-                else:  # Log if no change happened but it's an MX device, for completeness
-                    _LOGGER.debug(
-                        "MX Device %s (Serial: %s) productType remains '%s' in process_devices.",
-                        processed_device_data.get("name", "Unknown"),
-                        processed_device_data.get("serial", "N/A"),
-                        processed_device_data["productType"],
-                    )
+
+                # If this is a wireless device, ensure client count and radio settings are properly initialized
+                if processed_device_data["productType"] == "wireless":
+                    if processed_device_data.get("connected_clients_count") is None:
+                        processed_device_data["connected_clients_count"] = 0
+                    if processed_device_data.get("radio_settings") is None:
+                        processed_device_data["radio_settings"] = {
+                            "status": "unavailable",
+                            "24": {"channel": 0, "power": 0},
+                            "5": {"channel": 0, "power": 0},
+                        }
 
             processed_devices_list.append(processed_device_data)
 

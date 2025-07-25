@@ -3,111 +3,113 @@
 This component provides integration with the Cisco Meraki cloud-managed
 networking platform. It allows users to monitor and potentially control
 aspects of their Meraki networks and devices within Home Assistant.
-
-Key responsibilities of this `__init__.py` file:
-- Setting up the integration from a configuration entry (`async_setup_entry`).
-- Unloading the integration (`async_unload_entry`).
-- Reloading the integration, typically when options change (`async_reload_entry`).
-- Initializing and coordinating data update coordinators.
-- Registering the Meraki organization as a device in Home Assistant.
-- Forwarding the setup to various platforms (sensor, switch, etc.).
 """
 
 import logging
 from datetime import timedelta
 
-import voluptuous as vol
-import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.const import CONF_SCAN_INTERVAL
-# from homeassistant.helpers.service import async_register_admin_service # Not used for set_device_tags
-from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
-
-from .coordinators import MerakiDataUpdateCoordinator
-from .coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
-from .api.meraki_api import MerakiAPIClient, MerakiApiError, MerakiApiAuthError, MerakiApiNotFoundError, MerakiApiConnectionError
+from homeassistant.helpers.typing import ConfigType
 
 from .const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
+    CONF_SCAN_INTERVAL,
+    DATA_CLIENT,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     PLATFORMS,
-    DATA_CLIENT,
+    DATA_COORDINATOR,
+    DATA_COORDINATORS,
 )
+from .coordinators.base_coordinator import MerakiDataUpdateCoordinator
+from .coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
 
-_LOGGER = logging.getLogger(DOMAIN)
+_LOGGER = logging.getLogger(__name__)
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up the Meraki integration."""
+    hass.data.setdefault(DOMAIN, {})
+    return True
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Meraki from a config entry."""
-    api_key: str = entry.data[CONF_MERAKI_API_KEY]
-    org_id: str = entry.data[CONF_MERAKI_ORG_ID]
+    """Set up Meraki from a config entry.
 
-    scan_interval_seconds_option = entry.options.get(
-        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-    )
+    Args:
+      hass: The Home Assistant instance
+      entry: The config entry to set up
+
+    Returns:
+      True if setup was successful, False otherwise
+
+    Raises:
+      KeyError: If required configuration keys are missing
+    """
     try:
-        scan_interval_seconds = int(scan_interval_seconds_option)
-    except ValueError:
+        api_key: str = entry.data[CONF_MERAKI_API_KEY]
+        org_id: str = entry.data[CONF_MERAKI_ORG_ID]
+    except KeyError as err:
+        _LOGGER.error("Missing required configuration: %s", err)
+        return False
+
+    # Get scan interval from options
+    try:
+        scan_interval_seconds: int = int(
+            entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+        )
+        if scan_interval_seconds <= 0:
+            raise ValueError("Scan interval must be positive")
+    except (ValueError, TypeError) as err:
         _LOGGER.error(
-            "Invalid scan_interval '%s' in options. Using default: %s seconds.",
-            scan_interval_seconds_option,
+            "Invalid scan_interval in options: %s. Using default: %s seconds.",
+            err,
             DEFAULT_SCAN_INTERVAL,
         )
         scan_interval_seconds = DEFAULT_SCAN_INTERVAL
 
-    interval: timedelta = timedelta(seconds=scan_interval_seconds)
+    update_interval = timedelta(seconds=scan_interval_seconds)
 
-    main_coordinator = MerakiDataUpdateCoordinator(
+    # Create the main coordinator
+    coordinator = MerakiDataUpdateCoordinator(
         hass=hass,
         api_key=api_key,
         org_id=org_id,
-        scan_interval=interval,
+        scan_interval=update_interval,
         config_entry=entry,
     )
-    await main_coordinator.async_config_entry_first_refresh()
 
-    if hasattr(main_coordinator, "async_register_organization_device"):
-        await main_coordinator.async_register_organization_device(hass)
-    else:
-        _LOGGER.warning("main_coordinator does not have async_register_organization_device method.")
-
-    meraki_client_instance = getattr(main_coordinator, "meraki_client", None)
-    if not meraki_client_instance:
-        _LOGGER.error(
-            "MerakiAPIClient not available from main_coordinator. Integration setup failed for entry %s.",
-            entry.entry_id,
-        )
-        return False
-
-    hass.data.setdefault(DOMAIN, {})
-    # Check if coordinators have already been set up for this entry
-    if "coordinators" in hass.data[DOMAIN].get(entry.entry_id, {}):
-        return True
-
-    hass.data[DOMAIN][entry.entry_id] = {
-        DATA_CLIENT: meraki_client_instance,
-        "coordinator": main_coordinator,  # Legacy key
-        "coordinators": {
-            "main": main_coordinator,
-        },
-    }
-
+    # Create the SSID device coordinator
     ssid_coordinator = SSIDDeviceCoordinator(
         hass=hass,
+        api_fetcher=coordinator.api_fetcher,
+        update_interval=update_interval,
         config_entry=entry,
-        api_data_fetcher=main_coordinator,
-        update_interval=interval,
     )
-    await ssid_coordinator.async_config_entry_first_refresh()
 
-    hass.data[DOMAIN][entry.entry_id]["coordinators"]["ssid_devices"] = ssid_coordinator
+    # Store the coordinators and API client
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN][entry.entry_id] = {
+        DATA_COORDINATOR: coordinator,
+        DATA_COORDINATORS: {
+            "ssid_devices": ssid_coordinator,
+        },
+        DATA_CLIENT: coordinator.meraki_client,
+    }
 
-    unique_platforms = list(set(PLATFORMS))
+    # Perform initial data update
+    try:
+        await coordinator.async_config_entry_first_refresh()
+    except Exception as err:
+        _LOGGER.error("Failed to perform initial data update: %s", err)
+        return False
 
-    await hass.config_entries.async_forward_entry_setups(entry, unique_platforms)
+    # Set up the platforms
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    # Register update listener to handle configuration changes
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     return True
@@ -121,13 +123,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     data stored in `hass.data`.
 
     Args:
-        hass: The Home Assistant instance, used to access integration data for cleanup
-              and to unload platforms.
-        entry: The ConfigEntry object for this integration instance, used to identify
-               the data and platforms to unload.
+      hass: The Home Assistant instance, used to access integration data for cleanup
+         and to unload platforms.
+      entry: The ConfigEntry object for this integration instance, used to identify
+          the data and platforms to unload.
 
     Returns:
-        True if all unload operations are successful, False otherwise.
+      True if all unload operations are successful, False otherwise.
     """
     unload_ok: bool = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 

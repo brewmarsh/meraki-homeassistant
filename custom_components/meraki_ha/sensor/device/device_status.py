@@ -7,19 +7,23 @@ of a specific Meraki device.
 
 import logging
 from typing import Any, Dict, Optional  # Added Optional
-from datetime import datetime # Added import
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription, SensorDeviceClass # Updated import
+from homeassistant.components.sensor import (
+    SensorEntity,
+    SensorEntityDescription,
+    SensorDeviceClass,
+)  # Updated import
 
 # Added callback for coordinator updates
 from homeassistant.core import callback
+
 # from homeassistant.helpers.entity import EntityDescription # No longer needed
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 from ...coordinators import MerakiDataUpdateCoordinator
-from ...const import DOMAIN  # For device_info identifiers
+from ...const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -53,9 +57,9 @@ class MerakiDeviceStatusSensor(
         """Initialize the Meraki Device Status sensor.
 
         Args:
-            coordinator: The data update coordinator.
-            device_data: A dictionary containing initial information about the Meraki device
-                         (e.g., name, serial, model, firmware, productType).
+          coordinator: The data update coordinator.
+          device_data: A dictionary containing initial information about the Meraki device
+                 (e.g., name, serial, model, firmware, productType).
         """
         super().__init__(coordinator)
         self._device_serial: str = device_data["serial"]  # Serial is mandatory
@@ -65,7 +69,7 @@ class MerakiDeviceStatusSensor(
 
         # Set device info for linking to HA device registry
         # This uses the initial device_data for static info.
-        device_name_for_registry = device_data.get("name") or self._device_serial
+        # device_name_for_registry = device_data.get("name") or self._device_serial
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)}
             # No other fields like name, model, manufacturer, sw_version.
@@ -81,8 +85,8 @@ class MerakiDeviceStatusSensor(
         self.entity_description = SensorEntityDescription(
             key="device_status",
             name="Status",
-            native_unit_of_measurement=None, # Categorical status, no unit
-            state_class=None, # Categorical status
+            native_unit_of_measurement=None,  # Categorical status, no unit
+            state_class=None,  # Categorical status
             device_class=SensorDeviceClass.ENUM,
             icon="mdi:help-network-outline",
         )
@@ -94,9 +98,9 @@ class MerakiDeviceStatusSensor(
         # Initial update of state and attributes
         self._update_sensor_data()
         # _LOGGER.debug(
-        #     "MerakiDeviceStatusSensor Initialized for %s (Serial: %s)",
-        #     device_name_for_registry,
-        #     self._device_serial,
+        #   "MerakiDeviceStatusSensor Initialized for %s (Serial: %s)",
+        #   device_name_for_registry,
+        #   self._device_serial,
         # ) # Removed
 
     @property
@@ -117,9 +121,9 @@ class MerakiDeviceStatusSensor(
                 if dev_data.get("serial") == self._device_serial:
                     return dev_data
         # _LOGGER.debug( # Already handled by available property / state becoming None
-        #     "Device data for serial '%s' not found in coordinator for sensor '%s'.",
-        #     self._device_serial,
-        #     self.unique_id,
+        #   "Device data for serial '%s' not found in coordinator for sensor '%s'.",
+        #   self._device_serial,
+        #   self.unique_id,
         # ) # Removed
         return None
 
@@ -127,7 +131,9 @@ class MerakiDeviceStatusSensor(
         """Update sensor state (native_value, icon) and attributes from coordinator data."""
         current_device_data = self._get_current_device_data()
 
-        if not current_device_data: # Should be primarily handled by the `available` property
+        if (
+            not current_device_data
+        ):  # Should be primarily handled by the `available` property
             self._attr_native_value = None
             self._attr_icon = "mdi:help-rhombus"
             # Consider clearing extra_state_attributes if device becomes unavailable for a long time
@@ -140,7 +146,6 @@ class MerakiDeviceStatusSensor(
             self._attr_native_value = device_status.lower()
         else:
             self._attr_native_value = "unknown"  # Default if status is not a string
-
 
         # Populate attributes from the latest device data
         self._attr_extra_state_attributes = {
@@ -185,16 +190,16 @@ class MerakiDeviceStatusSensor(
 
     # @property
     # def options(self) -> list[str] | None:
-    #     return None
+    #   return None
     #
     # @property
     # def suggested_unit_of_measurement(self) -> str | None:
-    #     return None
+    #   return None
     #
     # @property
     # def suggested_display_precision(self) -> int | None:
-    #     return None
+    #   return None
     #
     # @property
     # def last_reset(self) -> datetime | None:
-    #     return None
+    #   return None

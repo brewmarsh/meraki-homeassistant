@@ -1,14 +1,13 @@
 """Sensor entities for Meraki organization-level client counts."""
 
 import logging
-from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...coordinators import MerakiDataUpdateCoordinator # Adjusted path
+from ...coordinators import MerakiDataUpdateCoordinator
 from ...const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -54,10 +53,10 @@ class MerakiOrganizationSSIDClientsSensor(
         else:
             self._attr_native_value = 0
         # _LOGGER.debug(
-        #     "Sensor '%s': Updated value to %s from coordinator key 'clients_on_ssids'. Coordinator data present: %s",
-        #     self.name,
-        #     self._attr_native_value,
-        #     bool(self.coordinator.data)
+        #   "Sensor '%s': Updated value to %s from coordinator key 'clients_on_ssids'. Coordinator data present: %s",
+        #   self.name,
+        #   self._attr_native_value,
+        #   bool(self.coordinator.data)
         # ) # Removed
 
 
@@ -96,14 +95,16 @@ class MerakiOrganizationWirelessClientsSensor(
     def _update_internal_state(self) -> None:
         """Update the internal state of the sensor."""
         if self.coordinator.data:
-            self._attr_native_value = self.coordinator.data.get("clients_on_wireless", 0)
+            self._attr_native_value = self.coordinator.data.get(
+                "clients_on_wireless", 0
+            )
         else:
             self._attr_native_value = 0
         # _LOGGER.debug(
-        #     "Sensor '%s': Updated value to %s from coordinator key 'clients_on_wireless'. Coordinator data present: %s",
-        #     self.name,
-        #     self._attr_native_value,
-        #     bool(self.coordinator.data)
+        #   "Sensor '%s': Updated value to %s from coordinator key 'clients_on_wireless'. Coordinator data present: %s",
+        #   self.name,
+        #   self._attr_native_value,
+        #   bool(self.coordinator.data)
         # ) # Removed
 
 
@@ -142,12 +143,14 @@ class MerakiOrganizationApplianceClientsSensor(
     def _update_internal_state(self) -> None:
         """Update the internal state of the sensor."""
         if self.coordinator.data:
-            self._attr_native_value = self.coordinator.data.get("clients_on_appliances", 0)
+            self._attr_native_value = self.coordinator.data.get(
+                "clients_on_appliances", 0
+            )
         else:
             self._attr_native_value = 0
         # _LOGGER.debug(
-        #     "Sensor '%s': Updated value to %s from coordinator key 'clients_on_appliances'. Coordinator data present: %s",
-        #     self.name,
-        #     self._attr_native_value,
-        #     bool(self.coordinator.data)
+        #   "Sensor '%s': Updated value to %s from coordinator key 'clients_on_appliances'. Coordinator data present: %s",
+        #   self.name,
+        #   self._attr_native_value,
+        #   bool(self.coordinator.data)
         # ) # Removed

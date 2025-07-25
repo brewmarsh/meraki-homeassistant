@@ -1,4 +1,5 @@
 """Tests for the Meraki base coordinator."""
+
 from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock
 

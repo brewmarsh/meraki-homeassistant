@@ -1,7 +1,6 @@
 """Repairs support for Meraki."""
 from __future__ import annotations
 
-from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue

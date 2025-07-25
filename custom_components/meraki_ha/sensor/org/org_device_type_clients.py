@@ -6,12 +6,15 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...coordinators import MerakiDataUpdateCoordinator # Correct coordinator
-from ...const import DOMAIN # CONF_MERAKI_ORG_ID removed as it's not used directly for device ID key, DOMAIN is sufficient with org_id value
+from ...coordinators import MerakiDataUpdateCoordinator
+from ...const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-class MerakiOrgDeviceTypeClientsSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
+
+class MerakiOrgDeviceTypeClientsSensor(
+    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+):
     """Representation of a Meraki Organization Device Type Clients sensor.
 
     This sensor displays client counts categorized by network device types
@@ -31,9 +34,9 @@ class MerakiOrgDeviceTypeClientsSensor(CoordinatorEntity[MerakiDataUpdateCoordin
         """Initialize the Meraki Organization Device Type Clients sensor.
 
         Args:
-            coordinator: The data update coordinator.
-            organization_id: The ID of the Meraki organization.
-            organization_name: The name of the Meraki organization.
+          coordinator: The data update coordinator.
+          organization_id: The ID of the Meraki organization.
+          organization_name: The name of the Meraki organization.
         """
         super().__init__(coordinator)
         self._organization_id = organization_id
@@ -53,26 +56,32 @@ class MerakiOrgDeviceTypeClientsSensor(CoordinatorEntity[MerakiDataUpdateCoordin
         if self.coordinator.data:
             # Data comes directly from the coordinator's root
             self._clients_on_ssids = self.coordinator.data.get("clients_on_ssids", 0)
-            self._clients_on_appliances = self.coordinator.data.get("clients_on_appliances", 0)
-            self._clients_on_wireless = self.coordinator.data.get("clients_on_wireless", 0)
+            self._clients_on_appliances = self.coordinator.data.get(
+                "clients_on_appliances", 0
+            )
+            self._clients_on_wireless = self.coordinator.data.get(
+                "clients_on_wireless", 0
+            )
 
             # Main state is the sum of these counts
-            self._attr_native_value = (self._clients_on_ssids or 0) + \
-                                      (self._clients_on_appliances or 0) + \
-                                      (self._clients_on_wireless or 0)
+            self._attr_native_value = (
+                (self._clients_on_ssids or 0)
+                + (self._clients_on_appliances or 0)
+                + (self._clients_on_wireless or 0)
+            )
 
             # _LOGGER.debug(
-            #     "Sensor %s: SSID Clients: %s, Appliance Clients: %s, Wireless Clients: %s, Total State: %s",
-            #     self.unique_id,
-            #     self._clients_on_ssids,
-            #     self._clients_on_appliances,
-            #     self._clients_on_wireless,
-            #     self._attr_native_value
+            #   "Sensor %s: SSID Clients: %s, Appliance Clients: %s, Wireless Clients: %s, Total State: %s",
+            #   self.unique_id,
+            #   self._clients_on_ssids,
+            #   self._clients_on_appliances,
+            #   self._clients_on_wireless,
+            #   self._attr_native_value
             # ) # Removed
         else:
             # _LOGGER.debug(
-            #     "Coordinator data not available for sensor %s. Setting states to 0.",
-            #     self.unique_id
+            #   "Coordinator data not available for sensor %s. Setting states to 0.",
+            #   self.unique_id
             # ) # Removed
             self._clients_on_ssids = 0
             self._clients_on_appliances = 0

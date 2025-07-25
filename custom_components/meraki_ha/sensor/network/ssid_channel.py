@@ -6,7 +6,7 @@ specific Meraki SSID.
 """
 
 import logging
-from typing import Any, Dict, Union # Optional removed
+from typing import Any, Dict, Union  # Optional removed
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.core import callback  # For coordinator updates
@@ -39,9 +39,9 @@ class MerakiSSIDChannelSensor(CoordinatorEntity[SSIDDeviceCoordinator], SensorEn
         """Initialize the Meraki SSID Channel sensor.
 
         Args:
-            coordinator: The SSIDDeviceCoordinator.
-            ssid_data: Dictionary containing information about the SSID.
-                       Expected: 'unique_id', 'name', and potentially 'channel'.
+          coordinator: The SSIDDeviceCoordinator.
+          ssid_data: Dictionary containing information about the SSID.
+                Expected: 'unique_id', 'name', and potentially 'channel'.
         """
         super().__init__(coordinator)
         self._ssid_data = ssid_data
@@ -60,12 +60,12 @@ class MerakiSSIDChannelSensor(CoordinatorEntity[SSIDDeviceCoordinator], SensorEn
         # Set initial state
         self._update_sensor_state()
         # _LOGGER.debug(
-        #     "MerakiSSIDChannelSensor Initialized: Name: %s, Unique ID: %s, SSID Data: %s",
-        #     self._attr_name,
-        #     self._attr_unique_id,
-        #     {
-        #         key: ssid_data.get(key) for key in ["name", "unique_id", "channel"]
-        #     },
+        #   "MerakiSSIDChannelSensor Initialized: Name: %s, Unique ID: %s, SSID Data: %s",
+        #   self._attr_name,
+        #   self._attr_unique_id,
+        #   {
+        #     key: ssid_data.get(key) for key in ["name", "unique_id", "channel"]
+        #   },
         # ) # Removed
 
     def _update_sensor_state(self) -> None:
@@ -89,14 +89,14 @@ class MerakiSSIDChannelSensor(CoordinatorEntity[SSIDDeviceCoordinator], SensorEn
                     self._attr_state_class = None
             else:
                 # _LOGGER.debug( # State will be None, this log is not critical
-                #     "SSID '%s' (ID: %s) has no 'channel' information. Setting to None.",
-                #     self._ssid_data.get("name"),
-                #     self._ssid_data.get("unique_id"),
+                #   "SSID '%s' (ID: %s) has no 'channel' information. Setting to None.",
+                #   self._ssid_data.get("name"),
+                #   self._ssid_data.get("unique_id"),
                 # ) # Removed
                 self._attr_native_value = "Unknown"
                 self._attr_state_class = None
         else:
-            _LOGGER.warning( # Keep warning for missing data
+            _LOGGER.warning(  # Keep warning for missing data
                 "SSID data for ID '%s' not found in coordinator. Channel sensor state set to None.",
                 self._ssid_data.get("unique_id"),
             )

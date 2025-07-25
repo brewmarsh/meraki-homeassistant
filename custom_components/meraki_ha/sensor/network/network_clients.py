@@ -1,14 +1,13 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...coordinators import MerakiDataUpdateCoordinator
 from ...const import DOMAIN
-from ...api.meraki_api._api_client import MerakiAPIClient
+from ...coordinators import MerakiDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -16,17 +15,12 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiNetworkClientsSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
-    """Representation of a Meraki Network Clients sensor.
-
-    This sensor displays the number of clients connected to a specific
-    Meraki network using data from the MerakiDataUpdateCoordinator.
-    It lists client details as attributes.
-    """
+    """Representation of a Meraki Network Clients sensor."""
 
     _attr_icon = "mdi:account-multiple"
     _attr_native_unit_of_measurement = "clients"
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_should_poll = False  # Data is updated by the coordinator
+    _attr_should_poll = False
 
     def __init__(
         self,
@@ -34,26 +28,18 @@ class MerakiNetworkClientsSensor(
         network_id: str,
         network_name: str,
     ) -> None:
-        """Initialize the Meraki Network Clients sensor.
-
-        Args:
-            coordinator: The data update coordinator.
-            network_id: The ID of the Meraki network this sensor is for.
-            network_name: The name of the Meraki network.
-        """
+        """Initialize the Meraki Network Clients sensor."""
         super().__init__(coordinator)
         self._network_id = network_id
         self._network_name = network_name
         self._attr_name = f"{network_name} Clients"
         self._attr_unique_id = f"meraki_network_clients_{network_id}"
-        # Initialize with empty state, coordinator will update it
         self._attr_native_value = 0
         self._attr_extra_state_attributes: Dict[str, Any] = {
             "network_id": self._network_id,
             "network_name": self._network_name,
             "clients_list": [],
         }
-        # Set initial state
         self._update_state_from_coordinator()
 
     @callback
@@ -63,11 +49,7 @@ class MerakiNetworkClientsSensor(
         self.async_write_ha_state()
 
     def _update_state_from_coordinator(self) -> None:
-        """Update the sensor's state from coordinator data.
-
-        Filters clients for the current network and updates native value
-        and attributes.
-        """
+        """Update the sensor's state from coordinator data."""
         _LOGGER.debug(
             "Updating Meraki Network Clients sensor for network %s (ID: %s) from coordinator data.",
             self._network_name,
@@ -86,7 +68,7 @@ class MerakiNetworkClientsSensor(
             clients_for_network = [
                 client
                 for client in all_clients
-                if client.get("networkId") == self._network_id # Assuming client data has 'networkId'
+                if client.get("networkId") == self._network_id
             ]
             self._attr_native_value = len(clients_for_network)
             _LOGGER.debug(
@@ -106,7 +88,7 @@ class MerakiNetworkClientsSensor(
                     "ip": client.get("ip"),
                     "status": client.get("status"),
                 }
-                for client in clients_for_network # Use the filtered list
+                for client in clients_for_network
             ],
         }
 

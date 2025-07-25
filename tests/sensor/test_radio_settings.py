@@ -1,4 +1,5 @@
 """Tests for the Meraki radio settings sensor."""
+
 from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant

@@ -10,43 +10,54 @@ def map_meraki_model_to_device_type(model: str) -> str:
     """Maps a Meraki device model string to a generic device type category.
 
     The function checks the prefix of the model string to determine its
-    general category (e.g., "MR" models are "Wireless", "MS" models are "Switch").
-    It also specifically identifies "Network" as a type.
+    general category. Handles all Meraki device types including newer models.
 
     Args:
-        model: The Meraki device model string (e.g., "MR52",
-               "MS220-8P", "Network"). It's expected to be a non-empty string.
+        model: The Meraki device model string (e.g., "MR52", "MS220-8P", "GR12",
+               "MV12", etc.). It's expected to be a non-empty string.
 
     Returns:
-        A string representing the generic device type (e.g., "Wireless",
-        "Switch", "Appliance", "Camera", "Sensor", "Network").
-        Returns "Unknown" if the model prefix does not match any known category
-        and is not "Network".
+        A string representing the generic device type:
+        - "wireless" for MR and GR series APs
+        - "switch" for MS and GS series switches
+        - "appliance" for MX series security appliances
+        - "camera" for MV series cameras
+        - "sensor" for MT series sensors
+        - "cellular" for MG series cellular gateways
+        Returns "unknown" if the model prefix doesn't match any known category.
     """
-    # Handle empty string case, though API usually provides models
+    # Handle empty string or None case
     if not model:
-        return "Unknown"
+        return "unknown"
 
-    # Ensure case-insensitivity for prefixes and direct match
+    # Convert to uppercase for consistent matching
     model_upper = model.upper()
 
-    if model_upper == "NETWORK": # Specific check for "Network"
-        return "Network"
-    elif model_upper.startswith("MR") or model_upper.startswith("GR"):
-        # Meraki Wireless Access Points (MR series, GR is older/alt)
-        return "Wireless"
-    elif model_upper.startswith("MS") or model_upper.startswith("GS"):
-        # Meraki Switches (MS series, GS is older/alt)
-        return "Switch"
-    elif model_upper.startswith("MX") or model_upper.startswith("Z"):
-        # Meraki Security Appliances/Routers
-        return "Appliance"
-    elif model_upper.startswith("MV"):
-        # Meraki Smart Cameras
-        return "Camera"
-    elif model_upper.startswith("MT"):
-        # Meraki MT Series Sensors
-        return "Sensor"
-    else:
-        # Default for unrecognized model prefixes
-        return "Unknown"
+    if model_upper == "NETWORK":  # Specific check for "Network"
+        return "network"
+    # Wireless Access Points (both traditional MR and cloud-managed GR series)
+    if model_upper.startswith(("MR", "GR")):
+        return "wireless"
+
+    # Switches (both traditional MS and cloud-managed GS series)
+    if model_upper.startswith(("MS", "GS")):
+        return "switch"
+
+    # Security Appliances
+    if model_upper.startswith("MX"):
+        return "appliance"
+
+    # Cameras
+    if model_upper.startswith("MV"):
+        return "camera"
+
+    # Environmental Sensors
+    if model_upper.startswith("MT"):
+        return "sensor"
+
+    # Cellular Gateways
+    if model_upper.startswith("MG"):
+        return "cellular"
+
+    # If no match is found, return unknown
+    return "unknown"

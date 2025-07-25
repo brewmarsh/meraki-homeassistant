@@ -7,7 +7,7 @@ fetch and manage data from the Meraki API.
 """
 
 import logging
-from typing import Optional # Added Optional
+from typing import Optional  # Added Optional
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -58,63 +58,47 @@ async def async_setup_entry(
     meraki_api_client: Optional[MerakiAPIClient] = entry_data.get(DATA_CLIENT)
 
     if not meraki_api_client:
-        _LOGGER.error("Meraki API client not found in entry_data. Cannot set up network client sensors.")
+        _LOGGER.error(
+            "Meraki API client not found in entry_data. Cannot set up network client sensors."
+        )
 
     # --- Organization-level Sensor Setup ---
     if main_coordinator and main_coordinator.data:
         organization_id = main_coordinator.org_id
-        raw_organization_name_for_fallback = main_coordinator.org_name if main_coordinator.org_name else organization_id
+        org_name = main_coordinator.data.get("org_name", organization_id)
 
-        # Use the formatted display name stored in the coordinator from Step 1
-        # Fall back to raw name if formatted_org_display_name is somehow None or empty
-        # (it should be populated by async_register_organization_device before this sensor setup)
-        org_name_for_sensors = main_coordinator.formatted_org_display_name \
-            if main_coordinator.formatted_org_display_name \
-            else raw_organization_name_for_fallback
-
-        # Add the existing MerakiOrgDeviceTypeClientsSensor
-        try:
-            entities.append(
-                MerakiOrgDeviceTypeClientsSensor(
-                    coordinator=main_coordinator,
-                    organization_id=organization_id,
-                    organization_name=org_name_for_sensors,
-                )
+        entities.append(
+            MerakiOrgDeviceTypeClientsSensor(
+                coordinator=main_coordinator,
+                organization_id=organization_id,
+                organization_name=org_name,
             )
-        except Exception as e:
-            _LOGGER.error(
-                "Meraki HA: Error adding MerakiOrgDeviceTypeClientsSensor for organization %s: %s",
-                org_name_for_sensors,
-                e,
-            )
-
-        # Add the new specific organization client count sensors
-        new_org_sensors = [
+        )
+        entities.append(
             MerakiOrganizationSSIDClientsSensor(
-                coordinator=main_coordinator, org_id=organization_id, org_name=org_name_for_sensors # Use the new variable
-            ),
+                coordinator=main_coordinator,
+                org_id=organization_id,
+                org_name=org_name,
+            )
+        )
+        entities.append(
             MerakiOrganizationWirelessClientsSensor(
-                coordinator=main_coordinator, org_id=organization_id, org_name=org_name_for_sensors # Use the new variable
-            ),
+                coordinator=main_coordinator,
+                org_id=organization_id,
+                org_name=org_name,
+            )
+        )
+        entities.append(
             MerakiOrganizationApplianceClientsSensor(
-                coordinator=main_coordinator, org_id=organization_id, org_name=org_name_for_sensors # Use the new variable
-            ),
-        ]
-        for sensor in new_org_sensors:
-            try:
-                entities.append(sensor) # type: ignore
-            except Exception as e:
-                _LOGGER.error(
-                    "Meraki HA: Error adding organization sensor %s for %s: %s",
-                    sensor.name if hasattr(sensor, "name") else type(sensor).__name__,
-                    org_name_for_sensors,
-                    e,
-                )
+                coordinator=main_coordinator,
+                org_id=organization_id,
+                org_name=org_name,
+            )
+        )
     else:
         _LOGGER.warning(
             "Main coordinator not available or has no data; skipping organization-level sensors."
         )
-
 
     # --- Physical Device Sensor Setup ---
     if main_coordinator and main_coordinator.data:
@@ -129,7 +113,7 @@ async def async_setup_entry(
 
             original_device_name = device_info.get("name")
             if not original_device_name:
-                model_str = device_info.get('model', 'Device')
+                model_str = device_info.get("model", "Device")
                 fallback_name = f"Meraki {model_str} {serial}"
                 device_info["name"] = fallback_name
 
@@ -150,7 +134,7 @@ async def async_setup_entry(
             if product_type:
                 sensors_for_type = get_sensors_for_device_type(product_type)
                 # if not sensors_for_type: # Removed: Redundant log, handled by empty list iteration
-                #     pass
+                #   pass
                 for sensor_class in sensors_for_type:
                     try:
                         entities.append(sensor_class(main_coordinator, device_info))
@@ -166,9 +150,9 @@ async def async_setup_entry(
                 # Camera-specific sensors are now handled by the SENSOR_REGISTRY.
                 # The generic loop for `sensors_for_type` will add them if product_type is "camera".
             else:
-                _LOGGER.warning( # Changed to warning as this might be unexpected
+                _LOGGER.warning(  # Changed to warning as this might be unexpected
                     "Meraki HA: No productType found for device %s (Serial: %s), skipping productType-specific sensors.",
-                    device_info.get("name"), # Use guaranteed name
+                    device_info.get("name"),  # Use guaranteed name
                     serial,
                 )
 
@@ -184,26 +168,43 @@ async def async_setup_entry(
             network_id = network_data.get("id")
             network_name = network_data.get("name", f"Unnamed Network {network_id}")
             if not network_name:
-                 network_name = f"Meraki Network {network_id}"
+                network_name = f"Meraki Network {network_id}"
 
             if not network_id:
-                _LOGGER.warning("Skipping network with missing ID for client sensor: %s", network_data.get("name", "Unnamed Network"))
+                _LOGGER.warning(
+                    "Skipping network with missing ID for client sensor: %s",
+                    network_data.get("name", "Unnamed Network"),
+                )
                 continue
             try:
-                entities.append(MerakiNetworkClientsSensor(main_coordinator, network_id, network_name))
-                entities.append(MerakiNetworkIdentitySensor(main_coordinator, network_data))
+                entities.append(
+                    MerakiNetworkClientsSensor(
+                        main_coordinator, network_id, network_name
+                    )
+                )
+                entities.append(
+                    MerakiNetworkIdentitySensor(main_coordinator, network_data)
+                )
                 entities.append(MerakiNetworkInfoSensor(main_coordinator, network_data))
             except Exception as e:
-                _LOGGER.error("Meraki HA: Error adding network sensors for %s (ID: %s): %s", network_name, network_id, e)
-
+                _LOGGER.error(
+                    "Meraki HA: Error adding network sensors for %s (ID: %s): %s",
+                    network_name,
+                    network_id,
+                    e,
+                )
 
     elif not meraki_api_client:
-        _LOGGER.warning("Meraki API client not available; skipping MerakiNetworkClientsSensor setup.")
-    elif not main_coordinator or not main_coordinator.data :
-        _LOGGER.warning("Main coordinator not available or has no data; skipping all network-specific sensors.")
+        _LOGGER.warning(
+            "Meraki API client not available; skipping MerakiNetworkClientsSensor setup."
+        )
+    elif not main_coordinator or not main_coordinator.data:
+        _LOGGER.warning(
+            "Main coordinator not available or has no data; skipping all network-specific sensors."
+        )
 
     coordinators_map = entry_data.get("coordinators")
-    ssid_coordinator: Optional[SSIDDeviceCoordinator] = None # Initialize
+    ssid_coordinator: Optional[SSIDDeviceCoordinator] = None  # Initialize
     if coordinators_map:
         ssid_coordinator = coordinators_map.get(DATA_SSID_DEVICES_COORDINATOR)
 
@@ -211,10 +212,14 @@ async def async_setup_entry(
     if ssid_coordinator and ssid_coordinator.data:
         enabled_ssids_info_list = list(ssid_coordinator.data.values())
         for ssid_info_data in enabled_ssids_info_list:
-            new_ssid_sensors = create_ssid_sensors(ssid_coordinator, ssid_info_data, ssid_info_data)
+            new_ssid_sensors = create_ssid_sensors(
+                ssid_coordinator, ssid_info_data, ssid_info_data
+            )
             entities.extend(new_ssid_sensors)
     else:
-        _LOGGER.warning("SSID coordinator (SSIDDeviceCoordinator) not available or has no data; skipping SSID sensors.")
+        _LOGGER.warning(
+            "SSID coordinator (SSIDDeviceCoordinator) not available or has no data; skipping SSID sensors."
+        )
 
     if entities:
         async_add_entities(entities)

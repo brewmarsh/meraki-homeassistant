@@ -1,4 +1,5 @@
 """Tests for the Meraki data aggregation coordinator."""
+
 from unittest.mock import MagicMock
 
 from custom_components.meraki_ha.coordinators.data_aggregation_coordinator import (
@@ -11,8 +12,8 @@ async def test_data_aggregation_coordinator() -> None:
     main_coordinator = MagicMock()
     main_coordinator.data = {
         "devices": [
-                {"serial": "Q234-ABCD-5678", "tags": ["tag1", "tag2"]},
-                {"serial": "Q234-ABCD-5679", "tags": ["tag3", "tag4"]},
+            {"serial": "Q234-ABCD-5678", "tags": ["tag1", "tag2"]},
+            {"serial": "Q234-ABCD-5679", "tags": ["tag3", "tag4"]},
         ],
         "networks": [
             {"id": "N_123", "name": "Test Network"},

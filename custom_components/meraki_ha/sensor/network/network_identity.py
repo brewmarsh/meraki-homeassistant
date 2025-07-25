@@ -34,9 +34,9 @@ class MerakiNetworkIdentitySensor(
         """Initialize the Meraki Network Identity sensor.
 
         Args:
-            coordinator: The data update coordinator.
-            network_data: A dictionary containing the network's data,
-                          expected to have 'id', 'name', and 'type'.
+          coordinator: The data update coordinator.
+          network_data: A dictionary containing the network's data,
+                 expected to have 'id', 'name', and 'type'.
         """
         super().__init__(coordinator)
         self._network_id: str = network_data.get("id", "Unknown ID")
@@ -51,16 +51,16 @@ class MerakiNetworkIdentitySensor(
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._network_id)},
-            name=self._network_name, # So it's grouped with other entities for this network device
+            name=self._network_name,  # So it's grouped with other entities for this network device
             manufacturer="Cisco Meraki",
             model="Network Information",
         )
         # _LOGGER.debug(
-        #     "MerakiNetworkIdentitySensor Initialized: Name: %s, Unique ID: %s, Network ID: %s, Type: %s",
-        #     self._attr_name,
-        #     self._attr_unique_id,
-        #     self._network_id,
-        #     self._network_type,
+        #   "MerakiNetworkIdentitySensor Initialized: Name: %s, Unique ID: %s, Network ID: %s, Type: %s",
+        #   self._attr_name,
+        #   self._attr_unique_id,
+        #   self._network_id,
+        #   self._network_type,
         # ) # Removed
 
     def _update_sensor_state(self) -> None:
@@ -78,16 +78,19 @@ class MerakiNetworkIdentitySensor(
                     break
 
         if current_network_data:
-            self._network_name = current_network_data.get("name", self._network_name) # Keep old if new is missing
-            self._network_type = current_network_data.get("type", self._network_type) # Keep old if new is missing
+            self._network_name = current_network_data.get(
+                "name", self._network_name
+            )  # Keep old if new is missing
+            self._network_type = current_network_data.get(
+                "type", self._network_type
+            )  # Keep old if new is missing
             # Update name attribute if network name changes
             self._attr_name = f"{self._network_name} Network Identity"
 
-
-        self._attr_native_value = self._network_name # State is the network name
+        self._attr_native_value = self._network_name  # State is the network name
         self._attr_extra_state_attributes = {
             "network_id": self._network_id,
-            "network_name": self._network_name, # Display name in attributes as well
+            "network_name": self._network_name,  # Display name in attributes as well
             "network_type": self._network_type,
         }
 

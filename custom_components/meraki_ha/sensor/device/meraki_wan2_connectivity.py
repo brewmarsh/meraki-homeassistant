@@ -3,7 +3,7 @@
 import logging
 from typing import Any, Dict, Optional
 
-from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -87,11 +87,11 @@ class MerakiWAN2ConnectivitySensor(
             "wan2_ip_address": wan2_ip if wan2_ip else "N/A"
         }
         # _LOGGER.debug(
-        #     "WAN2 Sensor update for %s: wan2_ip=%s, device_status=%s, state=%s",
-        #     self._device_serial,
-        #     wan2_ip,
-        #     device_status,
-        #     self._attr_native_value,
+        #   "WAN2 Sensor update for %s: wan2_ip=%s, device_status=%s, state=%s",
+        #   self._device_serial,
+        #   wan2_ip,
+        #   device_status,
+        #   self._attr_native_value,
         # ) # Removed
 
     @callback

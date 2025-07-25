@@ -1,3 +1,4 @@
 [flake8]
+ignore = E501, W503, E203
 max-line-length = 88
-ignore = E261,E116,E131,W503
+exclude = .git,__pycache__,docs/source/conf.py,old,build,dist,node_modules
