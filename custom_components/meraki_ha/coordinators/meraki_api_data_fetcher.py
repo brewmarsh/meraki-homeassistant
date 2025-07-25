@@ -242,10 +242,10 @@ class MerakiApiDataFetcher:
             return
 
         lan_dns_settings = await self.api_client.call(
-            self.meraki_client.networks.getNetworkApplianceSettings(
+            self.meraki_client.networks.getNetworkAlertsSettings(
                 networkId=network_id
             ),
-            f"getNetworkApplianceSettings(networkId={network_id})",
+            f"getNetworkAlertsSettings(networkId={network_id})",
         )
         device["lan_dns_settings"] = lan_dns_settings
 
