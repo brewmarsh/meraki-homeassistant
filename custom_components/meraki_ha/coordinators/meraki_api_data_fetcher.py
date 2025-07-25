@@ -285,26 +285,26 @@ class MerakiApiDataFetcher:
             return_empty_list_on_404=True,
         )
 
-async def _fetch_all_clients(
-    self, networks: List[Dict[str, Any]]
-) -> List[Dict[str, Any]]:
-    """Fetch all clients for a list of networks."""
-    client_tasks = [
-        self.api_client.call(
-            self.meraki_client.networks.getNetworkClients(
-                network["id"], timespan=3600
-            ),
-            f"getNetworkClients(networkId={network['id']})",
-            return_empty_list_on_404=True,
-        )
-        for network in networks
-        if "id" in network
-    ]
-    results = await asyncio.gather(*client_tasks, return_exceptions=True)
-    all_clients = []
-    for result in results:
-        if isinstance(result, list):
-            all_clients.extend(result)
-        elif result is not None:
-            _LOGGER.error("Error fetching clients: %s", result)
-    return all_clients
+    async def _fetch_all_clients(
+        self, networks: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """Fetch all clients for a list of networks."""
+        client_tasks = [
+            self.api_client.call(
+                self.meraki_client.networks.getNetworkClients(
+                    network["id"], timespan=3600
+                ),
+                f"getNetworkClients(networkId={network['id']})",
+                return_empty_list_on_404=True,
+            )
+            for network in networks
+            if "id" in network
+        ]
+        results = await asyncio.gather(*client_tasks, return_exceptions=True)
+        all_clients = []
+        for result in results:
+            if isinstance(result, list):
+                all_clients.extend(result)
+            elif result is not None:
+                _LOGGER.error("Error fetching clients: %s", result)
+        return all_clients
