@@ -13,9 +13,6 @@ distribution from the Meraki API.
 from .base_coordinator import (
     MerakiDataUpdateCoordinator,
 )
-from .data_aggregation_coordinator import (
-    DataAggregationCoordinator,
-)
 
 # Added for completeness if used externally
 from .data_processor import MerakiDataProcessor
