@@ -80,7 +80,7 @@ class MerakiNetworkInfoSensor(
         attributes = {
             "hostname": current_network_data.get("name"),
             "notes": current_network_data.get("notes"),
-            "network_id": current_network_data.get("id"),
+            "network_id": self._network_id,
             "organization_id": current_network_data.get("organizationId"),
             "product_types": current_network_data.get("productTypes"),
             "tags": current_network_data.get("tags", []),
