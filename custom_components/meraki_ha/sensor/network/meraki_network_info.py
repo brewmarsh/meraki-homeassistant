@@ -71,18 +71,19 @@ class MerakiNetworkInfoSensor(
                 current_network_data = network
                 break
 
-        self._attr_native_value = current_network_data.get("name", self._network_id)
+        if current_network_data:
+            self._attr_native_value = current_network_data.get("name", self._network_id)
 
-        attributes = {
-            "hostname": current_network_data.get("name"),
-            "notes": current_network_data.get("notes"),
-            "network_id": self._network_id,
-            "organization_id": current_network_data.get("organizationId"),
-            "product_types": current_network_data.get("productTypes"),
-            "tags": current_network_data.get("tags", []),
-            "time_zone": current_network_data.get("timeZone"),
-            "url": current_network_data.get("url"),
-        }
+            attributes = {
+                "hostname": current_network_data.get("name"),
+                "notes": current_network_data.get("notes"),
+                "network_id": self._network_id,
+                "organization_id": current_network_data.get("organizationId"),
+                "product_types": current_network_data.get("productTypes"),
+                "tags": current_network_data.get("tags", []),
+                "time_zone": current_network_data.get("timeZone"),
+                "url": current_network_data.get("url"),
+            }
 
         self._attr_extra_state_attributes = {
             k: v for k, v in attributes.items() if v is not None
