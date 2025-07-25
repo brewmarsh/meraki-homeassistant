@@ -30,6 +30,7 @@ from .helpers.utils import format_device_name
 
 # Obsolete coordinators (DeviceTagFetchCoordinator,
 # MerakiNetworkCoordinator, MerakiSsidCoordinator) removed.
+from .meraki_api_data_fetcher import MerakiApiDataFetcher
 from .tag_eraser_coordinator import (
     TagEraserCoordinator,
 )
