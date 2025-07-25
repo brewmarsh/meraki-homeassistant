@@ -84,10 +84,9 @@ class MerakiNetworkInfoSensor(
                 "time_zone": current_network_data.get("timeZone"),
                 "url": current_network_data.get("url"),
             }
-
-        self._attr_extra_state_attributes = {
-            k: v for k, v in attributes.items() if v is not None
-        }
+            self._attr_extra_state_attributes = {
+                k: v for k, v in attributes.items() if v is not None
+            }
 
         # _LOGGER.debug(
         #     "Network Info Sensor update for %s: state=%s, attributes=%s",
