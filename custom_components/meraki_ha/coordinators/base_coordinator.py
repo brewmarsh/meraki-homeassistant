@@ -25,7 +25,7 @@ from .data_aggregation_coordinator import DataAggregationCoordinator
 
 # Added imports for device registration
 from homeassistant.helpers import device_registry as dr
-from .helpers.naming_utils import format_device_name
+from .helpers.utils import format_device_name
 
 
 # Obsolete coordinators (DeviceTagFetchCoordinator,
