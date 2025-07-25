@@ -230,8 +230,8 @@ class MerakiApiDataFetcher:
             return
 
         uplink_settings = await self.api_client.call(
-            self.meraki_client.devices.getDeviceUplink(serial=serial),
-            f"getDeviceUplink(serial={serial})",
+            self.meraki_client.devices.get_device_uplink(serial=serial),
+            f"get_device_uplink(serial={serial})",
         )
         device["uplink_settings"] = uplink_settings
 
