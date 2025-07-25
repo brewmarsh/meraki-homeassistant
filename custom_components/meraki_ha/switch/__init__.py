@@ -13,11 +13,11 @@ from .meraki_ssid_device_switch import (
     MerakiSSIDEnabledSwitch,
     MerakiSSIDBroadcastSwitch,
 )
-from .camera_settings import (
+from .camera_profiles import (
     MerakiCameraSenseSwitch,
     MerakiCameraAudioDetectionSwitch,
-    MerakiCameraRTSPSwitch,
 )
+from .camera_schedules import MerakiCameraRTSPSwitch
 
 _LOGGER = logging.getLogger(__name__)
 
