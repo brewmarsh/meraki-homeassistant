@@ -14,7 +14,7 @@ from ..const import (
     DATA_SSID_DEVICES_COORDINATOR,
 )
 from ..api.meraki_api import MerakiAPIClient
-from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+from ..core.coordinators.network import MerakiNetworkCoordinator
 from .meraki_ssid_device_switch import (
     MerakiSSIDEnabledSwitch,
     MerakiSSIDBroadcastSwitch,

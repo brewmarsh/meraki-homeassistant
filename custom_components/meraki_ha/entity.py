@@ -14,7 +14,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 # used
-from .coordinators import MerakiDataUpdateCoordinator
+from .core.coordinators.device import MerakiDeviceCoordinator
 from .const import DOMAIN
 # map_meraki_model_to_device_type is now used via format_device_name
 # from .coordinators.meraki_device_types import map_meraki_model_to_device_type

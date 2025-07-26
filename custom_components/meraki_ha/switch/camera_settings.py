@@ -11,7 +11,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..const import DOMAIN
 from ..api.meraki_api import MerakiAPIClient
-from ..coordinators import MerakiDataUpdateCoordinator
+from ..core.coordinators.device import MerakiDeviceCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 

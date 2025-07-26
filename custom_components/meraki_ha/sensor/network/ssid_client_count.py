@@ -16,7 +16,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
 # Use SSIDDeviceCoordinator for these sensors
-from ...coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+from ...core.coordinators.network import MerakiNetworkCoordinator
 from ...const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)

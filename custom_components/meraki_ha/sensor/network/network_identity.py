@@ -9,7 +9,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...coordinators.base_coordinator import MerakiDataUpdateCoordinator
+from ...core.coordinators.network import MerakiNetworkCoordinator
 from ...const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)

@@ -8,7 +8,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityDescription
 
 from ..api.meraki_api import MerakiAPIClient
-from ..coordinators import MerakiDataUpdateCoordinator
+from ..core.coordinators.device import MerakiDeviceCoordinator
 from .camera_settings import MerakiCameraSettingSwitchBase
 
 _LOGGER = logging.getLogger(__name__)

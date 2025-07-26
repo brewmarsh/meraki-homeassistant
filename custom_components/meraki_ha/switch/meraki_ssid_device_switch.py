@@ -12,7 +12,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..const import DOMAIN
 from ..api.meraki_api import MerakiAPIClient
-from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+from ..core.coordinators.network import MerakiNetworkCoordinator
 from homeassistant.helpers.entity import EntityCategory
 
 _LOGGER = logging.getLogger(__name__)

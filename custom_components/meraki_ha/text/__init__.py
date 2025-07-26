@@ -8,7 +8,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN, DATA_CLIENT, DATA_COORDINATORS
 from ..api.meraki_api import MerakiAPIClient
-from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+from ..core.coordinators.network import MerakiNetworkCoordinator
 from .meraki_ssid_name import MerakiSSIDNameText
 
 _LOGGER = logging.getLogger(__name__)
