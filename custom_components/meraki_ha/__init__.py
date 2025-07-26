@@ -23,6 +23,7 @@ from .const import (
     DATA_COORDINATOR,
     DATA_COORDINATORS,
 )
+from .core.api.client import MerakiAPIClient
 from .core.coordinators.device import MerakiDeviceCoordinator
 from .core.coordinators.network import MerakiNetworkCoordinator
 
