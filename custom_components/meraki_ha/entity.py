@@ -23,7 +23,7 @@ from .helpers.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
+class MerakiEntity(CoordinatorEntity[MerakiDeviceCoordinator]):
     """Base class for Meraki entities in Home Assistant.
 
     This class provides common functionality for entities associated with
@@ -45,7 +45,7 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         # Meraki device this entity might be directly related to
         device_data: Dict[str, Any],
         # Optional SSID data if entity is SSID-specific
