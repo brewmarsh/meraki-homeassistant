@@ -22,14 +22,14 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
-from ...coordinators import MerakiDataUpdateCoordinator
+from ...core.coordinators.device import MerakiDeviceCoordinator
 from ...const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiDeviceStatusSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
 ):
     """Representation of a Meraki Device Status sensor.
 
@@ -51,7 +51,7 @@ class MerakiDeviceStatusSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         device_data: Dict[str, Any],  # Initial device_data snapshot
     ) -> None:
         """Initialize the Meraki Device Status sensor.
