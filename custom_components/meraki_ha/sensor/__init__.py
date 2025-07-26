@@ -20,7 +20,7 @@ from ..const import (
 )
 from ..core.coordinators.device import MerakiDeviceCoordinator
 from ..core.coordinators.network import MerakiNetworkCoordinator
-from ..api.meraki_api import MerakiAPIClient
+from ..core.api.client import MerakiAPIClient
 from ..sensor_registry import (
     COMMON_DEVICE_SENSORS,
     get_sensors_for_device_type,
