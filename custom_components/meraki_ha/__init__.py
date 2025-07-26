@@ -103,7 +103,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Perform initial data update
     try:
-        await coordinator.async_config_entry_first_refresh()
+        await device_coordinator.async_config_entry_first_refresh()
+        await network_coordinator.async_config_entry_first_refresh()
     except Exception as err:
         _LOGGER.error("Failed to perform initial data update: %s", err)
         return False
