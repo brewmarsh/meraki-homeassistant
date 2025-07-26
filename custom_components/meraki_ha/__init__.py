@@ -23,8 +23,8 @@ from .const import (
     DATA_COORDINATOR,
     DATA_COORDINATORS,
 )
-from .coordinators.base_coordinator import MerakiDataUpdateCoordinator
-from .coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+from .core.coordinators.device import MerakiDeviceCoordinator
+from .core.coordinators.network import MerakiNetworkCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -73,30 +73,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     update_interval = timedelta(seconds=scan_interval_seconds)
 
     # Create the main coordinator
-    coordinator = MerakiDataUpdateCoordinator(
+    device_coordinator = MerakiDeviceCoordinator(
         hass=hass,
-        api_key=api_key,
-        org_id=org_id,
-        scan_interval=update_interval,
-        config_entry=entry,
-    )
-
-    # Create the SSID device coordinator
-    ssid_coordinator = SSIDDeviceCoordinator(
-        hass=hass,
-        api_fetcher=coordinator.api_fetcher,
+        api_client=api_client,
+        name="device_coordinator",
         update_interval=update_interval,
-        config_entry=entry,
+    )
+    network_coordinator = MerakiNetworkCoordinator(
+        hass=hass,
+        api_client=api_client,
+        name="network_coordinator",
+        update_interval=update_interval,
     )
 
     # Store the coordinators and API client
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
-        DATA_COORDINATOR: coordinator,
-        DATA_COORDINATORS: {
-            "ssid_devices": ssid_coordinator,
-        },
-        DATA_CLIENT: coordinator.meraki_client,
+        "device_coordinator": device_coordinator,
+        "network_coordinator": network_coordinator,
+        DATA_CLIENT: api_client,
     }
 
     # Perform initial data update
