@@ -244,3 +244,24 @@ class MerakiAPIClient:
         validated = validate_response(settings)
         self._cache_data(cache_key, validated)
         return validated
+
+    @handle_meraki_errors
+    async def register_webhook(self, webhook_url: str, secret: str) -> None:
+        """Register a webhook with the Meraki API."""
+        _LOGGER.debug("Registering webhook: %s", webhook_url)
+        await self._run_sync(
+            self._dashboard.organizations.createOrganizationWebhook,
+            organizationId=self._org_id,
+            url=webhook_url,
+            secret=secret,
+        )
+
+    @handle_meraki_errors
+    async def unregister_webhook(self, webhook_id: str) -> None:
+        """Unregister a webhook with the Meraki API."""
+        _LOGGER.debug("Unregistering webhook: %s", webhook_id)
+        await self._run_sync(
+            self._dashboard.organizations.deleteOrganizationWebhook,
+            organizationId=self._org_id,
+            webhookId=webhook_id,
+        )

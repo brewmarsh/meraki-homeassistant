@@ -109,6 +109,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Set up the platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    # Register webhook
+    if "webhook_id" not in entry.data:
+        # TODO: Generate a unique webhook ID and secret
+        webhook_id = "your_webhook_id"
+        secret = "your_secret"
+        await async_register_webhook(hass, webhook_id, secret, api_client)
+        hass.config_entries.async_update_entry(
+            entry, data={**entry.data, "webhook_id": webhook_id, "secret": secret}
+        )
+
     # Register update listener to handle configuration changes
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
@@ -131,6 +141,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     Returns:
       True if all unload operations are successful, False otherwise.
     """
+    # Unregister webhook
+    if "webhook_id" in entry.data:
+        api_client = hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]
+        await async_unregister_webhook(hass, entry.data["webhook_id"], api_client)
+
     unload_ok: bool = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     if unload_ok:

@@ -26,6 +26,12 @@ Based on a recent analysis of the codebase, the following high-level recommendat
 - The logging level can be configured in the Home Assistant configuration.
 - The logging messages should be informative and should include context, such as the function name and the arguments that were passed to the function.
 
+## 7. Data Retrieval
+
+- The integration uses a hybrid data retrieval strategy that combines polling with webhooks.
+- The polling-based data retrieval strategy is implemented in the `core/coordinators` directory.
+- The webhook-based data retrieval strategy is implemented in the `webhook.py` file.
+
 ## 3. Configuration
 
 - All configuration data must be validated using `voluptuous` schemas.

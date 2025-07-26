@@ -25,11 +25,18 @@ The integration uses a centralized error handling strategy to ensure that all er
 
 ## Data Flow
 
+The integration uses a hybrid data retrieval strategy that combines polling with webhooks.
+
+*   **Polling:** The `MerakiDataUpdateCoordinator` fetches data from the Meraki API at a regular interval. This is used to get the initial state of the integration and to periodically refresh the data.
+*   **Webhooks:** The integration also uses webhooks to receive real-time updates from the Meraki API. This is used to get real-time updates for things like device status and client connectivity.
+
 The data flow for the integration is as follows:
 
 1.  The `MerakiDataUpdateCoordinator` fetches data from the Meraki API at a regular interval.
 2.  The coordinator stores the data in its `data` attribute.
 3.  The platforms (e.g., sensor, switch, device_tracker) access the data from the coordinator and update their state accordingly.
+4.  The integration also receives real-time updates from the Meraki API via webhooks.
+5.  The `async_handle_webhook` function processes the data from the webhook and updates the state of the integration accordingly.
 
 ## Coordinators
 
