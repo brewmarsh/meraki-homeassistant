@@ -72,6 +72,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     update_interval = timedelta(seconds=scan_interval_seconds)
 
+    # Create API client
+    api_client = MerakiAPIClient(
+        api_key=entry.data[CONF_MERAKI_API_KEY],
+        org_id=entry.data[CONF_MERAKI_ORG_ID],
+    )
+
     # Create the main coordinator
     device_coordinator = MerakiDeviceCoordinator(
         hass=hass,
