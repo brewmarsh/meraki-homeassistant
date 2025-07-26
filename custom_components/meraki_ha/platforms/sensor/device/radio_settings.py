@@ -3,7 +3,7 @@
 import logging
 from typing import Any, Dict
 
-from ....entities import MerakiDeviceEntity
+from ....core.entities.device import MerakiDeviceEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -18,48 +18,33 @@ class MerakiRadioSettingsSensor(MerakiDeviceEntity):
     def __init__(
         self,
         coordinator,
-        device_data: Dict[str, Any],
+        device_serial: str,
     ) -> None:
         """Initialize the radio settings sensor."""
         super().__init__(
             coordinator=coordinator,
-            device_data=device_data,
+            device_serial=device_serial,
             name="Radio Settings",
             unique_id_suffix="radio_settings",
         )
-        self._update_sensor_state()
 
-    def _update_sensor_state(self) -> None:
-        """Update sensor state and attributes from coordinator data."""
-        current_device_data = self._get_device_data()
+    @property
+    def native_value(self) -> str:
+        """Return the radio status."""
+        return self.device_data.get("radio_settings", {}).get("status", STATE_UNAVAILABLE)
 
-        if not current_device_data:
-            self._attr_native_value = STATE_UNAVAILABLE
-            self._attr_extra_state_attributes = {}
-            return
-
-        radio_settings = current_device_data.get("radio_settings")
-        if not radio_settings:
-            _LOGGER.warning(
-                "Radio settings for device '%s' (Serial: %s) not found in coordinator data. Setting state to unavailable.",
-                current_device_data.get("name", "Unknown"),
-                self._device_serial,
-            )
-            self._attr_native_value = STATE_UNAVAILABLE
-            self._attr_extra_state_attributes = {}
-            return
-
-        self._attr_native_value = radio_settings.get("status", STATE_UNAVAILABLE)
-
-        # Create attributes with both 2.4GHz and 5GHz radio settings
-        radio_24ghz = radio_settings.get("24", {})
+    @property
+    def extra_state_attributes(self) -> Dict[str, Any]:
+        """Return the state attributes."""
+        radio_settings = self.device_data.get("radio_settings", {})
+        radio_24ghz = radio_settings.get("2.4", {})
         radio_5ghz = radio_settings.get("5", {})
 
-        self._attr_extra_state_attributes = {
-            "2_4ghz_channel": radio_24ghz.get("channel", 0),
-            "2_4ghz_power": radio_24ghz.get("power", 0),
-            "5ghz_channel": radio_5ghz.get("channel", 0),
-            "5ghz_power": radio_5ghz.get("power", 0),
-            "network_id": current_device_data.get("networkId"),
-            "tags": current_device_data.get("tags", []),
+        return {
+            "2_4ghz_channel": radio_24ghz.get("channel"),
+            "2_4ghz_power": radio_24ghz.get("power"),
+            "5ghz_channel": radio_5ghz.get("channel"),
+            "5ghz_power": radio_5ghz.get("power"),
+            "network_id": self.device_data.get("networkId"),
+            "tags": self.device_data.get("tags", []),
         }
