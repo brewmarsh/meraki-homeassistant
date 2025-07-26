@@ -38,6 +38,7 @@ def handle_meraki_errors(func: Callable[..., T]) -> Callable[..., T]:
         try:
             return await func(*args, **kwargs)
         except APIError as err:
+            _LOGGER.error("Meraki API error: %s", err)
             if _is_auth_error(err):
                 raise MerakiAuthenticationError(f"Authentication failed: {err}")
             elif _is_device_error(err):
@@ -46,13 +47,16 @@ def handle_meraki_errors(func: Callable[..., T]) -> Callable[..., T]:
                 raise MerakiNetworkError(f"Network error: {err}")
             elif _is_rate_limit_error(err):
                 # Wait and retry for rate limit errors
+                _LOGGER.warning("Rate limit exceeded, retrying in 2 seconds...")
                 await asyncio.sleep(2)
                 return await wrapper(*args, **kwargs)
             else:
                 raise MerakiConnectionError(f"API error: {err}")
         except ClientError as err:
+            _LOGGER.error("Connection error: %s", err)
             raise MerakiConnectionError(f"Connection error: {err}")
         except Exception as err:
+            _LOGGER.error("Unexpected error: %s", err)
             raise MerakiConnectionError(f"Unexpected error: {err}")
 
     return cast(Callable[..., T], wrapper)
@@ -115,10 +119,12 @@ def validate_response(response: Any) -> Dict[str, Any]:
         MerakiConnectionError: If response is invalid or empty
     """
     if response is None:
+        _LOGGER.warning("Empty response from API")
         raise MerakiConnectionError("Empty response from API")
 
     if isinstance(response, dict):
         if not response:  # Empty dict
+            _LOGGER.warning("Empty response dictionary")
             raise MerakiConnectionError("Empty response dictionary")
         return response
 
@@ -130,6 +136,9 @@ def validate_response(response: Any) -> Dict[str, Any]:
         # Single values should be wrapped in a proper structure
         return {"value": response}
 
+    _LOGGER.warning(
+        "Invalid response format: %s. Expected dict or list.", type(response)
+    )
     raise MerakiConnectionError(
         f"Invalid response format: {type(response)}. Expected dict or list."
     )

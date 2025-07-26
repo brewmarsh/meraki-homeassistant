@@ -50,6 +50,7 @@ class MerakiAPIClient:
 
     async def _run_sync(self, func, *args, **kwargs) -> Any:
         """Run a synchronous function in a thread pool."""
+        _LOGGER.debug("Running synchronous function: %s", func.__name__)
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, partial(func, *args, **kwargs))
 
@@ -81,6 +82,7 @@ class MerakiAPIClient:
     @handle_meraki_errors
     async def get_organization(self) -> Dict[str, Any]:
         """Get organization details."""
+        _LOGGER.debug("Getting organization details")
         cache_key = self._get_cache_key("get_organization")
 
         if cached := self._get_cached_data(cache_key):
@@ -96,6 +98,7 @@ class MerakiAPIClient:
     @handle_meraki_errors
     async def get_networks(self) -> List[Dict[str, Any]]:
         """Get all networks in the organization."""
+        _LOGGER.debug("Getting networks")
         cache_key = self._get_cache_key("get_networks")
 
         if cached := self._get_cached_data(cache_key):
@@ -114,6 +117,7 @@ class MerakiAPIClient:
         self, network_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """Get all devices in the organization or a specific network."""
+        _LOGGER.debug("Getting devices for network: %s", network_id)
         cache_key = self._get_cache_key("get_devices", network_id)
 
         if cached := self._get_cached_data(cache_key):
@@ -136,6 +140,7 @@ class MerakiAPIClient:
     @handle_meraki_errors
     async def get_device_statuses(self, network_id: str) -> List[Dict[str, Any]]:
         """Get status information for all devices in a network."""
+        _LOGGER.debug("Getting device statuses for network: %s", network_id)
         cache_key = self._get_cache_key("get_device_statuses", network_id)
 
         # Status data should have a shorter cache timeout
@@ -157,6 +162,7 @@ class MerakiAPIClient:
     @handle_meraki_errors
     async def get_device_clients(self, serial: str) -> List[Dict[str, Any]]:
         """Get client information for a specific device."""
+        _LOGGER.debug("Getting device clients for serial: %s", serial)
         cache_key = self._get_cache_key("get_device_clients", serial)
 
         # Client data should have a shorter cache timeout
@@ -178,6 +184,7 @@ class MerakiAPIClient:
     @handle_meraki_errors
     async def get_ssids(self, network_id: str) -> List[Dict[str, Any]]:
         """Get wireless SSIDs for a network."""
+        _LOGGER.debug("Getting SSIDs for network: %s", network_id)
         cache_key = self._get_cache_key("get_ssids", network_id)
 
         if cached := self._get_cached_data(cache_key):
@@ -193,6 +200,7 @@ class MerakiAPIClient:
     @handle_meraki_errors
     async def get_vlans(self, network_id: str) -> List[Dict[str, Any]]:
         """Get VLANs for a network."""
+        _LOGGER.debug("Getting VLANs for network: %s", network_id)
         cache_key = self._get_cache_key("get_vlans", network_id)
 
         if cached := self._get_cached_data(cache_key):
@@ -208,6 +216,7 @@ class MerakiAPIClient:
     @handle_meraki_errors
     async def get_switch_ports(self, serial: str) -> List[Dict[str, Any]]:
         """Get ports for a switch."""
+        _LOGGER.debug("Getting switch ports for serial: %s", serial)
         cache_key = self._get_cache_key("get_switch_ports", serial)
 
         if cached := self._get_cached_data(cache_key):
@@ -223,6 +232,7 @@ class MerakiAPIClient:
     @handle_meraki_errors
     async def get_wireless_settings(self, serial: str) -> Dict[str, Any]:
         """Get wireless radio settings for an access point."""
+        _LOGGER.debug("Getting wireless settings for serial: %s", serial)
         cache_key = self._get_cache_key("get_wireless_settings", serial)
 
         if cached := self._get_cached_data(cache_key):

@@ -19,6 +19,10 @@ The integration is divided into the following components:
 *   **`const.py`**: A file that contains all of the constants used in the integration.
 *   **`AGENTS.md`**: A file that contains guidelines for agents working on the codebase.
 
+## Error Handling
+
+The integration uses a centralized error handling strategy to ensure that all errors are handled consistently and that user-friendly error messages are displayed. The `@handle_meraki_errors` decorator is used to wrap all API calls and to handle any errors that may occur. The decorator logs the errors and raises a more specific exception from the `core.errors` module. This allows the calling code to handle different types of errors in a more granular way.
+
 ## Data Flow
 
 The data flow for the integration is as follows:

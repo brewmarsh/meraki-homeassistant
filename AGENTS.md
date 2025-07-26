@@ -20,6 +20,12 @@ Based on a recent analysis of the codebase, the following high-level recommendat
 - All public functions and classes must have comprehensive docstrings that explain their purpose, arguments, and return values.
 - Use the Google Python Style Guide for docstring formatting.
 
+## 6. Logging
+
+- The integration uses the `logging` module to log messages.
+- The logging level can be configured in the Home Assistant configuration.
+- The logging messages should be informative and should include context, such as the function name and the arguments that were passed to the function.
+
 ## 3. Configuration
 
 - All configuration data must be validated using `voluptuous` schemas.
