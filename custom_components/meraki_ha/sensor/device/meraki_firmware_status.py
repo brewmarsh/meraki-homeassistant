@@ -15,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiFirmwareStatusSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
 ):
     """Representation of a Meraki Device Firmware Status Sensor."""
 
@@ -26,7 +26,7 @@ class MerakiFirmwareStatusSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         device_data: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""

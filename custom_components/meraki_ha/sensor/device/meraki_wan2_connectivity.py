@@ -19,7 +19,7 @@ STATE_UNKNOWN = "Unknown"
 
 
 class MerakiWAN2ConnectivitySensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
 ):
     """Representation of a Meraki WAN2 Connectivity Sensor."""
 
@@ -29,7 +29,7 @@ class MerakiWAN2ConnectivitySensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         device_data: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""

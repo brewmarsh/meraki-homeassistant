@@ -16,7 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiNetworkIdentitySensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiNetworkCoordinator], SensorEntity
 ):
     """Representation of a Meraki Network Identity sensor.
 
@@ -28,7 +28,7 @@ class MerakiNetworkIdentitySensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiNetworkCoordinator,
         network_data: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki Network Identity sensor.

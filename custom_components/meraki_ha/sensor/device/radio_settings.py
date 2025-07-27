@@ -30,7 +30,7 @@ STATE_ERROR_VALUE = "Error"
 
 
 class MerakiRadioSettingsSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
 ):
     """Representation of a Meraki Radio Settings sensor.
 
@@ -57,7 +57,7 @@ class MerakiRadioSettingsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         # Data for the Meraki device this sensor is for
         device_data: Dict[str, Any],
     ) -> None:

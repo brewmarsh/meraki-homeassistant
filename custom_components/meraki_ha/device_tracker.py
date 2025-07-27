@@ -44,8 +44,8 @@ async def async_setup_entry(
         config_entry: The configuration entry for this Meraki integration instance.
         async_add_entities: Callback function to add entities to Home Assistant.
     """
-    coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id][
-        DATA_COORDINATOR
+    coordinator: MerakiDeviceCoordinator = hass.data[DOMAIN][config_entry.entry_id][
+        "device_coordinator"
     ]
 
     # Ensure coordinator data is available
@@ -82,7 +82,7 @@ async def async_setup_entry(
 
 
 class MerakiDeviceTracker(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], TrackerEntity
+    CoordinatorEntity[MerakiDeviceCoordinator], TrackerEntity
 ):
     """Representation of an individual client device connected to a Meraki network.
 
@@ -95,7 +95,7 @@ class MerakiDeviceTracker(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         client_info: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki client device tracker.

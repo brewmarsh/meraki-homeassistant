@@ -13,7 +13,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiOrgDeviceTypeClientsSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
 ):
     """Representation of a Meraki Organization Device Type Clients sensor.
 
@@ -27,7 +27,7 @@ class MerakiOrgDeviceTypeClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         organization_id: str,
         organization_name: str,
     ) -> None:
