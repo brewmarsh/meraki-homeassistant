@@ -13,7 +13,7 @@ from ..const import (
     DATA_COORDINATORS,
     DATA_SSID_DEVICES_COORDINATOR,
 )
-from ..api.meraki_api import MerakiAPIClient
+from ..core.api.client import MerakiAPIClient
 from ..core.coordinators.network import MerakiNetworkCoordinator
 from .meraki_ssid_device_switch import (
     MerakiSSIDEnabledSwitch,
