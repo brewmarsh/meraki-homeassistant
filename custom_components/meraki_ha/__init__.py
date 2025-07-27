@@ -26,6 +26,7 @@ from .const import (
 from .core.api.client import MerakiAPIClient
 from .core.coordinators.device import MerakiDeviceCoordinator
 from .core.coordinators.network import MerakiNetworkCoordinator
+from .webhook import async_register_webhook, async_unregister_webhook
 
 _LOGGER = logging.getLogger(__name__)
 
