@@ -23,7 +23,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiSSIDClientCountSensor(
-    CoordinatorEntity[SSIDDeviceCoordinator], SensorEntity
+    CoordinatorEntity[MerakiNetworkCoordinator], SensorEntity
 ):
     """Represents a Meraki SSID Client Count sensor.
 
@@ -39,7 +39,7 @@ class MerakiSSIDClientCountSensor(
 
     def __init__(
         self,
-        coordinator: SSIDDeviceCoordinator,
+        coordinator: MerakiNetworkCoordinator,
         ssid_data: Dict[str, Any],  # Specific SSID data for this sensor
     ) -> None:
         """Initialize the Meraki SSID Client Count sensor.

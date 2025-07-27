@@ -18,14 +18,14 @@ from homeassistant.helpers.entity import EntityCategory
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDBaseSwitch(CoordinatorEntity[SSIDDeviceCoordinator], SwitchEntity):
+class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiNetworkCoordinator], SwitchEntity):
     """Base class for Meraki SSID Switches."""
 
     entity_category = EntityCategory.CONFIG
 
     def __init__(
         self,
-        coordinator: SSIDDeviceCoordinator,
+        coordinator: MerakiNetworkCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_unique_id: str,
@@ -155,7 +155,7 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
 
     def __init__(
         self,
-        coordinator: SSIDDeviceCoordinator,
+        coordinator: MerakiNetworkCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_unique_id: str,
@@ -178,7 +178,7 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
 
     def __init__(
         self,
-        coordinator: SSIDDeviceCoordinator,
+        coordinator: MerakiNetworkCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_unique_id: str,

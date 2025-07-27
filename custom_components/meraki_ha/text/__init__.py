@@ -27,12 +27,12 @@ async def async_setup_entry(
         meraki_client: MerakiAPIClient = entry_data[DATA_CLIENT]
 
         # Get the SSID device coordinator for SSID name text entities
-        ssid_coordinator: SSIDDeviceCoordinator = entry_data[DATA_COORDINATORS].get(
-            "ssid_devices"
+        network_coordinator: MerakiNetworkCoordinator = entry_data.get(
+            "network_coordinator"
         )
-        if not ssid_coordinator:
+        if not network_coordinator:
             _LOGGER.error(
-                "Text platform: SSID Device coordinator not found for entry %s. Cannot set up SSID name text entities.",
+                "Text platform: Network coordinator not found for entry %s. Cannot set up SSID name text entities.",
                 config_entry.entry_id,
             )
             return False  # Or True if other text entities might exist from other coordinators
@@ -47,9 +47,9 @@ async def async_setup_entry(
     new_entities: list = []
 
     # Setup SSID Name Text Entities
-    if ssid_coordinator and ssid_coordinator.data:
-        # _LOGGER.debug("SSID Coordinator data available, setting up SSID name text entities. %s SSIDs found.", len(ssid_coordinator.data)) # Removed
-        for ssid_unique_id, ssid_data in ssid_coordinator.data.items():
+    if network_coordinator and network_coordinator.data:
+        # _LOGGER.debug("SSID Coordinator data available, setting up SSID name text entities. %s SSIDs found.", len(network_coordinator.data)) # Removed
+        for ssid_unique_id, ssid_data in network_coordinator.data.items():
             if not isinstance(ssid_data, dict):
                 _LOGGER.warning(
                     "Skipping non-dictionary ssid_data for SSID unique_id %s in text platform.",
@@ -60,7 +60,7 @@ async def async_setup_entry(
             # _LOGGER.debug("Setting up text entity for SSID: %s (Data: %s)", ssid_data.get('name', ssid_unique_id), ssid_data) # Removed
             new_entities.append(
                 MerakiSSIDNameText(
-                    ssid_coordinator,
+                    network_coordinator,
                     meraki_client,
                     config_entry,
                     ssid_unique_id,
@@ -69,7 +69,7 @@ async def async_setup_entry(
             )
     else:
         _LOGGER.info(
-            "SSID Coordinator data not available or no SSIDs found for setting up SSID name text entities."
+            "Network Coordinator data not available or no SSIDs found for setting up SSID name text entities."
         )
 
     if new_entities:

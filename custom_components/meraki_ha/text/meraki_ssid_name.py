@@ -22,7 +22,7 @@ from homeassistant.helpers.entity import EntityCategory
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDNameText(CoordinatorEntity[SSIDDeviceCoordinator], TextEntity):
+class MerakiSSIDNameText(CoordinatorEntity[MerakiNetworkCoordinator], TextEntity):
     """Representation of a Meraki SSID Name text entity."""
 
     _attr_mode = TextMode.TEXT  # Or TextMode.PASSWORD if it were a password
@@ -30,7 +30,7 @@ class MerakiSSIDNameText(CoordinatorEntity[SSIDDeviceCoordinator], TextEntity):
 
     def __init__(
         self,
-        coordinator: SSIDDeviceCoordinator,
+        coordinator: MerakiNetworkCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,  # Added to match switch entities
         ssid_unique_id: str,  # unique_id for the HA "device" representing the SSID

@@ -145,7 +145,7 @@ class MerakiEntity(CoordinatorEntity[MerakiDeviceCoordinator]):
         # In this case, _ssid_info_data will be populated (it's the SSID's own data dict from the coordinator),
         # and _ssid_number will be derived from it.
         # The `device_info` should then point to the "SSID Device" in Home Assistant's device registry.
-        # This "SSID Device" is a logical representation, expected to be registered by `SSIDDeviceCoordinator`
+        # This "SSID Device" is a logical representation, expected to be registered by `MerakiNetworkCoordinator`
         # with an identifier like (DOMAIN, f"{network_id}_{ssid_number}").
         # This "SSID Device" is, in turn, typically linked via `via_device` to its parent "Network Device".
         # Resulting hierarchy for an SSID-specific sensor: Sensor Entity -> SSID Device -> Network Device -> Config Entry.
