@@ -7,7 +7,7 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.entity import EntityDescription
 
 from ..const import DOMAIN
-from ..api.meraki_api import MerakiAPIClient
+from ..core.api.client import MerakiAPIClient
 from ..core.coordinators.device import MerakiDeviceCoordinator
 from .camera_settings import MerakiCameraSettingSwitchBase
 

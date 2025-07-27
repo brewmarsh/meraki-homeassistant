@@ -7,7 +7,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN, DATA_CLIENT, DATA_COORDINATORS
-from ..api.meraki_api import MerakiAPIClient
+from ..core.api.client import MerakiAPIClient
 from ..core.coordinators.network import MerakiNetworkCoordinator
 from .meraki_ssid_name import MerakiSSIDNameText
 
