@@ -89,3 +89,5 @@ ERASE_TAGS_WARNING: Final[str] = (
     "Proceed with extreme caution!"
 )
 """Warning message for the tag erasing feature (str)."""
+
+WEBHOOK_ID_FORMAT: Final[str] = "meraki_ha_{entry_id}"
