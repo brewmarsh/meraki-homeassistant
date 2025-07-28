@@ -132,8 +132,8 @@ def validate_response(response: Any) -> Dict[str, Any]:
         return response
 
     if isinstance(response, list):
-        # Lists are common responses, wrap them in a data field
-        return {"data": response}
+        # Lists are common responses, return them as is
+        return response
 
     if isinstance(response, (str, int, float, bool)):
         # Single values should be wrapped in a proper structure
