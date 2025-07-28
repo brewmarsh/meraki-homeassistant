@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.switch.camera_settings import (
+from custom_components.meraki_ha.core.switch.camera_settings import (
     MerakiCameraSenseSwitch,
     MerakiCameraAudioDetectionSwitch,
     MerakiCameraRTSPSwitch,

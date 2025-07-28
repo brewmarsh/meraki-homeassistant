@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.sensor.uplink_status import (
+from custom_components.meraki_ha.core.sensor.uplink_status import (
     MerakiUplinkStatusSensor,
 )
 

@@ -4,14 +4,14 @@ from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.sensor.ssid import (
+from custom_components.meraki_ha.core.sensor.ssid import (
     create_ssid_sensors,
 )
-from custom_components.meraki_ha.sensor.ssid_availability import (
+from custom_components.meraki_ha.core.sensor.ssid_availability import (
     MerakiSSIDAvailabilitySensor,
 )
-from custom_components.meraki_ha.sensor.ssid_channel import MerakiSSIDChannelSensor
-from custom_components.meraki_ha.sensor.ssid_client_count import (
+from custom_components.meraki_ha.core.sensor.ssid_channel import MerakiSSIDChannelSensor
+from custom_components.meraki_ha.core.sensor.ssid_client_count import (
     MerakiSSIDClientCountSensor,
 )
 

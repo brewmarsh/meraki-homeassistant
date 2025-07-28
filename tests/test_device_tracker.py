@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.device_tracker import (
+from custom_components.meraki_ha.core.device_tracker import (
     async_setup_entry,
 )
 

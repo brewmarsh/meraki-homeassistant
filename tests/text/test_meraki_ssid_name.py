@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.text.meraki_ssid_name import (
+from custom_components.meraki_ha.core.text.meraki_ssid_name import (
     MerakiSSIDNameText,
 )
 
