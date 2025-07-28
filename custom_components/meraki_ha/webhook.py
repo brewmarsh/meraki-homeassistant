@@ -14,7 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def get_webhook_url(hass: HomeAssistant, webhook_id: str) -> str:
     """Get the URL for a webhook."""
-    return f"{hass.config.api.base_url}/api/webhook/{webhook_id}"
+    return f"{hass.config.internal_url}/api/webhook/{webhook_id}"
 
 
 async def async_register_webhook(
