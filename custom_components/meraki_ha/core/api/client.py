@@ -250,10 +250,11 @@ class MerakiAPIClient:
         """Register a webhook with the Meraki API."""
         _LOGGER.debug("Registering webhook: %s", webhook_url)
         await self._run_sync(
-            self._dashboard.organizations.createOrganizationWebhook,
+            self._dashboard.organizations.createOrganizationWebhookHttpServer,
             organizationId=self._org_id,
             url=webhook_url,
-            secret=secret,
+            sharedSecret=secret,
+            name=webhook_url,
         )
 
     @handle_meraki_errors
@@ -261,7 +262,7 @@ class MerakiAPIClient:
         """Unregister a webhook with the Meraki API."""
         _LOGGER.debug("Unregistering webhook: %s", webhook_id)
         await self._run_sync(
-            self._dashboard.organizations.deleteOrganizationWebhook,
+            self._dashboard.organizations.deleteOrganizationWebhookHttpServer,
             organizationId=self._org_id,
-            webhookId=webhook_id,
+            httpServerId=webhook_id,
         )

@@ -2,6 +2,7 @@
 
 import asyncio
 import functools
+import logging
 from typing import Any, Callable, Dict, TypeVar, cast
 from aiohttp import ClientError
 from meraki.exceptions import APIError  # type: ignore
@@ -15,6 +16,8 @@ from ..errors import (
 
 # Type variable for generic function return type
 T = TypeVar("T")
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def handle_meraki_errors(func: Callable[..., T]) -> Callable[..., T]:
