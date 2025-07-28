@@ -110,7 +110,7 @@ class MerakiAPIClient:
         )
         validated = validate_response(networks)
         self._cache_data(cache_key, validated)
-        return validated["data"]
+        return validated
 
     @handle_meraki_errors
     async def get_devices(
