@@ -96,6 +96,26 @@ class MerakiAPIClient:
         return validated
 
     @handle_meraki_errors
+    async def get_organizations(self) -> List[Dict[str, Any]]:
+        """Get all organizations."""
+        _LOGGER.debug("Getting all organizations")
+        cache_key = self._get_cache_key("get_organizations")
+
+        if cached := self._get_cached_data(cache_key):
+            return cached
+
+        orgs = await self._run_sync(self._dashboard.organizations.getOrganizations)
+        validated = validate_response(orgs)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_organizations did not return a list, returning empty list. Got: %s",
+                type(validated),
+            )
+            validated = []
+        self._cache_data(cache_key, validated)
+        return validated
+
+    @handle_meraki_errors
     async def get_network_clients(self, network_id: str) -> List[Dict[str, Any]]:
         """Get all clients in a network."""
         _LOGGER.debug("Getting clients for network: %s", network_id)
@@ -377,3 +397,7 @@ class MerakiAPIClient:
             if webhook.get("url") == url:
                 return webhook
         return None
+
+    async def close(self) -> None:
+        """Close the API client session."""
+        await self._dashboard.close()

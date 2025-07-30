@@ -82,9 +82,7 @@ class MerakiAuthentication:
             )
             # Assuming client.organizations.getOrganizations exists and returns
             # a list of dicts, each with an 'id' key.
-            all_organizations: List[Dict[str, Any]] = (
-                await client.organizations.getOrganizations()
-            )
+            all_organizations: List[Dict[str, Any]] = await client.get_organizations()
 
             # Initialize fetched_org_name
             fetched_org_name: Optional[str] = None
@@ -177,7 +175,8 @@ class MerakiAuthentication:
                 "Closing MerakiAPIClient session for credential validation (org %s).",
                 self.organization_id,
             )
-            await client.close()
+            if client:
+                await client.close()
 
 
 async def validate_meraki_credentials(api_key: str, organization_id: str) -> Dict[str, Any]:
