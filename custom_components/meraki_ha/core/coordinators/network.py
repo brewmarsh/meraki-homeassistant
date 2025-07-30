@@ -19,10 +19,10 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
         self._networks: List[Dict[str, Any]] = []
 
     async def _async_update_data(self) -> Dict[str, Any]:
-        """Fetch network and client data from Meraki.
+        """Fetch network, client, and SSID data from Meraki.
 
         Returns:
-            Dict containing network and client data
+            Dict containing network, client, and SSID data
 
         Raises:
             UpdateFailed: If update fails
@@ -30,6 +30,7 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
         try:
             networks = await self.api_client.get_networks()
             all_clients = []
+            all_ssids = []
             processed_networks = []
 
             for network in networks:
@@ -57,10 +58,25 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
                     )
                     network["client_count"] = 0
 
+                # Fetch SSIDs if network supports wireless
+                if 'wireless' in network.get("productTypes", []):
+                    try:
+                        network_ssids = await self.api_client.get_ssids(network["id"])
+                        for ssid in network_ssids:
+                            ssid["networkId"] = network["id"]
+                            ssid["unique_id"] = f'{network["id"]}_{ssid["number"]}'
+                        all_ssids.extend(network_ssids)
+                    except Exception as err:
+                        _LOGGER.warning(
+                            "Error fetching SSIDs for network %s: %s",
+                            network.get("id"),
+                            err,
+                        )
+
                 processed_networks.append(network)
 
             self._networks = processed_networks
-            return {"networks": processed_networks, "clients": all_clients}
+            return {"networks": processed_networks, "clients": all_clients, "ssids": all_ssids}
 
         except Exception as err:
             _LOGGER.error("Error fetching network data: %s", err)

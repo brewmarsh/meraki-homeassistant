@@ -48,16 +48,22 @@ async def async_setup_entry(
 
     # Setup SSID Name Text Entities
     if network_coordinator and network_coordinator.data:
-        # _LOGGER.debug("SSID Coordinator data available, setting up SSID name text entities. %s SSIDs found.", len(network_coordinator.data)) # Removed
-        for ssid_unique_id, ssid_data in network_coordinator.data.items():
+        ssids = network_coordinator.data.get("ssids", [])
+        for ssid_data in ssids:
             if not isinstance(ssid_data, dict):
                 _LOGGER.warning(
-                    "Skipping non-dictionary ssid_data for SSID unique_id %s in text platform.",
-                    ssid_unique_id,
+                    "Skipping non-dictionary ssid_data in text platform: %s",
+                    ssid_data,
                 )
                 continue
 
-            # _LOGGER.debug("Setting up text entity for SSID: %s (Data: %s)", ssid_data.get('name', ssid_unique_id), ssid_data) # Removed
+            ssid_unique_id = ssid_data.get("unique_id")
+            if not ssid_unique_id:
+                _LOGGER.warning(
+                    "SSID data missing unique_id, cannot create entity: %s", ssid_data
+                )
+                continue
+
             new_entities.append(
                 MerakiSSIDNameText(
                     network_coordinator,
