@@ -96,6 +96,34 @@ class MerakiAPIClient:
         return validated
 
     @handle_meraki_errors
+    async def get_network_clients(self, network_id: str) -> List[Dict[str, Any]]:
+        """Get all clients in a network."""
+        _LOGGER.debug("Getting clients for network: %s", network_id)
+        cache_key = self._get_cache_key("get_network_clients", network_id)
+
+        # Client data should have a shorter cache timeout
+        self._cache_timeout = 60  # 1 minute
+
+        if cached := self._get_cached_data(cache_key):
+            return cached
+
+        clients = await self._run_sync(
+            self._dashboard.networks.getNetworkClients, networkId=network_id
+        )
+        validated = validate_response(clients)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_network_clients did not return a list, returning empty list. Got: %s",
+                type(validated),
+            )
+            validated = []
+        self._cache_data(cache_key, validated)
+
+        # Reset cache timeout
+        self._cache_timeout = 300
+        return validated
+
+    @handle_meraki_errors
     async def get_networks(self) -> List[Dict[str, Any]]:
         """Get all networks in the organization."""
         _LOGGER.debug("Getting networks")
@@ -109,6 +137,12 @@ class MerakiAPIClient:
             organizationId=self._org_id,
         )
         validated = validate_response(networks)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_networks did not return a list, returning empty list. Got: %s",
+                type(validated),
+            )
+            validated = []
         self._cache_data(cache_key, validated)
         return validated
 

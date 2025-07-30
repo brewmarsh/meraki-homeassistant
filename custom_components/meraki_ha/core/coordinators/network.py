@@ -19,16 +19,17 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
         self._networks: List[Dict[str, Any]] = []
 
     async def _async_update_data(self) -> Dict[str, Any]:
-        """Fetch network data from Meraki.
+        """Fetch network and client data from Meraki.
 
         Returns:
-            Dict containing network data
+            Dict containing network and client data
 
         Raises:
             UpdateFailed: If update fails
         """
         try:
             networks = await self.api_client.get_networks()
+            all_clients = []
             processed_networks = []
 
             for network in networks:
@@ -37,9 +38,17 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
                     _LOGGER.warning("Network missing required attributes: %s", network)
                     continue
 
-                # Fetch additional network data like client count
+                # Fetch clients for this network
                 try:
-                    network["client_count"] = 0  # Placeholder for actual API call
+                    network_clients = await self.api_client.get_network_clients(
+                        network["id"]
+                    )
+                    for client in network_clients:
+                        client["networkId"] = network[
+                            "id"
+                        ]  # ensure networkId is present
+                    all_clients.extend(network_clients)
+                    network["client_count"] = len(network_clients)
                 except Exception as err:
                     _LOGGER.warning(
                         "Error fetching client count for network %s: %s",
@@ -51,7 +60,7 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
                 processed_networks.append(network)
 
             self._networks = processed_networks
-            return {"networks": processed_networks}
+            return {"networks": processed_networks, "clients": all_clients}
 
         except Exception as err:
             _LOGGER.error("Error fetching network data: %s", err)
