@@ -23,7 +23,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 # Assuming MerakiDataUpdateCoordinator is the central coordinator for
 # the Meraki integration and it's correctly defined in .coordinator
 from .const import DATA_COORDINATOR, DOMAIN
-from .core.coordinators.device import MerakiDeviceCoordinator
+from .core.coordinators.network import MerakiNetworkCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,8 +44,8 @@ async def async_setup_entry(
         config_entry: The configuration entry for this Meraki integration instance.
         async_add_entities: Callback function to add entities to Home Assistant.
     """
-    coordinator: MerakiDeviceCoordinator = hass.data[DOMAIN][config_entry.entry_id][
-        "device_coordinator"
+    coordinator: MerakiNetworkCoordinator = hass.data[DOMAIN][config_entry.entry_id][
+        "network_coordinator"
     ]
 
     # Ensure coordinator data is available
@@ -82,7 +82,7 @@ async def async_setup_entry(
 
 
 class MerakiDeviceTracker(
-    CoordinatorEntity[MerakiDeviceCoordinator], TrackerEntity
+    CoordinatorEntity[MerakiNetworkCoordinator], TrackerEntity
 ):
     """Representation of an individual client device connected to a Meraki network.
 
@@ -95,7 +95,7 @@ class MerakiDeviceTracker(
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiNetworkCoordinator,
         client_info: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki client device tracker.
