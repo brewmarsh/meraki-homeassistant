@@ -4,17 +4,17 @@ import logging
 from typing import Any, Dict
 
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.helpers.network import get_url
 
-from .const import DOMAIN, WEBHOOK_ID_FORMAT
+from .core.api import MerakiAPIClient
+
 
 _LOGGER = logging.getLogger(__name__)
 
 
 def get_webhook_url(hass: HomeAssistant, webhook_id: str) -> str:
     """Get the URL for a webhook."""
-    return f"{hass.config.api.base_url}/api/webhook/{webhook_id}"
+    return f"{get_url(hass)}/api/webhook/{webhook_id}"
 
 
 async def async_register_webhook(
