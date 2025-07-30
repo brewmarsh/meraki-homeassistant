@@ -54,6 +54,14 @@ These sensors are linked to Meraki Network "devices" in Home Assistant.
 
 - _(Details of other network-specific sensors like Network Information for MX would go here.)_
 
+### Appliance Port Sensors
+
+These sensors are linked to Meraki MX security appliance "devices" in Home Assistant.
+
+| Entity Type | Name | Description | Availability |
+| :--- | :--- | :--- | :--- |
+| Sensor | `[Appliance Name] Port [Port Number]` | Shows the status of a specific port on a Meraki appliance. The state will be "connected" or "disconnected". | Meraki MX Appliances |
+
 ## SSID Sensors
 
 These sensors are linked to Meraki SSID "devices" in Home Assistant.

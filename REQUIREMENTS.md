@@ -15,8 +15,8 @@
 | The integration must discover Meraki hardware devices within the specified organization and networks. | Included |
 | It should create or update device entities in Home Assistant based on these hardware devices. | Included |
 | Device types (Wireless, Switch, Appliance, Camera, Sensor) should be correctly identified. | Included |
-| Device names should be formattable, with options for prefixes, suffixes, or omission of device type labels. | Not Included |
-| Devices should include the model name, serial number, MAC address(es) and firmware version. | Partially Included |
+| Device names should be formattable, with options for prefixes, suffixes, or omission of device type labels. | Included |
+| Devices should include the model name, serial number, MAC address(es) and firmware version. | Included |
 
 ### Data Retrieval
 | Requirement | Status |
@@ -49,8 +49,8 @@
 | Meraki appliances should have a sensor that tracks the number of connected clients. | Included |
 | Meraki appliances have VLANs; these VLANs should appear as Home Assistant devices. | Not Included |
 | Meraki appliances have an external hostname; this should appear as details of the Home Assistant device. | Not Included |
-| Meraki appliances should have a sensor that tracks the number of ports in use. | Not Included |
-| Meraki appliances should have a sensor that tracks the number of ports available. | Not Included |
+| Meraki appliances should have a sensor that tracks the number of ports in use. | Included |
+| Meraki appliances should have a sensor that tracks the number of ports available. | Included |
 
 ### Meraki Wireless
 | Requirement | Status |
