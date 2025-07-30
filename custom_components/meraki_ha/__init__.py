@@ -20,8 +20,6 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     PLATFORMS,
-    DATA_COORDINATOR,
-    DATA_COORDINATORS,
 )
 from .core.api.client import MerakiAPIClient
 from .core.coordinators.device import MerakiDeviceCoordinator
@@ -51,8 +49,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
       KeyError: If required configuration keys are missing
     """
     try:
-        api_key: str = entry.data[CONF_MERAKI_API_KEY]
-        org_id: str = entry.data[CONF_MERAKI_ORG_ID]
+        # Create API client with config entry credentials
+        api_client = MerakiAPIClient(
+            api_key=entry.data[CONF_MERAKI_API_KEY],
+            org_id=entry.data[CONF_MERAKI_ORG_ID],
+        )
     except KeyError as err:
         _LOGGER.error("Missing required configuration: %s", err)
         return False
@@ -118,7 +119,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # TODO: Generate a unique webhook ID and secret
         webhook_id = "your_webhook_id"
         secret = "your_secret"
-        await async_register_webhook(hass, webhook_id, secret, api_client)
+        await async_register_webhook(hass, webhook_id, secret, api_client, entry)
         hass.config_entries.async_update_entry(
             entry, data={**entry.data, "webhook_id": webhook_id, "secret": secret}
         )

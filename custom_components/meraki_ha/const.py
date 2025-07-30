@@ -29,6 +29,12 @@ DATA_COORDINATORS: Final[str] = (
 )
 """Key for storing the dictionary of all coordinators (str)."""
 
+CONF_WEBHOOK_URL: Final[str] = "webhook_url"
+"""Configuration key for the external webhook URL (str)."""
+
+DEFAULT_WEBHOOK_URL: Final[str] = ""
+"""Default webhook URL value (empty string)."""
+
 DATA_SSID_DEVICES_COORDINATOR: Final[str] = (
     "ssid_devices"  # New constant for SSID coordinator key
 )

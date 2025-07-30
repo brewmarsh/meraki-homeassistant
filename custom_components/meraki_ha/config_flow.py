@@ -8,20 +8,17 @@ API keys, organization IDs, and other configuration options.
 import logging
 from typing import Any, Dict, Optional
 
-import aiohttp
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import callback
-from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers import selector
 
 from .core.api.client import MerakiAPIClient
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
-    DEFAULT_SCAN_INTERVAL,
+    CONF_WEBHOOK_URL,
+    DEFAULT_WEBHOOK_URL,
     DOMAIN,
 )
 
@@ -44,7 +41,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 api_client = MerakiAPIClient(
-                    api_key=user_input[CONF_API_KEY],
+                    api_key=user_input[CONF_MERAKI_API_KEY],
                     org_id=user_input[CONF_MERAKI_ORG_ID],
                 )
                 await api_client.get_organization()
@@ -66,7 +63,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_API_KEY): str,
+                    vol.Required(CONF_MERAKI_API_KEY): str,
                     vol.Required(CONF_MERAKI_ORG_ID): str,
                 }
             ),
@@ -106,4 +103,18 @@ class MerakiOptionsFlow(config_entries.OptionsFlow):
                     ): int,
                 }
             ),
+        )
+
+    def _show_config_form(self, errors=None, user_input=None):
+        """Show the configuration form to edit location data."""
+        return self.async_show_form(
+            step_id="user",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_MERAKI_API_KEY): str,
+                    vol.Required(CONF_MERAKI_ORG_ID): str,
+                    vol.Optional(CONF_WEBHOOK_URL, default=DEFAULT_WEBHOOK_URL): str,
+                }
+            ),
+            errors=errors or {},
         )
