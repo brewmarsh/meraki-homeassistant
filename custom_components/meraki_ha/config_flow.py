@@ -65,6 +65,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 {
                     vol.Required(CONF_MERAKI_API_KEY): str,
                     vol.Required(CONF_MERAKI_ORG_ID): str,
+                    vol.Optional(CONF_WEBHOOK_URL): str,
                 }
             ),
             errors=errors,

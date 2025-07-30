@@ -32,9 +32,9 @@ The integration uses a hybrid data retrieval strategy that combines polling with
 
 The data flow for the integration is as follows:
 
-1.  The `MerakiDataUpdateCoordinator` fetches data from the Meraki API at a regular interval.
-2.  The coordinator stores the data in its `data` attribute.
-3.  The platforms (e.g., sensor, switch, device_tracker) access the data from the coordinator and update their state accordingly.
+1.  The `MerakiDeviceCoordinator` and `MerakiNetworkCoordinator` fetch data from the Meraki API at a regular interval.
+2.  Each coordinator stores its data in its own `data` attribute.
+3.  The platforms (e.g., sensor, switch, device_tracker) access the data from the appropriate coordinator and update their state accordingly.
 4.  The integration also receives real-time updates from the Meraki API via webhooks.
 5.  The `async_handle_webhook` function processes the data from the webhook and updates the state of the integration accordingly.
 
@@ -42,8 +42,8 @@ The data flow for the integration is as follows:
 
 The integration uses two coordinators, which are located in the `core/coordinators` directory:
 
-*   **`MerakiDataUpdateCoordinator`**: The main coordinator that fetches data for all of the devices and networks in the organization.
-*   **`SSIDDeviceCoordinator`**: A coordinator that fetches data for the SSIDs in the organization.
+*   **`MerakiDeviceCoordinator`**: This coordinator is responsible for fetching data for all physical Meraki devices in the organization.
+*   **`MerakiNetworkCoordinator`**: This coordinator fetches data for all networks, clients, and SSIDs in the organization.
 
 ## Platforms
 

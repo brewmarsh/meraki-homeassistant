@@ -6,6 +6,7 @@ aspects of their Meraki networks and devices within Home Assistant.
 """
 
 import logging
+import secrets
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
@@ -116,9 +117,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Register webhook
     if "webhook_id" not in entry.data:
-        # TODO: Generate a unique webhook ID and secret
-        webhook_id = "your_webhook_id"
-        secret = "your_secret"
+        webhook_id = entry.entry_id
+        secret = secrets.token_hex(16)
         await async_register_webhook(hass, webhook_id, secret, api_client, entry)
         hass.config_entries.async_update_entry(
             entry, data={**entry.data, "webhook_id": webhook_id, "secret": secret}

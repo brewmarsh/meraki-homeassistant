@@ -16,7 +16,7 @@ The integration represents different aspects of your Meraki setup as devices wit
 A conceptual device representing your entire Meraki Organization is created.
 
 - **Naming:** The name of this device is based on the Organization Name fetched from the Meraki Dashboard.
-- It can be prefixed (e.g., `[Org] Your Org Name`) or suffixed (e.g., `Your Org Name [Org]`) based on the "Device Name Format" option chosen during integration setup or in the options flow. If the format is "omitted", the raw organization name is used.
+- The name is based on the Organization Name fetched from the Meraki Dashboard.
 - **Purpose:** This device serves as a central point for organization-wide information and sensors.
 
 ### Organization-Wide Client Sensors
