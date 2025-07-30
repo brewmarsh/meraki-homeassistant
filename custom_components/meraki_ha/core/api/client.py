@@ -247,16 +247,36 @@ class MerakiAPIClient:
 
     @handle_meraki_errors
     async def register_webhook(self, webhook_url: str, secret: str) -> None:
-        """Register a webhook with the Meraki API."""
+        """Register a webhook with the Meraki API.
+
+        If a webhook with the same URL already exists, it will be deleted and recreated
+        to ensure the settings are up to date.
+        """
         _LOGGER.debug("Registering webhook: %s", webhook_url)
         networks = await self.get_networks()
+
         for network in networks:
+            network_id = network["id"]
+
+            # Check if webhook already exists
+            existing_webhook = await self.find_webhook_by_url(network_id, webhook_url)
+            if existing_webhook:
+                _LOGGER.debug(
+                    "Found existing webhook with URL %s in network %s, updating...",
+                    webhook_url,
+                    network_id,
+                )
+                # Delete existing webhook
+                await self.delete_webhook(network_id, existing_webhook["id"])
+
+            # Create new webhook
+            _LOGGER.debug("Creating webhook in network %s", network_id)
             await self._run_sync(
                 self._dashboard.networks.createNetworkWebhooksHttpServer,
-                networkId=network["id"],
+                networkId=network_id,
                 url=webhook_url,
                 sharedSecret=secret,
-                name=webhook_url,
+                name=f"Home Assistant Integration - {network.get('name', 'Unknown')}",
             )
 
     @handle_meraki_errors
@@ -270,3 +290,34 @@ class MerakiAPIClient:
                 networkId=network["id"],
                 httpServerId=webhook_id,
             )
+
+    @handle_meraki_errors
+    async def get_webhooks(self, network_id: str) -> List[Dict[str, Any]]:
+        """Get all webhooks for a network."""
+        _LOGGER.debug("Getting webhooks for network %s", network_id)
+        webhooks = await self._run_sync(
+            self._dashboard.networks.getNetworkWebhooksHttpServers,
+            networkId=network_id,
+        )
+        return validate_response(webhooks)
+
+    @handle_meraki_errors
+    async def delete_webhook(self, network_id: str, webhook_id: str) -> None:
+        """Delete a webhook from a network."""
+        _LOGGER.debug("Deleting webhook %s from network %s", webhook_id, network_id)
+        await self._run_sync(
+            self._dashboard.networks.deleteNetworkWebhooksHttpServer,
+            networkId=network_id,
+            httpServerId=webhook_id,
+        )
+
+    @handle_meraki_errors
+    async def find_webhook_by_url(
+        self, network_id: str, url: str
+    ) -> Optional[Dict[str, Any]]:
+        """Find a webhook by its URL."""
+        webhooks = await self.get_webhooks(network_id)
+        for webhook in webhooks:
+            if webhook.get("url") == url:
+                return webhook
+        return None
