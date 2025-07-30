@@ -88,6 +88,25 @@ ATTR_SSIDS: Final[str] = "ssids"
 """Device attribute for SSIDs (str)."""
 
 # Configuration options
+CONF_DEVICE_NAME_FORMAT: Final[str] = "device_name_format"
+"""Configuration key for the device name format (str)."""
+
+DEVICE_NAME_FORMAT_PREFIX: Final[str] = "prefix"
+"""Device name format option: prefix (str)."""
+DEVICE_NAME_FORMAT_SUFFIX: Final[str] = "suffix"
+"""Device name format option: suffix (str)."""
+DEVICE_NAME_FORMAT_OMIT: Final[str] = "omit"
+"""Device name format option: omit (str)."""
+
+DEVICE_NAME_FORMAT_OPTIONS: Final[List[str]] = [
+    DEVICE_NAME_FORMAT_PREFIX,
+    DEVICE_NAME_FORMAT_SUFFIX,
+    DEVICE_NAME_FORMAT_OMIT,
+]
+"""List of device name format options (List[str])."""
+
+DEFAULT_DEVICE_NAME_FORMAT: Final[str] = DEVICE_NAME_FORMAT_PREFIX
+"""Default device name format (str)."""
 # CONF_RELAXED_TAG_MATCHING was removed as the feature was removed.
 
 ERASE_TAGS_WARNING: Final[str] = (

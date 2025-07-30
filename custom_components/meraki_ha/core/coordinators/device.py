@@ -63,6 +63,19 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                             err,
                         )
 
+                # Fetch additional data for appliance devices
+                if device["productType"] == "appliance":
+                    try:
+                        device["ports"] = await self.api_client.get_appliance_ports(
+                            device["networkId"]
+                        )
+                    except Exception as err:
+                        _LOGGER.warning(
+                            "Error fetching appliance ports for device %s: %s",
+                            device.get("serial"),
+                            err,
+                        )
+
                 processed_devices.append(device)
 
             self._devices = processed_devices

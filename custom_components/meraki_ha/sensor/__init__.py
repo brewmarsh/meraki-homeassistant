@@ -35,6 +35,7 @@ from .org.org_clients import (
 from .network.network_clients import MerakiNetworkClientsSensor
 from .network.network_identity import MerakiNetworkIdentitySensor
 from .network.meraki_network_info import MerakiNetworkInfoSensor
+from .device.appliance_port import MerakiAppliancePortSensor
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -169,6 +170,12 @@ async def async_setup_entry(
         _LOGGER.warning(
             "Main coordinator not available or has no data; skipping all network-specific sensors."
         )
+
+    if device_coordinator and device_coordinator.data:
+        for device in device_coordinator.data.get("devices", []):
+            if device.get("productType") == "appliance":
+                for port in device.get("ports", []):
+                    entities.append(MerakiAppliancePortSensor(device_coordinator, device, port))
 
     if entities:
         async_add_entities(entities)

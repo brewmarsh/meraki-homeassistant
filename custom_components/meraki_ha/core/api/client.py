@@ -248,6 +248,28 @@ class MerakiAPIClient:
         return validated
 
     @handle_meraki_errors
+    async def get_appliance_ports(self, network_id: str) -> List[Dict[str, Any]]:
+        """Get all ports for an appliance."""
+        _LOGGER.debug("Getting appliance ports for network: %s", network_id)
+        cache_key = self._get_cache_key("get_appliance_ports", network_id)
+
+        if cached := self._get_cached_data(cache_key):
+            return cached
+
+        ports = await self._run_sync(
+            self._dashboard.appliance.getNetworkAppliancePorts, networkId=network_id
+        )
+        validated = validate_response(ports)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_appliance_ports did not return a list, returning empty list. Got: %s",
+                type(validated),
+            )
+            validated = []
+        self._cache_data(cache_key, validated)
+        return validated
+
+    @handle_meraki_errors
     async def get_switch_ports(self, serial: str) -> List[Dict[str, Any]]:
         """Get ports for a switch."""
         _LOGGER.debug("Getting switch ports for serial: %s", serial)

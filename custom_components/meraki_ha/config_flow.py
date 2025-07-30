@@ -12,13 +12,16 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
 
+from .authentication import validate_meraki_credentials
 from .core.api.client import MerakiAPIClient
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .const import (
+    CONF_DEVICE_NAME_FORMAT,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_WEBHOOK_URL,
-    DEFAULT_WEBHOOK_URL,
+    DEFAULT_DEVICE_NAME_FORMAT,
+    DEVICE_NAME_FORMAT_OPTIONS,
     DOMAIN,
 )
 
@@ -40,11 +43,11 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         errors: Dict[str, str] = {}
         if user_input is not None:
             try:
-                api_client = MerakiAPIClient(
-                    api_key=user_input[CONF_MERAKI_API_KEY],
-                    org_id=user_input[CONF_MERAKI_ORG_ID],
+                validation_result = await validate_meraki_credentials(
+                    user_input[CONF_MERAKI_API_KEY],
+                    user_input[CONF_MERAKI_ORG_ID],
                 )
-                await api_client.get_organization()
+                org_name = validation_result.get("org_name", user_input[CONF_MERAKI_ORG_ID])
             except MerakiAuthenticationError:
                 errors["base"] = "invalid_auth"
             except MerakiConnectionError:
@@ -56,7 +59,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 await self.async_set_unique_id(user_input[CONF_MERAKI_ORG_ID])
                 self._abort_if_unique_id_configured()
                 return self.async_create_entry(
-                    title=user_input[CONF_MERAKI_ORG_ID], data=user_input
+                    title=org_name, data=user_input
                 )
 
         return self.async_show_form(
@@ -66,6 +69,9 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_MERAKI_API_KEY): str,
                     vol.Required(CONF_MERAKI_ORG_ID): str,
                     vol.Optional(CONF_WEBHOOK_URL): str,
+                    vol.Optional(
+                        CONF_DEVICE_NAME_FORMAT, default=DEFAULT_DEVICE_NAME_FORMAT
+                    ): vol.In(DEVICE_NAME_FORMAT_OPTIONS),
                 }
             ),
             errors=errors,
