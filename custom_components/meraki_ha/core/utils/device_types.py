@@ -45,7 +45,7 @@ DEVICE_TYPE_NETWORK: Final = "network"
 DEVICE_TYPE_UNKNOWN: Final = "unknown"
 
 # Compiled regex pattern for model validation
-MODEL_PATTERN: Final = re.compile(r"^(MR|MS|MX|MV|MT|MG|GR|GS)\d{1,3}(-[A-Z0-9-]+)?$")
+MODEL_PATTERN: Final = re.compile(r"^(MR|MS|MX|MV|MT|MG|GR|GS)[\d-]+([A-Z0-9-]+)?$")
 
 # Valid device types for type checking
 VALID_DEVICE_TYPES: Final[List[str]] = [
@@ -119,12 +119,12 @@ def map_meraki_model_to_device_type(model: Optional[str]) -> str:
     """Maps a Meraki device model string to a generic device type category.
 
     The function checks the prefix of the model string to determine its
-    general category. Handles all Meraki device types including newer models.
-    Case-insensitive matching is used for robustness.
+    general category. Handles all Meraki device types including newer models
+    and non-Meraki GO devices. Case-insensitive matching is used for robustness.
 
     Model Prefixes:
         - MR/GR: Wireless Access Points
-        - MS/GS: Network Switches
+        - MS/GS: Network Switches (including GS110-24P format)
         - MX: Security Appliances
         - MV: Smart Cameras
         - MT: Environmental Sensors
