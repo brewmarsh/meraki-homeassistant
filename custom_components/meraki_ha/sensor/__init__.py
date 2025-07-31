@@ -91,17 +91,20 @@ async def async_setup_entry(
                 device_info, config_entry.options
             )
             for sensor_class in COMMON_DEVICE_SENSORS:
-                try:
-                    entities.append(
-                        sensor_class(device_coordinator, device_info, config_entry)
-                    )
-                except Exception as e:
-                    _LOGGER.error(
-                        "Meraki HA: Error adding common sensor %s for %s: %s",
-                        sensor_class.__name__,
-                        device_info.get("name", serial),
-                        e,
-                    )
+                unique_id = f"{serial}_{sensor_class.__name__}"
+                if unique_id not in added_entities:
+                    try:
+                        entities.append(
+                            sensor_class(device_coordinator, device_info, config_entry)
+                        )
+                        added_entities.add(unique_id)
+                    except Exception as e:
+                        _LOGGER.error(
+                            "Meraki HA: Error adding common sensor %s for %s: %s",
+                            sensor_class.__name__,
+                            device_info.get("name", serial),
+                            e,
+                        )
 
             # Add productType-specific sensors
             product_type = device_info.get("productType")
@@ -111,16 +114,21 @@ async def async_setup_entry(
                 # if not sensors_for_type: # Removed: Redundant log, handled by empty list iteration
                 #   pass
                 for sensor_class in sensors_for_type:
-                    try:
-                        entities.append(sensor_class(device_coordinator, device_info))
-                    except Exception as e:
-                        _LOGGER.error(
-                            "Meraki HA: Error adding sensor %s for %s (productType: %s): %s",
-                            sensor_class.__name__,
-                            device_info.get("name", serial),
-                            product_type,
-                            e,
-                        )
+                    unique_id = f"{serial}_{sensor_class.__name__}"
+                    if unique_id not in added_entities:
+                        try:
+                            entities.append(
+                                sensor_class(device_coordinator, device_info)
+                            )
+                            added_entities.add(unique_id)
+                        except Exception as e:
+                            _LOGGER.error(
+                                "Meraki HA: Error adding sensor %s for %s (productType: %s): %s",
+                                sensor_class.__name__,
+                                device_info.get("name", serial),
+                                product_type,
+                                e,
+                            )
 
                 # Camera-specific sensors are now handled by the SENSOR_REGISTRY.
                 # The generic loop for `sensors_for_type` will add them if product_type is "camera".
@@ -151,27 +159,54 @@ async def async_setup_entry(
                     network_data.get("name", "Unnamed Network"),
                 )
                 continue
-            try:
-                entities.append(
-                    MerakiNetworkClientsSensor(
-                        network_coordinator, network_id, network_name
+            unique_id = f"meraki_network_clients_{network_id}"
+            if unique_id not in added_entities:
+                try:
+                    entities.append(
+                        MerakiNetworkClientsSensor(
+                            network_coordinator, network_id, network_name
+                        )
                     )
-                )
-                entities.append(
-                    MerakiNetworkIdentitySensor(network_coordinator, network_data)
-                )
-                entities.append(
-                    MerakiNetworkInfoSensor(
-                        network_coordinator, network_data, config_entry
+                    added_entities.add(unique_id)
+                except Exception as e:
+                    _LOGGER.error(
+                        "Meraki HA: Error adding network clients sensor for %s (ID: %s): %s",
+                        network_name,
+                        network_id,
+                        e,
                     )
-                )
-            except Exception as e:
-                _LOGGER.error(
-                    "Meraki HA: Error adding network sensors for %s (ID: %s): %s",
-                    network_name,
-                    network_id,
-                    e,
-                )
+            unique_id = f"meraki_network_identity_{network_id}"
+            if unique_id not in added_entities:
+                try:
+                    entities.append(
+                        MerakiNetworkIdentitySensor(
+                            network_coordinator, network_data, config_entry
+                        )
+                    )
+                    added_entities.add(unique_id)
+                except Exception as e:
+                    _LOGGER.error(
+                        "Meraki HA: Error adding network identity sensor for %s (ID: %s): %s",
+                        network_name,
+                        network_id,
+                        e,
+                    )
+            unique_id = f"{network_id}_network_info"
+            if unique_id not in added_entities:
+                try:
+                    entities.append(
+                        MerakiNetworkInfoSensor(
+                            network_coordinator, network_data, config_entry
+                        )
+                    )
+                    added_entities.add(unique_id)
+                except Exception as e:
+                    _LOGGER.error(
+                        "Meraki HA: Error adding network info sensor for %s (ID: %s): %s",
+                        network_name,
+                        network_id,
+                        e,
+                    )
 
     elif not meraki_api_client:
         _LOGGER.warning(

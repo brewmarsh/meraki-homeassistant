@@ -30,6 +30,7 @@ class MerakiNetworkIdentitySensor(
         self,
         coordinator: MerakiNetworkCoordinator,
         network_data: Dict[str, Any],
+        config_entry: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki Network Identity sensor.
 

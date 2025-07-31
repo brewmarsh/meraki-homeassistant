@@ -247,18 +247,25 @@ class MerakiAPIClient:
         )
 
     @handle_meraki_errors
-    async def get_device_firmware_upgrades(self, serial: str) -> Dict[str, Any]:
-        """Get firmware upgrade status for a specific device."""
-        _LOGGER.debug("Getting device firmware upgrades for serial: %s", serial)
-        cache_key = self._get_cache_key("get_device_firmware_upgrades", serial)
+    async def get_organization_firmware_upgrades(self) -> List[Dict[str, Any]]:
+        """Get firmware upgrade status for the organization."""
+        _LOGGER.debug("Getting organization firmware upgrades")
+        cache_key = self._get_cache_key("get_organization_firmware_upgrades")
 
         if cached := self._get_cached_data(cache_key):
             return cached
 
         upgrades = await self._run_sync(
-            self._dashboard.devices.getDeviceFirmwareUpgrades, serial=serial
+            self._dashboard.organizations.getOrganizationFirmwareUpgrades,
+            organizationId=self._org_id,
         )
         validated = validate_response(upgrades)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_organization_firmware_upgrades did not return a list, returning empty list. Got: %s",
+                type(validated),
+            )
+            validated = []
         self._cache_data(cache_key, validated)
         return validated
 
