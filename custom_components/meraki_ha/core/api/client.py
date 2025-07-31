@@ -436,7 +436,7 @@ class MerakiAPIClient:
             return cached
 
         uplinks = await self._run_sync(
-            self._dashboard.appliance.getDeviceApplianceUplinks, serial=serial
+            self._dashboard.appliance.getDeviceApplianceUplinksSettings, serial=serial
         )
         validated = validate_response(uplinks)
         if not isinstance(validated, list):
@@ -520,7 +520,7 @@ class MerakiAPIClient:
             return cached
 
         readings = await self._run_sync(
-            self._dashboard.sensor.getDeviceSensorReadingsCurrent, serial=serial
+            self._dashboard.sensor.getDeviceSensorLatestReadings, serial=serial
         )
         validated = validate_response(readings)
         self._cache_data(cache_key, validated)
