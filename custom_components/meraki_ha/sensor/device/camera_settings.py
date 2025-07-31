@@ -35,6 +35,7 @@ class MerakiCameraSenseStatusSensor(
         self,
         coordinator: MerakiDeviceCoordinator,
         device_data: Dict[str, Any],
+        config_entry: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki Camera Sense Status sensor."""
         super().__init__(coordinator)
@@ -143,6 +144,7 @@ class MerakiCameraAudioDetectionSensor(
         self,
         coordinator: MerakiDeviceCoordinator,
         device_data: Dict[str, Any],
+        config_entry: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki Camera Audio Detection sensor."""
         super().__init__(coordinator)

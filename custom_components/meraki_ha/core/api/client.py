@@ -283,7 +283,7 @@ class MerakiAPIClient:
             return cached
 
         statuses = await self._run_sync(
-            self._dashboard.networks.getNetworkDevicesStatuses, networkId=network_id
+            self._dashboard.networks.getNetworkDeviceStatuses, networkId=network_id
         )
         validated = validate_response(statuses)
         self._cache_data(cache_key, validated)
