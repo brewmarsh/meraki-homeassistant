@@ -226,7 +226,11 @@ async def async_setup_entry(
                         added_entities.add(f"{device['serial']}_port_{port['number']}")
             if device.get("productType") == "camera":
                 if f"{device['serial']}_rtsp_url" not in added_entities:
-                    entities.append(MerakiCameraRTSPUrlSensor(device_coordinator, device))
+                    entities.append(
+                        MerakiCameraRTSPUrlSensor(
+                            device_coordinator, device, config_entry
+                        )
+                    )
                     added_entities.add(f"{device['serial']}_rtsp_url")
             if f"{device['serial']}_firmware_status" not in added_entities:
                 entities.append(MerakiFirmwareStatusSensor(device_coordinator, device))
