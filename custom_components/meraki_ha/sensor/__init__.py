@@ -7,6 +7,7 @@ fetch and manage data from the Meraki API.
 """
 
 import logging
+import inspect
 from typing import Optional  # Added Optional
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
@@ -122,13 +123,22 @@ async def async_setup_entry(
                     unique_id = f"{serial}_{sensor_class.__name__}"
                     if unique_id not in added_entities:
                         try:
-                            entities.append(
-                                sensor_class(
-                                    device_coordinator,
-                                    device_info_with_formatted_name,
-                                    config_entry,
+                            sig = inspect.signature(sensor_class.__init__)
+                            if "config_entry" in sig.parameters:
+                                entities.append(
+                                    sensor_class(
+                                        device_coordinator,
+                                        device_info_with_formatted_name,
+                                        config_entry,
+                                    )
                                 )
-                            )
+                            else:
+                                entities.append(
+                                    sensor_class(
+                                        device_coordinator,
+                                        device_info_with_formatted_name,
+                                    )
+                                )
                             added_entities.add(unique_id)
                         except Exception as e:
                             _LOGGER.error(
