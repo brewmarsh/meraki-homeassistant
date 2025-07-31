@@ -88,9 +88,6 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                         device["ports"] = await self.api_client.get_appliance_ports(
                             device["networkId"]
                         )
-                        device["uplink"] = await self.api_client.get_device_uplink_stats(
-                            device["serial"]
-                        )
                         device[
                             "firmware_upgrades"
                         ] = await self.api_client.get_device_firmware_upgrades(

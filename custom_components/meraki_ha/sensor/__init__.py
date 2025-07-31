@@ -51,6 +51,7 @@ async def async_setup_entry(
 ) -> bool:
     """Set up Meraki sensor entities from a config entry."""
     entities = []
+    added_entities = set()
 
     # Get the entry specific data store
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
@@ -185,10 +186,16 @@ async def async_setup_entry(
         for device in device_coordinator.data.get("devices", []):
             if device.get("productType") == "appliance":
                 for port in device.get("ports", []):
-                    entities.append(MerakiAppliancePortSensor(device_coordinator, device, port))
+                    if f"{device['serial']}_port_{port['number']}" not in added_entities:
+                        entities.append(MerakiAppliancePortSensor(device_coordinator, device, port))
+                        added_entities.add(f"{device['serial']}_port_{port['number']}")
             if device.get("productType") == "camera":
-                entities.append(MerakiCameraRTSPUrlSensor(device_coordinator, device))
-            entities.append(MerakiFirmwareStatusSensor(device_coordinator, device))
+                if f"{device['serial']}_rtsp_url" not in added_entities:
+                    entities.append(MerakiCameraRTSPUrlSensor(device_coordinator, device))
+                    added_entities.add(f"{device['serial']}_rtsp_url")
+            if f"{device['serial']}_firmware_status" not in added_entities:
+                entities.append(MerakiFirmwareStatusSensor(device_coordinator, device))
+                added_entities.add(f"{device['serial']}_firmware_status")
 
     if entities:
         async_add_entities(entities)
