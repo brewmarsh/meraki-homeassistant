@@ -232,7 +232,7 @@ async def async_setup_entry(
                 if f"{device['serial']}_rtsp_url" not in added_entities:
                     entities.append(
                         MerakiCameraRTSPUrlSensor(
-                            device_coordinator, device, config_entry
+                            device_coordinator, device
                         )
                     )
                     added_entities.add(f"{device['serial']}_rtsp_url")
