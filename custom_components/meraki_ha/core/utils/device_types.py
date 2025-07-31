@@ -78,13 +78,13 @@ class DeviceType(str, Enum):
 # Map device prefixes to types
 DEVICE_PREFIX_MAPPINGS: Final[dict[tuple[str, ...], str]] = {
     # Wireless Access Points (both traditional MR and cloud-managed GR series)
-    ("MR", "GR"): DeviceType.WIRELESS,
+    ("MR", "GR", "MR2", "GR1", "GR6"): DeviceType.WIRELESS,
     # Switches (both traditional MS and cloud-managed GS series)
-    ("MS", "GS"): DeviceType.SWITCH,
+    ("MS", "GS", "GS1"): DeviceType.SWITCH,
     # Security Appliances
     ("MX",): DeviceType.APPLIANCE,
-    # Cameras
-    ("MV",): DeviceType.CAMERA,
+    # Cameras (MV2 is a valid model)
+    ("MV", "MV2"): DeviceType.CAMERA,
     # Environmental Sensors
     ("MT",): DeviceType.SENSOR,
     # Cellular Gateways
@@ -165,6 +165,13 @@ def map_meraki_model_to_device_type(model: Optional[str]) -> str:
     # Special case for virtual network devices
     if model_upper == "NETWORK":
         return DeviceType.NETWORK
+
+    # Check for Meraki GO devices (GR/GS) first
+    if any(model_upper.startswith(prefix) for prefix in ["GR", "GS"]):
+        if model_upper.startswith("GR"):
+            return DeviceType.WIRELESS
+        if model_upper.startswith("GS"):
+            return DeviceType.SWITCH
 
     # Check each prefix group from the mappings
     for prefixes, device_type in DEVICE_PREFIX_MAPPINGS.items():

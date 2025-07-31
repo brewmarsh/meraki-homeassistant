@@ -91,6 +91,7 @@ SENSOR_REGISTRY: Dict[str, SensorClassList] = {
 # List of sensor classes common to all Meraki physical devices.
 COMMON_DEVICE_SENSORS: SensorClassList = [
     MerakiDeviceStatusSensor,
+    # Remove MerakiCameraRTSPUrlSensor from here as it's in the camera-specific list
 ]
 
 
