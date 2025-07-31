@@ -80,10 +80,11 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                         ] = await self.api_client.get_camera_video_settings(
                             device["serial"]
                         )
-                        video_link = await self.api_client.get_device_camera_video_link(
-                            device["serial"]
-                        )
-                        device["video_settings"].update(video_link)
+                        if not device.get("model", "").startswith("MV2"):
+                            video_link = await self.api_client.get_device_camera_video_link(
+                                device["serial"]
+                            )
+                            device["video_settings"].update(video_link)
                     except Exception as err:
                         _LOGGER.warning(
                             "Error fetching camera data for device %s: %s",

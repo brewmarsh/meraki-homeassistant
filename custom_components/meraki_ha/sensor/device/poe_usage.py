@@ -4,7 +4,7 @@ import logging
 from typing import Any, Dict
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
-from homeassistant.const import POWER_WATT
+from homeassistant.const import UnitOfPower
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -19,7 +19,7 @@ class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEnt
     """Representation of a Meraki switch PoE usage sensor."""
 
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_native_unit_of_measurement = POWER_WATT
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
     _attr_icon = "mdi:power-plug"
 
     def __init__(
