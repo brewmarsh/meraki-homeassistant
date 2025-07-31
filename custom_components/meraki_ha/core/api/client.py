@@ -271,10 +271,10 @@ class MerakiAPIClient:
 
 
     @handle_meraki_errors
-    async def get_device_statuses(self, network_id: str) -> List[Dict[str, Any]]:
-        """Get status information for all devices in a network."""
-        _LOGGER.debug("Getting device statuses for network: %s", network_id)
-        cache_key = self._get_cache_key("get_device_statuses", network_id)
+    async def get_organization_device_statuses(self) -> List[Dict[str, Any]]:
+        """Get status information for all devices in the organization."""
+        _LOGGER.debug("Getting device statuses for organization")
+        cache_key = self._get_cache_key("get_organization_device_statuses")
 
         # Status data should have a shorter cache timeout
         self._cache_timeout = 60  # 1 minute
@@ -283,9 +283,16 @@ class MerakiAPIClient:
             return cached
 
         statuses = await self._run_sync(
-            self._dashboard.networks.getNetworkDeviceStatuses, networkId=network_id
+            self._dashboard.organizations.getOrganizationDeviceStatuses,
+            organizationId=self._org_id,
         )
         validated = validate_response(statuses)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_organization_device_statuses did not return a list, returning empty list. Got: %s",
+                type(validated),
+            )
+            validated = []
         self._cache_data(cache_key, validated)
 
         # Reset cache timeout

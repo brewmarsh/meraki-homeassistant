@@ -36,22 +36,12 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
             devices = await self.api_client.get_devices()
             processed_devices = []
 
+            statuses = await self.api_client.get_organization_device_statuses()
             for device in devices:
-                try:
-                    statuses = await self.api_client.get_device_statuses(
-                        device["networkId"]
-                    )
-                    for status in statuses:
-                        if status["serial"] == device["serial"]:
-                            device["status"] = status["status"]
-                            break
-                except Exception as err:
-                    _LOGGER.warning(
-                        "Error fetching device status for device %s: %s",
-                        device.get("serial"),
-                        err,
-                    )
-
+                for status in statuses:
+                    if status.get("serial") == device.get("serial"):
+                        device["status"] = status.get("status")
+                        break
                 # Skip devices without required attributes
                 if not all(key in device for key in ["serial", "model"]):
                     _LOGGER.warning("Device missing required attributes: %s", device)

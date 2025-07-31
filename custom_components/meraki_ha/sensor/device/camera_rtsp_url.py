@@ -33,6 +33,7 @@ class MerakiCameraRTSPUrlSensor(
         self,
         coordinator: MerakiDeviceCoordinator,
         device: Dict[str, Any],
+        config_entry: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
