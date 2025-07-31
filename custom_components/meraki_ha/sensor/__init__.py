@@ -123,7 +123,11 @@ async def async_setup_entry(
                     if unique_id not in added_entities:
                         try:
                             entities.append(
-                                sensor_class(device_coordinator, device_info_with_formatted_name)
+                                sensor_class(
+                                    device_coordinator,
+                                    device_info_with_formatted_name,
+                                    config_entry,
+                                )
                             )
                             added_entities.add(unique_id)
                         except Exception as e:
