@@ -65,3 +65,17 @@ The integration provides the following platforms:
 *   **`text`**: The text platform provides text entities for displaying the following:
     *   The name of the SSIDs.
     *   The status of the SSIDs.
+
+## Code Duplication and Refactoring Opportunities
+
+### Device Sensor Base Class
+
+The device sensor platforms in `custom_components/meraki_ha/sensor/device` have a lot of duplicated code. A base class could be created to handle the following:
+
+*   **`__init__` method:** The base class could handle the common initialization logic, such as setting the unique ID, name, and icon.
+*   **`device_info` property:** The base class could provide a default implementation of the `device_info` property.
+*   **`_handle_coordinator_update` method:** The base class could provide a default implementation of the `_handle_coordinator_update` method.
+*   **`available` property:** The base class could provide a default implementation of the `available` property.
+*   **`_get_current_device_data` method:** The base class could provide a helper method to get the current device data from the coordinator.
+
+By creating a base class, we can significantly reduce the amount of duplicated code and make the sensor platforms easier to maintain.
