@@ -4,7 +4,7 @@ import logging
 from typing import Any, Dict
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
-from homeassistant.const import DATA_MEGABYTES
+from homeassistant.const import UnitOfInformation
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -19,7 +19,7 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEn
     """Representation of a Meraki appliance data usage sensor."""
 
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
-    _attr_native_unit_of_measurement = DATA_MEGABYTES
+    _attr_native_unit_of_measurement = UnitOfInformation.MEGABYTES
     _attr_icon = "mdi:chart-bar"
 
     def __init__(
