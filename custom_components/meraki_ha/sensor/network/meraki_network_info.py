@@ -9,13 +9,14 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...coordinators import MerakiDataUpdateCoordinator
+from ...core.coordinators.network import MerakiNetworkCoordinator
+from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiNetworkInfoSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiNetworkCoordinator], SensorEntity
 ):
     """Representation of a Meraki Network Information Sensor."""
 
@@ -24,8 +25,9 @@ class MerakiNetworkInfoSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiNetworkCoordinator,
         network_data: Dict[str, Any],
+        config_entry: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -35,9 +37,8 @@ class MerakiNetworkInfoSensor(
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._network_id)},
-            name=network_data.get("name"),
-            # No other fields like name, model, manufacturer, sw_version.
-            # These should be inherited from the device entry already created by MerakiDataUpdateCoordinator.
+            name=format_device_name(network_data, config_entry.options),
+            manufacturer="Cisco Meraki",
         )
         # The sensor's friendly name suffix
         self._attr_name = "Network Information"

@@ -16,7 +16,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
-from ...coordinators import MerakiDataUpdateCoordinator
+from ...core.coordinators.device import MerakiDeviceCoordinator
 from ...const import DOMAIN
 
 # Assuming this function is correctly defined in the meraki_api package
@@ -30,7 +30,7 @@ STATE_ERROR_VALUE = "Error"
 
 
 class MerakiRadioSettingsSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
 ):
     """Representation of a Meraki Radio Settings sensor.
 
@@ -57,7 +57,7 @@ class MerakiRadioSettingsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         # Data for the Meraki device this sensor is for
         device_data: Dict[str, Any],
     ) -> None:

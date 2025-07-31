@@ -7,8 +7,8 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.entity import EntityDescription
 
 from ..const import DOMAIN
-from ..api.meraki_api import MerakiAPIClient
-from ..coordinators import MerakiDataUpdateCoordinator
+from ..core.api.client import MerakiAPIClient
+from ..core.coordinators.device import MerakiDeviceCoordinator
 from .camera_settings import MerakiCameraSettingSwitchBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         meraki_client: MerakiAPIClient,
         device_data: Dict[str, Any],
     ) -> None:
@@ -38,9 +38,7 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
     @property
     def name(self) -> str:
         """Return the explicit name of the switch."""
-        device_data = self._get_current_device_data()
-        device_name = device_data.get("name", "Camera") if device_data else "Camera"
-        return f"{device_name} {self.entity_description.name}"
+        return self.entity_description.name
 
 
 class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
@@ -48,7 +46,7 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         meraki_client: MerakiAPIClient,
         device_data: Dict[str, Any],
     ) -> None:
@@ -67,6 +65,4 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
     @property
     def name(self) -> str:
         """Return the explicit name of the switch."""
-        device_data = self._get_current_device_data()
-        device_name = device_data.get("name", "Camera") if device_data else "Camera"
-        return f"{device_name} {self.entity_description.name}"
+        return self.entity_description.name

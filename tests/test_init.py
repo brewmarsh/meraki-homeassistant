@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.const import DOMAIN
-from custom_components.meraki_ha import async_setup_entry
+from custom_components.meraki_ha.core import async_setup_entry
 
 
 async def test_async_setup_entry(

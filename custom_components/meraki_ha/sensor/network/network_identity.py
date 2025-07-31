@@ -9,14 +9,14 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...coordinators.base_coordinator import MerakiDataUpdateCoordinator
+from ...core.coordinators.network import MerakiNetworkCoordinator
 from ...const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiNetworkIdentitySensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiNetworkCoordinator], SensorEntity
 ):
     """Representation of a Meraki Network Identity sensor.
 
@@ -28,8 +28,9 @@ class MerakiNetworkIdentitySensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiNetworkCoordinator,
         network_data: Dict[str, Any],
+        config_entry: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki Network Identity sensor.
 

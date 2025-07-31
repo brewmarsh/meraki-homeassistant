@@ -14,7 +14,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 # used
-from .coordinators import MerakiDataUpdateCoordinator
+from .core.coordinators.device import MerakiDeviceCoordinator
 from .const import DOMAIN
 # map_meraki_model_to_device_type is now used via format_device_name
 # from .coordinators.meraki_device_types import map_meraki_model_to_device_type
@@ -23,7 +23,7 @@ from .helpers.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
+class MerakiEntity(CoordinatorEntity[MerakiDeviceCoordinator]):
     """Base class for Meraki entities in Home Assistant.
 
     This class provides common functionality for entities associated with
@@ -45,7 +45,7 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         # Meraki device this entity might be directly related to
         device_data: Dict[str, Any],
         # Optional SSID data if entity is SSID-specific
@@ -145,7 +145,7 @@ class MerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
         # In this case, _ssid_info_data will be populated (it's the SSID's own data dict from the coordinator),
         # and _ssid_number will be derived from it.
         # The `device_info` should then point to the "SSID Device" in Home Assistant's device registry.
-        # This "SSID Device" is a logical representation, expected to be registered by `SSIDDeviceCoordinator`
+        # This "SSID Device" is a logical representation, expected to be registered by `MerakiNetworkCoordinator`
         # with an identifier like (DOMAIN, f"{network_id}_{ssid_number}").
         # This "SSID Device" is, in turn, typically linked via `via_device` to its parent "Network Device".
         # Resulting hierarchy for an SSID-specific sensor: Sensor Entity -> SSID Device -> Network Device -> Config Entry.

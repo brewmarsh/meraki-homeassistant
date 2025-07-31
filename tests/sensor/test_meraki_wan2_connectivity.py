@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.sensor.meraki_wan2_connectivity import (
+from custom_components.meraki_ha.core.sensor.meraki_wan2_connectivity import (
     MerakiWAN2ConnectivitySensor,
 )
 

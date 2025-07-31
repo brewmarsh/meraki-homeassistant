@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.sensor.network_identity import (
+from custom_components.meraki_ha.core.sensor.network_identity import (
     MerakiNetworkIdentitySensor,
 )
 

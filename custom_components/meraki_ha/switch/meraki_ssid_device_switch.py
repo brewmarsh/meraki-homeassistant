@@ -11,21 +11,21 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..const import DOMAIN
-from ..api.meraki_api import MerakiAPIClient
-from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+from ..core.api.client import MerakiAPIClient
+from ..core.coordinators.network import MerakiNetworkCoordinator
 from homeassistant.helpers.entity import EntityCategory
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDBaseSwitch(CoordinatorEntity[SSIDDeviceCoordinator], SwitchEntity):
+class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiNetworkCoordinator], SwitchEntity):
     """Base class for Meraki SSID Switches."""
 
     entity_category = EntityCategory.CONFIG
 
     def __init__(
         self,
-        coordinator: SSIDDeviceCoordinator,
+        coordinator: MerakiNetworkCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_unique_id: str,
@@ -120,11 +120,10 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[SSIDDeviceCoordinator], SwitchEntit
 
         try:
             # Make the API call to update the specific SSID setting.
-            await self._meraki_client.wireless.updateNetworkWirelessSsid(
-                networkId=self._network_id,
-                number=self._ssid_number,  # Meraki API expects SSID number as string or int depending on SDK version/method.
-                # The SDK handles type consistency here.
-                **payload,  # Pass the specific setting to update (e.g., enabled=True).
+            await self._meraki_client.update_network_wireless_ssid(
+                network_id=self._network_id,
+                number=self._ssid_number,
+                **payload,
             )
             # After a successful API call, request the coordinator to refresh its data.
             # This ensures that Home Assistant's state for this switch (and any related entities)
@@ -155,7 +154,7 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
 
     def __init__(
         self,
-        coordinator: SSIDDeviceCoordinator,
+        coordinator: MerakiNetworkCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_unique_id: str,
@@ -178,7 +177,7 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
 
     def __init__(
         self,
-        coordinator: SSIDDeviceCoordinator,
+        coordinator: MerakiNetworkCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_unique_id: str,

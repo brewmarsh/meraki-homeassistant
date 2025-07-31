@@ -18,11 +18,11 @@ from .ssid_client_count import MerakiSSIDClientCountSensor
 # from .coordinator import MerakiDataUpdateCoordinator
 # Placeholder for type hinting if the actual coordinator class is complex
 # or causes circular imports
-MerakiDataUpdateCoordinator = Any
+MerakiNetworkCoordinator = Any
 
 
 def create_ssid_sensors(
-    coordinator: MerakiDataUpdateCoordinator,  # Type hint for the coordinator
+    coordinator: MerakiNetworkCoordinator,  # Type hint for the coordinator
     device_data: Dict[str, Any],  # Type hint for the parent device data
     ssid_data: Dict[str, Any],  # Type hint for the specific SSID data
 ) -> List[SensorEntity]:

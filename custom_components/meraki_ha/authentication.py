@@ -13,7 +13,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from meraki.exceptions import APIError as MerakiSDKAPIError  # type: ignore
 
 # Import the refactored client
-from .api.meraki_api import MerakiAPIClient
+from .core.api.client import MerakiAPIClient
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -82,9 +82,7 @@ class MerakiAuthentication:
             )
             # Assuming client.organizations.getOrganizations exists and returns
             # a list of dicts, each with an 'id' key.
-            all_organizations: List[Dict[str, Any]] = (
-                await client.organizations.getOrganizations()
-            )
+            all_organizations: List[Dict[str, Any]] = await client.get_organizations()
 
             # Initialize fetched_org_name
             fetched_org_name: Optional[str] = None
@@ -174,10 +172,9 @@ class MerakiAuthentication:
             ) from e
         finally:
             _LOGGER.debug(
-                "Closing MerakiAPIClient session for credential validation (org %s).",
+                "Credential validation finished for org %s.",
                 self.organization_id,
             )
-            await client.close()
 
 
 async def validate_meraki_credentials(api_key: str, organization_id: str) -> Dict[str, Any]:

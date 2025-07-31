@@ -7,14 +7,14 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...coordinators import MerakiDataUpdateCoordinator
+from ...core.coordinators.device import MerakiDeviceCoordinator
 from ...const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiOrganizationSSIDClientsSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
 ):
     """Representation of a Meraki Organization SSID Clients sensor."""
 
@@ -24,7 +24,7 @@ class MerakiOrganizationSSIDClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         org_id: str,
         org_name: str,
     ) -> None:
@@ -61,7 +61,7 @@ class MerakiOrganizationSSIDClientsSensor(
 
 
 class MerakiOrganizationWirelessClientsSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
 ):
     """Representation of a Meraki Organization Wireless Clients sensor."""
 
@@ -71,7 +71,7 @@ class MerakiOrganizationWirelessClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         org_id: str,
         org_name: str,
     ) -> None:
@@ -109,7 +109,7 @@ class MerakiOrganizationWirelessClientsSensor(
 
 
 class MerakiOrganizationApplianceClientsSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
 ):
     """Representation of a Meraki Organization Appliance Clients sensor."""
 
@@ -119,7 +119,7 @@ class MerakiOrganizationApplianceClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         org_id: str,
         org_name: str,
     ) -> None:

@@ -7,8 +7,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN, DATA_CLIENT, DATA_COORDINATORS
-from ..api.meraki_api import MerakiAPIClient
-from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+from ..core.api.client import MerakiAPIClient
+from ..core.coordinators.network import MerakiNetworkCoordinator
 from .meraki_ssid_name import MerakiSSIDNameText
 
 _LOGGER = logging.getLogger(__name__)
@@ -27,12 +27,12 @@ async def async_setup_entry(
         meraki_client: MerakiAPIClient = entry_data[DATA_CLIENT]
 
         # Get the SSID device coordinator for SSID name text entities
-        ssid_coordinator: SSIDDeviceCoordinator = entry_data[DATA_COORDINATORS].get(
-            "ssid_devices"
+        network_coordinator: MerakiNetworkCoordinator = entry_data.get(
+            "network_coordinator"
         )
-        if not ssid_coordinator:
+        if not network_coordinator:
             _LOGGER.error(
-                "Text platform: SSID Device coordinator not found for entry %s. Cannot set up SSID name text entities.",
+                "Text platform: Network coordinator not found for entry %s. Cannot set up SSID name text entities.",
                 config_entry.entry_id,
             )
             return False  # Or True if other text entities might exist from other coordinators
@@ -47,20 +47,29 @@ async def async_setup_entry(
     new_entities: list = []
 
     # Setup SSID Name Text Entities
-    if ssid_coordinator and ssid_coordinator.data:
-        # _LOGGER.debug("SSID Coordinator data available, setting up SSID name text entities. %s SSIDs found.", len(ssid_coordinator.data)) # Removed
-        for ssid_unique_id, ssid_data in ssid_coordinator.data.items():
+    if network_coordinator and network_coordinator.data:
+        ssids = network_coordinator.data.get("ssids", [])
+        for ssid_data in ssids:
             if not isinstance(ssid_data, dict):
                 _LOGGER.warning(
-                    "Skipping non-dictionary ssid_data for SSID unique_id %s in text platform.",
-                    ssid_unique_id,
+                    "Skipping non-dictionary ssid_data in text platform: %s",
+                    ssid_data,
                 )
                 continue
 
-            # _LOGGER.debug("Setting up text entity for SSID: %s (Data: %s)", ssid_data.get('name', ssid_unique_id), ssid_data) # Removed
+            if not ssid_data.get("enabled"):
+                continue
+
+            ssid_unique_id = ssid_data.get("unique_id")
+            if not ssid_unique_id:
+                _LOGGER.warning(
+                    "SSID data missing unique_id, cannot create entity: %s", ssid_data
+                )
+                continue
+
             new_entities.append(
                 MerakiSSIDNameText(
-                    ssid_coordinator,
+                    network_coordinator,
                     meraki_client,
                     config_entry,
                     ssid_unique_id,
@@ -69,7 +78,7 @@ async def async_setup_entry(
             )
     else:
         _LOGGER.info(
-            "SSID Coordinator data not available or no SSIDs found for setting up SSID name text entities."
+            "Network Coordinator data not available or no SSIDs found for setting up SSID name text entities."
         )
 
     if new_entities:

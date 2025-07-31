@@ -19,16 +19,18 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
         self._networks: List[Dict[str, Any]] = []
 
     async def _async_update_data(self) -> Dict[str, Any]:
-        """Fetch network data from Meraki.
+        """Fetch network, client, and SSID data from Meraki.
 
         Returns:
-            Dict containing network data
+            Dict containing network, client, and SSID data
 
         Raises:
             UpdateFailed: If update fails
         """
         try:
             networks = await self.api_client.get_networks()
+            all_clients = []
+            all_ssids = []
             processed_networks = []
 
             for network in networks:
@@ -36,10 +38,19 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
                 if "id" not in network:
                     _LOGGER.warning("Network missing required attributes: %s", network)
                     continue
+                network["productType"] = "network"
 
-                # Fetch additional network data like client count
+                # Fetch clients for this network
                 try:
-                    network["client_count"] = 0  # Placeholder for actual API call
+                    network_clients = await self.api_client.get_network_clients(
+                        network["id"]
+                    )
+                    for client in network_clients:
+                        client["networkId"] = network[
+                            "id"
+                        ]  # ensure networkId is present
+                    all_clients.extend(network_clients)
+                    network["client_count"] = len(network_clients)
                 except Exception as err:
                     _LOGGER.warning(
                         "Error fetching client count for network %s: %s",
@@ -48,10 +59,26 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
                     )
                     network["client_count"] = 0
 
+                # Fetch SSIDs if network supports wireless
+                if 'wireless' in network.get("productTypes", []):
+                    try:
+                        network_ssids = await self.api_client.get_ssids(network["id"])
+                        for ssid in network_ssids:
+                            ssid["networkId"] = network["id"]
+                            ssid["unique_id"] = f'{network["id"]}_{ssid["number"]}'
+                            ssid["productType"] = "ssid"
+                        all_ssids.extend(network_ssids)
+                    except Exception as err:
+                        _LOGGER.warning(
+                            "Error fetching SSIDs for network %s: %s",
+                            network.get("id"),
+                            err,
+                        )
+
                 processed_networks.append(network)
 
             self._networks = processed_networks
-            return {"networks": processed_networks}
+            return {"networks": processed_networks, "clients": all_clients, "ssids": all_ssids}
 
         except Exception as err:
             _LOGGER.error("Error fetching network data: %s", err)

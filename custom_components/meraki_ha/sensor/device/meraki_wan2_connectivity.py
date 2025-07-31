@@ -9,7 +9,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...coordinators import MerakiDataUpdateCoordinator
+from ...core.coordinators.device import MerakiDeviceCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ STATE_UNKNOWN = "Unknown"
 
 
 class MerakiWAN2ConnectivitySensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
 ):
     """Representation of a Meraki WAN2 Connectivity Sensor."""
 
@@ -29,7 +29,7 @@ class MerakiWAN2ConnectivitySensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         device_data: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""

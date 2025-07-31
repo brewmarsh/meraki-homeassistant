@@ -16,7 +16,7 @@ The integration represents different aspects of your Meraki setup as devices wit
 A conceptual device representing your entire Meraki Organization is created.
 
 - **Naming:** The name of this device is based on the Organization Name fetched from the Meraki Dashboard.
-- It can be prefixed (e.g., `[Org] Your Org Name`) or suffixed (e.g., `Your Org Name [Org]`) based on the "Device Name Format" option chosen during integration setup or in the options flow. If the format is "omitted", the raw organization name is used.
+- The name is based on the Organization Name fetched from the Meraki Dashboard.
 - **Purpose:** This device serves as a central point for organization-wide information and sensors.
 
 ### Organization-Wide Client Sensors
@@ -53,6 +53,14 @@ These sensors are linked to Meraki Network "devices" in Home Assistant.
 - **Note:** This sensor is designed for per-network client counts. For accurate organization-level total client counts, please use the new `Organization SSID Clients`, `Organization Wireless Clients`, or `Organization Appliance Clients` sensors. This sensor relies on the data coordinator providing a specific `network_client_counts` data structure.
 
 - _(Details of other network-specific sensors like Network Information for MX would go here.)_
+
+### Appliance Port Sensors
+
+These sensors are linked to Meraki MX security appliance "devices" in Home Assistant.
+
+| Entity Type | Name | Description | Availability |
+| :--- | :--- | :--- | :--- |
+| Sensor | `[Appliance Name] Port [Port Number]` | Shows the status of a specific port on a Meraki appliance. The state will be "connected" or "disconnected". | Meraki MX Appliances |
 
 ## SSID Sensors
 

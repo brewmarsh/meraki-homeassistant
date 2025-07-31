@@ -12,14 +12,14 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...coordinators import MerakiDataUpdateCoordinator
+from ...core.coordinators.device import MerakiDeviceCoordinator
 from ...const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiCameraSenseStatusSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
 ):
     """Representation of a Meraki Camera Sense Status sensor.
 
@@ -33,8 +33,9 @@ class MerakiCameraSenseStatusSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         device_data: Dict[str, Any],
+        config_entry: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki Camera Sense Status sensor."""
         super().__init__(coordinator)
@@ -127,7 +128,7 @@ class MerakiCameraSenseStatusSensor(
 
 
 class MerakiCameraAudioDetectionSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
 ):
     """Representation of a Meraki Camera Audio Detection Status sensor.
 
@@ -141,8 +142,9 @@ class MerakiCameraAudioDetectionSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         device_data: Dict[str, Any],
+        config_entry: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki Camera Audio Detection sensor."""
         super().__init__(coordinator)
@@ -217,7 +219,7 @@ class MerakiCameraAudioDetectionSensor(
     # Removed custom name property. Relies on _attr_has_entity_name and self.entity_description.name.
 
 
-class MerakiCameraRTSPUrlSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
+class MerakiCameraRTSPUrlSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity):
     """Representation of a Meraki Camera RTSP URL Sensor.
 
     This sensor displays the RTSP URL for a Meraki camera when RTSP streaming
@@ -228,7 +230,7 @@ class MerakiCameraRTSPUrlSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], 
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         device_info_data: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki Camera RTSP URL Sensor."""

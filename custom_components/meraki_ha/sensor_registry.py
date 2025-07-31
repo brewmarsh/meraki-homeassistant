@@ -26,7 +26,7 @@ from .sensor.device.camera_settings import (
     MerakiCameraRTSPUrlSensor,
 )  # Added imports
 
-# SSID-specific sensors (These are typically handled by SSIDDeviceCoordinator,
+# SSID-specific sensors (These are typically handled by MerakiNetworkCoordinator,
 # but listed here for completeness or future refactoring if structure changes.
 # For now, they might not be used by the physical device sensor setup loop)
 # from .sensor.ssid_availability import MerakiSSIDAvailabilitySensor

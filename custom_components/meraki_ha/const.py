@@ -29,6 +29,12 @@ DATA_COORDINATORS: Final[str] = (
 )
 """Key for storing the dictionary of all coordinators (str)."""
 
+CONF_WEBHOOK_URL: Final[str] = "webhook_url"
+"""Configuration key for the external webhook URL (str)."""
+
+DEFAULT_WEBHOOK_URL: Final[str] = ""
+"""Default webhook URL value (empty string)."""
+
 DATA_SSID_DEVICES_COORDINATOR: Final[str] = (
     "ssid_devices"  # New constant for SSID coordinator key
 )
@@ -82,6 +88,25 @@ ATTR_SSIDS: Final[str] = "ssids"
 """Device attribute for SSIDs (str)."""
 
 # Configuration options
+CONF_DEVICE_NAME_FORMAT: Final[str] = "device_name_format"
+"""Configuration key for the device name format (str)."""
+
+DEVICE_NAME_FORMAT_PREFIX: Final[str] = "prefix"
+"""Device name format option: prefix (str)."""
+DEVICE_NAME_FORMAT_SUFFIX: Final[str] = "suffix"
+"""Device name format option: suffix (str)."""
+DEVICE_NAME_FORMAT_OMIT: Final[str] = "omit"
+"""Device name format option: omit (str)."""
+
+DEVICE_NAME_FORMAT_OPTIONS: Final[List[str]] = [
+    DEVICE_NAME_FORMAT_PREFIX,
+    DEVICE_NAME_FORMAT_SUFFIX,
+    DEVICE_NAME_FORMAT_OMIT,
+]
+"""List of device name format options (List[str])."""
+
+DEFAULT_DEVICE_NAME_FORMAT: Final[str] = DEVICE_NAME_FORMAT_PREFIX
+"""Default device name format (str)."""
 # CONF_RELAXED_TAG_MATCHING was removed as the feature was removed.
 
 ERASE_TAGS_WARNING: Final[str] = (
@@ -89,3 +114,5 @@ ERASE_TAGS_WARNING: Final[str] = (
     "Proceed with extreme caution!"
 )
 """Warning message for the tag erasing feature (str)."""
+
+WEBHOOK_ID_FORMAT: Final[str] = "meraki_ha_{entry_id}"

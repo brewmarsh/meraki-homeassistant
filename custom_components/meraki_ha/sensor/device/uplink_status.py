@@ -15,7 +15,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
-from ...coordinators import MerakiDataUpdateCoordinator
+from ...core.coordinators.device import MerakiDeviceCoordinator
 from ...const import DOMAIN
 
 # Assuming this function is correctly defined in the meraki_api package
@@ -29,7 +29,7 @@ STATE_UNKNOWN_UPLINK = "Unknown"
 
 
 class MerakiUplinkStatusSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
 ):
     """Representation of a Meraki MX Appliance Uplink Status sensor.
 
@@ -41,7 +41,7 @@ class MerakiUplinkStatusSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         device_data: Dict[str, Any],  # Data for the Meraki MX appliance
     ) -> None:
         """Initialize the Meraki MX Appliance Uplink Status sensor.
@@ -110,17 +110,7 @@ class MerakiUplinkStatusSensor(
             return
 
         # Update state based on the device's overall status
-        device_status = current_device_info.get("status")
-        if device_status is None:
-            self._attr_native_value = STATE_UNKNOWN_UPLINK
-        else:
-            device_status = device_status.lower()
-            if device_status == "online":
-                self._attr_native_value = "Online"
-            elif device_status in ["offline", "dormant"]:
-                self._attr_native_value = "Offline"
-            else:  # e.g., "alerting", "connecting"
-                self._attr_native_value = device_status.capitalize()
+        self._attr_native_value = self._get_uplink_status(current_device_info).lower()
 
         # Update attributes
         # Start with base attributes that might have been in initial_device_data but need refresh
@@ -184,20 +174,7 @@ class MerakiUplinkStatusSensor(
         if not device_data:
             return STATE_UNAVAILABLE_UPLINK
 
-        uplink_info = device_data.get("uplinks", [{}])[0]
-        if not isinstance(uplink_info, dict):
-            return STATE_UNKNOWN_UPLINK
-
-        status = uplink_info.get("status")
-        if not status:
-            return STATE_UNKNOWN_UPLINK
-
-        try:
-            return str(status).lower()
-        except (AttributeError, TypeError):
-            _LOGGER.warning(
-                "Invalid uplink status value for device %s: %s",
-                device_data.get("name", "Unknown device"),
-                status,
-            )
-            return STATE_UNKNOWN_UPLINK
+        for uplink in device_data.get("uplinks", []):
+            if uplink.get("status") == "active":
+                return "online"
+        return "offline"

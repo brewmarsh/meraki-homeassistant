@@ -6,10 +6,10 @@ import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
-from custom_components.meraki_ha.authentication import (
+from custom_components.meraki_ha.core.authentication import (
     validate_meraki_credentials,
 )
-from custom_components.meraki_ha.meraki_api.exceptions import MerakiApiError
+from custom_components.meraki_ha.core.meraki_api.exceptions import MerakiApiError
 
 
 @pytest.mark.asyncio

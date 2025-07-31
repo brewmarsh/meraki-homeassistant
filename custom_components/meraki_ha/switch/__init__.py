@@ -13,8 +13,8 @@ from ..const import (
     DATA_COORDINATORS,
     DATA_SSID_DEVICES_COORDINATOR,
 )
-from ..api.meraki_api import MerakiAPIClient
-from ..coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+from ..core.api.client import MerakiAPIClient
+from ..core.coordinators.network import MerakiNetworkCoordinator
 from .meraki_ssid_device_switch import (
     MerakiSSIDEnabledSwitch,
     MerakiSSIDBroadcastSwitch,
@@ -39,9 +39,9 @@ async def async_setup_entry(
         meraki_client: MerakiAPIClient = entry_data[DATA_CLIENT]
 
         # Get the main data coordinator for physical device switches (like camera settings)
-        main_coordinator = entry_data[DATA_COORDINATOR]
-        ssid_coordinator: SSIDDeviceCoordinator = entry_data.get(
-            DATA_SSID_DEVICES_COORDINATOR
+        device_coordinator = entry_data["device_coordinator"]
+        network_coordinator: MerakiNetworkCoordinator = entry_data.get(
+            "network_coordinator"
         )
     except KeyError as e:
         _LOGGER.error(
@@ -55,11 +55,11 @@ async def async_setup_entry(
 
     # Setup Camera Setting Switches
     if (
-        main_coordinator
-        and main_coordinator.data
-        and "devices" in main_coordinator.data
+        device_coordinator
+        and device_coordinator.data
+        and "devices" in device_coordinator.data
     ):
-        for device_info in main_coordinator.data["devices"]:
+        for device_info in device_coordinator.data["devices"]:
             if not isinstance(device_info, dict):
                 continue
 
@@ -72,13 +72,13 @@ async def async_setup_entry(
                 new_entities.extend(
                     [
                         MerakiCameraSenseSwitch(
-                            main_coordinator, meraki_client, device_info
+                            device_coordinator, meraki_client, device_info
                         ),
                         MerakiCameraAudioDetectionSwitch(
-                            main_coordinator, meraki_client, device_info
+                            device_coordinator, meraki_client, device_info
                         ),
                         MerakiCameraRTSPSwitch(
-                            main_coordinator, meraki_client, device_info
+                            device_coordinator, meraki_client, device_info
                         ),
                     ]
                 )
@@ -88,9 +88,9 @@ async def async_setup_entry(
         )
 
     # Setup SSID Switches
-    if ssid_coordinator and ssid_coordinator.data:
-        # _LOGGER.debug("SSID Coordinator data available, setting up SSID switches. %s SSIDs found.", len(ssid_coordinator.data)) # Removed
-        for ssid_unique_id, ssid_data in ssid_coordinator.data.items():
+    if network_coordinator and network_coordinator.data:
+        # _LOGGER.debug("SSID Coordinator data available, setting up SSID switches. %s SSIDs found.", len(network_coordinator.data)) # Removed
+        for ssid_unique_id, ssid_data in network_coordinator.data.items():
             if not isinstance(ssid_data, dict):
                 continue
 
@@ -98,14 +98,14 @@ async def async_setup_entry(
             new_entities.extend(
                 [
                     MerakiSSIDEnabledSwitch(
-                        ssid_coordinator,
+                        network_coordinator,
                         meraki_client,
                         config_entry,
                         ssid_unique_id,
                         ssid_data,
                     ),
                     MerakiSSIDBroadcastSwitch(
-                        ssid_coordinator,
+                        network_coordinator,
                         meraki_client,
                         config_entry,
                         ssid_unique_id,
@@ -115,7 +115,7 @@ async def async_setup_entry(
             )
     else:
         _LOGGER.info(
-            "SSID Coordinator data not available or no SSIDs found for setting up SSID switches."
+            "Network Coordinator data not available or no SSIDs found for setting up SSID switches."
         )
 
     if new_entities:

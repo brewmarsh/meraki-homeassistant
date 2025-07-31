@@ -6,6 +6,7 @@ aspects of their Meraki networks and devices within Home Assistant.
 """
 
 import logging
+import secrets
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
@@ -20,11 +21,11 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     PLATFORMS,
-    DATA_COORDINATOR,
-    DATA_COORDINATORS,
 )
-from .coordinators.base_coordinator import MerakiDataUpdateCoordinator
-from .coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+from .core.api.client import MerakiAPIClient
+from .core.coordinators.device import MerakiDeviceCoordinator
+from .core.coordinators.network import MerakiNetworkCoordinator
+from .webhook import async_register_webhook, async_unregister_webhook
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -49,8 +50,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
       KeyError: If required configuration keys are missing
     """
     try:
-        api_key: str = entry.data[CONF_MERAKI_API_KEY]
-        org_id: str = entry.data[CONF_MERAKI_ORG_ID]
+        # Create API client with config entry credentials
+        api_client = MerakiAPIClient(
+            api_key=entry.data[CONF_MERAKI_API_KEY],
+            org_id=entry.data[CONF_MERAKI_ORG_ID],
+        )
     except KeyError as err:
         _LOGGER.error("Missing required configuration: %s", err)
         return False
@@ -72,42 +76,53 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     update_interval = timedelta(seconds=scan_interval_seconds)
 
-    # Create the main coordinator
-    coordinator = MerakiDataUpdateCoordinator(
-        hass=hass,
-        api_key=api_key,
-        org_id=org_id,
-        scan_interval=update_interval,
-        config_entry=entry,
+    # Create API client
+    api_client = MerakiAPIClient(
+        api_key=entry.data[CONF_MERAKI_API_KEY],
+        org_id=entry.data[CONF_MERAKI_ORG_ID],
     )
 
-    # Create the SSID device coordinator
-    ssid_coordinator = SSIDDeviceCoordinator(
+    # Create the main coordinator
+    device_coordinator = MerakiDeviceCoordinator(
         hass=hass,
-        api_fetcher=coordinator.api_fetcher,
+        api_client=api_client,
+        name="device_coordinator",
         update_interval=update_interval,
-        config_entry=entry,
+    )
+    network_coordinator = MerakiNetworkCoordinator(
+        hass=hass,
+        api_client=api_client,
+        name="network_coordinator",
+        update_interval=update_interval,
     )
 
     # Store the coordinators and API client
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
-        DATA_COORDINATOR: coordinator,
-        DATA_COORDINATORS: {
-            "ssid_devices": ssid_coordinator,
-        },
-        DATA_CLIENT: coordinator.meraki_client,
+        "device_coordinator": device_coordinator,
+        "network_coordinator": network_coordinator,
+        DATA_CLIENT: api_client,
     }
 
     # Perform initial data update
     try:
-        await coordinator.async_config_entry_first_refresh()
+        await device_coordinator.async_config_entry_first_refresh()
+        await network_coordinator.async_config_entry_first_refresh()
     except Exception as err:
         _LOGGER.error("Failed to perform initial data update: %s", err)
         return False
 
     # Set up the platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    # Register webhook
+    if "webhook_id" not in entry.data:
+        webhook_id = entry.entry_id
+        secret = secrets.token_hex(16)
+        await async_register_webhook(hass, webhook_id, secret, api_client, entry)
+        hass.config_entries.async_update_entry(
+            entry, data={**entry.data, "webhook_id": webhook_id, "secret": secret}
+        )
 
     # Register update listener to handle configuration changes
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
@@ -131,6 +146,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     Returns:
       True if all unload operations are successful, False otherwise.
     """
+    # Unregister webhook
+    if "webhook_id" in entry.data:
+        api_client = hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]
+        await async_unregister_webhook(hass, entry.data["webhook_id"], api_client)
+
     unload_ok: bool = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     if unload_ok:

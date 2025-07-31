@@ -36,7 +36,12 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
             devices = await self.api_client.get_devices()
             processed_devices = []
 
+            statuses = await self.api_client.get_organization_device_statuses()
             for device in devices:
+                for status in statuses:
+                    if status.get("serial") == device.get("serial"):
+                        device["status"] = status.get("status")
+                        break
                 # Skip devices without required attributes
                 if not all(key in device for key in ["serial", "model"]):
                     _LOGGER.warning("Device missing required attributes: %s", device)
@@ -62,8 +67,45 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                             device.get("serial"),
                             err,
                         )
+                # Fetch additional data for camera devices
+                if device["productType"] == "camera":
+                    try:
+                        device[
+                            "sense_settings"
+                        ] = await self.api_client.get_camera_sense_settings(
+                            device["serial"]
+                        )
+                        device[
+                            "video_settings"
+                        ] = await self.api_client.get_camera_video_settings(
+                            device["serial"]
+                        )
+                    except Exception as err:
+                        _LOGGER.warning(
+                            "Error fetching camera data for device %s: %s",
+                            device.get("serial"),
+                            err,
+                        )
 
+                # Fetch additional data for appliance devices
+                if device["productType"] == "appliance":
+                    try:
+                        device["ports"] = await self.api_client.get_appliance_ports(
+                            device["networkId"]
+                        )
+                    except Exception as err:
+                        _LOGGER.warning(
+                            "Error fetching appliance data for device %s: %s",
+                            device.get("serial"),
+                            err,
+                        )
                 processed_devices.append(device)
+            firmware_upgrades = await self.api_client.get_organization_firmware_upgrades()
+            for device in processed_devices:
+                for upgrade in firmware_upgrades:
+                    if upgrade.get("serial") == device.get("serial"):
+                        device["firmware_upgrades"] = upgrade
+                        break
 
             self._devices = processed_devices
             return {"devices": processed_devices}

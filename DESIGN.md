@@ -11,29 +11,39 @@ The Meraki Home Assistant integration allows users to monitor and control their 
 The integration is divided into the following components:
 
 *   **`__init__.py`**: The main entry point for the integration. It sets up the coordinators and platforms.
-*   **`api`**: A wrapper around the Meraki Dashboard API that provides a simplified interface for making API calls.
-*   **`coordinators`**: The data update coordinators that fetch data from the Meraki API and manage the state of the integration.
-*   **`sensor`**: The sensor platform, which provides sensors for monitoring the status of Meraki devices and networks.
-*   **`switch`**: The switch platform, which provides switches for controlling Meraki devices and SSIDs.
-*   **`device_tracker`**: The device tracker platform, which provides device trackers for monitoring the presence of clients on the network.
-*   **`text`**: The text platform, which provides text entities for displaying information about Meraki devices and SSIDs.
+*   **`core`**: A directory containing the core components of the integration, including the API client, coordinators, and entities.
+*   **`api`**: A wrapper around the Meraki Dashboard API that provides a simplified interface for making API calls. This is implemented in the `core/api/client.py` file.
+*   **`coordinators`**: The data update coordinators that fetch data from the Meraki API and manage the state of the integration. These are implemented in the `core/coordinators` directory.
+*   **`entities`**: The base classes for the entities in the integration. These are implemented in the `core/entities` directory.
+*   **`platforms`**: The platform-specific implementations of the entities, such as sensors, switches, and device trackers.
 *   **`const.py`**: A file that contains all of the constants used in the integration.
 *   **`AGENTS.md`**: A file that contains guidelines for agents working on the codebase.
 
+## Error Handling
+
+The integration uses a centralized error handling strategy to ensure that all errors are handled consistently and that user-friendly error messages are displayed. The `@handle_meraki_errors` decorator is used to wrap all API calls and to handle any errors that may occur. The decorator logs the errors and raises a more specific exception from the `core.errors` module. This allows the calling code to handle different types of errors in a more granular way.
+
 ## Data Flow
+
+The integration uses a hybrid data retrieval strategy that combines polling with webhooks.
+
+*   **Polling:** The `MerakiDataUpdateCoordinator` fetches data from the Meraki API at a regular interval. This is used to get the initial state of the integration and to periodically refresh the data.
+*   **Webhooks:** The integration also uses webhooks to receive real-time updates from the Meraki API. This is used to get real-time updates for things like device status and client connectivity.
 
 The data flow for the integration is as follows:
 
-1.  The `MerakiDataUpdateCoordinator` fetches data from the Meraki API at a regular interval.
-2.  The coordinator stores the data in its `data` attribute.
-3.  The platforms (e.g., sensor, switch, device_tracker) access the data from the coordinator and update their state accordingly.
+1.  The `MerakiDeviceCoordinator` and `MerakiNetworkCoordinator` fetch data from the Meraki API at a regular interval.
+2.  Each coordinator stores its data in its own `data` attribute.
+3.  The platforms (e.g., sensor, switch, device_tracker) access the data from the appropriate coordinator and update their state accordingly.
+4.  The integration also receives real-time updates from the Meraki API via webhooks.
+5.  The `async_handle_webhook` function processes the data from the webhook and updates the state of the integration accordingly.
 
 ## Coordinators
 
-The integration uses two coordinators:
+The integration uses two coordinators, which are located in the `core/coordinators` directory:
 
-*   **`MerakiDataUpdateCoordinator`**: The main coordinator that fetches data for all of the devices and networks in the organization.
-*   **`SSIDDeviceCoordinator`**: A coordinator that fetches data for the SSIDs in the organization.
+*   **`MerakiDeviceCoordinator`**: This coordinator is responsible for fetching data for all physical Meraki devices in the organization.
+*   **`MerakiNetworkCoordinator`**: This coordinator fetches data for all networks, clients, and SSIDs in the organization.
 
 ## Platforms
 
@@ -55,3 +65,17 @@ The integration provides the following platforms:
 *   **`text`**: The text platform provides text entities for displaying the following:
     *   The name of the SSIDs.
     *   The status of the SSIDs.
+
+## Code Duplication and Refactoring Opportunities
+
+### Device Sensor Base Class
+
+The device sensor platforms in `custom_components/meraki_ha/sensor/device` have a lot of duplicated code. A base class could be created to handle the following:
+
+*   **`__init__` method:** The base class could handle the common initialization logic, such as setting the unique ID, name, and icon.
+*   **`device_info` property:** The base class could provide a default implementation of the `device_info` property.
+*   **`_handle_coordinator_update` method:** The base class could provide a default implementation of the `_handle_coordinator_update` method.
+*   **`available` property:** The base class could provide a default implementation of the `available` property.
+*   **`_get_current_device_data` method:** The base class could provide a helper method to get the current device data from the coordinator.
+
+By creating a base class, we can significantly reduce the amount of duplicated code and make the sensor platforms easier to maintain.

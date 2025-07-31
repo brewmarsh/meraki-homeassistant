@@ -2,6 +2,14 @@
 
 This document provides guidelines for agents working on this codebase.
 
+## High-Level Recommendations
+
+Based on a recent analysis of the codebase, the following high-level recommendations should be followed:
+
+*   **Refactor to use `core` components:** The highest priority is to refactor the codebase to use the new `core` components and remove the old, redundant code. This will involve updating the platforms to use the new `core` entities and coordinators, and removing the old API client, coordinators, and entities.
+*   **Improve Error Handling and Logging:** Enhance error catching, provide more user-friendly error messages, and ensure consistent logging across the integration.
+*   **Optimize Data Retrieval:** Review API call patterns to optimize for performance and minimize API rate limit impact, especially for large organizations.
+
 ## 1. Code Style
 
 - All Python code must adhere to the PEP 8 style guide.
@@ -11,6 +19,18 @@ This document provides guidelines for agents working on this codebase.
 
 - All public functions and classes must have comprehensive docstrings that explain their purpose, arguments, and return values.
 - Use the Google Python Style Guide for docstring formatting.
+
+## 6. Logging
+
+- The integration uses the `logging` module to log messages.
+- The logging level can be configured in the Home Assistant configuration.
+- The logging messages should be informative and should include context, such as the function name and the arguments that were passed to the function.
+
+## 7. Data Retrieval
+
+- The integration uses a hybrid data retrieval strategy that combines polling with webhooks.
+- The polling-based data retrieval strategy is implemented in the `core/coordinators` directory.
+- The webhook-based data retrieval strategy is implemented in the `webhook.py` file.
 
 ## 3. Configuration
 

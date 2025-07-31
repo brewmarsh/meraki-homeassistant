@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.const import DOMAIN
-from custom_components.meraki_ha.entity import MerakiEntity
+from custom_components.meraki_ha.core.entity import MerakiEntity
 
 
 async def test_meraki_entity(hass: HomeAssistant) -> None:

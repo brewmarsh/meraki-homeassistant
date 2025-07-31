@@ -22,14 +22,15 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
-from ...coordinators import MerakiDataUpdateCoordinator
+from ...core.coordinators.device import MerakiDeviceCoordinator
 from ...const import DOMAIN
+from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiDeviceStatusSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
 ):
     """Representation of a Meraki Device Status sensor.
 
@@ -51,8 +52,9 @@ class MerakiDeviceStatusSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         device_data: Dict[str, Any],  # Initial device_data snapshot
+        config_entry: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki Device Status sensor.
 
@@ -71,9 +73,12 @@ class MerakiDeviceStatusSensor(
         # This uses the initial device_data for static info.
         # device_name_for_registry = device_data.get("name") or self._device_serial
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._device_serial)}
-            # No other fields like name, model, manufacturer, sw_version.
-            # These should be inherited from the device entry already created by MerakiDataUpdateCoordinator.
+            identifiers={(DOMAIN, self._device_serial)},
+            name=format_device_name(device_data, config_entry.options),
+            model=device_data.get("model"),
+            manufacturer="Cisco Meraki",
+            serial_number=self._device_serial,
+            sw_version=device_data.get("firmware"),
         )
 
         # Name of the sensor itself (e.g., "Device Name Status")

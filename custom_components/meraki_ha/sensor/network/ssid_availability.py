@@ -17,7 +17,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
 # Use SSIDDeviceCoordinator for these sensors
-from ...coordinators.ssid_device_coordinator import SSIDDeviceCoordinator
+from ...core.coordinators.network import MerakiNetworkCoordinator
 from ...const import DOMAIN
 
 
@@ -25,7 +25,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiSSIDAvailabilitySensor(
-    CoordinatorEntity[SSIDDeviceCoordinator], SensorEntity
+    CoordinatorEntity[MerakiNetworkCoordinator], SensorEntity
 ):
     """Represents a Meraki SSID Availability sensor.
 
@@ -35,7 +35,7 @@ class MerakiSSIDAvailabilitySensor(
 
     def __init__(
         self,
-        coordinator: SSIDDeviceCoordinator,
+        coordinator: MerakiNetworkCoordinator,
         ssid_data: Dict[str, Any],  # Specific SSID data for this sensor
     ) -> None:
         """Initialize the Meraki SSID Availability sensor.

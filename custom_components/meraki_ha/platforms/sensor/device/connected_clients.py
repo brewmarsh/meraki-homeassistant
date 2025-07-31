@@ -3,7 +3,7 @@
 import logging
 from typing import Any, Dict
 
-from ....entities import MerakiDeviceEntity
+from ....core.entities.device import MerakiDeviceEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -17,41 +17,25 @@ class MerakiConnectedClientsSensor(MerakiDeviceEntity):
     def __init__(
         self,
         coordinator,
-        device_data: Dict[str, Any],
+        device_serial: str,
     ) -> None:
         """Initialize the connected clients sensor."""
         super().__init__(
             coordinator=coordinator,
-            device_data=device_data,
+            device_serial=device_serial,
             name="Connected Clients",
             unique_id_suffix="connected_clients",
         )
-        self._update_sensor_state()
 
-    def _update_sensor_state(self) -> None:
-        """Update sensor state and attributes from coordinator data."""
-        current_device_data = self._get_device_data()
+    @property
+    def native_value(self) -> int:
+        """Return the number of connected clients."""
+        return self.device_data.get("clients", 0)
 
-        if not current_device_data:
-            self._attr_native_value = 0
-            self._attr_extra_state_attributes = {}
-            return
-
-        # Get connected clients count, defaulting to 0 if not available
-        clients_count = current_device_data.get("connected_clients_count")
-        if not isinstance(clients_count, int):
-            _LOGGER.warning(
-                "Connected clients data for device '%s' (Serial: %s) is not an integer: %s. Defaulting to 0.",
-                current_device_data.get("name", "Unknown"),
-                self._device_serial,
-                clients_count,
-            )
-            clients_count = 0
-
-        self._attr_native_value = clients_count
-
-        # Update attributes with any client-related data
-        self._attr_extra_state_attributes = {
-            "network_id": current_device_data.get("networkId"),
-            "tags": current_device_data.get("tags", []),
+    @property
+    def extra_state_attributes(self) -> Dict[str, Any]:
+        """Return the state attributes."""
+        return {
+            "network_id": self.device_data.get("networkId"),
+            "tags": self.device_data.get("tags", []),
         }

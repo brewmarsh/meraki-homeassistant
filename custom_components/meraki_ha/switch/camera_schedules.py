@@ -7,8 +7,8 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityDescription
 
-from ..api.meraki_api import MerakiAPIClient
-from ..coordinators import MerakiDataUpdateCoordinator
+from ..core.api.client import MerakiAPIClient
+from ..core.coordinators.device import MerakiDeviceCoordinator
 from .camera_settings import MerakiCameraSettingSwitchBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ class MerakiCameraRTSPSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDeviceCoordinator,
         meraki_client: MerakiAPIClient,
         device_data: Dict[str, Any],
     ) -> None:
@@ -39,9 +39,7 @@ class MerakiCameraRTSPSwitch(MerakiCameraSettingSwitchBase):
     @property
     def name(self) -> str:
         """Return the explicit name of the switch."""
-        device_data = self._get_current_device_data()
-        device_name = device_data.get("name", "Camera") if device_data else "Camera"
-        return f"{device_name} {self.entity_description.name}"
+        return self.entity_description.name
 
     async def _update_camera_setting(self, value: bool) -> None:
         """Update the RTSP server setting via the Meraki API."""

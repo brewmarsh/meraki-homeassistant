@@ -8,20 +8,24 @@ A comprehensive Home Assistant integration for Cisco Meraki networks. This integ
 
 - **Device Discovery and Monitoring**
 - Automatic discovery of all Meraki devices
-- Real-time device status and health metrics
-- Detailed performance statistics
+- Real-time device status (online, offline, alerting, dormant) and health metrics
+- Detailed device information (model, serial number, firmware version)
+- Firmware status for all devices
 - **Network Management**
 - Organization and network-wide monitoring
-- SSID and VLAN configuration
-- Port management and status tracking
+- SSID configuration, including showing/hiding disabled SSIDs, updating names, and controlling broadcast
+- Port management and status tracking for MX appliances
 - **Sensor Integration**
-- Environmental metrics (temperature, humidity)
 - Network performance metrics
 - Client connectivity statistics
+- MX uplink status
+- MX port status
+- Camera RTSP URL
 - **Advanced Features**
 - Intelligent caching for API optimization
 - Rate limit handling and error recovery
 - Configurable update intervals
+- Configurable device name formatting (prefix, suffix, or omit)
 
 ## Supported Devices
 
@@ -38,28 +42,6 @@ A comprehensive Home Assistant integration for Cisco Meraki networks. This integ
 - MV Series Smart Cameras
 - MT Series Environmental Sensors
 - Meraki SSIDs (wireless networks)
-- **Data Monitoring:**
-- Device status (online/offline, product type)
-- Connected client counts (for APs, networks)
-- Appliance uplink status and potentially other data points (if specific sensors are developed).
-- Basic camera device status; snapshot URL generation to be explicitly integrated (e.g., as sensor attribute or service).
-- Sensor values for MT series sensors (Future).
-- SSID Availability (Enabled/Disabled administrative status).
-- SSID Channel (current operational channel).
-- SSID Client Count.
-- **Switch Entities:**
-- Control SSID enabled/disabled state.
-- Control SSID broadcast (visible/hidden) state.
-- **Text Entities:**
-- Control SSID name (rename SSIDs).
-- **Configuration:**
-- API key and Organization ID via Home Assistant configuration flow.
-- Configurable scan interval for data refresh.
-- Device name formatting options (prefix, suffix, or omit device type in HA entity names).
-- Relaxed tag matching option for SSID-to-device association.
-- **Authentication:**
-- Handles initial API key validation.
-- Supports re-authentication flow if credentials become invalid.
 
 ## Installation
 
@@ -157,6 +139,7 @@ Entities are dynamically created based on your Meraki setup.
 - **Firmware Status (per Device):** Current firmware version and whether an update is available. Attributes include latest available version.
 - **WAN1 Connectivity (per MX):** "Connected" or "Disconnected" status for the WAN1 interface of an MX device. Attribute includes WAN1 IP.
 - **WAN2 Connectivity (per MX):** "Connected" or "Disconnected" status for the WAN2 interface of an MX device. Attribute includes WAN2 IP.
+- **Appliance Port Status (per Port):** "connected" or "disconnected" status for each port of an MX device. Attributes include link speed, vlan, and access policy.
 - **SSID Availability:** Administrative status (Enabled/Disabled) of an SSID, represented as ON/OFF.
 - **SSID Channel:** Current operational channel for an SSID (derived data, may not be available for all SSIDs).
 - **SSID Client Count:** Number of clients connected to a specific SSID.
@@ -193,8 +176,8 @@ The integration polls the Meraki API for data at a user-defined interval. The de
 
 The integration uses a coordinator pattern to manage data fetching and updates:
 
-- **`MerakiDataUpdateCoordinator` (`custom_components/meraki_ha/coordinators/base_coordinator.py`):** This is the main coordinator. It fetches general data for all physical devices (APs, switches, MX appliances) and networks within the organization. It uses `MerakiApiDataFetcher` for API calls and `DataAggregationCoordinator` to process and structure the data. Entities related to physical devices (like Device Status, Uplink Status, Connected Clients per AP) rely on this coordinator.
-- **`SSIDDeviceCoordinator` (`custom_components/meraki_ha/coordinators/ssid_device_coordinator.py`):** This coordinator is specifically responsible for managing SSIDs. It fetches detailed SSID information, registers each enabled SSID as a logical "device" in Home Assistant, and provides data for SSID-specific entities (like SSID Availability, SSID Client Count, SSID Channel, and SSID control switches/text entities). It gets the initial list of SSIDs from the `MerakiDataUpdateCoordinator` (via `api_data_fetcher` attribute) and then fetches further details itself.
+- **`MerakiDeviceCoordinator` (`custom_components/meraki_ha/core/coordinators/device.py`):** This coordinator is responsible for fetching data for all physical Meraki devices in the organization.
+- **`MerakiNetworkCoordinator` (`custom_components/meraki_ha/core/coordinators/network.py`):** This coordinator fetches data for all networks, clients, and SSIDs in the organization.
 
 ### Adding Support for New Meraki Device Types
 
