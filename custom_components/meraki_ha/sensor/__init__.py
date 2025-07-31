@@ -95,7 +95,13 @@ async def async_setup_entry(
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
                     try:
-                        entities.append(sensor_class(device_coordinator, device_info_with_formatted_name))
+                        entities.append(
+                            sensor_class(
+                                device_coordinator,
+                                device_info_with_formatted_name,
+                                config_entry,
+                            )
+                        )
                         added_entities.add(unique_id)
                     except Exception as e:
                         _LOGGER.error(
@@ -228,14 +234,6 @@ async def async_setup_entry(
                             MerakiAppliancePortSensor(device_coordinator, device, port)
                         )
                         added_entities.add(f"{device['serial']}_port_{port['number']}")
-            if device.get("productType") == "camera":
-                if f"{device['serial']}_rtsp_url" not in added_entities:
-                    entities.append(
-                        MerakiCameraRTSPUrlSensor(
-                            device_coordinator, device
-                        )
-                    )
-                    added_entities.add(f"{device['serial']}_rtsp_url")
             if f"{device['serial']}_firmware_status" not in added_entities:
                 entities.append(MerakiFirmwareStatusSensor(device_coordinator, device))
                 added_entities.add(f"{device['serial']}_firmware_status")
