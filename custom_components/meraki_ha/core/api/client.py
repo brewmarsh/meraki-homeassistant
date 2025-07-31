@@ -397,7 +397,3 @@ class MerakiAPIClient:
             if webhook.get("url") == url:
                 return webhook
         return None
-
-    async def close(self) -> None:
-        """Close the API client session."""
-        await self._dashboard.close()

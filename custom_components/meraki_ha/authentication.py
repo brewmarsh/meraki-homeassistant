@@ -172,11 +172,9 @@ class MerakiAuthentication:
             ) from e
         finally:
             _LOGGER.debug(
-                "Closing MerakiAPIClient session for credential validation (org %s).",
+                "Credential validation finished for org %s.",
                 self.organization_id,
             )
-            if client:
-                await client.close()
 
 
 async def validate_meraki_credentials(api_key: str, organization_id: str) -> Dict[str, Any]:
