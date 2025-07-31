@@ -19,10 +19,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     device_coordinator = hass.data[DOMAIN][config_entry.entry_id]["device_coordinator"]
     entities = []
     for device in device_coordinator.data.get("devices", []):
-        if device.get("productType") == "camera":
-            entities.append(
-                MerakiCameraRTSPUrlSensor(device_coordinator, device, config_entry)
-            )
+        if device.get("product_type") == "camera":
+            entities.append(MerakiCameraRTSPUrlSensor(device_coordinator, device))
     async_add_entities(entities, True)
 
 

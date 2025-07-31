@@ -49,10 +49,10 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
 
                 # Add product type based on model
                 model = device.get("model", "")
-                device["productType"] = map_meraki_model_to_device_type(model)
+                device["product_type"] = map_meraki_model_to_device_type(model)
 
                 # Fetch additional data for wireless devices
-                if device["productType"] == "wireless":
+                if device["product_type"] == "wireless":
                     try:
                         # These would be actual API calls in your implementation
                         device["connected_clients_count"] = 0  # Placeholder
@@ -68,7 +68,7 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                             err,
                         )
                 # Fetch additional data for camera devices
-                if device["productType"] == "camera":
+                if device["product_type"] == "camera":
                     try:
                         device["sense_settings"] = (
                             await self.api_client.get_camera_sense_settings(
@@ -95,7 +95,7 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                         )
 
                 # Fetch additional data for appliance devices
-                if device["productType"] == "appliance":
+                if device["product_type"] == "appliance":
                     try:
                         device["ports"] = await self.api_client.get_appliance_ports(
                             device["networkId"]
@@ -110,14 +110,22 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                                 device["networkId"]
                             )
                         )
+                        # Get client list and count for appliance
+                        clients = await self.api_client.get_device_clients(
+                            device["serial"]
+                        )
+                        device["connected_clients_count"] = (
+                            len(clients) if isinstance(clients, list) else 0
+                        )
                     except Exception as err:
                         _LOGGER.warning(
                             "Error fetching appliance data for device %s: %s",
                             device.get("serial"),
                             err,
                         )
+
                 # Fetch additional data for switch devices
-                if device["productType"] == "switch":
+                if device["product_type"] == "switch":
                     try:
                         device["port_statuses"] = (
                             await self.api_client.get_device_switch_ports_statuses(
@@ -130,8 +138,9 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                             device.get("serial"),
                             err,
                         )
+
                 # Get sensor readings for MT sensors
-                if device["productType"] == "sensor":
+                if device["product_type"] == "sensor":
                     try:
                         readings = await self.api_client.get_device_sensor_readings(
                             device["serial"]
