@@ -14,8 +14,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import (
     DOMAIN,
-    DATA_COORDINATOR,
-    DATA_SSID_DEVICES_COORDINATOR,
     DATA_CLIENT,
 )
 from ..core.coordinators.device import MerakiDeviceCoordinator
@@ -25,13 +23,6 @@ from ..sensor_registry import (
     COMMON_DEVICE_SENSORS,
     get_sensors_for_device_type,
 )
-from .network.ssid import create_ssid_sensors
-from .org.org_device_type_clients import MerakiOrgDeviceTypeClientsSensor
-from .org.org_clients import (
-    MerakiOrganizationSSIDClientsSensor,
-    MerakiOrganizationWirelessClientsSensor,
-    MerakiOrganizationApplianceClientsSensor,
-)
 from .network.network_clients import MerakiNetworkClientsSensor
 from .network.network_identity import MerakiNetworkIdentitySensor
 from .network.meraki_network_info import MerakiNetworkInfoSensor
@@ -39,6 +30,16 @@ from .device.appliance_port import MerakiAppliancePortSensor
 from .device.firmware_status import MerakiFirmwareStatusSensor
 from .device.camera_rtsp_url import MerakiCameraRTSPUrlSensor
 from ..core.utils.naming_utils import format_device_name
+
+__all__ = [
+    "async_setup_entry",
+    "MerakiNetworkClientsSensor",
+    "MerakiNetworkIdentitySensor",
+    "MerakiNetworkInfoSensor",
+    "MerakiAppliancePortSensor",
+    "MerakiFirmwareStatusSensor",
+    "MerakiCameraRTSPUrlSensor",
+]
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -87,16 +88,12 @@ async def async_setup_entry(
                 fallback_name = f"Meraki {model_str} {serial}"
                 device_info["name"] = fallback_name
 
-            device_info["name"] = format_device_name(
-                device_info, config_entry.options
-            )
+            device_info["name"] = format_device_name(device_info, config_entry.options)
             for sensor_class in COMMON_DEVICE_SENSORS:
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
                     try:
-                        entities.append(
-                            sensor_class(device_coordinator, device_info, config_entry)
-                        )
+                        entities.append(sensor_class(device_coordinator, device_info))
                         added_entities.add(unique_id)
                     except Exception as e:
                         _LOGGER.error(
@@ -118,7 +115,7 @@ async def async_setup_entry(
                     if unique_id not in added_entities:
                         try:
                             entities.append(
-                                sensor_class(device_coordinator, device_info, config_entry)
+                                sensor_class(device_coordinator, device_info)
                             )
                             added_entities.add(unique_id)
                         except Exception as e:
@@ -221,8 +218,13 @@ async def async_setup_entry(
         for device in device_coordinator.data.get("devices", []):
             if device.get("productType") == "appliance":
                 for port in device.get("ports", []):
-                    if f"{device['serial']}_port_{port['number']}" not in added_entities:
-                        entities.append(MerakiAppliancePortSensor(device_coordinator, device, port))
+                    if (
+                        f"{device['serial']}_port_{port['number']}"
+                        not in added_entities
+                    ):
+                        entities.append(
+                            MerakiAppliancePortSensor(device_coordinator, device, port)
+                        )
                         added_entities.add(f"{device['serial']}_port_{port['number']}")
             if device.get("productType") == "camera":
                 if f"{device['serial']}_rtsp_url" not in added_entities:

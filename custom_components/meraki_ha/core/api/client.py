@@ -171,25 +171,39 @@ class MerakiAPIClient:
         self, network_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """Get all devices in the organization or a specific network."""
-        _LOGGER.debug("Getting devices for network: %s", network_id)
+        if network_id is None:
+            _LOGGER.debug("Getting devices for entire organization")
+        else:
+            _LOGGER.debug("Getting devices for network: %s", network_id)
+
         cache_key = self._get_cache_key("get_devices", network_id)
 
         if cached := self._get_cached_data(cache_key):
             return cached
 
-        if network_id:
-            devices = await self._run_sync(
-                self._dashboard.networks.getNetworkDevices, networkId=network_id
-            )
-        else:
-            devices = await self._run_sync(
-                self._dashboard.organizations.getOrganizationDevices,
-                organizationId=self._org_id,
-            )
+        try:
+            if network_id:
+                devices = await self._run_sync(
+                    self._dashboard.networks.getNetworkDevices, networkId=network_id
+                )
+            else:
+                devices = await self._run_sync(
+                    self._dashboard.organizations.getOrganizationDevices,
+                    organizationId=self._org_id,
+                )
 
-        validated = validate_response(devices)
-        self._cache_data(cache_key, validated)
-        return validated
+            validated = validate_response(devices)
+            if not isinstance(validated, list):
+                _LOGGER.warning(
+                    "get_devices did not return a list, returning empty list. Got: %s",
+                    type(validated),
+                )
+                validated = []
+            self._cache_data(cache_key, validated)
+            return validated
+        except Exception as err:
+            _LOGGER.error("Error fetching devices: %s", err)
+            return []
 
     @handle_meraki_errors
     async def get_camera_sense_settings(self, serial: str) -> Dict[str, Any]:
@@ -238,7 +252,9 @@ class MerakiAPIClient:
         self, network_id: str, number: str, **kwargs
     ) -> None:
         """Update a wireless SSID."""
-        _LOGGER.debug("Updating wireless SSID for network: %s, number: %s", network_id, number)
+        _LOGGER.debug(
+            "Updating wireless SSID for network: %s, number: %s", network_id, number
+        )
         await self._run_sync(
             self._dashboard.wireless.updateNetworkWirelessSsid,
             networkId=network_id,
@@ -269,7 +285,6 @@ class MerakiAPIClient:
         self._cache_data(cache_key, validated)
         return validated
 
-
     @handle_meraki_errors
     async def get_organization_device_statuses(self) -> List[Dict[str, Any]]:
         """Get status information for all devices in the organization."""
@@ -282,22 +297,29 @@ class MerakiAPIClient:
         if cached := self._get_cached_data(cache_key):
             return cached
 
-        statuses = await self._run_sync(
-            self._dashboard.organizations.getOrganizationDeviceStatuses,
-            organizationId=self._org_id,
-        )
-        validated = validate_response(statuses)
-        if not isinstance(validated, list):
-            _LOGGER.warning(
-                "get_organization_device_statuses did not return a list, returning empty list. Got: %s",
-                type(validated),
-            )
-            validated = []
-        self._cache_data(cache_key, validated)
+        # Get device list first
+        devices = await self.get_devices()
+        statuses = []
+
+        # Build status information from device data
+        for device in devices:
+            status = {
+                "name": device.get("name"),
+                "serial": device.get("serial"),
+                "mac": device.get("mac"),
+                "publicIp": device.get("lanIp"),  # Use lanIp as publicIp
+                "status": device.get("status", "unknown"),
+                "lastReportedAt": device.get("lastReportedAt"),
+                "networkId": device.get("networkId"),
+                "productType": device.get("productType", "unknown"),
+            }
+            statuses.append(status)
+
+        self._cache_data(cache_key, statuses)
 
         # Reset cache timeout
         self._cache_timeout = 300
-        return validated
+        return statuses
 
     @handle_meraki_errors
     async def get_device_clients(self, serial: str) -> List[Dict[str, Any]]:
