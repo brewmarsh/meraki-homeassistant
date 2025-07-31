@@ -46,6 +46,7 @@ Based on a recent analysis of the codebase, the following high-level recommendat
 
 - All new features must be accompanied by unit tests.
 - Run the entire test suite before submitting code to ensure that no regressions have been introduced.
+- Use chain-of-thought reasoning to ensure that you have solved the complete problem.
 
 ## 6. Dependencies
 
