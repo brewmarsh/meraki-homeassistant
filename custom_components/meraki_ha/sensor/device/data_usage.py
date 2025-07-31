@@ -16,7 +16,12 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiDataUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity):
-    """Representation of a Meraki appliance data usage sensor."""
+    """Representation of a Meraki appliance data usage sensor.
+
+    This sensor displays the total data usage for a Meraki MX appliance
+    over the last day. The state is the total data usage in megabytes,
+    and the attributes provide a breakdown of sent and received data.
+    """
 
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_native_unit_of_measurement = UnitOfInformation.MEGABYTES

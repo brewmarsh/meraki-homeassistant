@@ -45,48 +45,48 @@
 ### Meraki Appliances
 | Requirement | Status |
 | :--- | :--- |
-| Meraki appliances should have sensors that track data usage. | Not Included |
+| Meraki appliances should have sensors that track data usage. | Included |
 | Meraki appliances should have a sensor that tracks the number of connected clients. | Included |
 | Meraki appliances have VLANs; these VLANs should appear as Home Assistant devices. | Not Included |
 | Meraki appliances have an external hostname; this should appear as details of the Home Assistant device. | Not Included |
 | Meraki appliances should have a sensor that tracks the number of ports in use. | Included |
 | Meraki appliances should have a sensor that tracks the number of ports available. | Included |
-| The MX uplink status is not correct | Included |
-| The MX port statuses are not correct | Included |
-| Appliance `TypeError` | Included |
+| The MX uplink status is not correct | Fixed |
+| The MX port statuses are not correct | Fixed |
+| Appliance `TypeError` | Fixed |
 
 ### Meraki Wireless
 | Requirement | Status |
 | :--- | :--- |
 | Meraki wireless devices should have a sensor that tracks the number of connected clients. | Included |
-| SSID names appear to be missing | Included |
-| Disabled SSIDs should not be shown in the list | Included |
-| SSID names should be updateable | Included |
-| SSIDs should be able to have the "Broadcast SSID" feature enabled / disabled | Included |
-| SSIDs do not have a prefix / suffix | Included |
-| SSID renaming feature is not working | Included |
+| SSID names appear to be missing | Fixed |
+| Disabled SSIDs should not be shown in the list | Fixed |
+| SSID names should be updateable | Fixed |
+| SSIDs should be able to have the "Broadcast SSID" feature enabled / disabled | Fixed |
+| SSIDs do not have a prefix / suffix | Fixed |
+| SSID renaming feature is not working | Fixed |
 
 ### Meraki Switches
 | Requirement | Status |
 | :--- | :--- |
-| If the Meraki switch supports PoE, the switch should have sensors that aggregated PoE usage. | Not Included |
-| Meraki switches should have a sensor that tracks the number of ports in use. | Not Included |
-| Meraki switches should have a sensor that tracks the number of ports available. | Not Included |
-| Some switches have two prefixes / suffixes; please ensure that they only have one | Included |
-| Meraki switch status does not seem to be correct | Included |
+| If the Meraki switch supports PoE, the switch should have sensors that aggregated PoE usage. | Included |
+| Meraki switches should have a sensor that tracks the number of ports in use. | Included |
+| Meraki switches should have a sensor that tracks the number of ports available. | Included |
+| Some switches have two prefixes / suffixes; please ensure that they only have one | Fixed |
+| Meraki switch status does not seem to be correct | Fixed |
 
 ### Meraki Cameras
 | Requirement | Status |
 | :--- | :--- |
 | Meraki cameras should have a data element that reflects the URL of the camera stream. | Included |
 | Meraki cameras should have a Home Assistant switch that enables RTSP streaming. | Included |
-| Meraki camera RTSP URLs are not correct | Included |
-| camera RTSP enabling does not work | Included |
+| Meraki camera RTSP URLs are not correct | Fixed |
+| camera RTSP enabling does not work | Fixed |
 
 ### Meraki Sensors
 | Requirement | Status |
 | :--- | :--- |
-| Meraki sensors should have appropriate sensor and switch values based on their model. | Not Included |
+| Meraki sensors should have appropriate sensor and switch values based on their model. | Included |
 
 ## Technical Requirements
 
@@ -175,4 +175,3 @@
 
 ### Code Quality & Refactoring
 - [ ] **Unit and Integration Tests:** Expand test coverage significantly.
-- [ ] **Testing Environment:** The testing environment is currently not set up to run tests that have a dependency on Home Assistant. This needs to be resolved to run the full test suite.

@@ -1,31 +1,33 @@
-# Meraki Home Assistant Integration
+# Meraki Home Assistant Integration 👋
 
 [![codecov](https://codecov.io/gh/brewmarsh/meraki-homeassistant/graph/badge.svg?token=GDR26G8S42)](https://codecov.io/gh/brewmarsh/meraki-homeassistant)
 
-A comprehensive Home Assistant integration for Cisco Meraki networks. This integration provides deep visibility and control of your Meraki infrastructure directly from Home Assistant, enabling advanced automation and monitoring capabilities.
+Welcome to the Meraki Home Assistant integration! 🚀 This integration lets you connect your Cisco Meraki network to Home Assistant, giving you awesome visibility and control over your network infrastructure. Automate your network, monitor your devices, and build cool new things!
 
-## Key Features
+## Key Features ✨
 
-- **Device Discovery and Monitoring**
-- Automatic discovery of all Meraki devices
-- Real-time device status (online, offline, alerting, dormant) and health metrics
-- Detailed device information (model, serial number, firmware version)
-- Firmware status for all devices
-- **Network Management**
-- Organization and network-wide monitoring
-- SSID configuration, including showing/hiding disabled SSIDs, updating names, and controlling broadcast
-- Port management and status tracking for MX appliances
-- **Sensor Integration**
-- Network performance metrics
-- Client connectivity statistics
-- MX uplink status
-- MX port status
-- Camera RTSP URL
-- **Advanced Features**
-- Intelligent caching for API optimization
-- Rate limit handling and error recovery
-- Configurable update intervals
-- Configurable device name formatting (prefix, suffix, or omit)
+- **Device Discovery and Monitoring** 📡
+  - Automatically finds all your Meraki devices.
+  - Real-time device status (online, offline, alerting, dormant) and health metrics.
+  - Detailed device info like model, serial number, and firmware version.
+  - Firmware status for all your devices.
+- **Network Management** 🛠️
+  - Monitor your entire organization and individual networks.
+  - Configure SSIDs: show/hide, update names, and control broadcasting.
+  - Manage and track the status of your MX appliance ports.
+- **Sensor Integration** 🌡️
+  - Network performance metrics.
+  - Client connectivity statistics.
+  - MX uplink status.
+  - MX port status and data usage.
+  - Switch port status, PoE usage, and port counts.
+  - Camera RTSP URL.
+  - Environmental sensors for temperature, humidity, and water detection.
+- **Advanced Features** 🧠
+  - Smart caching to optimize API calls and avoid rate limiting.
+  - Error recovery and handling for a stable experience.
+  - Configurable update intervals to balance real-time data with API load.
+  - Customizable device name formatting (prefix, suffix, or omit).
 
 ## Supported Devices
 
@@ -129,22 +131,26 @@ This integration supports the following platforms:
 
 Entities are dynamically created based on your Meraki setup.
 
-- **Sensor Entities:**
+- **Sensor Entities:** センサー
 
 - **Device Status:** Shows the operational status of Meraki devices (e.g., "online", "offline", "alerting"). Attributes include product type, model, serial, firmware, IPs, etc.
-- **Connected Clients (per AP):** Number of clients connected to specific MR/GR access points.
-- **Uplink Status (per MX):** Status of the uplinks for MX security appliances (e.g., "Online", "Offline"). Attributes include WAN IPs.
+- **Connected Clients (per Device):** Number of clients connected to a specific device (works for APs and appliances).
+- **Uplink Status (per MX):** Status of the uplinks for MX security appliances (e.g., "online", "ready", "offline"). Attributes include WAN IPs and other details for each uplink.
+- **Data Usage (per MX):** Total data usage for an MX appliance over the last day. Attributes include sent and received data.
 - **Network Client Count (per Network):** Total clients active on a network within a defined timespan.
 - **Network Information (per MX/Appliance):** Provides various network parameters of an MX device as attributes (WAN IPs, DNS servers, LAN IP, Public IP, etc.). The sensor state is the device name.
 - **Firmware Status (per Device):** Current firmware version and whether an update is available. Attributes include latest available version.
-- **WAN1 Connectivity (per MX):** "Connected" or "Disconnected" status for the WAN1 interface of an MX device. Attribute includes WAN1 IP.
-- **WAN2 Connectivity (per MX):** "Connected" or "Disconnected" status for the WAN2 interface of an MX device. Attribute includes WAN2 IP.
-- **Appliance Port Status (per Port):** "connected" or "disconnected" status for each port of an MX device. Attributes include link speed, vlan, and access policy.
+- **WAN1/WAN2 Connectivity (per MX):** "Connected" or "Disconnected" status for the WAN interfaces of an MX device.
+- **Appliance Port Status (per Port):** "connected", "disconnected", or "disabled" status for each port of an MX device. Attributes include link speed, vlan, and access policy.
+- **Switch PoE Usage (per Switch):** Aggregated PoE usage for a switch in watts. Attributes provide per-port usage.
+- **Switch Port Counts (per Switch):** Sensors for the number of ports in use and available on a switch.
 - **SSID Availability:** Administrative status (Enabled/Disabled) of an SSID, represented as ON/OFF.
 - **SSID Channel:** Current operational channel for an SSID (derived data, may not be available for all SSIDs).
 - **SSID Client Count:** Number of clients connected to a specific SSID.
-- Sensor values for MT series environmental sensors.
-- More detailed appliance/switch port statistics.
+- **Environmental Sensors (per MT sensor):**
+  - **Temperature:** The current temperature in Celsius.
+  - **Humidity:** The current humidity in percent.
+  - **Water Detection:** `true` if water is detected, `false` otherwise.
 
 - **Switch Entities:**
 

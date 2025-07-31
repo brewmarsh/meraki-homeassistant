@@ -21,6 +21,10 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
     async def _async_update_data(self) -> Dict[str, Any]:
         """Fetch network, client, and SSID data from Meraki.
 
+        This method fetches all networks in the organization, and for each
+        network, it fetches the clients and SSIDs. Disabled SSIDs are
+        filtered out.
+
         Returns:
             Dict containing network, client, and SSID data
 

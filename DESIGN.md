@@ -42,8 +42,8 @@ The data flow for the integration is as follows:
 
 The integration uses two coordinators, which are located in the `core/coordinators` directory:
 
-*   **`MerakiDeviceCoordinator`**: This coordinator is responsible for fetching data for all physical Meraki devices in the organization.
-*   **`MerakiNetworkCoordinator`**: This coordinator fetches data for all networks, clients, and SSIDs in the organization.
+*   **`MerakiDeviceCoordinator`**: This coordinator is responsible for fetching data for all physical Meraki devices in the organization. It fetches base device data, and then enhances it with device-specific data like port statuses for switches, uplink information for appliances, and sensor readings for MT sensors.
+*   **`MerakiNetworkCoordinator`**: This coordinator fetches data for all networks, clients, and SSIDs in the organization. It also filters out disabled SSIDs.
 
 ## Platforms
 
@@ -53,8 +53,12 @@ The integration provides the following platforms:
     *   The status of Meraki devices (e.g., online, offline).
     *   The number of clients connected to each device.
     *   The status of the WAN connection for MX devices.
+    *   Data usage for MX appliances.
+    *   PoE usage for MS switches.
+    *   Port counts (in use/available) for MS switches.
     *   The radio settings for MR devices.
     *   The status of the SSIDs.
+    *   Environmental readings (temperature, humidity, water detection) for MT sensors.
 *   **`switch`**: The switch platform provides switches for controlling the following:
     *   The state of the SSIDs (e.g., enabled, disabled).
     *   The broadcast state of the SSIDs.

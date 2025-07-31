@@ -239,7 +239,14 @@ class MerakiAPIClient:
 
     @handle_meraki_errors
     async def get_device_camera_video_link(self, serial: str) -> Dict[str, Any]:
-        """Get video link for a specific camera."""
+        """Get video link for a specific camera.
+
+        Args:
+            serial: The serial number of the camera.
+
+        Returns:
+            A dictionary containing the video link information.
+        """
         _LOGGER.debug("Getting camera video link for serial: %s", serial)
         cache_key = self._get_cache_key("get_device_camera_video_link", serial)
 
@@ -392,7 +399,15 @@ class MerakiAPIClient:
     async def get_network_appliance_traffic(
         self, network_id: str, timespan: int = 86400
     ) -> Dict[str, Any]:
-        """Get traffic data for a network appliance."""
+        """Get traffic data for a network appliance.
+
+        Args:
+            network_id: The ID of the network.
+            timespan: The timespan for which to retrieve traffic data, in seconds.
+
+        Returns:
+            A dictionary containing the traffic data.
+        """
         _LOGGER.debug("Getting appliance traffic for network: %s", network_id)
         cache_key = self._get_cache_key(
             "get_network_appliance_traffic", network_id, timespan
@@ -428,7 +443,14 @@ class MerakiAPIClient:
 
     @handle_meraki_errors
     async def get_device_appliance_uplinks(self, serial: str) -> List[Dict[str, Any]]:
-        """Get uplinks for a device."""
+        """Get uplinks for a device.
+
+        Args:
+            serial: The serial number of the device.
+
+        Returns:
+            A list of dictionaries, each representing an uplink.
+        """
         _LOGGER.debug("Getting uplinks for device: %s", serial)
         cache_key = self._get_cache_key("get_device_appliance_uplinks", serial)
 
@@ -472,7 +494,14 @@ class MerakiAPIClient:
 
     @handle_meraki_errors
     async def get_device_switch_ports_statuses(self, serial: str) -> List[Dict[str, Any]]:
-        """Get statuses for all ports of a switch."""
+        """Get statuses for all ports of a switch.
+
+        Args:
+            serial: The serial number of the switch.
+
+        Returns:
+            A list of dictionaries, each representing the status of a port.
+        """
         _LOGGER.debug("Getting switch ports statuses for serial: %s", serial)
         cache_key = self._get_cache_key("get_device_switch_ports_statuses", serial)
 
@@ -510,7 +539,14 @@ class MerakiAPIClient:
 
     @handle_meraki_errors
     async def get_device_sensor_readings(self, serial: str) -> List[Dict[str, Any]]:
-        """Get readings for a sensor device."""
+        """Get readings for a sensor device.
+
+        Args:
+            serial: The serial number of the sensor device.
+
+        Returns:
+            A list of dictionaries, each representing a sensor reading.
+        """
         _LOGGER.debug("Getting sensor readings for device: %s", serial)
         cache_key = self._get_cache_key("get_device_sensor_readings", serial)
 

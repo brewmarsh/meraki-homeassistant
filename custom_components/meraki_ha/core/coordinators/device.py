@@ -24,7 +24,8 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
 
         Fetches all devices and enhances their data with product type mapping
         and additional device-specific information like client counts for wireless
-        devices.
+        devices, port statuses for switches, uplink information and traffic data
+        for appliances, and sensor readings for MT sensors.
 
         Returns:
             Dict containing device data
