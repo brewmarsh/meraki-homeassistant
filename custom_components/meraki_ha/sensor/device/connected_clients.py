@@ -105,22 +105,18 @@ class MerakiDeviceConnectedClientsSensor(
             if client_count is None:
                 client_count = found_device_data.get("connected_clients")
 
+            if client_count is None:
+                return 0
             if isinstance(client_count, int):
-                # _LOGGER.debug(
-                #     "Client count for device '%s' (Serial: %s): %d",
-                #     self._device_info_data.get("name", "N/A"),
-                #     device_serial,
-                #     client_count,
-                # ) # Removed
                 return client_count
-            else:
-                _LOGGER.warning(
-                    "Connected clients data for device '%s' (Serial: %s) is not an integer: %s. Defaulting to 0.",
-                    self._device_info_data.get("name", "N/A"),
-                    device_serial,
-                    client_count,
-                )
-                return 0  # Default if data is malformed
+
+            _LOGGER.warning(
+                "Connected clients data for device '%s' (Serial: %s) is not an integer: %s. Defaulting to 0.",
+                self._device_info_data.get("name", "N/A"),
+                device_serial,
+                client_count,
+            )
+            return 0  # Default if data is malformed
         else:
             _LOGGER.warning(
                 "Device data not found in coordinator for serial '%s' (sensor: %s). Defaulting client count to 0.",
