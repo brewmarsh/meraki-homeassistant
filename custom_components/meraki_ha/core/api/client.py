@@ -326,24 +326,29 @@ class MerakiAPIClient:
         if cached := self._get_cached_data(cache_key):
             return cached
 
-        statuses = await self._run_sync(
-            self._dashboard.organizations.getOrganizationDeviceStatuses,
-            organizationId=self._org_id,
-        )
+        # Get device list first
+        devices = await self.get_devices()
+        statuses = []
 
-        validated = validate_response(statuses)
-        if not isinstance(validated, list):
-            _LOGGER.warning(
-                "get_organization_device_statuses did not return a list, returning empty list. Got: %s",
-                type(validated),
-            )
-            validated = []
+        # Build status information from device data
+        for device in devices:
+            status = {
+                "name": device.get("name"),
+                "serial": device.get("serial"),
+                "mac": device.get("mac"),
+                "publicIp": device.get("lanIp"),  # Use lanIp as publicIp
+                "status": device.get("status", "unknown"),
+                "lastReportedAt": device.get("lastReportedAt"),
+                "networkId": device.get("networkId"),
+                "productType": device.get("productType", "unknown"),
+            }
+            statuses.append(status)
 
-        self._cache_data(cache_key, validated)
+        self._cache_data(cache_key, statuses)
 
         # Reset cache timeout
         self._cache_timeout = 300
-        return validated
+        return statuses
 
     @handle_meraki_errors
     async def get_device_clients(self, serial: str) -> List[Dict[str, Any]]:
