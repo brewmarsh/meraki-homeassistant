@@ -24,6 +24,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 from ...core.coordinators.device import MerakiDeviceCoordinator
 from ...const import DOMAIN
+from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -53,6 +54,7 @@ class MerakiDeviceStatusSensor(
         self,
         coordinator: MerakiDeviceCoordinator,
         device_data: Dict[str, Any],  # Initial device_data snapshot
+        config_entry: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki Device Status sensor.
 
@@ -72,7 +74,7 @@ class MerakiDeviceStatusSensor(
         # device_name_for_registry = device_data.get("name") or self._device_serial
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
-            name=device_data.get("name"),
+            name=format_device_name(device_data, config_entry.options),
             model=device_data.get("model"),
             manufacturer="Cisco Meraki",
             serial_number=self._device_serial,

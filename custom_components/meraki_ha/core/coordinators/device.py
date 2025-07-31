@@ -69,9 +69,12 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                         device["ports"] = await self.api_client.get_appliance_ports(
                             device["networkId"]
                         )
+                        device["uplink"] = await self.api_client.get_device_uplink(
+                            device["serial"]
+                        )
                     except Exception as err:
                         _LOGGER.warning(
-                            "Error fetching appliance ports for device %s: %s",
+                            "Error fetching appliance data for device %s: %s",
                             device.get("serial"),
                             err,
                         )

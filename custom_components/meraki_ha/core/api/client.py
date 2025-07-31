@@ -192,6 +192,22 @@ class MerakiAPIClient:
         return validated
 
     @handle_meraki_errors
+    async def get_device_uplink(self, serial: str) -> Dict[str, Any]:
+        """Get uplink information for a specific device."""
+        _LOGGER.debug("Getting device uplink for serial: %s", serial)
+        cache_key = self._get_cache_key("get_device_uplink", serial)
+
+        if cached := self._get_cached_data(cache_key):
+            return cached
+
+        uplink = await self._run_sync(
+            self._dashboard.devices.getDeviceUplink, serial=serial
+        )
+        validated = validate_response(uplink)
+        self._cache_data(cache_key, validated)
+        return validated
+
+    @handle_meraki_errors
     async def get_device_statuses(self, network_id: str) -> List[Dict[str, Any]]:
         """Get status information for all devices in a network."""
         _LOGGER.debug("Getting device statuses for network: %s", network_id)

@@ -57,6 +57,9 @@ async def async_setup_entry(
                 )
                 continue
 
+            if not ssid_data.get("enabled"):
+                continue
+
             ssid_unique_id = ssid_data.get("unique_id")
             if not ssid_unique_id:
                 _LOGGER.warning(

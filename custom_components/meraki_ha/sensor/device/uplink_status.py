@@ -110,17 +110,7 @@ class MerakiUplinkStatusSensor(
             return
 
         # Update state based on the device's overall status
-        device_status = current_device_info.get("status")
-        if device_status is None:
-            self._attr_native_value = STATE_UNKNOWN_UPLINK
-        else:
-            device_status = device_status.lower()
-            if device_status == "online":
-                self._attr_native_value = "Online"
-            elif device_status in ["offline", "dormant"]:
-                self._attr_native_value = "Offline"
-            else:  # e.g., "alerting", "connecting"
-                self._attr_native_value = device_status.capitalize()
+        self._attr_native_value = self._get_uplink_status(current_device_info)
 
         # Update attributes
         # Start with base attributes that might have been in initial_device_data but need refresh

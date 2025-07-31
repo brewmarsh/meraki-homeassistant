@@ -41,6 +41,7 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiNetworkCoordinator], TextEntity
         self._meraki_client = meraki_client
         self._config_entry = config_entry  # Store config_entry
         self._ssid_unique_id = ssid_unique_id  # This is the HA device identifier
+        self._ssid_data = ssid_data
 
         # These are crucial for API calls to update the SSID name
         self._network_id: Optional[str] = ssid_data.get("networkId")
@@ -73,8 +74,8 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiNetworkCoordinator], TextEntity
         """Return device information to link this entity to the SSID device."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._ssid_unique_id)},
-            # name, model, manufacturer will be inherited from the parent SSID device
-            # which is registered by SSIDDeviceCoordinator
+            name=self._ssid_data.get("name"),
+            via_device=(DOMAIN, self._network_id),
         )
 
     @property

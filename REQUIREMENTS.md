@@ -30,7 +30,7 @@
 | The integration should create sensor, device tracker, and switch entities in Home Assistant. | Included |
 | The integration must properly handle config entries, including setup, unloading, and reloading. | Included |
 | The integration needs to have a configuration flow to take the API key and org id. | Included |
-| The integration should have option flow, to set scan interval and device name format. | Partially Included |
+| The integration should have option flow, to set scan interval and device name format. | Included |
 | The integration should handle re-authentication of the API key. | Included |
 | The integration should have a relaxed tag matching option for matching SSIDs to wireless devices. | Not Included |
 
@@ -51,11 +51,15 @@
 | Meraki appliances have an external hostname; this should appear as details of the Home Assistant device. | Not Included |
 | Meraki appliances should have a sensor that tracks the number of ports in use. | Included |
 | Meraki appliances should have a sensor that tracks the number of ports available. | Included |
+| The MX uplink status is not correct | Included |
+| The MX port statuses are not correct | Included |
 
 ### Meraki Wireless
 | Requirement | Status |
 | :--- | :--- |
 | Meraki wireless devices should have a sensor that tracks the number of connected clients. | Included |
+| SSID names appear to be missing | Included |
+| Disabled SSIDs should not be shown in the list | Included |
 
 ### Meraki Switches
 | Requirement | Status |
