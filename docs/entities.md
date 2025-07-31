@@ -4,6 +4,17 @@ This page describes the various entities (devices, sensors, switches, etc.) prov
 
 ## Meraki Device Types in Home Assistant
 
+The integration automatically categorizes your physical Meraki hardware into `productType` groups based on the device model. This allows for `productType`-specific sensors and controls. The following table details the mapping from model prefixes to the assigned `productType`:
+
+| `productType` | Model Prefix(es) | Description               |
+| :------------ | :--------------- | :------------------------ |
+| `appliance`   | `MX`, `GX`       | Security Appliances       |
+| `wireless`    | `MR`, `GR`       | Wireless Access Points    |
+| `switch`      | `MS`, `GS`       | Network Switches          |
+| `camera`      | `MV`             | Smart Cameras             |
+| `sensor`      | `MT`             | Environmental Sensors     |
+| `cellular`    | `MG`             | Cellular Gateways         |
+
 The integration represents different aspects of your Meraki setup as devices within Home Assistant:
 
 - **Physical Meraki Devices:** Your actual hardware (APs, switches, security appliances, cameras, environmental sensors) are registered as devices. Entities related to a specific piece of hardware (e.g., its status, IP address, connected clients for an AP) are linked to these devices.

@@ -45,7 +45,7 @@ DEVICE_TYPE_NETWORK: Final = "network"
 DEVICE_TYPE_UNKNOWN: Final = "unknown"
 
 # Compiled regex pattern for model validation
-MODEL_PATTERN: Final = re.compile(r"^(MR|MS|MX|MV|MT|MG|GR|GS)\d{1,3}(-[A-Z0-9-]+)?$")
+MODEL_PATTERN: Final = re.compile(r"^(MR|MS|MX|MV|MT|MG|GR|GS|GX)\d{1,3}(-[A-Z0-9-]+)?$")
 
 # Valid device types for type checking
 VALID_DEVICE_TYPES: Final[List[str]] = [
@@ -79,8 +79,8 @@ DEVICE_PREFIX_MAPPINGS: Final[dict[tuple[str, ...], str]] = {
     ("MR", "GR"): DeviceType.WIRELESS,
     # Switches (both traditional MS and cloud-managed GS series)
     ("MS", "GS"): DeviceType.SWITCH,
-    # Security Appliances
-    ("MX",): DeviceType.APPLIANCE,
+    # Security Appliances (both traditional MX and cloud-managed GX series)
+    ("MX", "GX"): DeviceType.APPLIANCE,
     # Cameras
     ("MV",): DeviceType.CAMERA,
     # Environmental Sensors

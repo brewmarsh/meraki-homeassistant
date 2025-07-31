@@ -12,10 +12,12 @@ def mock_api_client():
     client.get_devices = AsyncMock(return_value=[
         {'serial': 'dev1', 'model': 'MR52', 'networkId': 'net1'},
         {'serial': 'dev2', 'model': 'MS220-8P', 'networkId': 'net1'},
+        {'serial': 'dev3', 'model': 'GX20', 'networkId': 'net1'},
     ])
     client.get_organization_device_statuses = AsyncMock(return_value=[
         {'serial': 'dev1', 'status': 'online'},
         {'serial': 'dev2', 'status': 'offline'},
+        {'serial': 'dev3', 'status': 'online'},
     ])
     client.get_appliance_ports = AsyncMock(return_value=[{'number': 1}])
     client.get_device_uplink_stats = AsyncMock(return_value=[{'interface': 'WAN 1'}])
@@ -37,13 +39,16 @@ async def device_coordinator(mock_api_client):
 async def test_device_coordinator_data(device_coordinator):
     """Test that the device coordinator fetches and processes data correctly."""
     assert device_coordinator.data is not None
-    assert len(device_coordinator.data['devices']) == 2
+    assert len(device_coordinator.data['devices']) == 3
     assert device_coordinator.data['devices'][0]['serial'] == 'dev1'
     assert device_coordinator.data['devices'][0]['productType'] == 'wireless'
     assert device_coordinator.data['devices'][0]['status'] == 'online'
     assert device_coordinator.data['devices'][1]['serial'] == 'dev2'
     assert device_coordinator.data['devices'][1]['productType'] == 'switch'
     assert device_coordinator.data['devices'][1]['status'] == 'offline'
+    assert device_coordinator.data['devices'][2]['serial'] == 'dev3'
+    assert device_coordinator.data['devices'][2]['productType'] == 'appliance'
+    assert device_coordinator.data['devices'][2]['status'] == 'online'
 
 async def test_get_device_by_serial(device_coordinator):
     """Test getting a device by its serial number."""
