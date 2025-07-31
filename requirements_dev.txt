@@ -2,3 +2,4 @@ homeassistant
 voluptuous
 flake8
 bandit
+pytest-homeassistant-custom-component
