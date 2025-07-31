@@ -88,14 +88,19 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                         device["ports"] = await self.api_client.get_appliance_ports(
                             device["networkId"]
                         )
+                    except Exception as err:
+                        _LOGGER.warning(
+                            "Error fetching appliance data for device %s: %s",
+                            device.get("serial"),
+                            err,
+                        )
+                processed_devices.append(device)
             firmware_upgrades = await self.api_client.get_organization_firmware_upgrades()
             for device in processed_devices:
                 for upgrade in firmware_upgrades:
                     if upgrade.get("serial") == device.get("serial"):
                         device["firmware_upgrades"] = upgrade
                         break
-
-                processed_devices.append(device)
 
             self._devices = processed_devices
             return {"devices": processed_devices}
