@@ -514,7 +514,7 @@ class MerakiAPIClient:
             return cached
 
         readings = await self._run_sync(
-            self._dashboard.sensor.getDeviceSensorMetrics, serial=serial
+            self._dashboard.sensor.getDeviceSensorReadingsHistory, serial=serial
         )
         validated = validate_response(readings)
         self._cache_data(cache_key, validated)
