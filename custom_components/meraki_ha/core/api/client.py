@@ -389,22 +389,17 @@ class MerakiAPIClient:
         return validated
 
     @handle_meraki_errors
-    async def get_network_appliance_traffic(
-        self, network_id: str, timespan: int = 86400
-    ) -> Dict[str, Any]:
-        """Get traffic data for a network appliance."""
+    async def get_network_appliance_traffic(self, network_id: str) -> Dict[str, Any]:
+        """Get appliance traffic data."""
         _LOGGER.debug("Getting appliance traffic for network: %s", network_id)
-        cache_key = self._get_cache_key(
-            "get_network_appliance_traffic", network_id, timespan
-        )
+        cache_key = self._get_cache_key("get_network_appliance_traffic", network_id)
 
         if cached := self._get_cached_data(cache_key):
             return cached
 
         traffic = await self._run_sync(
-            self._dashboard.appliance.getNetworkApplianceTraffic,
+            self._dashboard.appliance.getNetworkApplianceTrafficShaping,
             networkId=network_id,
-            timespan=timespan,
         )
         validated = validate_response(traffic)
         self._cache_data(cache_key, validated)
@@ -436,15 +431,14 @@ class MerakiAPIClient:
             return cached
 
         uplinks = await self._run_sync(
-            self._dashboard.appliance.getDeviceApplianceUplinksSettings, serial=serial
+            self._dashboard.appliance.getDeviceApplianceUplinkSettings, serial=serial
         )
         validated = validate_response(uplinks)
         if not isinstance(validated, list):
-            _LOGGER.warning(
-                "get_device_appliance_uplinks did not return a list, returning empty list. Got: %s",
-                type(validated),
+            _LOGGER.debug(
+                "get_device_appliance_uplinks returned a dict, converting to list format"
             )
-            validated = []
+            validated = [validated] if validated else []
         self._cache_data(cache_key, validated)
         return validated
 
@@ -520,7 +514,7 @@ class MerakiAPIClient:
             return cached
 
         readings = await self._run_sync(
-            self._dashboard.sensor.getDeviceSensorLatestReadings, serial=serial
+            self._dashboard.sensor.getMTSensor, serial=serial
         )
         validated = validate_response(readings)
         self._cache_data(cache_key, validated)

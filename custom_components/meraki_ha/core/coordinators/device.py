@@ -130,30 +130,15 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                             device.get("serial"),
                             err,
                         )
-                # Fetch additional data for sensor devices
-                if device["productType"] == "sensor":
-                    try:
-                        device["readings"] = (
-                            await self.api_client.get_device_sensor_readings(
-                                device["serial"]
-                            )
-                        )
-                    except Exception as err:
-                        _LOGGER.warning(
-                            "Error fetching sensor data for device %s: %s",
-                            device.get("serial"),
-                            err,
-                        )
-                # Get additional device-specific data based on the device type
-                device["productType"] = map_meraki_model_to_device_type(device["model"])
-
                 # Get sensor readings for MT sensors
                 if device["productType"] == "sensor":
                     try:
+                        readings = await self.api_client.get_device_sensor_readings(
+                            device["serial"]
+                        )
+                        device["readings"] = readings
                         device["sensor_data"] = (
-                            await self.api_client.get_device_sensor_readings(
-                                device["serial"]
-                            )
+                            readings  # Keep both for backward compatibility
                         )
                     except Exception as err:
                         _LOGGER.warning(
@@ -162,24 +147,10 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                             device.get("model", "unknown"),
                             str(err),
                         )
+                        device["readings"] = None
                         device["sensor_data"] = None
 
-                # Get uplink information for appliances
-                if device["productType"] == "appliance":
-                    try:
-                        device["uplinks"] = (
-                            await self.api_client.get_device_appliance_uplinks(
-                                device["serial"]
-                            )
-                        )
-                    except Exception as err:
-                        _LOGGER.warning(
-                            "Error fetching appliance data for device %s (model: %s): %s",
-                            device.get("serial"),
-                            device.get("model", "unknown"),
-                            str(err),
-                        )
-                        device["uplinks"] = []
+                # We already handled appliance data earlier, no need to duplicate
 
                 processed_devices.append(device)
             firmware_upgrades = (
