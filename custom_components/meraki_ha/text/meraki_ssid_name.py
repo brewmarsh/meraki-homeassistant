@@ -63,9 +63,6 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiNetworkCoordinator], TextEntity
         # The name will be derived from device name + entity_description.name if _attr_has_entity_name = True
         # Or explicitly set here. Let's make it explicit for now.
         self._attr_name = format_device_name(ssid_data, config_entry.options)
-        self._attr_has_entity_name = (
-            True  # Let HA combine device name and entity description name
-        )
 
         # Set initial state
         self._update_internal_state()
@@ -75,21 +72,25 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiNetworkCoordinator], TextEntity
         """Return device information to link this entity to the SSID device."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._ssid_unique_id)},
-            name=self._ssid_data.get("name"),
             via_device=(DOMAIN, self._network_id),
         )
 
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        if not super().available:  # Checks coordinator.last_update_success
+        if not super().available:
             return False
-        # Check if this specific SSID's data exists in the coordinator
-        return (
-            self._ssid_unique_id in self.coordinator.data
-            and isinstance(self.coordinator.data.get(self._ssid_unique_id), dict)
-            and self.coordinator.data[self._ssid_unique_id].get("enabled", False)
-        )
+        for ssid in self.coordinator.data.get("ssids", []):
+            if ssid.get("unique_id") == self._ssid_unique_id:
+                return ssid.get("enabled", False)
+        return False
+
+    def _get_current_ssid_data(self) -> Optional[Dict[str, Any]]:
+        """Retrieve the latest data for this sensor's device from the coordinator."""
+        for ssid in self.coordinator.data.get("ssids", []):
+            if ssid.get("unique_id") == self._ssid_unique_id:
+                return ssid
+        return None
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -99,19 +100,11 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiNetworkCoordinator], TextEntity
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the text entity based on coordinator data."""
-        current_ssid_data = self.coordinator.data.get(self._ssid_unique_id)
-        if current_ssid_data and isinstance(current_ssid_data, dict):
+        current_ssid_data = self._get_current_ssid_data()
+        if current_ssid_data:
             self._attr_native_value = current_ssid_data.get("name")
-            # If _attr_has_entity_name is True, HA handles the full name.
-            # If we want to manually set it:
-            # self._attr_name = f"{new_base_name} {self.entity_description.name}"
-            # For now, relying on _attr_has_entity_name and entity_description.name
         else:
             self._attr_native_value = None
-            # _LOGGER.debug( # Covered by available property or if state is intentionally None
-            #   "Could not find data for SSID %s in coordinator for text entity, state set to None",
-            #   self._ssid_unique_id
-            # ) # Removed
 
     async def async_set_value(self, value: str) -> None:
         """Change the SSID name."""

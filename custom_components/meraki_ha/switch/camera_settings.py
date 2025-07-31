@@ -68,7 +68,15 @@ class MerakiCameraSettingSwitchBase(
         """Update the `_attr_is_on` state of the switch based on coordinator data."""
         current_device_data = self._get_current_device_data()
         if current_device_data:
-            raw_value = current_device_data
+            if self._attribute_path[0] == "senseEnabled":
+                raw_value = current_device_data.get("sense_settings", {})
+            elif self._attribute_path[0] == "audioDetection":
+                raw_value = current_device_data.get("sense_settings", {})
+            elif self._attribute_path[0] == "externalRtspEnabled":
+                raw_value = current_device_data.get("video_settings", {})
+            else:
+                raw_value = current_device_data
+
             for key in self._attribute_path:
                 if isinstance(raw_value, dict):
                     raw_value = raw_value.get(key)

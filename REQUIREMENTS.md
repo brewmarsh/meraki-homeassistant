@@ -53,6 +53,7 @@
 | Meraki appliances should have a sensor that tracks the number of ports available. | Included |
 | The MX uplink status is not correct | Included |
 | The MX port statuses are not correct | Included |
+| Appliance `TypeError` | Included |
 
 ### Meraki Wireless
 | Requirement | Status |
@@ -62,6 +63,8 @@
 | Disabled SSIDs should not be shown in the list | Included |
 | SSID names should be updateable | Included |
 | SSIDs should be able to have the "Broadcast SSID" feature enabled / disabled | Included |
+| SSIDs do not have a prefix / suffix | Included |
+| SSID renaming feature is not working | Included |
 
 ### Meraki Switches
 | Requirement | Status |
@@ -70,6 +73,7 @@
 | Meraki switches should have a sensor that tracks the number of ports in use. | Not Included |
 | Meraki switches should have a sensor that tracks the number of ports available. | Not Included |
 | Some switches have two prefixes / suffixes; please ensure that they only have one | Included |
+| Meraki switch status does not seem to be correct | Included |
 
 ### Meraki Cameras
 | Requirement | Status |
@@ -77,6 +81,7 @@
 | Meraki cameras should have a data element that reflects the URL of the camera stream. | Included |
 | Meraki cameras should have a Home Assistant switch that enables RTSP streaming. | Included |
 | Meraki camera RTSP URLs are not correct | Included |
+| camera RTSP enabling does not work | Included |
 
 ### Meraki Sensors
 | Requirement | Status |
