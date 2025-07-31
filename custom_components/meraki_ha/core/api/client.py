@@ -428,7 +428,7 @@ class MerakiAPIClient:
 
     @handle_meraki_errors
     async def get_device_appliance_uplinks(self, serial: str) -> List[Dict[str, Any]]:
-        """Get uplinks for a device."""
+        """Get appliance uplink information."""
         _LOGGER.debug("Getting uplinks for device: %s", serial)
         cache_key = self._get_cache_key("get_device_appliance_uplinks", serial)
 
@@ -436,7 +436,7 @@ class MerakiAPIClient:
             return cached
 
         uplinks = await self._run_sync(
-            self._dashboard.appliance.getDeviceApplianceUplinksStatuses, serial=serial
+            self._dashboard.appliance.getDeviceApplianceUplinks, serial=serial
         )
         validated = validate_response(uplinks)
         if not isinstance(validated, list):
@@ -511,8 +511,8 @@ class MerakiAPIClient:
         return validated
 
     @handle_meraki_errors
-    async def get_device_sensor_readings(self, serial: str) -> List[Dict[str, Any]]:
-        """Get readings for a sensor device."""
+    async def get_device_sensor_readings(self, serial: str) -> Dict[str, Any]:
+        """Get sensor readings for an MT sensor."""
         _LOGGER.debug("Getting sensor readings for device: %s", serial)
         cache_key = self._get_cache_key("get_device_sensor_readings", serial)
 
@@ -520,31 +520,9 @@ class MerakiAPIClient:
             return cached
 
         readings = await self._run_sync(
-            self._dashboard.sensor.getDeviceSensorReadings, serial=serial
+            self._dashboard.sensor.getDeviceSensorReadingsCurrent, serial=serial
         )
         validated = validate_response(readings)
-        if not isinstance(validated, list):
-            _LOGGER.warning(
-                "get_device_sensor_readings did not return a list, returning empty list. Got: %s",
-                type(validated),
-            )
-            validated = []
-        self._cache_data(cache_key, validated)
-        return validated
-
-    @handle_meraki_errors
-    async def get_wireless_settings(self, serial: str) -> Dict[str, Any]:
-        """Get wireless radio settings for an access point."""
-        _LOGGER.debug("Getting wireless settings for serial: %s", serial)
-        cache_key = self._get_cache_key("get_wireless_settings", serial)
-
-        if cached := self._get_cached_data(cache_key):
-            return cached
-
-        settings = await self._run_sync(
-            self._dashboard.wireless.getDeviceWirelessRadioSettings, serial=serial
-        )
-        validated = validate_response(settings)
         self._cache_data(cache_key, validated)
         return validated
 

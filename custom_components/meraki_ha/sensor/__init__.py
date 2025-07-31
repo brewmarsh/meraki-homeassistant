@@ -95,8 +95,42 @@ async def async_setup_entry(
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
                     try:
-                        entities.append(sensor_class(device_coordinator, device_info_with_formatted_name))
-                        added_entities.add(unique_id)
+                        # Handle network info sensors differently
+                        if (
+                            sensor_class == MerakiNetworkInfoSensor
+                            and network_coordinator
+                            and network_coordinator.data
+                        ):
+                            for network in network_coordinator.data.get("networks", []):
+                                if network.get("id") == device_info.get("networkId"):
+                                    entities.append(
+                                        sensor_class(
+                                            network_coordinator, network, config_entry
+                                        )
+                                    )
+                                    added_entities.add(unique_id)
+                                    break
+                        else:
+                            # Handle other sensors
+                            if (
+                                "config_entry"
+                                in sensor_class.__init__.__code__.co_varnames
+                            ):
+                                entities.append(
+                                    sensor_class(
+                                        device_coordinator,
+                                        device_info_with_formatted_name,
+                                        config_entry,
+                                    )
+                                )
+                            else:
+                                entities.append(
+                                    sensor_class(
+                                        device_coordinator,
+                                        device_info_with_formatted_name,
+                                    )
+                                )
+                            added_entities.add(unique_id)
                     except Exception as e:
                         _LOGGER.error(
                             "Meraki HA: Error adding common sensor %s for %s: %s",
@@ -117,7 +151,9 @@ async def async_setup_entry(
                     if unique_id not in added_entities:
                         try:
                             entities.append(
-                                sensor_class(device_coordinator, device_info_with_formatted_name)
+                                sensor_class(
+                                    device_coordinator, device_info_with_formatted_name
+                                )
                             )
                             added_entities.add(unique_id)
                         except Exception as e:
@@ -231,9 +267,7 @@ async def async_setup_entry(
             if device.get("productType") == "camera":
                 if f"{device['serial']}_rtsp_url" not in added_entities:
                     entities.append(
-                        MerakiCameraRTSPUrlSensor(
-                            device_coordinator, device
-                        )
+                        MerakiCameraRTSPUrlSensor(device_coordinator, device)
                     )
                     added_entities.add(f"{device['serial']}_rtsp_url")
             if f"{device['serial']}_firmware_status" not in added_entities:
