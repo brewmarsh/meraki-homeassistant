@@ -91,54 +91,12 @@ async def async_setup_entry(
             formatted_name = format_device_name(device_info, config_entry.options)
             device_info_with_formatted_name = device_info.copy()
             device_info_with_formatted_name["name"] = formatted_name
-
-            # Get type-specific sensors based on device type
-            device_type_sensors = get_sensors_for_device_type(
-                device_info.get("productType", "")
-            )
-            all_sensors = [*COMMON_DEVICE_SENSORS, *device_type_sensors]
-
-            for sensor_class in all_sensors:
+            for sensor_class in COMMON_DEVICE_SENSORS:
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
                     try:
-                        # Handle network info sensors differently
-                        if (
-                            sensor_class == MerakiNetworkInfoSensor
-                            and network_coordinator
-                            and network_coordinator.data
-                        ):
-                            for network in network_coordinator.data.get("networks", []):
-                                if network.get("id") == device_info.get("networkId"):
-                                    entities.append(
-                                        sensor_class(
-                                            network_coordinator, network, config_entry
-                                        )
-                                    )
-                                    added_entities.add(unique_id)
-                                    break
-                        else:
-                            # Handle camera and other sensors that need config_entry
-                            if (
-                                sensor_class.__name__.startswith("MerakiCamera")
-                                or "config_entry"
-                                in sensor_class.__init__.__code__.co_varnames
-                            ):
-                                entities.append(
-                                    sensor_class(
-                                        device_coordinator,
-                                        device_info_with_formatted_name,
-                                        config_entry,
-                                    )
-                                )
-                            else:
-                                entities.append(
-                                    sensor_class(
-                                        device_coordinator,
-                                        device_info_with_formatted_name,
-                                    )
-                                )
-                            added_entities.add(unique_id)
+                        entities.append(sensor_class(device_coordinator, device_info_with_formatted_name))
+                        added_entities.add(unique_id)
                     except Exception as e:
                         _LOGGER.error(
                             "Meraki HA: Error adding common sensor %s for %s: %s",
@@ -147,10 +105,32 @@ async def async_setup_entry(
                             e,
                         )
 
-            # Type-specific sensors are now handled in the earlier loop with all_sensors
+            # Add productType-specific sensors
+            product_type = device_info.get("productType")
 
-            # Camera-specific sensors are now handled by the SENSOR_REGISTRY.
-            # The generic loop for `sensors_for_type` will add them if product_type is "camera".
+            if product_type:
+                sensors_for_type = get_sensors_for_device_type(product_type)
+                # if not sensors_for_type: # Removed: Redundant log, handled by empty list iteration
+                #   pass
+                for sensor_class in sensors_for_type:
+                    unique_id = f"{serial}_{sensor_class.__name__}"
+                    if unique_id not in added_entities:
+                        try:
+                            entities.append(
+                                sensor_class(device_coordinator, device_info_with_formatted_name)
+                            )
+                            added_entities.add(unique_id)
+                        except Exception as e:
+                            _LOGGER.error(
+                                "Meraki HA: Error adding sensor %s for %s (productType: %s): %s",
+                                sensor_class.__name__,
+                                device_info.get("name", serial),
+                                product_type,
+                                e,
+                            )
+
+                # Camera-specific sensors are now handled by the SENSOR_REGISTRY.
+                # The generic loop for `sensors_for_type` will add them if product_type is "camera".
             else:
                 _LOGGER.warning(  # Changed to warning as this might be unexpected
                     "Meraki HA: No productType found for device %s (Serial: %s), skipping productType-specific sensors.",
@@ -236,7 +216,29 @@ async def async_setup_entry(
             "Main coordinator not available or has no data; skipping all network-specific sensors."
         )
 
-    # These sensors are now handled by the COMMON_DEVICE_SENSORS and get_sensors_for_device_type
+    if device_coordinator and device_coordinator.data:
+        for device in device_coordinator.data.get("devices", []):
+            if device.get("productType") == "appliance":
+                for port in device.get("ports", []):
+                    if (
+                        f"{device['serial']}_port_{port['number']}"
+                        not in added_entities
+                    ):
+                        entities.append(
+                            MerakiAppliancePortSensor(device_coordinator, device, port)
+                        )
+                        added_entities.add(f"{device['serial']}_port_{port['number']}")
+            if device.get("productType") == "camera":
+                if f"{device['serial']}_rtsp_url" not in added_entities:
+                    entities.append(
+                        MerakiCameraRTSPUrlSensor(
+                            device_coordinator, device
+                        )
+                    )
+                    added_entities.add(f"{device['serial']}_rtsp_url")
+            if f"{device['serial']}_firmware_status" not in added_entities:
+                entities.append(MerakiFirmwareStatusSensor(device_coordinator, device))
+                added_entities.add(f"{device['serial']}_firmware_status")
 
     if entities:
         async_add_entities(entities)

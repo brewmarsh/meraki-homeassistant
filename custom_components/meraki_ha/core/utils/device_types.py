@@ -45,9 +45,7 @@ DEVICE_TYPE_NETWORK: Final = "network"
 DEVICE_TYPE_UNKNOWN: Final = "unknown"
 
 # Compiled regex pattern for model validation
-MODEL_PATTERN: Final = re.compile(
-    r"^(MR|MS|MX|MV|MT|MG|GR|GS)[\d-]+([A-Z0-9-]+)?$", re.IGNORECASE
-)
+MODEL_PATTERN: Final = re.compile(r"^(MR|MS|MX|MV|MT|MG|GR|GS)\d{1,3}(-[A-Z0-9-]+)?$")
 
 # Valid device types for type checking
 VALID_DEVICE_TYPES: Final[List[str]] = [
@@ -78,13 +76,13 @@ class DeviceType(str, Enum):
 # Map device prefixes to types
 DEVICE_PREFIX_MAPPINGS: Final[dict[tuple[str, ...], str]] = {
     # Wireless Access Points (both traditional MR and cloud-managed GR series)
-    ("MR", "GR", "MR2", "GR1", "GR6"): DeviceType.WIRELESS,
+    ("MR", "GR"): DeviceType.WIRELESS,
     # Switches (both traditional MS and cloud-managed GS series)
-    ("MS", "GS", "GS1"): DeviceType.SWITCH,
+    ("MS", "GS"): DeviceType.SWITCH,
     # Security Appliances
     ("MX",): DeviceType.APPLIANCE,
-    # Cameras (MV2 is a valid model)
-    ("MV", "MV2"): DeviceType.CAMERA,
+    # Cameras
+    ("MV",): DeviceType.CAMERA,
     # Environmental Sensors
     ("MT",): DeviceType.SENSOR,
     # Cellular Gateways
@@ -121,15 +119,15 @@ def map_meraki_model_to_device_type(model: Optional[str]) -> str:
     """Maps a Meraki device model string to a generic device type category.
 
     The function checks the prefix of the model string to determine its
-    general category. Handles all Meraki device types including newer models
-    and non-Meraki GO devices. Case-insensitive matching is used for robustness.
+    general category. Handles all Meraki device types including newer models.
+    Case-insensitive matching is used for robustness.
 
     Model Prefixes:
-        - MR/GR: Wireless Access Points (including GR12, GR62)
-        - MS/GS: Network Switches (including GS110-24P, GS120-8P, GS121-48P)
-        - MX: Security Appliances (including MX75)
-        - MV: Smart Cameras (including MV2, MV13)
-        - MT: Environmental Sensors (including MT15)
+        - MR/GR: Wireless Access Points
+        - MS/GS: Network Switches
+        - MX: Security Appliances
+        - MV: Smart Cameras
+        - MT: Environmental Sensors
         - MG: Cellular Gateways
 
     Special Cases:
@@ -166,16 +164,9 @@ def map_meraki_model_to_device_type(model: Optional[str]) -> str:
     if model_upper == "NETWORK":
         return DeviceType.NETWORK
 
-    # Check for Meraki GO devices (GR/GS) first
-    if any(model_upper.startswith(prefix) for prefix in ["GR", "GS"]):
-        if model_upper.startswith("GR"):
-            return DeviceType.WIRELESS
-        if model_upper.startswith("GS"):
-            return DeviceType.SWITCH
-
     # Check each prefix group from the mappings
     for prefixes, device_type in DEVICE_PREFIX_MAPPINGS.items():
-        if any(model_upper.startswith(prefix.upper()) for prefix in prefixes):
+        if any(model_upper.startswith(prefix) for prefix in prefixes):
             return device_type
 
     # If no match is found, return unknown

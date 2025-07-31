@@ -24,7 +24,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiTemperatureSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity):
-    """Representation of a Meraki temperature sensor."""
+    """Representation of a Meraki temperature sensor.
+
+    This sensor displays the temperature reading from a Meraki MT sensor.
+    """
 
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_device_class = SensorDeviceClass.TEMPERATURE
@@ -74,7 +77,10 @@ class MerakiTemperatureSensor(CoordinatorEntity[MerakiDeviceCoordinator], Sensor
 
 
 class MerakiHumiditySensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity):
-    """Representation of a Meraki humidity sensor."""
+    """Representation of a Meraki humidity sensor.
+
+    This sensor displays the humidity reading from a Meraki MT sensor.
+    """
 
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_device_class = SensorDeviceClass.HUMIDITY
@@ -124,7 +130,10 @@ class MerakiHumiditySensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEnt
 
 
 class MerakiWaterDetectionSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity):
-    """Representation of a Meraki water detection sensor."""
+    """Representation of a Meraki water detection sensor.
+
+    This sensor displays the water detection status from a Meraki MT sensor.
+    """
 
     _attr_device_class = SensorDeviceClass.MOISTURE
 

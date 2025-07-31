@@ -19,7 +19,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     device_coordinator = hass.data[DOMAIN][config_entry.entry_id]["device_coordinator"]
     entities = []
     for device in device_coordinator.data.get("devices", []):
-        if device.get("product_type") == "camera":
+        if device.get("productType") == "camera":
             entities.append(MerakiCameraRTSPUrlSensor(device_coordinator, device))
     async_add_entities(entities, True)
 
@@ -33,12 +33,11 @@ class MerakiCameraRTSPUrlSensor(
         self,
         coordinator: MerakiDeviceCoordinator,
         device: Dict[str, Any],
-        config_entry=None,  # Make config_entry optional to maintain compatibility
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device = device
-        self._attr_unique_id = f"{self._device['serial']}_camera_rtsp_url"
+        self._attr_unique_id = f"{self._device['serial']}_rtsp_url"
         self._attr_name = f"{self._device['name']} RTSP URL"
         self._attr_icon = "mdi:video-stream"
 
@@ -62,19 +61,8 @@ class MerakiCameraRTSPUrlSensor(
                 return
 
     @property
-    def native_value(self) -> str:
+    def state(self) -> str:
         """Return the state of the sensor."""
         if self._device.get("video_settings", {}).get("externalRtspEnabled"):
-            return self._device.get("video_settings", {}).get("rtspUrl", "unavailable")
+            return self._device.get("video_settings", {}).get("rtspUrl")
         return "disabled"
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Return additional state attributes."""
-        video_settings = self._device.get("video_settings", {})
-        return {
-            "external_rtsp_enabled": video_settings.get("externalRtspEnabled", False),
-            "rtsp_url": video_settings.get("rtspUrl"),
-            "serial": self._device["serial"],
-            "model": self._device["model"],
-        }

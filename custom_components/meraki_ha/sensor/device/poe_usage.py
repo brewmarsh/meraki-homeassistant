@@ -16,7 +16,11 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity):
-    """Representation of a Meraki switch PoE usage sensor."""
+    """Representation of a Meraki switch PoE usage sensor.
+
+    This sensor displays the aggregated PoE usage for a Meraki MS switch
+    in watts. The attributes provide a breakdown of PoE usage per port.
+    """
 
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfPower.WATT

@@ -32,7 +32,7 @@ class MerakiNetworkInfoSensor(
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._network_id: str = network_data.get("id", "")
-        self._attr_unique_id = f"meraki_{self._network_id}_network_info"
+        self._attr_unique_id = f"{self._network_id}_network_info"
         # self.entity_id = f"sensor.{DOMAIN}_{self._network_id}_network_info" # Let HA generate
 
         self._attr_device_info = DeviceInfo(

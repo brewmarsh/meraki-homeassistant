@@ -15,7 +15,11 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiPortsInUseSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity):
-    """Representation of a Meraki switch ports in use sensor."""
+    """Representation of a Meraki switch ports in use sensor.
+
+    This sensor displays the number of ports that are currently in use
+    (i.e., have a "connected" status) on a Meraki MS switch.
+    """
 
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = "mdi:lan-connect"
@@ -61,7 +65,11 @@ class MerakiPortsInUseSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorE
 
 
 class MerakiPortsAvailableSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity):
-    """Representation of a Meraki switch ports available sensor."""
+    """Representation of a Meraki switch ports available sensor.
+
+    This sensor displays the number of ports that are currently available
+    (i.e., do not have a "connected" status) on a Meraki MS switch.
+    """
 
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = "mdi:lan-pending"
