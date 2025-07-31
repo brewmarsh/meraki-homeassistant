@@ -1,0 +1,112 @@
+"""Support for Meraki cameras."""
+import logging
+from typing import Any, Dict, Optional
+
+from homeassistant.components.camera import (
+    Camera,
+    CameraEntityFeature,
+)
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
+from .const import DOMAIN, CONF_AUTO_ENABLE_RTSP, DATA_CLIENT
+from .core.coordinators.device import MerakiDeviceCoordinator
+
+
+_LOGGER = logging.getLogger(__name__)
+
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up Meraki camera entities from a config entry."""
+    meraki_device_coordinator = hass.data[DOMAIN][config_entry.entry_id].get("device_coordinator")
+
+    if meraki_device_coordinator and meraki_device_coordinator.data:
+        entities = [
+            MerakiCamera(meraki_device_coordinator, device)
+            for device in meraki_device_coordinator.data.get("devices", [])
+            if device.get("productType") == "camera"
+        ]
+        async_add_entities(entities, True)
+
+
+class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
+    """Representation of a Meraki camera."""
+
+    def __init__(
+        self,
+        coordinator: MerakiDeviceCoordinator,
+        device: Dict[str, Any],
+    ) -> None:
+        """Initialize the camera."""
+        super().__init__(coordinator)
+        self._device = device
+        self._attr_unique_id = f"{self._device['serial']}-camera"
+        self._attr_name = self._device["name"]
+        self._attr_supported_features = CameraEntityFeature.STREAM
+        self._rtsp_url: Optional[str] = None
+
+        if self._device.get("video_settings", {}).get("externalRtspEnabled"):
+            self._rtsp_url = self._device.get("video_settings", {}).get("rtspUrl")
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device["serial"])},
+            name=self._device["name"],
+            model=self._device["model"],
+            manufacturer="Cisco Meraki",
+        )
+
+    async def async_added_to_hass(self) -> None:
+        """Handle entity which will be added."""
+        await super().async_added_to_hass()
+        if self.coordinator.config_entry.options.get(CONF_AUTO_ENABLE_RTSP) and not self.is_streaming:
+            await self._enable_rtsp()
+
+    async def _enable_rtsp(self) -> None:
+        """Enable the RTSP stream for the camera."""
+        client = self.coordinator.hass.data[DOMAIN][self.coordinator.config_entry.entry_id][DATA_CLIENT]
+        try:
+            await client.camera.update_device_camera_video_settings(
+                serial=self._device["serial"],
+                externalRtspEnabled=True,
+            )
+            await self.coordinator.async_request_refresh()
+        except Exception as e:
+            _LOGGER.error("Failed to enable RTSP for camera %s: %s", self._device['serial'], e)
+
+    @property
+    def is_streaming(self) -> bool:
+        """Return true if the camera is streaming."""
+        return self._rtsp_url is not None
+
+    async def stream_source(self) -> Optional[str]:
+        """Return the source of the stream."""
+        return self._rtsp_url
+
+    async def async_camera_image(
+        self, width: Optional[int] = None, height: Optional[int] = None
+    ) -> Optional[bytes]:
+        """Return a still image from the camera."""
+        return None
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        for device in self.coordinator.data.get("devices", []):
+            if device["serial"] == self._device["serial"]:
+                self._device = device
+                if device.get("video_settings", {}).get("externalRtspEnabled"):
+                    self._rtsp_url = device.get("video_settings", {}).get("rtspUrl")
+                else:
+                    self._rtsp_url = None
+                self.async_write_ha_state()
+                return

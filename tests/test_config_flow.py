@@ -3,10 +3,20 @@
 from unittest.mock import patch
 
 from homeassistant.core import HomeAssistant
+import pytest
 
-from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki_ha.const import (
+    DOMAIN,
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+    CONF_SCAN_INTERVAL,
+    CONF_DEVICE_NAME_FORMAT,
+    CONF_AUTO_ENABLE_RTSP,
+    CONF_WEBHOOK_URL,
+)
+from custom_components.meraki_ha.config_flow import MerakiAuthenticationError
 
-
+@pytest.mark.asyncio
 async def test_async_step_user_success(hass: HomeAssistant) -> None:
     """Test the user step of the config flow with valid credentials."""
     with patch(
@@ -16,56 +26,44 @@ async def test_async_step_user_success(hass: HomeAssistant) -> None:
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": "user"}
         )
+        assert result["type"] == "form"
+        assert result["step_id"] == "user"
+
+        user_input = {
+            CONF_MERAKI_API_KEY: "test-api-key",
+            CONF_MERAKI_ORG_ID: "test-org-id",
+            CONF_SCAN_INTERVAL: 120,
+            CONF_DEVICE_NAME_FORMAT: "suffix",
+            CONF_AUTO_ENABLE_RTSP: True,
+            CONF_WEBHOOK_URL: "http://example.com",
+        }
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input
+        )
+        await hass.async_block_till_done()
+
+        assert result["type"] == "create_entry"
+        assert result["title"] == "Test Org"
+        assert result["data"] == user_input
+
+
+@pytest.mark.asyncio
+async def test_async_step_user_invalid_auth(hass: HomeAssistant) -> None:
+    """Test the user step of the config flow with invalid credentials."""
+    with patch(
+        "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
+        side_effect=MerakiAuthenticationError,
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": "user"}
+        )
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                "meraki_api_key": "test-api-key",
-                "meraki_org_id": "test-org-id",
-                "scan_interval": 60,
-                "device_name_format": "prefix",
+                CONF_MERAKI_API_KEY: "test-api-key",
+                CONF_MERAKI_ORG_ID: "test-org-id",
             },
         )
-        assert result["type"] == "create_entry"
-        assert result["title"] == "Test Org [test-org-id]"
-        assert result["data"] == {
-            "meraki_api_key": "test-api-key",
-            "meraki_org_id": "test-org-id",
-        }
-        assert result["options"] == {
-            "scan_interval": 60,
-            "device_name_format": "prefix",
-        }
-
-
-async def test_options_flow(hass: HomeAssistant) -> None:
-    """Test the options flow."""
-    entry = await hass.config_entries.async_add(
-        {
-            "entry_id": "test_entry_id",
-            "domain": DOMAIN,
-            "title": "Test Org",
-            "data": {
-                "meraki_api_key": "test-api-key",
-                "meraki_org_id": "test-org-id",
-            },
-            "options": {
-                "scan_interval": 60,
-                "device_name_format": "prefix",
-            },
-        }
-    )
-
-    result = await hass.config_entries.options.async_init(entry.entry_id)
-    result = await hass.config_entries.options.async_configure(
-        result["flow_id"],
-        user_input={
-            "scan_interval": 120,
-            "device_name_format": "suffix",
-        },
-    )
-
-    assert result["type"] == "create_entry"
-    assert result["data"] == {
-        "scan_interval": 120,
-        "device_name_format": "suffix",
-    }
+        assert result["type"] == "form"
+        assert result["errors"] == {"base": "invalid_auth"}

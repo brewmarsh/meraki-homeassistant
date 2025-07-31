@@ -21,7 +21,7 @@ Welcome to the Meraki Home Assistant integration! 🚀 This integration lets you
   - MX uplink status.
   - MX port status and data usage.
   - Switch port status, PoE usage, and port counts.
-  - Camera RTSP URL.
+  - Camera stream via RTSP.
   - Environmental sensors for temperature, humidity, and water detection.
 - **Advanced Features** 🧠
   - Smart caching to optimize API calls and avoid rate limiting.
@@ -81,10 +81,11 @@ Welcome to the Meraki Home Assistant integration! 🚀 This integration lets you
 
 - **API Key:** Enter your Cisco Meraki API key.
 - **Organization ID:** Enter the ID of the Meraki organization you want to integrate.
-- **Scan Interval (seconds):** Define how often (in seconds) Home Assistant should fetch data from the Meraki API. The default is 60 seconds. Adjust this based on the size of your network and the number of devices to avoid exceeding Meraki API rate limits. Shorter intervals provide more real-time data but increase API load.
+- **Scan Interval (seconds):** Define how often (in seconds) Home Assistant should fetch data from the Meraki API. The default is 300 seconds. Adjust this based on the size of your network and the number of devices to avoid exceeding Meraki API rate limits. Shorter intervals provide more real-time data but increase API load.
 - **Device Name Format:** (Optional) Choose how device names from Meraki should be formatted in Home Assistant (e.g., with a type prefix like "[Wireless] AP Name", a suffix, or omitted).
+- **Auto-enable RTSP streams:** (Optional) If checked, the integration will automatically enable the RTSP stream for all cameras that support it.
 
-Once configured, the integration will start discovering your Meraki devices and creating corresponding entities in Home Assistant.
+Once configured, the integration will start discovering your Meraki devices and creating corresponding entities in Home Assistant. These settings can be changed at any time from the integration's options page.
 
 ## Removal
 
@@ -126,10 +127,16 @@ This integration supports the following platforms:
 - `switch`
 - `text`
 - `device_tracker`
+- `camera`
 
 ### Entities
 
 Entities are dynamically created based on your Meraki setup.
+
+- **Camera Entities:**
+  - For each Meraki camera (MV series), a `camera` entity is created.
+  - This entity provides a live video stream from the camera via RTSP.
+  - The RTSP stream must be enabled on the camera in the Meraki dashboard, or you can use the "Auto-enable RTSP streams" option in the integration's configuration to have Home Assistant do this for you.
 
 - **Sensor Entities:** センサー
 

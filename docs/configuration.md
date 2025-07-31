@@ -33,7 +33,9 @@ To use this integration, you will need a Meraki API key and your Organization ID
 
 ## Configuration Options
 
-The following options can be configured in the options flow for the integration:
+The following options can be configured when you first set up the integration, or at any time by navigating to the integration's card in **Settings -> Devices & Services** and clicking **Configure**.
 
-*   **Scan Interval:** The interval in seconds at which the integration will poll the Meraki API for data updates. The default is 60 seconds.
+*   **Scan Interval:** The interval in seconds at which the integration will poll the Meraki API for data updates. The default is 300 seconds.
+*   **Device Name Format:** Choose how device names from Meraki should be formatted in Home Assistant (e.g., with a type prefix like "[Wireless] AP Name", a suffix, or omitted).
+*   **Auto-enable RTSP streams:** If checked, the integration will automatically enable the RTSP stream for all cameras that support it. This is useful for getting camera streams working without manual configuration in the Meraki dashboard.
 *   **Webhook URL (Optional):** A custom URL for Meraki webhooks. If left blank, the integration will use the default Home Assistant webhook URL.

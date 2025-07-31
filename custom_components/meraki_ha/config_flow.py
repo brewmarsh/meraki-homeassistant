@@ -16,11 +16,14 @@ from .authentication import validate_meraki_credentials
 from .core.api.client import MerakiAPIClient
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .const import (
+    CONF_AUTO_ENABLE_RTSP,
     CONF_DEVICE_NAME_FORMAT,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
+    CONF_SCAN_INTERVAL,
     CONF_WEBHOOK_URL,
     DEFAULT_DEVICE_NAME_FORMAT,
+    DEFAULT_SCAN_INTERVAL,
     DEVICE_NAME_FORMAT_OPTIONS,
     DOMAIN,
 )
@@ -68,10 +71,14 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 {
                     vol.Required(CONF_MERAKI_API_KEY): str,
                     vol.Required(CONF_MERAKI_ORG_ID): str,
+                    vol.Optional(
+                        CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
+                    ): int,
                     vol.Optional(CONF_WEBHOOK_URL): str,
                     vol.Optional(
                         CONF_DEVICE_NAME_FORMAT, default=DEFAULT_DEVICE_NAME_FORMAT
                     ): vol.In(DEVICE_NAME_FORMAT_OPTIONS),
+                    vol.Optional(CONF_AUTO_ENABLE_RTSP, default=False): bool,
                 }
             ),
             errors=errors,

@@ -49,6 +49,16 @@ These sensors provide aggregate client counts across your entire Meraki organiza
 - **Unit of Measurement:** `clients`
 - **Icon:** `mdi:server-network`
 
+## Camera Entities
+
+For each Meraki camera (MV series) in your organization, a `camera` entity is created in Home Assistant.
+
+| Entity Type | Name           | Description                                                                                                                                                                                             | Availability      |
+| :---------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------- |
+| `camera`    | `[Camera Name]`| Provides a live video stream from the camera. This entity can be used in picture-in-picture cards, dashboards, and other parts of Home Assistant to view the camera's feed. The stream is provided via RTSP. | Meraki MV Cameras |
+
+To view the camera stream, the RTSP (Real Time Streaming Protocol) server must be enabled for the camera in your Meraki dashboard. Alternatively, you can enable the "Auto-enable RTSP streams" option in the integration's configuration, and Home Assistant will automatically enable the RTSP stream for all of your cameras.
+
 ## Physical Device Sensors
 
 These sensors are linked to specific physical Meraki hardware devices.
@@ -82,30 +92,6 @@ These sensors are linked to Meraki SSID "devices" in Home Assistant.
 ## Switches and Other Entities
 
 - _(Details of switch entities for SSID control, text entities for SSID renaming, etc., would go here.)_
-
-### Camera Switches
-
-These switches are available for Meraki MV series cameras and provide control over specific camera features. They are linked to the physical camera device in Home Assistant.
-
-| Entity Type | Name                            | Description                                                                | Availability      |
-| :---------- | :------------------------------ | :------------------------------------------------------------------------- | :---------------- |
-| Switch      | `[Camera Name] MV Sense`        | Controls the MV Sense (computer vision) feature on the camera.             | Meraki MV Cameras |
-| Switch      | `[Camera Name] Audio Detection` | Controls the audio detection feature on the camera.                        | Meraki MV Cameras |
-| Switch      | `[Camera Name] RTSP Server`     | Controls the RTSP (Real Time Streaming Protocol) server on Meraki cameras. | Meraki MV Cameras |
-
-### Camera Sensors
-
-These sensors provide additional information or status related to Meraki MV series cameras. They are linked to the physical camera device in Home Assistant.
-
-| Entity Type | Name                            | Description                                                                                                                             | Availability      | Icon                                          |
-| :---------- | :------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------- | :---------------- | :-------------------------------------------- |
-| Sensor      | `[Camera Name] Sense Enabled`   | Displays if MV Sense (computer vision) is "enabled" or "disabled".                                                                      | Meraki MV Cameras | `mdi:camera-iris` or `mdi:camera-off-outline` |
-| Sensor      | `[Camera Name] Audio Detection` | Displays if audio detection is "enabled" or "disabled".                                                                                 | Meraki MV Cameras | `mdi:microphone` or `mdi:microphone-off`      |
-| Sensor      | `[Camera Name] RTSP Stream URL` | Displays the RTSP URL for the camera feed when the RTSP server is enabled. The state will be the URL string if active, otherwise empty. | Meraki MV Cameras | `mdi:video-stream`                            |
-
-#### RTSP Functionality
-
-The **`[Camera Name] RTSP Server`** switch allows you to enable or disable the RTSP stream for your Meraki camera. When this switch is turned ON, the **`[Camera Name] RTSP Stream URL`** sensor associated with the same camera will display the full RTSP stream address. This URL can be used in media players like VLC or streaming components in Home Assistant (e.g., the generic camera platform or WebRTC). If the RTSP Server switch is OFF, the sensor's state will be empty or unavailable.
 
 ---
 
