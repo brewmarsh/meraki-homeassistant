@@ -37,7 +37,7 @@ class MerakiCameraRTSPUrlSensor(
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device = device
-        self._attr_unique_id = f"{self._device['serial']}_rtsp_url"
+        self._attr_unique_id = f"{self._device['serial']}_camera_rtsp_url"
         self._attr_name = f"{self._device['name']} RTSP URL"
         self._attr_icon = "mdi:video-stream"
 
@@ -61,8 +61,19 @@ class MerakiCameraRTSPUrlSensor(
                 return
 
     @property
-    def state(self) -> str:
+    def native_value(self) -> str:
         """Return the state of the sensor."""
         if self._device.get("video_settings", {}).get("externalRtspEnabled"):
-            return self._device.get("video_settings", {}).get("rtspUrl")
+            return self._device.get("video_settings", {}).get("rtspUrl", "unavailable")
         return "disabled"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return additional state attributes."""
+        video_settings = self._device.get("video_settings", {})
+        return {
+            "external_rtsp_enabled": video_settings.get("externalRtspEnabled", False),
+            "rtsp_url": video_settings.get("rtspUrl"),
+            "serial": self._device["serial"],
+            "model": self._device["model"],
+        }
