@@ -15,7 +15,10 @@ def format_device_name(device: Dict[str, Any], config: Dict[str, Any]) -> str:
     """Format the device name based on the user's preference."""
     name = device.get("name")
     if not name:
-        name = f"Meraki {device.get('model', 'Device')} {device.get('serial')}"
+        if device.get("productType") == "ssid":
+            name = f"SSID {device.get('number')}"
+        else:
+            name = f"Meraki {device.get('model', 'Device')} {device.get('serial')}"
 
     name_format = config.get(CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT)
     product_type = device.get("productType", "Unknown")

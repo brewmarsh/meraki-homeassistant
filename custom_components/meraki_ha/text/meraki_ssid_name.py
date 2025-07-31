@@ -18,6 +18,7 @@ from ..const import DOMAIN
 from ..core.api.client import MerakiAPIClient
 from ..core.coordinators.network import MerakiNetworkCoordinator
 from homeassistant.helpers.entity import EntityCategory
+from ..core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,7 +62,7 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiNetworkCoordinator], TextEntity
         self._attr_unique_id = f"{self._ssid_unique_id}_name_text"
         # The name will be derived from device name + entity_description.name if _attr_has_entity_name = True
         # Or explicitly set here. Let's make it explicit for now.
-        self._attr_name = f"{ssid_data.get('name', f'SSID {self._ssid_number}')} Name"
+        self._attr_name = format_device_name(ssid_data, config_entry.options)
         self._attr_has_entity_name = (
             True  # Let HA combine device name and entity description name
         )
@@ -128,9 +129,9 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiNetworkCoordinator], TextEntity
         #   value,
         # ) # Removed
         try:
-            await self._meraki_client.wireless.updateNetworkWirelessSsid(
-                networkId=self._network_id,
-                number=str(self._ssid_number),  # API often expects number as string
+            await self._meraki_client.update_network_wireless_ssid(
+                network_id=self._network_id,
+                number=str(self._ssid_number),
                 name=value,
             )
             # Update the local state immediately for better UX

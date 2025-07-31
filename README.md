@@ -8,17 +8,19 @@ A comprehensive Home Assistant integration for Cisco Meraki networks. This integ
 
 - **Device Discovery and Monitoring**
 - Automatic discovery of all Meraki devices
-- Real-time device status and health metrics
+- Real-time device status (online, offline, alerting, dormant) and health metrics
 - Detailed device information (model, serial number, firmware version)
+- Firmware status for all devices
 - **Network Management**
 - Organization and network-wide monitoring
-- SSID configuration, including showing/hiding disabled SSIDs
+- SSID configuration, including showing/hiding disabled SSIDs, updating names, and controlling broadcast
 - Port management and status tracking for MX appliances
 - **Sensor Integration**
 - Network performance metrics
 - Client connectivity statistics
 - MX uplink status
 - MX port status
+- Camera RTSP URL
 - **Advanced Features**
 - Intelligent caching for API optimization
 - Rate limit handling and error recovery

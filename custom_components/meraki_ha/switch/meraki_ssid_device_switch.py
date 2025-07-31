@@ -120,11 +120,10 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiNetworkCoordinator], SwitchEn
 
         try:
             # Make the API call to update the specific SSID setting.
-            await self._meraki_client.wireless.updateNetworkWirelessSsid(
-                networkId=self._network_id,
-                number=self._ssid_number,  # Meraki API expects SSID number as string or int depending on SDK version/method.
-                # The SDK handles type consistency here.
-                **payload,  # Pass the specific setting to update (e.g., enabled=True).
+            await self._meraki_client.update_network_wireless_ssid(
+                network_id=self._network_id,
+                number=self._ssid_number,
+                **payload,
             )
             # After a successful API call, request the coordinator to refresh its data.
             # This ensures that Home Assistant's state for this switch (and any related entities)

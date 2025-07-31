@@ -1,4 +1,4 @@
-"""Sensor for Meraki appliance port status."""
+"""Sensor for Meraki camera RTSP URL."""
 
 import logging
 from typing import Any, Dict
@@ -15,34 +15,31 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    """Set up Meraki appliance port sensors from a config entry."""
+    """Set up Meraki camera RTSP URL sensors from a config entry."""
     device_coordinator = hass.data[DOMAIN][config_entry.entry_id]["device_coordinator"]
     entities = []
     for device in device_coordinator.data.get("devices", []):
-        if device.get("productType") == "appliance":
-            for port in device.get("ports", []):
-                entities.append(MerakiAppliancePortSensor(device_coordinator, device, port))
+        if device.get("productType") == "camera":
+            entities.append(MerakiCameraRTSPUrlSensor(device_coordinator, device))
     async_add_entities(entities, True)
 
 
-class MerakiAppliancePortSensor(
+class MerakiCameraRTSPUrlSensor(
     CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
 ):
-    """Representation of a Meraki appliance port sensor."""
+    """Representation of a Meraki camera RTSP URL sensor."""
 
     def __init__(
         self,
         coordinator: MerakiDeviceCoordinator,
         device: Dict[str, Any],
-        port: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device = device
-        self._port = port
-        self._attr_unique_id = f"{self._device['serial']}_port_{self._port['number']}"
-        self._attr_name = f"{self._device['name']} Port {self._port['number']}"
-        self._attr_icon = "mdi:ethernet-port"
+        self._attr_unique_id = f"{self._device['serial']}_rtsp_url"
+        self._attr_name = f"{self._device['name']} RTSP URL"
+        self._attr_icon = "mdi:video-stream"
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -59,26 +56,13 @@ class MerakiAppliancePortSensor(
         """Handle updated data from the coordinator."""
         for device in self.coordinator.data.get("devices", []):
             if device["serial"] == self._device["serial"]:
-                for port in device.get("ports", []):
-                    if port["number"] == self._port["number"]:
-                        self._port = port
-                        self.async_write_ha_state()
-                        return
+                self._device = device
+                self.async_write_ha_state()
+                return
 
     @property
     def state(self) -> str:
         """Return the state of the sensor."""
-        if self._port.get("status") == "connected":
-            return "online"
-        return "offline"
-
-    @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
-        """Return the state attributes."""
-        return {
-            "port_number": self._port.get("number"),
-            "link_speed": self._port.get("speed"),
-            "vlan": self._port.get("vlan"),
-            "type": self._port.get("type"),
-            "access_policy": self._port.get("accessPolicy"),
-        }
+        if self._device.get("video_settings", {}).get("externalRtspEnabled"):
+            return self._device.get("video_settings", {}).get("rtspUrl")
+        return "disabled"

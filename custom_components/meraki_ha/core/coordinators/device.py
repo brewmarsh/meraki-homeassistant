@@ -62,6 +62,25 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                             device.get("serial"),
                             err,
                         )
+                # Fetch additional data for camera devices
+                if device["productType"] == "camera":
+                    try:
+                        device[
+                            "sense_settings"
+                        ] = await self.api_client.get_camera_sense_settings(
+                            device["serial"]
+                        )
+                        device[
+                            "video_settings"
+                        ] = await self.api_client.get_camera_video_settings(
+                            device["serial"]
+                        )
+                    except Exception as err:
+                        _LOGGER.warning(
+                            "Error fetching camera data for device %s: %s",
+                            device.get("serial"),
+                            err,
+                        )
 
                 # Fetch additional data for appliance devices
                 if device["productType"] == "appliance":
@@ -70,6 +89,11 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                             device["networkId"]
                         )
                         device["uplink"] = await self.api_client.get_device_uplink(
+                            device["serial"]
+                        )
+                        device[
+                            "firmware_upgrades"
+                        ] = await self.api_client.get_device_firmware_upgrades(
                             device["serial"]
                         )
                     except Exception as err:

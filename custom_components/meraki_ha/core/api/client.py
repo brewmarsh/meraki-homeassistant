@@ -192,6 +192,77 @@ class MerakiAPIClient:
         return validated
 
     @handle_meraki_errors
+    async def get_camera_sense_settings(self, serial: str) -> Dict[str, Any]:
+        """Get sense settings for a specific camera."""
+        _LOGGER.debug("Getting camera sense settings for serial: %s", serial)
+        cache_key = self._get_cache_key("get_camera_sense_settings", serial)
+
+        if cached := self._get_cached_data(cache_key):
+            return cached
+
+        settings = await self._run_sync(
+            self._dashboard.camera.getDeviceCameraSense, serial=serial
+        )
+        validated = validate_response(settings)
+        self._cache_data(cache_key, validated)
+        return validated
+
+    @handle_meraki_errors
+    async def get_camera_video_settings(self, serial: str) -> Dict[str, Any]:
+        """Get video settings for a specific camera."""
+        _LOGGER.debug("Getting camera video settings for serial: %s", serial)
+        cache_key = self._get_cache_key("get_camera_video_settings", serial)
+
+        if cached := self._get_cached_data(cache_key):
+            return cached
+
+        settings = await self._run_sync(
+            self._dashboard.camera.getDeviceCameraVideoSettings, serial=serial
+        )
+        validated = validate_response(settings)
+        self._cache_data(cache_key, validated)
+        return validated
+
+    @handle_meraki_errors
+    async def update_camera_video_settings(self, serial: str, **kwargs) -> None:
+        """Update video settings for a specific camera."""
+        _LOGGER.debug("Updating camera video settings for serial: %s", serial)
+        await self._run_sync(
+            self._dashboard.camera.updateDeviceCameraVideoSettings,
+            serial=serial,
+            **kwargs,
+        )
+
+    @handle_meraki_errors
+    async def update_network_wireless_ssid(
+        self, network_id: str, number: str, **kwargs
+    ) -> None:
+        """Update a wireless SSID."""
+        _LOGGER.debug("Updating wireless SSID for network: %s, number: %s", network_id, number)
+        await self._run_sync(
+            self._dashboard.wireless.updateNetworkWirelessSsid,
+            networkId=network_id,
+            number=number,
+            **kwargs,
+        )
+
+    @handle_meraki_errors
+    async def get_device_firmware_upgrades(self, serial: str) -> Dict[str, Any]:
+        """Get firmware upgrade status for a specific device."""
+        _LOGGER.debug("Getting device firmware upgrades for serial: %s", serial)
+        cache_key = self._get_cache_key("get_device_firmware_upgrades", serial)
+
+        if cached := self._get_cached_data(cache_key):
+            return cached
+
+        upgrades = await self._run_sync(
+            self._dashboard.devices.getDeviceFirmwareUpgrades, serial=serial
+        )
+        validated = validate_response(upgrades)
+        self._cache_data(cache_key, validated)
+        return validated
+
+    @handle_meraki_errors
     async def get_device_uplink(self, serial: str) -> Dict[str, Any]:
         """Get uplink information for a specific device."""
         _LOGGER.debug("Getting device uplink for serial: %s", serial)

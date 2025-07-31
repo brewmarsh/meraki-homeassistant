@@ -38,9 +38,7 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
     @property
     def name(self) -> str:
         """Return the explicit name of the switch."""
-        device_data = self._get_current_device_data()
-        device_name = device_data.get("name", "Camera") if device_data else "Camera"
-        return f"{device_name} {self.entity_description.name}"
+        return self.entity_description.name
 
 
 class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
@@ -67,6 +65,4 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
     @property
     def name(self) -> str:
         """Return the explicit name of the switch."""
-        device_data = self._get_current_device_data()
-        device_name = device_data.get("name", "Camera") if device_data else "Camera"
-        return f"{device_name} {self.entity_description.name}"
+        return self.entity_description.name

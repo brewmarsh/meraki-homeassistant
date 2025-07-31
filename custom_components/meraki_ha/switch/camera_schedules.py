@@ -39,9 +39,7 @@ class MerakiCameraRTSPSwitch(MerakiCameraSettingSwitchBase):
     @property
     def name(self) -> str:
         """Return the explicit name of the switch."""
-        device_data = self._get_current_device_data()
-        device_name = device_data.get("name", "Camera") if device_data else "Camera"
-        return f"{device_name} {self.entity_description.name}"
+        return self.entity_description.name
 
     async def _update_camera_setting(self, value: bool) -> None:
         """Update the RTSP server setting via the Meraki API."""

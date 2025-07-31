@@ -36,6 +36,8 @@ from .network.network_clients import MerakiNetworkClientsSensor
 from .network.network_identity import MerakiNetworkIdentitySensor
 from .network.meraki_network_info import MerakiNetworkInfoSensor
 from .device.appliance_port import MerakiAppliancePortSensor
+from .device.firmware_status import MerakiFirmwareStatusSensor
+from .device.camera_rtsp_url import MerakiCameraRTSPUrlSensor
 from ..core.utils.naming_utils import format_device_name
 
 
@@ -158,7 +160,9 @@ async def async_setup_entry(
                     MerakiNetworkIdentitySensor(network_coordinator, network_data)
                 )
                 entities.append(
-                    MerakiNetworkInfoSensor(network_coordinator, network_data)
+                    MerakiNetworkInfoSensor(
+                        network_coordinator, network_data, config_entry
+                    )
                 )
             except Exception as e:
                 _LOGGER.error(
@@ -182,6 +186,9 @@ async def async_setup_entry(
             if device.get("productType") == "appliance":
                 for port in device.get("ports", []):
                     entities.append(MerakiAppliancePortSensor(device_coordinator, device, port))
+            if device.get("productType") == "camera":
+                entities.append(MerakiCameraRTSPUrlSensor(device_coordinator, device))
+            entities.append(MerakiFirmwareStatusSensor(device_coordinator, device))
 
     if entities:
         async_add_entities(entities)

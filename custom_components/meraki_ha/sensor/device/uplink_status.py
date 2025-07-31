@@ -110,7 +110,7 @@ class MerakiUplinkStatusSensor(
             return
 
         # Update state based on the device's overall status
-        self._attr_native_value = self._get_uplink_status(current_device_info)
+        self._attr_native_value = self._get_uplink_status(current_device_info).lower()
 
         # Update attributes
         # Start with base attributes that might have been in initial_device_data but need refresh
@@ -174,20 +174,7 @@ class MerakiUplinkStatusSensor(
         if not device_data:
             return STATE_UNAVAILABLE_UPLINK
 
-        uplink_info = device_data.get("uplinks", [{}])[0]
-        if not isinstance(uplink_info, dict):
-            return STATE_UNKNOWN_UPLINK
-
-        status = uplink_info.get("status")
-        if not status:
-            return STATE_UNKNOWN_UPLINK
-
-        try:
-            return str(status).lower()
-        except (AttributeError, TypeError):
-            _LOGGER.warning(
-                "Invalid uplink status value for device %s: %s",
-                device_data.get("name", "Unknown device"),
-                status,
-            )
-            return STATE_UNKNOWN_UPLINK
+        for uplink in device_data.get("uplinks", []):
+            if uplink.get("status") == "active":
+                return "online"
+        return "offline"

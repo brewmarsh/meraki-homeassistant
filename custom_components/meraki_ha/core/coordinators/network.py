@@ -38,6 +38,7 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
                 if "id" not in network:
                     _LOGGER.warning("Network missing required attributes: %s", network)
                     continue
+                network["productType"] = "network"
 
                 # Fetch clients for this network
                 try:
@@ -65,6 +66,7 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
                         for ssid in network_ssids:
                             ssid["networkId"] = network["id"]
                             ssid["unique_id"] = f'{network["id"]}_{ssid["number"]}'
+                            ssid["productType"] = "ssid"
                         all_ssids.extend(network_ssids)
                     except Exception as err:
                         _LOGGER.warning(

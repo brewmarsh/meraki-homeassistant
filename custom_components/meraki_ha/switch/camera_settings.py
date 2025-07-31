@@ -39,7 +39,10 @@ class MerakiCameraSettingSwitchBase(
         self._attribute_to_check = attribute_to_check
         self._attribute_path = attribute_to_check.split(".")
         self._attr_unique_id = f"{self._device_serial}_{switch_type}_switch"
-        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, self._device_serial)})
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, self._device_serial)},
+            name=device_data.get("name"),
+        )
         self._update_internal_state()
 
     def _get_current_device_data(self) -> Optional[Dict[str, Any]]:

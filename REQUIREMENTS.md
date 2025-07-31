@@ -60,6 +60,8 @@
 | Meraki wireless devices should have a sensor that tracks the number of connected clients. | Included |
 | SSID names appear to be missing | Included |
 | Disabled SSIDs should not be shown in the list | Included |
+| SSID names should be updateable | Included |
+| SSIDs should be able to have the "Broadcast SSID" feature enabled / disabled | Included |
 
 ### Meraki Switches
 | Requirement | Status |
@@ -67,12 +69,14 @@
 | If the Meraki switch supports PoE, the switch should have sensors that aggregated PoE usage. | Not Included |
 | Meraki switches should have a sensor that tracks the number of ports in use. | Not Included |
 | Meraki switches should have a sensor that tracks the number of ports available. | Not Included |
+| Some switches have two prefixes / suffixes; please ensure that they only have one | Included |
 
 ### Meraki Cameras
 | Requirement | Status |
 | :--- | :--- |
-| Meraki cameras should have a data element that reflects the URL of the camera stream. | Partially Included |
+| Meraki cameras should have a data element that reflects the URL of the camera stream. | Included |
 | Meraki cameras should have a Home Assistant switch that enables RTSP streaming. | Included |
+| Meraki camera RTSP URLs are not correct | Included |
 
 ### Meraki Sensors
 | Requirement | Status |
