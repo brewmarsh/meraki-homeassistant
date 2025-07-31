@@ -18,6 +18,17 @@ from .sensor.device.meraki_wan1_connectivity import MerakiWAN1ConnectivitySensor
 from .sensor.device.meraki_wan2_connectivity import MerakiWAN2ConnectivitySensor
 from .sensor.network.meraki_network_info import MerakiNetworkInfoSensor
 from .sensor.device.meraki_firmware_status import MerakiFirmwareStatusSensor
+from .sensor.device.data_usage import MerakiDataUsageSensor
+from .sensor.device.poe_usage import MerakiPoeUsageSensor
+from .sensor.device.port_counts import (
+    MerakiPortsInUseSensor,
+    MerakiPortsAvailableSensor,
+)
+from .sensor.device.mt_environmental import (
+    MerakiTemperatureSensor,
+    MerakiHumiditySensor,
+    MerakiWaterDetectionSensor,
+)
 
 # Camera-specific sensors
 from .sensor.device.camera_settings import (
@@ -49,6 +60,8 @@ SENSOR_REGISTRY: Dict[str, SensorClassList] = {
         MerakiWAN2ConnectivitySensor,
         MerakiFirmwareStatusSensor,
         MerakiUplinkStatusSensor,  # Reinstated in previous work
+        MerakiDataUsageSensor,
+        MerakiDeviceConnectedClientsSensor,
     ],
     "wireless": [  # For MR devices
         MerakiDeviceConnectedClientsSensor,
@@ -56,7 +69,9 @@ SENSOR_REGISTRY: Dict[str, SensorClassList] = {
         # Add other MR-specific sensors here if any
     ],
     "switch": [  # For MS devices
-        # Add MS-specific sensors here, e.g., port status summaries, PoE consumption
+        MerakiPoeUsageSensor,
+        MerakiPortsInUseSensor,
+        MerakiPortsAvailableSensor,
     ],
     "camera": [  # For MV devices
         MerakiCameraSenseStatusSensor,  # Added sensor
@@ -65,7 +80,9 @@ SENSOR_REGISTRY: Dict[str, SensorClassList] = {
         # Add other MV-specific sensors here
     ],
     "sensor": [  # For MT devices
-        # Add MT-specific sensors here
+        MerakiTemperatureSensor,
+        MerakiHumiditySensor,
+        MerakiWaterDetectionSensor,
     ],
 }
 

@@ -63,11 +63,15 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
                 if 'wireless' in network.get("productTypes", []):
                     try:
                         network_ssids = await self.api_client.get_ssids(network["id"])
+                        enabled_ssids = []
                         for ssid in network_ssids:
-                            ssid["networkId"] = network["id"]
-                            ssid["unique_id"] = f'{network["id"]}_{ssid["number"]}'
-                            ssid["productType"] = "ssid"
-                        all_ssids.extend(network_ssids)
+                            _LOGGER.debug("Processing SSID: %s", ssid)
+                            if ssid.get("enabled"):
+                                ssid["networkId"] = network["id"]
+                                ssid["unique_id"] = f'{network["id"]}_{ssid["number"]}'
+                                ssid["productType"] = "ssid"
+                                enabled_ssids.append(ssid)
+                        all_ssids.extend(enabled_ssids)
                     except Exception as err:
                         _LOGGER.warning(
                             "Error fetching SSIDs for network %s: %s",

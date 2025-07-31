@@ -238,6 +238,22 @@ class MerakiAPIClient:
         return validated
 
     @handle_meraki_errors
+    async def get_device_camera_video_link(self, serial: str) -> Dict[str, Any]:
+        """Get video link for a specific camera."""
+        _LOGGER.debug("Getting camera video link for serial: %s", serial)
+        cache_key = self._get_cache_key("get_device_camera_video_link", serial)
+
+        if cached := self._get_cached_data(cache_key):
+            return cached
+
+        link = await self._run_sync(
+            self._dashboard.camera.getDeviceCameraVideoLink, serial=serial
+        )
+        validated = validate_response(link)
+        self._cache_data(cache_key, validated)
+        return validated
+
+    @handle_meraki_errors
     async def update_camera_video_settings(self, serial: str, **kwargs) -> None:
         """Update video settings for a specific camera."""
         _LOGGER.debug("Updating camera video settings for serial: %s", serial)
@@ -253,13 +269,26 @@ class MerakiAPIClient:
     ) -> None:
         """Update a wireless SSID."""
         _LOGGER.debug(
-            "Updating wireless SSID for network: %s, number: %s", network_id, number
+            "Updating wireless SSID for network: %s, number: %s, with data: %s",
+            network_id,
+            number,
+            kwargs,
         )
+        # Create a dictionary of parameters to pass to the SDK
+        params = {
+            'networkId': network_id,
+            'number': number,
+        }
+        if 'name' in kwargs:
+            params['name'] = kwargs['name']
+        if 'enabled' in kwargs:
+            params['enabled'] = kwargs['enabled']
+        if 'broadcast' in kwargs:
+            params['broadcast'] = kwargs['broadcast']
+
         await self._run_sync(
             self._dashboard.wireless.updateNetworkWirelessSsid,
-            networkId=network_id,
-            number=number,
-            **kwargs,
+            **params,
         )
 
     @handle_meraki_errors
@@ -297,29 +326,24 @@ class MerakiAPIClient:
         if cached := self._get_cached_data(cache_key):
             return cached
 
-        # Get device list first
-        devices = await self.get_devices()
-        statuses = []
+        statuses = await self._run_sync(
+            self._dashboard.organizations.getOrganizationDeviceStatuses,
+            organizationId=self._org_id,
+        )
 
-        # Build status information from device data
-        for device in devices:
-            status = {
-                "name": device.get("name"),
-                "serial": device.get("serial"),
-                "mac": device.get("mac"),
-                "publicIp": device.get("lanIp"),  # Use lanIp as publicIp
-                "status": device.get("status", "unknown"),
-                "lastReportedAt": device.get("lastReportedAt"),
-                "networkId": device.get("networkId"),
-                "productType": device.get("productType", "unknown"),
-            }
-            statuses.append(status)
+        validated = validate_response(statuses)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_organization_device_statuses did not return a list, returning empty list. Got: %s",
+                type(validated),
+            )
+            validated = []
 
-        self._cache_data(cache_key, statuses)
+        self._cache_data(cache_key, validated)
 
         # Reset cache timeout
         self._cache_timeout = 300
-        return statuses
+        return validated
 
     @handle_meraki_errors
     async def get_device_clients(self, serial: str) -> List[Dict[str, Any]]:
@@ -360,6 +384,28 @@ class MerakiAPIClient:
         return validated
 
     @handle_meraki_errors
+    async def get_network_appliance_traffic(
+        self, network_id: str, timespan: int = 86400
+    ) -> Dict[str, Any]:
+        """Get traffic data for a network appliance."""
+        _LOGGER.debug("Getting appliance traffic for network: %s", network_id)
+        cache_key = self._get_cache_key(
+            "get_network_appliance_traffic", network_id, timespan
+        )
+
+        if cached := self._get_cached_data(cache_key):
+            return cached
+
+        traffic = await self._run_sync(
+            self._dashboard.appliance.getNetworkApplianceTraffic,
+            networkId=network_id,
+            timespan=timespan,
+        )
+        validated = validate_response(traffic)
+        self._cache_data(cache_key, validated)
+        return validated
+
+    @handle_meraki_errors
     async def get_vlans(self, network_id: str) -> List[Dict[str, Any]]:
         """Get VLANs for a network."""
         _LOGGER.debug("Getting VLANs for network: %s", network_id)
@@ -372,6 +418,28 @@ class MerakiAPIClient:
             self._dashboard.appliance.getNetworkApplianceVlans, networkId=network_id
         )
         validated = validate_response(vlans)
+        self._cache_data(cache_key, validated)
+        return validated
+
+    @handle_meraki_errors
+    async def get_device_appliance_uplinks(self, serial: str) -> List[Dict[str, Any]]:
+        """Get uplinks for a device."""
+        _LOGGER.debug("Getting uplinks for device: %s", serial)
+        cache_key = self._get_cache_key("get_device_appliance_uplinks", serial)
+
+        if cached := self._get_cached_data(cache_key):
+            return cached
+
+        uplinks = await self._run_sync(
+            self._dashboard.appliance.getDeviceApplianceUplinks, serial=serial
+        )
+        validated = validate_response(uplinks)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_device_appliance_uplinks did not return a list, returning empty list. Got: %s",
+                type(validated),
+            )
+            validated = []
         self._cache_data(cache_key, validated)
         return validated
 
@@ -398,6 +466,28 @@ class MerakiAPIClient:
         return validated
 
     @handle_meraki_errors
+    async def get_device_switch_ports_statuses(self, serial: str) -> List[Dict[str, Any]]:
+        """Get statuses for all ports of a switch."""
+        _LOGGER.debug("Getting switch ports statuses for serial: %s", serial)
+        cache_key = self._get_cache_key("get_device_switch_ports_statuses", serial)
+
+        if cached := self._get_cached_data(cache_key):
+            return cached
+
+        statuses = await self._run_sync(
+            self._dashboard.switch.getDeviceSwitchPortsStatuses, serial=serial
+        )
+        validated = validate_response(statuses)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_device_switch_ports_statuses did not return a list, returning empty list. Got: %s",
+                type(validated),
+            )
+            validated = []
+        self._cache_data(cache_key, validated)
+        return validated
+
+    @handle_meraki_errors
     async def get_switch_ports(self, serial: str) -> List[Dict[str, Any]]:
         """Get ports for a switch."""
         _LOGGER.debug("Getting switch ports for serial: %s", serial)
@@ -410,6 +500,28 @@ class MerakiAPIClient:
             self._dashboard.switch.getDeviceSwitchPorts, serial=serial
         )
         validated = validate_response(ports)
+        self._cache_data(cache_key, validated)
+        return validated
+
+    @handle_meraki_errors
+    async def get_device_sensor_readings(self, serial: str) -> List[Dict[str, Any]]:
+        """Get readings for a sensor device."""
+        _LOGGER.debug("Getting sensor readings for device: %s", serial)
+        cache_key = self._get_cache_key("get_device_sensor_readings", serial)
+
+        if cached := self._get_cached_data(cache_key):
+            return cached
+
+        readings = await self._run_sync(
+            self._dashboard.sensors.getDeviceSensorReadings, serial=serial
+        )
+        validated = validate_response(readings)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_device_sensor_readings did not return a list, returning empty list. Got: %s",
+                type(validated),
+            )
+            validated = []
         self._cache_data(cache_key, validated)
         return validated
 

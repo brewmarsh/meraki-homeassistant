@@ -31,7 +31,7 @@ def mock_api_client():
     client.update_camera_video_settings = AsyncMock()
     return client
 
-def test_camera_rtsp_switch(mock_device_coordinator, mock_api_client):
+async def test_camera_rtsp_switch(mock_device_coordinator, mock_api_client):
     """Test the camera RTSP switch."""
     device = mock_device_coordinator.data['devices'][0]
 
@@ -40,7 +40,12 @@ def test_camera_rtsp_switch(mock_device_coordinator, mock_api_client):
     assert switch.name == 'RTSP Server'
     assert switch.is_on is True
 
-    switch.turn_off()
-    mock_api_client.update_camera_video_settings.assert_called_once_with(
-        serial='cam1', rtsp_server_enabled=False
+    await switch.async_turn_off()
+    mock_api_client.update_camera_video_settings.assert_called_with(
+        serial='cam1', externalRtspEnabled=False
+    )
+
+    await switch.async_turn_on()
+    mock_api_client.update_camera_video_settings.assert_called_with(
+        serial='cam1', externalRtspEnabled=True
     )

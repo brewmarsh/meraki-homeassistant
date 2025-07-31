@@ -110,7 +110,7 @@ class MerakiUplinkStatusSensor(
             return
 
         # Update state based on the device's overall status
-        self._attr_native_value = self._get_uplink_status(current_device_info).lower()
+        self._attr_native_value = self._get_uplink_status(current_device_info)
 
         # Update attributes
         # Start with base attributes that might have been in initial_device_data but need refresh
@@ -118,13 +118,19 @@ class MerakiUplinkStatusSensor(
             "model": current_device_info.get("model"),
             "serial_number": self._device_serial,  # Serial doesn't change
             "firmware_version": current_device_info.get("firmware"),
-            "wan1_ip": current_device_info.get("wan1Ip"),
-            "wan2_ip": current_device_info.get("wan2Ip"),
-            "public_ip": current_device_info.get("publicIp"),
             "lan_ip": current_device_info.get("lanIp"),  # Merged from status
             "tags": current_device_info.get("tags", []),
             "network_id": current_device_info.get("networkId"),
         }
+
+        # Add individual uplink details
+        for uplink in current_device_info.get("uplinks", []):
+            interface = uplink.get("interface", "unknown_interface")
+            current_attributes[f"{interface}_status"] = uplink.get("status")
+            current_attributes[f"{interface}_ip"] = uplink.get("ip")
+            current_attributes[f"{interface}_gateway"] = uplink.get("gateway")
+            current_attributes[f"{interface}_public_ip"] = uplink.get("publicIp")
+            current_attributes[f"{interface}_dns_servers"] = uplink.get("dns")
 
         self._attr_extra_state_attributes = {
             k: v for k, v in current_attributes.items() if v is not None
@@ -171,10 +177,19 @@ class MerakiUplinkStatusSensor(
         Returns:
           String representing the uplink status
         """
-        if not device_data:
+        if not device_data or "uplinks" not in device_data:
             return STATE_UNAVAILABLE_UPLINK
 
-        for uplink in device_data.get("uplinks", []):
-            if uplink.get("status") == "active":
-                return "online"
+        uplinks = device_data.get("uplinks", [])
+        if not uplinks:
+            return "offline"  # No uplinks configured
+
+        active_uplink = any(u.get("status") == "active" for u in uplinks)
+        ready_uplink = any(u.get("status") == "ready" for u in uplinks)
+
+        if active_uplink:
+            return "online"
+        if ready_uplink:
+            return "ready"
+
         return "offline"

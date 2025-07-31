@@ -45,7 +45,7 @@ class MerakiCameraRTSPSwitch(MerakiCameraSettingSwitchBase):
         """Update the RTSP server setting via the Meraki API."""
         try:
             await self._meraki_client.update_camera_video_settings(
-                serial=self._device_serial, rtsp_server_enabled=value
+                serial=self._device_serial, externalRtspEnabled=value
             )
             await self.coordinator.async_request_refresh()
             self._attr_is_on = value

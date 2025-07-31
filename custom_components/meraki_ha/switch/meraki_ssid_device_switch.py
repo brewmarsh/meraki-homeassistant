@@ -14,6 +14,7 @@ from ..const import DOMAIN
 from ..core.api.client import MerakiAPIClient
 from ..core.coordinators.network import MerakiNetworkCoordinator
 from homeassistant.helpers.entity import EntityCategory
+from ..core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -53,9 +54,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiNetworkCoordinator], SwitchEn
 
         # Construct a descriptive entity name, e.g., "Guest WiFi Enabled Control".
         # It uses the SSID name from the coordinator (or a fallback) and the type of switch.
-        base_name = self.coordinator.data.get(self._ssid_unique_id, {}).get(
-            "name", f"SSID {self._ssid_number}"
-        )
+        base_name = format_device_name(ssid_data, self._config_entry.options)
         self._attr_name = f"{base_name} {switch_type.capitalize()} Control"
 
         # This attribute determines which key in the SSID data dict corresponds to this switch's state.
@@ -92,7 +91,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiNetworkCoordinator], SwitchEn
         if current_ssid_data:
             self._attr_is_on = current_ssid_data.get(self._attribute_to_check, False)
             # Update name if SSID name changed
-            base_name = current_ssid_data.get("name", f"SSID {self._ssid_number}")
+            base_name = format_device_name(current_ssid_data, self._config_entry.options)
             self._attr_name = (
                 f"{base_name} {self._attribute_to_check.capitalize()} Control"
             )
@@ -191,5 +190,5 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
             ssid_unique_id,
             ssid_data,
             "broadcast",
-            "visible",
+            "broadcast",
         )

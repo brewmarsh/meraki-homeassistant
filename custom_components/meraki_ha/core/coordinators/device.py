@@ -80,6 +80,10 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                         ] = await self.api_client.get_camera_video_settings(
                             device["serial"]
                         )
+                        video_link = await self.api_client.get_device_camera_video_link(
+                            device["serial"]
+                        )
+                        device["video_settings"].update(video_link)
                     except Exception as err:
                         _LOGGER.warning(
                             "Error fetching camera data for device %s: %s",
@@ -93,9 +97,47 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                         device["ports"] = await self.api_client.get_appliance_ports(
                             device["networkId"]
                         )
+                        device[
+                            "uplinks"
+                        ] = await self.api_client.get_device_appliance_uplinks(
+                            device["serial"]
+                        )
+                        device[
+                            "traffic"
+                        ] = await self.api_client.get_network_appliance_traffic(
+                            device["networkId"]
+                        )
                     except Exception as err:
                         _LOGGER.warning(
                             "Error fetching appliance data for device %s: %s",
+                            device.get("serial"),
+                            err,
+                        )
+                # Fetch additional data for switch devices
+                if device["productType"] == "switch":
+                    try:
+                        device[
+                            "port_statuses"
+                        ] = await self.api_client.get_device_switch_ports_statuses(
+                            device["serial"]
+                        )
+                    except Exception as err:
+                        _LOGGER.warning(
+                            "Error fetching switch data for device %s: %s",
+                            device.get("serial"),
+                            err,
+                        )
+                # Fetch additional data for sensor devices
+                if device["productType"] == "sensor":
+                    try:
+                        device[
+                            "readings"
+                        ] = await self.api_client.get_device_sensor_readings(
+                            device["serial"]
+                        )
+                    except Exception as err:
+                        _LOGGER.warning(
+                            "Error fetching sensor data for device %s: %s",
                             device.get("serial"),
                             err,
                         )

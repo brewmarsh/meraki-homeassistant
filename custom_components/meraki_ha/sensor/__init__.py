@@ -88,12 +88,14 @@ async def async_setup_entry(
                 fallback_name = f"Meraki {model_str} {serial}"
                 device_info["name"] = fallback_name
 
-            device_info["name"] = format_device_name(device_info, config_entry.options)
+            formatted_name = format_device_name(device_info, config_entry.options)
+            device_info_with_formatted_name = device_info.copy()
+            device_info_with_formatted_name["name"] = formatted_name
             for sensor_class in COMMON_DEVICE_SENSORS:
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
                     try:
-                        entities.append(sensor_class(device_coordinator, device_info))
+                        entities.append(sensor_class(device_coordinator, device_info_with_formatted_name))
                         added_entities.add(unique_id)
                     except Exception as e:
                         _LOGGER.error(
@@ -115,7 +117,7 @@ async def async_setup_entry(
                     if unique_id not in added_entities:
                         try:
                             entities.append(
-                                sensor_class(device_coordinator, device_info)
+                                sensor_class(device_coordinator, device_info_with_formatted_name)
                             )
                             added_entities.add(unique_id)
                         except Exception as e:

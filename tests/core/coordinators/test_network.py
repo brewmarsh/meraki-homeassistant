@@ -45,3 +45,19 @@ async def test_get_network_by_id(network_coordinator):
     assert network is not None
     assert network['id'] == 'net1'
     assert network_coordinator.get_network_by_id('net3') is None
+
+async def test_ssid_filtering(mock_api_client):
+    """Test that disabled SSIDs are filtered out."""
+    mock_api_client.get_ssids.return_value = [
+        {'number': 0, 'name': 'Enabled SSID', 'enabled': True},
+        {'number': 1, 'name': 'Disabled SSID', 'enabled': False},
+    ]
+    coordinator = MerakiNetworkCoordinator(
+        hass=MagicMock(),
+        api_client=mock_api_client,
+        name='network_coordinator',
+        update_interval=MagicMock(),
+    )
+    await coordinator.async_config_entry_first_refresh()
+    assert len(coordinator.data['ssids']) == 1
+    assert coordinator.data['ssids'][0]['name'] == 'Enabled SSID'

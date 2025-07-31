@@ -175,3 +175,4 @@
 
 ### Code Quality & Refactoring
 - [ ] **Unit and Integration Tests:** Expand test coverage significantly.
+- [ ] **Testing Environment:** The testing environment is currently not set up to run tests that have a dependency on Home Assistant. This needs to be resolved to run the full test suite.

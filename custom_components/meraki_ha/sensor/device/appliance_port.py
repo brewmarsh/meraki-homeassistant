@@ -68,9 +68,11 @@ class MerakiAppliancePortSensor(
     @property
     def state(self) -> str:
         """Return the state of the sensor."""
+        if not self._port.get("enabled"):
+            return "disabled"
         if self._port.get("status") == "connected":
-            return "online"
-        return "offline"
+            return "connected"
+        return "disconnected"
 
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:
