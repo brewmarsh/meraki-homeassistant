@@ -38,129 +38,53 @@ jobs:
           npm install
 
       - name: Increment Version
-        id: increment # Ensure this id is set
+        id: increment
         run: |
-          echo "--- .bumpversion.cfg ---"
-          cat .bumpversion.cfg || echo ".bumpversion.cfg not found"
-          echo "--- end .bumpversion.cfg ---"
-
-          echo "--- manifest.json (before) ---"
-           cat custom_components/meraki_ha/manifest.json
-          echo "--- end manifest.json (before) ---"
-
-           current_version=$(jq -r .version custom_components/meraki_ha/manifest.json)
-          echo "Current Version: $current_version" # e.g., 0.1.1+build.81
-
           increment_type="patch" # Default increment type
-          pr_title="${{ github.event.pull_request.title }}" # Get PR title
+          pr_title="${{ github.event.pull_request.title }}"
 
           if [[ "$pr_title" == *"[major]"* ]]; then
             increment_type="major"
           elif [[ "$pr_title" == *"[minor]"* ]]; then
             increment_type="minor"
-          elif [[ "$pr_title" == *"[patch]"* ]]; then # Explicitly check for patch
-            increment_type="patch"
-          else
-            echo "No version increment specified in PR title prefix ([major], [minor], [patch]). Defaulting to '$increment_type'."
           fi
-          echo "Increment Type: $increment_type"
 
-          # Calculate the new version based on current_version and increment_type
-          # Ensure current_version is in X.Y.Z format, otherwise this parsing will fail or produce unexpected results.
-          IFS='+' read -r base_version_from_manifest build_metadata <<< "$current_version" # base_version_from_manifest will be e.g., "0.1.1"
-          echo "Base version from manifest (before bump): $base_version_from_manifest"
-
-          IFS='.' read -r -a version_parts <<< "$base_version_from_manifest"
-          major_part=${version_parts[0]}
-          minor_part=${version_parts[1]}
-          patch_part=${version_parts[2]}
-
-          if [[ "$increment_type" == "major" ]]; then
-            major_part=$((major_part + 1))
-            minor_part=0
-            patch_part=0
-          elif [[ "$increment_type" == "minor" ]]; then
-            minor_part=$((minor_part + 1))
-            patch_part=0
-          elif [[ "$increment_type" == "patch" ]]; then
-            patch_part=$((patch_part + 1))
-          fi
-          calculated_new_version_string="$major_part.$minor_part.$patch_part" # This is the new base, e.g., 0.2.0
-          echo "Calculated New Base Version String: $calculated_new_version_string"
-
-          # Temporarily set manifest to base version for bump2version to find it
-          echo "Temporarily setting manifest version to: $base_version_from_manifest for bump2version"
-           jq --arg ver "$base_version_from_manifest" '.version = $ver' custom_components/meraki_ha/manifest.json > tmp_manifest.json && mv tmp_manifest.json custom_components/meraki_ha/manifest.json
-          echo "--- manifest.json (temporarily set to base for bump2version) ---"
-           cat custom_components/meraki_ha/manifest.json
-          echo "--- end manifest.json ---"
-
-          # Bump version in manifest.json using the calculated new version
-          bump2version --verbose --allow-dirty --current-version "$base_version_from_manifest" --new-version "$calculated_new_version_string" custom_components/meraki_ha/manifest.json
-          
-          base_version_after_bump=$(jq -r .version custom_components/meraki_ha/manifest.json) # This will be the new base, e.g., 0.2.0
-          echo "Base Version from manifest after bump: $base_version_after_bump"
-
-          # Append build metadata
-          version_with_build="${base_version_after_bump}+build.${{ github.run_number }}"
-          echo "Version with Build Metadata: $version_with_build"
-
-          # Update manifest.json with the version including build metadata
-          jq --arg ver "$version_with_build" '.version = $ver' custom_components/meraki_ha/manifest.json > tmp_manifest.json && mv tmp_manifest.json custom_components/meraki_ha/manifest.json
-          
-          echo "Updated manifest.json with build metadata."
-          # Output the new_version (including build metadata) for subsequent steps
-          echo "new_base_version=$base_version_after_bump" >> "$GITHUB_OUTPUT" # Changed from calculated_new_version_string to reflect actual bumped base
-          echo "new_full_version=$version_with_build" >> "$GITHUB_OUTPUT"
-
-          # Log manifest.json content AFTER bump2version and adding build metadata
-          echo "--- manifest.json (after all modifications) ---"
-           cat custom_components/meraki_ha/manifest.json
-          echo "--- end manifest.json (after all modifications) ---"
+          bump2version --allow-dirty $increment_type
+          new_version=$(grep -oP '"version": "\K[^"]+' custom_components/meraki_ha/manifest.json)
+          echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
 
       - name: Update package.json version
-        if: steps.increment.outputs.new_full_version != '' # Only run if a new version was determined
+        if: steps.increment.outputs.new_version != ''
         run: |
-          echo "Synchronizing package.json version to: ${{ steps.increment.outputs.new_base_version }}"
-          # The script `npm run set-version` is: `node get-version.js && npm version $(node get-version.js) --no-git-tag-version`
-           # Ensure get-version.js reads from custom_components/meraki_ha/manifest.json
-          # For this step, we'll directly use the new_base_version from the previous step.
-          # This avoids relying on get-version.js to re-read, which might cause issues if it reads an old cached value.
-          # Overwrite package.json version directly or use npm version with the specific version
-          npm version ${{ steps.increment.outputs.new_base_version }} --no-git-tag-version --allow-same-version
+          echo "Synchronizing package.json version to: ${{ steps.increment.outputs.new_version }}"
+          npm version ${{ steps.increment.outputs.new_version }} --no-git-tag-version --allow-same-version
           echo "--- package.json (after npm version) ---"
           cat package.json
           echo "--- end package.json (after npm version) ---"
 
       - name: Generate Changelog
-        if: steps.increment.outputs.new_full_version != '' # Only run if a new version was determined
+        if: steps.increment.outputs.new_version != ''
         run: npx conventional-changelog -p angular -i CHANGELOG.md -s
 
       - name: Commit and push changes
-        if: steps.increment.outputs.new_full_version != '' # Only run if changes were made
+        if: steps.increment.outputs.new_version != ''
         uses: stefanzweifel/git-auto-commit-action@v6
         with:
-          commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_base_version }} and CHANGELOG'
-          # Ensure all changed files are included
-           file_pattern: 'custom_components/meraki_ha/manifest.json CHANGELOG.md package.json .bumpversion.cfg package-lock.json'
-          # push_options: '' # Removed --force, default push behavior
-          # Using default push options by removing the line is safer.
-          # Configure committer details
+          commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }} and CHANGELOG'
+          file_pattern: 'custom_components/meraki_ha/manifest.json CHANGELOG.md package.json .bumpversion.cfg package-lock.json'
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
           commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
-          branch: main # Add this line
-
+          branch: main
 
       - name: Create Release
-        # Condition: Only create a release if a new version was actually generated.
-        if: steps.increment.outputs.new_full_version != ''
-        uses: actions/create-release@v1 
+        if: steps.increment.outputs.new_version != ''
+        uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Recommended for create-release action
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: 'v${{ steps.increment.outputs.new_base_version }}'
-          release_name: 'Release v${{ steps.increment.outputs.new_full_version }}'
-          body_path: 'CHANGELOG.md' # Use the generated changelog as the release body
+          tag_name: 'v${{ steps.increment.outputs.new_version }}'
+          release_name: 'Release v${{ steps.increment.outputs.new_version }}'
+          body_path: 'CHANGELOG.md'
           draft: false
           prerelease: false

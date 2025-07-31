@@ -283,15 +283,15 @@ class MerakiAPIClient:
         )
         # Create a dictionary of parameters to pass to the SDK
         params = {
-            "networkId": network_id,
-            "number": number,
+            'networkId': network_id,
+            'number': number,
         }
-        if "name" in kwargs:
-            params["name"] = kwargs["name"]
-        if "enabled" in kwargs:
-            params["enabled"] = kwargs["enabled"]
-        if "broadcast" in kwargs:
-            params["broadcast"] = kwargs["broadcast"]
+        if 'name' in kwargs:
+            params['name'] = kwargs['name']
+        if 'enabled' in kwargs:
+            params['enabled'] = kwargs['enabled']
+        if 'broadcast' in kwargs:
+            params['broadcast'] = kwargs['broadcast']
 
         await self._run_sync(
             self._dashboard.wireless.updateNetworkWirelessSsid,
@@ -458,7 +458,7 @@ class MerakiAPIClient:
             return cached
 
         uplinks = await self._run_sync(
-            self._dashboard.appliance.getDeviceApplianceUplinks, serial=serial
+            self._dashboard.devices.getDeviceApplianceUplinks, serial=serial
         )
         validated = validate_response(uplinks)
         if not isinstance(validated, list):
@@ -493,9 +493,7 @@ class MerakiAPIClient:
         return validated
 
     @handle_meraki_errors
-    async def get_device_switch_ports_statuses(
-        self, serial: str
-    ) -> List[Dict[str, Any]]:
+    async def get_device_switch_ports_statuses(self, serial: str) -> List[Dict[str, Any]]:
         """Get statuses for all ports of a switch.
 
         Args:
@@ -556,7 +554,7 @@ class MerakiAPIClient:
             return cached
 
         readings = await self._run_sync(
-            self._dashboard.sensor.getDeviceSensorReadings, serial=serial
+            self._dashboard.devices.getDeviceSensorReadings, serial=serial
         )
         validated = validate_response(readings)
         if not isinstance(validated, list):
