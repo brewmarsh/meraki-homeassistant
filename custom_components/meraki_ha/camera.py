@@ -161,7 +161,12 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
                     video_settings,
                 )
 
-                auto_enable_rtsp = self.coordinator.options.get(CONF_AUTO_ENABLE_RTSP)
+                auto_enable_rtsp = self.coordinator.config_entry.options.get(
+                    CONF_AUTO_ENABLE_RTSP,
+                    self.coordinator.config_entry.data.get(
+                        CONF_AUTO_ENABLE_RTSP, False
+                    ),
+                )
                 _LOGGER.debug(
                     "Camera %s: auto_enable_rtsp is %s, externalRtspEnabled is %s",
                     self.name,
