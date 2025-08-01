@@ -97,13 +97,6 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
         """Handle entity which will be added."""
         _LOGGER.debug("Camera %s added to hass", self.name)
         await super().async_added_to_hass()
-        auto_enable_rtsp = self.coordinator.config_entry.options.get(CONF_AUTO_ENABLE_RTSP)
-        _LOGGER.debug("Camera %s: auto_enable_rtsp option is %s", self.name, auto_enable_rtsp)
-        if (
-            auto_enable_rtsp
-            and not self.is_streaming
-        ):
-            await self._enable_rtsp()
 
     async def _enable_rtsp(self) -> None:
         """Enable the RTSP stream for the camera."""
@@ -162,13 +155,28 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
             if device["serial"] == self._device["serial"]:
                 self._device = device
                 video_settings = device.get("video_settings", {})
-                _LOGGER.debug("Camera %s: found device data with video settings: %s", self.name, video_settings)
+                _LOGGER.debug(
+                    "Camera %s: found device data with video settings: %s",
+                    self.name,
+                    video_settings,
+                )
+
+                auto_enable_rtsp = self.coordinator.config_entry.options.get(
+                    CONF_AUTO_ENABLE_RTSP
+                )
+                if auto_enable_rtsp and not video_settings.get("externalRtspEnabled"):
+                    self.hass.async_create_task(self._enable_rtsp())
+
                 if video_settings.get("externalRtspEnabled"):
                     self._rtsp_url = video_settings.get("rtspUrl")
-                    _LOGGER.debug("Camera %s: RTSP is enabled, URL: %s", self.name, self._rtsp_url)
+                    _LOGGER.debug(
+                        "Camera %s: RTSP is enabled, URL: %s", self.name, self._rtsp_url
+                    )
                 else:
                     self._rtsp_url = None
                     _LOGGER.debug("Camera %s: RTSP is disabled", self.name)
                 self.async_write_ha_state()
                 return
-        _LOGGER.debug("Camera %s: device data not found in coordinator update", self.name)
+        _LOGGER.debug(
+            "Camera %s: device data not found in coordinator update", self.name
+        )
