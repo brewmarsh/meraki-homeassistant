@@ -32,7 +32,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> config_entries.FlowResult:
         """Manage the options flow initialization."""
+        _LOGGER.debug("Initializing options flow")
         if user_input is not None:
+            _LOGGER.debug("User input received: %s", user_input)
             # Update the config entry with the new options
             return self.async_create_entry(title="", data=user_input)
 

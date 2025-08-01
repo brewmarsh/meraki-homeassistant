@@ -7,8 +7,18 @@ from ..const import (
 )
 
 
+import logging
+
+_LOGGER = logging.getLogger(__name__)
+
 def format_entity_name(device_name: str, device_type: str, name_format: str) -> str:
     """Format the entity name based on the user's selection."""
+    _LOGGER.debug(
+        "Formatting entity name: device_name=%s, device_type=%s, name_format=%s",
+        device_name,
+        device_type,
+        name_format,
+    )
     if name_format == DEVICE_NAME_FORMAT_PREFIX:
         return f"[{device_type.capitalize()}] {device_name}"
     if name_format == DEVICE_NAME_FORMAT_SUFFIX:
