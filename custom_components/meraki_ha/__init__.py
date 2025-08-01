@@ -88,12 +88,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         api_client=api_client,
         name="device_coordinator",
         update_interval=update_interval,
+        options=entry.options,
     )
     network_coordinator = MerakiNetworkCoordinator(
         hass=hass,
         api_client=api_client,
         name="network_coordinator",
         update_interval=update_interval,
+        options=entry.options,
     )
 
     # Store the coordinators and API client

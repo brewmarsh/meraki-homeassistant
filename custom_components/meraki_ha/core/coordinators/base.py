@@ -21,6 +21,7 @@ class BaseMerakiCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         api_client: MerakiAPIClient,
         name: str,
         update_interval: timedelta,
+        options: Dict[str, Any],
     ) -> None:
         """Initialize the coordinator.
 
@@ -29,6 +30,7 @@ class BaseMerakiCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             api_client: Initialized Meraki API client
             name: Name of the coordinator for logging
             update_interval: How often to update the data
+            options: Config entry options
         """
         super().__init__(
             hass=hass,
@@ -37,6 +39,7 @@ class BaseMerakiCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             update_interval=update_interval,
         )
         self.api_client = api_client
+        self.options = options
 
     async def _async_update_data(self) -> Dict[str, Any]:
         """Fetch data from API endpoint.
