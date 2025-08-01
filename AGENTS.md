@@ -51,5 +51,10 @@ Based on a recent analysis of the codebase, the following high-level recommendat
 
 ## 6. Dependencies
 
+- Use `dependabot` or a similar tool to keep dependencies up-to-date.
+- Regularly review and update dependencies as needed.
+
+## 6. Dependencies
+
 - Use `dependabot` to keep dependencies up-to-date.
 - Regularly review and update dependencies as needed.

@@ -28,7 +28,6 @@ from .network.network_clients import MerakiNetworkClientsSensor
 from .network.network_identity import MerakiNetworkIdentitySensor
 from .network.meraki_network_info import MerakiNetworkInfoSensor
 from .device.appliance_port import MerakiAppliancePortSensor
-from .device.firmware_status import MerakiFirmwareStatusSensor
 from .device.camera_rtsp_url import MerakiCameraRTSPUrlSensor
 from ..core.utils.naming_utils import format_device_name
 
@@ -38,7 +37,6 @@ __all__ = [
     "MerakiNetworkIdentitySensor",
     "MerakiNetworkInfoSensor",
     "MerakiAppliancePortSensor",
-    "MerakiFirmwareStatusSensor",
     "MerakiCameraRTSPUrlSensor",
 ]
 
@@ -248,9 +246,6 @@ async def async_setup_entry(
                             MerakiAppliancePortSensor(device_coordinator, device, port)
                         )
                         added_entities.add(f"{device['serial']}_port_{port['number']}")
-            if f"{device['serial']}_firmware_status" not in added_entities:
-                entities.append(MerakiFirmwareStatusSensor(device_coordinator, device))
-                added_entities.add(f"{device['serial']}_firmware_status")
 
     if entities:
         async_add_entities(entities)
