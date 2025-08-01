@@ -12,7 +12,7 @@ from ..const import (
 )
 from ..core.api.client import MerakiAPIClient
 from ..core.coordinators.network import MerakiNetworkCoordinator
-from .meraki_ssid_name import MerakiSSIDName
+from .meraki_ssid_name import MerakiSSIDNameText
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ async def async_setup_entry(
             if not isinstance(ssid_data, dict):
                 continue
             new_entities.append(
-                MerakiSSIDName(
+                MerakiSSIDNameText(
                     network_coordinator,
                     meraki_client,
                     config_entry,
