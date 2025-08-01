@@ -1,0 +1,6 @@
+[tool.pytest.ini_options]
+pythonpath = [
+  ".",
+  "custom_components"
+]
+asyncio_mode = "auto"
