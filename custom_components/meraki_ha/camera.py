@@ -100,15 +100,6 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
         ):
             await self._enable_rtsp()
 
-        from homeassistant.components import stream
-
-        if self._rtsp_url:
-            self.stream = await stream.async_create_stream(
-                self.hass, self._rtsp_url, options=self.stream_options
-            )
-            if self.stream:
-                self.access_tokens.append(self.stream.access_token)
-
     async def _enable_rtsp(self) -> None:
         """Enable the RTSP stream for the camera."""
         client = self.coordinator.hass.data[DOMAIN][
@@ -139,6 +130,13 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
     ) -> Optional[bytes]:
         """Return a still image from the camera."""
         return None
+
+    @property
+    def entity_picture(self) -> str | None:
+        """Return the entity picture to use in the frontend, if any."""
+        if not self.access_tokens:
+            return None
+        return super().entity_picture
 
     @property
     def state_attributes(self) -> dict[str, Any] | None:
