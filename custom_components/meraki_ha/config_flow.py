@@ -90,45 +90,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
         """Get the options flow for this handler."""
-        return MerakiOptionsFlow(config_entry)
+        return MerakiOptionsFlowHandler(config_entry)
 
 
-class MerakiOptionsFlow(config_entries.OptionsFlow):
-    """Handle an options flow for Meraki."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
-
-    async def async_step_init(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
-        """Manage the options."""
-        if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
-
-        return self.async_show_form(
-            step_id="init",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(
-                        "scan_interval",
-                        default=self.config_entry.options.get("scan_interval", 60),
-                    ): int,
-                }
-            ),
-        )
-
-    def _show_config_form(self, errors=None, user_input=None):
-        """Show the configuration form to edit location data."""
-        return self.async_show_form(
-            step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_MERAKI_API_KEY): str,
-                    vol.Required(CONF_MERAKI_ORG_ID): str,
-                    vol.Optional(CONF_WEBHOOK_URL, default=DEFAULT_WEBHOOK_URL): str,
-                }
-            ),
-            errors=errors or {},
-        )
+from .options_flow import MerakiOptionsFlowHandler
