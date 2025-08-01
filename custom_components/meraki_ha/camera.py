@@ -86,6 +86,11 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
             manufacturer="Cisco Meraki",
         )
 
+    @property
+    def stream_options(self) -> dict:
+        """Return stream options."""
+        return {}
+
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
         await super().async_added_to_hass()
@@ -94,6 +99,15 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
             and not self.is_streaming
         ):
             await self._enable_rtsp()
+
+        from homeassistant.components import stream
+
+        if self._rtsp_url:
+            self.stream = await stream.async_create_stream(
+                self.hass, self._rtsp_url, options=self.stream_options
+            )
+            if self.stream:
+                self.access_tokens.append(self.stream.access_token)
 
     async def _enable_rtsp(self) -> None:
         """Enable the RTSP stream for the camera."""
