@@ -5,8 +5,8 @@ from typing import Any, Dict, Optional
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_SCAN_INTERVAL
-
 import voluptuous as vol
+
 from .const import (
     CONF_AUTO_ENABLE_RTSP,
     CONF_DEVICE_NAME_FORMAT,
@@ -15,6 +15,7 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_WEBHOOK_URL,
     DEVICE_NAME_FORMAT_OPTIONS,
+    DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,22 +33,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     ) -> config_entries.FlowResult:
         """Manage the options flow initialization."""
         if user_input is not None:
-            _LOGGER.debug("Options flow user input: %s", user_input)
-            try:
-                scan_interval_input = user_input.get(
-                    CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                )
-                user_input[CONF_SCAN_INTERVAL] = int(scan_interval_input)
-                if user_input[CONF_SCAN_INTERVAL] <= 0:
-                    user_input[CONF_SCAN_INTERVAL] = DEFAULT_SCAN_INTERVAL
-            except ValueError:
-                _LOGGER.warning(
-                    "Invalid scan interval provided: %s. Defaulting to %s.",
-                    user_input.get(CONF_SCAN_INTERVAL),
-                    DEFAULT_SCAN_INTERVAL,
-                )
-                user_input[CONF_SCAN_INTERVAL] = DEFAULT_SCAN_INTERVAL
-
+            # Update the config entry with the new options
             return self.async_create_entry(title="", data=user_input)
 
         return self.async_show_form(

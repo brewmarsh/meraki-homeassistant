@@ -8,8 +8,9 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN
+from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...core.coordinators.device import MerakiDeviceCoordinator
+from ...helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,7 +34,12 @@ class MerakiPortsInUseSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorE
         super().__init__(coordinator)
         self._device = device
         self._attr_unique_id = f"{self._device['serial']}_ports_in_use"
-        self._attr_name = f"{self._device['name']} Ports In Use"
+        name_format = self.coordinator.config_entry.options.get(
+            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+        )
+        self._attr_name = format_entity_name(
+            f"{self._device['name']} Ports In Use", "sensor", name_format
+        )
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -85,7 +91,12 @@ class MerakiPortsAvailableSensor(
         super().__init__(coordinator)
         self._device = device
         self._attr_unique_id = f"{self._device['serial']}_ports_available"
-        self._attr_name = f"{self._device['name']} Ports Available"
+        name_format = self.coordinator.config_entry.options.get(
+            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+        )
+        self._attr_name = format_entity_name(
+            f"{self._device['name']} Ports Available", "sensor", name_format
+        )
 
     @property
     def device_info(self) -> DeviceInfo:

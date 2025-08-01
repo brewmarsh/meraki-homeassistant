@@ -9,8 +9,9 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN
+from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...core.coordinators.device import MerakiDeviceCoordinator
+from ...helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,7 +37,12 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEn
         super().__init__(coordinator)
         self._device = device
         self._attr_unique_id = f"{self._device['serial']}_data_usage"
-        self._attr_name = f"{self._device['name']} Data Usage"
+        name_format = self.coordinator.config_entry.options.get(
+            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+        )
+        self._attr_name = format_entity_name(
+            f"{self._device['name']} Data Usage", "sensor", name_format
+        )
 
     @property
     def device_info(self) -> DeviceInfo:

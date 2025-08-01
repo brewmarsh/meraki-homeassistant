@@ -22,8 +22,13 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # Assuming MerakiDataUpdateCoordinator is the central coordinator for
 # the Meraki integration and it's correctly defined in .coordinator
-from .const import DOMAIN
+from .const import (
+    DOMAIN,
+    CONF_DEVICE_NAME_FORMAT,
+    DEFAULT_DEVICE_NAME_FORMAT,
+)
 from .core.coordinators.network import MerakiNetworkCoordinator
+from .helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -108,9 +113,15 @@ class MerakiDeviceTracker(CoordinatorEntity[MerakiNetworkCoordinator], TrackerEn
         self._client_info_data: Dict[str, Any] = client_info
         # Name can be client's description or IP if description is not
         # available
-        self._attr_name = self._client_info_data.get(
-            "description"
-        ) or self._client_info_data.get("ip")
+        name_format = self.coordinator.config_entry.options.get(
+            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+        )
+        self._attr_name = format_entity_name(
+            self._client_info_data.get("description")
+            or self._client_info_data.get("ip"),
+            "client",
+            name_format,
+        )
         self._attr_unique_id = f"{self._client_info_data['mac']}_client_tracker"
 
         # Initial update of attributes based on current data
