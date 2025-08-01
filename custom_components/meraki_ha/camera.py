@@ -51,6 +51,8 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
         self._attr_name = self._device["name"]
         self._attr_supported_features = CameraEntityFeature.STREAM
         self._rtsp_url: Optional[str] = None
+        self._webrtc_provider = None
+        self.access_tokens = []
 
         if self._device.get("video_settings", {}).get("externalRtspEnabled"):
             self._rtsp_url = self._device.get("video_settings", {}).get("rtspUrl")
