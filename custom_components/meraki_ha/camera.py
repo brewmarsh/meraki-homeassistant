@@ -164,11 +164,23 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
                 auto_enable_rtsp = self.coordinator.config_entry.options.get(
                     CONF_AUTO_ENABLE_RTSP
                 )
+                _LOGGER.debug(
+                    "Camera %s: auto_enable_rtsp is %s, externalRtspEnabled is %s",
+                    self.name,
+                    auto_enable_rtsp,
+                    video_settings.get("externalRtspEnabled"),
+                )
                 if auto_enable_rtsp and not video_settings.get("externalRtspEnabled"):
+                    _LOGGER.debug("Camera %s: creating task to enable RTSP", self.name)
                     self.hass.async_create_task(self._enable_rtsp())
 
                 if video_settings.get("externalRtspEnabled"):
-                    self._rtsp_url = video_settings.get("rtspUrl")
+                    rtsp_url = video_settings.get("rtspUrl")
+                    if rtsp_url and rtsp_url.startswith("rtsp://:"):
+                        lan_ip = self._device.get("lanIp")
+                        if lan_ip:
+                            rtsp_url = f"rtsp://{lan_ip}{rtsp_url[6:]}"
+                    self._rtsp_url = rtsp_url
                     _LOGGER.debug(
                         "Camera %s: RTSP is enabled, URL: %s", self.name, self._rtsp_url
                     )
