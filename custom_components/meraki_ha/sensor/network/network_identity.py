@@ -10,7 +10,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...core.coordinators.network import MerakiNetworkCoordinator
-from ...const import DOMAIN
+from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+from ...helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,7 +45,12 @@ class MerakiNetworkIdentitySensor(
         self._network_name: str = network_data.get("name", "Unknown Network")
         self._network_type: str = network_data.get("type", "Unknown Type")
 
-        self._attr_name = f"{self._network_name} Network Identity"
+        name_format = self.coordinator.config_entry.options.get(
+            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+        )
+        self._attr_name = format_entity_name(
+            f"{self._network_name} Network Identity", "sensor", name_format
+        )
         self._attr_unique_id = f"meraki_network_identity_{self._network_id}"
 
         # Set initial state and attributes

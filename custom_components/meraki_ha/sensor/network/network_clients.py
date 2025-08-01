@@ -6,8 +6,9 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN
+from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...core.coordinators.network import MerakiNetworkCoordinator
+from ...helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -32,7 +33,12 @@ class MerakiNetworkClientsSensor(
         super().__init__(coordinator)
         self._network_id = network_id
         self._network_name = network_name
-        self._attr_name = f"{network_name} Clients"
+        name_format = self.coordinator.config_entry.options.get(
+            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+        )
+        self._attr_name = format_entity_name(
+            f"{network_name} Clients", "sensor", name_format
+        )
         self._attr_unique_id = f"meraki_network_clients_{network_id}"
         self._attr_native_value = 0
         self._attr_extra_state_attributes: Dict[str, Any] = {
