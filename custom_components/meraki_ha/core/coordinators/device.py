@@ -102,7 +102,7 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                             device["networkId"]
                         )
                         device["uplinks"] = (
-                            await self.api_client.get_device_appliance_uplinks(
+                            await self.api_client.getDeviceApplianceUplinksSettings(
                                 device["serial"]
                             )
                         )
@@ -135,7 +135,7 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                 if device["productType"] == "sensor":
                     try:
                         device["readings"] = (
-                            await self.api_client.get_device_sensor_readings(
+                            await self.api_client.getDeviceSensorCommand(
                                 device["serial"]
                             )
                         )
