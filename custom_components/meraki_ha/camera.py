@@ -65,6 +65,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
             self._device["name"],
             self._device.get("productType", "camera"),
             name_format,
+            apply_prefix=False,
         )
         self._attr_supported_features = CameraEntityFeature.STREAM
         self._rtsp_url: Optional[str] = None

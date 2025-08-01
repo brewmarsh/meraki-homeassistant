@@ -34,7 +34,6 @@ from .sensor.device.mt_environmental import (
 from .sensor.device.camera_settings import (
     MerakiCameraSenseStatusSensor,
     MerakiCameraAudioDetectionSensor,
-    MerakiCameraRTSPUrlSensor,
 )  # Added imports
 
 # SSID-specific sensors (These are typically handled by MerakiNetworkCoordinator,
@@ -76,7 +75,6 @@ SENSOR_REGISTRY: Dict[str, SensorClassList] = {
     "camera": [  # For MV devices
         MerakiCameraSenseStatusSensor,  # Added sensor
         MerakiCameraAudioDetectionSensor,  # Added sensor
-        MerakiCameraRTSPUrlSensor,  # Added sensor
         # Add other MV-specific sensors here
     ],
     "sensor": [  # For MT devices

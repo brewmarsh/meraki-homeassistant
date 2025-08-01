@@ -51,6 +51,7 @@ class MerakiAppliancePortSensor(
             f"{self._device['name']} Port {self._port['number']}",
             "port",
             name_format,
+            apply_prefix=False,
         )
         self._attr_icon = "mdi:ethernet-port"
 
