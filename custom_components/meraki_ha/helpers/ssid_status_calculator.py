@@ -113,7 +113,9 @@ class SsidStatusCalculator:
             if not is_enabled:
                 ssid_info["status"] = "disabled"
             elif not network_id:
-                _LOGGER.warning(f"SSID '{ssid_info.get('name', 'Unknown SSID')}' is missing networkId, cannot determine status accurately. Setting to 'unknown'.")
+                _LOGGER.warning(
+                    f"SSID '{ssid_info.get('name', 'Unknown SSID')}' is missing networkId, cannot determine status accurately. Setting to 'unknown'."
+                )
                 ssid_info["status"] = "unknown"
             elif matching_devices_total_count == 0:
                 ssid_info["status"] = "no_matching_devices"

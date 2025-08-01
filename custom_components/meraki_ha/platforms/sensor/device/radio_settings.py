@@ -31,7 +31,9 @@ class MerakiRadioSettingsSensor(MerakiDeviceEntity):
     @property
     def native_value(self) -> str:
         """Return the radio status."""
-        return self.device_data.get("radio_settings", {}).get("status", STATE_UNAVAILABLE)
+        return self.device_data.get("radio_settings", {}).get(
+            "status", STATE_UNAVAILABLE
+        )
 
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:

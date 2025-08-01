@@ -3,10 +3,8 @@
 import logging
 from typing import Any, Dict
 
-from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.entity import EntityDescription
 
-from ..const import DOMAIN
 from ..core.api.client import MerakiAPIClient
 from ..core.coordinators.device import MerakiDeviceCoordinator
 from .camera_settings import MerakiCameraSettingSwitchBase

@@ -91,7 +91,9 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiNetworkCoordinator], SwitchEn
         if current_ssid_data:
             self._attr_is_on = current_ssid_data.get(self._attribute_to_check, False)
             # Update name if SSID name changed
-            base_name = format_device_name(current_ssid_data, self._config_entry.options)
+            base_name = format_device_name(
+                current_ssid_data, self._config_entry.options
+            )
             self._attr_name = (
                 f"{base_name} {self._attribute_to_check.capitalize()} Control"
             )

@@ -21,7 +21,9 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     for device in device_coordinator.data.get("devices", []):
         if device.get("productType") == "appliance":
             for port in device.get("ports", []):
-                entities.append(MerakiAppliancePortSensor(device_coordinator, device, port))
+                entities.append(
+                    MerakiAppliancePortSensor(device_coordinator, device, port)
+                )
     async_add_entities(entities, True)
 
 

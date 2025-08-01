@@ -13,7 +13,6 @@ from homeassistant import config_entries
 from homeassistant.core import callback
 
 from .authentication import validate_meraki_credentials
-from .core.api.client import MerakiAPIClient
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .const import (
     CONF_AUTO_ENABLE_RTSP,
@@ -24,6 +23,7 @@ from .const import (
     CONF_WEBHOOK_URL,
     DEFAULT_DEVICE_NAME_FORMAT,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_WEBHOOK_URL,
     DEVICE_NAME_FORMAT_OPTIONS,
     DOMAIN,
 )
@@ -50,7 +50,9 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     user_input[CONF_MERAKI_API_KEY],
                     user_input[CONF_MERAKI_ORG_ID],
                 )
-                org_name = validation_result.get("org_name", user_input[CONF_MERAKI_ORG_ID])
+                org_name = validation_result.get(
+                    "org_name", user_input[CONF_MERAKI_ORG_ID]
+                )
             except MerakiAuthenticationError:
                 errors["base"] = "invalid_auth"
             except MerakiConnectionError:
@@ -61,9 +63,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 await self.async_set_unique_id(user_input[CONF_MERAKI_ORG_ID])
                 self._abort_if_unique_id_configured()
-                return self.async_create_entry(
-                    title=org_name, data=user_input
-                )
+                return self.async_create_entry(title=org_name, data=user_input)
 
         return self.async_show_form(
             step_id="user",

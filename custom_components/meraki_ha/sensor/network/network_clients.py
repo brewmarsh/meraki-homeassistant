@@ -111,6 +111,7 @@ class MerakiNetworkClientsSensor(
             model="Network",
         )
 
+
 # Remove or comment out the old MerakiNetworkClientCountSensor
 # class MerakiNetworkClientCountSensor(
 #     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity

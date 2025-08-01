@@ -22,7 +22,9 @@ from ...const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDChannelSensor(CoordinatorEntity[MerakiNetworkCoordinator], SensorEntity):
+class MerakiSSIDChannelSensor(
+    CoordinatorEntity[MerakiNetworkCoordinator], SensorEntity
+):
     """Represents a Meraki SSID Channel sensor.
 
     This sensor entity displays the wireless channel currently utilized by

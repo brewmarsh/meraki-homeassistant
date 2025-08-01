@@ -11,7 +11,6 @@ from homeassistant.components.sensor import (
 from homeassistant.const import (
     PERCENTAGE,
     UnitOfTemperature,
-    CONCENTRATION_PARTS_PER_MILLION,
 )
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -129,7 +128,9 @@ class MerakiHumiditySensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEnt
         return None
 
 
-class MerakiWaterDetectionSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity):
+class MerakiWaterDetectionSensor(
+    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
+):
     """Representation of a Meraki water detection sensor.
 
     This sensor displays the water detection status from a Meraki MT sensor.

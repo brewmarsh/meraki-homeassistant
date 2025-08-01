@@ -64,7 +64,9 @@ class MerakiPortsInUseSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorE
         return len([p for p in port_statuses if p.get("status") == "connected"])
 
 
-class MerakiPortsAvailableSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity):
+class MerakiPortsAvailableSensor(
+    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
+):
     """Representation of a Meraki switch ports available sensor.
 
     This sensor displays the number of ports that are currently available

@@ -66,7 +66,8 @@ class MerakiAuthentication:
 
         try:
             _LOGGER.debug(
-                "Fetching networks for organization %s using Meraki SDK", self.organization_id
+                "Fetching networks for organization %s using Meraki SDK",
+                self.organization_id,
             )  # This log line might become inaccurate
             # networks: List[Dict[str, Any]] = await client.networks.get_organization_networks(
             #     organization_id=self.organization_id
@@ -155,7 +156,9 @@ class MerakiAuthentication:
                 ) from e
         except ValueError as e:
             _LOGGER.warning(
-                "Validation error for Meraki credentials (org %s): %s", self.organization_id, e
+                "Validation error for Meraki credentials (org %s): %s",
+                self.organization_id,
+                e,
             )
             # Re-raise to be handled by config flow or caller
             raise
@@ -177,7 +180,9 @@ class MerakiAuthentication:
             )
 
 
-async def validate_meraki_credentials(api_key: str, organization_id: str) -> Dict[str, Any]:
+async def validate_meraki_credentials(
+    api_key: str, organization_id: str
+) -> Dict[str, Any]:
     """Validate Meraki API credentials via MerakiAuthentication class (SDK version).
 
     Args:

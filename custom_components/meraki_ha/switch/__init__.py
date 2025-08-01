@@ -9,9 +9,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from ..const import (
     DOMAIN,
     DATA_CLIENT,
-    DATA_COORDINATOR,
-    DATA_COORDINATORS,
-    DATA_SSID_DEVICES_COORDINATOR,
 )
 from ..core.api.client import MerakiAPIClient
 from ..core.coordinators.network import MerakiNetworkCoordinator

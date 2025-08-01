@@ -22,7 +22,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # Assuming MerakiDataUpdateCoordinator is the central coordinator for
 # the Meraki integration and it's correctly defined in .coordinator
-from .const import DATA_COORDINATOR, DOMAIN
+from .const import DOMAIN
 from .core.coordinators.network import MerakiNetworkCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -81,9 +81,7 @@ async def async_setup_entry(
     return
 
 
-class MerakiDeviceTracker(
-    CoordinatorEntity[MerakiNetworkCoordinator], TrackerEntity
-):
+class MerakiDeviceTracker(CoordinatorEntity[MerakiNetworkCoordinator], TrackerEntity):
     """Representation of an individual client device connected to a Meraki network.
 
     This entity tracks the connectivity of a single client (e.g., a laptop,

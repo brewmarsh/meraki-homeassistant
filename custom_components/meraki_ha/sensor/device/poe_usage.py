@@ -80,6 +80,8 @@ class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEnt
         attributes = {}
         for port in port_statuses:
             if port.get("poe"):
-                attributes[f"port_{port['portId']}_poe_usage"] = port["poe"].get("power")
+                attributes[f"port_{port['portId']}_poe_usage"] = port["poe"].get(
+                    "power"
+                )
 
         return attributes

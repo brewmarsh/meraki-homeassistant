@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.core import callback
+
 # from homeassistant.helpers.entity import EntityDescription # No longer needed
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -42,9 +43,7 @@ class MerakiCameraSenseStatusSensor(
         self._device_serial: str = device_data["serial"]
         self._attr_unique_id = f"{self._device_serial}_camera_sense_status"
 
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._device_serial)}
-        )
+        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, self._device_serial)})
         self.entity_description = SensorEntityDescription(
             key="camera_sense_status",
             name="Sense Enabled",
@@ -79,7 +78,9 @@ class MerakiCameraSenseStatusSensor(
         else:
             sense_enabled = bool(sense_enabled_value)
             self._attr_native_value = "enabled" if sense_enabled else "disabled"
-            self._attr_icon = "mdi:camera-iris" if sense_enabled else "mdi:camera-off-outline"
+            self._attr_icon = (
+                "mdi:camera-iris" if sense_enabled else "mdi:camera-off-outline"
+            )
 
         self._attr_extra_state_attributes = {
             "serial_number": self._device_serial,
@@ -151,9 +152,7 @@ class MerakiCameraAudioDetectionSensor(
         self._device_serial: str = device_data["serial"]
         self._attr_unique_id = f"{self._device_serial}_camera_audio_detection_status"
 
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._device_serial)}
-        )
+        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, self._device_serial)})
         self.entity_description = SensorEntityDescription(
             key="camera_audio_detection_status",
             name="Audio Detection",
@@ -182,13 +181,18 @@ class MerakiCameraAudioDetectionSensor(
 
         audio_detection_data = current_device_data.get("audioDetection")
 
-        if not isinstance(audio_detection_data, dict) or "enabled" not in audio_detection_data:
+        if (
+            not isinstance(audio_detection_data, dict)
+            or "enabled" not in audio_detection_data
+        ):
             self._attr_native_value = None
             self._attr_icon = "mdi:microphone-question"
         else:
             audio_enabled = bool(audio_detection_data["enabled"])
             self._attr_native_value = "enabled" if audio_enabled else "disabled"
-            self._attr_icon = "mdi:microphone" if audio_enabled else "mdi:microphone-off"
+            self._attr_icon = (
+                "mdi:microphone" if audio_enabled else "mdi:microphone-off"
+            )
 
         self._attr_extra_state_attributes = {
             "serial_number": self._device_serial,
@@ -219,7 +223,9 @@ class MerakiCameraAudioDetectionSensor(
     # Removed custom name property. Relies on _attr_has_entity_name and self.entity_description.name.
 
 
-class MerakiCameraRTSPUrlSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity):
+class MerakiCameraRTSPUrlSensor(
+    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
+):
     """Representation of a Meraki Camera RTSP URL Sensor.
 
     This sensor displays the RTSP URL for a Meraki camera when RTSP streaming
@@ -245,9 +251,7 @@ class MerakiCameraRTSPUrlSensor(CoordinatorEntity[MerakiDeviceCoordinator], Sens
 
         self._attr_unique_id = f"{self._device_serial}_{self.entity_description.key}"
 
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._device_serial)}
-        )
+        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, self._device_serial)})
 
         self._update_state()
 

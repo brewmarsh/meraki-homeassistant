@@ -14,6 +14,7 @@ Based on a recent analysis of the codebase, the following high-level recommendat
 
 - All Python code must adhere to the PEP 8 style guide.
 - Use a linter like `flake8` or `pylint` to check for style issues before submitting code.
+- Before submitting any changes, run `black` and `flake8` against the code to ensure it is formatted correctly and free of linting issues.
 
 ## 2. Documentation
 

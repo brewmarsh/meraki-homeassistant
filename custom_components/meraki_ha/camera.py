@@ -1,4 +1,5 @@
 """Support for Meraki cameras."""
+
 import logging
 from typing import Any, Dict, Optional
 
@@ -12,8 +13,15 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, CONF_AUTO_ENABLE_RTSP, DATA_CLIENT
+from .const import (
+    DOMAIN,
+    CONF_AUTO_ENABLE_RTSP,
+    DATA_CLIENT,
+    CONF_DEVICE_NAME_FORMAT,
+    DEFAULT_DEVICE_NAME_FORMAT,
+)
 from .core.coordinators.device import MerakiDeviceCoordinator
+from .helpers.entity_helpers import format_entity_name
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,7 +33,9 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Meraki camera entities from a config entry."""
-    meraki_device_coordinator = hass.data[DOMAIN][config_entry.entry_id].get("device_coordinator")
+    meraki_device_coordinator = hass.data[DOMAIN][config_entry.entry_id].get(
+        "device_coordinator"
+    )
 
     if meraki_device_coordinator and meraki_device_coordinator.data:
         entities = [
@@ -48,12 +58,20 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
         super().__init__(coordinator)
         self._device = device
         self._attr_unique_id = f"{self._device['serial']}-camera"
-        self._attr_name = self._device["name"]
+        name_format = self.coordinator.config_entry.options.get(
+            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+        )
+        self._attr_name = format_entity_name(
+            self._device["name"],
+            self._device.get("productType", "camera"),
+            name_format,
+        )
         self._attr_supported_features = CameraEntityFeature.STREAM
         self._rtsp_url: Optional[str] = None
         self._webrtc_provider = None
         self.access_tokens = []
         self._supports_native_async_webrtc = False
+        self._cache = {}
 
         if self._device.get("video_settings", {}).get("externalRtspEnabled"):
             self._rtsp_url = self._device.get("video_settings", {}).get("rtspUrl")
@@ -71,12 +89,17 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
         await super().async_added_to_hass()
-        if self.coordinator.config_entry.options.get(CONF_AUTO_ENABLE_RTSP) and not self.is_streaming:
+        if (
+            self.coordinator.config_entry.options.get(CONF_AUTO_ENABLE_RTSP)
+            and not self.is_streaming
+        ):
             await self._enable_rtsp()
 
     async def _enable_rtsp(self) -> None:
         """Enable the RTSP stream for the camera."""
-        client = self.coordinator.hass.data[DOMAIN][self.coordinator.config_entry.entry_id][DATA_CLIENT]
+        client = self.coordinator.hass.data[DOMAIN][
+            self.coordinator.config_entry.entry_id
+        ][DATA_CLIENT]
         try:
             await client.camera.update_device_camera_video_settings(
                 serial=self._device["serial"],
@@ -84,7 +107,9 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
             )
             await self.coordinator.async_request_refresh()
         except Exception as e:
-            _LOGGER.error("Failed to enable RTSP for camera %s: %s", self._device['serial'], e)
+            _LOGGER.error(
+                "Failed to enable RTSP for camera %s: %s", self._device["serial"], e
+            )
 
     @property
     def is_streaming(self) -> bool:
@@ -100,6 +125,14 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
     ) -> Optional[bytes]:
         """Return a still image from the camera."""
         return None
+
+    @property
+    def state_attributes(self) -> dict[str, Any] | None:
+        """Return the state attributes."""
+        attrs = {}
+        if self.is_streaming and self.access_tokens:
+            attrs["access_token"] = self.access_tokens[-1]
+        return attrs
 
     @callback
     def _handle_coordinator_update(self) -> None:

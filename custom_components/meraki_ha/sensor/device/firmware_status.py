@@ -71,13 +71,14 @@ class MerakiFirmwareStatusSensor(
         """Return the state attributes."""
         return {
             "current_version": self._device.get("firmware"),
-            "latest_version": self._device.get("firmware_upgrades", {}).get(
-                "latestVersion", {}
-            ).get("shortName"),
-            "next_upgrade_version": self._device.get("firmware_upgrades", {}).get(
-                "nextUpgrade", {}
-            ).get("toVersion", {}).get("shortName"),
-            "next_upgrade_time": self._device.get("firmware_upgrades", {}).get(
-                "nextUpgrade", {}
-            ).get("time"),
+            "latest_version": self._device.get("firmware_upgrades", {})
+            .get("latestVersion", {})
+            .get("shortName"),
+            "next_upgrade_version": self._device.get("firmware_upgrades", {})
+            .get("nextUpgrade", {})
+            .get("toVersion", {})
+            .get("shortName"),
+            "next_upgrade_time": self._device.get("firmware_upgrades", {})
+            .get("nextUpgrade", {})
+            .get("time"),
         }

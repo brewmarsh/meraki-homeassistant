@@ -66,7 +66,7 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEn
         # The API returns a list of dictionaries, one for each traffic type
         # We are interested in the total traffic, which is the sum of sent and received
         total_kb = traffic[0].get("received", 0) + traffic[0].get("sent", 0)
-        return round(total_kb / 1024, 2) # Convert to MB
+        return round(total_kb / 1024, 2)  # Convert to MB
 
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:
@@ -78,5 +78,5 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEn
         return {
             "sent": round(traffic[0].get("sent", 0) / 1024, 2),
             "received": round(traffic[0].get("received", 0) / 1024, 2),
-            "timespan_seconds": 86400, # Hardcoded for now
+            "timespan_seconds": 86400,  # Hardcoded for now
         }

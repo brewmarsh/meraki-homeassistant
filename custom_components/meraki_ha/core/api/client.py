@@ -283,15 +283,15 @@ class MerakiAPIClient:
         )
         # Create a dictionary of parameters to pass to the SDK
         params = {
-            'networkId': network_id,
-            'number': number,
+            "networkId": network_id,
+            "number": number,
         }
-        if 'name' in kwargs:
-            params['name'] = kwargs['name']
-        if 'enabled' in kwargs:
-            params['enabled'] = kwargs['enabled']
-        if 'broadcast' in kwargs:
-            params['broadcast'] = kwargs['broadcast']
+        if "name" in kwargs:
+            params["name"] = kwargs["name"]
+        if "enabled" in kwargs:
+            params["enabled"] = kwargs["enabled"]
+        if "broadcast" in kwargs:
+            params["broadcast"] = kwargs["broadcast"]
 
         await self._run_sync(
             self._dashboard.wireless.updateNetworkWirelessSsid,
@@ -442,7 +442,9 @@ class MerakiAPIClient:
         return validated
 
     @handle_meraki_errors
-    async def get_device_appliance_uplinks_settings(self, serial: str) -> List[Dict[str, Any]]:
+    async def getDeviceApplianceUplinksSettings(
+        self, serial: str
+    ) -> List[Dict[str, Any]]:
         """Get uplinks settings for a device.
 
         Args:
@@ -452,13 +454,13 @@ class MerakiAPIClient:
             A list of dictionaries, each representing an uplink's settings.
         """
         _LOGGER.debug("Getting uplinks settings for device: %s", serial)
-        cache_key = self._get_cache_key("get_device_appliance_uplinks_settings", serial)
+        cache_key = self._get_cache_key("getDeviceApplianceUplinksSettings", serial)
 
         if cached := self._get_cached_data(cache_key):
             return cached
 
         uplinks = await self._run_sync(
-            self._dashboard.devices.get_device_appliance_uplinks_settings, serial=serial
+            self._dashboard.devices.getDeviceApplianceUplinksSettings, serial=serial
         )
         validated = validate_response(uplinks)
         if not isinstance(validated, list):
@@ -493,7 +495,9 @@ class MerakiAPIClient:
         return validated
 
     @handle_meraki_errors
-    async def get_device_switch_ports_statuses(self, serial: str) -> List[Dict[str, Any]]:
+    async def get_device_switch_ports_statuses(
+        self, serial: str
+    ) -> List[Dict[str, Any]]:
         """Get statuses for all ports of a switch.
 
         Args:
@@ -538,7 +542,7 @@ class MerakiAPIClient:
         return validated
 
     @handle_meraki_errors
-    async def get_device_sensor_readings(self, serial: str) -> List[Dict[str, Any]]:
+    async def get_device_sensor_command(self, serial: str) -> List[Dict[str, Any]]:
         """Get readings for a sensor device.
 
         Args:
@@ -548,13 +552,13 @@ class MerakiAPIClient:
             A list of dictionaries, each representing a sensor reading.
         """
         _LOGGER.debug("Getting sensor readings for device: %s", serial)
-        cache_key = self._get_cache_key("get_device_sensor_readings", serial)
+        cache_key = self._get_cache_key("get_device_sensor_command", serial)
 
         if cached := self._get_cached_data(cache_key):
             return cached
 
         readings = await self._run_sync(
-            self._dashboard.devices.get_device_sensor_readings, serial=serial
+            self._dashboard.devices.getDeviceSensorCommand, serial=serial
         )
         validated = validate_response(readings)
         if not isinstance(validated, list):
