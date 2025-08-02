@@ -15,23 +15,12 @@ Based on a recent analysis of the codebase, the following high-level recommendat
 - All Python code must adhere to the PEP 8 style guide.
 - Use a linter like `flake8` or `pylint` to check for style issues before submitting code.
 - Before submitting any changes, run `black` and `flake8` against the code to ensure it is formatted correctly and free of linting issues.
+- To ensure maintainability and ease of use for agents, **all Python files must not exceed 250 lines**. If a file grows beyond this limit during development, it must be broken down into smaller, more focused modules.
 
 ## 2. Documentation
 
 - All public functions and classes must have comprehensive docstrings that explain their purpose, arguments, and return values.
 - Use the Google Python Style Guide for docstring formatting.
-
-## 6. Logging
-
-- The integration uses the `logging` module to log messages.
-- The logging level can be configured in the Home Assistant configuration.
-- The logging messages should be informative and should include context, such as the function name and the arguments that were passed to the function.
-
-## 7. Data Retrieval
-
-- The integration uses a hybrid data retrieval strategy that combines polling with webhooks.
-- The polling-based data retrieval strategy is implemented in the `core/coordinators` directory.
-- The webhook-based data retrieval strategy is implemented in the `webhook.py` file.
 
 ## 3. Configuration
 
@@ -51,10 +40,18 @@ Based on a recent analysis of the codebase, the following high-level recommendat
 
 ## 6. Dependencies
 
-- Use `dependabot` or a similar tool to keep dependencies up-to-date.
-- Regularly review and update dependencies as needed.
-
-## 6. Dependencies
-
 - Use `dependabot` to keep dependencies up-to-date.
 - Regularly review and update dependencies as needed.
+
+## 7. Logging
+
+- The integration uses the `logging` module to log messages.
+- The logging level can be configured in the Home Assistant configuration.
+- The logging messages should be informative and should include context, such as the function name and the arguments that were passed to the function.
+
+## 8. Data Retrieval
+
+- The integration uses a hybrid data retrieval strategy that combines polling with webhooks.
+- The polling-based data retrieval strategy is implemented in the `core/coordinators` directory.
+- The webhook-based data retrieval strategy is implemented in the `webhook.py` file.
+- **Architectural Goal:** To prevent duplicate API calls and race conditions, all data must be fetched through a central coordinator. New entities and platforms **must** source their data from the appropriate coordinator and **must not** make direct API calls.
