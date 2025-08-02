@@ -105,8 +105,9 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
             self.coordinator.config_entry.entry_id
         ][DATA_CLIENT]
         try:
-            response = await client.camera.update_device_camera_video_settings(
-                serial=self._device["serial"],
+            response = await self.hass.async_add_executor_job(
+                client._dashboard.camera.updateDeviceCameraVideoSettings,
+                self._device["serial"],
                 externalRtspEnabled=True,
             )
             _LOGGER.debug("Camera %s: enable RTSP API response: %s", self.name, response)
