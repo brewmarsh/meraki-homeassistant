@@ -1,5 +1,6 @@
 """Support for Meraki cameras."""
 
+import asyncio
 import logging
 from typing import Any, Dict, Optional
 
@@ -73,6 +74,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
         self.access_tokens = []
         self._supports_native_async_webrtc = False
         self._cache = {}
+        self._create_stream_lock = asyncio.Lock()
 
         if self._device.get("video_settings", {}).get("externalRtspEnabled"):
             self._rtsp_url = self._device.get("video_settings", {}).get("rtspUrl")
@@ -183,13 +185,16 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
                     rtsp_url = video_settings.get("rtspUrl")
                     if rtsp_url:
                         lan_ip = self._device.get("lanIp")
-                        if lan_ip:
-                            if "://" not in rtsp_url:
-                                # If protocol is missing, add it
+                        if "://" not in rtsp_url:
+                            if lan_ip:
                                 rtsp_url = f"rtsp://{lan_ip}{rtsp_url}"
-                            elif "://:" in rtsp_url:
-                                # If host is missing, add it
+                            else:
+                                rtsp_url = None  # Cannot construct URL without IP
+                        elif "://:" in rtsp_url:
+                            if lan_ip:
                                 rtsp_url = rtsp_url.replace("://:", f"://{lan_ip}:", 1)
+                            else:
+                                rtsp_url = None  # Cannot construct URL without IP
                     self._rtsp_url = rtsp_url
                     _LOGGER.debug(
                         "Camera %s: RTSP is enabled, URL: %s", self.name, self._rtsp_url
