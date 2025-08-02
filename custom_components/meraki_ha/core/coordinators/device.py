@@ -102,7 +102,7 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                             device["networkId"]
                         )
                         device["uplinks"] = (
-                            await self.api_client.getDeviceApplianceUplinksSettings(
+                            await self.api_client.get_device_appliance_uplinks_settings(
                                 device["serial"]
                             )
                         )

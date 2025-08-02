@@ -442,25 +442,27 @@ class MerakiAPIClient:
         return validated
 
     @handle_meraki_errors
-    async def getDeviceApplianceUplinksSettings(
+    async def get_device_appliance_uplinks_settings(
         self, serial: str
-    ) -> List[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """Get uplinks settings for a device.
 
         Args:
             serial: The serial number of the device.
 
         Returns:
-            A list of dictionaries, each representing an uplink's settings.
+            A dictionary representing the uplinks settings.
         """
         _LOGGER.debug("Getting uplinks settings for device: %s", serial)
-        cache_key = self._get_cache_key("getDeviceApplianceUplinksSettings", serial)
+        cache_key = self._get_cache_key(
+            "get_device_appliance_uplinks_settings", serial
+        )
 
         if cached := self._get_cached_data(cache_key):
             return cached
 
         uplinks = await self._run_sync(
-            self._dashboard.devices.getDeviceApplianceUplinksSettings, serial=serial
+            self._dashboard.appliance.getDeviceApplianceUplinksSettings, serial=serial
         )
         validated = validate_response(uplinks)
         if not isinstance(validated, list):
