@@ -181,10 +181,15 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
 
                 if video_settings.get("externalRtspEnabled"):
                     rtsp_url = video_settings.get("rtspUrl")
-                    if rtsp_url and "://" not in rtsp_url:
+                    if rtsp_url:
                         lan_ip = self._device.get("lanIp")
                         if lan_ip:
-                            rtsp_url = f"rtsp://{lan_ip}{rtsp_url}"
+                            if "://" not in rtsp_url:
+                                # If protocol is missing, add it
+                                rtsp_url = f"rtsp://{lan_ip}{rtsp_url}"
+                            elif "://:" in rtsp_url:
+                                # If host is missing, add it
+                                rtsp_url = rtsp_url.replace("://:", f"://{lan_ip}:", 1)
                     self._rtsp_url = rtsp_url
                     _LOGGER.debug(
                         "Camera %s: RTSP is enabled, URL: %s", self.name, self._rtsp_url

@@ -25,7 +25,7 @@ def format_entity_name(
         name_format,
         apply_prefix,
     )
-    if apply_prefix:
+    if apply_prefix and device_type != "sensor":
         if name_format == DEVICE_NAME_FORMAT_PREFIX:
             return f"[{device_type.capitalize()}] {device_name}"
         if name_format == DEVICE_NAME_FORMAT_SUFFIX:

@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import MagicMock
 
-from custom_components.meraki_ha.sensor.device.camera_rtsp_url import MerakiCameraRTSPUrlSensor
+from custom_components.meraki_ha.sensor.device.camera_settings import MerakiCameraRTSPUrlSensor
 
 @pytest.fixture
 def mock_device_coordinator():

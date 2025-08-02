@@ -135,7 +135,7 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                 if device["productType"] == "sensor":
                     try:
                         device["readings"] = (
-                            await self.api_client.get_device_sensor_command(
+                            await self.api_client.get_device_sensor_readings(
                                 device["serial"]
                             )
                         )

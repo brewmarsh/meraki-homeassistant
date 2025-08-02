@@ -465,12 +465,12 @@ class MerakiAPIClient:
             self._dashboard.appliance.getDeviceApplianceUplinksSettings, serial=serial
         )
         validated = validate_response(uplinks)
-        if not isinstance(validated, list):
+        if not isinstance(validated, dict):
             _LOGGER.warning(
-                "get_device_appliance_uplinks did not return a list, returning empty list. Got: %s",
+                "get_device_appliance_uplinks_settings did not return a dict, returning empty dict. Got: %s",
                 type(validated),
             )
-            validated = []
+            validated = {}
         self._cache_data(cache_key, validated)
         return validated
 
@@ -544,7 +544,7 @@ class MerakiAPIClient:
         return validated
 
     @handle_meraki_errors
-    async def get_device_sensor_command(self, serial: str) -> List[Dict[str, Any]]:
+    async def get_device_sensor_readings(self, serial: str) -> List[Dict[str, Any]]:
         """Get readings for a sensor device.
 
         Args:
@@ -554,13 +554,13 @@ class MerakiAPIClient:
             A list of dictionaries, each representing a sensor reading.
         """
         _LOGGER.debug("Getting sensor readings for device: %s", serial)
-        cache_key = self._get_cache_key("get_device_sensor_command", serial)
+        cache_key = self._get_cache_key("get_device_sensor_readings", serial)
 
         if cached := self._get_cached_data(cache_key):
             return cached
 
         readings = await self._run_sync(
-            self._dashboard.devices.getDeviceSensorCommand, serial=serial
+            self._dashboard.sensor.getDeviceSensorReadings, serial=serial
         )
         validated = validate_response(readings)
         if not isinstance(validated, list):
