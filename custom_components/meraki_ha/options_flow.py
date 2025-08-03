@@ -28,6 +28,13 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
         """Initialize options flow."""
         self.config_entry = config_entry
 
+    @staticmethod
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> "MerakiOptionsFlowHandler":
+        """Get the options flow for this handler."""
+        return MerakiOptionsFlowHandler(config_entry)
+
     async def async_step_init(
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> config_entries.FlowResult:
