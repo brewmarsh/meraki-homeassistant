@@ -89,6 +89,8 @@ async def async_setup_entry(
             if not isinstance(ssid_data, dict):
                 continue
 
+            if "networkId" not in ssid_data or "number" not in ssid_data:
+                continue
             ssid_unique_id = f'{ssid_data["networkId"]}_{ssid_data["number"]}'
             # _LOGGER.debug("Setting up switches for SSID: %s (Data: %s)", ssid_data.get('name', ssid_unique_id), ssid_data) # Removed
             new_entities.extend(
