@@ -67,12 +67,21 @@ class MerakiAPIClient:
         """Fetch all data from the Meraki API."""
         orgs = await self.organization.get_organizations()
         devices = await self.organization.get_organization_devices()
+        clients = await self.network.get_network_clients(self._org_id)
+        ssids = await self.wireless.get_network_ssids(self._org_id)
         return {
             "organizations": orgs,
             "devices": devices,
+            "clients": clients,
+            "ssids": ssids,
         }
 
     @property
     def organization_id(self) -> str:
         """Get the organization ID."""
         return self._org_id
+
+    async def register_webhook(self, webhook_url: str, secret: str) -> None:
+        """Register a webhook with the Meraki API."""
+        # This is a placeholder. The actual implementation will be added in a future step.
+        pass
