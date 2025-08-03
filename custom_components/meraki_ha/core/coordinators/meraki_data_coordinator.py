@@ -16,7 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiDataCoordinator(DataUpdateCoordinator):
     """A centralized coordinator for Meraki API data."""
 
-    def __init__(self, hass, api_client: ApiClient, scan_interval: int):
+    def __init__(self, hass, api_client: ApiClient, scan_interval: int, config_entry):
         """Initialize the coordinator."""
         super().__init__(
             hass,
@@ -25,6 +25,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=scan_interval),
         )
         self.api = api_client
+        self.config_entry = config_entry
 
     async def _async_update_data(self):
         """Fetch data from API endpoint.
