@@ -39,7 +39,11 @@ async def async_setup_entry(
 
     if meraki_device_coordinator and meraki_device_coordinator.data:
         entities = [
-            MerakiCamera(meraki_device_coordinator, device)
+            MerakiCamera(
+                meraki_device_coordinator,
+                device,
+                config_entry.options.get(CONF_AUTO_ENABLE_RTSP, False),
+            )
             for device in meraki_device_coordinator.data.get("devices", [])
             if device.get("productType") == "camera"
         ]
@@ -53,10 +57,12 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
         self,
         coordinator: MerakiDeviceCoordinator,
         device: Dict[str, Any],
+        auto_enable_rtsp: bool = False,
     ) -> None:
         """Initialize the camera."""
         super().__init__(coordinator)
         self._device = device
+        self._auto_enable_rtsp = auto_enable_rtsp
         self._attr_unique_id = f"{self._device['serial']}-camera"
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
@@ -163,19 +169,9 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
                     video_settings,
                 )
 
-                auto_enable_rtsp = self.coordinator.config_entry.options.get(
-                    CONF_AUTO_ENABLE_RTSP,
-                    self.coordinator.config_entry.data.get(
-                        CONF_AUTO_ENABLE_RTSP, False
-                    ),
-                )
-                _LOGGER.debug(
-                    "Camera %s: auto_enable_rtsp is %s, externalRtspEnabled is %s",
-                    self.name,
-                    auto_enable_rtsp,
-                    video_settings.get("externalRtspEnabled"),
-                )
-                if auto_enable_rtsp and not video_settings.get("externalRtspEnabled"):
+                if self._auto_enable_rtsp and not video_settings.get(
+                    "externalRtspEnabled"
+                ):
                     _LOGGER.debug("Camera %s: creating task to enable RTSP", self.name)
                     self.hass.async_create_task(self._enable_rtsp())
 
