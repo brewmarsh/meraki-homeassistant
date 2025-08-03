@@ -96,3 +96,8 @@ class MerakiAPIClient:
         """Register a webhook with the Meraki API."""
         # This is a placeholder. The actual implementation will be added in a future step.
         pass
+
+    async def unregister_webhook(self, webhook_id: str) -> None:
+        """Unregister a webhook with the Meraki API."""
+        # This is a placeholder. The actual implementation will be added in a future step.
+        pass
