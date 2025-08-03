@@ -1,0 +1,47 @@
+"""Data update coordinator for the Meraki HA integration."""
+from __future__ import annotations
+
+import asyncio
+from datetime import timedelta
+import logging
+
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+
+from ...const import DOMAIN
+from ...core.api.client import MerakiAPIClient as ApiClient
+
+_LOGGER = logging.getLogger(__name__)
+
+
+class MerakiDataCoordinator(DataUpdateCoordinator):
+    """A centralized coordinator for Meraki API data."""
+
+    def __init__(self, hass, api_client: ApiClient, scan_interval: int):
+        """Initialize the coordinator."""
+        super().__init__(
+            hass,
+            _LOGGER,
+            name=DOMAIN,
+            update_interval=timedelta(seconds=scan_interval),
+        )
+        self.api = api_client
+
+    async def _async_update_data(self):
+        """Fetch data from API endpoint.
+
+        This is the place to fetch data from the API and return it.
+        """
+        _LOGGER.debug("Fetching data with MerakiDataCoordinator")
+        try:
+            # In future steps, we will implement the full data fetching logic here.
+            # For now, we return a placeholder dictionary.
+            orgs = await self.hass.async_add_executor_job(self.api.get_organizations)
+            devices = await self.hass.async_add_executor_job(self.api.get_organization_devices)
+
+            return {
+                "organizations": orgs,
+                "devices": devices,
+                # Other data will be added here...
+            }
+        except Exception as err:
+            raise UpdateFailed(f"Error communicating with API: {err}") from err

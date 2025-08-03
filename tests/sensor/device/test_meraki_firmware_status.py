@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import MagicMock
 
-from custom_components.meraki_ha.sensor.device.firmware_status import MerakiFirmwareStatusSensor
+from custom_components.meraki_ha.sensor.device.meraki_firmware_status import MerakiFirmwareStatusSensor
 
 @pytest.fixture
 def mock_device_coordinator():
@@ -40,14 +40,14 @@ def test_firmware_status_sensor(mock_device_coordinator):
     device1 = mock_device_coordinator.data['devices'][0]
     device2 = mock_device_coordinator.data['devices'][1]
 
-    sensor1 = MerakiFirmwareStatusSensor(mock_device_coordinator, device1)
+    sensor1 = MerakiFirmwareStatusSensor(mock_device_coordinator, device1, MagicMock())
     assert sensor1.unique_id == 'dev1_firmware_status'
-    assert sensor1.name == 'Device 1 Firmware Status'
+    assert sensor1.name == 'Firmware Status'
     assert sensor1.state == 'update_available'
     assert sensor1.extra_state_attributes['latest_version'] == '27.1'
 
-    sensor2 = MerakiFirmwareStatusSensor(mock_device_coordinator, device2)
+    sensor2 = MerakiFirmwareStatusSensor(mock_device_coordinator, device2, MagicMock())
     assert sensor2.unique_id == 'dev2_firmware_status'
     assert sensor2.name == 'Device 2 Firmware Status'
     assert sensor2.state == 'up_to_date'
-    assert sensor2.extra_state_attributes['latest_version'] is None
+    assert 'latest_version' not in sensor2.extra_state_attributes

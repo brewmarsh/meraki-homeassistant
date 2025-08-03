@@ -3,7 +3,8 @@
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 import pytest
 
 from custom_components.meraki_ha.const import (
@@ -46,8 +47,7 @@ def mock_device_coordinator():
 @pytest.mark.asyncio
 async def test_camera_entity(hass: HomeAssistant, mock_device_coordinator):
     """Test the camera entity."""
-    config_entry = ConfigEntry(
-        1,
+    config_entry = MockConfigEntry(
         domain=DOMAIN,
         entry_id="test_entry_id",
         title="Test Org",
@@ -57,10 +57,10 @@ async def test_camera_entity(hass: HomeAssistant, mock_device_coordinator):
     config_entry.add_to_hass(hass)
     mock_device_coordinator.config_entry = config_entry
 
-    hass.data[DOMAIN] = {
-        "test_entry_id": {
-            "device_coordinator": mock_device_coordinator
-        }
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN][config_entry.entry_id] = {
+        "coordinator": mock_device_coordinator,
+        DATA_CLIENT: AsyncMock(),
     }
 
     async_add_entities = AsyncMock()
@@ -92,8 +92,7 @@ async def test_camera_auto_enable_rtsp(hass: HomeAssistant, mock_device_coordina
     """Test the camera entity with auto-enable RTSP."""
     mock_api_client = AsyncMock()
 
-    config_entry = ConfigEntry(
-        1,
+    config_entry = MockConfigEntry(
         domain=DOMAIN,
         entry_id="test_entry_id",
         title="Test Org",
@@ -105,7 +104,7 @@ async def test_camera_auto_enable_rtsp(hass: HomeAssistant, mock_device_coordina
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][config_entry.entry_id] = {
-        "device_coordinator": mock_device_coordinator,
+        "coordinator": mock_device_coordinator,
         DATA_CLIENT: mock_api_client,
     }
 

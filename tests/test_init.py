@@ -23,9 +23,9 @@ async def test_async_setup_entry(
         "scan_interval": 300,
         "device_name_format": "omitted",
     }
-    with patch(
-        "custom_components.meraki_ha.MerakiDataUpdateCoordinator"
-    ) as mock_coordinator:
+    with patch("custom_components.meraki_ha.MerakiDataCoordinator") as mock_coordinator, patch(
+        "custom_components.meraki_ha.webhook.async_register_webhook"
+    ) as mock_register_webhook:
         future = asyncio.Future()
         future.set_result(None)
         mock_coordinator.return_value.async_config_entry_first_refresh.return_value = (
@@ -46,3 +46,4 @@ async def test_async_setup_entry(
             mock_unload.return_value = future
             result = await async_setup_entry(hass, config_entry)
             assert result is True
+            mock_register_webhook.assert_called_once()

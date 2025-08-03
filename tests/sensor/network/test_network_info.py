@@ -27,6 +27,6 @@ def test_network_info_sensor(mock_network_coordinator):
 
     sensor = MerakiNetworkInfoSensor(mock_network_coordinator, network, MagicMock())
     assert sensor.unique_id == 'net1_network_info'
-    assert sensor.name == 'Network 1 Network Information'
+    assert sensor.name == 'Network Information'
     assert sensor.state == 'Network 1'
     assert sensor.extra_state_attributes['time_zone'] == 'America/Los_Angeles'

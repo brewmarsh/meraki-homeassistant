@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.sensor.device_status import (
+from custom_components.meraki_ha.sensor.device.device_status import (
     MerakiDeviceStatusSensor,
 )
 
@@ -25,6 +25,6 @@ async def test_meraki_device_status_sensor(
     device_data = {
         "serial": "Q234-ABCD-5678",
     }
-    sensor = MerakiDeviceStatusSensor(coordinator, device_data)
+    sensor = MerakiDeviceStatusSensor(coordinator, device_data, MagicMock())
     sensor._update_sensor_data()
     assert sensor.native_value == "online"

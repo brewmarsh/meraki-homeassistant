@@ -51,9 +51,9 @@ async def test_meraki_ssid_enabled_switch(
     switch = MerakiSSIDEnabledSwitch(
         mock_coordinator, mock_meraki_client, mock_config_entry, "ssid_0", ssid_data
     )
-    switch._update_internal_state()
+
     assert switch.is_on is True
-    assert switch.name == "Test SSID Enabled Control"
+    assert switch.name == "[Ssid] Test SSID Enabled Control"
 
     await switch.async_turn_off()
     mock_meraki_client.update_network_wireless_ssid.assert_called_with(
@@ -69,9 +69,9 @@ async def test_meraki_ssid_broadcast_switch(
     switch = MerakiSSIDBroadcastSwitch(
         mock_coordinator, mock_meraki_client, mock_config_entry, "ssid_0", ssid_data
     )
-    switch._update_internal_state()
+
     assert switch.is_on is True
-    assert switch.name == "Test SSID Broadcast Control"
+    assert switch.name == "[Ssid] Test SSID Broadcast Control"
 
     await switch.async_turn_off()
     mock_meraki_client.update_network_wireless_ssid.assert_called_with(

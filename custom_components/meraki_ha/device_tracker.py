@@ -1,34 +1,20 @@
-"""Platform for Meraki device tracker integration in Home Assistant.
+"""Platform for Meraki device tracker integration in Home Assistant."""
 
-This module sets up device tracker entities for Meraki devices. Each
-Meraki device (e.g., an access point) can be represented as a device
-tracker, which can then be used to determine if any clients are
-connected to it, effectively acting as a presence detection mechanism
-for the device itself being "active" or having connected clients.
-"""
-
-from __future__ import annotations  # For type hints pre Python 3.9
+from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List  # Optional removed F401
+from typing import Any, Dict, List
 
 from homeassistant.components.device_tracker import SourceType, TrackerEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback  # Added callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
-# Base class for coordinator entities
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-# Assuming MerakiDataUpdateCoordinator is the central coordinator for
-# the Meraki integration and it's correctly defined in .coordinator
-from .const import (
-    DOMAIN,
-    CONF_DEVICE_NAME_FORMAT,
-    DEFAULT_DEVICE_NAME_FORMAT,
-)
-from .core.coordinators.network import MerakiNetworkCoordinator
+from .const import DOMAIN
+from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from .helpers.entity_helpers import format_entity_name
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,83 +24,45 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Meraki device tracker entities from a config entry.
-
-    This function is called by Home Assistant to initialize device tracker
-    entities based on the Meraki clients discovered by the central data
-    update coordinator.
-
-    Args:
-        hass: The Home Assistant instance.
-        config_entry: The configuration entry for this Meraki integration instance.
-        async_add_entities: Callback function to add entities to Home Assistant.
-    """
-    coordinator: MerakiNetworkCoordinator = hass.data[DOMAIN][config_entry.entry_id][
-        "network_coordinator"
+    """Set up Meraki device tracker entities from a config entry."""
+    coordinator: MerakiDataCoordinator = hass.data[DOMAIN][config_entry.entry_id][
+        "coordinator"
     ]
 
-    # Ensure coordinator data is available
-    if (
-        coordinator.data is None or "clients" not in coordinator.data
-    ):  # Ensure 'clients' key exists
-        _LOGGER.warning(
-            "No client data available from Meraki coordinator. Cannot set up device trackers."
-        )
+    if not coordinator.data or "clients" not in coordinator.data:
+        _LOGGER.warning("No client data available; cannot set up device trackers.")
         return
 
-    clients: List[Dict[str, Any]] = coordinator.data.get(
-        "clients", []
-    )  # Get clients list
+    clients: List[Dict[str, Any]] = coordinator.data.get("clients", [])
     if not clients:
         _LOGGER.info("No Meraki clients found to set up device trackers.")
         return
 
-    entities: List[MerakiDeviceTracker] = []
-    for client_data in clients:
-        # Ensure essential client data (e.g., MAC address) is present
-        if "mac" not in client_data:
-            _LOGGER.warning(
-                "Skipping device tracker setup for client with missing MAC address: %s",
-                client_data,
-            )
-            continue
-        entities.append(MerakiDeviceTracker(coordinator, client_data))
+    entities = [
+        MerakiDeviceTracker(coordinator, client_data)
+        for client_data in clients
+        if "mac" in client_data
+    ]
 
     if entities:
         async_add_entities(entities)
-        # _LOGGER.debug("Added %d Meraki client trackers.", len(entities)) # Removed
-    return
 
 
-class MerakiDeviceTracker(CoordinatorEntity[MerakiNetworkCoordinator], TrackerEntity):
-    """Representation of an individual client device connected to a Meraki network.
+class MerakiDeviceTracker(CoordinatorEntity[MerakiDataCoordinator], TrackerEntity):
+    """Representation of an individual client device connected to a Meraki network."""
 
-    This entity tracks the connectivity of a single client (e.g., a laptop,
-    phone) by checking its presence in the Meraki coordinator's list of active clients.
-    """
-
-    # For Home Assistant 2022.11+ to use device name as base
     _attr_has_entity_name = True
 
     def __init__(
         self,
-        coordinator: MerakiNetworkCoordinator,
+        coordinator: MerakiDataCoordinator,
         client_info: Dict[str, Any],
     ) -> None:
-        """Initialize the Meraki client device tracker.
-
-        Args:
-            coordinator: The `MerakiDataUpdateCoordinator` for data updates.
-            client_info: A dictionary containing the client's
-                         information, including 'mac', 'ip', 'description',
-                         'ap_serial' (if connected to an AP), etc.
-        """
-        super().__init__(coordinator)  # Initialize CoordinatorEntity
-        self._client_info_data: Dict[str, Any] = client_info
-        # Name can be client's description or IP if description is not
-        # available
+        """Initialize the Meraki client device tracker."""
+        super().__init__(coordinator)
+        self._client_info_data = client_info
         name_format = self.coordinator.config_entry.options.get(
-            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+            "device_name_format", "prefix"
         )
         self._attr_name = format_entity_name(
             self._client_info_data.get("description")
@@ -123,96 +71,43 @@ class MerakiDeviceTracker(CoordinatorEntity[MerakiNetworkCoordinator], TrackerEn
             name_format,
         )
         self._attr_unique_id = f"{self._client_info_data['mac']}_client_tracker"
-
-        # Initial update of attributes based on current data
         self._update_attributes()
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator.
-
-        This method is called when the coordinator has new data. It triggers
-        an update of the entity's state and attributes.
-        """
+        """Handle updated data from the coordinator."""
         self._update_attributes()
         self.async_write_ha_state()
 
     def _update_attributes(self) -> None:
-        """Update entity attributes based on coordinator data.
-
-        This method checks if the current client (identified by MAC address)
-        is present in the coordinator's list of active clients.
-        """
-        self._attr_is_connected = False  # Default to not connected
+        """Update entity attributes based on coordinator data."""
+        self._attr_is_connected = False
         client_mac = self._client_info_data["mac"]
 
         if self.coordinator.data and "clients" in self.coordinator.data:
-            active_clients: List[Dict[str, Any]] = self.coordinator.data["clients"]
-            for client_data in active_clients:
+            for client_data in self.coordinator.data["clients"]:
                 if client_data.get("mac") == client_mac:
                     self._attr_is_connected = True
-                    # Update client info if more details are available from
-                    # active list
                     self._client_info_data.update(client_data)
                     break
 
-        # _LOGGER.debug(
-        #     "Client tracker %s (MAC: %s) is_connected: %s",
-        #     self._attr_name,
-        #     client_mac,
-        #     self._attr_is_connected,
-        # ) # Removed
-        # if not self._attr_is_connected: # This log is also too verbose for each disconnected client
-        #     _LOGGER.debug(
-        #         "Client tracker %s (MAC: %s) not found in coordinator's active client list.",
-        #         self._attr_name,
-        #         client_mac,
-        #     ) # Removed
-
     @property
     def source_type(self) -> str:
-        """Return the source type of the device tracker.
-
-        Returns:
-            The source type, which is ROUTER as clients are tracked by APs/routers.
-        """
-        return SourceType.ROUTER  # Client is tracked by the router/AP
+        """Return the source type of the device tracker."""
+        return SourceType.ROUTER
 
     @property
     def device_info(self) -> Dict[str, Any]:
-        """Return device information for linking this entity to the parent Meraki device.
-
-        This information is used by Home Assistant to correctly group
-        entities and display device details in the UI.
-
-        Returns:
-            A dictionary containing device information.
-        """
-        # Link to the AP the client is connected to, or the network.
-        # This assumes 'ap_serial' or 'network_id' is in _client_info_data
-        # Default to network if AP serial is not present
+        """Return device information for linking this entity to the parent Meraki device."""
         parent_identifier_value = self._client_info_data.get(
             "ap_serial"
         ) or self._client_info_data.get("networkId", "meraki_network")
+        return {"identifiers": {(DOMAIN, parent_identifier_value)}}
 
-        # Use client's description or IP as name, fallback to MAC
-        # The entity's name is set by _attr_name via _attr_has_entity_name=True
-        # and the device's name (AP/Network) is resolved by Home Assistant.
-
-        return {
-            "identifiers": {(DOMAIN, parent_identifier_value)},
-            # No 'name', 'manufacturer', or 'model' for the parent device here
-        }
-
-    # Icon can be dynamic based on connection state
     @property
     def icon(self) -> str:
-        """Return the icon to use in the frontend, if any.
-
-        Returns:
-            The icon string, dynamically chosen based on connection state.
-        """
-        return "mdi:lan-connect" if self._attr_is_connected else "mdi:lan-disconnect"
+        """Return the icon to use in the frontend."""
+        return "mdi:lan-connect" if self.is_connected else "mdi:lan-disconnect"
 
     @property
     def is_connected(self) -> bool:

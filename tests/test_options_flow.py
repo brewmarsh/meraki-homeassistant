@@ -2,7 +2,7 @@
 
 from homeassistant.core import HomeAssistant
 import pytest
-from homeassistant.config_entries import ConfigEntry
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL
 
 from custom_components.meraki_ha.const import (
@@ -16,8 +16,7 @@ from custom_components.meraki_ha.const import (
 @pytest.mark.asyncio
 async def test_options_flow(hass: HomeAssistant) -> None:
     """Test the options flow."""
-    config_entry = ConfigEntry(
-        1,
+    config_entry = MockConfigEntry(
         domain=DOMAIN,
         entry_id="test_entry_id",
         title="Test Org",

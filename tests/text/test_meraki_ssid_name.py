@@ -13,16 +13,14 @@ def mock_coordinator():
     """Fixture for a mocked MerakiNetworkCoordinator."""
     coordinator = MagicMock()
     coordinator.data = {
-        "ssids": [
-            {
-                "number": 0,
-                "name": "Test SSID",
-                "enabled": True,
-                "networkId": "net-123",
-                "unique_id": "ssid_0",
-                "productType": "ssid",
-            }
-        ]
+        "ssid_0": {
+            "number": 0,
+            "name": "Test SSID",
+            "enabled": True,
+            "networkId": "net-123",
+            "unique_id": "ssid_0",
+            "productType": "ssid",
+        }
     }
     return coordinator
 
@@ -47,13 +45,13 @@ async def test_meraki_ssid_name_text(
     mock_coordinator, mock_meraki_client, mock_config_entry
 ) -> None:
     """Test the Meraki SSID name text entity."""
-    ssid_data = mock_coordinator.data["ssids"][0]
+    ssid_data = mock_coordinator.data["ssid_0"]
     text = MerakiSSIDNameText(
         mock_coordinator, mock_meraki_client, mock_config_entry, "ssid_0", ssid_data
     )
-    text._update_internal_state()
+
     assert text.native_value == "Test SSID"
-    assert text.name == "Test SSID"
+    assert text.name == "[Ssid] Test SSID"
 
     await text.async_set_value("New Name")
     mock_meraki_client.update_network_wireless_ssid.assert_called_with(

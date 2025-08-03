@@ -1,15 +1,15 @@
 """Tests for the Meraki authentication."""
 
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, MagicMock, AsyncMock
 
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
-from custom_components.meraki_ha.core.authentication import (
+from custom_components.meraki_ha.authentication import (
     validate_meraki_credentials,
 )
-from custom_components.meraki_ha.core.meraki_api.exceptions import MerakiApiError
+from custom_components.meraki_ha.core.errors import MerakiError
 
 
 @pytest.mark.asyncio
@@ -18,7 +18,7 @@ async def test_validate_meraki_credentials(hass: HomeAssistant) -> None:
     with patch(
         "custom_components.meraki_ha.authentication.MerakiAPIClient"
     ) as mock_client:
-        mock_client.return_value.organizations.getOrganizations = AsyncMock(
+        mock_client.return_value.get_organizations = AsyncMock(
             return_value=[{"id": "test-org-id", "name": "Test Org"}]
         )
         mock_client.return_value.close = AsyncMock()
@@ -32,7 +32,7 @@ async def test_validate_meraki_credentials_invalid_org(hass: HomeAssistant) -> N
     with patch(
         "custom_components.meraki_ha.authentication.MerakiAPIClient"
     ) as mock_client:
-        mock_client.return_value.organizations.getOrganizations = AsyncMock(
+        mock_client.return_value.get_organizations = AsyncMock(
             return_value=[{"id": "other-org-id", "name": "Other Org"}]
         )
         mock_client.return_value.close = AsyncMock()
@@ -46,8 +46,8 @@ async def test_validate_meraki_credentials_auth_failed(hass: HomeAssistant) -> N
     with patch(
         "custom_components.meraki_ha.authentication.MerakiAPIClient"
     ) as mock_client:
-        mock_client.return_value.organizations.getOrganizations = AsyncMock(
-            side_effect=MerakiApiError("test")
+        mock_client.return_value.get_organizations = AsyncMock(
+            side_effect=MerakiError("test")
         )
         mock_client.return_value.close = AsyncMock()
         with pytest.raises(ConfigEntryAuthFailed):

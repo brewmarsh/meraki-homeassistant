@@ -36,7 +36,8 @@ async def test_camera_rtsp_switch(mock_device_coordinator, mock_api_client):
     device = mock_device_coordinator.data['devices'][0]
 
     switch = MerakiCameraRTSPSwitch(mock_device_coordinator, mock_api_client, device)
-    assert switch.unique_id == 'cam1_external_rtsp_enabled_switch'
+
+    assert switch.unique_id == 'cam1_rtsp_server_enabled'
     assert switch.name == 'RTSP Server'
     assert switch.is_on is True
 
