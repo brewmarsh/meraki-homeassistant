@@ -49,7 +49,14 @@ def async_setup_sensors(
         for sensor_class in COMMON_DEVICE_SENSORS:
             unique_id = f"{serial}_{sensor_class.__name__}"
             if unique_id not in added_entities:
-                entities.append(sensor_class(coordinator, device_info))
+                # Check if the sensor class requires config_entry
+                sig = inspect.signature(sensor_class.__init__)
+                if "config_entry" in sig.parameters:
+                    entities.append(
+                        sensor_class(coordinator, device_info, config_entry)
+                    )
+                else:
+                    entities.append(sensor_class(coordinator, device_info))
                 added_entities.add(unique_id)
 
         # Product-type specific sensors
