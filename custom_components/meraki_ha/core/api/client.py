@@ -63,6 +63,15 @@ class MerakiAPIClient:
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, partial(func, *args, **kwargs))
 
+    async def get_all_data(self) -> dict:
+        """Fetch all data from the Meraki API."""
+        orgs = await self.organization.get_organizations()
+        devices = await self.organization.get_organization_devices()
+        return {
+            "organizations": orgs,
+            "devices": devices,
+        }
+
     @property
     def organization_id(self) -> str:
         """Get the organization ID."""

@@ -35,13 +35,6 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
         try:
             # In future steps, we will implement the full data fetching logic here.
             # For now, we return a placeholder dictionary.
-            orgs = await self.hass.async_add_executor_job(self.api.get_organizations)
-            devices = await self.hass.async_add_executor_job(self.api.get_organization_devices)
-
-            return {
-                "organizations": orgs,
-                "devices": devices,
-                # Other data will be added here...
-            }
+            return await self.api.get_all_data()
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}") from err
