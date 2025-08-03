@@ -32,6 +32,16 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
+    @async_timed_cache()
+    async def get_wireless_settings(self, serial: str) -> Dict[str, Any]:
+        """Get wireless radio settings for an access point."""
+        _LOGGER.debug("Getting wireless settings for serial: %s", serial)
+        settings = await self._api_client._run_sync(
+            self._dashboard.wireless.getDeviceWirelessRadioSettings, serial=serial
+        )
+        return validate_response(settings)
+
+    @handle_meraki_errors
     async def update_network_wireless_ssid(
         self, network_id: str, number: str, **kwargs
     ) -> Dict[str, Any]:
