@@ -65,12 +65,16 @@ class MerakiAPIClient:
 
     async def get_all_data(self) -> dict:
         """Fetch all data from the Meraki API."""
-        orgs = await self.organization.get_organizations()
+        networks = await self.organization.get_organization_networks()
         devices = await self.organization.get_organization_devices()
-        clients = await self.network.get_network_clients(self._org_id)
-        ssids = await self.wireless.get_network_ssids(self._org_id)
+        clients = []
+        for network in networks:
+            clients.extend(await self.network.get_network_clients(network["id"]))
+        ssids = []
+        for network in networks:
+            ssids.extend(await self.wireless.get_network_ssids(network["id"]))
         return {
-            "organizations": orgs,
+            "networks": networks,
             "devices": devices,
             "clients": clients,
             "ssids": ssids,

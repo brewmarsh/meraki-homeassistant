@@ -30,15 +30,16 @@ class OrganizationEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=3600)
-    async def get_organizations(self) -> List[Dict[str, Any]]:
-        """Get all organizations."""
-        _LOGGER.debug("Getting all organizations")
-        orgs = await self._api_client._run_sync(
-            self._dashboard.organizations.getOrganizations
+    async def get_organization_networks(self) -> List[Dict[str, Any]]:
+        """Get all networks for an organization."""
+        _LOGGER.debug("Getting all networks for organization")
+        networks = await self._api_client._run_sync(
+            self._dashboard.organizations.getOrganizationNetworks,
+            organizationId=self._api_client.organization_id,
         )
-        validated = validate_response(orgs)
+        validated = validate_response(networks)
         if not isinstance(validated, list):
-            _LOGGER.warning("get_organizations did not return a list.")
+            _LOGGER.warning("get_organization_networks did not return a list.")
             return []
         return validated
 

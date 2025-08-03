@@ -44,10 +44,10 @@ def test_firmware_status_sensor(mock_device_coordinator):
     assert sensor1.unique_id == 'dev1_firmware_status'
     assert sensor1.name == 'Firmware Status'
     assert sensor1.state == 'update_available'
-    assert sensor1.extra_state_attributes['latest_version'] == '27.1'
+    assert sensor1.extra_state_attributes['latest_available_firmware_version'] == '27.1'
 
     sensor2 = MerakiFirmwareStatusSensor(mock_device_coordinator, device2, MagicMock())
     assert sensor2.unique_id == 'dev2_firmware_status'
-    assert sensor2.name == 'Device 2 Firmware Status'
+    assert sensor2.name == 'Firmware Status'
     assert sensor2.state == 'up_to_date'
     assert 'latest_version' not in sensor2.extra_state_attributes

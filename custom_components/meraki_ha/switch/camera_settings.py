@@ -37,14 +37,18 @@ class MerakiCameraSettingSwitchBase(CoordinatorEntity[MerakiDeviceCoordinator], 
         # The state is derived from the coordinator's data
         # This assumes the data is structured like: {'video_settings': {'senseEnabled': True}}
         # or {'audio_settings': {'audioDetection': {'enabled': True}}}
-        keys = self._api_field.split('.')
-        value = self._device_data
-        for key in keys:
-            if isinstance(value, dict):
-                value = value.get(key)
-            else:
-                return False
-        return bool(value)
+        # The state is now derived from the coordinator's data
+        for device in self.coordinator.data.get("devices", []):
+            if device.get("serial") == self._device_data["serial"]:
+                keys = self._api_field.split('.')
+                value = device
+                for key in keys:
+                    if isinstance(value, dict):
+                        value = value.get(key)
+                    else:
+                        return False
+                return bool(value)
+        return False
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the setting on."""
@@ -68,9 +72,14 @@ class MerakiCameraSettingSwitchBase(CoordinatorEntity[MerakiDeviceCoordinator], 
                     current_level[key] = {}
                     current_level = current_level[key]
 
-            await self.client.update_camera_video_settings(
-                serial=self._device_data["serial"], **payload
-            )
+            if "sense" in self._api_field:
+                await self.client.camera.update_device_camera_sense_settings(
+                    serial=self._device_data["serial"], **payload
+                )
+            else:
+                await self.client.camera.update_device_camera_video_settings(
+                    serial=self._device_data["serial"], **payload
+                )
             # Optimistically update the state
             # This assumes the API call will succeed
             if self.is_on != is_on:

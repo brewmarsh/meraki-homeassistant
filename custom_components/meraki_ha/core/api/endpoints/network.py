@@ -31,43 +31,8 @@ class NetworkEndpoints:
             return []
         return validated
 
-    @handle_meraki_errors
-    @async_timed_cache()
-    async def get_networks(self) -> List[Dict[str, Any]]:
-        """Get all networks in the organization."""
-        _LOGGER.debug("Getting networks")
-        networks = await self._api_client._run_sync(
-            self._dashboard.organizations.getOrganizationNetworks,
-            organizationId=self._api_client.organization_id,
-        )
-        validated = validate_response(networks)
-        if not isinstance(validated, list):
-            _LOGGER.warning("get_networks did not return a list.")
-            return []
-        return validated
 
-    @handle_meraki_errors
-    @async_timed_cache()
-    async def get_ssids(self, network_id: str) -> List[Dict[str, Any]]:
-        """Get wireless SSIDs for a network."""
-        _LOGGER.debug("Getting SSIDs for network: %s", network_id)
-        ssids = await self._api_client._run_sync(
-            self._dashboard.wireless.getNetworkWirelessSsids, networkId=network_id
-        )
-        return validate_response(ssids)
 
-    @handle_meraki_errors
-    async def update_network_wireless_ssid(
-        self, network_id: str, number: str, **kwargs
-    ) -> None:
-        """Update a wireless SSID."""
-        _LOGGER.debug("Updating SSID %s on network %s", number, network_id)
-        await self._api_client._run_sync(
-            self._dashboard.wireless.updateNetworkWirelessSsid,
-            networkId=network_id,
-            number=number,
-            **kwargs,
-        )
 
     @handle_meraki_errors
     @async_timed_cache(timeout=10)
