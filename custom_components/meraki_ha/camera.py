@@ -47,7 +47,8 @@ async def async_setup_entry(
             for device in meraki_device_coordinator.data.get("devices", [])
             if device.get("productType") == "camera"
         ]
-        await async_add_entities(entities, True)
+        async_add_entities(entities, True)
+    return True
 
 
 class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
