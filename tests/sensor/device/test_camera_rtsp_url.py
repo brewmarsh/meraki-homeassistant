@@ -42,10 +42,10 @@ def test_camera_rtsp_url_sensor(mock_device_coordinator):
 
     sensor1 = MerakiCameraRTSPUrlSensor(mock_device_coordinator, device1)
     assert sensor1.unique_id == 'cam1_rtsp_url'
-    assert sensor1.name == 'Camera RTSP URL'
+    assert sensor1.name == 'Camera RTSP Stream URL'
     assert sensor1.state == 'rtsp://...'
 
     sensor2 = MerakiCameraRTSPUrlSensor(mock_device_coordinator, device2)
     assert sensor2.unique_id == 'cam2_rtsp_url'
-    assert sensor2.name == 'Camera 2 RTSP URL'
+    assert sensor2.name == 'Camera 2 RTSP Stream URL'
     assert sensor2.state == 'disabled'

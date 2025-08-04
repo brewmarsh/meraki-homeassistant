@@ -13,6 +13,7 @@ from custom_components.meraki_ha.switch.meraki_ssid_device_switch import (
 def mock_coordinator():
     """Fixture for a mocked MerakiNetworkCoordinator."""
     coordinator = MagicMock()
+    coordinator.async_request_refresh = AsyncMock()
     coordinator.data = {
         "ssid_0": {
             "number": 0,
@@ -51,7 +52,7 @@ async def test_meraki_ssid_enabled_switch(
     switch = MerakiSSIDEnabledSwitch(
         mock_coordinator, mock_meraki_client, mock_config_entry, "ssid_0", ssid_data
     )
-    switch._update_internal_state()
+
     assert switch.is_on is True
     assert switch.name == "Test SSID Enabled Control"
 
@@ -69,7 +70,7 @@ async def test_meraki_ssid_broadcast_switch(
     switch = MerakiSSIDBroadcastSwitch(
         mock_coordinator, mock_meraki_client, mock_config_entry, "ssid_0", ssid_data
     )
-    switch._update_internal_state()
+
     assert switch.is_on is True
     assert switch.name == "Test SSID Broadcast Control"
 

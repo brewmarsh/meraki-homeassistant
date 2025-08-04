@@ -32,6 +32,9 @@ DATA_COORDINATORS: Final[str] = (
 CONF_WEBHOOK_URL: Final[str] = "webhook_url"
 """Configuration key for the external webhook URL (str)."""
 
+CONF_AUTO_ENABLE_RTSP: Final[str] = "auto_enable_rtsp"
+"""Configuration key for automatically enabling RTSP on cameras (str)."""
+
 DEFAULT_WEBHOOK_URL: Final[str] = ""
 """Default webhook URL value (empty string)."""
 
@@ -59,6 +62,8 @@ PLATFORM_SWITCH: Final[str] = "switch"
 """Represents the switch platform (str)."""
 PLATFORM_TEXT: Final[str] = "text"
 """Represents the text platform (str)."""
+PLATFORM_CAMERA: Final[str] = "camera"
+"""Represents the camera platform (str)."""
 
 
 PLATFORMS: Final[List[str]] = [
@@ -66,6 +71,7 @@ PLATFORMS: Final[List[str]] = [
     PLATFORM_DEVICE_TRACKER,
     PLATFORM_SWITCH,
     PLATFORM_TEXT,
+    PLATFORM_CAMERA,
 ]
 """List of platforms supported by the integration (List[str])."""
 

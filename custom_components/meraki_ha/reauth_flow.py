@@ -13,7 +13,9 @@ from .schemas import CONFIG_SCHEMA
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_step_reauth(self, user_input: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+async def async_step_reauth(
+    self, user_input: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """Handle reauthentication for the Meraki integration."""
     errors: Dict[str, str] = {}
 

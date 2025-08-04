@@ -8,7 +8,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...core.coordinators.device import MerakiDeviceCoordinator
-from ...const import DOMAIN
+from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+from ...helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,7 +34,12 @@ class MerakiOrganizationSSIDClientsSensor(
         self._org_id = org_id
         self._org_name = org_name
 
-        self._attr_name = f"{org_name} SSID Clients"
+        name_format = self.coordinator.config_entry.options.get(
+            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+        )
+        self._attr_name = format_entity_name(
+            f"{org_name} SSID Clients", "sensor", name_format, apply_format=False
+        )
         self._attr_unique_id = f"{org_id}_clients_ssid"
         self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, org_id)})
 
@@ -80,7 +86,12 @@ class MerakiOrganizationWirelessClientsSensor(
         self._org_id = org_id
         self._org_name = org_name
 
-        self._attr_name = f"{org_name} Wireless Clients"
+        name_format = self.coordinator.config_entry.options.get(
+            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+        )
+        self._attr_name = format_entity_name(
+            f"{org_name} Wireless Clients", "sensor", name_format, apply_format=False
+        )
         self._attr_unique_id = f"{org_id}_clients_wireless"
         self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, org_id)})
 
@@ -128,7 +139,12 @@ class MerakiOrganizationApplianceClientsSensor(
         self._org_id = org_id
         self._org_name = org_name
 
-        self._attr_name = f"{org_name} Appliance Clients"
+        name_format = self.coordinator.config_entry.options.get(
+            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+        )
+        self._attr_name = format_entity_name(
+            f"{org_name} Appliance Clients", "sensor", name_format, apply_format=False
+        )
         self._attr_unique_id = f"{org_id}_clients_appliance"
         self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, org_id)})
 

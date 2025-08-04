@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.core.sensor.org_clients import (
+from custom_components.meraki_ha.sensor.org.org_clients import (
     MerakiOrganizationSSIDClientsSensor,
     MerakiOrganizationWirelessClientsSensor,
     MerakiOrganizationApplianceClientsSensor,

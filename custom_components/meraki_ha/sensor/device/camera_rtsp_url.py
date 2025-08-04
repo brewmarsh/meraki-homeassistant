@@ -1,68 +1,88 @@
-"""Sensor for Meraki camera RTSP URL."""
+"""Sensor entity for Meraki camera RTSP URL."""
 
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...const import DOMAIN
-from ...core.coordinators.device import MerakiDeviceCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, config_entry, async_add_entities):
-    """Set up Meraki camera RTSP URL sensors from a config entry."""
-    device_coordinator = hass.data[DOMAIN][config_entry.entry_id]["device_coordinator"]
-    entities = []
-    for device in device_coordinator.data.get("devices", []):
-        if device.get("productType") == "camera":
-            entities.append(MerakiCameraRTSPUrlSensor(device_coordinator, device))
-    async_add_entities(entities, True)
-
-
 class MerakiCameraRTSPUrlSensor(
-    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
 ):
-    """Representation of a Meraki camera RTSP URL sensor."""
+    """Representation of a Meraki Camera RTSP URL Sensor."""
+
+    _attr_has_entity_name = True
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
-        device: Dict[str, Any],
+        coordinator: MerakiDataCoordinator,
+        device_info_data: Dict[str, Any],
     ) -> None:
-        """Initialize the sensor."""
+        """Initialize the Meraki Camera RTSP URL Sensor."""
         super().__init__(coordinator)
-        self._device = device
-        self._attr_unique_id = f"{self._device['serial']}_rtsp_url"
-        self._attr_name = f"{self._device['name']} RTSP URL"
-        self._attr_icon = "mdi:video-stream"
+        self._device_serial: str = device_info_data["serial"]
+
+        self.entity_description = SensorEntityDescription(
+            key="rtsp_url",
+            name="RTSP Stream URL",
+            icon="mdi:video-stream",
+        )
+
+        self._attr_unique_id = f"{self._device_serial}_{self.entity_description.key}"
+        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, self._device_serial)})
+        self._attr_name = f"{device_info_data.get('name', 'Camera')} {self.entity_description.name}"
+        self._update_state()
 
     @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._device["serial"])},
-            name=self._device["name"],
-            model=self._device["model"],
-            manufacturer="Cisco Meraki",
-        )
+    def native_value(self) -> Optional[str]:
+        """Return the state of the sensor (the RTSP URL or None)."""
+        return self._attr_native_value
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        for device in self.coordinator.data.get("devices", []):
-            if device["serial"] == self._device["serial"]:
-                self._device = device
-                self.async_write_ha_state()
-                return
+        self._update_state()
+        self.async_write_ha_state()
+
+    def _update_state(self) -> None:
+        """Update the sensor's state based on coordinator data."""
+        current_device_data = None
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            for dev_data in self.coordinator.data["devices"]:
+                if dev_data.get("serial") == self._device_serial:
+                    current_device_data = dev_data
+                    break
+
+        if current_device_data:
+            video_settings = current_device_data.get("video_settings", {})
+            is_rtsp_enabled = video_settings.get("externalRtspEnabled", False)
+            rtsp_url = video_settings.get("rtspUrl")
+
+            if is_rtsp_enabled and rtsp_url:
+                self._attr_native_value = rtsp_url
+            else:
+                self._attr_native_value = "disabled"
+        else:
+            self._attr_native_value = None
 
     @property
-    def state(self) -> str:
-        """Return the state of the sensor."""
-        if self._device.get("video_settings", {}).get("externalRtspEnabled"):
-            return self._device.get("video_settings", {}).get("rtspUrl")
-        return "disabled"
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        if not self.coordinator.last_update_success:
+            return False
+
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            for dev_data in self.coordinator.data["devices"]:
+                if dev_data.get("serial") == self._device_serial:
+                    if "externalRtspEnabled" not in dev_data:
+                        return False
+                    return True
+        return False

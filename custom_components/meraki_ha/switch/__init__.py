@@ -9,9 +9,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from ..const import (
     DOMAIN,
     DATA_CLIENT,
-    DATA_COORDINATOR,
-    DATA_COORDINATORS,
-    DATA_SSID_DEVICES_COORDINATOR,
 )
 from ..core.api.client import MerakiAPIClient
 from ..core.coordinators.network import MerakiNetworkCoordinator
@@ -39,10 +36,8 @@ async def async_setup_entry(
         meraki_client: MerakiAPIClient = entry_data[DATA_CLIENT]
 
         # Get the main data coordinator for physical device switches (like camera settings)
-        device_coordinator = entry_data["device_coordinator"]
-        network_coordinator: MerakiNetworkCoordinator = entry_data.get(
-            "network_coordinator"
-        )
+        coordinator = entry_data["coordinator"]
+
     except KeyError as e:
         _LOGGER.error(
             "Switch platform: Essential data not found in hass.data for entry %s. Error: %s",
@@ -55,11 +50,11 @@ async def async_setup_entry(
 
     # Setup Camera Setting Switches
     if (
-        device_coordinator
-        and device_coordinator.data
-        and "devices" in device_coordinator.data
+        coordinator
+        and coordinator.data
+        and "devices" in coordinator.data
     ):
-        for device_info in device_coordinator.data["devices"]:
+        for device_info in coordinator.data["devices"]:
             if not isinstance(device_info, dict):
                 continue
 
@@ -72,13 +67,13 @@ async def async_setup_entry(
                 new_entities.extend(
                     [
                         MerakiCameraSenseSwitch(
-                            device_coordinator, meraki_client, device_info
+                            coordinator, meraki_client, device_info
                         ),
                         MerakiCameraAudioDetectionSwitch(
-                            device_coordinator, meraki_client, device_info
+                            coordinator, meraki_client, device_info
                         ),
                         MerakiCameraRTSPSwitch(
-                            device_coordinator, meraki_client, device_info
+                            coordinator, meraki_client, device_info
                         ),
                     ]
                 )
@@ -88,24 +83,27 @@ async def async_setup_entry(
         )
 
     # Setup SSID Switches
-    if network_coordinator and network_coordinator.data:
-        # _LOGGER.debug("SSID Coordinator data available, setting up SSID switches. %s SSIDs found.", len(network_coordinator.data)) # Removed
-        for ssid_unique_id, ssid_data in network_coordinator.data.items():
+    if coordinator and coordinator.data and "ssids" in coordinator.data:
+        # _LOGGER.debug("SSID Coordinator data available, setting up SSID switches. %s SSIDs found.", len(coordinator.data)) # Removed
+        for ssid_data in coordinator.data["ssids"]:
             if not isinstance(ssid_data, dict):
                 continue
 
+            if "networkId" not in ssid_data or "number" not in ssid_data:
+                continue
+            ssid_unique_id = f'{ssid_data["networkId"]}_{ssid_data["number"]}'
             # _LOGGER.debug("Setting up switches for SSID: %s (Data: %s)", ssid_data.get('name', ssid_unique_id), ssid_data) # Removed
             new_entities.extend(
                 [
                     MerakiSSIDEnabledSwitch(
-                        network_coordinator,
+                        coordinator,
                         meraki_client,
                         config_entry,
                         ssid_unique_id,
                         ssid_data,
                     ),
                     MerakiSSIDBroadcastSwitch(
-                        network_coordinator,
+                        coordinator,
                         meraki_client,
                         config_entry,
                         ssid_unique_id,

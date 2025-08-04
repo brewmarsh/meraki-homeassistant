@@ -9,8 +9,9 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN
+from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...core.coordinators.device import MerakiDeviceCoordinator
+from ...helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,7 +37,12 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEn
         super().__init__(coordinator)
         self._device = device
         self._attr_unique_id = f"{self._device['serial']}_data_usage"
-        self._attr_name = f"{self._device['name']} Data Usage"
+        name_format = self.coordinator.config_entry.options.get(
+            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+        )
+        self._attr_name = format_entity_name(
+            f"{self._device['name']} Data Usage", "sensor", name_format, apply_format=False
+        )
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -66,7 +72,7 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEn
         # The API returns a list of dictionaries, one for each traffic type
         # We are interested in the total traffic, which is the sum of sent and received
         total_kb = traffic[0].get("received", 0) + traffic[0].get("sent", 0)
-        return round(total_kb / 1024, 2) # Convert to MB
+        return round(total_kb / 1024, 2)  # Convert to MB
 
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:
@@ -78,5 +84,5 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEn
         return {
             "sent": round(traffic[0].get("sent", 0) / 1024, 2),
             "received": round(traffic[0].get("received", 0) / 1024, 2),
-            "timespan_seconds": 86400, # Hardcoded for now
+            "timespan_seconds": 86400,  # Hardcoded for now
         }

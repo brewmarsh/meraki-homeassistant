@@ -10,9 +10,10 @@ from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..const import DOMAIN
+from ..const import DOMAIN, DATA_CLIENT, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ..core.api.client import MerakiAPIClient
 from ..core.coordinators.network import MerakiNetworkCoordinator
+from ..helpers.entity_helpers import format_entity_name
 from homeassistant.helpers.entity import EntityCategory
 from ..core.utils.naming_utils import format_device_name
 
@@ -55,7 +56,12 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiNetworkCoordinator], SwitchEn
         # Construct a descriptive entity name, e.g., "Guest WiFi Enabled Control".
         # It uses the SSID name from the coordinator (or a fallback) and the type of switch.
         base_name = format_device_name(ssid_data, self._config_entry.options)
-        self._attr_name = f"{base_name} {switch_type.capitalize()} Control"
+        name_format = self.coordinator.config_entry.options.get(
+            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+        )
+        self._attr_name = format_entity_name(
+            f"{base_name} {switch_type.capitalize()} Control", "switch", name_format, apply_format=False
+        )
 
         # This attribute determines which key in the SSID data dict corresponds to this switch's state.
         # For MerakiSSIDEnabledSwitch, it's "enabled". For MerakiSSIDBroadcastSwitch, it's "visible".
@@ -91,7 +97,9 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiNetworkCoordinator], SwitchEn
         if current_ssid_data:
             self._attr_is_on = current_ssid_data.get(self._attribute_to_check, False)
             # Update name if SSID name changed
-            base_name = format_device_name(current_ssid_data, self._config_entry.options)
+            base_name = format_device_name(
+                current_ssid_data, self._config_entry.options
+            )
             self._attr_name = (
                 f"{base_name} {self._attribute_to_check.capitalize()} Control"
             )

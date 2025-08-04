@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.core.device_tracker import (
+from custom_components.meraki_ha.device_tracker import (
     async_setup_entry,
 )
 
@@ -14,6 +14,7 @@ async def test_async_setup_entry(
 ) -> None:
     """Test the async_setup_entry function."""
     config_entry = MagicMock()
+    config_entry.entry_id = "test_entry_id"
     async_add_entities = MagicMock()
     coordinator = MagicMock()
     coordinator.data = {

@@ -1,0 +1,20 @@
+"""Tests for the Meraki entity helpers."""
+
+from custom_components.meraki_ha.helpers.entity_helpers import format_entity_name
+
+
+def test_format_entity_name():
+    """Test the format_entity_name function."""
+    assert (
+        format_entity_name("Test Device", "wireless", "prefix", True)
+        == "[Wireless] Test Device"
+    )
+    assert (
+        format_entity_name("Test Device", "wireless", "suffix", True)
+        == "Test Device [Wireless]"
+    )
+    assert format_entity_name("Test Device", "wireless", "omitted", True) == "Test Device"
+    assert (
+        format_entity_name("Test Device", "wireless", "prefix", False)
+        == "Test Device"
+    )

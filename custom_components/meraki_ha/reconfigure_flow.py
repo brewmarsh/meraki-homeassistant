@@ -5,7 +5,9 @@ from typing import Any, Dict, Optional
 from .schemas import RECONFIGURE_SCHEMA
 
 
-async def async_step_reconfigure(self, user_input: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+async def async_step_reconfigure(
+    self, user_input: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """Handle a reconfiguration flow."""
     entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
     if not entry:

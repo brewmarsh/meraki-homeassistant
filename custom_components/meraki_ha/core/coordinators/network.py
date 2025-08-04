@@ -64,7 +64,7 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
                     network["client_count"] = 0
 
                 # Fetch SSIDs if network supports wireless
-                if 'wireless' in network.get("productTypes", []):
+                if "wireless" in network.get("productTypes", []):
                     try:
                         network_ssids = await self.api_client.get_ssids(network["id"])
                         enabled_ssids = []
@@ -86,7 +86,11 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
                 processed_networks.append(network)
 
             self._networks = processed_networks
-            return {"networks": processed_networks, "clients": all_clients, "ssids": all_ssids}
+            return {
+                "networks": processed_networks,
+                "clients": all_clients,
+                "ssids": all_ssids,
+            }
 
         except Exception as err:
             _LOGGER.error("Error fetching network data: %s", err)

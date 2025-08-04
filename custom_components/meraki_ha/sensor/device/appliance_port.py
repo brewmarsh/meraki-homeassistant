@@ -8,8 +8,9 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN
+from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...core.coordinators.device import MerakiDeviceCoordinator
+from ...helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,7 +22,9 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     for device in device_coordinator.data.get("devices", []):
         if device.get("productType") == "appliance":
             for port in device.get("ports", []):
-                entities.append(MerakiAppliancePortSensor(device_coordinator, device, port))
+                entities.append(
+                    MerakiAppliancePortSensor(device_coordinator, device, port)
+                )
     async_add_entities(entities, True)
 
 
@@ -41,7 +44,15 @@ class MerakiAppliancePortSensor(
         self._device = device
         self._port = port
         self._attr_unique_id = f"{self._device['serial']}_port_{self._port['number']}"
-        self._attr_name = f"{self._device['name']} Port {self._port['number']}"
+        name_format = self.coordinator.config_entry.options.get(
+            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+        )
+        self._attr_name = format_entity_name(
+            f"{self._device['name']} Port {self._port['number']}",
+            "port",
+            name_format,
+            apply_format=False,
+        )
         self._attr_icon = "mdi:ethernet-port"
 
     @property

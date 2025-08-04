@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.core.sensor.network_identity import (
+from custom_components.meraki_ha.sensor.network.network_identity import (
     MerakiNetworkIdentitySensor,
 )
 
@@ -25,6 +25,6 @@ async def test_meraki_network_identity_sensor(
     network_data = {
         "id": "N_123",
     }
-    sensor = MerakiNetworkIdentitySensor(coordinator, network_data)
+    sensor = MerakiNetworkIdentitySensor(coordinator, network_data, MagicMock())
     sensor._update_sensor_state()
     assert sensor.native_value == "Test Network"
