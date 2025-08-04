@@ -71,7 +71,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         webhook_id = entry.entry_id
         secret = secrets.token_hex(16)
         await async_register_webhook(hass, webhook_id, secret, api_client, entry)
-        hass.config_entries.async_update_entry(
+        await hass.config_entries.async_update_entry(
             entry, data={**entry.data, "webhook_id": webhook_id, "secret": secret}
         )
 

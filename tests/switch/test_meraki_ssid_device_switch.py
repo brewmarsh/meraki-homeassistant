@@ -13,6 +13,7 @@ from custom_components.meraki_ha.switch.meraki_ssid_device_switch import (
 def mock_coordinator():
     """Fixture for a mocked MerakiNetworkCoordinator."""
     coordinator = MagicMock()
+    coordinator.async_request_refresh = AsyncMock()
     coordinator.data = {
         "ssid_0": {
             "number": 0,

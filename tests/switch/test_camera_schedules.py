@@ -28,7 +28,7 @@ def mock_device_coordinator():
 def mock_api_client():
     """Fixture for a mocked MerakiAPIClient."""
     client = MagicMock()
-    client.update_camera_video_settings = AsyncMock()
+    client.camera.update_device_camera_video_settings = AsyncMock()
     return client
 
 async def test_camera_rtsp_switch(mock_device_coordinator, mock_api_client):
@@ -42,11 +42,11 @@ async def test_camera_rtsp_switch(mock_device_coordinator, mock_api_client):
     assert switch.is_on is True
 
     await switch.async_turn_off()
-    mock_api_client.update_camera_video_settings.assert_called_with(
-        serial='cam1', externalRtspEnabled=False
+    mock_api_client.camera.update_device_camera_video_settings.assert_called_with(
+        serial='cam1', video_settings={'externalRtspEnabled': False}
     )
 
     await switch.async_turn_on()
-    mock_api_client.update_camera_video_settings.assert_called_with(
-        serial='cam1', externalRtspEnabled=True
+    mock_api_client.camera.update_device_camera_video_settings.assert_called_with(
+        serial='cam1', video_settings={'externalRtspEnabled': True}
     )

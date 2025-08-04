@@ -34,7 +34,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Meraki camera entities from a config entry."""
     meraki_device_coordinator = hass.data[DOMAIN][config_entry.entry_id].get(
-        "device_coordinator"
+        "coordinator"
     )
 
     if meraki_device_coordinator and meraki_device_coordinator.data:
@@ -47,7 +47,7 @@ async def async_setup_entry(
             for device in meraki_device_coordinator.data.get("devices", [])
             if device.get("productType") == "camera"
         ]
-        async_add_entities(entities, True)
+        await async_add_entities(entities, True)
 
 
 class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
@@ -76,8 +76,10 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
         self._attr_supported_features = CameraEntityFeature.STREAM
         self._rtsp_url: Optional[str] = None
         self._webrtc_provider = None
+        self._legacy_webrtc_provider = None
         self.access_tokens = []
         self._supports_native_async_webrtc = False
+        self._supports_native_sync_webrtc = False
         self._cache = {}
 
         if self._device.get("video_settings", {}).get("externalRtspEnabled"):
@@ -173,7 +175,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
                     "externalRtspEnabled"
                 ):
                     _LOGGER.debug("Camera %s: creating task to enable RTSP", self.name)
-                    self.hass.async_create_task(self._enable_rtsp())
+                    self.coordinator.hass.async_create_task(self._enable_rtsp())
 
                 if video_settings.get("externalRtspEnabled"):
                     rtsp_url = video_settings.get("rtspUrl")

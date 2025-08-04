@@ -1,13 +1,14 @@
 import asyncio
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 
 async def main():
-    hass = MagicMock()
+    hass = AsyncMock()
     config_entry = MagicMock()
     config_entry.entry_id = "test"
     config_entry.unique_id = "test"
     config_entry.options = {}
+    config_entry.data.get.return_value = None  # Ensure we don't get a mock URL
     hass.data = {
         "meraki_ha": {
             "test": {
@@ -17,7 +18,16 @@ async def main():
         }
     }
 
-    with patch("homeassistant.helpers.device_registry.async_get", MagicMock()):
+    with patch("custom_components.meraki_ha.MerakiAPIClient") as mock_api_client, patch(
+        "custom_components.meraki_ha.MerakiDataCoordinator.async_refresh",
+        new_callable=AsyncMock,
+    ), patch(
+        "homeassistant.helpers.device_registry.async_get", MagicMock()
+    ), patch(
+        "custom_components.meraki_ha.webhook.get_url",
+        return_value="https://example.com",
+    ):
+        mock_api_client.return_value = AsyncMock()
         from custom_components.meraki_ha import async_setup_entry
         from custom_components.meraki_ha.sensor import (
             async_setup_entry as sensor_async_setup_entry,
