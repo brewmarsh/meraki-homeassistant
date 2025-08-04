@@ -13,7 +13,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ..const import DOMAIN, DATA_CLIENT, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ..core.api.client import MerakiAPIClient
 from ..core.coordinators.network import MerakiNetworkCoordinator
-from ..helpers.entity_helpers import format_entity_name
+from ..helpers.entity_helpers import format_name
 from homeassistant.helpers.entity import EntityCategory
 from ..core.utils.naming_utils import format_device_name
 
@@ -39,6 +39,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiNetworkCoordinator], SwitchEn
         super().__init__(coordinator)
         self._meraki_client = meraki_client
         self._config_entry = config_entry
+        self._ssid = ssid_data
         self._ssid_unique_id = (
             ssid_unique_id  # This is the HA device unique ID for the SSID "device".
         )
@@ -59,8 +60,8 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiNetworkCoordinator], SwitchEn
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            f"{base_name} {switch_type.capitalize()} Control", "switch", name_format
+        self._attr_name = format_name(
+            f'{self._ssid["name"]} SSID', "switch", name_format, apply_format=False
         )
 
         # This attribute determines which key in the SSID data dict corresponds to this switch's state.

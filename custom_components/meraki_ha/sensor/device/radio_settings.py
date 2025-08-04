@@ -18,7 +18,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-from ...helpers.entity_helpers import format_entity_name
+from ...helpers.entity_helpers import format_name
 
 # Assuming this function is correctly defined in the meraki_api package
 # from .meraki_api.wireless import get_meraki_device_wireless_radio_settings
@@ -79,8 +79,8 @@ class MerakiRadioSettingsSensor(
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            f"{device_name} Radio Settings", "sensor", name_format
+        self._attr_name = format_name(
+            f"{device_name} Radio Settings", "sensor", name_format, apply_format=False
         )
         self._attr_unique_id = f"{device_serial}_radio_settings"
 

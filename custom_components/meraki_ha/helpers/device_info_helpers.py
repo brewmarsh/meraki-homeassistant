@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..const import DOMAIN
-from .entity_helpers import format_entity_name as format_device_name
+from .entity_helpers import format_name as format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -59,6 +59,7 @@ def resolve_device_info(
         device_name=device_name or "Unknown Meraki Device",
         device_type=device_model or "Device",
         name_format=device_name_format_option,
+        apply_format=True,
     )
 
     return DeviceInfo(

@@ -10,7 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...core.coordinators.network import MerakiNetworkCoordinator
-from ...helpers.entity_helpers import format_entity_name
+from ...helpers.entity_helpers import format_name
 from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,6 +32,7 @@ class MerakiNetworkInfoSensor(
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
+        self._network = network_data
         self._network_id: str = network_data.get("id", "")
         self._attr_unique_id = f"{self._network_id}_network_info"
         # self.entity_id = f"sensor.{DOMAIN}_{self._network_id}_network_info" # Let HA generate
@@ -45,8 +46,11 @@ class MerakiNetworkInfoSensor(
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            "Network Information", "sensor", name_format
+        self._attr_name = format_name(
+            f"{self._network['name']} Network Info",
+            "sensor",
+            name_format,
+            apply_format=False,
         )
 
         self._attr_extra_state_attributes: Dict[str, Any] = {}

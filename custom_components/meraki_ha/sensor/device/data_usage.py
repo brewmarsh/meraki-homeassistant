@@ -11,7 +11,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...core.coordinators.device import MerakiDeviceCoordinator
-from ...helpers.entity_helpers import format_entity_name
+from ...helpers.entity_helpers import format_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,8 +40,11 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEn
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            f"{self._device['name']} Data Usage", "sensor", name_format
+        device_name = self._device.get(
+            "name", self._device.get("serial", "Unknown Device")
+        )
+        self._attr_name = format_name(
+            f"{device_name} Data Usage", "sensor", name_format, apply_format=False
         )
 
     @property

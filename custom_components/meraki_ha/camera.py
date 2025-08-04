@@ -21,7 +21,7 @@ from .const import (
     DEFAULT_DEVICE_NAME_FORMAT,
 )
 from .core.coordinators.device import MerakiDeviceCoordinator
-from .helpers.entity_helpers import format_entity_name
+from .helpers.entity_helpers import format_name
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -67,11 +67,11 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
+        self._attr_name = format_name(
             self._device["name"],
             self._device.get("productType", "camera"),
             name_format,
-            apply_prefix=True,
+            apply_format=False,
         )
         self._attr_supported_features = CameraEntityFeature.STREAM
         self._rtsp_url: Optional[str] = None

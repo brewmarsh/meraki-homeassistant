@@ -10,7 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...core.coordinators.device import MerakiDeviceCoordinator
-from ...helpers.entity_helpers import format_entity_name
+from ...helpers.entity_helpers import format_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,11 +47,11 @@ class MerakiAppliancePortSensor(
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
+        self._attr_name = format_name(
             f"{self._device['name']} Port {self._port['number']}",
             "port",
             name_format,
-            apply_prefix=False,
+            apply_format=False,
         )
         self._attr_icon = "mdi:ethernet-port"
 
