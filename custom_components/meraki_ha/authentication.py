@@ -84,7 +84,7 @@ class MerakiAuthentication:
             # Assuming client.organizations.getOrganizations exists and returns
             # a list of dicts, each with an 'id' key.
             all_organizations: List[Dict[str, Any]] = (
-                await client.organization.get_organizations()
+                await client.organizations.get_organizations()
             )
 
             # Initialize fetched_org_name

@@ -18,7 +18,7 @@ async def test_validate_meraki_credentials(hass: HomeAssistant) -> None:
     with patch(
         "custom_components.meraki_ha.authentication.MerakiAPIClient"
     ) as mock_client:
-        mock_client.return_value.organization.get_organizations = AsyncMock(
+        mock_client.return_value.organizations.get_organizations = AsyncMock(
             return_value=[{"id": "test-org-id", "name": "Test Org"}]
         )
         mock_client.return_value.close = AsyncMock()
@@ -32,7 +32,7 @@ async def test_validate_meraki_credentials_invalid_org(hass: HomeAssistant) -> N
     with patch(
         "custom_components.meraki_ha.authentication.MerakiAPIClient"
     ) as mock_client:
-        mock_client.return_value.organization.get_organizations = AsyncMock(
+        mock_client.return_value.organizations.get_organizations = AsyncMock(
             return_value=[{"id": "other-org-id", "name": "Other Org"}]
         )
         mock_client.return_value.close = AsyncMock()
@@ -46,7 +46,7 @@ async def test_validate_meraki_credentials_auth_failed(hass: HomeAssistant) -> N
     with patch(
         "custom_components.meraki_ha.authentication.MerakiAPIClient"
     ) as mock_client:
-        mock_client.return_value.organization.get_organizations = AsyncMock(
+        mock_client.return_value.organizations.get_organizations = AsyncMock(
             side_effect=MerakiError("test")
         )
         mock_client.return_value.close = AsyncMock()

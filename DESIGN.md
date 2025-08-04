@@ -83,13 +83,3 @@ The device sensor platforms in `custom_components/meraki_ha/sensor/device` have 
 *   **`_get_current_device_data` method:** The base class could provide a helper method to get the current device data from the coordinator.
 
 By creating a base class, we can significantly reduce the amount of duplicated code and make the sensor platforms easier to maintain.
-
-## Device Naming
-
-The integration provides a flexible device naming strategy that can be configured by the user. The `device_name_format` option allows the user to choose between three formats:
-
-*   **`prefix`**: The device name will be prefixed with the device type (e.g., `[Wireless] My AP`).
-*   **`suffix`**: The device name will be suffixed with the device type (e.g., `My AP [Wireless]`).
-*   **`omit`**: The device type will not be included in the device name.
-
-The naming logic is implemented in the `format_device_name` function in `custom_components/meraki_ha/core/utils/naming_utils.py`. This function handles the different device types and formats the name according to the user's preference. Physical devices (switches, appliances, cameras, wireless APs, and sensors) will have a device type prefix or suffix. Other entities like SSIDs and networks will not have a prefix or suffix, to avoid confusing names like `[Device] My SSID`.
