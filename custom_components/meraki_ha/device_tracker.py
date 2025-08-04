@@ -13,7 +13,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-from .helpers.entity_helpers import format_name
+from .helpers.entity_helpers import format_entity_name
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -64,12 +64,11 @@ class MerakiDeviceTracker(CoordinatorEntity[MerakiDataCoordinator], TrackerEntit
         name_format = self.coordinator.config_entry.options.get(
             "device_name_format", "prefix"
         )
-        self._attr_name = format_name(
+        self._attr_name = format_entity_name(
             self._client_info_data.get("description")
             or self._client_info_data.get("ip"),
             "client",
             name_format,
-            apply_format=False,
         )
         self._attr_unique_id = f"{self._client_info_data['mac']}_client_tracker"
         self._update_attributes()

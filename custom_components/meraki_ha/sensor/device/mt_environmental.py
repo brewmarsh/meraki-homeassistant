@@ -18,7 +18,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...core.coordinators.device import MerakiDeviceCoordinator
-from ...helpers.entity_helpers import format_name
+from ...helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -45,11 +45,8 @@ class MerakiTemperatureSensor(CoordinatorEntity[MerakiDeviceCoordinator], Sensor
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        device_name = self._device.get(
-            "name", self._device.get("serial", "Unknown Device")
-        )
-        self._attr_name = format_name(
-            f"{device_name} Temperature", "sensor", name_format, apply_format=False
+        self._attr_name = format_entity_name(
+            f"{self._device['name']} Temperature", "sensor", name_format
         )
 
     @property
@@ -106,11 +103,8 @@ class MerakiHumiditySensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEnt
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        device_name = self._device.get(
-            "name", self._device.get("serial", "Unknown Device")
-        )
-        self._attr_name = format_name(
-            f"{device_name} Humidity", "sensor", name_format, apply_format=False
+        self._attr_name = format_entity_name(
+            f"{self._device['name']} Humidity", "sensor", name_format
         )
 
     @property
@@ -167,11 +161,8 @@ class MerakiWaterDetectionSensor(
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        device_name = self._device.get(
-            "name", self._device.get("serial", "Unknown Device")
-        )
-        self._attr_name = format_name(
-            f"{device_name} Water Leak", "sensor", name_format, apply_format=False
+        self._attr_name = format_entity_name(
+            f"{self._device['name']} Water Detection", "sensor", name_format
         )
 
     @property

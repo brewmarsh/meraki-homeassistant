@@ -27,11 +27,16 @@ def format_device_name(device: Dict[str, Any], config: Dict[str, Any]) -> str:
     name_format = config.get(CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT)
     _LOGGER.debug(f"Formatting device name with format: {name_format}")
     product_type = device.get("productType", "Unknown")
+    if product_type in ["switch", "appliance", "camera", "wireless", "sensor"]:
+        product_type = product_type.capitalize()
+    else:
+        product_type = "Device"
+
 
     if name_format == DEVICE_NAME_FORMAT_PREFIX:
-        return f"[{product_type.capitalize()}] {name}"
+        return f"[{product_type}] {name}"
     if name_format == DEVICE_NAME_FORMAT_SUFFIX:
-        return f"{name} [{product_type.capitalize()}]"
+        return f"{name} [{product_type}]"
     if name_format == DEVICE_NAME_FORMAT_OMIT:
         return name
     return name

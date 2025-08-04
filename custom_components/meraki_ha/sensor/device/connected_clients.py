@@ -16,7 +16,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 from ...core.coordinators.device import MerakiDeviceCoordinator
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-from ...helpers.entity_helpers import format_name
+from ...helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -69,11 +69,8 @@ class MerakiDeviceConnectedClientsSensor(
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_name(
-            f"{device_name} Connected Clients",
-            "sensor",
-            name_format,
-            apply_format=False,
+        self._attr_name = format_entity_name(
+            f"{device_name} Connected Clients", "sensor", name_format
         )
         self._attr_unique_id = f"{device_serial}_connected_clients"
 

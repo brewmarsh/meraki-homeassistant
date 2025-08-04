@@ -5,15 +5,15 @@ from typing import Any, Dict, Optional
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..const import DOMAIN
-from .entity_helpers import format_name as format_device_name
+from ..core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
 def resolve_device_info(
     entity_data: Dict[str, Any],
+    config_entry: Dict[str, Any],
     ssid_data: Optional[Dict[str, Any]] = None,
-    device_name_format_option: str = "prefix",
 ) -> Optional[DeviceInfo]:
     """
     Resolve the DeviceInfo for a Meraki entity.
@@ -56,10 +56,8 @@ def resolve_device_info(
         return None
 
     formatted_device_name = format_device_name(
-        device_name=device_name or "Unknown Meraki Device",
-        device_type=device_model or "Device",
-        name_format=device_name_format_option,
-        apply_format=True,
+        device=entity_data,
+        config=config_entry.options,
     )
 
     return DeviceInfo(

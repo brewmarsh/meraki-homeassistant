@@ -46,8 +46,8 @@ class MerakiEntity(CoordinatorEntity[MerakiDeviceCoordinator]):
         """Return device information for linking this entity to the registry."""
         return resolve_device_info(
             entity_data=self._device_info_data,
+            config_entry=self.coordinator.config_entry,
             ssid_data=self._ssid_info_data,
-            device_name_format_option=self.coordinator.device_name_format,
         )
 
     @property
