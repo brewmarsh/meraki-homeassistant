@@ -47,8 +47,7 @@ async def async_setup_entry(
             for device in meraki_device_coordinator.data.get("devices", [])
             if device.get("productType") == "camera"
         ]
-        async_add_entities(entities, True)
-    return True
+        await async_add_entities(entities, True)
 
 
 class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
@@ -72,7 +71,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
             self._device["name"],
             self._device.get("productType", "camera"),
             name_format,
-            apply_prefix=True,
+            apply_format=False,
         )
         self._attr_supported_features = CameraEntityFeature.STREAM
         self._rtsp_url: Optional[str] = None

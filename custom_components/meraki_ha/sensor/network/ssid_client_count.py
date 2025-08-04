@@ -61,7 +61,7 @@ class MerakiSSIDClientCountSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            f"{ssid_name} Client Count", "sensor", name_format
+            f"{ssid_name} Client Count", "sensor", name_format, apply_format=False
         )
         self._attr_unique_id = f"{self._ssid_data['unique_id']}_client_count"
 

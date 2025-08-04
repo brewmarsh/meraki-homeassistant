@@ -60,7 +60,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiNetworkCoordinator], SwitchEn
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            f"{base_name} {switch_type.capitalize()} Control", "switch", name_format
+            f"{base_name} {switch_type.capitalize()} Control", "switch", name_format, apply_format=False
         )
 
         # This attribute determines which key in the SSID data dict corresponds to this switch's state.

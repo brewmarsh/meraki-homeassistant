@@ -46,7 +46,7 @@ class MerakiNetworkInfoSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            "Network Information", "sensor", name_format
+            "Network Information", "sensor", name_format, apply_format=False
         )
 
         self._attr_extra_state_attributes: Dict[str, Any] = {}

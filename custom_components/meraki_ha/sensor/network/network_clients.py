@@ -37,7 +37,7 @@ class MerakiNetworkClientsSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            f"{network_name} Clients", "sensor", name_format
+            f"{network_name} Clients", "sensor", name_format, apply_format=False
         )
         self._attr_unique_id = f"meraki_network_clients_{network_id}"
         self._attr_native_value = 0
