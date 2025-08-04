@@ -87,3 +87,17 @@ class OrganizationEndpoints:
             _LOGGER.warning("get_devices did not return a list, returning empty list.")
             return []
         return validated
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=3600)
+    async def get_organizations(self) -> List[Dict[str, Any]]:
+        """Get all organizations accessible by the API key."""
+        _LOGGER.debug("Getting all organizations")
+        orgs = await self._api_client._run_sync(
+            self._dashboard.organizations.getOrganizations
+        )
+        validated = validate_response(orgs)
+        if not isinstance(validated, list):
+            _LOGGER.warning("get_organizations did not return a list.")
+            return []
+        return validated

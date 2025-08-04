@@ -66,35 +66,21 @@ class MerakiAuthentication:
 
         try:
             _LOGGER.debug(
-                "Fetching networks for organization %s using Meraki SDK",
-                self.organization_id,
-            )  # This log line might become inaccurate
-            # networks: List[Dict[str, Any]] = await client.networks.get_organization_networks(
-            #     organization_id=self.organization_id
-            # )
-
-            # if not networks:
-            #     _LOGGER.warning("No networks found for organization %s. This might be due to the organization having no networks or restricted API key permissions.", self.organization_id)
-            #     raise ValueError(f"No networks found for the organization {self.organization_id}.")
-
-            _LOGGER.debug(
                 "Fetching all organizations accessible by the API key to validate Organization ID %s",
                 self.organization_id,
             )
-            # Assuming client.organizations.getOrganizations exists and returns
-            # a list of dicts, each with an 'id' key.
+
             all_organizations: List[Dict[str, Any]] = (
-                await client.organizations.get_organizations()
+                await client.organization.get_organizations()
             )
 
-            # Initialize fetched_org_name
-            fetched_org_name: Optional[str] = None
             org_found = False
-            if all_organizations:  # Ensure all_organizations is not None or empty
+            fetched_org_name: Optional[str] = None
+
+            if all_organizations:
                 for org in all_organizations:
                     if org.get("id") == self.organization_id:
                         org_found = True
-                        # Store the organization name
                         fetched_org_name = org.get("name")
                         break
 
