@@ -54,7 +54,7 @@ async def test_meraki_ssid_enabled_switch(
     )
 
     assert switch.is_on is True
-    assert switch.name == "[Ssid] Test SSID Enabled Control"
+    assert switch.name == "Test SSID Enabled Control"
 
     await switch.async_turn_off()
     mock_meraki_client.update_network_wireless_ssid.assert_called_with(
@@ -72,7 +72,7 @@ async def test_meraki_ssid_broadcast_switch(
     )
 
     assert switch.is_on is True
-    assert switch.name == "[Ssid] Test SSID Broadcast Control"
+    assert switch.name == "Test SSID Broadcast Control"
 
     await switch.async_turn_off()
     mock_meraki_client.update_network_wireless_ssid.assert_called_with(

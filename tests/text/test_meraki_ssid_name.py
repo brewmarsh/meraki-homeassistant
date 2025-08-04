@@ -57,7 +57,7 @@ async def test_meraki_ssid_name_text(
     text.entity_id = "text.test_ssid"
 
     assert text.native_value == "Test SSID"
-    assert text.name == "[Ssid] Test SSID"
+    assert text.name == "Test SSID"
 
     await text.async_set_value("New Name")
     mock_meraki_client.update_network_wireless_ssid.assert_called_with(
