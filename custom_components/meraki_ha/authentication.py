@@ -81,8 +81,6 @@ class MerakiAuthentication:
                 "Fetching all organizations accessible by the API key to validate Organization ID %s",
                 self.organization_id,
             )
-            _LOGGER.debug(f"Client object: {client}")
-            _LOGGER.debug(f"Client dir: {dir(client)}")
             # Assuming client.organizations.getOrganizations exists and returns
             # a list of dicts, each with an 'id' key.
             all_organizations: List[Dict[str, Any]] = (
