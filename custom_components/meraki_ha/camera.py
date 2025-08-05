@@ -72,7 +72,8 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
             CONF_AUTO_ENABLE_RTSP, False
         )
         self._use_lan_ip_for_rtsp = self.coordinator.config_entry.options.get(
-            CONF_USE_LAN_IP_FOR_RTSP, False
+            CONF_USE_LAN_IP_FOR_RTSP,
+            self.coordinator.config_entry.data.get(CONF_USE_LAN_IP_FOR_RTSP, False),
         )
         self._attr_unique_id = f"{self._device['serial']}-camera"
         name_format = self.coordinator.config_entry.options.get(
