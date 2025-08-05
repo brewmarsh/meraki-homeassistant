@@ -32,7 +32,6 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
 
         This is the place to fetch data from the API and return it.
         """
-        _LOGGER.debug("Fetching data with MerakiDataCoordinator")
         try:
             # In future steps, we will implement the full data fetching logic here.
             # For now, we return a placeholder dictionary.

@@ -74,14 +74,6 @@ class MerakiSSIDClientCountSensor(
 
         # Set initial state
         self._update_sensor_state()
-        # _LOGGER.debug(
-        #   "MerakiSSIDClientCountSensor Initialized: Name: %s, Unique ID: %s, SSID Data: %s",
-        #   self._attr_name,
-        #   self._attr_unique_id,
-        #   {
-        #     key: ssid_data.get(key) for key in ["name", "unique_id", "client_count"]
-        #   },
-        # ) # Removed
 
     def _update_sensor_state(self) -> None:
         """Update the sensor's state using the latest data from the coordinator.
@@ -101,11 +93,6 @@ class MerakiSSIDClientCountSensor(
             if isinstance(client_count, int):
                 self._attr_native_value = client_count
             else:
-                # _LOGGER.debug( # State will be 0, this log is not critical
-                #   "SSID '%s' (ID: %s) has no 'client_count' information or it's not an int. Setting to 0.",
-                #   self._ssid_data.get("name"),
-                #   self._ssid_data.get("unique_id"),
-                # ) # Removed
                 self._attr_native_value = 0
         else:
             _LOGGER.warning(  # Keep warning for missing data

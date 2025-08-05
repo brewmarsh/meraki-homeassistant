@@ -65,7 +65,6 @@ class MerakiNetworkInfoSensor(
         if not networks:
             self._attr_native_value = "Unknown"
             self._attr_extra_state_attributes = {}
-            _LOGGER.debug("No networks found in coordinator data")
             return
 
         current_network_data = None
@@ -94,13 +93,6 @@ class MerakiNetworkInfoSensor(
             self._attr_extra_state_attributes = {
                 k: v for k, v in attributes.items() if v is not None
             }
-
-        # _LOGGER.debug(
-        #     "Network Info Sensor update for %s: state=%s, attributes=%s",
-        #     self._device_serial,
-        #     self._attr_native_value,
-        #     self._attr_extra_state_attributes,
-        # ) # Removed
 
     @callback
     def _handle_coordinator_update(self) -> None:

@@ -21,7 +21,6 @@ class CameraEndpoints:
     @async_timed_cache()
     async def get_camera_sense_settings(self, serial: str) -> Dict[str, Any]:
         """Get sense settings for a specific camera."""
-        _LOGGER.debug("Getting camera sense settings for serial: %s", serial)
         settings = await self._api_client._run_sync(
             self._dashboard.camera.getDeviceCameraSense, serial=serial
         )
@@ -31,7 +30,6 @@ class CameraEndpoints:
     @async_timed_cache()
     async def get_camera_video_settings(self, serial: str) -> Dict[str, Any]:
         """Get video settings for a specific camera."""
-        _LOGGER.debug("Getting camera video settings for serial: %s", serial)
         settings = await self._api_client._run_sync(
             self._dashboard.camera.getDeviceCameraVideoSettings, serial=serial
         )
@@ -41,7 +39,6 @@ class CameraEndpoints:
     @async_timed_cache(timeout=30)
     async def get_device_camera_video_link(self, serial: str) -> Dict[str, Any]:
         """Get video link for a specific camera."""
-        _LOGGER.debug("Getting camera video link for serial: %s", serial)
         link = await self._api_client._run_sync(
             self._dashboard.camera.getDeviceCameraVideoLink, serial=serial
         )
@@ -50,7 +47,6 @@ class CameraEndpoints:
     @handle_meraki_errors
     async def update_camera_video_settings(self, serial: str, **kwargs) -> None:
         """Update video settings for a specific camera."""
-        _LOGGER.debug("Updating camera video settings for serial: %s", serial)
         await self._api_client._run_sync(
             self._dashboard.camera.updateDeviceCameraVideoSettings,
             serial=serial,

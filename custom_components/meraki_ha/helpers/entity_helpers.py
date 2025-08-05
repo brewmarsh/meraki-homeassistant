@@ -18,13 +18,6 @@ def format_entity_name(
     apply_format: bool = False,
 ) -> str:
     """Format the entity name based on the user's selection."""
-    _LOGGER.debug(
-        "Formatting entity name: device_name=%s, device_type=%s, name_format=%s, apply_format=%s",
-        device_name,
-        device_type,
-        name_format,
-        apply_format,
-    )
     if apply_format:
         if name_format == DEVICE_NAME_FORMAT_PREFIX:
             return f"[{device_type.capitalize()}] {device_name}"

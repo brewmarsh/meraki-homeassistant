@@ -63,7 +63,6 @@ async def async_setup_entry(
             model = str(device_info.get("model", "")).upper()
 
             if serial and (product_type == "camera" or model.startswith("MV")):
-                # _LOGGER.debug("Found camera %s (%s), adding setting switches.", device_info.get('name', serial), serial) # Removed
                 new_entities.extend(
                     [
                         MerakiCameraSenseSwitch(
@@ -84,7 +83,6 @@ async def async_setup_entry(
 
     # Setup SSID Switches
     if coordinator and coordinator.data and "ssids" in coordinator.data:
-        # _LOGGER.debug("SSID Coordinator data available, setting up SSID switches. %s SSIDs found.", len(coordinator.data)) # Removed
         for ssid_data in coordinator.data["ssids"]:
             if not isinstance(ssid_data, dict):
                 continue
@@ -92,7 +90,6 @@ async def async_setup_entry(
             if "networkId" not in ssid_data or "number" not in ssid_data:
                 continue
             ssid_unique_id = f'{ssid_data["networkId"]}_{ssid_data["number"]}'
-            # _LOGGER.debug("Setting up switches for SSID: %s (Data: %s)", ssid_data.get('name', ssid_unique_id), ssid_data) # Removed
             new_entities.extend(
                 [
                     MerakiSSIDEnabledSwitch(

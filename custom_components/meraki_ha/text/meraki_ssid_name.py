@@ -115,12 +115,6 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiNetworkCoordinator], TextEntity
             )
             return
 
-        # _LOGGER.debug(
-        #   "Attempting to set SSID name for network %s, SSID number %s to: %s",
-        #   self._network_id,
-        #   self._ssid_number,
-        #   value,
-        # ) # Removed
         try:
             await self._meraki_client.update_network_wireless_ssid(
                 network_id=self._network_id,

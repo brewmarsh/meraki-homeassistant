@@ -59,7 +59,6 @@ class MerakiAPIClient:
 
     async def _run_sync(self, func, *args, **kwargs) -> Any:
         """Run a synchronous function in a thread pool."""
-        _LOGGER.debug("Running synchronous function: %s", func.__name__)
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, partial(func, *args, **kwargs))
 

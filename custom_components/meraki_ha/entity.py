@@ -35,12 +35,6 @@ class MerakiEntity(CoordinatorEntity[MerakiDeviceCoordinator]):
             "name"
         ) or self._device_serial
 
-        _LOGGER.debug(
-            "MerakiEntity: Initializing for device S/N: %s, Name: %s",
-            self._device_serial,
-            self._device_name,
-        )
-
     @property
     def device_info(self) -> Optional[DeviceInfo]:
         """Return device information for linking this entity to the registry."""

@@ -56,17 +56,7 @@ class MerakiNetworkClientsSensor(
 
     def _update_state_from_coordinator(self) -> None:
         """Update the sensor's state from coordinator data."""
-        _LOGGER.debug(
-            "Updating Meraki Network Clients sensor for network %s (ID: %s) from coordinator data.",
-            self._network_name,
-            self._network_id,
-        )
         if self.coordinator.data is None or "clients" not in self.coordinator.data:
-            _LOGGER.debug(
-                "Coordinator data or 'clients' key is missing for network %s (ID: %s). Setting to 0 clients.",
-                self._network_name,
-                self._network_id,
-            )
             self._attr_native_value = 0
             clients_for_network: List[Dict[str, Any]] = []
         else:
@@ -77,12 +67,6 @@ class MerakiNetworkClientsSensor(
                 if client.get("networkId") == self._network_id
             ]
             self._attr_native_value = len(clients_for_network)
-            _LOGGER.debug(
-                "Found %d clients for network %s (ID: %s) after filtering.",
-                len(clients_for_network),
-                self._network_name,
-                self._network_id,
-            )
 
         self._attr_extra_state_attributes = {
             "network_id": self._network_id,

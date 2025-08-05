@@ -73,14 +73,6 @@ class MerakiSSIDAvailabilitySensor(
 
         # Set initial state
         self._update_sensor_state()
-        # _LOGGER.debug(
-        #   "MerakiSSIDAvailabilitySensor Initialized: Name: %s, Unique ID: %s, SSID Data: %s",
-        #   self._attr_name,
-        #   self._attr_unique_id,
-        #   {
-        #     key: ssid_data.get(key) for key in ["name", "unique_id", "enabled"]
-        #   },
-        # ) # Removed
 
     def _update_sensor_state(self) -> None:
         """Update the sensor's state based on coordinator data for this SSID."""

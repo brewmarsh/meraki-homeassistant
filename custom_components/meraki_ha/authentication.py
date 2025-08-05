@@ -17,9 +17,6 @@ from .core.api.client import MerakiAPIClient
 
 _LOGGER = logging.getLogger(__name__)
 
-_LOGGER.debug("meraki_ha authentication.py loaded (SDK version)")
-
-
 class MerakiAuthentication:
     """Class to handle Meraki API authentication using the Meraki SDK.
 
@@ -54,10 +51,6 @@ class MerakiAuthentication:
             MerakiSDKAPIError: For other Meraki API errors not handled as ConfigEntryAuthFailed.
             Exception: For other unexpected errors during validation.
         """
-        _LOGGER.debug(
-            "Preparing to validate Meraki credentials for organization %s using SDK",
-            self.organization_id,
-        )
         # Corrected attribute names to self.api_key and self.organization_id as per
         # class __init__
         client: MerakiAPIClient = MerakiAPIClient(
@@ -65,11 +58,6 @@ class MerakiAuthentication:
         )
 
         try:
-            _LOGGER.debug(
-                "Fetching all organizations accessible by the API key to validate Organization ID %s",
-                self.organization_id,
-            )
-
             all_organizations: List[Dict[str, Any]] = (
                 await client.organization.get_organizations()
             )
@@ -161,11 +149,6 @@ class MerakiAuthentication:
             raise ConfigEntryAuthFailed(
                 f"Unexpected error during validation for org {self.organization_id}: {e}"
             ) from e
-        finally:
-            _LOGGER.debug(
-                "Credential validation finished for org %s.",
-                self.organization_id,
-            )
 
 
 async def validate_meraki_credentials(

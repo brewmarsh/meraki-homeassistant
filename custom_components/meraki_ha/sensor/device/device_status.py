@@ -102,11 +102,6 @@ class MerakiDeviceStatusSensor(
 
         # Initial update of state and attributes
         self._update_sensor_data()
-        # _LOGGER.debug(
-        #   "MerakiDeviceStatusSensor Initialized for %s (Serial: %s)",
-        #   device_name_for_registry,
-        #   self._device_serial,
-        # ) # Removed
 
     @property
     def icon(self) -> str:
@@ -125,11 +120,6 @@ class MerakiDeviceStatusSensor(
             for dev_data in self.coordinator.data["devices"]:
                 if dev_data.get("serial") == self._device_serial:
                     return dev_data
-        # _LOGGER.debug( # Already handled by available property / state becoming None
-        #   "Device data for serial '%s' not found in coordinator for sensor '%s'.",
-        #   self._device_serial,
-        #   self.unique_id,
-        # ) # Removed
         return None
 
     def _update_sensor_data(self) -> None:

@@ -30,8 +30,6 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-_LOGGER.debug("meraki_ha config_flow.py loaded")
-
 
 class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Meraki."""

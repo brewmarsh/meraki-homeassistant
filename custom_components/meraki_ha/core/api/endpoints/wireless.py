@@ -21,7 +21,6 @@ class WirelessEndpoints:
     @async_timed_cache()
     async def get_network_ssids(self, network_id: str) -> List[Dict[str, Any]]:
         """Get all SSIDs for a network."""
-        _LOGGER.debug("Getting SSIDs for network: %s", network_id)
         ssids = await self._api_client._run_sync(
             self._dashboard.wireless.getNetworkWirelessSsids, networkId=network_id
         )
@@ -35,7 +34,6 @@ class WirelessEndpoints:
     @async_timed_cache()
     async def get_wireless_settings(self, serial: str) -> Dict[str, Any]:
         """Get wireless radio settings for an access point."""
-        _LOGGER.debug("Getting wireless settings for serial: %s", serial)
         settings = await self._api_client._run_sync(
             self._dashboard.wireless.getDeviceWirelessRadioSettings, serial=serial
         )
@@ -46,7 +44,6 @@ class WirelessEndpoints:
         self, network_id: str, number: str, **kwargs
     ) -> Dict[str, Any]:
         """Update an SSID."""
-        _LOGGER.debug("Updating SSID %s on network %s", number, network_id)
         ssid = await self._api_client._run_sync(
             self._dashboard.wireless.updateNetworkWirelessSsid,
             networkId=network_id,
