@@ -45,7 +45,6 @@ async def async_setup_entry(
             MerakiCamera(
                 meraki_device_coordinator,
                 device,
-                config_entry.options.get(CONF_AUTO_ENABLE_RTSP, False),
             )
             for device in meraki_device_coordinator.data.get("devices", [])
             if device.get("productType") == "camera"
@@ -64,13 +63,14 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
         self,
         coordinator: MerakiDeviceCoordinator,
         device: Dict[str, Any],
-        auto_enable_rtsp: bool = False,
     ) -> None:
         """Initialize the camera."""
         super().__init__(coordinator)
         Camera.__init__(self)  # Initialize the Camera class properly
         self._device = device
-        self._auto_enable_rtsp = auto_enable_rtsp
+        self._auto_enable_rtsp = self.coordinator.config_entry.options.get(
+            CONF_AUTO_ENABLE_RTSP, False
+        )
         self._use_lan_ip_for_rtsp = self.coordinator.config_entry.options.get(
             CONF_USE_LAN_IP_FOR_RTSP, False
         )

@@ -54,7 +54,7 @@ async def test_camera_entity(hass: HomeAssistant, mock_device_coordinator):
         entry_id="test_entry_id",
         title="Test Org",
         data={},
-        options={CONF_AUTO_ENABLE_RTSP: False},
+        options={},
     )
     config_entry.add_to_hass(hass)
     mock_device_coordinator.config_entry = config_entry
