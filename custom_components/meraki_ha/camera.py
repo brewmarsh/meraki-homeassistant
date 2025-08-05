@@ -140,12 +140,6 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
         """Return a still image from the camera."""
         return None
 
-    async def play_stream(self, source: str, quality: str) -> None:
-        """Play a stream."""
-        if self._rtsp_url:
-            self.stream.source = self._rtsp_url
-            self.stream.start()
-
     @property
     def entity_picture(self) -> str | None:
         """Return the entity picture to use in the frontend, if any."""
