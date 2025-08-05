@@ -12,7 +12,9 @@ from ..core.coordinators.device import MerakiDeviceCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiCameraSettingSwitchBase(CoordinatorEntity[MerakiDeviceCoordinator], SwitchEntity):
+class MerakiCameraSettingSwitchBase(
+    CoordinatorEntity[MerakiDeviceCoordinator], SwitchEntity
+):
     """Base class for a Meraki Camera Setting Switch."""
 
     def __init__(
@@ -40,7 +42,7 @@ class MerakiCameraSettingSwitchBase(CoordinatorEntity[MerakiDeviceCoordinator], 
         # The state is now derived from the coordinator's data
         for device in self.coordinator.data.get("devices", []):
             if device.get("serial") == self._device_data["serial"]:
-                keys = self._api_field.split('.')
+                keys = self._api_field.split(".")
                 value = device
                 for key in keys:
                     if isinstance(value, dict):
@@ -61,16 +63,19 @@ class MerakiCameraSettingSwitchBase(CoordinatorEntity[MerakiDeviceCoordinator], 
     async def _async_update_setting(self, is_on: bool) -> None:
         """Update the setting via the Meraki API."""
         try:
-            # Construct the payload based on the nested API field
-            payload = {self._api_field: is_on}
-
             if "sense" in self._api_field:
                 await self.client.camera.update_camera_sense_settings(
-                    serial=self._device_data["serial"], **payload
+                    serial=self._device_data["serial"], **{self._api_field: is_on}
                 )
             else:
+                # The video settings API requires externalRtspEnabled as the key
+                field_name = (
+                    "externalRtspEnabled"
+                    if self._api_field == "video_settings.externalRtspEnabled"
+                    else self._api_field
+                )
                 await self.client.camera.update_camera_video_settings(
-                    serial=self._device_data["serial"], **payload
+                    serial=self._device_data["serial"], **{field_name: is_on}
                 )
             # Optimistically update the state
             # This assumes the API call will succeed

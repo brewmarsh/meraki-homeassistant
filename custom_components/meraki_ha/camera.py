@@ -178,3 +178,23 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
                     self._rtsp_url = None
                 self.async_write_ha_state()
                 return
+
+    async def async_stream(self) -> dict:
+        """Return streaming information."""
+        if not self._rtsp_url:
+            if self._auto_enable_rtsp:
+                await self._enable_rtsp()
+                # Give the camera a moment to enable RTSP
+                await asyncio.sleep(2)
+                # Refresh to get the new RTSP URL
+                await self.coordinator.async_request_refresh()
+            else:
+                return {}
+
+        if not self._rtsp_url:
+            return {}
+
+        return {
+            "stream_source": self._rtsp_url,
+            "use_stream_source": True,
+        }
