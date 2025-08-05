@@ -74,7 +74,9 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
             name_format,
             apply_format=False,
         )
-        self._attr_supported_features = CameraEntityFeature.STREAM
+        self._attr_supported_features = (
+            CameraEntityFeature.STREAM | CameraEntityFeature.PLAY_STREAM
+        )
         self._rtsp_url: Optional[str] = None
         self._webrtc_provider = None
         self._legacy_webrtc_provider = None

@@ -62,15 +62,7 @@ class MerakiCameraSettingSwitchBase(CoordinatorEntity[MerakiDeviceCoordinator], 
         """Update the setting via the Meraki API."""
         try:
             # Construct the payload based on the nested API field
-            payload = {}
-            keys = self._api_field.split('.')
-            current_level = payload
-            for i, key in enumerate(keys):
-                if i == len(keys) - 1:
-                    current_level[key] = is_on
-                else:
-                    current_level[key] = {}
-                    current_level = current_level[key]
+            payload = {self._api_field: is_on}
 
             if "sense" in self._api_field:
                 await self.client.camera.update_camera_sense_settings(
