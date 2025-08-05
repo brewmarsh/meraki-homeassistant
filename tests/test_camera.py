@@ -95,9 +95,11 @@ async def test_camera_entity(hass: HomeAssistant, mock_device_coordinator):
 
 @pytest.mark.asyncio
 async def test_camera_auto_enable_rtsp(hass: HomeAssistant, mock_device_coordinator):
-    """Test the camera entity with auto-enable RTSP."""
+    """Test the camera entity with proactive auto-enable RTSP."""
     mock_api_client = AsyncMock()
-    mock_device_coordinator.hass = hass  # Set the hass object on the mock coordinator
+    # Make the underlying API call method an async mock
+    mock_api_client._dashboard.camera.updateDeviceCameraVideoSettings = AsyncMock()
+    mock_device_coordinator.hass = hass
 
     config_entry = MockConfigEntry(
         domain=DOMAIN,
@@ -120,22 +122,15 @@ async def test_camera_auto_enable_rtsp(hass: HomeAssistant, mock_device_coordina
     await async_setup_entry(hass, config_entry, async_add_entities)
     await hass.async_block_till_done()
 
-    assert async_add_entities.call_count == 1
-    entities = async_add_entities.call_args[0][0]
-    camera2 = entities[1]
+    # Verify that the API was called to enable RTSP for the second camera,
+    # which has it disabled in the mock data.
+    mock_api_client._dashboard.camera.updateDeviceCameraVideoSettings.assert_called_once_with(
+        serial="Q234-EFGH-9012",
+        externalRtspEnabled=True,
+    )
 
-    # Attach the hass object to the camera instance
-    camera2.hass = hass
-
-    # Mock the _enable_rtsp method to verify it's called
-    camera2._enable_rtsp = AsyncMock()
-
-    # Simulate a coordinator update to trigger the auto-enable logic
-    camera2._handle_coordinator_update()
-    await hass.async_block_till_done()
-
-    # Verify that _enable_rtsp was called
-    camera2._enable_rtsp.assert_called_once()
+    # Verify that a refresh was requested on the coordinator
+    mock_device_coordinator.async_request_refresh.assert_called_once()
 
 
 @pytest.mark.asyncio

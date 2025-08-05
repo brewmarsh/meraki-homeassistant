@@ -49,6 +49,33 @@ async def async_setup_entry(
             for device in meraki_device_coordinator.data.get("devices", [])
             if device.get("productType") == "camera"
         ]
+
+        if config_entry.options.get(CONF_AUTO_ENABLE_RTSP, False):
+            client = hass.data[DOMAIN][config_entry.entry_id][DATA_CLIENT]
+            tasks = []
+            for entity in entities:
+                if not entity._device.get("video_settings", {}).get(
+                    "externalRtspEnabled"
+                ):
+                    _LOGGER.info(
+                        "Auto-enabling RTSP for camera %s", entity._device["serial"]
+                    )
+                    tasks.append(
+                        hass.async_add_executor_job(
+                                lambda: client._dashboard.camera.updateDeviceCameraVideoSettings(
+                                    serial=entity._device["serial"],
+                                    externalRtspEnabled=True,
+                                )
+                        )
+                    )
+            if tasks:
+                try:
+                    await asyncio.gather(*tasks)
+                    # After enabling, refresh the coordinator to get the updated data
+                    await meraki_device_coordinator.async_request_refresh()
+                except Exception as e:
+                    _LOGGER.error("Error enabling RTSP on cameras: %s", e)
+
         async_add_entities(entities, True)
 
 
@@ -133,7 +160,6 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
                     externalRtspEnabled=True,
                 )
             )
-            await self.coordinator.async_request_refresh()
         except Exception as e:
             _LOGGER.error(
                 "Failed to enable RTSP for camera %s: %s", self._device["serial"], e
@@ -167,12 +193,6 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
                 self._device = device
                 video_settings = device.get("video_settings", {})
 
-                if self._auto_enable_rtsp and not video_settings.get(
-                    "externalRtspEnabled"
-                ):
-                    self.coordinator.hass.async_create_task(self._enable_rtsp())
-                    return
-
                 # Update RTSP URL and streaming capabilities
                 if video_settings.get("externalRtspEnabled"):
                     public_rtsp_url = video_settings.get("rtspUrl")
@@ -198,16 +218,6 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
 
     async def async_stream(self) -> dict:
         """Return streaming information."""
-        if not self._rtsp_url:
-            if self._auto_enable_rtsp:
-                await self._enable_rtsp()
-                # Give the camera a moment to enable RTSP
-                await asyncio.sleep(2)
-                # Refresh to get the new RTSP URL
-                await self.coordinator.async_request_refresh()
-            else:
-                return {}
-
         if not self._rtsp_url:
             return {}
 
