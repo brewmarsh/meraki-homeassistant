@@ -54,6 +54,10 @@ async def async_setup_entry(
 class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
     """Representation of a Meraki camera."""
 
+    _attr_brand = "Cisco Meraki"
+    _attr_is_streaming = False
+    _attr_supported_features = CameraEntityFeature(0)
+
     def __init__(
         self,
         coordinator: MerakiDeviceCoordinator,
@@ -75,12 +79,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
             name_format,
             apply_format=False,
         )
-        # Initialize supported features
-        self._attr_supported_features = (
-            CameraEntityFeature.STREAM.value
-            if self._device.get("video_settings", {}).get("externalRtspEnabled")
-            else 0
-        )
+        self._attr_model = device.get("model")
         # Initialize camera-specific attributes
         self._rtsp_url: Optional[str] = None
         self._webrtc_provider = None
@@ -171,15 +170,19 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
                 ):
                     self.coordinator.hass.async_create_task(self._enable_rtsp())
 
-                # Update RTSP URL
+                # Update RTSP URL and streaming capabilities
                 if video_settings.get("externalRtspEnabled"):
                     rtsp_url = video_settings.get("rtspUrl")
                     lan_ip = self._device.get("lanIp")
                     if lan_ip and rtsp_url:
                         rtsp_url = f"rtsp://{lan_ip}:{rtsp_url.split(':')[-1]}"
                     self._rtsp_url = rtsp_url
+                    self._attr_supported_features |= CameraEntityFeature.STREAM
+                    self._attr_is_streaming = True
                 else:
                     self._rtsp_url = None
+                    self._attr_supported_features &= ~CameraEntityFeature.STREAM
+                    self._attr_is_streaming = False
                 # Make sure HA updates the entity state with new feature flags
                 self._attr_supported_features = self.supported_features
                 self.async_write_ha_state()
