@@ -169,6 +169,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
                     "externalRtspEnabled"
                 ):
                     self.coordinator.hass.async_create_task(self._enable_rtsp())
+                    return
 
                 # Update RTSP URL and streaming capabilities
                 if video_settings.get("externalRtspEnabled"):
