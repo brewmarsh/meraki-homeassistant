@@ -1,5 +1,6 @@
 """Support for Meraki cameras."""
 
+import asyncio
 import logging
 from typing import Any, Dict, Optional
 
@@ -81,6 +82,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
         self._supports_native_async_webrtc = False
         self._supports_native_sync_webrtc = False
         self._cache = {}
+        self._create_stream_lock = asyncio.Lock()
 
         if self._device.get("video_settings", {}).get("externalRtspEnabled"):
             self._rtsp_url = self._device.get("video_settings", {}).get("rtspUrl")
