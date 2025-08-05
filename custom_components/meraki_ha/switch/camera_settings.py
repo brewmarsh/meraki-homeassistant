@@ -73,11 +73,11 @@ class MerakiCameraSettingSwitchBase(CoordinatorEntity[MerakiDeviceCoordinator], 
                     current_level = current_level[key]
 
             if "sense" in self._api_field:
-                await self.client.camera.update_device_camera_sense_settings(
+                await self.client.camera.update_camera_sense_settings(
                     serial=self._device_data["serial"], **payload
                 )
             else:
-                await self.client.camera.update_device_camera_video_settings(
+                await self.client.camera.update_camera_video_settings(
                     serial=self._device_data["serial"], **payload
                 )
             # Optimistically update the state

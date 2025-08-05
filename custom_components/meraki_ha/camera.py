@@ -142,7 +142,9 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
 
     async def play_stream(self, source: str, quality: str) -> None:
         """Play a stream."""
-        pass
+        if self._rtsp_url:
+            self.stream.source = self._rtsp_url
+            self.stream.start()
 
     @property
     def entity_picture(self) -> str | None:
