@@ -1,10 +1,10 @@
 """A custom caching decorator for async methods."""
-import asyncio
 from functools import wraps
 import time
 from typing import Any, Dict
 
 def async_timed_cache(timeout: int = 300):
+
     """
     Decorator to cache the result of an async method on an instance with a timeout.
     The cache is stored on the instance itself.

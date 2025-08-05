@@ -15,7 +15,6 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_WEBHOOK_URL,
     DEVICE_NAME_FORMAT_OPTIONS,
-    DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)

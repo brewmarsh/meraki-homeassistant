@@ -54,35 +54,23 @@ class MerakiCameraRTSPUrlSensor(
 
     def _update_state(self) -> None:
         """Update the sensor's state based on coordinator data."""
-        current_device_data = None
-        if self.coordinator.data and self.coordinator.data.get("devices"):
-            for dev_data in self.coordinator.data["devices"]:
-                if dev_data.get("serial") == self._device_serial:
-                    current_device_data = dev_data
-                    break
+        current_device_data = self.coordinator.get_device(self._device_serial)
 
         if current_device_data:
             video_settings = current_device_data.get("video_settings", {})
             is_rtsp_enabled = video_settings.get("externalRtspEnabled", False)
             rtsp_url = video_settings.get("rtspUrl")
 
-            if is_rtsp_enabled and rtsp_url:
+            if is_rtsp_enabled:
                 self._attr_native_value = rtsp_url
             else:
-                self._attr_native_value = "disabled"
+                self._attr_native_value = None
         else:
             self._attr_native_value = None
 
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        if not self.coordinator.last_update_success:
-            return False
-
-        if self.coordinator.data and self.coordinator.data.get("devices"):
-            for dev_data in self.coordinator.data["devices"]:
-                if dev_data.get("serial") == self._device_serial:
-                    if "externalRtspEnabled" not in dev_data:
-                        return False
-                    return True
-        return False
+        return self.coordinator.last_update_success and bool(
+            self.coordinator.get_device(self._device_serial)
+        )

@@ -68,20 +68,24 @@ class MerakiCameraSettingSwitchBase(
                     serial=self._device_data["serial"], **{self._api_field: is_on}
                 )
             else:
-                # The video settings API requires externalRtspEnabled as the key
                 field_name = (
                     "externalRtspEnabled"
-                    if self._api_field == "video_settings.externalRtspEnabled"
+                    if "externalRtspEnabled" in self._api_field
                     else self._api_field
                 )
-                await self.client.camera.update_camera_video_settings(
+                video_settings = await self.client.camera.update_camera_video_settings(
                     serial=self._device_data["serial"], **{field_name: is_on}
                 )
-            # Optimistically update the state
-            # This assumes the API call will succeed
-            if self.is_on != is_on:
-                # To be implemented: update local state if necessary
-                pass
+                if video_settings:
+                    # Update coordinator data with the new video settings
+                    for i, device in enumerate(self.coordinator.data.get("devices", [])):
+                        if device.get("serial") == self._device_data["serial"]:
+                            self.coordinator.data["devices"][i][
+                                "video_settings"
+                            ] = video_settings
+                            break
+                    self.coordinator.async_update_listeners()
+
             await self.coordinator.async_request_refresh()
         except Exception as e:
             _LOGGER.error(

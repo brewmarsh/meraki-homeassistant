@@ -32,7 +32,6 @@ def resolve_device_info(
         A DeviceInfo object or None if linking is not possible.
     """
     device_serial = entity_data.get("serial")
-    device_name = entity_data.get("name") or device_serial
     device_model = entity_data.get("model")
     device_firmware = entity_data.get("firmware")
 

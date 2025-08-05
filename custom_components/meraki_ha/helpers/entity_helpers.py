@@ -3,7 +3,6 @@
 from ..const import (
     DEVICE_NAME_FORMAT_PREFIX,
     DEVICE_NAME_FORMAT_SUFFIX,
-    DEVICE_NAME_FORMAT_OMIT,
 )
 
 
@@ -12,6 +11,7 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 def format_entity_name(
+
     device_name: str,
     device_type: str,
     name_format: str,

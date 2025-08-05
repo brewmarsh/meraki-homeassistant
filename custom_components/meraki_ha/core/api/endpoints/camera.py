@@ -45,10 +45,13 @@ class CameraEndpoints:
         return validate_response(link)
 
     @handle_meraki_errors
-    async def update_camera_video_settings(self, serial: str, **kwargs) -> None:
+    async def update_camera_video_settings(
+        self, serial: str, **kwargs
+    ) -> Dict[str, Any]:
         """Update video settings for a specific camera."""
-        await self._api_client._run_sync(
+        result = await self._api_client._run_sync(
             self._dashboard.camera.updateDeviceCameraVideoSettings,
             serial=serial,
             **kwargs,
         )
+        return validate_response(result)

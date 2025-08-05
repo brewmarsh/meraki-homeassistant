@@ -1,6 +1,6 @@
 """Tests for the Meraki authentication."""
 
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, AsyncMock
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -18,10 +18,9 @@ async def test_validate_meraki_credentials(hass: HomeAssistant) -> None:
     with patch(
         "custom_components.meraki_ha.authentication.MerakiAPIClient"
     ) as mock_client:
-        mock_client.return_value.organizations.get_organizations = AsyncMock(
+        mock_client.return_value.organization.get_organizations = AsyncMock(
             return_value=[{"id": "test-org-id", "name": "Test Org"}]
         )
-        mock_client.return_value.close = AsyncMock()
         result = await validate_meraki_credentials("test-api-key", "test-org-id")
         assert result == {"org_name": "Test Org", "valid": True}
 
@@ -32,10 +31,9 @@ async def test_validate_meraki_credentials_invalid_org(hass: HomeAssistant) -> N
     with patch(
         "custom_components.meraki_ha.authentication.MerakiAPIClient"
     ) as mock_client:
-        mock_client.return_value.organizations.get_organizations = AsyncMock(
+        mock_client.return_value.organization.get_organizations = AsyncMock(
             return_value=[{"id": "other-org-id", "name": "Other Org"}]
         )
-        mock_client.return_value.close = AsyncMock()
         with pytest.raises(ValueError):
             await validate_meraki_credentials("test-api-key", "test-org-id")
 
@@ -46,9 +44,8 @@ async def test_validate_meraki_credentials_auth_failed(hass: HomeAssistant) -> N
     with patch(
         "custom_components.meraki_ha.authentication.MerakiAPIClient"
     ) as mock_client:
-        mock_client.return_value.organizations.get_organizations = AsyncMock(
+        mock_client.return_value.organization.get_organizations = AsyncMock(
             side_effect=MerakiError("test")
         )
-        mock_client.return_value.close = AsyncMock()
         with pytest.raises(ConfigEntryAuthFailed):
             await validate_meraki_credentials("test-api-key", "test-org-id")

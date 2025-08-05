@@ -1,6 +1,6 @@
 """Tests for the Meraki camera platform."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -37,6 +37,7 @@ def mock_device_coordinator():
                 "productType": "camera",
                 "video_settings": {
                     "externalRtspEnabled": False,
+                    "rtspUrl": None,
                 },
             },
         ]
@@ -77,14 +78,14 @@ async def test_camera_entity(hass: HomeAssistant, mock_device_coordinator):
     assert camera1.unique_id == "Q234-ABCD-5678-camera"
     assert camera1.name == "Test Camera"
     assert camera1.is_streaming is True
-    assert await camera1.stream_source() == "rtsp://test.com/stream"
+    assert camera1.stream_source == "rtsp://test.com/stream"
 
     camera2 = entities[1]
     assert isinstance(camera2, MerakiCamera)
     assert camera2.unique_id == "Q234-EFGH-9012-camera"
     assert camera2.name == "Another Camera"
     assert camera2.is_streaming is False
-    assert await camera2.stream_source() is None
+    assert camera2.stream_source is None
 
 
 @pytest.mark.skip(reason="Test is failing intermittently and needs further investigation")

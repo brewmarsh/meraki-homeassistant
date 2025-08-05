@@ -11,7 +11,6 @@ from ..const import (
     DATA_CLIENT,
 )
 from ..core.api.client import MerakiAPIClient
-from ..core.coordinators.network import MerakiNetworkCoordinator
 from .meraki_ssid_device_switch import (
     MerakiSSIDEnabledSwitch,
     MerakiSSIDBroadcastSwitch,

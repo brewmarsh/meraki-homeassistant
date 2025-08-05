@@ -30,9 +30,6 @@ class NetworkEndpoints:
             return []
         return validated
 
-
-
-
     @handle_meraki_errors
     @async_timed_cache(timeout=10)
     async def get_webhooks(self, network_id: str) -> List[Dict[str, Any]]:

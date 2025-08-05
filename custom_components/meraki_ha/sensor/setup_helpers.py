@@ -17,7 +17,6 @@ from .network.network_clients import MerakiNetworkClientsSensor
 from .network.network_identity import MerakiNetworkIdentitySensor
 from .network.meraki_network_info import MerakiNetworkInfoSensor
 from .device.appliance_port import MerakiAppliancePortSensor
-from ..core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 

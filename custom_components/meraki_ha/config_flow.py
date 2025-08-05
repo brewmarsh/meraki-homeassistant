@@ -27,6 +27,7 @@ from .const import (
     DEVICE_NAME_FORMAT_OPTIONS,
     DOMAIN,
 )
+from .options_flow import MerakiOptionsFlowHandler
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -109,6 +110,3 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> config_entries.OptionsFlow:
         """Get the options flow for this handler."""
         return MerakiOptionsFlowHandler(config_entry)
-
-
-from .options_flow import MerakiOptionsFlowHandler

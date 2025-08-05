@@ -1,7 +1,6 @@
 """Data update coordinator for the Meraki HA integration."""
 from __future__ import annotations
 
-import asyncio
 from datetime import timedelta
 import logging
 
@@ -38,3 +37,11 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
             return await self.api.get_all_data()
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}") from err
+
+    def get_device(self, serial: str):
+        """Get device data by serial number."""
+        if self.data and self.data.get("devices"):
+            for device in self.data["devices"]:
+                if device.get("serial") == serial:
+                    return device
+        return None
