@@ -84,6 +84,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
 
         if self._device.get("video_settings", {}).get("externalRtspEnabled"):
             self._rtsp_url = self._device.get("video_settings", {}).get("rtspUrl")
+        _LOGGER.debug("Camera %s initialized with RTSP URL: %s", self.name, self._rtsp_url)
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -102,10 +103,12 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
+        _LOGGER.debug("Camera %s added to hass", self.name)
         await super().async_added_to_hass()
 
     async def _enable_rtsp(self) -> None:
         """Enable the RTSP stream for the camera."""
+        _LOGGER.debug("Camera %s: enabling RTSP", self.name)
         client = self.coordinator.hass.data[DOMAIN][
             self.coordinator.config_entry.entry_id
         ][DATA_CLIENT]
@@ -116,6 +119,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
                     externalRtspEnabled=True,
                 )
             )
+            _LOGGER.debug("Camera %s: enable RTSP API response: %s", self.name, response)
             await self.coordinator.async_request_refresh()
         except Exception as e:
             _LOGGER.error(
@@ -129,6 +133,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
 
     async def stream_source(self) -> Optional[str]:
         """Return the source of the stream."""
+        _LOGGER.debug("Camera %s: stream_source requested, returning: %s", self.name, self._rtsp_url)
         return self._rtsp_url
 
     async def async_camera_image(
@@ -155,14 +160,21 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        _LOGGER.debug("Camera %s: handling coordinator update", self.name)
         for device in self.coordinator.data.get("devices", []):
             if device["serial"] == self._device["serial"]:
                 self._device = device
                 video_settings = device.get("video_settings", {})
+                _LOGGER.debug(
+                    "Camera %s: found device data with video settings: %s",
+                    self.name,
+                    video_settings,
+                )
 
                 if self._auto_enable_rtsp and not video_settings.get(
                     "externalRtspEnabled"
                 ):
+                    _LOGGER.debug("Camera %s: creating task to enable RTSP", self.name)
                     self.coordinator.hass.async_create_task(self._enable_rtsp())
 
                 if video_settings.get("externalRtspEnabled"):
@@ -172,7 +184,14 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
                         if lan_ip:
                             rtsp_url = f"rtsp://{lan_ip}{rtsp_url}"
                     self._rtsp_url = rtsp_url
+                    _LOGGER.debug(
+                        "Camera %s: RTSP is enabled, URL: %s", self.name, self._rtsp_url
+                    )
                 else:
                     self._rtsp_url = None
+                    _LOGGER.debug("Camera %s: RTSP is disabled", self.name)
                 self.async_write_ha_state()
                 return
+        _LOGGER.debug(
+            "Camera %s: device data not found in coordinator update", self.name
+        )

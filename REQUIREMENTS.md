@@ -81,7 +81,7 @@
 | Meraki cameras should have a data element that reflects the URL of the camera stream. | Included |
 | Meraki cameras should have a Home Assistant switch that enables RTSP streaming. | Included |
 | Meraki camera RTSP URLs are not correct | Fixed |
-| camera RTSP enabling does not work | Fixed |
+| camera RTSP enabling does not work | Fixed again |
 
 ### Meraki Sensors
 | Requirement | Status |

@@ -42,7 +42,7 @@ The data flow for the integration is as follows:
 
 The integration uses two coordinators, which are located in the `core/coordinators` directory:
 
-*   **`MerakiDeviceCoordinator`**: This coordinator is responsible for fetching data for all physical Meraki devices in the organization. It fetches base device data, and then enhances it with device-specific data like port statuses for switches, uplink information for appliances, and sensor readings for MT sensors.
+*   **`MerakiDeviceCoordinator`**: This coordinator is responsible for fetching data for all physical Meraki devices in the organization. It fetches base device data, and then enhances it with device-specific data like port statuses for switches, uplink information for appliances, and sensor readings for MT sensors. For cameras, it fetches the video settings and the video link for all cameras.
 *   **`MerakiNetworkCoordinator`**: This coordinator fetches data for all networks, clients, and SSIDs in the organization. It also filters out disabled SSIDs.
 
 ## Platforms
