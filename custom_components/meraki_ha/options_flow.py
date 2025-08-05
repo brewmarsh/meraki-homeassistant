@@ -9,6 +9,7 @@ import voluptuous as vol
 
 from .const import (
     CONF_AUTO_ENABLE_RTSP,
+    CONF_USE_LAN_IP_FOR_RTSP,
     CONF_DEVICE_NAME_FORMAT,
     CONF_WEBHOOK_URL,
     DEFAULT_DEVICE_NAME_FORMAT,
