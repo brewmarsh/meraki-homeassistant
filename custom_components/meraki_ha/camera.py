@@ -104,8 +104,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
             manufacturer="Cisco Meraki",
         )
 
-    @property
-    def stream_source(self) -> str | None:
+    async def stream_source(self) -> str | None:
         """Return the source of the stream."""
         return self._rtsp_url
 
@@ -204,7 +203,11 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
         if not self._rtsp_url:
             return {}
 
+        stream_source = await self.stream_source()
+        if not stream_source:
+            return {}
+
         return {
-            "stream_source": self._rtsp_url,
+            "stream_source": stream_source,
             "use_stream_source": True,
         }

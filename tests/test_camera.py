@@ -78,14 +78,14 @@ async def test_camera_entity(hass: HomeAssistant, mock_device_coordinator):
     assert camera1.unique_id == "Q234-ABCD-5678-camera"
     assert camera1.name == "Test Camera"
     assert camera1.is_streaming is True
-    assert camera1.stream_source == "rtsp://test.com/stream"
+    assert await camera1.stream_source() == "rtsp://test.com/stream"
 
     camera2 = entities[1]
     assert isinstance(camera2, MerakiCamera)
     assert camera2.unique_id == "Q234-EFGH-9012-camera"
     assert camera2.name == "Another Camera"
     assert camera2.is_streaming is False
-    assert camera2.stream_source is None
+    assert await camera2.stream_source() is None
 
 
 @pytest.mark.asyncio
