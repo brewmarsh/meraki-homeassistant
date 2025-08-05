@@ -98,5 +98,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload Meraki config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
+    unload_ok = await async_unload_entry(hass, entry)
+    if unload_ok:
+        await async_setup_entry(hass, entry)
