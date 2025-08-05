@@ -4,3 +4,7 @@ This file contains instructions for AI agents working with this codebase.
 
 - When writing tests, ensure that all mocks are as accurate as possible to the real APIs they are replacing. This will help to prevent bugs from being introduced into the codebase.
 - Remove all debugging code, such as `_LOGGER.debug` statements, once feature development is complete.
+- Follow the coding style of the project. This will help to ensure that the codebase is consistent and easy to read.
+- Write clear and concise commit messages. This will help other developers to understand the changes that have been made.
+- Update the documentation when making changes. This will help to ensure that the documentation is accurate and up-to-date.
+- Run all tests before submitting changes. This will help to ensure that the changes have not introduced any new bugs.
