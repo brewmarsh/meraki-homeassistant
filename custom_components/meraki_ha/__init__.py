@@ -80,17 +80,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Meraki config entry."""
+    if hass.data.get(DOMAIN) and entry.entry_id in hass.data[DOMAIN]:
+        if "webhook_id" in entry.data:
+            api_client = hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]
+            await async_unregister_webhook(hass, entry.data["webhook_id"], api_client)
+
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
     if unload_ok:
-        if hass.data.get(DOMAIN) and entry.entry_id in hass.data[DOMAIN]:
-            if "webhook_id" in entry.data:
-                api_client = hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]
-                await async_unregister_webhook(
-                    hass, entry.data["webhook_id"], api_client
-                )
-            hass.data[DOMAIN].pop(entry.entry_id)
+        if DOMAIN in hass.data:
+            hass.data[DOMAIN].pop(entry.entry_id, None)
             if not hass.data[DOMAIN]:
                 hass.data.pop(DOMAIN)
+
     return unload_ok
 
 
