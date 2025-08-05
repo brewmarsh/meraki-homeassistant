@@ -62,6 +62,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
     ) -> None:
         """Initialize the camera."""
         super().__init__(coordinator)
+        Camera.__init__(self)  # Initialize the Camera class properly
         self._device = device
         self._auto_enable_rtsp = auto_enable_rtsp
         self._attr_unique_id = f"{self._device['serial']}-camera"
@@ -74,6 +75,13 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
             name_format,
             apply_format=False,
         )
+        # Initialize supported features
+        self._attr_supported_features = (
+            CameraEntityFeature.STREAM.value
+            if self._device.get("video_settings", {}).get("externalRtspEnabled")
+            else 0
+        )
+        # Initialize camera-specific attributes
         self._rtsp_url: Optional[str] = None
         self._webrtc_provider = None
         self._legacy_webrtc_provider = None
@@ -95,15 +103,6 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
             name=self._device["name"],
             model=self._device["model"],
             manufacturer="Cisco Meraki",
-        )
-
-    @property
-    def supported_features(self) -> int:
-        """Return supported features as a int value for bitwise operations."""
-        return (
-            CameraEntityFeature.STREAM.value
-            if self._device.get("video_settings", {}).get("externalRtspEnabled")
-            else 0
         )
 
     @property
@@ -181,6 +180,8 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
                     self._rtsp_url = rtsp_url
                 else:
                     self._rtsp_url = None
+                # Make sure HA updates the entity state with new feature flags
+                self._attr_supported_features = self.supported_features
                 self.async_write_ha_state()
                 return
 
