@@ -76,9 +76,9 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
         )
         # Support streaming via RTSP
         self._attr_supported_features = (
-            CameraEntityFeature.STREAM.value
+            {CameraEntityFeature.STREAM}
             if self._device.get("video_settings", {}).get("externalRtspEnabled")
-            else 0
+            else set()
         )
         self._rtsp_url: Optional[str] = None
         self._webrtc_provider = None
@@ -171,7 +171,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
 
                 # Update RTSP URL and supported features
                 if video_settings.get("externalRtspEnabled"):
-                    self._attr_supported_features = CameraEntityFeature.STREAM.value
+                    self._attr_supported_features = {CameraEntityFeature.STREAM}
                     rtsp_url = video_settings.get("rtspUrl")
                     lan_ip = self._device.get("lanIp")
                     if lan_ip and rtsp_url:
@@ -179,7 +179,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
                     self._rtsp_url = rtsp_url
                 else:
                     self._rtsp_url = None
-                    self._attr_supported_features = 0
+                    self._attr_supported_features = set()
                 self.async_write_ha_state()
                 return
 
