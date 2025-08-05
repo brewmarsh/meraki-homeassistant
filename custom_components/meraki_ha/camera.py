@@ -74,7 +74,12 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
             name_format,
             apply_format=False,
         )
-        self._attr_supported_features = CameraEntityFeature.STREAM
+        # Support streaming via RTSP
+        self._attr_supported_features = (
+            CameraEntityFeature.STREAM
+            if self._device.get("video_settings", {}).get("externalRtspEnabled")
+            else 0
+        )
         self._rtsp_url: Optional[str] = None
         self._webrtc_provider = None
         self._legacy_webrtc_provider = None
@@ -99,9 +104,15 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
         )
 
     @property
-    def stream_options(self) -> dict:
-        """Return stream options."""
-        return {}
+    def stream_source(self) -> str | None:
+        """Return the source of the stream."""
+        return self._rtsp_url
+
+    async def async_camera_image(
+        self, width: Optional[int] = None, height: Optional[int] = None
+    ) -> Optional[bytes]:
+        """Return a still image from the camera."""
+        return None
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
@@ -129,16 +140,6 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
     def is_streaming(self) -> bool:
         """Return true if the camera is streaming."""
         return self._rtsp_url is not None
-
-    async def stream_source(self) -> Optional[str]:
-        """Return the source of the stream."""
-        return self._rtsp_url
-
-    async def async_camera_image(
-        self, width: Optional[int] = None, height: Optional[int] = None
-    ) -> Optional[bytes]:
-        """Return a still image from the camera."""
-        return None
 
     @property
     def entity_picture(self) -> str | None:
