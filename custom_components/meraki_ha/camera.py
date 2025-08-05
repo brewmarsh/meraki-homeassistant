@@ -98,12 +98,13 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
         )
 
     @property
-    def supported_features(self) -> set[CameraEntityFeature]:
-        """Return supported features."""
-        features = set()
-        if self._device.get("video_settings", {}).get("externalRtspEnabled"):
-            features.add(CameraEntityFeature.STREAM)
-        return features
+    def supported_features(self) -> int:
+        """Return supported features as a int value for bitwise operations."""
+        return (
+            CameraEntityFeature.STREAM.value
+            if self._device.get("video_settings", {}).get("externalRtspEnabled")
+            else 0
+        )
 
     @property
     def stream_source(self) -> str | None:
