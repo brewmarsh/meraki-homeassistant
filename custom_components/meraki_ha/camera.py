@@ -96,9 +96,6 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
         self._create_stream_lock = asyncio.Lock()
         self.stream = None
 
-        if self._device.get("video_settings", {}).get("externalRtspEnabled"):
-            self._rtsp_url = self._device.get("video_settings", {}).get("rtspUrl")
-
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
@@ -177,13 +174,12 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
 
                 # Update RTSP URL and streaming capabilities
                 if video_settings.get("externalRtspEnabled"):
-                    rtsp_url = video_settings.get("rtspUrl")
+                    self._rtsp_url = video_settings.get("rtspUrl")
                     if self._use_lan_ip_for_rtsp:
                         lan_ip = self._device.get("lanIp")
-                        if lan_ip and rtsp_url:
-                            parsed_url = urlparse(rtsp_url)
-                            rtsp_url = f"rtsp://{lan_ip}:{parsed_url.port}"
-                    self._rtsp_url = rtsp_url
+                        if lan_ip and self._rtsp_url:
+                            parsed_url = urlparse(self._rtsp_url)
+                            self._rtsp_url = f"rtsp://{lan_ip}:{parsed_url.port}"
                     self._attr_supported_features |= CameraEntityFeature.STREAM
                     self._attr_is_streaming = True
                 else:

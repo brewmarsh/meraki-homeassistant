@@ -78,6 +78,10 @@ async def test_camera_entity(hass: HomeAssistant, mock_device_coordinator):
     assert isinstance(camera1, MerakiCamera)
     assert camera1.unique_id == "Q234-ABCD-5678-camera"
     assert camera1.name == "Test Camera"
+    camera1.hass = hass
+    camera1.entity_id = "camera.test_camera"
+    camera1._handle_coordinator_update()
+    await hass.async_block_till_done()
     assert camera1.is_streaming is True
     assert await camera1.stream_source() == "rtsp://test.com:9000/stream"
 
@@ -168,4 +172,12 @@ async def test_camera_use_lan_ip_for_rtsp(hass: HomeAssistant, mock_device_coord
     camera1._handle_coordinator_update()
     await hass.async_block_till_done()
 
+    camera1._handle_coordinator_update()
+    await hass.async_block_till_done()
     assert await camera1.stream_source() == "rtsp://192.168.1.100:9000"
+    mock_device_coordinator.data["devices"][0]["video_settings"][
+        "externalRtspEnabled"
+    ] = False
+    camera1._handle_coordinator_update()
+    await hass.async_block_till_done()
+    assert await camera1.stream_source() is None

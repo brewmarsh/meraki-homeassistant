@@ -24,10 +24,6 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle an options flow for the Meraki integration."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
-
     async def async_step_init(
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> config_entries.FlowResult:
