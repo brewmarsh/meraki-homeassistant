@@ -64,6 +64,13 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                         ),
                     ): bool,
                     vol.Optional(
+                        CONF_USE_LAN_IP_FOR_RTSP,
+                        default=self.config_entry.options.get(
+                            CONF_USE_LAN_IP_FOR_RTSP,
+                            self.config_entry.data.get(CONF_USE_LAN_IP_FOR_RTSP, False),
+                        ),
+                    ): bool,
+                    vol.Optional(
                         CONF_WEBHOOK_URL,
                         default=self.config_entry.options.get(
                             CONF_WEBHOOK_URL,

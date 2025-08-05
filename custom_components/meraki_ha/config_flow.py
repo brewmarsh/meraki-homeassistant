@@ -98,6 +98,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_DEVICE_NAME_FORMAT, default=DEFAULT_DEVICE_NAME_FORMAT
                     ): vol.In(DEVICE_NAME_FORMAT_OPTIONS),
                     vol.Optional(CONF_AUTO_ENABLE_RTSP, default=False): bool,
+                    vol.Optional(CONF_USE_LAN_IP_FOR_RTSP, default=False): bool,
                 }
             ),
             errors=errors,

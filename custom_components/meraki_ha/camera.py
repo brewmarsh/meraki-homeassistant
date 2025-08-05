@@ -17,11 +17,13 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     DOMAIN,
     CONF_AUTO_ENABLE_RTSP,
+    CONF_USE_LAN_IP_FOR_RTSP,
     DATA_CLIENT,
     CONF_DEVICE_NAME_FORMAT,
     DEFAULT_DEVICE_NAME_FORMAT,
 )
 from .core.coordinators.device import MerakiDeviceCoordinator
+from urllib.parse import urlparse
 from .helpers.entity_helpers import format_entity_name
 
 
@@ -69,6 +71,9 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
         Camera.__init__(self)  # Initialize the Camera class properly
         self._device = device
         self._auto_enable_rtsp = auto_enable_rtsp
+        self._use_lan_ip_for_rtsp = self.coordinator.config_entry.options.get(
+            CONF_USE_LAN_IP_FOR_RTSP, False
+        )
         self._attr_unique_id = f"{self._device['serial']}-camera"
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
@@ -173,9 +178,11 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
                 # Update RTSP URL and streaming capabilities
                 if video_settings.get("externalRtspEnabled"):
                     rtsp_url = video_settings.get("rtspUrl")
-                    lan_ip = self._device.get("lanIp")
-                    if lan_ip and rtsp_url:
-                        rtsp_url = f"rtsp://{lan_ip}:{rtsp_url.split(':')[-1]}"
+                    if self._use_lan_ip_for_rtsp:
+                        lan_ip = self._device.get("lanIp")
+                        if lan_ip and rtsp_url:
+                            parsed_url = urlparse(rtsp_url)
+                            rtsp_url = f"rtsp://{lan_ip}:{parsed_url.port}"
                     self._rtsp_url = rtsp_url
                     self._attr_supported_features |= CameraEntityFeature.STREAM
                     self._attr_is_streaming = True
