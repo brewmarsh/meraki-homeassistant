@@ -70,6 +70,23 @@ class OrganizationEndpoints:
         return validated
 
     @handle_meraki_errors
+    @async_timed_cache(timeout=60)
+    async def get_organization_devices_availabilities(self) -> List[Dict[str, Any]]:
+        """Get availability information for all devices in the organization."""
+        availabilities = await self._api_client._run_sync(
+            self._dashboard.organizations.getOrganizationDevicesAvailabilities,
+            organizationId=self._api_client.organization_id,
+            total_pages="all",
+        )
+        validated = validate_response(availabilities)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_organization_devices_availabilities did not return a list."
+            )
+            return []
+        return validated
+
+    @handle_meraki_errors
     @async_timed_cache()
     async def get_organization_devices(self) -> List[Dict[str, Any]]:
         """Get all devices in the organization."""

@@ -66,6 +66,18 @@ class MerakiAPIClient:
         """Fetch all data from the Meraki API."""
         networks = await self.organization.get_organization_networks()
         devices = await self.organization.get_organization_devices()
+        devices_availabilities = (
+            await self.organization.get_organization_devices_availabilities()
+        )
+        availabilities_by_serial = {
+            availability["serial"]: availability
+            for availability in devices_availabilities
+        }
+
+        for device in devices:
+            if availability := availabilities_by_serial.get(device["serial"]):
+                device["status"] = availability["status"]
+
         clients = []
         for network in networks:
             clients.extend(await self.network.get_network_clients(network["id"]))
