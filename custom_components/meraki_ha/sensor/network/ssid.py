@@ -13,6 +13,15 @@ from homeassistant.components.sensor import SensorEntity  # For type hinting ret
 from .ssid_availability import MerakiSSIDAvailabilitySensor
 from .ssid_channel import MerakiSSIDChannelSensor
 from .ssid_client_count import MerakiSSIDClientCountSensor
+from .ssid_splash_page import MerakiSSIDSplashPageSensor
+from .ssid_auth_mode import MerakiSSIDAuthModeSensor
+from .ssid_encryption_mode import MerakiSSIDEncryptionModeSensor
+from .ssid_wpa_encryption_mode import MerakiSSIDWPAEncryptionModeSensor
+from .ssid_ip_assignment_mode import MerakiSSIDIPAssignmentModeSensor
+from .ssid_band_selection import MerakiSSIDBandSelectionSensor
+from .ssid_per_client_bandwidth_limit import MerakiSSIDPerClientBandwidthLimitSensor
+from .ssid_per_ssid_bandwidth_limit import MerakiSSIDPerSsidBandwidthLimitSensor
+from .ssid_visible import MerakiSSIDVisibleSensor
 
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 # from .coordinator import MerakiDataUpdateCoordinator
@@ -50,6 +59,17 @@ def create_ssid_sensors(
     sensors.append(MerakiSSIDAvailabilitySensor(coordinator, ssid_data))
     sensors.append(MerakiSSIDChannelSensor(coordinator, ssid_data))
     sensors.append(MerakiSSIDClientCountSensor(coordinator, ssid_data))
+    sensors.append(MerakiSSIDSplashPageSensor(coordinator, ssid_data))
+    sensors.append(MerakiSSIDAuthModeSensor(coordinator, ssid_data))
+    sensors.append(MerakiSSIDEncryptionModeSensor(coordinator, ssid_data))
+    sensors.append(MerakiSSIDWPAEncryptionModeSensor(coordinator, ssid_data))
+    sensors.append(MerakiSSIDIPAssignmentModeSensor(coordinator, ssid_data))
+    sensors.append(MerakiSSIDBandSelectionSensor(coordinator, ssid_data))
+    sensors.append(MerakiSSIDPerClientBandwidthLimitSensor(coordinator, ssid_data, "up"))
+    sensors.append(MerakiSSIDPerClientBandwidthLimitSensor(coordinator, ssid_data, "down"))
+    sensors.append(MerakiSSIDPerSsidBandwidthLimitSensor(coordinator, ssid_data, "up"))
+    sensors.append(MerakiSSIDPerSsidBandwidthLimitSensor(coordinator, ssid_data, "down"))
+    sensors.append(MerakiSSIDVisibleSensor(coordinator, ssid_data))
 
     # Add other SSID-specific sensor types here as they are developed
     # Example:

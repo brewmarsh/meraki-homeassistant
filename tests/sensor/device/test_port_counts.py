@@ -23,10 +23,10 @@ def mock_device_coordinator():
                 'model': 'MS220-8P',
                 'productType': 'switch',
                 'port_statuses': [
-                    {'portId': 1, 'status': 'connected'},
-                    {'portId': 2, 'status': 'connected'},
-                    {'portId': 3, 'status': 'disconnected'},
-                    {'portId': 4, 'status': 'disabled'},
+                    {'portId': 1, 'status': 'Connected'},
+                    {'portId': 2, 'status': 'Connected'},
+                    {'portId': 3, 'status': 'Disconnected'},
+                    {'portId': 4, 'status': 'Disabled'},
                 ]
             }
         ]

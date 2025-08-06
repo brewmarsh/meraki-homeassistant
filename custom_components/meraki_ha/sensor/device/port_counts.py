@@ -67,7 +67,7 @@ class MerakiPortsInUseSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorE
         if not port_statuses or not isinstance(port_statuses, list):
             return None
 
-        return len([p for p in port_statuses if p.get("status") == "connected"])
+        return len([p for p in port_statuses if p.get("status") == "Connected"])
 
 
 class MerakiPortsAvailableSensor(
@@ -124,4 +124,4 @@ class MerakiPortsAvailableSensor(
         if not port_statuses or not isinstance(port_statuses, list):
             return None
 
-        return len([p for p in port_statuses if p.get("status") != "connected"])
+        return len([p for p in port_statuses if p.get("status") != "Connected"])
