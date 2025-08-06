@@ -31,3 +31,10 @@ def test_format_device_name_no_name():
     device = {"productType": "wireless", "model": "MR33", "serial": "Q234-ABCD-5678"}
     options = {"device_name_format": "prefix"}
     assert format_device_name(device, options) == "[Wireless] Meraki MR33 Q234-ABCD-5678"
+
+
+def test_format_device_name_no_product_type():
+    """Test the format_device_name function with no product type."""
+    device = {"name": "My AP", "model": "MR33"}
+    options = {"device_name_format": "prefix"}
+    assert format_device_name(device, options) == "[Device] My AP"

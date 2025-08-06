@@ -33,13 +33,11 @@ def format_device_name(device: Dict[str, Any], config: Dict[str, Any]) -> str:
     product_type = device.get("productType")
 
     if not product_type:
-        product_type_str = "Device"
-    elif product_type.lower() in ["switch", "appliance", "camera", "wireless", "sensor"]:
-        product_type_str = product_type.capitalize()
-    elif product_type.lower() in ["ssid", "network"]:
+        product_type = "device" # default to device
+
+    product_type_str = product_type.capitalize()
+    if product_type.lower() in ["ssid", "network"]:
         return name
-    else:
-        product_type_str = "Device"
 
     if name_format == DEVICE_NAME_FORMAT_PREFIX:
         formatted_name = f"[{product_type_str}] {name}"
