@@ -214,9 +214,8 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
                     public_rtsp_url = video_settings.get("rtspUrl")
                     if self._use_lan_ip_for_rtsp:
                         lan_ip = self._device.get("lanIp")
-                        if lan_ip and public_rtsp_url:
-                            parsed_url = urlparse(public_rtsp_url)
-                            self._rtsp_url = f"rtsp://{lan_ip}:{parsed_url.port}"
+                        if lan_ip:
+                            self._rtsp_url = f"rtsp://{lan_ip}"
                         else:
                             self._rtsp_url = public_rtsp_url
                     else:
