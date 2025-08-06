@@ -51,41 +51,46 @@ async def async_setup_entry(
         ]
 
         if config_entry.options.get(CONF_AUTO_ENABLE_RTSP, False):
-            client = hass.data[DOMAIN][config_entry.entry_id][DATA_CLIENT]
-            cameras_to_enable = []
-            for entity in entities:
-                if not entity._device.get("video_settings", {}).get(
-                    "externalRtspEnabled"
-                ):
-                    cameras_to_enable.append(entity)
 
-            if cameras_to_enable:
-                _LOGGER.info(
-                    "Found %d cameras to auto-enable RTSP for",
-                    len(cameras_to_enable),
-                )
-                for entity in cameras_to_enable:
-                    try:
-                        _LOGGER.info(
-                            "Auto-enabling RTSP for camera %s",
-                            entity._device["serial"],
-                        )
-                        await hass.async_add_executor_job(
-                            lambda: client._dashboard.camera.updateDeviceCameraVideoSettings(
-                                serial=entity._device["serial"],
-                                externalRtspEnabled=True,
+            async def _enable_rtsp_in_background():
+                """Enable RTSP for cameras in the background."""
+                client = hass.data[DOMAIN][config_entry.entry_id][DATA_CLIENT]
+                cameras_to_enable = []
+                for entity in entities:
+                    if not entity._device.get("video_settings", {}).get(
+                        "externalRtspEnabled"
+                    ):
+                        cameras_to_enable.append(entity)
+
+                if cameras_to_enable:
+                    _LOGGER.info(
+                        "Found %d cameras to auto-enable RTSP for",
+                        len(cameras_to_enable),
+                    )
+                    for entity in cameras_to_enable:
+                        try:
+                            _LOGGER.info(
+                                "Auto-enabling RTSP for camera %s",
+                                entity._device["serial"],
                             )
-                        )
-                        # Wait a moment before enabling the next one to avoid overwhelming the API
-                        await asyncio.sleep(1)
-                    except Exception as e:
-                        _LOGGER.error(
-                            "Error enabling RTSP for camera %s: %s",
-                            entity._device["serial"],
-                            e,
-                        )
-                # After enabling, refresh the coordinator to get the updated data
-                await meraki_device_coordinator.async_request_refresh()
+                            await hass.async_add_executor_job(
+                                lambda: client._dashboard.camera.updateDeviceCameraVideoSettings(
+                                    serial=entity._device["serial"],
+                                    externalRtspEnabled=True,
+                                )
+                            )
+                            # Wait a moment before enabling the next one to avoid overwhelming the API
+                            await asyncio.sleep(1)
+                        except Exception as e:
+                            _LOGGER.error(
+                                "Error enabling RTSP for camera %s: %s",
+                                entity._device["serial"],
+                                e,
+                            )
+                    # After enabling, refresh the coordinator to get the updated data
+                    await meraki_device_coordinator.async_request_refresh()
+
+            hass.async_create_task(_enable_rtsp_in_background())
 
         async_add_entities(entities, True)
 
