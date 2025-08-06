@@ -13,6 +13,8 @@ from custom_components.meraki_ha.sensor.device.port_counts import (
 def mock_device_coordinator():
     """Fixture for a mocked MerakiDeviceCoordinator."""
     coordinator = MagicMock()
+    coordinator.scan_interval = 300
+    coordinator.config_entry.options = {}
     coordinator.data = {
         'devices': [
             {

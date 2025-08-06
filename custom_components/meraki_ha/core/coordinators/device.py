@@ -121,7 +121,8 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                     try:
                         device["port_statuses"] = (
                             await self.api_client.get_device_switch_ports_statuses(
-                                device["serial"]
+                                device["serial"],
+                                timespan=self.scan_interval,
                             )
                         )
                     except Exception as err:
