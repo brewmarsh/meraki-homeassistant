@@ -37,29 +37,33 @@ class MerakiSSIDChannelSensor(
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
+        network_id: str,
         ssid_data: Dict[str, Any],  # Specific SSID data for this sensor
     ) -> None:
         """Initialize the Meraki SSID Channel sensor.
 
         Args:
           coordinator: The SSIDDeviceCoordinator.
+          network_id: The ID of the network this SSID belongs to.
           ssid_data: Dictionary containing information about the SSID.
-                Expected: 'unique_id', 'name', and potentially 'channel'.
+                Expected: 'number', 'name', and potentially 'channel'.
         """
         super().__init__(coordinator)
+        self._network_id = network_id
         self._ssid_data = ssid_data
 
         ssid_name = self._ssid_data.get("name", "Unknown SSID")
+        ssid_number = self._ssid_data.get("number")
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
             ssid_name, "sensor", name_format, "Channel"
         )
-        self._attr_unique_id = f"{self._ssid_data['unique_id']}_channel"
+        self._attr_unique_id = f"{self._network_id}_{ssid_number}_channel"
 
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._ssid_data["unique_id"])},
+            identifiers={(DOMAIN, f"{self._network_id}_{ssid_number}")},
             name=ssid_name,
             model="Wireless SSID",
             manufacturer="Cisco Meraki",
@@ -70,7 +74,12 @@ class MerakiSSIDChannelSensor(
 
     def _update_sensor_state(self) -> None:
         """Update the sensor's state based on coordinator data for this SSID."""
-        current_ssid_data = self.coordinator.data.get(self._ssid_data["unique_id"])
+        current_ssid_data = None
+        if self.coordinator.data and "ssids" in self.coordinator.data:
+            for ssid in self.coordinator.data["ssids"]:
+                if ssid.get("networkId") == self._network_id and ssid.get("number") == self._ssid_data.get("number"):
+                    current_ssid_data = ssid
+                    break
 
         if current_ssid_data:
             self._ssid_data = current_ssid_data  # Update internal data
@@ -93,7 +102,7 @@ class MerakiSSIDChannelSensor(
         else:
             _LOGGER.warning(  # Keep warning for missing data
                 "SSID data for ID '%s' not found in coordinator. Channel sensor state set to None.",
-                self._ssid_data.get("unique_id"),
+                self._ssid_data.get("number"),
             )
             self._attr_native_value = "Unknown"
             self._attr_state_class = None

@@ -26,23 +26,26 @@ class MerakiSSIDEncryptionModeSensor(
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
+        network_id: str,
         ssid_data: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
+        self._network_id = network_id
         self._ssid_data = ssid_data
 
         ssid_name = self._ssid_data.get("name", "Unknown SSID")
+        ssid_number = self._ssid_data.get("number")
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
             ssid_name, "sensor", name_format, "Encryption Mode"
         )
-        self._attr_unique_id = f"{self._ssid_data['unique_id']}_encryption_mode"
+        self._attr_unique_id = f"{self._network_id}_{ssid_number}_encryption_mode"
 
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._ssid_data["unique_id"])},
+            identifiers={(DOMAIN, f"{self._network_id}_{ssid_number}")},
             name=ssid_name,
             model="Wireless SSID",
             manufacturer="Cisco Meraki",
@@ -51,7 +54,12 @@ class MerakiSSIDEncryptionModeSensor(
 
     def _update_sensor_state(self) -> None:
         """Update the sensor's state based on coordinator data for this SSID."""
-        current_ssid_data = self.coordinator.data.get(self._ssid_data["unique_id"])
+        current_ssid_data = None
+        if self.coordinator.data and "ssids" in self.coordinator.data:
+            for ssid in self.coordinator.data["ssids"]:
+                if ssid.get("networkId") == self._network_id and ssid.get("number") == self._ssid_data.get("number"):
+                    current_ssid_data = ssid
+                    break
 
         if current_ssid_data:
             self._ssid_data = current_ssid_data

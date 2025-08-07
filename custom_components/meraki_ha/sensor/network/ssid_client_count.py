@@ -41,6 +41,7 @@ class MerakiSSIDClientCountSensor(
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
+        network_id: str,
         ssid_data: Dict[str, Any],  # Specific SSID data for this sensor
     ) -> None:
         """Initialize the Meraki SSID Client Count sensor.
@@ -48,25 +49,28 @@ class MerakiSSIDClientCountSensor(
         Args:
           coordinator: The `SSIDDeviceCoordinator` instance that provides updates
                  for this SSID's data, including the client count.
+          network_id: The ID of the network this SSID belongs to.
           ssid_data: A dictionary containing initial information about the SSID,
-                including 'unique_id' (for identifying the SSID in coordinator data),
+                including 'number' (for identifying the SSID in coordinator data),
                 'name' (for display purposes), and potentially 'client_count'
                 as calculated by the coordinator.
         """
         super().__init__(coordinator)
+        self._network_id = network_id
         self._ssid_data = ssid_data
 
         ssid_name = self._ssid_data.get("name", "Unknown SSID")
+        ssid_number = self._ssid_data.get("number")
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
             ssid_name, "sensor", name_format, "Client Count"
         )
-        self._attr_unique_id = f"{self._ssid_data['unique_id']}_client_count"
+        self._attr_unique_id = f"{self._network_id}_{ssid_number}_client_count"
 
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._ssid_data["unique_id"])},
+            identifiers={(DOMAIN, f"{self._network_id}_{ssid_number}")},
             name=ssid_name,
             model="Wireless SSID",
             manufacturer="Cisco Meraki",
@@ -83,7 +87,12 @@ class MerakiSSIDClientCountSensor(
         the `client_count` found in that data. If `client_count` is missing or
         not an integer, the sensor's value defaults to 0.
         """
-        current_ssid_data = self.coordinator.data.get(self._ssid_data["unique_id"])
+        current_ssid_data = None
+        if self.coordinator.data and "ssids" in self.coordinator.data:
+            for ssid in self.coordinator.data["ssids"]:
+                if ssid.get("networkId") == self._network_id and ssid.get("number") == self._ssid_data.get("number"):
+                    current_ssid_data = ssid
+                    break
 
         if current_ssid_data:
             self._ssid_data = current_ssid_data  # Update internal data
@@ -97,7 +106,7 @@ class MerakiSSIDClientCountSensor(
         else:
             _LOGGER.warning(  # Keep warning for missing data
                 "SSID data for ID '%s' not found in coordinator. Client count set to 0.",
-                self._ssid_data.get("unique_id"),
+                self._ssid_data.get("number"),
             )
             self._attr_native_value = 0
 

@@ -32,7 +32,7 @@ MerakiNetworkCoordinator = Any
 
 def create_ssid_sensors(
     coordinator: MerakiNetworkCoordinator,  # Type hint for the coordinator
-    device_data: Dict[str, Any],  # Type hint for the parent device data
+    network_id: str,
     ssid_data: Dict[str, Any],  # Type hint for the specific SSID data
 ) -> List[SensorEntity]:
     """Create and return a list of sensor entities for a given SSID.
@@ -56,20 +56,20 @@ def create_ssid_sensors(
     sensors: List[SensorEntity] = []
 
     # Instantiate each type of sensor for the SSID
-    sensors.append(MerakiSSIDAvailabilitySensor(coordinator, ssid_data))
-    sensors.append(MerakiSSIDChannelSensor(coordinator, ssid_data))
-    sensors.append(MerakiSSIDClientCountSensor(coordinator, ssid_data))
-    sensors.append(MerakiSSIDSplashPageSensor(coordinator, ssid_data))
-    sensors.append(MerakiSSIDAuthModeSensor(coordinator, ssid_data))
-    sensors.append(MerakiSSIDEncryptionModeSensor(coordinator, ssid_data))
-    sensors.append(MerakiSSIDWPAEncryptionModeSensor(coordinator, ssid_data))
-    sensors.append(MerakiSSIDIPAssignmentModeSensor(coordinator, ssid_data))
-    sensors.append(MerakiSSIDBandSelectionSensor(coordinator, ssid_data))
-    sensors.append(MerakiSSIDPerClientBandwidthLimitSensor(coordinator, ssid_data, "up"))
-    sensors.append(MerakiSSIDPerClientBandwidthLimitSensor(coordinator, ssid_data, "down"))
-    sensors.append(MerakiSSIDPerSsidBandwidthLimitSensor(coordinator, ssid_data, "up"))
-    sensors.append(MerakiSSIDPerSsidBandwidthLimitSensor(coordinator, ssid_data, "down"))
-    sensors.append(MerakiSSIDVisibleSensor(coordinator, ssid_data))
+    sensors.append(MerakiSSIDAvailabilitySensor(coordinator, network_id, ssid_data))
+    sensors.append(MerakiSSIDChannelSensor(coordinator, network_id, ssid_data))
+    sensors.append(MerakiSSIDClientCountSensor(coordinator, network_id, ssid_data))
+    sensors.append(MerakiSSIDSplashPageSensor(coordinator, network_id, ssid_data))
+    sensors.append(MerakiSSIDAuthModeSensor(coordinator, network_id, ssid_data))
+    sensors.append(MerakiSSIDEncryptionModeSensor(coordinator, network_id, ssid_data))
+    sensors.append(MerakiSSIDWPAEncryptionModeSensor(coordinator, network_id, ssid_data))
+    sensors.append(MerakiSSIDIPAssignmentModeSensor(coordinator, network_id, ssid_data))
+    sensors.append(MerakiSSIDBandSelectionSensor(coordinator, network_id, ssid_data))
+    sensors.append(MerakiSSIDPerClientBandwidthLimitSensor(coordinator, network_id, ssid_data, "up"))
+    sensors.append(MerakiSSIDPerClientBandwidthLimitSensor(coordinator, network_id, ssid_data, "down"))
+    sensors.append(MerakiSSIDPerSsidBandwidthLimitSensor(coordinator, network_id, ssid_data, "up"))
+    sensors.append(MerakiSSIDPerSsidBandwidthLimitSensor(coordinator, network_id, ssid_data, "down"))
+    sensors.append(MerakiSSIDVisibleSensor(coordinator, network_id, ssid_data))
 
     # Add other SSID-specific sensor types here as they are developed
     # Example:

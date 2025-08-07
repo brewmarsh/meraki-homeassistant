@@ -18,7 +18,7 @@ def mock_coordinator():
     """Fixture for a mocked MerakiNetworkCoordinator."""
     coordinator = MagicMock()
     coordinator.data = {
-        "ssid_0":
+        "ssids": [
             {
                 "number": 0,
                 "name": "Test SSID",
@@ -27,27 +27,27 @@ def mock_coordinator():
                 "authMode": "psk",
                 "channel": 6,
                 "client_count": 10,
-                "unique_id": "ssid_0",
+                "networkId": "net-123",
             }
-
+        ]
     }
     return coordinator
 
 
 def test_create_ssid_sensors(mock_coordinator):
     """Test the create_ssid_sensors factory function."""
-    ssid_data = mock_coordinator.data["ssid_0"]
-    sensors = create_ssid_sensors(mock_coordinator, {}, ssid_data)
+    ssid_data = mock_coordinator.data["ssids"][0]
+    sensors = create_ssid_sensors(mock_coordinator, "net-123", ssid_data)
     assert len(sensors) == 14
     assert isinstance(sensors[0], MerakiSSIDAvailabilitySensor)
     assert isinstance(sensors[1], MerakiSSIDChannelSensor)
     assert isinstance(sensors[2], MerakiSSIDClientCountSensor)
 
-    assert sensors[0].unique_id == "ssid_0_availability"
-    assert sensors[0].state == "on"
+    assert sensors[0].unique_id == "net-123_0_availability"
+    assert sensors[0].native_value == "on"
 
-    assert sensors[1].unique_id == "ssid_0_channel"
+    assert sensors[1].unique_id == "net-123_0_channel"
     assert sensors[1].native_value == "6"
 
-    assert sensors[2].unique_id == "ssid_0_client_count"
+    assert sensors[2].unique_id == "net-123_0_client_count"
     assert sensors[2].native_value == 10

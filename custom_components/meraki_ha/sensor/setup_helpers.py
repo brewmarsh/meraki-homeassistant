@@ -112,6 +112,8 @@ def async_setup_sensors(
     # Set up SSID-specific sensors
     ssids = coordinator.data.get("ssids", [])
     for ssid_data in ssids:
-        entities.extend(create_ssid_sensors(coordinator, None, ssid_data))
+        network_id = ssid_data.get("networkId")
+        if network_id:
+            entities.extend(create_ssid_sensors(coordinator, network_id, ssid_data))
 
     return entities
