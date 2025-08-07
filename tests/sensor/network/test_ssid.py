@@ -38,7 +38,7 @@ def test_create_ssid_sensors(mock_coordinator):
     """Test the create_ssid_sensors factory function."""
     ssid_data = mock_coordinator.data["ssid_0"]
     sensors = create_ssid_sensors(mock_coordinator, {}, ssid_data)
-    assert len(sensors) == 3
+    assert len(sensors) == 14
     assert isinstance(sensors[0], MerakiSSIDAvailabilitySensor)
     assert isinstance(sensors[1], MerakiSSIDChannelSensor)
     assert isinstance(sensors[2], MerakiSSIDClientCountSensor)

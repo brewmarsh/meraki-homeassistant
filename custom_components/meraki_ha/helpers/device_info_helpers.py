@@ -40,7 +40,12 @@ def resolve_device_info(
         ssid_number = ssid_data.get("number")
         if network_id:
             ssid_device_identifier = (DOMAIN, f"{network_id}_{ssid_number}")
-            return DeviceInfo(identifiers={ssid_device_identifier})
+            return DeviceInfo(
+                identifiers={ssid_device_identifier},
+                name=ssid_data.get("name"),
+                model="Wireless SSID",
+                manufacturer="Cisco Meraki",
+            )
         else:
             _LOGGER.warning(
                 "SSID-specific entity for SSID number %s is missing 'networkId'. "
