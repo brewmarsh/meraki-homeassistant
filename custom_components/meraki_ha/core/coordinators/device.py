@@ -40,13 +40,20 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
             # Fetch clients and count them per device
             client_counts = {}
             networks = await self.api_client.organization.get_organization_networks()
+            _LOGGER.debug(f"Found {len(networks)} networks")
             for network in networks:
-                clients = await self.api_client.network.get_network_clients(network["id"])
+                clients = await self.api_client.network.get_network_clients(
+                    network["id"]
+                )
+                _LOGGER.debug(f"Found {len(clients)} clients in network {network['id']}")
+                if clients:
+                    _LOGGER.debug(f"First client data: {clients[0]}")
                 for client in clients:
                     if client.get("status") == "Online":
                         serial = client.get("recentDeviceSerial")
                         if serial:
                             client_counts[serial] = client_counts.get(serial, 0) + 1
+            _LOGGER.debug(f"Final client counts: {client_counts}")
 
             statuses = (
                 await self.api_client.organization.get_organization_device_statuses()
