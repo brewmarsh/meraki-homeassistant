@@ -32,16 +32,22 @@ def format_device_name(device: Dict[str, Any], config: Dict[str, Any]) -> str:
         return name
 
     product_type = device.get("productType")
+    _LOGGER.debug(f"Product type for device {name}: {product_type}")
 
     if not product_type:
         product_type = "device" # default to device
 
-    product_type_str = product_type.capitalize()
+    if product_type == "network":
+        product_type_str = "Network"
+    else:
+        product_type_str = product_type.capitalize()
 
     if name_format == DEVICE_NAME_FORMAT_PREFIX:
         formatted_name = f"[{product_type_str}] {name}"
+        _LOGGER.debug(f"Formatted device name: {formatted_name}")
         return formatted_name
     if name_format == DEVICE_NAME_FORMAT_SUFFIX:
         formatted_name = f"{name} [{product_type_str}]"
+        _LOGGER.debug(f"Formatted device name: {formatted_name}")
         return formatted_name
     return name
