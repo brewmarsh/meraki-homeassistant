@@ -10,13 +10,13 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-from ...core.coordinators.device import MerakiDeviceCoordinator
+from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDataUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity):
+class MerakiDataUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
     """Representation of a Meraki appliance data usage sensor.
 
     This sensor displays the total data usage for a Meraki MX appliance
@@ -30,7 +30,7 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEn
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
@@ -41,7 +41,7 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEn
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            f"{self._device['name']} Data Usage", "sensor", name_format, apply_format=False
+            self._device['name'], "sensor", name_format, "Data Usage"
         )
 
     @property

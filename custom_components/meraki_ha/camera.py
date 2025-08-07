@@ -22,7 +22,7 @@ from .const import (
     CONF_DEVICE_NAME_FORMAT,
     DEFAULT_DEVICE_NAME_FORMAT,
 )
-from .core.coordinators.device import MerakiDeviceCoordinator
+from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from urllib.parse import urlparse
 from .helpers.entity_helpers import format_entity_name
 
@@ -95,7 +95,7 @@ async def async_setup_entry(
         async_add_entities(entities, True)
 
 
-class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
+class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
     """Representation of a Meraki camera."""
 
     _attr_brand = "Cisco Meraki"
@@ -104,7 +104,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: Dict[str, Any],
     ) -> None:
         """Initialize the camera."""
@@ -126,7 +126,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDeviceCoordinator], Camera):
             self._device["name"],
             self._device.get("productType", "camera"),
             name_format,
-            apply_format=False,
+            "",
         )
         self._attr_model = device.get("model")
         # Initialize camera-specific attributes

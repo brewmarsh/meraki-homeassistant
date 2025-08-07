@@ -10,13 +10,13 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-from ...core.coordinators.device import MerakiDeviceCoordinator
+from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity):
+class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
     """Representation of a Meraki switch PoE usage sensor.
 
     This sensor displays the aggregated PoE usage for a Meraki MS switch
@@ -29,7 +29,7 @@ class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEnt
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
@@ -40,7 +40,7 @@ class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEnt
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            f"{self._device['name']} PoE Usage", "sensor", name_format, apply_format=False
+            self._device['name'], "sensor", name_format, "PoE Usage"
         )
 
     @property

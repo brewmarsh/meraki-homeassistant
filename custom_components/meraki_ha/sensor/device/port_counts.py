@@ -9,13 +9,13 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-from ...core.coordinators.device import MerakiDeviceCoordinator
+from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiPortsInUseSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity):
+class MerakiPortsInUseSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
     """Representation of a Meraki switch ports in use sensor.
 
     This sensor displays the number of ports that are currently in use
@@ -27,7 +27,7 @@ class MerakiPortsInUseSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorE
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
@@ -38,7 +38,7 @@ class MerakiPortsInUseSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorE
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            f"{self._device['name']} Ports In Use", "sensor", name_format, apply_format=False
+            self._device['name'], "sensor", name_format, "Ports In Use"
         )
 
     @property
@@ -71,7 +71,7 @@ class MerakiPortsInUseSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorE
 
 
 class MerakiPortsAvailableSensor(
-    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
 ):
     """Representation of a Meraki switch ports available sensor.
 
@@ -84,7 +84,7 @@ class MerakiPortsAvailableSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
@@ -95,7 +95,7 @@ class MerakiPortsAvailableSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            f"{self._device['name']} Ports Available", "sensor", name_format, apply_format=False
+            self._device['name'], "sensor", name_format, "Ports Available"
         )
 
     @property

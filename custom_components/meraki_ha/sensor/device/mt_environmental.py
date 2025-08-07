@@ -17,13 +17,13 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-from ...core.coordinators.device import MerakiDeviceCoordinator
+from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiTemperatureSensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity):
+class MerakiTemperatureSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
     """Representation of a Meraki temperature sensor.
 
     This sensor displays the temperature reading from a Meraki MT sensor.
@@ -35,7 +35,7 @@ class MerakiTemperatureSensor(CoordinatorEntity[MerakiDeviceCoordinator], Sensor
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
@@ -46,7 +46,7 @@ class MerakiTemperatureSensor(CoordinatorEntity[MerakiDeviceCoordinator], Sensor
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            f"{self._device['name']} Temperature", "sensor", name_format, apply_format=False
+            self._device['name'], "sensor", name_format, "Temperature"
         )
 
     @property
@@ -81,7 +81,7 @@ class MerakiTemperatureSensor(CoordinatorEntity[MerakiDeviceCoordinator], Sensor
         return None
 
 
-class MerakiHumiditySensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity):
+class MerakiHumiditySensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
     """Representation of a Meraki humidity sensor.
 
     This sensor displays the humidity reading from a Meraki MT sensor.
@@ -93,7 +93,7 @@ class MerakiHumiditySensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEnt
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
@@ -104,7 +104,7 @@ class MerakiHumiditySensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEnt
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            f"{self._device['name']} Humidity", "sensor", name_format, apply_format=False
+            self._device['name'], "sensor", name_format, "Humidity"
         )
 
     @property
@@ -140,7 +140,7 @@ class MerakiHumiditySensor(CoordinatorEntity[MerakiDeviceCoordinator], SensorEnt
 
 
 class MerakiWaterDetectionSensor(
-    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
 ):
     """Representation of a Meraki water detection sensor.
 
@@ -151,7 +151,7 @@ class MerakiWaterDetectionSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
@@ -162,7 +162,7 @@ class MerakiWaterDetectionSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            f"{self._device['name']} Water Detection", "sensor", name_format, apply_format=False
+            self._device['name'], "sensor", name_format, "Water Detection"
         )
 
     @property

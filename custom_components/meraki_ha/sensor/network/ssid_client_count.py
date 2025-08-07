@@ -16,7 +16,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
 # Use SSIDDeviceCoordinator for these sensors
-from ...core.coordinators.network import MerakiNetworkCoordinator
+from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...helpers.entity_helpers import format_entity_name
 

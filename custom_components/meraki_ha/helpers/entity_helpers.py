@@ -11,16 +11,19 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 def format_entity_name(
-
     device_name: str,
     device_type: str,
     name_format: str,
-    apply_format: bool = False,
+    entity_specific_name: str,
 ) -> str:
     """Format the entity name based on the user's selection."""
-    if apply_format:
-        if name_format == DEVICE_NAME_FORMAT_PREFIX:
-            return f"[{device_type.capitalize()}] {device_name}"
-        if name_format == DEVICE_NAME_FORMAT_SUFFIX:
-            return f"{device_name} [{device_type.capitalize()}]"
-    return device_name
+    if name_format == DEVICE_NAME_FORMAT_PREFIX:
+        formatted_name = f"[{device_type.capitalize()}] {device_name}"
+    elif name_format == DEVICE_NAME_FORMAT_SUFFIX:
+        formatted_name = f"{device_name} [{device_type.capitalize()}]"
+    else:  # omit
+        formatted_name = device_name
+
+    if entity_specific_name and entity_specific_name.strip():
+        return f"{formatted_name} {entity_specific_name}"
+    return formatted_name

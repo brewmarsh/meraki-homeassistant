@@ -15,7 +15,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
-from ...core.coordinators.device import MerakiDeviceCoordinator
+from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...helpers.entity_helpers import format_entity_name
 
@@ -30,7 +30,7 @@ STATE_UNKNOWN_UPLINK = "Unknown"
 
 
 class MerakiUplinkStatusSensor(
-    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
 ):
     """Representation of a Meraki MX Appliance Uplink Status sensor.
 
@@ -42,7 +42,7 @@ class MerakiUplinkStatusSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiDataCoordinator,
         device_data: Dict[str, Any],  # Data for the Meraki MX appliance
     ) -> None:
         """Initialize the Meraki MX Appliance Uplink Status sensor.
@@ -69,7 +69,7 @@ class MerakiUplinkStatusSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            f"{device_name} Uplink Status", "sensor", name_format, apply_format=False
+            device_name, "sensor", name_format, "Uplink Status"
         )
         self._attr_unique_id = f"{self._device_serial}_uplink_status"
 

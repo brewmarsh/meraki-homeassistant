@@ -16,7 +16,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
 # Use SSIDDeviceCoordinator for these sensors
-from ...core.coordinators.network import MerakiNetworkCoordinator
+from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...helpers.entity_helpers import format_entity_name
 
@@ -24,7 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiSSIDChannelSensor(
-    CoordinatorEntity[MerakiNetworkCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
 ):
     """Represents a Meraki SSID Channel sensor.
 
@@ -36,7 +36,7 @@ class MerakiSSIDChannelSensor(
 
     def __init__(
         self,
-        coordinator: MerakiNetworkCoordinator,
+        coordinator: MerakiDataCoordinator,
         ssid_data: Dict[str, Any],  # Specific SSID data for this sensor
     ) -> None:
         """Initialize the Meraki SSID Channel sensor.
@@ -54,7 +54,7 @@ class MerakiSSIDChannelSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            f"{ssid_name} Channel", "sensor", name_format, apply_format=False
+            ssid_name, "sensor", name_format, "Channel"
         )
         self._attr_unique_id = f"{self._ssid_data['unique_id']}_channel"
 

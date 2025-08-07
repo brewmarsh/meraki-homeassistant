@@ -38,12 +38,21 @@ def test_port_counts_sensors(mock_device_coordinator):
     """Test the port count sensors."""
     device = mock_device_coordinator.data['devices'][0]
 
+    # Test with prefix format
+    mock_device_coordinator.config_entry.options = {'device_name_format': 'prefix'}
     ports_in_use_sensor = MerakiPortsInUseSensor(mock_device_coordinator, device)
     assert ports_in_use_sensor.unique_id == 'dev1_ports_in_use'
-    assert ports_in_use_sensor.name == 'Switch Ports In Use'
+    assert ports_in_use_sensor.name == '[Sensor] Switch Ports In Use'
     assert ports_in_use_sensor.native_value == 2
 
     ports_available_sensor = MerakiPortsAvailableSensor(mock_device_coordinator, device)
     assert ports_available_sensor.unique_id == 'dev1_ports_available'
-    assert ports_available_sensor.name == 'Switch Ports Available'
+    assert ports_available_sensor.name == '[Sensor] Switch Ports Available'
     assert ports_available_sensor.native_value == 2
+
+    # Test with omit format
+    mock_device_coordinator.config_entry.options = {'device_name_format': 'omit'}
+    ports_in_use_sensor = MerakiPortsInUseSensor(mock_device_coordinator, device)
+    assert ports_in_use_sensor.name == 'Switch Ports In Use'
+    ports_available_sensor = MerakiPortsAvailableSensor(mock_device_coordinator, device)
+    assert ports_available_sensor.name == 'Switch Ports Available'
