@@ -14,7 +14,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # Assuming MerakiDataUpdateCoordinator is the specific coordinator type
-from ...core.coordinators.device import MerakiDeviceCoordinator
+from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...helpers.entity_helpers import format_entity_name
 
@@ -22,7 +22,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiDeviceConnectedClientsSensor(
-    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
 ):
     """Representation of a Meraki Connected Clients sensor.
 
@@ -108,6 +108,7 @@ class MerakiDeviceConnectedClientsSensor(
             # Original code here used 'connected_clients'. Let's try to be
             # robust.
             client_count = found_device_data.get("connected_clients_count")
+            _LOGGER.debug(f"Found client count {client_count} for device {device_serial}")
             if client_count is None:
                 client_count = found_device_data.get("connected_clients")
 
