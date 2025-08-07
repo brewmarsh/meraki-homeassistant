@@ -32,9 +32,29 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
         This is the place to fetch data from the API and return it.
         """
         try:
-            # In future steps, we will implement the full data fetching logic here.
-            # For now, we return a placeholder dictionary.
-            return await self.api.get_all_data()
+            data = await self.api.get_all_data()
+
+            # Process clients to count them per device
+            client_counts = {}
+            clients = data.get("clients", [])
+            _LOGGER.debug(f"Found {len(clients)} total clients")
+            if clients:
+                _LOGGER.debug(f"First client data: {clients[0]}")
+            for client in clients:
+                if client.get("status") == "Online":
+                    serial = client.get("recentDeviceSerial")
+                    if serial:
+                        client_counts[serial] = client_counts.get(serial, 0) + 1
+            _LOGGER.debug(f"Final client counts: {client_counts}")
+
+            # Add client count to each device
+            devices = data.get("devices", [])
+            for device in devices:
+                device["connected_clients_count"] = client_counts.get(
+                    device["serial"], 0
+                )
+
+            return data
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}") from err
 
