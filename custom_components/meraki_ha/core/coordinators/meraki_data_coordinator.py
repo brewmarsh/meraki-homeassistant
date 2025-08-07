@@ -37,15 +37,11 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
             # Process clients to count them per device
             client_counts = {}
             clients = data.get("clients", [])
-            _LOGGER.debug(f"Found {len(clients)} total clients")
-            if clients:
-                _LOGGER.debug(f"First client data: {clients[0]}")
             for client in clients:
                 if client.get("status") == "Online":
                     serial = client.get("recentDeviceSerial")
                     if serial:
                         client_counts[serial] = client_counts.get(serial, 0) + 1
-            _LOGGER.debug(f"Final client counts: {client_counts}")
 
             # Add client count to each device
             devices = data.get("devices", [])

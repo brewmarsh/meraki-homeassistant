@@ -46,7 +46,7 @@ class MerakiDeviceConnectedClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiDataCoordinator,
         # Data for the Meraki device this sensor is for
         device_data: Dict[str, Any],
     ) -> None:
@@ -108,7 +108,6 @@ class MerakiDeviceConnectedClientsSensor(
             # Original code here used 'connected_clients'. Let's try to be
             # robust.
             client_count = found_device_data.get("connected_clients_count")
-            _LOGGER.debug(f"Found client count {client_count} for device {device_serial}")
             if client_count is None:
                 client_count = found_device_data.get("connected_clients")
 
