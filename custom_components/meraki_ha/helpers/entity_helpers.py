@@ -17,6 +17,7 @@ def format_entity_name(
     entity_specific_name: str,
 ) -> str:
     """Format the entity name based on the user's selection."""
+    _LOGGER.debug(f"Formatting entity name with device_name='{device_name}', device_type='{device_type}', name_format='{name_format}', entity_specific_name='{entity_specific_name}'")
     if name_format == DEVICE_NAME_FORMAT_PREFIX:
         formatted_name = f"[{device_type.capitalize()}] {device_name}"
     elif name_format == DEVICE_NAME_FORMAT_SUFFIX:

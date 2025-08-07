@@ -18,6 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def format_device_name(device: Dict[str, Any], config: Dict[str, Any]) -> str:
     """Format the device name based on the user's preference."""
+    _LOGGER.debug(f"Formatting device name with device='{device}', config='{config}'")
     name = device.get("name")
     if not name:
         if device.get("productType") == "ssid":
