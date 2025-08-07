@@ -6,7 +6,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...core.coordinators.device import MerakiDeviceCoordinator
+from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...helpers.entity_helpers import format_entity_name
 
@@ -14,7 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiOrgDeviceTypeClientsSensor(
-    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
 ):
     """Representation of a Meraki Organization Device Type Clients sensor.
 
@@ -28,7 +28,7 @@ class MerakiOrgDeviceTypeClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiDataCoordinator,
         organization_id: str,
         organization_name: str,
     ) -> None:
@@ -47,7 +47,7 @@ class MerakiOrgDeviceTypeClientsSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            f"{self._organization_name} Client Types", "sensor", name_format, apply_format=False
+            self._organization_name, "sensor", name_format, "Client Types"
         )
         self._attr_unique_id = f"meraki_org_{self._organization_id}_client_types"
 

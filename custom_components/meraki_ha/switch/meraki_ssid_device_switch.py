@@ -12,7 +12,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ..core.api.client import MerakiAPIClient
-from ..core.coordinators.network import MerakiNetworkCoordinator
+from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ..helpers.entity_helpers import format_entity_name
 from homeassistant.helpers.entity import EntityCategory
 from ..core.utils.naming_utils import format_device_name
@@ -20,14 +20,14 @@ from ..core.utils.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiNetworkCoordinator], SwitchEntity):
+class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntity):
     """Base class for Meraki SSID Switches."""
 
     entity_category = EntityCategory.CONFIG
 
     def __init__(
         self,
-        coordinator: MerakiNetworkCoordinator,
+        coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_unique_id: str,
@@ -60,7 +60,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiNetworkCoordinator], SwitchEn
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            f"{base_name} {switch_type.capitalize()} Control", "switch", name_format, apply_format=False
+            base_name, "switch", name_format, f"{switch_type.capitalize()} Control"
         )
 
         # This attribute determines which key in the SSID data dict corresponds to this switch's state.
@@ -100,8 +100,14 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiNetworkCoordinator], SwitchEn
             base_name = format_device_name(
                 current_ssid_data, self._config_entry.options
             )
-            self._attr_name = (
-                f"{base_name} {self._attribute_to_check.capitalize()} Control"
+            name_format = self.coordinator.config_entry.options.get(
+                CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+            )
+            self._attr_name = format_entity_name(
+                base_name,
+                "switch",
+                name_format,
+                f"{self._attribute_to_check.capitalize()} Control",
             )
         else:
             # Data for this SSID not found in coordinator, assume off or unavailable
@@ -158,7 +164,7 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
 
     def __init__(
         self,
-        coordinator: MerakiNetworkCoordinator,
+        coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_unique_id: str,
@@ -181,7 +187,7 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
 
     def __init__(
         self,
-        coordinator: MerakiNetworkCoordinator,
+        coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_unique_id: str,

@@ -9,7 +9,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from ...core.coordinators.network import MerakiNetworkCoordinator
+from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...helpers.entity_helpers import format_entity_name
 
@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiSSIDPerSsidBandwidthLimitSensor(
-    CoordinatorEntity[MerakiNetworkCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
 ):
     """Representation of a Meraki SSID Per-SSID Bandwidth Limit sensor."""
 
@@ -27,7 +27,7 @@ class MerakiSSIDPerSsidBandwidthLimitSensor(
 
     def __init__(
         self,
-        coordinator: MerakiNetworkCoordinator,
+        coordinator: MerakiDataCoordinator,
         ssid_data: Dict[str, Any],
         direction: str,
     ) -> None:
@@ -41,7 +41,7 @@ class MerakiSSIDPerSsidBandwidthLimitSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            f"{ssid_name} Per-SSID Bandwidth Limit {self._direction.capitalize()}", "sensor", name_format, apply_format=False
+            ssid_name, "sensor", name_format, f"Per-SSID Bandwidth Limit {self._direction.capitalize()}"
         )
         self._attr_unique_id = f"{self._ssid_data['unique_id']}_per_ssid_bandwidth_limit_{self._direction}"
 

@@ -12,6 +12,7 @@ from custom_components.meraki_ha.const import (
     CONF_AUTO_ENABLE_RTSP,
     CONF_USE_LAN_IP_FOR_RTSP,
     DATA_CLIENT,
+    CONF_DEVICE_NAME_FORMAT,
 )
 from custom_components.meraki_ha.camera import MerakiCamera, async_setup_entry
 
@@ -77,7 +78,7 @@ async def test_camera_entity(hass: HomeAssistant, mock_device_coordinator):
     camera1 = entities[0]
     assert isinstance(camera1, MerakiCamera)
     assert camera1.unique_id == "Q234-ABCD-5678-camera"
-    assert camera1.name == "Test Camera"
+    assert camera1.name == "[Camera] Test Camera"
     camera1.hass = hass
     camera1.entity_id = "camera.test_camera"
     camera1._handle_coordinator_update()
@@ -88,7 +89,18 @@ async def test_camera_entity(hass: HomeAssistant, mock_device_coordinator):
     camera2 = entities[1]
     assert isinstance(camera2, MerakiCamera)
     assert camera2.unique_id == "Q234-EFGH-9012-camera"
-    assert camera2.name == "Another Camera"
+    assert camera2.name == "[Camera] Another Camera"
+
+    # Test with omit format
+    hass.config_entries.async_update_entry(
+        config_entry, options={CONF_DEVICE_NAME_FORMAT: "omit"}
+    )
+    await hass.async_block_till_done()
+    await async_setup_entry(hass, config_entry, async_add_entities)
+    await hass.async_block_till_done()
+    entities = async_add_entities.call_args[0][0]
+    camera1 = entities[0]
+    assert camera1.name == "Test Camera"
     assert camera2.is_streaming is False
     assert await camera2.stream_source() is None
 
