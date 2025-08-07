@@ -17,6 +17,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...helpers.entity_helpers import format_entity_name
+from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -163,9 +164,10 @@ class MerakiDeviceConnectedClientsSensor(
         This links the sensor to the physical Meraki device it represents.
         """
         return DeviceInfo(
-            identifiers={(DOMAIN, self._device_info_data["serial"])}
-            # No other fields like name, model, manufacturer, sw_version.
-            # These should be inherited from the device entry already created by MerakiDataUpdateCoordinator.
+            identifiers={(DOMAIN, self._device_info_data["serial"])},
+            name=format_device_name(self._device_info_data, self.coordinator.config_entry.options),
+            model=self._device_info_data["model"],
+            manufacturer="Cisco Meraki",
         )
 
     @property

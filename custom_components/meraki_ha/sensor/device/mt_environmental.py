@@ -19,6 +19,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...helpers.entity_helpers import format_entity_name
+from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -54,7 +55,7 @@ class MerakiTemperatureSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEn
         """Return device information."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._device["serial"])},
-            name=self._device["name"],
+            name=format_device_name(self._device, self.coordinator.config_entry.options),
             model=self._device["model"],
             manufacturer="Cisco Meraki",
         )
@@ -112,7 +113,7 @@ class MerakiHumiditySensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntit
         """Return device information."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._device["serial"])},
-            name=self._device["name"],
+            name=format_device_name(self._device, self.coordinator.config_entry.options),
             model=self._device["model"],
             manufacturer="Cisco Meraki",
         )
@@ -170,7 +171,7 @@ class MerakiWaterDetectionSensor(
         """Return device information."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._device["serial"])},
-            name=self._device["name"],
+            name=format_device_name(self._device, self.coordinator.config_entry.options),
             model=self._device["model"],
             manufacturer="Cisco Meraki",
         )

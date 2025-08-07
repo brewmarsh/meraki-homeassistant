@@ -17,6 +17,7 @@ from .network.network_clients import MerakiNetworkClientsSensor
 from .network.network_identity import MerakiNetworkIdentitySensor
 from .network.meraki_network_info import MerakiNetworkInfoSensor
 from .device.appliance_port import MerakiAppliancePortSensor
+from .network.ssid import create_ssid_sensors
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -107,5 +108,10 @@ def async_setup_sensors(
         if unique_id not in added_entities:
             entities.append(MerakiNetworkInfoSensor(coordinator, network_data, config_entry))
             added_entities.add(unique_id)
+
+    # Set up SSID-specific sensors
+    ssids = coordinator.data.get("ssids", [])
+    for ssid_data in ssids:
+        entities.extend(create_ssid_sensors(coordinator, None, ssid_data))
 
     return entities

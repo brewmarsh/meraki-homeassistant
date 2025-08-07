@@ -57,6 +57,15 @@ async def test_meraki_ssid_name_text(
     text.entity_id = "text.test_ssid"
 
     assert text.native_value == "Test SSID"
+    assert text.name == "[Ssid] Test SSID"
+
+    # Test with omit format
+    mock_config_entry.options = {'device_name_format': 'omit'}
+    text = MerakiSSIDNameText(
+        mock_coordinator, mock_meraki_client, mock_config_entry, "ssid_0", ssid_data
+    )
+    text.hass = hass
+    text.entity_id = "text.test_ssid_2"
     assert text.name == "Test SSID"
 
     await text.async_set_value("New Name")

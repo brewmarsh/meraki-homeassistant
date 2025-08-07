@@ -49,11 +49,21 @@ async def test_meraki_ssid_enabled_switch(
 ) -> None:
     """Test the Meraki SSID enabled switch."""
     ssid_data = mock_coordinator.data["ssid_0"]
+
+    # Test with prefix format
+    mock_config_entry.options = {'device_name_format': 'prefix'}
     switch = MerakiSSIDEnabledSwitch(
         mock_coordinator, mock_meraki_client, mock_config_entry, "ssid_0", ssid_data
     )
 
     assert switch.is_on is True
+    assert switch.name == "[Ssid] Test SSID Enabled Control"
+
+    # Test with omit format
+    mock_config_entry.options = {'device_name_format': 'omit'}
+    switch = MerakiSSIDEnabledSwitch(
+        mock_coordinator, mock_meraki_client, mock_config_entry, "ssid_0", ssid_data
+    )
     assert switch.name == "Test SSID Enabled Control"
 
     await switch.async_turn_off()
@@ -67,11 +77,21 @@ async def test_meraki_ssid_broadcast_switch(
 ) -> None:
     """Test the Meraki SSID broadcast switch."""
     ssid_data = mock_coordinator.data["ssid_0"]
+
+    # Test with prefix format
+    mock_config_entry.options = {'device_name_format': 'prefix'}
     switch = MerakiSSIDBroadcastSwitch(
         mock_coordinator, mock_meraki_client, mock_config_entry, "ssid_0", ssid_data
     )
 
     assert switch.is_on is True
+    assert switch.name == "[Ssid] Test SSID Broadcast Control"
+
+    # Test with omit format
+    mock_config_entry.options = {'device_name_format': 'omit'}
+    switch = MerakiSSIDBroadcastSwitch(
+        mock_coordinator, mock_meraki_client, mock_config_entry, "ssid_0", ssid_data
+    )
     assert switch.name == "Test SSID Broadcast Control"
 
     await switch.async_turn_off()

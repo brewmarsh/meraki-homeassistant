@@ -25,6 +25,7 @@ from .const import (
 from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from urllib.parse import urlparse
 from .helpers.entity_helpers import format_entity_name
+from .core.utils.naming_utils import format_device_name
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -145,7 +146,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
         """Return device information."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._device["serial"])},
-            name=self._device["name"],
+            name=format_device_name(self._device, self.coordinator.config_entry.options),
             model=self._device["model"],
             manufacturer="Cisco Meraki",
         )

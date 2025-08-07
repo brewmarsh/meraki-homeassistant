@@ -36,8 +36,6 @@ def format_device_name(device: Dict[str, Any], config: Dict[str, Any]) -> str:
         product_type = "device" # default to device
 
     product_type_str = product_type.capitalize()
-    if product_type.lower() in ["ssid", "network"]:
-        return name
 
     if name_format == DEVICE_NAME_FORMAT_PREFIX:
         formatted_name = f"[{product_type_str}] {name}"

@@ -18,6 +18,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...helpers.entity_helpers import format_entity_name
+from ...core.utils.naming_utils import format_device_name
 
 # Assuming this function is correctly defined in the meraki_api package
 # from .meraki_api.appliance import get_meraki_device_appliance_uplinks
@@ -152,9 +153,10 @@ class MerakiUplinkStatusSensor(
         This links the sensor to the physical Meraki MX appliance it represents.
         """
         return DeviceInfo(
-            identifiers={(DOMAIN, self._initial_device_data["serial"])}
-            # No other fields like name, model, manufacturer, sw_version.
-            # These should be inherited from the device entry already created by MerakiDataUpdateCoordinator.
+            identifiers={(DOMAIN, self._initial_device_data["serial"])},
+            name=format_device_name(self._initial_device_data, self.coordinator.config_entry.options),
+            model=self._initial_device_data.get("model"),
+            manufacturer="Cisco Meraki",
         )
 
     def _get_uplink_status(self, device_data: Dict[str, Any]) -> str:
