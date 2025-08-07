@@ -32,6 +32,8 @@ def format_device_name(device: Dict[str, Any], config: Dict[str, Any]) -> str:
         return name
 
     product_type = device.get("productType")
+    if not product_type and "productTypes" in device:
+        product_type = "network"
     _LOGGER.debug(f"Product type for device {name}: {product_type}")
 
     if not product_type:

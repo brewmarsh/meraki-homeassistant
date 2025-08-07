@@ -124,9 +124,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            self._device["name"],
-            self._device.get("productType", "camera"),
-            name_format,
+            format_device_name(self._device, self.coordinator.config_entry.options),
             "",
         )
         self._attr_model = device.get("model")

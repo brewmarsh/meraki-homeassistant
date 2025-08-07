@@ -72,8 +72,6 @@ class MerakiDeviceConnectedClientsSensor(
         )
         self._attr_name = format_entity_name(
             device_name,
-            "sensor",
-            name_format,
             "Connected Clients",
         )
         self._attr_unique_id = f"{device_serial}_connected_clients"

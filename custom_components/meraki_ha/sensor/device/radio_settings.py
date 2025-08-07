@@ -81,7 +81,7 @@ class MerakiRadioSettingsSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            device_name, "sensor", name_format, "Radio Settings"
+            device_name, "Radio Settings"
         )
         self._attr_unique_id = f"{device_serial}_radio_settings"
 

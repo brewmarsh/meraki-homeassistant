@@ -40,7 +40,7 @@ class MerakiSSIDAuthModeSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            ssid_name, "sensor", name_format, "Auth Mode"
+            ssid_name, "Auth Mode"
         )
         self._attr_unique_id = f"{self._network_id}_{ssid_number}_auth_mode"
 

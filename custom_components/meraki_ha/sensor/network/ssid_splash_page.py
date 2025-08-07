@@ -40,7 +40,7 @@ class MerakiSSIDSplashPageSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            ssid_name, "sensor", name_format, "Splash Page"
+            ssid_name, "Splash Page"
         )
         self._attr_unique_id = f"{self._network_id}_{ssid_number}_splash_page"
 

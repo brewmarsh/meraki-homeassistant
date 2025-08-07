@@ -39,7 +39,7 @@ class MerakiPortsInUseSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEnt
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            self._device['name'], "sensor", name_format, "Ports In Use"
+            self._device['name'], "Ports In Use"
         )
 
     @property
@@ -96,7 +96,7 @@ class MerakiPortsAvailableSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            self._device['name'], "sensor", name_format, "Ports Available"
+            self._device['name'], "Ports Available"
         )
 
     @property

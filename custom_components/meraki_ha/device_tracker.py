@@ -67,8 +67,6 @@ class MerakiDeviceTracker(CoordinatorEntity[MerakiDataCoordinator], TrackerEntit
         self._attr_name = format_entity_name(
             self._client_info_data.get("description")
             or self._client_info_data.get("ip"),
-            "client",
-            name_format,
             "",
         )
         self._attr_unique_id = f"{self._client_info_data['mac']}_client_tracker"

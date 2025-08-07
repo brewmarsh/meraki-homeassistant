@@ -50,8 +50,6 @@ class MerakiAppliancePortSensor(
         )
         self._attr_name = format_entity_name(
             self._device['name'],
-            "port",
-            name_format,
             f"Port {self._port['number']}",
         )
         self._attr_icon = "mdi:ethernet-port"

@@ -41,7 +41,7 @@ class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntit
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            self._device['name'], "sensor", name_format, "PoE Usage"
+            self._device['name'], "PoE Usage"
         )
 
     @property

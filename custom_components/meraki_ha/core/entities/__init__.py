@@ -9,8 +9,14 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..const import DOMAIN, MANUFACTURER
+from ..const import (
+    DOMAIN,
+    MANUFACTURER,
+    CONF_DEVICE_NAME_FORMAT,
+    DEFAULT_DEVICE_NAME_FORMAT,
+)
 from ..core.coordinators import MerakiDataCoordinator
+from ..core.utils.naming_utils import format_device_name
 
 
 class BaseMerakiEntity(CoordinatorEntity[MerakiDataCoordinator], Entity, ABC):
@@ -52,7 +58,7 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataCoordinator], Entity, ABC):
             if network:
                 return DeviceInfo(
                     identifiers={(DOMAIN, f"network_{self._network_id}")},
-                    name=network.get("name", f"Network {self._network_id}"),
+                    name=format_device_name(network, self._config_entry.options),
                     manufacturer=MANUFACTURER,
                     model="Network",
                     sw_version=network.get("firmware", "unknown"),
@@ -65,7 +71,7 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataCoordinator], Entity, ABC):
                 model = device.get("model", "unknown")
                 return DeviceInfo(
                     identifiers={(DOMAIN, self._serial)},
-                    name=device.get("name", f"Device {self._serial}"),
+                    name=format_device_name(device, self._config_entry.options),
                     manufacturer=MANUFACTURER,
                     model=model,
                     sw_version=device.get("firmware", "unknown"),

@@ -44,7 +44,7 @@ class MerakiSSIDPerSsidBandwidthLimitSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            ssid_name, "sensor", name_format, f"Per-SSID Bandwidth Limit {self._direction.capitalize()}"
+            ssid_name, f"Per-SSID Bandwidth Limit {self._direction.capitalize()}"
         )
         self._attr_unique_id = f"{self._network_id}_{ssid_number}_per_ssid_bandwidth_limit_{self._direction}"
 

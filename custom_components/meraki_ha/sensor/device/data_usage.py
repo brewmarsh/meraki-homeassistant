@@ -42,7 +42,7 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEnti
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            self._device['name'], "sensor", name_format, "Data Usage"
+            self._device['name'], "Data Usage"
         )
 
     @property

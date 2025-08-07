@@ -49,7 +49,7 @@ class MerakiNetworkIdentitySensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            self._network_name, "sensor", name_format, "Network Identity"
+            self._network_name, "Network Identity"
         )
         self._attr_unique_id = f"meraki_network_identity_{self._network_id}"
 

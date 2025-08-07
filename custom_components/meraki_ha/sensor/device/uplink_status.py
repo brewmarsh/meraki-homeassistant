@@ -70,7 +70,7 @@ class MerakiUplinkStatusSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            device_name, "sensor", name_format, "Uplink Status"
+            device_name, "Uplink Status"
         )
         self._attr_unique_id = f"{self._device_serial}_uplink_status"
 

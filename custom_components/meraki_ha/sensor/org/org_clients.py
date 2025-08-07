@@ -38,7 +38,7 @@ class MerakiOrganizationSSIDClientsSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            org_name, "sensor", name_format, "SSID Clients"
+            org_name, "SSID Clients"
         )
         self._attr_unique_id = f"{org_id}_clients_ssid"
         self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, org_id)})
@@ -84,7 +84,7 @@ class MerakiOrganizationWirelessClientsSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            org_name, "sensor", name_format, "Wireless Clients"
+            org_name, "Wireless Clients"
         )
         self._attr_unique_id = f"{org_id}_clients_wireless"
         self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, org_id)})
@@ -131,7 +131,7 @@ class MerakiOrganizationApplianceClientsSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            org_name, "sensor", name_format, "Appliance Clients"
+            org_name, "Appliance Clients"
         )
         self._attr_unique_id = f"{org_id}_clients_appliance"
         self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, org_id)})
