@@ -96,7 +96,19 @@ These sensors are linked to Meraki MX security appliance "devices" in Home Assis
 
 These sensors are linked to Meraki SSID "devices" in Home Assistant.
 
-- _(Details of existing SSID-specific sensors like SSID Availability, SSID Client Count (per SSID), SSID Channel would go here.)_
+| Entity Type | Name              | Description                                                                                                                                                                                           | Availability      |
+| :---------- | :---------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------- |
+| `sensor`    | `[SSID Name] Splash Page` | The type of splash page for the SSID. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Auth Mode` | The association control method for the SSID. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Encryption Mode` | The psk encryption mode for the SSID. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] WPA Encryption Mode` | The types of WPA encryption. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] IP Assignment Mode` | The client IP assignment mode. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Band Selection` | The client-serving radio frequencies of this SSID. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Per-Client Bandwidth Limit Up` | The upload bandwidth limit in Kbps. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Per-Client Bandwidth Limit Down` | The download bandwidth limit in Kbps. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Per-SSID Bandwidth Limit Up` | The total upload bandwidth limit in Kbps. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Per-SSID Bandwidth Limit Down` | The total download bandwidth limit in Kbps. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Visible` | Whether the SSID is advertised or hidden. | Meraki Wireless SSIDs |
 
 ## Switches and Other Entities
 

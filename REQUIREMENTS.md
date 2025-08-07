@@ -74,6 +74,7 @@
 | Meraki switches should have a sensor that tracks the number of ports available. | Included |
 | Some switches have two prefixes / suffixes; please ensure that they only have one | Fixed |
 | Meraki switch status does not seem to be correct | Fixed |
+| Meraki SSIDs should have sensors for splash page, auth mode, encryption mode, WPA encryption mode, IP assignment mode, band selection, per-client bandwidth limits, per-SSID bandwidth limits, and visibility | Included |
 
 ### Meraki Cameras
 | Requirement | Status |

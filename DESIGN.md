@@ -58,6 +58,7 @@ The integration provides the following platforms:
     *   Port counts (in use/available) for MS switches.
     *   The radio settings for MR devices.
     *   The status of the SSIDs.
+    *   The splash page, auth mode, encryption mode, WPA encryption mode, IP assignment mode, band selection, per-client bandwidth limits, per-SSID bandwidth limits, and visibility of the SSIDs.
     *   Environmental readings (temperature, humidity, water detection) for MT sensors.
 *   **`switch`**: The switch platform provides switches for controlling the following:
     *   The state of the SSIDs (e.g., enabled, disabled).
