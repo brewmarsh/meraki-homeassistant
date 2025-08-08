@@ -18,6 +18,8 @@ from .network.network_identity import MerakiNetworkIdentitySensor
 from .network.meraki_network_info import MerakiNetworkInfoSensor
 from .device.appliance_port import MerakiAppliancePortSensor
 from .network.ssid import create_ssid_sensors
+from .client_tracker import ClientTrackerDeviceSensor, MerakiClientSensor
+from ..const import CONF_ENABLE_DEVICE_TRACKER
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -114,5 +116,18 @@ def async_setup_sensors(
     for ssid_data in ssids:
         if "networkId" in ssid_data and "number" in ssid_data:
             entities.extend(create_ssid_sensors(coordinator, config_entry, ssid_data))
+
+    # Set up Client Tracker sensors
+    if config_entry.options.get(CONF_ENABLE_DEVICE_TRACKER, True):
+        clients = coordinator.data.get("clients", [])
+        if clients:
+            # Add the main device sensor for the tracker
+            entities.append(ClientTrackerDeviceSensor(coordinator))
+            # Add a sensor for each client
+            for client_data in clients:
+                if "mac" in client_data:
+                    entities.append(
+                        MerakiClientSensor(coordinator, config_entry, client_data)
+                    )
 
     return entities

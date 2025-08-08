@@ -11,10 +11,10 @@
           "device_name_format": "Where would you like the Meraki device type in the name?",
           "auto_enable_rtsp": "Auto-enable RTSP camera streams",
           "use_lan_ip_for_rtsp": "Use LAN IP for RTSP stream",
-          "enable_device_tracker": "Enable device tracker"
+          "enable_device_tracker": "Enable Client Tracker"
         },
         "data_description": {
-          "enable_device_tracker": "If checked, the integration will create device tracker entities for clients on the network.",
+          "enable_device_tracker": "If checked, the integration will create sensor entities for clients on the network.",
           "meraki_api_key": "Your Meraki Dashboard API key. Ensure it has read access to your organization.",
           "meraki_org_id": "The ID of your Meraki Organization. Found in the URL when logged into the Meraki Dashboard (e.g., o=YOUR_ORG_ID).",
           "scan_interval": "How often (in seconds) to poll the Meraki API for updates. Default: 300. A shorter interval means more responsive sensors but significantly increases API calls to Meraki Cloud and may lead to rate limiting.",
@@ -46,7 +46,7 @@
           "device_name_format": "Where would you like the Meraki device type in the name?",
           "auto_enable_rtsp": "Auto-enable RTSP camera streams",
           "use_lan_ip_for_rtsp": "Use LAN IP for RTSP stream",
-          "enable_device_tracker": "Enable device tracker"
+          "enable_device_tracker": "Enable Client Tracker"
         },
         "data_description": {
           "scan_interval": "How often (in seconds) the integration should poll the Meraki Dashboard API for updates. Default: 300. A shorter interval means more responsive sensors but significantly increases API calls to Meraki Cloud and may lead to rate limiting.",
@@ -54,7 +54,7 @@
           "device_name_format": "Choose how device names are presented for entities. 'Prefix' adds the Meraki device name before the entity name, 'Suffix' adds it after, 'Omitted' uses only the standard entity name.",
           "auto_enable_rtsp": "If checked, the integration will automatically enable the RTSP stream for all cameras that support it. This is useful for getting camera streams working without manual configuration in the Meraki dashboard.",
           "use_lan_ip_for_rtsp": "If checked, the integration will use the camera's LAN IP address for the RTSP stream. This is more efficient, but requires that Home Assistant is on the same network as the camera. If unchecked, the public IP address will be used.",
-          "enable_device_tracker": "If checked, the integration will create device tracker entities for clients on the network."
+          "enable_device_tracker": "If checked, the integration will create sensor entities for clients on the network."
         }
       }
     }

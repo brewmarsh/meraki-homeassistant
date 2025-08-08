@@ -8,7 +8,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
-    CONF_ENABLE_DEVICE_TRACKER,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
@@ -16,7 +15,6 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     PLATFORMS,
-    PLATFORM_DEVICE_TRACKER,
 )
 from .core.api.client import MerakiAPIClient
 from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
@@ -64,15 +62,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {
         "coordinator": coordinator,
         DATA_CLIENT: api_client,
-        "platforms": [],
     }
 
-    platforms_to_load = list(PLATFORMS)
-    if not entry.options.get(CONF_ENABLE_DEVICE_TRACKER, True):
-        platforms_to_load.remove(PLATFORM_DEVICE_TRACKER)
-
-    hass.data[DOMAIN][entry.entry_id]["platforms"] = platforms_to_load
-    await hass.config_entries.async_forward_entry_setups(entry, platforms_to_load)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     if "webhook_id" not in entry.data:
         webhook_id = entry.entry_id
@@ -93,10 +85,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             api_client = hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]
             await async_unregister_webhook(hass, entry.data["webhook_id"], api_client)
 
-    platforms_to_unload = hass.data[DOMAIN][entry.entry_id].get("platforms", PLATFORMS)
-    unload_ok = await hass.config_entries.async_unload_platforms(
-        entry, platforms_to_unload
-    )
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     if unload_ok:
         if DOMAIN in hass.data:
