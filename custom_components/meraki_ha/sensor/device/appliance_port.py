@@ -16,19 +16,6 @@ from ...core.utils.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, config_entry, async_add_entities):
-    """Set up Meraki appliance port sensors from a config entry."""
-    device_coordinator = hass.data[DOMAIN][config_entry.entry_id]["device_coordinator"]
-    entities = []
-    for device in device_coordinator.data.get("devices", []):
-        if device.get("productType") == "appliance":
-            for port in device.get("ports", []):
-                entities.append(
-                    MerakiAppliancePortSensor(device_coordinator, device, port)
-                )
-    async_add_entities(entities, True)
-
-
 class MerakiAppliancePortSensor(
     CoordinatorEntity[MerakiDataCoordinator], SensorEntity
 ):
