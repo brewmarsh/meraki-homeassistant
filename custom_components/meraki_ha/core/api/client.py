@@ -97,6 +97,11 @@ class MerakiAPIClient:
                     device["serial"]
                 )
                 device["video_settings"] = video_settings
+            elif device.get("productType") == "switch":
+                ports_statuses = await self.switch.get_device_switch_ports_statuses(
+                    device["serial"]
+                )
+                device["ports_statuses"] = ports_statuses
         appliance_traffic = {}
         for network in networks:
             if "appliance" in network.get("productTypes", []):

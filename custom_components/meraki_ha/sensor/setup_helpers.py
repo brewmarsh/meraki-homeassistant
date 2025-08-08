@@ -17,6 +17,7 @@ from .network.network_clients import MerakiNetworkClientsSensor
 from .network.network_identity import MerakiNetworkIdentitySensor
 from .network.meraki_network_info import MerakiNetworkInfoSensor
 from .device.appliance_port import MerakiAppliancePortSensor
+from .device.switch_port import MerakiSwitchPortSensor
 from .network.ssid import create_ssid_sensors
 from .client_tracker import ClientTrackerDeviceSensor, MerakiClientSensor
 from ..const import CONF_ENABLE_DEVICE_TRACKER
@@ -82,6 +83,16 @@ def async_setup_sensors(
                 unique_id = f"{serial}_port_{port['number']}"
                 if unique_id not in added_entities:
                     entities.append(MerakiAppliancePortSensor(coordinator, device_info, port))
+                    added_entities.add(unique_id)
+
+        # Switch port sensors
+        if product_type == "switch":
+            for port in device_info.get("ports_statuses", []):
+                unique_id = f"{serial}_port_{port['portId']}"
+                if unique_id not in added_entities:
+                    entities.append(
+                        MerakiSwitchPortSensor(coordinator, device_info, config_entry, port)
+                    )
                     added_entities.add(unique_id)
 
     # Set up network-specific sensors
