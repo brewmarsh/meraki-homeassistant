@@ -48,6 +48,14 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEnti
         )
         self._update_state()
 
+    def _get_current_device_data(self) -> Dict[str, Any] | None:
+        """Retrieve the latest data for this sensor's device from the coordinator."""
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            for device in self.coordinator.data["devices"]:
+                if device.get("serial") == self._device_serial:
+                    return device
+        return None
+
     @callback
     def _update_state(self) -> None:
         """Update the state of the sensor."""
