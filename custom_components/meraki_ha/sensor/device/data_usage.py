@@ -54,16 +54,19 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEnti
         if (
             not self.coordinator.data
             or "appliance_traffic" not in self.coordinator.data
+            or not self.coordinator.data["appliance_traffic"].get(self._network_id)
         ):
-            self._attr_native_value = None
-            self._attr_extra_state_attributes = {}
+            self._attr_native_value = "Disabled"
+            self._attr_extra_state_attributes = {
+                "reason": "Traffic analysis is not enabled for this network."
+            }
+            self._attr_state_class = None
+            self._attr_native_unit_of_measurement = None
             return
 
-        traffic_data = self.coordinator.data["appliance_traffic"].get(self._network_id)
-        if not traffic_data or not isinstance(traffic_data, list):
-            self._attr_native_value = None
-            self._attr_extra_state_attributes = {}
-            return
+        self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+        self._attr_native_unit_of_measurement = UnitOfInformation.MEGABYTES
+        traffic_data = self.coordinator.data["appliance_traffic"][self._network_id]
 
         total_sent_kb = sum(item.get("sent", 0) for item in traffic_data)
         total_recv_kb = sum(item.get("recv", 0) for item in traffic_data)
@@ -86,9 +89,6 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEnti
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        return (
-            super().available
-            and self.coordinator.data
-            and "appliance_traffic" in self.coordinator.data
-            and self._network_id in self.coordinator.data["appliance_traffic"]
-        )
+        # This sensor should be available even if traffic analysis is disabled
+        # so it can show the "Disabled" state.
+        return super().available and self._get_current_device_data() is not None
