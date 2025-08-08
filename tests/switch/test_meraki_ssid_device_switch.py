@@ -11,19 +11,21 @@ from custom_components.meraki_ha.switch.meraki_ssid_device_switch import (
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mocked MerakiNetworkCoordinator."""
+    """Fixture for a mocked MerakiDataCoordinator."""
     coordinator = MagicMock()
+    coordinator.config_entry.options = {}
     coordinator.async_request_refresh = AsyncMock()
     coordinator.data = {
-        "ssid_0": {
-            "number": 0,
-            "name": "Test SSID",
-            "enabled": True,
-            "broadcast": True,
-            "networkId": "net-123",
-            "unique_id": "ssid_0",
-            "productType": "ssid",
-        }
+        "ssids": [
+            {
+                "number": 0,
+                "name": "Test SSID",
+                "enabled": True,
+                "broadcast": True,
+                "networkId": "net-123",
+                "productType": "ssid",
+            }
+        ]
     }
     return coordinator
 
@@ -32,7 +34,7 @@ def mock_coordinator():
 def mock_meraki_client():
     """Fixture for a mocked MerakiAPIClient."""
     client = MagicMock()
-    client.update_network_wireless_ssid = AsyncMock()
+    client.wireless.update_network_wireless_ssid = AsyncMock()
     return client
 
 
@@ -48,27 +50,30 @@ async def test_meraki_ssid_enabled_switch(
     mock_coordinator, mock_meraki_client, mock_config_entry
 ) -> None:
     """Test the Meraki SSID enabled switch."""
-    ssid_data = mock_coordinator.data["ssid_0"]
+    ssid_data = mock_coordinator.data["ssids"][0]
+    ssid_unique_id = f"ssid-{ssid_data['networkId']}-{ssid_data['number']}"
 
     # Test with prefix format
     mock_config_entry.options = {'device_name_format': 'prefix'}
     switch = MerakiSSIDEnabledSwitch(
-        mock_coordinator, mock_meraki_client, mock_config_entry, "ssid_0", ssid_data
+        mock_coordinator, mock_meraki_client, mock_config_entry, ssid_unique_id, ssid_data
     )
 
     assert switch.is_on is True
-    assert switch.name == "[Ssid] Test SSID Enabled Control"
+    assert switch.name == "Enabled Control"
+    assert switch.device_info["name"] == "[Ssid] Test SSID"
 
     # Test with omit format
     mock_config_entry.options = {'device_name_format': 'omit'}
     switch = MerakiSSIDEnabledSwitch(
-        mock_coordinator, mock_meraki_client, mock_config_entry, "ssid_0", ssid_data
+        mock_coordinator, mock_meraki_client, mock_config_entry, ssid_unique_id, ssid_data
     )
-    assert switch.name == "Test SSID Enabled Control"
+    assert switch.name == "Enabled Control"
+    assert switch.device_info["name"] == "Test SSID"
 
     await switch.async_turn_off()
-    mock_meraki_client.update_network_wireless_ssid.assert_called_with(
-        network_id="net-123", number=0, enabled=False
+    mock_meraki_client.wireless.update_network_wireless_ssid.assert_called_with(
+        networkId="net-123", number=0, enabled=False
     )
 
 
@@ -76,25 +81,28 @@ async def test_meraki_ssid_broadcast_switch(
     mock_coordinator, mock_meraki_client, mock_config_entry
 ) -> None:
     """Test the Meraki SSID broadcast switch."""
-    ssid_data = mock_coordinator.data["ssid_0"]
+    ssid_data = mock_coordinator.data["ssids"][0]
+    ssid_unique_id = f"ssid-{ssid_data['networkId']}-{ssid_data['number']}"
 
     # Test with prefix format
     mock_config_entry.options = {'device_name_format': 'prefix'}
     switch = MerakiSSIDBroadcastSwitch(
-        mock_coordinator, mock_meraki_client, mock_config_entry, "ssid_0", ssid_data
+        mock_coordinator, mock_meraki_client, mock_config_entry, ssid_unique_id, ssid_data
     )
 
     assert switch.is_on is True
-    assert switch.name == "[Ssid] Test SSID Broadcast Control"
+    assert switch.name == "Broadcast Control"
+    assert switch.device_info["name"] == "[Ssid] Test SSID"
 
     # Test with omit format
     mock_config_entry.options = {'device_name_format': 'omit'}
     switch = MerakiSSIDBroadcastSwitch(
-        mock_coordinator, mock_meraki_client, mock_config_entry, "ssid_0", ssid_data
+        mock_coordinator, mock_meraki_client, mock_config_entry, ssid_unique_id, ssid_data
     )
-    assert switch.name == "Test SSID Broadcast Control"
+    assert switch.name == "Broadcast Control"
+    assert switch.device_info["name"] == "Test SSID"
 
     await switch.async_turn_off()
-    mock_meraki_client.update_network_wireless_ssid.assert_called_with(
-        network_id="net-123", number=0, broadcast=False
+    mock_meraki_client.wireless.update_network_wireless_ssid.assert_called_with(
+        networkId="net-123", number=0, broadcast=False
     )

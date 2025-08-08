@@ -22,7 +22,7 @@ class MerakiNetworkInfoSensor(
     """Representation of a Meraki Network Information Sensor."""
 
     _attr_icon = "mdi:information-outline"
-    _attr_has_entity_name = True  # Home Assistant will prepend the device name
+    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -34,19 +34,12 @@ class MerakiNetworkInfoSensor(
         super().__init__(coordinator)
         self._network_id: str = network_data.get("id", "")
         self._attr_unique_id = f"{self._network_id}_network_info"
-        # self.entity_id = f"sensor.{DOMAIN}_{self._network_id}_network_info" # Let HA generate
+        self._attr_name = "Network Information"
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._network_id)},
             name=format_device_name(network_data, config_entry.options),
             manufacturer="Cisco Meraki",
-        )
-        # The sensor's friendly name suffix
-        name_format = self.coordinator.config_entry.options.get(
-            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-        )
-        self._attr_name = format_entity_name(
-            format_device_name(network_data, config_entry.options), "Network Information"
         )
 
         self._attr_extra_state_attributes: Dict[str, Any] = {}

@@ -50,6 +50,9 @@ async def test_meraki_ssid_name_text(
 ) -> None:
     """Test the Meraki SSID name text entity."""
     ssid_data = mock_coordinator.data["ssids"][0]
+
+    # Test with prefix format
+    mock_config_entry.options = {'device_name_format': 'prefix'}
     text = MerakiSSIDNameText(
         mock_coordinator, mock_meraki_client, mock_config_entry, "ssid_0", ssid_data
     )
@@ -57,7 +60,8 @@ async def test_meraki_ssid_name_text(
     text.entity_id = "text.test_ssid"
 
     assert text.native_value == "Test SSID"
-    assert text.name == "[Ssid] Test SSID"
+    assert text.name == "SSID Name"
+    assert text.device_info["name"] == "[Ssid] Test SSID"
 
     # Test with omit format
     mock_config_entry.options = {'device_name_format': 'omit'}
@@ -66,7 +70,8 @@ async def test_meraki_ssid_name_text(
     )
     text.hass = hass
     text.entity_id = "text.test_ssid_2"
-    assert text.name == "Test SSID"
+    assert text.name == "SSID Name"
+    assert text.device_info["name"] == "Test SSID"
 
     await text.async_set_value("New Name")
     mock_meraki_client.update_network_wireless_ssid.assert_called_with(

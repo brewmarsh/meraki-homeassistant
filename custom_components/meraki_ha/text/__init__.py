@@ -11,7 +11,7 @@ from ..const import (
     DATA_CLIENT,
 )
 from ..core.api.client import MerakiAPIClient
-from ..core.coordinators.network import MerakiNetworkCoordinator
+from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from .meraki_ssid_name import MerakiSSIDNameText
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,9 +26,7 @@ async def async_setup_entry(
     try:
         entry_data = hass.data[DOMAIN][config_entry.entry_id]
         meraki_client: MerakiAPIClient = entry_data[DATA_CLIENT]
-        network_coordinator: MerakiNetworkCoordinator = entry_data.get(
-            "network_coordinator"
-        )
+        coordinator: MerakiDataCoordinator = entry_data.get("coordinator")
     except KeyError as e:
         _LOGGER.error(
             "Text platform: Essential data not found in hass.data for entry %s. Error: %s",
@@ -39,13 +37,21 @@ async def async_setup_entry(
 
     new_entities: list = []
 
-    if network_coordinator and network_coordinator.data:
-        for ssid_unique_id, ssid_data in network_coordinator.data.items():
+    if coordinator and coordinator.data and "ssids" in coordinator.data:
+        ssids = coordinator.data["ssids"]
+        for ssid_data in ssids:
             if not isinstance(ssid_data, dict):
                 continue
+            network_id = ssid_data.get("networkId")
+            ssid_number = ssid_data.get("number")
+            if not network_id or ssid_number is None:
+                continue
+
+            ssid_unique_id = f"ssid-{network_id}-{ssid_number}"
+
             new_entities.append(
                 MerakiSSIDNameText(
-                    network_coordinator,
+                    coordinator,
                     meraki_client,
                     config_entry,
                     ssid_unique_id,

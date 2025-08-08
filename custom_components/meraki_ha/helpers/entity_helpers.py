@@ -6,16 +6,11 @@ from ..const import (
 )
 
 
-import logging
-
-_LOGGER = logging.getLogger(__name__)
-
 def format_entity_name(
     device_name: str,
     entity_specific_name: str,
 ) -> str:
     """Format the entity name by combining the device name and the entity specific name."""
-    _LOGGER.debug(f"Formatting entity name with device_name='{device_name}', entity_specific_name='{entity_specific_name}'")
     if entity_specific_name and entity_specific_name.strip():
         return f"{device_name} {entity_specific_name}"
     return device_name

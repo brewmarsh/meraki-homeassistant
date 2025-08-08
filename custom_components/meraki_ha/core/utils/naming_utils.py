@@ -18,7 +18,6 @@ _LOGGER = logging.getLogger(__name__)
 
 def format_device_name(device: Dict[str, Any], config: Dict[str, Any]) -> str:
     """Format the device name based on the user's preference."""
-    _LOGGER.debug(f"Formatting device name with device='{device}', config='{config}'")
     name = device.get("name")
     if not name:
         if device.get("productType") == "ssid":
@@ -34,10 +33,9 @@ def format_device_name(device: Dict[str, Any], config: Dict[str, Any]) -> str:
     product_type = device.get("productType")
     if not product_type and "productTypes" in device:
         product_type = "network"
-    _LOGGER.debug(f"Product type for device {name}: {product_type}")
 
     if not product_type:
-        product_type = "device" # default to device
+        product_type = "device"  # default to device
 
     if product_type == "network":
         product_type_str = "Network"
@@ -45,11 +43,7 @@ def format_device_name(device: Dict[str, Any], config: Dict[str, Any]) -> str:
         product_type_str = product_type.capitalize()
 
     if name_format == DEVICE_NAME_FORMAT_PREFIX:
-        formatted_name = f"[{product_type_str}] {name}"
-        _LOGGER.debug(f"Formatted device name: {formatted_name}")
-        return formatted_name
+        return f"[{product_type_str}] {name}"
     if name_format == DEVICE_NAME_FORMAT_SUFFIX:
-        formatted_name = f"{name} [{product_type_str}]"
-        _LOGGER.debug(f"Formatted device name: {formatted_name}")
-        return formatted_name
+        return f"{name} [{product_type_str}]"
     return name

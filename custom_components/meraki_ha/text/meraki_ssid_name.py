@@ -16,22 +16,23 @@ from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..const import DOMAIN
 from ..core.api.client import MerakiAPIClient
-from ..core.coordinators.network import MerakiNetworkCoordinator
+from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from homeassistant.helpers.entity import EntityCategory
 from ..core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDNameText(CoordinatorEntity[MerakiNetworkCoordinator], TextEntity):
+class MerakiSSIDNameText(CoordinatorEntity[MerakiDataCoordinator], TextEntity):
     """Representation of a Meraki SSID Name text entity."""
 
     _attr_mode = TextMode.TEXT  # Or TextMode.PASSWORD if it were a password
     entity_category = EntityCategory.CONFIG
+    _attr_has_entity_name = True
 
     def __init__(
         self,
-        coordinator: MerakiNetworkCoordinator,
+        coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,  # Added to match switch entities
         ssid_unique_id: str,  # unique_id for the HA "device" representing the SSID
@@ -60,9 +61,6 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiNetworkCoordinator], TextEntity
         )
 
         self._attr_unique_id = f"{self._ssid_unique_id}_name_text"
-        # The name will be derived from device name + entity_description.name if _attr_has_entity_name = True
-        # Or explicitly set here. Let's make it explicit for now.
-        self._attr_name = format_device_name(ssid_data, config_entry.options)
 
         # Set initial state
         self._update_internal_state()
@@ -70,25 +68,31 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiNetworkCoordinator], TextEntity
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information to link this entity to the SSID device."""
+        device_name = format_device_name(self._ssid_data, self._config_entry.options)
         return DeviceInfo(
             identifiers={(DOMAIN, self._ssid_unique_id)},
+            name=device_name,
+            model="SSID",
+            manufacturer="Meraki",
             via_device=(DOMAIN, self._network_id),
         )
 
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        if not super().available:
+        if not super().available or not self.coordinator.data:
             return False
-        for ssid in self.coordinator.data.get("ssids", []):
-            if ssid.get("unique_id") == self._ssid_unique_id:
-                return ssid.get("enabled", False)
-        return False
+        ssid_data = self._get_current_ssid_data()
+        return ssid_data is not None and ssid_data.get("enabled", False)
 
     def _get_current_ssid_data(self) -> Optional[Dict[str, Any]]:
         """Retrieve the latest data for this sensor's device from the coordinator."""
-        for ssid in self.coordinator.data.get("ssids", []):
-            if ssid.get("unique_id") == self._ssid_unique_id:
+        if not self.coordinator.data or "ssids" not in self.coordinator.data:
+            return None
+        for ssid in self.coordinator.data["ssids"]:
+            if ssid.get("networkId") == self._network_id and str(
+                ssid.get("number")
+            ) == str(self._ssid_number):
                 return ssid
         return None
 
