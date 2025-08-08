@@ -35,7 +35,6 @@ SensorClassList = List[Type[Entity]]
 
 SENSOR_REGISTRY: Dict[str, SensorClassList] = {
     "appliance": [
-        MerakiNetworkInfoSensor,
         MerakiWAN1ConnectivitySensor,
         MerakiWAN2ConnectivitySensor,
         MerakiFirmwareStatusSensor,

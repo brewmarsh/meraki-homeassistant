@@ -4,86 +4,84 @@ import logging
 from typing import Any, Dict
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfInformation
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+from ...const import DOMAIN
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-from ...helpers.entity_helpers import format_entity_name
 from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiDataUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
-    """Representation of a Meraki appliance data usage sensor.
-
-    This sensor displays the total data usage for a Meraki MX appliance
-    over the last day. The state is the total data usage in megabytes,
-    and the attributes provide a breakdown of sent and received data.
-    """
+    """Representation of a Meraki appliance data usage sensor."""
 
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_native_unit_of_measurement = UnitOfInformation.MEGABYTES
     _attr_icon = "mdi:chart-bar"
+    _attr_has_entity_name = True
 
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: Dict[str, Any],
+        device_data: Dict[str, Any],
+        config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._device = device
-        self._attr_unique_id = f"{self._device['serial']}_data_usage"
-        name_format = self.coordinator.config_entry.options.get(
-            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-        )
-        self._attr_name = format_entity_name(
-            self._device['name'], "Data Usage"
-        )
+        self._device_serial: str = device_data["serial"]
+        self._config_entry = config_entry
+        self._attr_unique_id = f"{self._device_serial}_data_usage"
+        self._attr_name = "Data Usage"
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._device["serial"])},
-            name=format_device_name(self._device, self.coordinator.config_entry.options),
-            model=self._device["model"],
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, self._device_serial)},
+            name=format_device_name(device_data, self._config_entry.options),
+            model=device_data.get("model"),
             manufacturer="Cisco Meraki",
+            sw_version=device_data.get("firmware"),
         )
+        self._update_state()
+
+    def _get_current_device_data(self) -> Dict[str, Any] | None:
+        """Retrieve the latest data for this sensor's device from the coordinator."""
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            for device in self.coordinator.data["devices"]:
+                if device.get("serial") == self._device_serial:
+                    return device
+        return None
+
+    @callback
+    def _update_state(self) -> None:
+        """Update the state of the sensor."""
+        current_device_data = self._get_current_device_data()
+        traffic = current_device_data.get("traffic") if current_device_data else None
+
+        if not traffic or not isinstance(traffic, list) or not traffic[0]:
+            self._attr_native_value = None
+            self._attr_extra_state_attributes = {}
+            return
+
+        total_kb = traffic[0].get("received", 0) + traffic[0].get("sent", 0)
+        self._attr_native_value = round(total_kb / 1024, 2)
+
+        self._attr_extra_state_attributes = {
+            "sent_mb": round(traffic[0].get("sent", 0) / 1024, 2),
+            "received_mb": round(traffic[0].get("received", 0) / 1024, 2),
+            "timespan_seconds": 86400,
+        }
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        for device in self.coordinator.data.get("devices", []):
-            if device["serial"] == self._device["serial"]:
-                self._device = device
-                self.async_write_ha_state()
-                return
+        self._update_state()
+        self.async_write_ha_state()
 
     @property
-    def native_value(self) -> float | None:
-        """Return the state of the sensor."""
-        traffic = self._device.get("traffic")
-        if not traffic or not isinstance(traffic, list) or not traffic[0]:
-            return None
-        # The API returns a list of dictionaries, one for each traffic type
-        # We are interested in the total traffic, which is the sum of sent and received
-        total_kb = traffic[0].get("received", 0) + traffic[0].get("sent", 0)
-        return round(total_kb / 1024, 2)  # Convert to MB
-
-    @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
-        """Return the state attributes."""
-        traffic = self._device.get("traffic")
-        if not traffic or not isinstance(traffic, list) or not traffic[0]:
-            return {}
-
-        return {
-            "sent": round(traffic[0].get("sent", 0) / 1024, 2),
-            "received": round(traffic[0].get("received", 0) / 1024, 2),
-            "timespan_seconds": 86400,  # Hardcoded for now
-        }
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return super().available and self._get_current_device_data() is not None

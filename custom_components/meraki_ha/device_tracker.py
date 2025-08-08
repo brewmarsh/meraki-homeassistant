@@ -13,7 +13,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-from .helpers.entity_helpers import format_entity_name
+from homeassistant.helpers.device_registry import DeviceInfo
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -61,14 +61,7 @@ class MerakiDeviceTracker(CoordinatorEntity[MerakiDataCoordinator], TrackerEntit
         """Initialize the Meraki client device tracker."""
         super().__init__(coordinator)
         self._client_info_data = client_info
-        name_format = self.coordinator.config_entry.options.get(
-            "device_name_format", "prefix"
-        )
-        self._attr_name = format_entity_name(
-            self._client_info_data.get("description")
-            or self._client_info_data.get("ip"),
-            "",
-        )
+        self._attr_name = "Connectivity"
         self._attr_unique_id = f"{self._client_info_data['mac']}_client_tracker"
         self._update_attributes()
 
@@ -96,12 +89,16 @@ class MerakiDeviceTracker(CoordinatorEntity[MerakiDataCoordinator], TrackerEntit
         return SourceType.ROUTER
 
     @property
-    def device_info(self) -> Dict[str, Any]:
-        """Return device information for linking this entity to the parent Meraki device."""
-        parent_identifier_value = self._client_info_data.get(
-            "ap_serial"
-        ) or self._client_info_data.get("networkId", "meraki_network")
-        return {"identifiers": {(DOMAIN, parent_identifier_value)}}
+    def device_info(self) -> DeviceInfo:
+        """Return device information for the client device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._client_info_data["mac"])},
+            name=self._client_info_data.get("description")
+            or self._client_info_data.get("ip"),
+            manufacturer=self._client_info_data.get("manufacturer", "Unknown"),
+            model="Tracked Client",
+            via_device=(DOMAIN, self._client_info_data.get("recentDeviceSerial")),
+        )
 
     @property
     def icon(self) -> str:
