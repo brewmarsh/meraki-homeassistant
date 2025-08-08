@@ -109,8 +109,7 @@ async def test_camera_entity(hass: HomeAssistant, mock_device_coordinator):
 async def test_camera_auto_enable_rtsp(hass: HomeAssistant, mock_device_coordinator):
     """Test the camera entity with proactive auto-enable RTSP."""
     mock_api_client = AsyncMock()
-    # Make the underlying API call method an async mock
-    mock_api_client._dashboard.camera.updateDeviceCameraVideoSettings = AsyncMock()
+    mock_api_client.camera.update_camera_video_settings = AsyncMock()
     mock_device_coordinator.hass = hass
 
     config_entry = MockConfigEntry(
@@ -136,7 +135,7 @@ async def test_camera_auto_enable_rtsp(hass: HomeAssistant, mock_device_coordina
 
     # Verify that the API was called to enable RTSP for the second camera,
     # which has it disabled in the mock data.
-    mock_api_client._dashboard.camera.updateDeviceCameraVideoSettings.assert_called_once_with(
+    mock_api_client.camera.update_camera_video_settings.assert_called_once_with(
         serial="Q234-EFGH-9012",
         externalRtspEnabled=True,
     )

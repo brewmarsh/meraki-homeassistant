@@ -74,11 +74,9 @@ async def async_setup_entry(
                                 "Auto-enabling RTSP for camera %s",
                                 entity._device["serial"],
                             )
-                            await hass.async_add_executor_job(
-                                lambda: client._dashboard.camera.updateDeviceCameraVideoSettings(
-                                    serial=entity._device["serial"],
-                                    externalRtspEnabled=True,
-                                )
+                            await client.camera.update_camera_video_settings(
+                                serial=entity._device["serial"],
+                                externalRtspEnabled=True,
                             )
                             # Wait a moment before enabling the next one to avoid overwhelming the API
                             await asyncio.sleep(1)

@@ -91,6 +91,11 @@ class MerakiAPIClient:
                     device["serial"]
                 )
                 device["radio_settings"] = radio_settings
+            elif device.get("productType") == "camera":
+                video_settings = await self.camera.get_camera_video_settings(
+                    device["serial"]
+                )
+                device["video_settings"] = video_settings
         return {
             "networks": networks,
             "devices": devices,
