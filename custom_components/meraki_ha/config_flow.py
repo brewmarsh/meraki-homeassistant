@@ -16,6 +16,7 @@ from .authentication import validate_meraki_credentials
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .const import (
     CONF_AUTO_ENABLE_RTSP,
+    CONF_ENABLE_DEVICE_TRACKER,
     CONF_DEVICE_NAME_FORMAT,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
@@ -76,6 +77,9 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_WEBHOOK_URL: user_input.get(
                         CONF_WEBHOOK_URL, DEFAULT_WEBHOOK_URL
                     ),
+                    CONF_ENABLE_DEVICE_TRACKER: user_input.get(
+                        CONF_ENABLE_DEVICE_TRACKER, True
+                    ),
                 }
                 data = {
                     CONF_MERAKI_API_KEY: user_input[CONF_MERAKI_API_KEY],
@@ -100,6 +104,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     ): vol.In(DEVICE_NAME_FORMAT_OPTIONS),
                     vol.Optional(CONF_AUTO_ENABLE_RTSP, default=False): bool,
                     vol.Optional(CONF_USE_LAN_IP_FOR_RTSP, default=False): bool,
+                    vol.Optional(CONF_ENABLE_DEVICE_TRACKER, default=True): bool,
                 }
             ),
             errors=errors,

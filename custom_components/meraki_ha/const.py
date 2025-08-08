@@ -38,6 +38,9 @@ CONF_AUTO_ENABLE_RTSP: Final[str] = "auto_enable_rtsp"
 CONF_USE_LAN_IP_FOR_RTSP: Final[str] = "use_lan_ip_for_rtsp"
 """Configuration key for using LAN IP for RTSP stream (str)."""
 
+CONF_ENABLE_DEVICE_TRACKER: Final[str] = "enable_device_tracker"
+"""Configuration key for enabling device tracker (str)."""
+
 DEFAULT_WEBHOOK_URL: Final[str] = ""
 """Default webhook URL value (empty string)."""
 

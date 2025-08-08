@@ -44,6 +44,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         CONF_AUTO_ENABLE_RTSP: True,
         CONF_USE_LAN_IP_FOR_RTSP: False,
         CONF_WEBHOOK_URL: "http://example.com/webhook",
+        "enable_device_tracker": True,
     }
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], user_input=user_input

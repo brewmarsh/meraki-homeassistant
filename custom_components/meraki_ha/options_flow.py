@@ -9,6 +9,7 @@ import voluptuous as vol
 
 from .const import (
     CONF_AUTO_ENABLE_RTSP,
+    CONF_ENABLE_DEVICE_TRACKER,
     CONF_USE_LAN_IP_FOR_RTSP,
     CONF_DEVICE_NAME_FORMAT,
     CONF_WEBHOOK_URL,
@@ -76,6 +77,12 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                             ),
                         ),
                     ): str,
+                    vol.Optional(
+                        CONF_ENABLE_DEVICE_TRACKER,
+                        default=self.config_entry.options.get(
+                            CONF_ENABLE_DEVICE_TRACKER, True
+                        ),
+                    ): bool,
                 }
             ),
         )

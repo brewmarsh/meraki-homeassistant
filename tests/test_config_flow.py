@@ -38,6 +38,7 @@ async def test_async_step_user_success(hass: HomeAssistant) -> None:
             CONF_DEVICE_NAME_FORMAT: "suffix",
             CONF_AUTO_ENABLE_RTSP: True,
             CONF_WEBHOOK_URL: "http://example.com",
+            "enable_device_tracker": True,
         }
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {**user_input, **options}
