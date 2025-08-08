@@ -34,6 +34,7 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEnti
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device_serial: str = device_data["serial"]
+        self._network_id: str = device_data["networkId"]
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device_serial}_data_usage"
         self._attr_name = "Data Usage"
@@ -47,31 +48,32 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEnti
         )
         self._update_state()
 
-    def _get_current_device_data(self) -> Dict[str, Any] | None:
-        """Retrieve the latest data for this sensor's device from the coordinator."""
-        if self.coordinator.data and self.coordinator.data.get("devices"):
-            for device in self.coordinator.data["devices"]:
-                if device.get("serial") == self._device_serial:
-                    return device
-        return None
-
     @callback
     def _update_state(self) -> None:
         """Update the state of the sensor."""
-        current_device_data = self._get_current_device_data()
-        traffic = current_device_data.get("traffic") if current_device_data else None
-
-        if not traffic or not isinstance(traffic, list) or not traffic[0]:
+        if (
+            not self.coordinator.data
+            or "appliance_traffic" not in self.coordinator.data
+        ):
             self._attr_native_value = None
             self._attr_extra_state_attributes = {}
             return
 
-        total_kb = traffic[0].get("received", 0) + traffic[0].get("sent", 0)
-        self._attr_native_value = round(total_kb / 1024, 2)
+        traffic_data = self.coordinator.data["appliance_traffic"].get(self._network_id)
+        if not traffic_data or not isinstance(traffic_data, list):
+            self._attr_native_value = None
+            self._attr_extra_state_attributes = {}
+            return
+
+        total_sent_kb = sum(item.get("sent", 0) for item in traffic_data)
+        total_recv_kb = sum(item.get("recv", 0) for item in traffic_data)
+        total_kb = total_sent_kb + total_recv_kb
+
+        self._attr_native_value = round(total_kb / 1024, 2)  # Convert to MB
 
         self._attr_extra_state_attributes = {
-            "sent_mb": round(traffic[0].get("sent", 0) / 1024, 2),
-            "received_mb": round(traffic[0].get("received", 0) / 1024, 2),
+            "sent_mb": round(total_sent_kb / 1024, 2),
+            "received_mb": round(total_recv_kb / 1024, 2),
             "timespan_seconds": 86400,
         }
 
@@ -84,4 +86,9 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEnti
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        return super().available and self._get_current_device_data() is not None
+        return (
+            super().available
+            and self.coordinator.data
+            and "appliance_traffic" in self.coordinator.data
+            and self._network_id in self.coordinator.data["appliance_traffic"]
+        )

@@ -33,23 +33,6 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
         """
         try:
             data = await self.api.get_all_data()
-
-            # Process clients to count them per device
-            client_counts = {}
-            clients = data.get("clients", [])
-            for client in clients:
-                if client.get("status") == "Online":
-                    serial = client.get("recentDeviceSerial")
-                    if serial:
-                        client_counts[serial] = client_counts.get(serial, 0) + 1
-
-            # Add client count to each device
-            devices = data.get("devices", [])
-            for device in devices:
-                device["connected_clients_count"] = client_counts.get(
-                    device["serial"], 0
-                )
-
             return data
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}") from err

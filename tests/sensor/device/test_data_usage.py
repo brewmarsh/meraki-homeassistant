@@ -17,9 +17,15 @@ def mock_data_coordinator():
                 "name": "Appliance",
                 "model": "MX64",
                 "productType": "appliance",
-                "traffic": [{"sent": 2048, "received": 8192}],  # 2 MB  # 8 MB
+                "networkId": "net-123",
             }
-        ]
+        ],
+        "appliance_traffic": {
+            "net-123": [
+                {"sent": 1024, "recv": 4096},
+                {"sent": 1024, "recv": 4096},
+            ]
+        },
     }
     return coordinator
 
@@ -31,6 +37,6 @@ def test_data_usage_sensor(mock_data_coordinator):
     sensor = MerakiDataUsageSensor(mock_data_coordinator, device, config_entry)
     assert sensor.unique_id == "dev1_data_usage"
     assert sensor.name == "Data Usage"
-    assert sensor.native_value == 10.0  # 2 + 8
+    assert sensor.native_value == 10.0  # (1+1) + (4+4) = 10 MB
     assert sensor.extra_state_attributes["sent_mb"] == 2.0
     assert sensor.extra_state_attributes["received_mb"] == 8.0

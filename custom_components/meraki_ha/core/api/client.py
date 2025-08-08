@@ -96,11 +96,20 @@ class MerakiAPIClient:
                     device["serial"]
                 )
                 device["video_settings"] = video_settings
+        appliance_traffic = {}
+        for network in networks:
+            if "appliance" in network.get("productTypes", []):
+                traffic = await self.network.get_network_traffic(
+                    network["id"], "appliance"
+                )
+                appliance_traffic[network["id"]] = traffic
+
         return {
             "networks": networks,
             "devices": devices,
             "clients": clients,
             "ssids": ssids,
+            "appliance_traffic": appliance_traffic,
         }
 
     @property

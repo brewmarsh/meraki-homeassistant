@@ -22,16 +22,20 @@ def test_connected_clients_sensor_appliance(mock_data_coordinator):
                 "name": "Appliance",
                 "model": "MX64",
                 "productType": "appliance",
-                "connected_clients_count": 42,
             }
-        ]
+        ],
+        "clients": [
+            {"recentDeviceSerial": "dev1", "status": "Online"},
+            {"recentDeviceSerial": "dev1", "status": "Online"},
+            {"recentDeviceSerial": "dev2", "status": "Online"},
+        ],
     }
     device = mock_data_coordinator.data["devices"][0]
     config_entry = mock_data_coordinator.config_entry
     sensor = MerakiDeviceConnectedClientsSensor(mock_data_coordinator, device, config_entry)
     assert sensor.unique_id == "dev1_connected_clients"
     assert sensor.name == "Connected Clients"
-    assert sensor.native_value == 42
+    assert sensor.native_value == 2
 
 
 def test_connected_clients_sensor_wireless(mock_data_coordinator):
@@ -43,13 +47,18 @@ def test_connected_clients_sensor_wireless(mock_data_coordinator):
                 "name": "Access Point",
                 "model": "MR52",
                 "productType": "wireless",
-                "connected_clients_count": 10,
             }
-        ]
+        ],
+        "clients": [
+            {"recentDeviceSerial": "dev1", "status": "Online"},
+            {"recentDeviceSerial": "dev2", "status": "Online"},
+            {"recentDeviceSerial": "dev2", "status": "Online"},
+            {"recentDeviceSerial": "dev2", "status": "Offline"},
+        ],
     }
     device = mock_data_coordinator.data["devices"][0]
     config_entry = mock_data_coordinator.config_entry
     sensor = MerakiDeviceConnectedClientsSensor(mock_data_coordinator, device, config_entry)
     assert sensor.unique_id == "dev2_connected_clients"
     assert sensor.name == "Connected Clients"
-    assert sensor.native_value == 10
+    assert sensor.native_value == 2
