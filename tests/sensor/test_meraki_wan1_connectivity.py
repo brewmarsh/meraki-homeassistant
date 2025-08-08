@@ -26,6 +26,8 @@ async def test_meraki_wan1_connectivity_sensor(
     device_data = {
         "serial": "Q234-ABCD-5678",
     }
-    sensor = MerakiWAN1ConnectivitySensor(coordinator, device_data)
+    config_entry = MagicMock()
+    config_entry.options = {}
+    sensor = MerakiWAN1ConnectivitySensor(coordinator, device_data, config_entry)
     sensor._update_state()
     assert sensor.native_value == "Connected"

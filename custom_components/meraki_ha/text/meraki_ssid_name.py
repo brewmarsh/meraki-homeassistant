@@ -73,7 +73,7 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataCoordinator], TextEntity):
             identifiers={(DOMAIN, self._ssid_unique_id)},
             name=device_name,
             model="SSID",
-            manufacturer="Meraki",
+            manufacturer="Cisco Meraki",
             via_device=(DOMAIN, self._network_id),
         )
 

@@ -54,7 +54,7 @@ class MerakiSSIDBaseSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntit
             identifiers={(DOMAIN, ssid_unique_id)},
             name=device_name,
             model="SSID",
-            manufacturer="Meraki",
+            manufacturer="Cisco Meraki",
             via_device=(DOMAIN, self._network_id),
         )
 
