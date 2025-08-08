@@ -19,6 +19,7 @@ from .network.meraki_network_info import MerakiNetworkInfoSensor
 from .device.appliance_port import MerakiAppliancePortSensor
 from .device.switch_port import MerakiSwitchPortSensor
 from .network.ssid import create_ssid_sensors
+from .network.vlan import MerakiVLANSubnetSensor, MerakiVLANApplianceIpSensor
 from .client_tracker import ClientTrackerDeviceSensor, MerakiClientSensor
 from ..const import CONF_ENABLE_DEVICE_TRACKER
 
@@ -140,5 +141,32 @@ def async_setup_sensors(
                     entities.append(
                         MerakiClientSensor(coordinator, config_entry, client_data)
                     )
+
+    # Set up VLAN sensors
+    vlans_by_network = coordinator.data.get("vlans", {})
+    for network_id, vlans in vlans_by_network.items():
+        for vlan in vlans:
+            if vlan.get("enabled", False):
+                vlan_id = vlan.get("id")
+                if not vlan_id:
+                    continue
+
+                unique_id_subnet = f"meraki_vlan_{network_id}_{vlan_id}_subnet"
+                if unique_id_subnet not in added_entities:
+                    entities.append(
+                        MerakiVLANSubnetSensor(
+                            coordinator, config_entry, network_id, vlan
+                        )
+                    )
+                    added_entities.add(unique_id_subnet)
+
+                unique_id_ip = f"meraki_vlan_{network_id}_{vlan_id}_appliance_ip"
+                if unique_id_ip not in added_entities:
+                    entities.append(
+                        MerakiVLANApplianceIpSensor(
+                            coordinator, config_entry, network_id, vlan
+                        )
+                    )
+                    added_entities.add(unique_id_ip)
 
     return entities

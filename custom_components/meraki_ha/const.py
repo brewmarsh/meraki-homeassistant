@@ -9,6 +9,9 @@ from typing import Final, List
 DOMAIN: Final[str] = "meraki_ha"
 """Domain for the component."""
 
+MANUFACTURER: Final[str] = "Cisco Meraki"
+"""Manufacturer for all Meraki devices."""
+
 CONF_MERAKI_API_KEY: Final[str] = "meraki_api_key"
 """Configuration key for the Meraki API key (str)."""
 

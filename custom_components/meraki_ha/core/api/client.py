@@ -118,12 +118,27 @@ class MerakiAPIClient:
                     )
                     appliance_traffic[network["id"]] = []
 
+        vlans_by_network = {}
+        for network in networks:
+            if "appliance" in network.get("productTypes", []):
+                try:
+                    vlans = await self.appliance.get_vlans(network["id"])
+                    vlans_by_network[network["id"]] = vlans
+                except (MerakiAuthenticationError, MerakiConnectionError) as e:
+                    _LOGGER.warning(
+                        "Could not fetch VLAN data for network %s, please ensure VLANs are enabled in the Meraki Dashboard. Error: %s",
+                        network["id"],
+                        e,
+                    )
+                    vlans_by_network[network["id"]] = []
+
         return {
             "networks": networks,
             "devices": devices,
             "clients": clients,
             "ssids": ssids,
             "appliance_traffic": appliance_traffic,
+            "vlans": vlans_by_network,
         }
 
     @property

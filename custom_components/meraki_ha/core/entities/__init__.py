@@ -9,14 +9,14 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..const import (
+from ...const import (
     DOMAIN,
     MANUFACTURER,
     CONF_DEVICE_NAME_FORMAT,
     DEFAULT_DEVICE_NAME_FORMAT,
 )
-from ..core.coordinators import MerakiDataCoordinator
-from ..core.utils.naming_utils import format_device_name
+from ..coordinators import MerakiDataCoordinator
+from ..utils.naming_utils import format_device_name
 
 
 class BaseMerakiEntity(CoordinatorEntity[MerakiDataCoordinator], Entity, ABC):
