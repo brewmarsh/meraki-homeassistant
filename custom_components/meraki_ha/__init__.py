@@ -64,12 +64,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {
         "coordinator": coordinator,
         DATA_CLIENT: api_client,
+        "platforms": [],
     }
 
     platforms_to_load = list(PLATFORMS)
     if not entry.options.get(CONF_ENABLE_DEVICE_TRACKER, True):
         platforms_to_load.remove(PLATFORM_DEVICE_TRACKER)
 
+    hass.data[DOMAIN][entry.entry_id]["platforms"] = platforms_to_load
     await hass.config_entries.async_forward_entry_setups(entry, platforms_to_load)
 
     if "webhook_id" not in entry.data:
@@ -91,7 +93,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             api_client = hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]
             await async_unregister_webhook(hass, entry.data["webhook_id"], api_client)
 
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    platforms_to_unload = hass.data[DOMAIN][entry.entry_id].get("platforms", PLATFORMS)
+    unload_ok = await hass.config_entries.async_unload_platforms(
+        entry, platforms_to_unload
+    )
 
     if unload_ok:
         if DOMAIN in hass.data:

@@ -14,6 +14,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from homeassistant.helpers.device_registry import DeviceInfo
+from .core.utils.naming_utils import format_device_name
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -91,10 +92,16 @@ class MerakiDeviceTracker(CoordinatorEntity[MerakiDataCoordinator], TrackerEntit
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information for the client device."""
+        client_data_with_type = self._client_info_data.copy()
+        client_data_with_type["productType"] = "tracker"
+
+        device_name = format_device_name(
+            client_data_with_type, self.coordinator.config_entry.options
+        )
+
         return DeviceInfo(
             identifiers={(DOMAIN, self._client_info_data["mac"])},
-            name=self._client_info_data.get("description")
-            or self._client_info_data.get("ip"),
+            name=device_name,
             manufacturer=self._client_info_data.get("manufacturer", "Unknown"),
             model="Tracked Client",
             via_device=(DOMAIN, self._client_info_data.get("recentDeviceSerial")),
