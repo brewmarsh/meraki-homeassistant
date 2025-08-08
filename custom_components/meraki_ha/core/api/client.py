@@ -18,6 +18,7 @@ from .endpoints.network import NetworkEndpoints
 from .endpoints.organization import OrganizationEndpoints
 from .endpoints.switch import SwitchEndpoints
 from .endpoints.wireless import WirelessEndpoints
+from ...core.errors import MerakiAuthenticationError, MerakiConnectionError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -99,10 +100,18 @@ class MerakiAPIClient:
         appliance_traffic = {}
         for network in networks:
             if "appliance" in network.get("productTypes", []):
-                traffic = await self.network.get_network_traffic(
-                    network["id"], "appliance"
-                )
-                appliance_traffic[network["id"]] = traffic
+                try:
+                    traffic = await self.network.get_network_traffic(
+                        network["id"], "appliance"
+                    )
+                    appliance_traffic[network["id"]] = traffic
+                except (MerakiAuthenticationError, MerakiConnectionError) as e:
+                    _LOGGER.warning(
+                        "Could not fetch traffic data for network %s, please ensure 'Traffic analysis' is enabled in the Meraki Dashboard. Error: %s",
+                        network["id"],
+                        e,
+                    )
+                    appliance_traffic[network["id"]] = []
 
         return {
             "networks": networks,
