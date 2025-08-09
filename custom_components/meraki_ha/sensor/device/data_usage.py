@@ -59,10 +59,14 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEnti
     @callback
     def _update_state(self) -> None:
         """Update the state of the sensor."""
-        if (
-            not self.coordinator.data
-            or "appliance_traffic" not in self.coordinator.data
-            or not self.coordinator.data["appliance_traffic"].get(self._network_id)
+        traffic_data = (
+            self.coordinator.data.get("appliance_traffic", {}).get(self._network_id)
+            if self.coordinator.data
+            else None
+        )
+
+        if not traffic_data or (
+            isinstance(traffic_data, dict) and traffic_data.get("error") == "disabled"
         ):
             self._attr_native_value = "Disabled"
             self._attr_extra_state_attributes = {
@@ -74,7 +78,6 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEnti
 
         self._attr_state_class = SensorStateClass.TOTAL_INCREASING
         self._attr_native_unit_of_measurement = UnitOfInformation.MEGABYTES
-        traffic_data = self.coordinator.data["appliance_traffic"][self._network_id]
 
         total_sent_kb = sum(item.get("sent", 0) for item in traffic_data)
         total_recv_kb = sum(item.get("recv", 0) for item in traffic_data)

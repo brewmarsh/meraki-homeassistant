@@ -119,7 +119,7 @@ class MerakiAPIClient:
                         network["id"],
                         e,
                     )
-                    appliance_traffic[network["id"]] = []
+                    appliance_traffic[network["id"]] = {"error": "disabled"}
 
         vlans_by_network = {}
         for network in networks:
