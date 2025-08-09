@@ -135,6 +135,10 @@ class MerakiAPIClient:
                     )
                     vlans_by_network[network["id"]] = []
 
+        appliance_uplink_statuses = (
+            await self.organization.get_organization_appliance_uplink_statuses()
+        )
+
         return {
             "networks": networks,
             "devices": devices,
@@ -142,6 +146,7 @@ class MerakiAPIClient:
             "ssids": ssids,
             "appliance_traffic": appliance_traffic,
             "vlans": vlans_by_network,
+            "appliance_uplink_statuses": appliance_uplink_statuses,
         }
 
     @property

@@ -20,6 +20,7 @@ from .device.appliance_port import MerakiAppliancePortSensor
 from .device.switch_port import MerakiSwitchPortSensor
 from .network.ssid import create_ssid_sensors
 from .network.vlan import MerakiVLANSubnetSensor, MerakiVLANApplianceIpSensor
+from .device.appliance_uplink import MerakiApplianceUplinkSensor
 from .client_tracker import ClientTrackerDeviceSensor, MerakiClientSensor
 from ..const import CONF_ENABLE_DEVICE_TRACKER
 
@@ -168,5 +169,36 @@ def async_setup_sensors(
                         )
                     )
                     added_entities.add(unique_id_ip)
+
+    # Set up appliance uplink sensors
+    appliance_uplinks = coordinator.data.get("appliance_uplink_statuses", [])
+    for uplink_status in appliance_uplinks:
+        serial = uplink_status.get("serial")
+        if not serial:
+            continue
+
+        # Find the full device info for this appliance
+        device_info = None
+        for dev in devices:
+            if dev.get("serial") == serial:
+                device_info = dev
+                break
+
+        if not device_info:
+            continue
+
+        for uplink in uplink_status.get("uplinks", []):
+            interface = uplink.get("interface")
+            if not interface:
+                continue
+
+            unique_id = f"{serial}_uplink_{interface}"
+            if unique_id not in added_entities:
+                entities.append(
+                    MerakiApplianceUplinkSensor(
+                        coordinator, device_info, config_entry, uplink
+                    )
+                )
+                added_entities.add(unique_id)
 
     return entities

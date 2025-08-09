@@ -15,7 +15,7 @@
 | The integration must discover Meraki hardware devices within the specified organization and networks. | Included |
 | It should create or update device entities in Home Assistant based on these hardware devices. | Included |
 | Device types (Wireless, Switch, Appliance, Camera, Sensor) should be correctly identified. | Included |
-| Device names should be formattable, with options for prefixes, suffixes, or omission of device type labels. | Not working |
+| Device names should be formattable, with options for prefixes, suffixes, or omission of device type labels. | Included |
 | Devices should include the model name, serial number, MAC address(es) and firmware version. | Included |
 
 ### Data Retrieval

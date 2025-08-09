@@ -112,3 +112,20 @@ class OrganizationEndpoints:
             _LOGGER.warning("get_organizations did not return a list.")
             return []
         return validated
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=60)
+    async def get_organization_appliance_uplink_statuses(self) -> List[Dict[str, Any]]:
+        """Get uplink status for all appliances in the organization."""
+        statuses = await self._api_client._run_sync(
+            self._dashboard.appliance.getOrganizationApplianceUplinkStatuses,
+            organizationId=self._api_client.organization_id,
+            total_pages="all",
+        )
+        validated = validate_response(statuses)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_organization_appliance_uplink_statuses did not return a list."
+            )
+            return []
+        return validated
