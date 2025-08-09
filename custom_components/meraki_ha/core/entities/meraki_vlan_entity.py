@@ -26,9 +26,17 @@ class MerakiVLANEntity(BaseMerakiEntity):
             network_id=network_id,
         )
         self._vlan = vlan
+        from ...core.utils.naming_utils import format_device_name
+
+        vlan_device_data = {**vlan, "productType": "vlan"}
+        formatted_name = format_device_name(
+            device=vlan_device_data,
+            config=config_entry.options,
+        )
+
         self._attr_device_info = DeviceInfo(
             identifiers={(coordinator.domain, f"vlan_{network_id}_{vlan['id']}")},
-            name=vlan["name"],
+            name=formatted_name,
             manufacturer="Cisco Meraki",
             model="VLAN",
             via_device=(coordinator.domain, f"network_{network_id}"),

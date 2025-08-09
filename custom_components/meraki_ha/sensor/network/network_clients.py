@@ -9,6 +9,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...helpers.entity_helpers import format_entity_name
+from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -94,9 +95,25 @@ class MerakiNetworkClientsSensor(
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information for linking this entity to the network "device"."""
+        network_data = None
+        if self.coordinator.data and self.coordinator.data.get("networks"):
+            for network in self.coordinator.data["networks"]:
+                if network.get("id") == self._network_id:
+                    network_data = network
+                    break
+
+        if network_data is None:
+            # Fallback in case network data is not found
+            return DeviceInfo(
+                identifiers={(DOMAIN, self._network_id)},
+                name=self._network_name,
+                manufacturer="Cisco Meraki",
+                model="Network",
+            )
+
         return DeviceInfo(
             identifiers={(DOMAIN, self._network_id)},
-            name=self._network_name,
+            name=format_device_name(network_data, self.coordinator.config_entry.options),
             manufacturer="Cisco Meraki",
             model="Network",
         )

@@ -88,15 +88,23 @@ class MerakiOrgDeviceTypeClientsSensor(
         self._update_sensor_state()
         self.async_write_ha_state()
 
+from ...core.utils.naming_utils import format_device_name
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information for linking this entity to the Meraki Organization."""
+        org_device_data = {
+            "name": self._organization_name,
+            "productType": "organization",
+        }
+        formatted_name = format_device_name(
+            device=org_device_data,
+            config=self.coordinator.config_entry.options,
+        )
         return DeviceInfo(
-            identifiers={(DOMAIN, self._organization_id)}
-            # The name, manufacturer, and model attributes should be inherited from the
-            # device entry created by MerakiDataUpdateCoordinator.
-            # Providing them here again, especially if the 'name' differs from the
-            # original registration, can lead to unexpected updates or conflicts.
+            identifiers={(DOMAIN, self._organization_id)},
+            name=formatted_name,
+            manufacturer="Cisco Meraki",
+            model="Organization",
         )
 
     @property

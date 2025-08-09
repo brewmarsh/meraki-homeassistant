@@ -10,6 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...const import DOMAIN
+from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -32,7 +33,12 @@ class MerakiCameraSenseStatusSensor(
         self._device_serial: str = device_data["serial"]
         self._attr_unique_id = f"{self._device_serial}_camera_sense_status"
 
-        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, self._device_serial)})
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, self._device_serial)},
+            name=format_device_name(device_data, config_entry.options),
+            model=device_data.get("model"),
+            manufacturer="Cisco Meraki",
+        )
         self.entity_description = SensorEntityDescription(
             key="camera_sense_status",
             name="Sense Enabled",

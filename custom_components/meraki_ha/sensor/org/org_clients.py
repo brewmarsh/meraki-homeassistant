@@ -10,6 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...helpers.entity_helpers import format_entity_name
+from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,7 +42,18 @@ class MerakiOrganizationSSIDClientsSensor(
             org_name, "SSID Clients"
         )
         self._attr_unique_id = f"{org_id}_clients_ssid"
-        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, org_id)})
+
+        org_device_data = {"name": org_name, "productType": "organization"}
+        formatted_name = format_device_name(
+            device=org_device_data,
+            config=self.coordinator.config_entry.options,
+        )
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, org_id)},
+            name=formatted_name,
+            manufacturer="Cisco Meraki",
+            model="Organization",
+        )
 
         # Initialize value from coordinator data if available
         self._update_internal_state()
@@ -87,7 +99,18 @@ class MerakiOrganizationWirelessClientsSensor(
             org_name, "Wireless Clients"
         )
         self._attr_unique_id = f"{org_id}_clients_wireless"
-        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, org_id)})
+
+        org_device_data = {"name": org_name, "productType": "organization"}
+        formatted_name = format_device_name(
+            device=org_device_data,
+            config=self.coordinator.config_entry.options,
+        )
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, org_id)},
+            name=formatted_name,
+            manufacturer="Cisco Meraki",
+            model="Organization",
+        )
 
         self._update_internal_state()
 
@@ -134,7 +157,18 @@ class MerakiOrganizationApplianceClientsSensor(
             org_name, "Appliance Clients"
         )
         self._attr_unique_id = f"{org_id}_clients_appliance"
-        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, org_id)})
+
+        org_device_data = {"name": org_name, "productType": "organization"}
+        formatted_name = format_device_name(
+            device=org_device_data,
+            config=self.coordinator.config_entry.options,
+        )
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, org_id)},
+            name=formatted_name,
+            manufacturer="Cisco Meraki",
+            model="Organization",
+        )
 
         self._update_internal_state()
 
