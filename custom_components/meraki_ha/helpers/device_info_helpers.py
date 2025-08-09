@@ -25,8 +25,8 @@ def resolve_device_info(
 
     Args:
         entity_data: The primary data dictionary for the entity.
+        config_entry: The config entry for the integration.
         ssid_data: Optional SSID data if the entity is SSID-specific.
-        device_name_format_option: The user's preference for device name formatting.
 
     Returns:
         A DeviceInfo object or None if linking is not possible.
@@ -40,9 +40,18 @@ def resolve_device_info(
         ssid_number = ssid_data.get("number")
         if network_id:
             ssid_device_identifier = (DOMAIN, f"{network_id}_{ssid_number}")
+
+            # Create a device dict for the SSID to pass to the formatter
+            ssid_device_data = {**ssid_data, "productType": "ssid"}
+
+            formatted_ssid_name = format_device_name(
+                device=ssid_device_data,
+                config=config_entry.options,
+            )
+
             return DeviceInfo(
                 identifiers={ssid_device_identifier},
-                name=ssid_data.get("name"),
+                name=formatted_ssid_name,
                 model="Wireless SSID",
                 manufacturer="Cisco Meraki",
             )

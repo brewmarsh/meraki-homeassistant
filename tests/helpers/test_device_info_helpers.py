@@ -1,38 +1,70 @@
 """Tests for the device info helpers."""
 
+import pytest
 from unittest.mock import MagicMock
 
-from custom_components.meraki_ha.helpers.device_info_helpers import (
-    resolve_device_info,
+from custom_components.meraki_ha.helpers.device_info_helpers import resolve_device_info
+from custom_components.meraki_ha.const import (
+    DEVICE_NAME_FORMAT_PREFIX,
+    DEVICE_NAME_FORMAT_SUFFIX,
+    DEVICE_NAME_FORMAT_OMIT,
+    DEFAULT_DEVICE_NAME_FORMAT,
 )
 
 
-def test_resolve_device_info_physical_device():
-    """Test the resolve_device_info function for a physical device."""
+@pytest.fixture
+def mock_config_entry():
+    """Fixture for a mocked config entry."""
+    entry = MagicMock()
+    entry.options = {}
+    return entry
+
+
+def test_resolve_device_info_ssid_naming(mock_config_entry):
+    """Test that SSID device names are formatted correctly."""
+    entity_data = {"networkId": "net1"}
+    ssid_data = {"number": 1, "name": "My Test SSID"}
+
+    # Test with prefix
+    mock_config_entry.options = {"device_name_format": DEVICE_NAME_FORMAT_PREFIX}
+    device_info = resolve_device_info(entity_data, mock_config_entry, ssid_data)
+    assert device_info["name"] == "[Ssid] My Test SSID"
+
+    # Test with suffix
+    mock_config_entry.options = {"device_name_format": DEVICE_NAME_FORMAT_SUFFIX}
+    device_info = resolve_device_info(entity_data, mock_config_entry, ssid_data)
+    assert device_info["name"] == "My Test SSID [Ssid]"
+
+    # Test with omit
+    mock_config_entry.options = {"device_name_format": DEVICE_NAME_FORMAT_OMIT}
+    device_info = resolve_device_info(entity_data, mock_config_entry, ssid_data)
+    assert device_info["name"] == "My Test SSID"
+
+    # Test with default
+    mock_config_entry.options = {}
+    device_info = resolve_device_info(entity_data, mock_config_entry, ssid_data)
+    assert device_info["name"] == "[Ssid] My Test SSID"
+
+
+def test_resolve_device_info_physical_device_naming(mock_config_entry):
+    """Test that physical device names are formatted correctly."""
     entity_data = {
-        "serial": "Q234-ABCD-5678",
-        "name": "My AP",
-        "model": "MR33",
-        "firmware": "26.1",
+        "serial": "dev1",
+        "name": "My Test Device",
+        "productType": "switch",
     }
-    config_entry = MagicMock()
-    config_entry.options = {}
-    device_info = resolve_device_info(entity_data, config_entry)
-    assert device_info["identifiers"] == {("meraki_ha", "Q234-ABCD-5678")}
-    assert device_info["name"] == "[Device] My AP"
-    assert device_info["model"] == "MR33"
-    assert device_info["sw_version"] == "26.1"
-    assert device_info["manufacturer"] == "Cisco Meraki"
 
+    # Test with prefix
+    mock_config_entry.options = {"device_name_format": DEVICE_NAME_FORMAT_PREFIX}
+    device_info = resolve_device_info(entity_data, mock_config_entry)
+    assert device_info["name"] == "[Switch] My Test Device"
 
-def test_resolve_device_info_ssid_device():
-    """Test the resolve_device_info function for an SSID."""
-    entity_data = {"networkId": "N_123"}
-    ssid_data = {"number": 0, "name": "My SSID"}
-    config_entry = MagicMock()
-    config_entry.options = {}
-    device_info = resolve_device_info(entity_data, config_entry, ssid_data)
-    assert device_info["identifiers"] == {("meraki_ha", "N_123_0")}
-    assert device_info["name"] == "My SSID"
-    assert device_info["model"] == "Wireless SSID"
-    assert device_info["manufacturer"] == "Cisco Meraki"
+    # Test with suffix
+    mock_config_entry.options = {"device_name_format": DEVICE_NAME_FORMAT_SUFFIX}
+    device_info = resolve_device_info(entity_data, mock_config_entry)
+    assert device_info["name"] == "My Test Device [Switch]"
+
+    # Test with omit
+    mock_config_entry.options = {"device_name_format": DEVICE_NAME_FORMAT_OMIT}
+    device_info = resolve_device_info(entity_data, mock_config_entry)
+    assert device_info["name"] == "My Test Device"

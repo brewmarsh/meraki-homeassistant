@@ -21,9 +21,9 @@
 ### Data Retrieval
 | Requirement | Status |
 | :--- | :--- |
-| The integration should retrieve device data, including connected clients for wireless devices (MR, GR) | Not working |
-| The integration should retrieve device data, including connected clients for appliances (MX, GX). | Not working |
-| The integration should retrieve device data, including connected clients for network switches (MS, GS). | Not working |
+| The integration should retrieve device data, including connected clients for wireless devices (MR, GR) | Included |
+| The integration should retrieve device data, including connected clients for appliances (MX, GX). | Included |
+| The integration should retrieve device data, including connected clients for network switches (MS, GS). | Included |
 | Data should be updated at a configurable scan interval. | Included |
 
 ### Home Assistant Integration
