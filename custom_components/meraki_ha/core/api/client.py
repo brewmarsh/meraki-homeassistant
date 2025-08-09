@@ -81,7 +81,10 @@ class MerakiAPIClient:
 
         clients = []
         for network in networks:
-            clients.extend(await self.network.get_network_clients(network["id"]))
+            network_clients = await self.network.get_network_clients(network["id"])
+            for client in network_clients:
+                client["networkId"] = network["id"]
+            clients.extend(network_clients)
         ssids = []
         for network in networks:
             ssids.extend(await self.wireless.get_network_ssids(network["id"]))

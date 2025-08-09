@@ -42,14 +42,14 @@
 | Physical Meraki devices (Wireless, Switch, Appliance, Camera, Sensor) will have corresponding Home Assistant devices. | Included |
 | Meraki networks will be shown as Home Assistant devices. | Included |
 | Meraki SSIDs (wireless networks) will be shown as Home Assistant devices. | Included |
-| Meraki VLANs will be shown as Home Assistant devices. | Not Included |
+| Meraki VLANs will be shown as Home Assistant devices. | Included |
 
 ### Meraki Appliances
 | Requirement | Status |
 | :--- | :--- |
 | Meraki appliances should have sensors that track data usage. | Included |
 | Meraki appliances should have a sensor that tracks the number of connected clients. | Included |
-| Meraki appliances have VLANs; these VLANs should appear as Home Assistant devices. | Not Included |
+| Meraki appliances have VLANs; these VLANs should appear as Home Assistant devices. | Included |
 | Meraki appliances have an external hostname; this should appear as details of the Home Assistant device. | Not Included |
 | Meraki appliances should have a sensor that tracks the number of ports in use. | Included |
 | Meraki appliances should have a sensor that tracks the number of ports available. | Included |
@@ -160,7 +160,7 @@
   - [ ] Review "Radio profiles are not returned for all MR devices" (from README known issues) and investigate if it's an API limitation or an integration issue.
 - [ ] **Fix SSID entity `device_info`:** Correctly link to parent AP via `via_device` attribute in `MerakiEntity` for SSID-specific entities.
 - [ ] **Tag-based SSID Control Review:** The current `MerakiSSIDSwitch` uses device tags to control SSID state. Evaluate if a more direct API method for enabling/disabling SSIDs per AP (if available and appropriate) would be better, or if the tag strategy is the most robust.
-- [ ] **VLAN Entity Clarification:** Determine if "Meraki VLANs" should be actual HA entities/devices or if VLAN information is purely contextual data for other entities. Adjust documentation and entity creation accordingly.
+- [x] **VLAN Entity Clarification:** Determine if "Meraki VLANs" should be actual HA entities/devices or if VLAN information is purely contextual data for other entities. Adjust documentation and entity creation accordingly.
 
 ### Documentation
 - [ ] **Troubleshooting Section:** Add a comprehensive troubleshooting section to `README.md` covering common issues (API key errors, rate limits, device discovery problems).

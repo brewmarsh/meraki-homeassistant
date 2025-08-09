@@ -59,14 +59,40 @@ class MerakiDeviceConnectedClientsSensor(
     @callback
     def _update_state(self) -> None:
         """Update the native value of the sensor based on coordinator data."""
+        device = self._get_current_device_data()
+        if not device:
+            self._attr_native_value = 0
+            return
+
+        product_type = device.get("productType")
+        network_id = device.get("networkId")
+        all_clients = self.coordinator.data.get("clients", [])
         count = 0
-        if self.coordinator.data and self.coordinator.data.get("clients"):
-            for client in self.coordinator.data["clients"]:
-                if (
-                    client.get("recentDeviceSerial") == self._device_serial
-                    and client.get("status") == "Online"
-                ):
-                    count += 1
+
+        if not all_clients:
+            self._attr_native_value = 0
+            return
+
+        # Filter clients for the current device's network
+        network_clients = [
+            c for c in all_clients if c.get("networkId") == network_id and c.get("status") == "Online"
+        ]
+
+        if product_type == "wireless":
+            count = sum(
+                1
+                for client in network_clients
+                if client.get("recentDeviceSerial") == self._device_serial
+            )
+        elif product_type == "switch":
+            count = sum(
+                1
+                for client in network_clients
+                if client.get("recentDeviceConnection") == "Wired"
+            )
+        elif product_type == "appliance":
+            count = len(network_clients)
+
         self._attr_native_value = count
 
     @callback
