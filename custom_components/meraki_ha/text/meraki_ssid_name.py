@@ -18,7 +18,7 @@ from ..const import DOMAIN
 from ..core.api.client import MerakiAPIClient
 from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from homeassistant.helpers.entity import EntityCategory
-from ..core.utils.naming_utils import format_device_name
+from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,14 +35,12 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataCoordinator], TextEntity):
         coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,  # Added to match switch entities
-        ssid_unique_id: str,  # unique_id for the HA "device" representing the SSID
         ssid_data: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki SSID Name text entity."""
         super().__init__(coordinator)
         self._meraki_client = meraki_client
         self._config_entry = config_entry  # Store config_entry
-        self._ssid_unique_id = ssid_unique_id  # This is the HA device identifier
         self._ssid_data = ssid_data
 
         # These are crucial for API calls to update the SSID name
@@ -53,14 +51,14 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataCoordinator], TextEntity):
 
         # EntityDescription can be used for name, icon etc.
         self.entity_description = TextEntityDescription(
-            key=f"{self._ssid_unique_id}_ssid_name",
+            key=f"ssid-{self._network_id}-{self._ssid_number}_ssid_name",
             name="SSID Name",
             icon="mdi:form-textbox",
             native_min=1,
             native_max=32,
         )
 
-        self._attr_unique_id = f"{self._ssid_unique_id}_name_text"
+        self._attr_unique_id = f"ssid-{self._network_id}-{self._ssid_number}_name_text"
 
         # Set initial state
         self._update_internal_state()
@@ -68,13 +66,10 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataCoordinator], TextEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information to link this entity to the SSID device."""
-        device_name = format_device_name(self._ssid_data, self._config_entry.options)
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._ssid_unique_id)},
-            name=device_name,
-            model="SSID",
-            manufacturer="Cisco Meraki",
-            via_device=(DOMAIN, self._network_id),
+        return resolve_device_info(
+            entity_data={"networkId": self._network_id},
+            config_entry=self._config_entry,
+            ssid_data=self._ssid_data,
         )
 
     @property

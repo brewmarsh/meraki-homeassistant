@@ -8,7 +8,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-from ...core.utils.naming_utils import format_device_name
+from ...helpers.device_info_helpers import resolve_device_info
 
 
 class MerakiSSIDBaseSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
@@ -46,16 +46,10 @@ class MerakiSSIDBaseSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntit
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information to link this entity to the SSID device."""
-        ssid_unique_id = f"ssid-{self._network_id}-{self._ssid_number}"
-        device_name = format_device_name(
-            self._ssid_data_at_init, self._config_entry.options
-        )
-        return DeviceInfo(
-            identifiers={(DOMAIN, ssid_unique_id)},
-            name=device_name,
-            model="SSID",
-            manufacturer="Cisco Meraki",
-            via_device=(DOMAIN, self._network_id),
+        return resolve_device_info(
+            entity_data={"networkId": self._network_id},
+            config_entry=self._config_entry,
+            ssid_data=self._ssid_data_at_init,
         )
 
     @property

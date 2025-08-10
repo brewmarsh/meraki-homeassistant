@@ -16,7 +16,7 @@ from ..core.api.client import MerakiAPIClient
 from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ..helpers.entity_helpers import format_entity_name
 from homeassistant.helpers.entity import EntityCategory
-from ..core.utils.naming_utils import format_device_name
+from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -32,7 +32,6 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
         coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
-        ssid_unique_id: str,
         ssid_data: Dict[str, Any],
         switch_type: str,  # "enabled" or "broadcast"
         attribute_to_check: str,  # "enabled" or "visible"
@@ -41,9 +40,6 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
         super().__init__(coordinator)
         self._meraki_client = meraki_client
         self._config_entry = config_entry
-        self._ssid_unique_id = (
-            ssid_unique_id  # This is the HA device unique ID for the SSID "device".
-        )
         self._ssid_data_at_init = (
             ssid_data  # Store initial SSID data for device info
         )
@@ -52,7 +48,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
         self._ssid_number = ssid_data.get("number")
         self._attribute_to_check = attribute_to_check
 
-        self._attr_unique_id = f"{self._ssid_unique_id}_{switch_type}_switch"
+        self._attr_unique_id = f"ssid-{self._network_id}-{self._ssid_number}-{switch_type}-switch"
         self._attr_name = f"{switch_type.capitalize()} Control"
 
         self._update_internal_state()
@@ -71,15 +67,10 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information to link this entity to the SSID device."""
-        device_name = format_device_name(
-            self._ssid_data_at_init, self._config_entry.options
-        )
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._ssid_unique_id)},
-            name=device_name,
-            model="SSID",
-            manufacturer="Cisco Meraki",
-            via_device=(DOMAIN, self._network_id),
+        return resolve_device_info(
+            entity_data={"networkId": self._network_id},
+            config_entry=self._config_entry,
+            ssid_data=self._ssid_data_at_init,
         )
 
     @property
@@ -155,7 +146,6 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
         coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
-        ssid_unique_id: str,
         ssid_data: Dict[str, Any],
     ) -> None:
         """Initialize the SSID Enabled switch."""
@@ -163,7 +153,6 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
             coordinator,
             meraki_client,
             config_entry,
-            ssid_unique_id,
             ssid_data,
             "enabled",
             "enabled",
@@ -178,7 +167,6 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
         coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
-        ssid_unique_id: str,
         ssid_data: Dict[str, Any],
     ) -> None:
         """Initialize the SSID Broadcast switch."""
@@ -186,7 +174,6 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
             coordinator,
             meraki_client,
             config_entry,
-            ssid_unique_id,
             ssid_data,
             "broadcast",
             "broadcast",
