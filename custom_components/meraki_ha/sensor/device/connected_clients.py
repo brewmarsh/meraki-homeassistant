@@ -11,7 +11,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-from ...core.utils.naming_utils import format_device_name
+from ...helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,12 +39,9 @@ class MerakiDeviceConnectedClientsSensor(
         self._attr_unique_id = f"{self._device_serial}_connected_clients"
         self._attr_name = "Connected Clients"
 
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._device_serial)},
-            name=format_device_name(device_data, self._config_entry.options),
-            model=device_data.get("model"),
-            manufacturer="Cisco Meraki",
-            sw_version=device_data.get("firmware"),
+        self._attr_device_info = resolve_device_info(
+            entity_data=device_data,
+            config_entry=self._config_entry,
         )
         self._update_state()
 

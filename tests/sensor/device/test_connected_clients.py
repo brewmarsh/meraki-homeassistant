@@ -75,24 +75,30 @@ def test_connected_clients_sensor_appliance(mock_data_coordinator):
     """Test the connected clients sensor for an appliance. Should count all online clients on its network."""
     device = mock_data_coordinator.data["devices"][0]  # The appliance
     config_entry = mock_data_coordinator.config_entry
+    mock_data_coordinator.config_entry.options = {"device_name_format": "prefix"}
     sensor = MerakiDeviceConnectedClientsSensor(mock_data_coordinator, device, config_entry)
     # Expects 2: the online wireless client and the online wired client on net1
     assert sensor.native_value == 2
+    assert sensor.device_info["name"] == "[Appliance] Appliance"
 
 
 def test_connected_clients_sensor_switch(mock_data_coordinator):
     """Test the connected clients sensor for a switch. Should count only wired online clients on its network."""
     device = mock_data_coordinator.data["devices"][1]  # The switch
     config_entry = mock_data_coordinator.config_entry
+    mock_data_coordinator.config_entry.options = {"device_name_format": "prefix"}
     sensor = MerakiDeviceConnectedClientsSensor(mock_data_coordinator, device, config_entry)
     # Expects 1: the online wired client on net1
     assert sensor.native_value == 1
+    assert sensor.device_info["name"] == "[Switch] Switch"
 
 
 def test_connected_clients_sensor_wireless(mock_data_coordinator):
     """Test the connected clients sensor for a wireless device. Should count only clients connected to it."""
     device = mock_data_coordinator.data["devices"][2]  # The wireless AP
     config_entry = mock_data_coordinator.config_entry
+    mock_data_coordinator.config_entry.options = {"device_name_format": "prefix"}
     sensor = MerakiDeviceConnectedClientsSensor(mock_data_coordinator, device, config_entry)
     # Expects 1: the online wireless client connected to this specific AP
     assert sensor.native_value == 1
+    assert sensor.device_info["name"] == "[Wireless] Access Point"

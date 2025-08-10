@@ -50,7 +50,7 @@
 | Meraki appliances should have sensors that track data usage. | Included |
 | Meraki appliances should have a sensor that tracks the number of connected clients. | Included |
 | Meraki appliances have VLANs; these VLANs should appear as Home Assistant devices. | Included |
-| Meraki appliances have an external hostname; this should appear as details of the Home Assistant device. | Not Included |
+| Meraki appliances have an external hostname; this should appear as details of the Home Assistant device. | Included |
 | Meraki appliances should have a sensor that tracks the number of ports in use. | Included |
 | Meraki appliances should have a sensor that tracks the number of ports available. | Included |
 | Meraki appliances should show the status of the appliance uplinks | Included |

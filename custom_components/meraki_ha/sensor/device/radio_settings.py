@@ -19,7 +19,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...helpers.entity_helpers import format_entity_name
-from ...core.utils.naming_utils import format_device_name
+from ...helpers.device_info_helpers import resolve_device_info
 
 # Assuming this function is correctly defined in the meraki_api package
 # from .meraki_api.wireless import get_meraki_device_wireless_radio_settings
@@ -176,10 +176,7 @@ class MerakiRadioSettingsSensor(
 
         This links the sensor to the physical Meraki device it represents.
         """
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._device_info_data["serial"])},
-            name=format_device_name(self._device_info_data, self.coordinator.config_entry.options),
-            manufacturer="Cisco Meraki",
-            model=str(self._device_info_data.get("model", "Unknown")),
-            sw_version=str(self._device_info_data.get("firmware", "")),
+        return resolve_device_info(
+            entity_data=self._device_info_data,
+            config_entry=self.coordinator.config_entry,
         )
