@@ -145,6 +145,14 @@ class MerakiAPIClient:
             await self.organization.get_organization_appliance_uplink_statuses()
         )
 
+        rf_profiles_by_network = {}
+        for network in networks:
+            if "wireless" in network.get("productTypes", []):
+                rf_profiles = await self.wireless.get_network_wireless_rf_profiles(
+                    network["id"]
+                )
+                rf_profiles_by_network[network["id"]] = rf_profiles
+
         return {
             "networks": networks,
             "devices": devices,
@@ -153,6 +161,7 @@ class MerakiAPIClient:
             "appliance_traffic": appliance_traffic,
             "vlans": vlans_by_network,
             "appliance_uplink_statuses": appliance_uplink_statuses,
+            "rf_profiles": rf_profiles_by_network,
         }
 
     @property

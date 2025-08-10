@@ -51,3 +51,19 @@ class WirelessEndpoints:
             **kwargs,
         )
         return validate_response(ssid)
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=3600)
+    async def get_network_wireless_rf_profiles(
+        self, network_id: str
+    ) -> List[Dict[str, Any]]:
+        """Get all RF profiles for a network."""
+        profiles = await self._api_client._run_sync(
+            self._dashboard.wireless.getNetworkWirelessRfProfiles,
+            networkId=network_id,
+        )
+        validated = validate_response(profiles)
+        if not isinstance(validated, list):
+            _LOGGER.warning("get_network_wireless_rf_profiles did not return a list.")
+            return []
+        return validated
