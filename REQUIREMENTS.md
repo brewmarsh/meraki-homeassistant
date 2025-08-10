@@ -53,7 +53,7 @@
 | Meraki appliances have an external hostname; this should appear as details of the Home Assistant device. | Not Included |
 | Meraki appliances should have a sensor that tracks the number of ports in use. | Included |
 | Meraki appliances should have a sensor that tracks the number of ports available. | Included |
-| Meraki appliances should show the status of the appliance uplinks | Not Included |
+| Meraki appliances should show the status of the appliance uplinks | Included |
 
 ### Meraki Wireless
 | Requirement | Status |

@@ -73,10 +73,17 @@ def resolve_device_info(
         config=config_entry.options,
     )
 
-    return DeviceInfo(
-        identifiers={(DOMAIN, device_serial)},
-        name=str(formatted_device_name),
-        manufacturer="Cisco Meraki",
-        model=str(device_model or "Unknown"),
-        sw_version=str(device_firmware or ""),
-    )
+    device_info = {
+        "identifiers": {(DOMAIN, device_serial)},
+        "name": str(formatted_device_name),
+        "manufacturer": "Cisco Meraki",
+        "model": str(device_model or "Unknown"),
+        "sw_version": str(device_firmware or ""),
+    }
+
+    if entity_data.get("productType") == "appliance" and entity_data.get("dynamicDns"):
+        hostname = entity_data["dynamicDns"].get("url")
+        if hostname:
+            device_info["configuration_url"] = f"http://{hostname}"
+
+    return DeviceInfo(**device_info)

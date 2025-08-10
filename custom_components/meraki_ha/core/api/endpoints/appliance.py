@@ -62,3 +62,12 @@ class ApplianceEndpoints:
             _LOGGER.warning("get_appliance_ports did not return a list.")
             return []
         return validated
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=3600)
+    async def get_network_appliance_settings(self, network_id: str) -> Dict[str, Any]:
+        """Get settings for a network appliance."""
+        settings = await self._api_client._run_sync(
+            self._dashboard.appliance.getNetworkApplianceSettings, networkId=network_id
+        )
+        return validate_response(settings)

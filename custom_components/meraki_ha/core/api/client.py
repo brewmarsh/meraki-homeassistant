@@ -95,6 +95,12 @@ class MerakiAPIClient:
                     device["serial"]
                 )
                 device["radio_settings"] = radio_settings
+            elif device.get("productType") == "appliance":
+                appliance_settings = await self.appliance.get_network_appliance_settings(
+                    device["networkId"]
+                )
+                if appliance_settings and "dynamicDns" in appliance_settings:
+                    device["dynamicDns"] = appliance_settings["dynamicDns"]
             elif device.get("productType") == "camera":
                 video_settings = await self.camera.get_camera_video_settings(
                     device["serial"]

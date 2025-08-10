@@ -68,3 +68,18 @@ def test_resolve_device_info_physical_device_naming(mock_config_entry):
     mock_config_entry.options = {"device_name_format": DEVICE_NAME_FORMAT_OMIT}
     device_info = resolve_device_info(entity_data, mock_config_entry)
     assert device_info["name"] == "My Test Device"
+
+
+def test_resolve_device_info_appliance_hostname(mock_config_entry):
+    """Test that the hostname is added for an appliance."""
+    entity_data = {
+        "serial": "dev_appliance",
+        "name": "My Appliance",
+        "productType": "appliance",
+        "dynamicDns": {
+            "url": "my-appliance.dynamic.meraki.com"
+        }
+    }
+    mock_config_entry.options = {}
+    device_info = resolve_device_info(entity_data, mock_config_entry)
+    assert device_info["configuration_url"] == "http://my-appliance.dynamic.meraki.com"
