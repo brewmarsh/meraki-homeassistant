@@ -62,7 +62,7 @@
 | Meraki wireless devices should have a sensor that tracks the number of connected clients. | Included |
 | Meraki SSID names should appear as Home Assitant devices | Included |
 | Disabled SSIDs should not be shown in the list | Working |
-| SSID names should be updateable | Not Included |
+| SSID names should be updateable | Included |
 | SSIDs should be able to have the "Broadcast SSID" feature enabled / disabled | Fixed |
 | Meraki SSIDs should have sensors for splash page, auth mode, encryption mode, WPA encryption mode, IP assignment mode, band selection, per-client bandwidth limits, per-SSID bandwidth limits, and visibility | Included |
 

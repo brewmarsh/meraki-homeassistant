@@ -47,14 +47,11 @@ async def async_setup_entry(
             if not network_id or ssid_number is None:
                 continue
 
-            ssid_unique_id = f"ssid-{network_id}-{ssid_number}"
-
             new_entities.append(
                 MerakiSSIDNameText(
                     coordinator,
                     meraki_client,
                     config_entry,
-                    ssid_unique_id,
                     ssid_data,
                 )
             )
