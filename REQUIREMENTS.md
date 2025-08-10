@@ -58,7 +58,7 @@
 ### Meraki Wireless
 | Requirement | Status |
 | :--- | :--- |
-| Meraki wireless devices should appear as Home Assistant devices | Partially Included |
+| Meraki wireless devices should appear as Home Assistant devices | Included |
 | Meraki wireless devices should have a sensor that tracks the number of connected clients. | Included |
 | Meraki SSID names should appear as Home Assitant devices | Included |
 | Disabled SSIDs should not be shown in the list | Working |
