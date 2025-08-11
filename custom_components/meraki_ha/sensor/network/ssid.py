@@ -1,5 +1,6 @@
 """Factory for creating SSID-related sensor entities."""
 
+import logging
 from typing import Any, Dict, List
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.sensor import SensorEntity
@@ -27,6 +28,8 @@ from .ssid_details import (
     MerakiSSIDMinBitrate5GhzSensor,
 )
 
+_LOGGER = logging.getLogger(__name__)
+
 
 def create_ssid_sensors(
     coordinator: MerakiDataCoordinator,
@@ -34,6 +37,7 @@ def create_ssid_sensors(
     ssid_data: Dict[str, Any],
 ) -> List[SensorEntity]:
     """Create and return a list of sensor entities for a given SSID."""
+    _LOGGER.debug("Creating SSID sensors for SSID: %s", ssid_data.get("name"))
     # Find the RF profile for this SSID's network
     rf_profile = None
     if coordinator.data and coordinator.data.get("rf_profiles"):

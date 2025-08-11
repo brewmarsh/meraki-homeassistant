@@ -38,6 +38,7 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataCoordinator], TextEntity):
         ssid_data: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki SSID Name text entity."""
+        _LOGGER.debug("Creating SSID Name text entity")
         super().__init__(coordinator)
         self._meraki_client = meraki_client
         self._config_entry = config_entry  # Store config_entry

@@ -31,6 +31,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Meraki from a config entry."""
+    _LOGGER.debug("Setting up Meraki entry: %s", entry.entry_id)
     try:
         api_client = MerakiAPIClient(
             api_key=entry.data[CONF_MERAKI_API_KEY],

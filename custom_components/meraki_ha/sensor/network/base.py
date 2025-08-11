@@ -1,5 +1,6 @@
 """Base class for Meraki SSID sensors."""
 
+import logging
 from typing import Any, Dict, Optional
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.sensor import SensorEntity
@@ -9,6 +10,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class MerakiSSIDBaseSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
@@ -24,6 +27,7 @@ class MerakiSSIDBaseSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntit
         attribute: str,
     ) -> None:
         """Initialize the sensor."""
+        _LOGGER.debug("Creating SSID sensor for attribute %s", attribute)
         super().__init__(coordinator)
         self._config_entry = config_entry
         self._ssid_data_at_init = ssid_data

@@ -88,21 +88,18 @@ async def async_setup_entry(
 
             if "networkId" not in ssid_data or "number" not in ssid_data:
                 continue
-            ssid_unique_id = f'{ssid_data["networkId"]}_{ssid_data["number"]}'
             new_entities.extend(
                 [
                     MerakiSSIDEnabledSwitch(
                         coordinator,
                         meraki_client,
                         config_entry,
-                        ssid_unique_id,
                         ssid_data,
                     ),
                     MerakiSSIDBroadcastSwitch(
                         coordinator,
                         meraki_client,
                         config_entry,
-                        ssid_unique_id,
                         ssid_data,
                     ),
                 ]

@@ -86,4 +86,9 @@ def resolve_device_info(
         if hostname:
             device_info["configuration_url"] = f"http://{hostname}"
 
+    _LOGGER.debug(
+        "Resolved device info for entity %s: %s",
+        entity_data.get("name", entity_data.get("serial")),
+        device_info,
+    )
     return DeviceInfo(**device_info)
