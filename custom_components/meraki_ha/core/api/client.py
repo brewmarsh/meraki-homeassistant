@@ -153,7 +153,7 @@ class MerakiAPIClient:
                 )
                 rf_profiles_by_network[network["id"]] = rf_profiles
 
-        return {
+        data = {
             "networks": networks,
             "devices": devices,
             "clients": clients,
@@ -163,6 +163,8 @@ class MerakiAPIClient:
             "appliance_uplink_statuses": appliance_uplink_statuses,
             "rf_profiles": rf_profiles_by_network,
         }
+        _LOGGER.debug("Returning data from get_all_data: %s", data)
+        return data
 
     @property
     def organization_id(self) -> str:
