@@ -1,9 +1,8 @@
 name: Deploy MkDocs
 
 on:
-  push:
-    branches:
-      - main
+  release:
+    types: [published]
 
 jobs:
   deploy:
