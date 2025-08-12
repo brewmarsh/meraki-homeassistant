@@ -5,6 +5,7 @@ from .device_types import (
     DEVICE_TYPE_CAMERA,
     DEVICE_TYPE_CELLULAR,
     DEVICE_TYPE_SENSOR,
+    DEVICE_TYPE_SSID,
     DEVICE_TYPE_SWITCH,
     DEVICE_TYPE_WIRELESS,
 )
@@ -14,6 +15,7 @@ DEVICE_TYPE_ICONS = {
     DEVICE_TYPE_CAMERA: "mdi:cctv",
     DEVICE_TYPE_CELLULAR: "mdi:signal-cellular-3",
     DEVICE_TYPE_SENSOR: "mdi:sensors",
+    DEVICE_TYPE_SSID: "mdi:wifi-cog",
     DEVICE_TYPE_SWITCH: "mdi:ethernet-switch",
     DEVICE_TYPE_WIRELESS: "mdi:wifi",
 }

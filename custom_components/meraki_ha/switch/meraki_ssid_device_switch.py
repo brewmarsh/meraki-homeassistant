@@ -14,6 +14,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from ..const import DOMAIN
 from ..core.api.client import MerakiAPIClient
 from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ..core.utils.icon_utils import get_device_type_icon
 from ..helpers.entity_helpers import format_entity_name
 from homeassistant.helpers.entity import EntityCategory
 from ..helpers.device_info_helpers import resolve_device_info
@@ -73,6 +74,11 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
             config_entry=self._config_entry,
             ssid_data=self._ssid_data_at_init,
         )
+
+    @property
+    def icon(self) -> str:
+        """Return the icon of the entity."""
+        return get_device_type_icon("ssid")
 
     @property
     def available(self) -> bool:
