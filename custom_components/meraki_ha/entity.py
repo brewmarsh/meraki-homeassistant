@@ -7,6 +7,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .core.coordinators.device import MerakiDeviceCoordinator
+from .core.utils.icon_utils import get_device_type_icon
 from .helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
@@ -42,6 +43,14 @@ class MerakiEntity(CoordinatorEntity[MerakiDeviceCoordinator]):
             config_entry=self.coordinator.config_entry,
             ssid_data=self._ssid_info_data,
         )
+
+    @property
+    def icon(self) -> Optional[str]:
+        """Return the icon of the entity."""
+        device_type = self._device_info_data.get("productType")
+        if device_type:
+            return get_device_type_icon(device_type)
+        return None
 
     @property
     def available(self) -> bool:
