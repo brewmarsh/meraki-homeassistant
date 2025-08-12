@@ -90,9 +90,15 @@ class MerakiAPIClient:
             network_ssids = await self.wireless.get_network_ssids(network["id"])
             configured_ssids = []
             for ssid in network_ssids:
+                _LOGGER.debug("Processing SSID: '%s'", ssid.get("name"))
                 if "unconfigured ssid" not in ssid.get("name", "").lower():
+                    _LOGGER.debug("SSID '%s' is configured, adding.", ssid.get("name"))
                     ssid["networkId"] = network["id"]
                     configured_ssids.append(ssid)
+                else:
+                    _LOGGER.debug(
+                        "SSID '%s' is unconfigured, filtering out.", ssid.get("name")
+                    )
             ssids.extend(configured_ssids)
 
         for device in devices:
@@ -169,7 +175,6 @@ class MerakiAPIClient:
             "appliance_uplink_statuses": appliance_uplink_statuses,
             "rf_profiles": rf_profiles_by_network,
         }
-        _LOGGER.debug("Returning data from get_all_data: %s", data)
         return data
 
     @property
