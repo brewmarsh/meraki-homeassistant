@@ -32,7 +32,9 @@ class NetworkEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
-    async def get_network_traffic(self, network_id: str, device_type: str) -> List[Dict[str, Any]]:
+    async def get_network_traffic(
+        self, network_id: str, device_type: str
+    ) -> List[Dict[str, Any]]:
         """Get traffic data for a network, filtered by device type."""
         traffic = await self._api_client._run_sync(
             self._dashboard.networks.getNetworkTraffic,

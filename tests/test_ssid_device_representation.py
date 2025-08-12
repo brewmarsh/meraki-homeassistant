@@ -4,9 +4,15 @@ import pytest
 from unittest.mock import MagicMock
 
 # Import all the different types of SSID entities
-from custom_components.meraki_ha.sensor.network.ssid_availability import MerakiSSIDAvailabilitySensor
-from custom_components.meraki_ha.sensor.network.ssid_details import MerakiSSIDWalledGardenSensor
-from custom_components.meraki_ha.switch.meraki_ssid_device_switch import MerakiSSIDEnabledSwitch
+from custom_components.meraki_ha.sensor.network.ssid_availability import (
+    MerakiSSIDAvailabilitySensor,
+)
+from custom_components.meraki_ha.sensor.network.ssid_details import (
+    MerakiSSIDWalledGardenSensor,
+)
+from custom_components.meraki_ha.switch.meraki_ssid_device_switch import (
+    MerakiSSIDEnabledSwitch,
+)
 from custom_components.meraki_ha.text.meraki_ssid_name import MerakiSSIDNameText
 
 
@@ -44,11 +50,15 @@ def test_ssid_device_unification(mock_coordinator_and_data):
     sensor = MerakiSSIDAvailabilitySensor(coordinator, config_entry, ssid_data)
 
     # 2. A sensor based on MerakiSSIDDetailSensor
-    detail_sensor = MerakiSSIDWalledGardenSensor(coordinator, config_entry, ssid_data, None)
+    detail_sensor = MerakiSSIDWalledGardenSensor(
+        coordinator, config_entry, ssid_data, None
+    )
 
     # 3. A switch based on MerakiSSIDBaseSwitch
     # 3. A switch based on MerakiSSIDBaseSwitch
-    switch = MerakiSSIDEnabledSwitch(coordinator, meraki_client, config_entry, ssid_data)
+    switch = MerakiSSIDEnabledSwitch(
+        coordinator, meraki_client, config_entry, ssid_data
+    )
 
     # 4. The text entity
     text = MerakiSSIDNameText(coordinator, meraki_client, config_entry, ssid_data)
@@ -68,4 +78,9 @@ def test_ssid_device_unification(mock_coordinator_and_data):
     assert text_identifiers == {expected_device_identifier}
 
     # As a final check, assert they are all equal to each other
-    assert sensor_identifiers == detail_sensor_identifiers == switch_identifiers == text_identifiers
+    assert (
+        sensor_identifiers
+        == detail_sensor_identifiers
+        == switch_identifiers
+        == text_identifiers
+    )

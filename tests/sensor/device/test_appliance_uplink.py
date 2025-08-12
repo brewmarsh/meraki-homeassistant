@@ -68,7 +68,9 @@ def test_appliance_uplink_sensor_creation(mock_coordinator):
     # Find the specific sensors
     wan1_sensor = next(s for s in uplink_sensors if s.unique_id == "dev1_uplink_wan1")
     wan2_sensor = next(s for s in uplink_sensors if s.unique_id == "dev1_uplink_wan2")
-    cellular_sensor = next(s for s in uplink_sensors if s.unique_id == "dev1_uplink_cellular")
+    cellular_sensor = next(
+        s for s in uplink_sensors if s.unique_id == "dev1_uplink_cellular"
+    )
 
     # Assertions for WAN1 Sensor
     assert wan1_sensor.name == "Uplink WAN1"

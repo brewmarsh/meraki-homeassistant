@@ -16,6 +16,7 @@ from custom_components.meraki_ha.const import (
 )
 from custom_components.meraki_ha.config_flow import MerakiAuthenticationError
 
+
 @pytest.mark.asyncio
 async def test_async_step_user_success(hass: HomeAssistant) -> None:
     """Test the user step of the config flow with valid credentials."""

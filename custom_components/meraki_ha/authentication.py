@@ -17,8 +17,8 @@ from .core.api.client import MerakiAPIClient
 
 _LOGGER = logging.getLogger(__name__)
 
-class MerakiAuthentication:
 
+class MerakiAuthentication:
     """Class to handle Meraki API authentication using the Meraki SDK.
 
     This class encapsulates the logic for validating API credentials by

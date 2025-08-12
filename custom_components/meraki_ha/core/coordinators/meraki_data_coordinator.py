@@ -1,4 +1,5 @@
 """Data update coordinator for the Meraki HA integration."""
+
 from __future__ import annotations
 
 from datetime import timedelta

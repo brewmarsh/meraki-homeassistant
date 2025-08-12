@@ -31,9 +31,7 @@ STATE_UNAVAILABLE_VALUE = "Unavailable"
 STATE_ERROR_VALUE = "Error"
 
 
-class MerakiRadioSettingsSensor(
-    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
-):
+class MerakiRadioSettingsSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
     """Representation of a Meraki Radio Settings sensor.
 
     This sensor displays a key piece of radio information (e.g., channel)
@@ -80,9 +78,7 @@ class MerakiRadioSettingsSensor(
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            device_name, "Radio Settings"
-        )
+        self._attr_name = format_entity_name(device_name, "Radio Settings")
         self._attr_unique_id = f"{device_serial}_radio_settings"
 
         # Initialize state attributes, these will be updated from coordinator

@@ -37,9 +37,7 @@ class MerakiNetworkClientsSensor(
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            network_name, "Clients"
-        )
+        self._attr_name = format_entity_name(network_name, "Clients")
         self._attr_unique_id = f"meraki_network_clients_{network_id}"
         self._attr_native_value = 0
         self._attr_extra_state_attributes: Dict[str, Any] = {
@@ -113,7 +111,9 @@ class MerakiNetworkClientsSensor(
 
         return DeviceInfo(
             identifiers={(DOMAIN, self._network_id)},
-            name=format_device_name(network_data, self.coordinator.config_entry.options),
+            name=format_device_name(
+                network_data, self.coordinator.config_entry.options
+            ),
             manufacturer="Cisco Meraki",
             model="Network",
         )

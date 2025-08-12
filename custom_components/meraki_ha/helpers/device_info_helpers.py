@@ -1,4 +1,5 @@
 """Helper functions for creating Home Assistant DeviceInfo objects."""
+
 import logging
 from typing import Any, Dict, Optional
 

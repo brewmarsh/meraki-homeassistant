@@ -72,7 +72,9 @@ class MerakiDeviceConnectedClientsSensor(
 
         # Filter clients for the current device's network
         network_clients = [
-            c for c in all_clients if c.get("networkId") == network_id and c.get("status") == "Online"
+            c
+            for c in all_clients
+            if c.get("networkId") == network_id and c.get("status") == "Online"
         ]
 
         if product_type == "wireless":

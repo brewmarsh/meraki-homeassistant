@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 
 from custom_components.meraki_ha.sensor.device.data_usage import MerakiDataUsageSensor
 
+
 @pytest.fixture
 def mock_data_coordinator():
     """Fixture for a mocked MerakiDataCoordinator."""
@@ -52,4 +53,7 @@ def test_data_usage_sensor_disabled(mock_data_coordinator):
     sensor = MerakiDataUsageSensor(mock_data_coordinator, device, config_entry)
 
     assert sensor.native_value == "Disabled"
-    assert sensor.extra_state_attributes["reason"] == "Traffic analysis is not enabled for this network."
+    assert (
+        sensor.extra_state_attributes["reason"]
+        == "Traffic analysis is not enabled for this network."
+    )

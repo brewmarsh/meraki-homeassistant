@@ -47,7 +47,9 @@ class MerakiApplianceUplinkSensor(
 
     def _get_current_uplink_data(self) -> Dict[str, Any] | None:
         """Retrieve the latest data for this sensor's uplink from the coordinator."""
-        if self.coordinator.data and self.coordinator.data.get("appliance_uplink_statuses"):
+        if self.coordinator.data and self.coordinator.data.get(
+            "appliance_uplink_statuses"
+        ):
             for status in self.coordinator.data["appliance_uplink_statuses"]:
                 if status.get("serial") == self._device_serial:
                     for uplink in status.get("uplinks", []):
@@ -73,7 +75,6 @@ class MerakiApplianceUplinkSensor(
             self._attr_native_value = "unknown"
             self._attr_extra_state_attributes = {}
             self._attr_icon = "mdi:help-rhombus"
-
 
     @callback
     def _handle_coordinator_update(self) -> None:

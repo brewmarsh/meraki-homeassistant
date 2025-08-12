@@ -35,7 +35,9 @@ async def test_ssid_name_set_value(
         "networkId": "net1",
     }
 
-    entity = MerakiSSIDNameText(mock_coordinator, mock_meraki_client, config_entry, ssid_data)
+    entity = MerakiSSIDNameText(
+        mock_coordinator, mock_meraki_client, config_entry, ssid_data
+    )
     entity.hass = hass
     entity.entity_id = "text.test_ssid_name"
 

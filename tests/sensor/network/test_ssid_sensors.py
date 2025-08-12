@@ -60,15 +60,50 @@ def test_all_ssid_sensors(mock_data_coordinator):
 
     # Test each sensor
     sensors_to_test = [
-        (MerakiSSIDAvailabilitySensor, "enabled", "Availability", "ssid-net-123-1-enabled"),
+        (
+            MerakiSSIDAvailabilitySensor,
+            "enabled",
+            "Availability",
+            "ssid-net-123-1-enabled",
+        ),
         (MerakiSSIDChannelSensor, "channel", "Channel", "ssid-net-123-1-channel"),
-        (MerakiSSIDClientCountSensor, "clientCount", "Client Count", "ssid-net-123-1-clientCount"),
-        (MerakiSSIDSplashPageSensor, "splashPage", "Splash Page", "ssid-net-123-1-splashPage"),
+        (
+            MerakiSSIDClientCountSensor,
+            "clientCount",
+            "Client Count",
+            "ssid-net-123-1-clientCount",
+        ),
+        (
+            MerakiSSIDSplashPageSensor,
+            "splashPage",
+            "Splash Page",
+            "ssid-net-123-1-splashPage",
+        ),
         (MerakiSSIDAuthModeSensor, "authMode", "Auth Mode", "ssid-net-123-1-authMode"),
-        (MerakiSSIDEncryptionModeSensor, "encryptionMode", "Encryption Mode", "ssid-net-123-1-encryptionMode"),
-        (MerakiSSIDWPAEncryptionModeSensor, "wpaEncryptionMode", "WPA Encryption Mode", "ssid-net-123-1-wpaEncryptionMode"),
-        (MerakiSSIDIPAssignmentModeSensor, "ipAssignmentMode", "IP Assignment Mode", "ssid-net-123-1-ipAssignmentMode"),
-        (MerakiSSIDBandSelectionSensor, "bandSelection", "Band Selection", "ssid-net-123-1-bandSelection"),
+        (
+            MerakiSSIDEncryptionModeSensor,
+            "encryptionMode",
+            "Encryption Mode",
+            "ssid-net-123-1-encryptionMode",
+        ),
+        (
+            MerakiSSIDWPAEncryptionModeSensor,
+            "wpaEncryptionMode",
+            "WPA Encryption Mode",
+            "ssid-net-123-1-wpaEncryptionMode",
+        ),
+        (
+            MerakiSSIDIPAssignmentModeSensor,
+            "ipAssignmentMode",
+            "IP Assignment Mode",
+            "ssid-net-123-1-ipAssignmentMode",
+        ),
+        (
+            MerakiSSIDBandSelectionSensor,
+            "bandSelection",
+            "Band Selection",
+            "ssid-net-123-1-bandSelection",
+        ),
         (MerakiSSIDVisibleSensor, "visible", "Visible", "ssid-net-123-1-visible"),
     ]
 
@@ -80,22 +115,32 @@ def test_all_ssid_sensors(mock_data_coordinator):
         assert sensor.native_value == ssid_data[attribute]
 
     # Test bandwidth sensors
-    up_client_sensor = MerakiSSIDPerClientBandwidthLimitSensor(mock_data_coordinator, config_entry, ssid_data, "up")
+    up_client_sensor = MerakiSSIDPerClientBandwidthLimitSensor(
+        mock_data_coordinator, config_entry, ssid_data, "up"
+    )
     assert up_client_sensor.unique_id == "ssid-net-123-1-per-client-bandwidth-limit-up"
     assert up_client_sensor.name == "Per-Client Bandwidth Limit Up"
     assert up_client_sensor.native_value == 10
 
-    down_client_sensor = MerakiSSIDPerClientBandwidthLimitSensor(mock_data_coordinator, config_entry, ssid_data, "down")
-    assert down_client_sensor.unique_id == "ssid-net-123-1-per-client-bandwidth-limit-down"
+    down_client_sensor = MerakiSSIDPerClientBandwidthLimitSensor(
+        mock_data_coordinator, config_entry, ssid_data, "down"
+    )
+    assert (
+        down_client_sensor.unique_id == "ssid-net-123-1-per-client-bandwidth-limit-down"
+    )
     assert down_client_sensor.name == "Per-Client Bandwidth Limit Down"
     assert down_client_sensor.native_value == 20
 
-    up_ssid_sensor = MerakiSSIDPerSsidBandwidthLimitSensor(mock_data_coordinator, config_entry, ssid_data, "up")
+    up_ssid_sensor = MerakiSSIDPerSsidBandwidthLimitSensor(
+        mock_data_coordinator, config_entry, ssid_data, "up"
+    )
     assert up_ssid_sensor.unique_id == "ssid-net-123-1-per-ssid-bandwidth-limit-up"
     assert up_ssid_sensor.name == "Per-SSID Bandwidth Limit Up"
     assert up_ssid_sensor.native_value == 30
 
-    down_ssid_sensor = MerakiSSIDPerSsidBandwidthLimitSensor(mock_data_coordinator, config_entry, ssid_data, "down")
+    down_ssid_sensor = MerakiSSIDPerSsidBandwidthLimitSensor(
+        mock_data_coordinator, config_entry, ssid_data, "down"
+    )
     assert down_ssid_sensor.unique_id == "ssid-net-123-1-per-ssid-bandwidth-limit-down"
     assert down_ssid_sensor.name == "Per-SSID Bandwidth Limit Down"
     assert down_ssid_sensor.native_value == 40

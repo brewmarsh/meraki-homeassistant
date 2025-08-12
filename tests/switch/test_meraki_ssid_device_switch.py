@@ -54,9 +54,13 @@ async def test_meraki_ssid_enabled_switch(
     ssid_unique_id = f"ssid-{ssid_data['networkId']}-{ssid_data['number']}"
 
     # Test with prefix format
-    mock_config_entry.options = {'device_name_format': 'prefix'}
+    mock_config_entry.options = {"device_name_format": "prefix"}
     switch = MerakiSSIDEnabledSwitch(
-        mock_coordinator, mock_meraki_client, mock_config_entry, ssid_unique_id, ssid_data
+        mock_coordinator,
+        mock_meraki_client,
+        mock_config_entry,
+        ssid_unique_id,
+        ssid_data,
     )
 
     assert switch.is_on is True
@@ -64,9 +68,13 @@ async def test_meraki_ssid_enabled_switch(
     assert switch.device_info["name"] == "[Ssid] Test SSID"
 
     # Test with omit format
-    mock_config_entry.options = {'device_name_format': 'omit'}
+    mock_config_entry.options = {"device_name_format": "omit"}
     switch = MerakiSSIDEnabledSwitch(
-        mock_coordinator, mock_meraki_client, mock_config_entry, ssid_unique_id, ssid_data
+        mock_coordinator,
+        mock_meraki_client,
+        mock_config_entry,
+        ssid_unique_id,
+        ssid_data,
     )
     assert switch.name == "Enabled Control"
     assert switch.device_info["name"] == "Test SSID"
@@ -85,9 +93,13 @@ async def test_meraki_ssid_broadcast_switch(
     ssid_unique_id = f"ssid-{ssid_data['networkId']}-{ssid_data['number']}"
 
     # Test with prefix format
-    mock_config_entry.options = {'device_name_format': 'prefix'}
+    mock_config_entry.options = {"device_name_format": "prefix"}
     switch = MerakiSSIDBroadcastSwitch(
-        mock_coordinator, mock_meraki_client, mock_config_entry, ssid_unique_id, ssid_data
+        mock_coordinator,
+        mock_meraki_client,
+        mock_config_entry,
+        ssid_unique_id,
+        ssid_data,
     )
 
     assert switch.is_on is True
@@ -95,9 +107,13 @@ async def test_meraki_ssid_broadcast_switch(
     assert switch.device_info["name"] == "[Ssid] Test SSID"
 
     # Test with omit format
-    mock_config_entry.options = {'device_name_format': 'omit'}
+    mock_config_entry.options = {"device_name_format": "omit"}
     switch = MerakiSSIDBroadcastSwitch(
-        mock_coordinator, mock_meraki_client, mock_config_entry, ssid_unique_id, ssid_data
+        mock_coordinator,
+        mock_meraki_client,
+        mock_config_entry,
+        ssid_unique_id,
+        ssid_data,
     )
     assert switch.name == "Broadcast Control"
     assert switch.device_info["name"] == "Test SSID"

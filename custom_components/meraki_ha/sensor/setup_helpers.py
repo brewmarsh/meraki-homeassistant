@@ -84,7 +84,9 @@ def async_setup_sensors(
             for port in device_info.get("ports", []):
                 unique_id = f"{serial}_port_{port['number']}"
                 if unique_id not in added_entities:
-                    entities.append(MerakiAppliancePortSensor(coordinator, device_info, port))
+                    entities.append(
+                        MerakiAppliancePortSensor(coordinator, device_info, port)
+                    )
                     added_entities.add(unique_id)
 
         # Switch port sensors
@@ -93,7 +95,9 @@ def async_setup_sensors(
                 unique_id = f"{serial}_port_{port['portId']}"
                 if unique_id not in added_entities:
                     entities.append(
-                        MerakiSwitchPortSensor(coordinator, device_info, config_entry, port)
+                        MerakiSwitchPortSensor(
+                            coordinator, device_info, config_entry, port
+                        )
                     )
                     added_entities.add(unique_id)
 
@@ -109,19 +113,25 @@ def async_setup_sensors(
         # Network Clients Sensor
         unique_id = f"meraki_network_clients_{network_id}"
         if unique_id not in added_entities:
-            entities.append(MerakiNetworkClientsSensor(coordinator, network_id, network_name))
+            entities.append(
+                MerakiNetworkClientsSensor(coordinator, network_id, network_name)
+            )
             added_entities.add(unique_id)
 
         # Network Identity Sensor
         unique_id = f"meraki_network_identity_{network_id}"
         if unique_id not in added_entities:
-            entities.append(MerakiNetworkIdentitySensor(coordinator, network_data, config_entry))
+            entities.append(
+                MerakiNetworkIdentitySensor(coordinator, network_data, config_entry)
+            )
             added_entities.add(unique_id)
 
         # Network Info Sensor
         unique_id = f"{network_id}_network_info"
         if unique_id not in added_entities:
-            entities.append(MerakiNetworkInfoSensor(coordinator, network_data, config_entry))
+            entities.append(
+                MerakiNetworkInfoSensor(coordinator, network_data, config_entry)
+            )
             added_entities.add(unique_id)
 
     # Set up SSID-specific sensors

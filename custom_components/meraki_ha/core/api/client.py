@@ -108,8 +108,10 @@ class MerakiAPIClient:
                 )
                 device["radio_settings"] = radio_settings
             elif device.get("productType") == "appliance":
-                appliance_settings = await self.appliance.get_network_appliance_settings(
-                    device["networkId"]
+                appliance_settings = (
+                    await self.appliance.get_network_appliance_settings(
+                        device["networkId"]
+                    )
                 )
                 if appliance_settings and "dynamicDns" in appliance_settings:
                     device["dynamicDns"] = appliance_settings["dynamicDns"]

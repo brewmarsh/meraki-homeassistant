@@ -1,4 +1,5 @@
 """Base entity for Meraki VLANs."""
+
 from __future__ import annotations
 
 from typing import Any

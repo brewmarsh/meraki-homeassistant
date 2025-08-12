@@ -3,8 +3,11 @@
 import pytest
 from unittest.mock import MagicMock
 
-from custom_components.meraki_ha.sensor.device.radio_settings import MerakiRadioSettingsSensor
+from custom_components.meraki_ha.sensor.device.radio_settings import (
+    MerakiRadioSettingsSensor,
+)
 from custom_components.meraki_ha.const import DEVICE_NAME_FORMAT_PREFIX
+
 
 @pytest.fixture
 def mock_coordinator():
@@ -22,7 +25,7 @@ def mock_coordinator():
                 "radio_settings": {
                     "channel": 11,
                     "power": 20,
-                }
+                },
             }
         ],
     }

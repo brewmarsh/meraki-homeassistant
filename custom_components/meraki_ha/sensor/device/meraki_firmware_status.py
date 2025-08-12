@@ -76,8 +76,12 @@ class MerakiFirmwareStatusSensor(
 
         attributes = {
             "current_firmware_version": current_device_data.get("firmware"),
-            "latest_available_firmware_version": firmware_upgrades.get("latestVersion", {}).get("shortName"),
-            "next_upgrade_version": firmware_upgrades.get("nextUpgrade", {}).get("toVersion", {}).get("shortName"),
+            "latest_available_firmware_version": firmware_upgrades.get(
+                "latestVersion", {}
+            ).get("shortName"),
+            "next_upgrade_version": firmware_upgrades.get("nextUpgrade", {})
+            .get("toVersion", {})
+            .get("shortName"),
             "next_upgrade_time": firmware_upgrades.get("nextUpgrade", {}).get("time"),
             "model": current_device_data.get("model"),
         }

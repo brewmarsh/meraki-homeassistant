@@ -48,11 +48,7 @@ async def async_setup_entry(
     new_entities: list = []
 
     # Setup Camera Setting Switches
-    if (
-        coordinator
-        and coordinator.data
-        and "devices" in coordinator.data
-    ):
+    if coordinator and coordinator.data and "devices" in coordinator.data:
         for device_info in coordinator.data["devices"]:
             if not isinstance(device_info, dict):
                 continue
@@ -70,9 +66,7 @@ async def async_setup_entry(
                         MerakiCameraAudioDetectionSwitch(
                             coordinator, meraki_client, device_info
                         ),
-                        MerakiCameraRTSPSwitch(
-                            coordinator, meraki_client, device_info
-                        ),
+                        MerakiCameraRTSPSwitch(coordinator, meraki_client, device_info),
                     ]
                 )
     else:

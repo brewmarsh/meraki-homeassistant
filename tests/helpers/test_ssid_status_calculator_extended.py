@@ -22,8 +22,18 @@ def test_ssid_status_calculator_all_enabled():
 def test_ssid_status_calculator_all_disabled():
     """Test the SSID status calculator with all SSIDs disabled."""
     ssids = [
-        {"name": "SSID 1", "enabled": False, "broadcasting": False, "networkId": "N_123"},
-        {"name": "SSID 2", "enabled": False, "broadcasting": False, "networkId": "N_123"},
+        {
+            "name": "SSID 1",
+            "enabled": False,
+            "broadcasting": False,
+            "networkId": "N_123",
+        },
+        {
+            "name": "SSID 2",
+            "enabled": False,
+            "broadcasting": False,
+            "networkId": "N_123",
+        },
     ]
     devices = [
         {"serial": "Q234-ABCD-5678", "status": "online", "model": "MR33", "tags": []}
@@ -37,7 +47,12 @@ def test_ssid_status_calculator_mixed():
     """Test the SSID status calculator with a mix of enabled and disabled SSIDs."""
     ssids = [
         {"name": "SSID 1", "enabled": True, "broadcasting": True, "networkId": "N_123"},
-        {"name": "SSID 2", "enabled": False, "broadcasting": False, "networkId": "N_123"},
+        {
+            "name": "SSID 2",
+            "enabled": False,
+            "broadcasting": False,
+            "networkId": "N_123",
+        },
     ]
     devices = [
         {"serial": "Q234-ABCD-5678", "status": "online", "model": "MR33", "tags": []}

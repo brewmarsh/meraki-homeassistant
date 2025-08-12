@@ -16,9 +16,7 @@ from ...core.utils.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAppliancePortSensor(
-    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
-):
+class MerakiAppliancePortSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
     """Representation of a Meraki appliance port sensor."""
 
     def __init__(
@@ -36,7 +34,7 @@ class MerakiAppliancePortSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            self._device['name'],
+            self._device["name"],
             f"Port {self._port['number']}",
         )
         self._attr_icon = "mdi:ethernet-port"
@@ -46,7 +44,9 @@ class MerakiAppliancePortSensor(
         """Return device information."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._device["serial"])},
-            name=format_device_name(self._device, self.coordinator.config_entry.options),
+            name=format_device_name(
+                self._device, self.coordinator.config_entry.options
+            ),
             model=self._device["model"],
             manufacturer="Cisco Meraki",
         )

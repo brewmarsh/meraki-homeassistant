@@ -47,8 +47,13 @@ def test_ssid_detail_sensor_creation(mock_coordinator):
     sensors = create_ssid_sensors(mock_coordinator, config_entry, ssid_data)
 
     # Filter for just the new detail sensors
-    from custom_components.meraki_ha.sensor.network.ssid_details import MerakiSSIDDetailSensor
-    detail_sensors = {s.name: s for s in sensors if isinstance(s, MerakiSSIDDetailSensor)}
+    from custom_components.meraki_ha.sensor.network.ssid_details import (
+        MerakiSSIDDetailSensor,
+    )
+
+    detail_sensors = {
+        s.name: s for s in sensors if isinstance(s, MerakiSSIDDetailSensor)
+    }
 
     assert len(detail_sensors) == 6
 

@@ -1,4 +1,5 @@
 """Data structures for Meraki device types."""
+
 from typing import Final
 import re
 

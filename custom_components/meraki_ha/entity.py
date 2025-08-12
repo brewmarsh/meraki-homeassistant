@@ -31,9 +31,9 @@ class MerakiEntity(CoordinatorEntity[MerakiDeviceCoordinator]):
         self._ssid_info_data = ssid_data
 
         self._device_serial: Optional[str] = self._device_info_data.get("serial")
-        self._device_name: Optional[str] = self._device_info_data.get(
-            "name"
-        ) or self._device_serial
+        self._device_name: Optional[str] = (
+            self._device_info_data.get("name") or self._device_serial
+        )
 
     @property
     def device_info(self) -> Optional[DeviceInfo]:

@@ -20,5 +20,11 @@ class MerakiCameraRTSPSwitch(MerakiCameraSettingSwitchBase):
         device_data: Dict[str, Any],
     ) -> None:
         """Initialize the RTSP switch."""
-        super().__init__(coordinator, meraki_client, device_data, "rtsp_server_enabled", "video_settings.externalRtspEnabled")
+        super().__init__(
+            coordinator,
+            meraki_client,
+            device_data,
+            "rtsp_server_enabled",
+            "video_settings.externalRtspEnabled",
+        )
         self._attr_name = "RTSP Server"

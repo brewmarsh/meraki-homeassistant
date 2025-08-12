@@ -40,16 +40,16 @@ class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntit
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            self._device['name'], "PoE Usage"
-        )
+        self._attr_name = format_entity_name(self._device["name"], "PoE Usage")
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._device["serial"])},
-            name=format_device_name(self._device, self.coordinator.config_entry.options),
+            name=format_device_name(
+                self._device, self.coordinator.config_entry.options
+            ),
             model=self._device["model"],
             manufacturer="Cisco Meraki",
         )

@@ -16,6 +16,7 @@ from custom_components.meraki_ha.const import (
 )
 from custom_components.meraki_ha.camera import MerakiCamera, async_setup_entry
 
+
 @pytest.fixture
 def mock_device_coordinator():
     """Mock a MerakiDeviceCoordinator."""

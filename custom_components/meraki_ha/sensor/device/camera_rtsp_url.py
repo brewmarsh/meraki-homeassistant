@@ -15,9 +15,7 @@ from ...core.utils.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiCameraRTSPUrlSensor(
-    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
-):
+class MerakiCameraRTSPUrlSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
     """Representation of a Meraki Camera RTSP URL Sensor."""
 
     _attr_has_entity_name = True
@@ -39,7 +37,9 @@ class MerakiCameraRTSPUrlSensor(
 
         self._attr_unique_id = f"{self._device_serial}_{self.entity_description.key}"
         self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, self._device_serial)})
-        self._attr_name = f"{device_info_data.get('name', 'Camera')} {self.entity_description.name}"
+        self._attr_name = (
+            f"{device_info_data.get('name', 'Camera')} {self.entity_description.name}"
+        )
         self._update_state()
 
     @property

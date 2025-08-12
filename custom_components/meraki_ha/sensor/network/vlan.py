@@ -1,4 +1,5 @@
 """Sensors for Meraki VLANs."""
+
 from __future__ import annotations
 
 import logging
@@ -16,6 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 from homeassistant.config_entries import ConfigEntry
 
+
 class MerakiVLANSubnetSensor(MerakiVLANEntity, SensorEntity):
     """Representation of a Meraki VLAN Subnet sensor."""
 
@@ -28,7 +30,9 @@ class MerakiVLANSubnetSensor(MerakiVLANEntity, SensorEntity):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, config_entry, network_id, vlan)
-        self._attr_unique_id = get_vlan_entity_id(self._network_id, self._vlan["id"], "subnet")
+        self._attr_unique_id = get_vlan_entity_id(
+            self._network_id, self._vlan["id"], "subnet"
+        )
         self._attr_name = f"{self._vlan['name']} Subnet"
 
     @property
@@ -49,7 +53,9 @@ class MerakiVLANApplianceIpSensor(MerakiVLANEntity, SensorEntity):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, config_entry, network_id, vlan)
-        self._attr_unique_id = get_vlan_entity_id(self._network_id, self._vlan["id"], "appliance_ip")
+        self._attr_unique_id = get_vlan_entity_id(
+            self._network_id, self._vlan["id"], "appliance_ip"
+        )
         self._attr_name = f"{self._vlan['name']} Appliance IP"
 
     @property

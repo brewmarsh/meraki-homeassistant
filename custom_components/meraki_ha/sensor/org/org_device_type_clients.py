@@ -47,9 +47,7 @@ class MerakiOrgDeviceTypeClientsSensor(
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            self._organization_name, "Client Types"
-        )
+        self._attr_name = format_entity_name(self._organization_name, "Client Types")
         self._attr_unique_id = f"meraki_org_{self._organization_id}_client_types"
 
         self._clients_on_ssids: Optional[int] = None

@@ -42,15 +42,15 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
         super().__init__(coordinator)
         self._meraki_client = meraki_client
         self._config_entry = config_entry
-        self._ssid_data_at_init = (
-            ssid_data  # Store initial SSID data for device info
-        )
+        self._ssid_data_at_init = ssid_data  # Store initial SSID data for device info
 
         self._network_id = ssid_data.get("networkId")
         self._ssid_number = ssid_data.get("number")
         self._attribute_to_check = attribute_to_check
 
-        self._attr_unique_id = f"ssid-{self._network_id}-{self._ssid_number}-{switch_type}-switch"
+        self._attr_unique_id = (
+            f"ssid-{self._network_id}-{self._ssid_number}-{switch_type}-switch"
+        )
         self._attr_name = f"{switch_type.capitalize()} Control"
 
         self._update_internal_state()

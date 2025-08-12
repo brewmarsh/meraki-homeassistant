@@ -5,24 +5,26 @@ from unittest.mock import AsyncMock, MagicMock
 
 from custom_components.meraki_ha.switch.camera_schedules import MerakiCameraRTSPSwitch
 
+
 @pytest.fixture
 def mock_device_coordinator():
     """Fixture for a mocked MerakiDeviceCoordinator."""
     coordinator = MagicMock()
     coordinator.data = {
-        'devices': [
+        "devices": [
             {
-                'serial': 'cam1',
-                'name': 'Camera',
-                'model': 'MV12',
-                'productType': 'camera',
-                'video_settings': {
-                    'externalRtspEnabled': True,
+                "serial": "cam1",
+                "name": "Camera",
+                "model": "MV12",
+                "productType": "camera",
+                "video_settings": {
+                    "externalRtspEnabled": True,
                 },
             }
         ]
     }
     return coordinator
+
 
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 

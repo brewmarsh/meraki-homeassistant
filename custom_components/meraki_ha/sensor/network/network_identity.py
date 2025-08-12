@@ -48,9 +48,7 @@ class MerakiNetworkIdentitySensor(
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            self._network_name, "Network Identity"
-        )
+        self._attr_name = format_entity_name(self._network_name, "Network Identity")
         self._attr_unique_id = f"meraki_network_identity_{self._network_id}"
 
         # Set initial state and attributes

@@ -1,4 +1,5 @@
 """Constants for Meraki device types."""
+
 from enum import Enum
 from typing import Final, List
 

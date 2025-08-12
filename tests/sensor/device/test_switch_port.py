@@ -42,7 +42,9 @@ def test_switch_port_sensor(mock_data_coordinator):
 
     # Test port 1
     port1_data = device_data["ports_statuses"][0]
-    sensor1 = MerakiSwitchPortSensor(mock_data_coordinator, device_data, config_entry, port1_data)
+    sensor1 = MerakiSwitchPortSensor(
+        mock_data_coordinator, device_data, config_entry, port1_data
+    )
     assert sensor1.unique_id == "dev1_port_1"
     assert sensor1.name == "Port 1 Status"
     assert sensor1.native_value == "connected"
@@ -51,7 +53,9 @@ def test_switch_port_sensor(mock_data_coordinator):
 
     # Test port 2
     port2_data = device_data["ports_statuses"][1]
-    sensor2 = MerakiSwitchPortSensor(mock_data_coordinator, device_data, config_entry, port2_data)
+    sensor2 = MerakiSwitchPortSensor(
+        mock_data_coordinator, device_data, config_entry, port2_data
+    )
     assert sensor2.unique_id == "dev1_port_2"
     assert sensor2.name == "Port 2 Status"
     assert sensor2.native_value == "disabled"

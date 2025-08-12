@@ -46,16 +46,16 @@ class MerakiTemperatureSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEn
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            self._device['name'], "Temperature"
-        )
+        self._attr_name = format_entity_name(self._device["name"], "Temperature")
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._device["serial"])},
-            name=format_device_name(self._device, self.coordinator.config_entry.options),
+            name=format_device_name(
+                self._device, self.coordinator.config_entry.options
+            ),
             model=self._device["model"],
             manufacturer="Cisco Meraki",
         )
@@ -104,16 +104,16 @@ class MerakiHumiditySensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntit
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            self._device['name'], "Humidity"
-        )
+        self._attr_name = format_entity_name(self._device["name"], "Humidity")
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._device["serial"])},
-            name=format_device_name(self._device, self.coordinator.config_entry.options),
+            name=format_device_name(
+                self._device, self.coordinator.config_entry.options
+            ),
             model=self._device["model"],
             manufacturer="Cisco Meraki",
         )
@@ -162,16 +162,16 @@ class MerakiWaterDetectionSensor(
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            self._device['name'], "Water Detection"
-        )
+        self._attr_name = format_entity_name(self._device["name"], "Water Detection")
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._device["serial"])},
-            name=format_device_name(self._device, self.coordinator.config_entry.options),
+            name=format_device_name(
+                self._device, self.coordinator.config_entry.options
+            ),
             model=self._device["model"],
             manufacturer="Cisco Meraki",
         )

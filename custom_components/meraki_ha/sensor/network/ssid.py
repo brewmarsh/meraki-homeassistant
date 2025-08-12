@@ -41,7 +41,9 @@ def create_ssid_sensors(
     # Find the RF profile for this SSID's network
     rf_profile = None
     if coordinator.data and coordinator.data.get("rf_profiles"):
-        network_rf_profiles = coordinator.data["rf_profiles"].get(ssid_data["networkId"])
+        network_rf_profiles = coordinator.data["rf_profiles"].get(
+            ssid_data["networkId"]
+        )
         if network_rf_profiles:
             # This logic assumes the first profile is the one applied.
             # A more robust implementation might need to match the profile name
@@ -73,10 +75,18 @@ def create_ssid_sensors(
         MerakiSSIDVisibleSensor(coordinator, config_entry, ssid_data),
         # Add the new detail sensors
         MerakiSSIDWalledGardenSensor(coordinator, config_entry, ssid_data, rf_profile),
-        MerakiSSIDTotalUploadLimitSensor(coordinator, config_entry, ssid_data, rf_profile),
-        MerakiSSIDTotalDownloadLimitSensor(coordinator, config_entry, ssid_data, rf_profile),
+        MerakiSSIDTotalUploadLimitSensor(
+            coordinator, config_entry, ssid_data, rf_profile
+        ),
+        MerakiSSIDTotalDownloadLimitSensor(
+            coordinator, config_entry, ssid_data, rf_profile
+        ),
         MerakiSSIDMandatoryDhcpSensor(coordinator, config_entry, ssid_data, rf_profile),
-        MerakiSSIDMinBitrate24GhzSensor(coordinator, config_entry, ssid_data, rf_profile),
-        MerakiSSIDMinBitrate5GhzSensor(coordinator, config_entry, ssid_data, rf_profile),
+        MerakiSSIDMinBitrate24GhzSensor(
+            coordinator, config_entry, ssid_data, rf_profile
+        ),
+        MerakiSSIDMinBitrate5GhzSensor(
+            coordinator, config_entry, ssid_data, rf_profile
+        ),
     ]
     return sensors

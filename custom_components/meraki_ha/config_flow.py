@@ -71,9 +71,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_DEVICE_NAME_FORMAT: user_input.get(
                         CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
                     ),
-                    CONF_AUTO_ENABLE_RTSP: user_input.get(
-                        CONF_AUTO_ENABLE_RTSP, False
-                    ),
+                    CONF_AUTO_ENABLE_RTSP: user_input.get(CONF_AUTO_ENABLE_RTSP, False),
                     CONF_WEBHOOK_URL: user_input.get(
                         CONF_WEBHOOK_URL, DEFAULT_WEBHOOK_URL
                     ),

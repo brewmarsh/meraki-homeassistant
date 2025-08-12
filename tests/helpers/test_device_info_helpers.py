@@ -76,9 +76,7 @@ def test_resolve_device_info_appliance_hostname(mock_config_entry):
         "serial": "dev_appliance",
         "name": "My Appliance",
         "productType": "appliance",
-        "dynamicDns": {
-            "url": "my-appliance.dynamic.meraki.com"
-        }
+        "dynamicDns": {"url": "my-appliance.dynamic.meraki.com"},
     }
     mock_config_entry.options = {}
     device_info = resolve_device_info(entity_data, mock_config_entry)

@@ -29,7 +29,9 @@ def mock_meraki_client():
     client.get_all_data = AsyncMock(
         return_value={
             "devices": [],
-            "networks": [{"id": "net1", "name": "Test Network", "productTypes": ["wireless"]}],
+            "networks": [
+                {"id": "net1", "name": "Test Network", "productTypes": ["wireless"]}
+            ],
             "ssids": [
                 {
                     "number": 0,
@@ -56,9 +58,7 @@ async def test_ssid_device_creation_and_unification(
 
     with patch(
         "custom_components.meraki_ha.MerakiAPIClient", return_value=mock_meraki_client
-    ), patch(
-        "custom_components.meraki_ha.async_unload_entry", return_value=True
-    ):
+    ), patch("custom_components.meraki_ha.async_unload_entry", return_value=True):
         # Set up the component
         assert await async_setup_component(hass, DOMAIN, {})
         await hass.async_block_till_done()

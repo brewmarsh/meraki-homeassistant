@@ -81,10 +81,8 @@ class MerakiDeviceCoordinator(BaseMerakiCoordinator):
                                 device["serial"]
                             )
                         )
-                        video_link = (
-                            await self.api_client.get_device_camera_video_link(
-                                device["serial"]
-                            )
+                        video_link = await self.api_client.get_device_camera_video_link(
+                            device["serial"]
                         )
                         device["video_settings"].update(video_link)
                     except Exception as err:

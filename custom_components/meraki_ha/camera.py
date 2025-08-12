@@ -142,7 +142,9 @@ class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
         """Return device information."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._device["serial"])},
-            name=format_device_name(self._device, self.coordinator.config_entry.options),
+            name=format_device_name(
+                self._device, self.coordinator.config_entry.options
+            ),
             model=self._device["model"],
             manufacturer="Cisco Meraki",
         )

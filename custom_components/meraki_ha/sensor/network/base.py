@@ -34,7 +34,9 @@ class MerakiSSIDBaseSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntit
         self._attribute = attribute
         self._network_id = ssid_data.get("networkId")
         self._ssid_number = ssid_data.get("number")
-        self._attr_unique_id = f"ssid-{self._network_id}-{self._ssid_number}-{self._attribute}"
+        self._attr_unique_id = (
+            f"ssid-{self._network_id}-{self._ssid_number}-{self._attribute}"
+        )
 
     def _get_current_ssid_data(self) -> Optional[Dict[str, Any]]:
         """Retrieve the latest data for this SSID from the coordinator."""

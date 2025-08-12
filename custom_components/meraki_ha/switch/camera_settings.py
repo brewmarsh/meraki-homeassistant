@@ -78,7 +78,9 @@ class MerakiCameraSettingSwitchBase(
                 )
                 if video_settings:
                     # Update coordinator data with the new video settings
-                    for i, device in enumerate(self.coordinator.data.get("devices", [])):
+                    for i, device in enumerate(
+                        self.coordinator.data.get("devices", [])
+                    ):
                         if device.get("serial") == self._device_data["serial"]:
                             self.coordinator.data["devices"][i][
                                 "video_settings"

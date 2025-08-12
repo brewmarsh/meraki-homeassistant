@@ -31,6 +31,7 @@ class MockResponse:
     def json(self):
         return self._json_data
 
+
 @handle_meraki_errors
 async def dummy_api_call_auth_error():
     """A dummy API call that raises an auth error."""
