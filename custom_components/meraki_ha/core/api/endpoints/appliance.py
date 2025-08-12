@@ -23,7 +23,6 @@ class ApplianceEndpoints:
         self, network_id: str, timespan: int = 86400
     ) -> Dict[str, Any]:
         """Get traffic data for a network appliance."""
-        _LOGGER.debug("Getting appliance traffic for network: %s", network_id)
         traffic = await self._api_client._run_sync(
             self._dashboard.appliance.getNetworkApplianceTraffic,
             networkId=network_id,
@@ -35,7 +34,6 @@ class ApplianceEndpoints:
     @async_timed_cache()
     async def get_vlans(self, network_id: str) -> List[Dict[str, Any]]:
         """Get VLANs for a network."""
-        _LOGGER.debug("Getting VLANs for network: %s", network_id)
         vlans = await self._api_client._run_sync(
             self._dashboard.appliance.getNetworkApplianceVlans, networkId=network_id
         )
@@ -47,7 +45,6 @@ class ApplianceEndpoints:
         self, serial: str
     ) -> Dict[str, Any]:
         """Get uplinks settings for a device."""
-        _LOGGER.debug("Getting uplinks settings for device: %s", serial)
         uplinks = await self._api_client._run_sync(
             self._dashboard.appliance.getDeviceApplianceUplinksSettings, serial=serial
         )
@@ -57,7 +54,6 @@ class ApplianceEndpoints:
     @async_timed_cache()
     async def get_appliance_ports(self, network_id: str) -> List[Dict[str, Any]]:
         """Get all ports for an appliance."""
-        _LOGGER.debug("Getting appliance ports for network: %s", network_id)
         ports = await self._api_client._run_sync(
             self._dashboard.appliance.getNetworkAppliancePorts, networkId=network_id
         )
@@ -66,3 +62,12 @@ class ApplianceEndpoints:
             _LOGGER.warning("get_appliance_ports did not return a list.")
             return []
         return validated
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=3600)
+    async def get_network_appliance_settings(self, network_id: str) -> Dict[str, Any]:
+        """Get settings for a network appliance."""
+        settings = await self._api_client._run_sync(
+            self._dashboard.appliance.getNetworkApplianceSettings, networkId=network_id
+        )
+        return validate_response(settings)

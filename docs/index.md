@@ -115,6 +115,17 @@ Entities are dynamically created based on your Meraki setup.
 - **SSID Availability:** Administrative status (Enabled/Disabled) of an SSID.
 - **SSID Channel:** Current operational channel for an SSID (derived from APs broadcasting it).
 - **SSID Client Count:** Number of clients connected to a specific SSID.
+- **SSID Splash Page:** The type of splash page for the SSID.
+- **SSID Auth Mode:** The association control method for the SSID.
+- **SSID Encryption Mode:** The psk encryption mode for the SSID.
+- **SSID WPA Encryption Mode:** The types of WPA encryption.
+- **SSID IP Assignment Mode:** The client IP assignment mode.
+- **SSID Band Selection:** The client-serving radio frequencies of this SSID.
+- **SSID Per-Client Bandwidth Limit Up:** The upload bandwidth limit in Kbps.
+- **SSID Per-Client Bandwidth Limit Down:** The download bandwidth limit in Kbps.
+- **SSID Per-SSID Bandwidth Limit Up:** The total upload bandwidth limit in Kbps.
+- **SSID Per-SSID Bandwidth Limit Down:** The total download bandwidth limit in Kbps.
+- **SSID Visible:** Whether the SSID is advertised or hidden.
 - Sensor values for MT series environmental sensors.
 - More detailed appliance/switch port statistics if API data is available and processed.
 

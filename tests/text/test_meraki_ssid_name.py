@@ -1,65 +1,58 @@
-"""Tests for the Meraki SSID name text entity."""
+"""Tests for the Meraki SSID Name text entity."""
 
 import pytest
 from unittest.mock import MagicMock, AsyncMock
+
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.text.meraki_ssid_name import (
-    MerakiSSIDNameText,
-)
-
-
-@pytest.fixture
-def mock_coordinator():
-    """Fixture for a mocked MerakiNetworkCoordinator."""
-    coordinator = MagicMock()
-    coordinator.async_request_refresh = AsyncMock()
-    coordinator.data = {
-        "ssids": [
-            {
-                "number": 0,
-                "name": "Test SSID",
-                "enabled": True,
-                "networkId": "net-123",
-                "unique_id": "ssid_0",
-                "productType": "ssid",
-            }
-        ]
-    }
-    return coordinator
+from custom_components.meraki_ha.text.meraki_ssid_name import MerakiSSIDNameText
 
 
 @pytest.fixture
 def mock_meraki_client():
     """Fixture for a mocked MerakiAPIClient."""
     client = MagicMock()
-    client.update_network_wireless_ssid = AsyncMock()
+    client.wireless.update_network_wireless_ssid = AsyncMock()
     return client
 
 
 @pytest.fixture
-def mock_config_entry():
-    """Fixture for a mocked ConfigEntry."""
-    entry = MagicMock()
-    entry.options = {}
-    return entry
+def mock_coordinator():
+    """Fixture for a mocked MerakiDataCoordinator."""
+    coordinator = MagicMock()
+    coordinator.async_request_refresh = AsyncMock()
+    return coordinator
 
 
-async def test_meraki_ssid_name_text(
-    hass: HomeAssistant, mock_coordinator, mock_meraki_client, mock_config_entry
-) -> None:
-    """Test the Meraki SSID name text entity."""
-    ssid_data = mock_coordinator.data["ssids"][0]
-    text = MerakiSSIDNameText(
-        mock_coordinator, mock_meraki_client, mock_config_entry, "ssid_0", ssid_data
+async def test_ssid_name_set_value(
+    hass: HomeAssistant, mock_coordinator, mock_meraki_client
+):
+    """Test the async_set_value method calls the API correctly."""
+    config_entry = MagicMock()
+    ssid_data = {
+        "number": 0,
+        "name": "Old SSID Name",
+        "networkId": "net1",
+    }
+
+    entity = MerakiSSIDNameText(
+        mock_coordinator, mock_meraki_client, config_entry, ssid_data
     )
-    text.hass = hass
-    text.entity_id = "text.test_ssid"
+    entity.hass = hass
+    entity.entity_id = "text.test_ssid_name"
 
-    assert text.native_value == "Test SSID"
-    assert text.name == "Test SSID"
+    new_name = "New SSID Name"
+    await entity.async_set_value(new_name)
 
-    await text.async_set_value("New Name")
-    mock_meraki_client.update_network_wireless_ssid.assert_called_with(
-        network_id="net-123", number="0", name="New Name"
+    # Verify that the API was called with the correct parameters
+    mock_meraki_client.wireless.update_network_wireless_ssid.assert_called_once_with(
+        networkId="net1",
+        number="0",
+        name=new_name,
     )
+
+    # Verify that the coordinator was asked to refresh
+    mock_coordinator.async_request_refresh.assert_called_once()
+
+    # Verify that the entity's state was optimistically updated
+    assert entity.native_value == new_name

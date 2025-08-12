@@ -57,9 +57,6 @@ class SsidStatusCalculator:
             is None or empty.
         """
         if not ssids:  # Handles None or empty list for ssids.
-            _LOGGER.debug(
-                "SSID data is None or empty in calculate_ssid_status; returning empty list."
-            )
             return []
 
         if devices is None:

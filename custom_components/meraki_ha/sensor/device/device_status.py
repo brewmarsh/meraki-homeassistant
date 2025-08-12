@@ -29,9 +29,7 @@ from ...core.utils.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDeviceStatusSensor(
-    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
-):
+class MerakiDeviceStatusSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
     """Representation of a Meraki Device Status sensor.
 
     This sensor displays the actual reported status of a Meraki device
@@ -102,11 +100,6 @@ class MerakiDeviceStatusSensor(
 
         # Initial update of state and attributes
         self._update_sensor_data()
-        # _LOGGER.debug(
-        #   "MerakiDeviceStatusSensor Initialized for %s (Serial: %s)",
-        #   device_name_for_registry,
-        #   self._device_serial,
-        # ) # Removed
 
     @property
     def icon(self) -> str:
@@ -125,11 +118,6 @@ class MerakiDeviceStatusSensor(
             for dev_data in self.coordinator.data["devices"]:
                 if dev_data.get("serial") == self._device_serial:
                     return dev_data
-        # _LOGGER.debug( # Already handled by available property / state becoming None
-        #   "Device data for serial '%s' not found in coordinator for sensor '%s'.",
-        #   self._device_serial,
-        #   self.unique_id,
-        # ) # Removed
         return None
 
     def _update_sensor_data(self) -> None:
@@ -172,6 +160,24 @@ class MerakiDeviceStatusSensor(
         self._attr_extra_state_attributes = {
             k: v for k, v in self._attr_extra_state_attributes.items() if v is not None
         }
+
+        # If the device is an appliance, add uplink information as attributes
+        if current_device_data.get("productType") == "appliance":
+            for uplink in current_device_data.get("uplinks", []):
+                interface = uplink.get("interface", "unknown_interface")
+                self._attr_extra_state_attributes[f"{interface}_status"] = uplink.get(
+                    "status"
+                )
+                self._attr_extra_state_attributes[f"{interface}_ip"] = uplink.get("ip")
+                self._attr_extra_state_attributes[f"{interface}_gateway"] = uplink.get(
+                    "gateway"
+                )
+                self._attr_extra_state_attributes[f"{interface}_public_ip"] = (
+                    uplink.get("publicIp")
+                )
+                self._attr_extra_state_attributes[f"{interface}_dns_servers"] = (
+                    uplink.get("dns")
+                )
 
     @callback
     def _handle_coordinator_update(self) -> None:

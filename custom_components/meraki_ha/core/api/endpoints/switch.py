@@ -23,7 +23,6 @@ class SwitchEndpoints:
         self, serial: str
     ) -> List[Dict[str, Any]]:
         """Get statuses for all ports of a switch."""
-        _LOGGER.debug("Getting switch ports statuses for serial: %s", serial)
         statuses = await self._api_client._run_sync(
             self._dashboard.switch.getDeviceSwitchPortsStatuses, serial=serial
         )
@@ -37,7 +36,6 @@ class SwitchEndpoints:
     @async_timed_cache()
     async def get_switch_ports(self, serial: str) -> List[Dict[str, Any]]:
         """Get ports for a switch."""
-        _LOGGER.debug("Getting switch ports for serial: %s", serial)
         ports = await self._api_client._run_sync(
             self._dashboard.switch.getDeviceSwitchPorts, serial=serial
         )

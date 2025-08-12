@@ -16,21 +16,22 @@ from .authentication import validate_meraki_credentials
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .const import (
     CONF_AUTO_ENABLE_RTSP,
+    CONF_ENABLE_DEVICE_TRACKER,
     CONF_DEVICE_NAME_FORMAT,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
     CONF_WEBHOOK_URL,
+    CONF_USE_LAN_IP_FOR_RTSP,
     DEFAULT_DEVICE_NAME_FORMAT,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_WEBHOOK_URL,
     DEVICE_NAME_FORMAT_OPTIONS,
     DOMAIN,
 )
+from .options_flow import MerakiOptionsFlowHandler
 
 _LOGGER = logging.getLogger(__name__)
-
-_LOGGER.debug("meraki_ha config_flow.py loaded")
 
 
 class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -63,7 +64,28 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 await self.async_set_unique_id(user_input[CONF_MERAKI_ORG_ID])
                 self._abort_if_unique_id_configured()
-                return self.async_create_entry(title=org_name, data=user_input)
+                options = {
+                    CONF_SCAN_INTERVAL: user_input.get(
+                        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                    ),
+                    CONF_DEVICE_NAME_FORMAT: user_input.get(
+                        CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+                    ),
+                    CONF_AUTO_ENABLE_RTSP: user_input.get(CONF_AUTO_ENABLE_RTSP, False),
+                    CONF_WEBHOOK_URL: user_input.get(
+                        CONF_WEBHOOK_URL, DEFAULT_WEBHOOK_URL
+                    ),
+                    CONF_ENABLE_DEVICE_TRACKER: user_input.get(
+                        CONF_ENABLE_DEVICE_TRACKER, True
+                    ),
+                }
+                data = {
+                    CONF_MERAKI_API_KEY: user_input[CONF_MERAKI_API_KEY],
+                    CONF_MERAKI_ORG_ID: user_input[CONF_MERAKI_ORG_ID],
+                }
+                return self.async_create_entry(
+                    title=org_name, data=data, options=options
+                )
 
         return self.async_show_form(
             step_id="user",
@@ -79,6 +101,8 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_DEVICE_NAME_FORMAT, default=DEFAULT_DEVICE_NAME_FORMAT
                     ): vol.In(DEVICE_NAME_FORMAT_OPTIONS),
                     vol.Optional(CONF_AUTO_ENABLE_RTSP, default=False): bool,
+                    vol.Optional(CONF_USE_LAN_IP_FOR_RTSP, default=False): bool,
+                    vol.Optional(CONF_ENABLE_DEVICE_TRACKER, default=True): bool,
                 }
             ),
             errors=errors,
@@ -90,7 +114,4 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
         """Get the options flow for this handler."""
-        return MerakiOptionsFlowHandler(config_entry)
-
-
-from .options_flow import MerakiOptionsFlowHandler
+        return MerakiOptionsFlowHandler()

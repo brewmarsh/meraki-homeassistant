@@ -57,7 +57,16 @@ For each Meraki camera (MV series) in your organization, a `camera` entity is cr
 | :---------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------- |
 | `camera`    | `[Camera Name]`| Provides a live video stream from the camera. This entity can be used in picture-in-picture cards, dashboards, and other parts of Home Assistant to view the camera's feed. The stream is provided via RTSP. | Meraki MV Cameras |
 
-To view the camera stream, the RTSP (Real Time Streaming Protocol) server must be enabled for the camera in your Meraki dashboard. Alternatively, you can enable the "Auto-enable RTSP streams" option in the integration's configuration, and Home Assistant will automatically enable the RTSP stream for all of your cameras.
+To view the camera stream, you must enable the RTSP (Real-Time Streaming Protocol) feature for the camera. You can do this in two ways:
+
+1.  **Individually per Camera:** Each camera device in Home Assistant has a switch entity to toggle the RTSP stream on or off. When you enable the switch, the integration will make an API call to Meraki to enable the RTSP server for that camera. The RTSP stream URL will then become available in the `RTSP Stream URL` sensor.
+2.  **Globally via Configuration:** In the integration's configuration options, you can enable the "Auto-enable RTSP streams" setting. This will automatically enable the RTSP stream for all of your cameras.
+
+### Camera Sensors
+
+| Entity Type | Name              | Description                                                                                                                                                                                           | Availability      |
+| :---------- | :---------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------- |
+| `sensor`    | `RTSP Stream URL` | Displays the RTSP URL for the camera's video stream. The URL is only available when the RTSP stream is enabled for the camera. This sensor's state will be empty if RTSP is disabled. | Meraki MV Cameras |
 
 ## Physical Device Sensors
 
@@ -87,7 +96,19 @@ These sensors are linked to Meraki MX security appliance "devices" in Home Assis
 
 These sensors are linked to Meraki SSID "devices" in Home Assistant.
 
-- _(Details of existing SSID-specific sensors like SSID Availability, SSID Client Count (per SSID), SSID Channel would go here.)_
+| Entity Type | Name              | Description                                                                                                                                                                                           | Availability      |
+| :---------- | :---------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------- |
+| `sensor`    | `[SSID Name] Splash Page` | The type of splash page for the SSID. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Auth Mode` | The association control method for the SSID. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Encryption Mode` | The psk encryption mode for the SSID. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] WPA Encryption Mode` | The types of WPA encryption. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] IP Assignment Mode` | The client IP assignment mode. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Band Selection` | The client-serving radio frequencies of this SSID. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Per-Client Bandwidth Limit Up` | The upload bandwidth limit in Kbps. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Per-Client Bandwidth Limit Down` | The download bandwidth limit in Kbps. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Per-SSID Bandwidth Limit Up` | The total upload bandwidth limit in Kbps. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Per-SSID Bandwidth Limit Down` | The total download bandwidth limit in Kbps. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Visible` | Whether the SSID is advertised or hidden. | Meraki Wireless SSIDs |
 
 ## Switches and Other Entities
 

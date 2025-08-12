@@ -9,13 +9,14 @@ import voluptuous as vol
 
 from .const import (
     CONF_AUTO_ENABLE_RTSP,
+    CONF_ENABLE_DEVICE_TRACKER,
+    CONF_USE_LAN_IP_FOR_RTSP,
     CONF_DEVICE_NAME_FORMAT,
     CONF_WEBHOOK_URL,
     DEFAULT_DEVICE_NAME_FORMAT,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_WEBHOOK_URL,
     DEVICE_NAME_FORMAT_OPTIONS,
-    DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -23,16 +24,6 @@ _LOGGER = logging.getLogger(__name__)
 
 class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle an options flow for the Meraki integration."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-
-    @staticmethod
-    def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> "MerakiOptionsFlowHandler":
-        """Get the options flow for this handler."""
-        return MerakiOptionsFlowHandler(config_entry)
 
     async def async_step_init(
         self, user_input: Optional[Dict[str, Any]] = None
@@ -48,27 +39,50 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Optional(
                         CONF_SCAN_INTERVAL,
                         default=self.config_entry.options.get(
-                            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                            CONF_SCAN_INTERVAL,
+                            self.config_entry.data.get(
+                                CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                            ),
                         ),
                     ): int,
                     vol.Optional(
                         CONF_DEVICE_NAME_FORMAT,
                         default=self.config_entry.options.get(
-                            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+                            CONF_DEVICE_NAME_FORMAT,
+                            self.config_entry.data.get(
+                                CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+                            ),
                         ),
                     ): vol.In(DEVICE_NAME_FORMAT_OPTIONS),
                     vol.Optional(
                         CONF_AUTO_ENABLE_RTSP,
                         default=self.config_entry.options.get(
-                            CONF_AUTO_ENABLE_RTSP, False
+                            CONF_AUTO_ENABLE_RTSP,
+                            self.config_entry.data.get(CONF_AUTO_ENABLE_RTSP, False),
+                        ),
+                    ): bool,
+                    vol.Optional(
+                        CONF_USE_LAN_IP_FOR_RTSP,
+                        default=self.config_entry.options.get(
+                            CONF_USE_LAN_IP_FOR_RTSP,
+                            self.config_entry.data.get(CONF_USE_LAN_IP_FOR_RTSP, False),
                         ),
                     ): bool,
                     vol.Optional(
                         CONF_WEBHOOK_URL,
                         default=self.config_entry.options.get(
-                            CONF_WEBHOOK_URL, DEFAULT_WEBHOOK_URL
+                            CONF_WEBHOOK_URL,
+                            self.config_entry.data.get(
+                                CONF_WEBHOOK_URL, DEFAULT_WEBHOOK_URL
+                            ),
                         ),
                     ): str,
+                    vol.Optional(
+                        CONF_ENABLE_DEVICE_TRACKER,
+                        default=self.config_entry.options.get(
+                            CONF_ENABLE_DEVICE_TRACKER, True
+                        ),
+                    ): bool,
                 }
             ),
         )

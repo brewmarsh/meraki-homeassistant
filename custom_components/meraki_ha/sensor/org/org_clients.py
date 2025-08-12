@@ -7,15 +7,16 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...core.coordinators.device import MerakiDeviceCoordinator
+from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...helpers.entity_helpers import format_entity_name
+from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiOrganizationSSIDClientsSensor(
-    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
 ):
     """Representation of a Meraki Organization SSID Clients sensor."""
 
@@ -25,7 +26,7 @@ class MerakiOrganizationSSIDClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiDataCoordinator,
         org_id: str,
         org_name: str,
     ) -> None:
@@ -37,11 +38,20 @@ class MerakiOrganizationSSIDClientsSensor(
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            f"{org_name} SSID Clients", "sensor", name_format, apply_format=False
-        )
+        self._attr_name = format_entity_name(org_name, "SSID Clients")
         self._attr_unique_id = f"{org_id}_clients_ssid"
-        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, org_id)})
+
+        org_device_data = {"name": org_name, "productType": "organization"}
+        formatted_name = format_device_name(
+            device=org_device_data,
+            config=self.coordinator.config_entry.options,
+        )
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, org_id)},
+            name=formatted_name,
+            manufacturer="Cisco Meraki",
+            model="Organization",
+        )
 
         # Initialize value from coordinator data if available
         self._update_internal_state()
@@ -58,16 +68,10 @@ class MerakiOrganizationSSIDClientsSensor(
             self._attr_native_value = self.coordinator.data.get("clients_on_ssids", 0)
         else:
             self._attr_native_value = 0
-        # _LOGGER.debug(
-        #   "Sensor '%s': Updated value to %s from coordinator key 'clients_on_ssids'. Coordinator data present: %s",
-        #   self.name,
-        #   self._attr_native_value,
-        #   bool(self.coordinator.data)
-        # ) # Removed
 
 
 class MerakiOrganizationWirelessClientsSensor(
-    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
 ):
     """Representation of a Meraki Organization Wireless Clients sensor."""
 
@@ -77,7 +81,7 @@ class MerakiOrganizationWirelessClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiDataCoordinator,
         org_id: str,
         org_name: str,
     ) -> None:
@@ -89,11 +93,20 @@ class MerakiOrganizationWirelessClientsSensor(
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            f"{org_name} Wireless Clients", "sensor", name_format, apply_format=False
-        )
+        self._attr_name = format_entity_name(org_name, "Wireless Clients")
         self._attr_unique_id = f"{org_id}_clients_wireless"
-        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, org_id)})
+
+        org_device_data = {"name": org_name, "productType": "organization"}
+        formatted_name = format_device_name(
+            device=org_device_data,
+            config=self.coordinator.config_entry.options,
+        )
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, org_id)},
+            name=formatted_name,
+            manufacturer="Cisco Meraki",
+            model="Organization",
+        )
 
         self._update_internal_state()
 
@@ -111,16 +124,10 @@ class MerakiOrganizationWirelessClientsSensor(
             )
         else:
             self._attr_native_value = 0
-        # _LOGGER.debug(
-        #   "Sensor '%s': Updated value to %s from coordinator key 'clients_on_wireless'. Coordinator data present: %s",
-        #   self.name,
-        #   self._attr_native_value,
-        #   bool(self.coordinator.data)
-        # ) # Removed
 
 
 class MerakiOrganizationApplianceClientsSensor(
-    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
 ):
     """Representation of a Meraki Organization Appliance Clients sensor."""
 
@@ -130,7 +137,7 @@ class MerakiOrganizationApplianceClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiDataCoordinator,
         org_id: str,
         org_name: str,
     ) -> None:
@@ -142,11 +149,20 @@ class MerakiOrganizationApplianceClientsSensor(
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            f"{org_name} Appliance Clients", "sensor", name_format, apply_format=False
-        )
+        self._attr_name = format_entity_name(org_name, "Appliance Clients")
         self._attr_unique_id = f"{org_id}_clients_appliance"
-        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, org_id)})
+
+        org_device_data = {"name": org_name, "productType": "organization"}
+        formatted_name = format_device_name(
+            device=org_device_data,
+            config=self.coordinator.config_entry.options,
+        )
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, org_id)},
+            name=formatted_name,
+            manufacturer="Cisco Meraki",
+            model="Organization",
+        )
 
         self._update_internal_state()
 
@@ -164,9 +180,3 @@ class MerakiOrganizationApplianceClientsSensor(
             )
         else:
             self._attr_native_value = 0
-        # _LOGGER.debug(
-        #   "Sensor '%s': Updated value to %s from coordinator key 'clients_on_appliances'. Coordinator data present: %s",
-        #   self.name,
-        #   self._attr_native_value,
-        #   bool(self.coordinator.data)
-        # ) # Removed

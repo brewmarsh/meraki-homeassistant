@@ -1,6 +1,6 @@
 """Tests for the Meraki camera platform."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -10,9 +10,12 @@ import pytest
 from custom_components.meraki_ha.const import (
     DOMAIN,
     CONF_AUTO_ENABLE_RTSP,
+    CONF_USE_LAN_IP_FOR_RTSP,
     DATA_CLIENT,
+    CONF_DEVICE_NAME_FORMAT,
 )
 from custom_components.meraki_ha.camera import MerakiCamera, async_setup_entry
+
 
 @pytest.fixture
 def mock_device_coordinator():
@@ -27,7 +30,7 @@ def mock_device_coordinator():
                 "productType": "camera",
                 "video_settings": {
                     "externalRtspEnabled": True,
-                    "rtspUrl": "rtsp://test.com/stream",
+                    "rtspUrl": "rtsp://test.com:9000/stream",
                 },
             },
             {
@@ -37,6 +40,7 @@ def mock_device_coordinator():
                 "productType": "camera",
                 "video_settings": {
                     "externalRtspEnabled": False,
+                    "rtspUrl": None,
                 },
             },
         ]
@@ -52,7 +56,7 @@ async def test_camera_entity(hass: HomeAssistant, mock_device_coordinator):
         entry_id="test_entry_id",
         title="Test Org",
         data={},
-        options={CONF_AUTO_ENABLE_RTSP: False},
+        options={},
     )
     config_entry.add_to_hass(hass)
     mock_device_coordinator.config_entry = config_entry
@@ -75,23 +79,39 @@ async def test_camera_entity(hass: HomeAssistant, mock_device_coordinator):
     camera1 = entities[0]
     assert isinstance(camera1, MerakiCamera)
     assert camera1.unique_id == "Q234-ABCD-5678-camera"
-    assert camera1.name == "Test Camera"
+    assert camera1.name == "[Camera] Test Camera"
+    camera1.hass = hass
+    camera1.entity_id = "camera.test_camera"
+    camera1._handle_coordinator_update()
+    await hass.async_block_till_done()
     assert camera1.is_streaming is True
-    assert await camera1.stream_source() == "rtsp://test.com/stream"
+    assert await camera1.stream_source() == "rtsp://test.com:9000/stream"
 
     camera2 = entities[1]
     assert isinstance(camera2, MerakiCamera)
     assert camera2.unique_id == "Q234-EFGH-9012-camera"
-    assert camera2.name == "Another Camera"
+    assert camera2.name == "[Camera] Another Camera"
+
+    # Test with omit format
+    hass.config_entries.async_update_entry(
+        config_entry, options={CONF_DEVICE_NAME_FORMAT: "omit"}
+    )
+    await hass.async_block_till_done()
+    await async_setup_entry(hass, config_entry, async_add_entities)
+    await hass.async_block_till_done()
+    entities = async_add_entities.call_args[0][0]
+    camera1 = entities[0]
+    assert camera1.name == "Test Camera"
     assert camera2.is_streaming is False
     assert await camera2.stream_source() is None
 
 
-@pytest.mark.skip(reason="Test is failing intermittently and needs further investigation")
 @pytest.mark.asyncio
 async def test_camera_auto_enable_rtsp(hass: HomeAssistant, mock_device_coordinator):
-    """Test the camera entity with auto-enable RTSP."""
+    """Test the camera entity with proactive auto-enable RTSP."""
     mock_api_client = AsyncMock()
+    mock_api_client.camera.update_camera_video_settings = AsyncMock()
+    mock_device_coordinator.hass = hass
 
     config_entry = MockConfigEntry(
         domain=DOMAIN,
@@ -114,17 +134,57 @@ async def test_camera_auto_enable_rtsp(hass: HomeAssistant, mock_device_coordina
     await async_setup_entry(hass, config_entry, async_add_entities)
     await hass.async_block_till_done()
 
-    camera2 = async_add_entities.call_args[0][0][1]
-    camera2.hass = hass
-    camera2.entity_id = "camera.another_camera"
-    await camera2.async_added_to_hass()
-
-    # Simulate a coordinator update to trigger the auto-enable logic
-    camera2._handle_coordinator_update()
-    await hass.async_block_till_done()
-
-    mock_api_client._dashboard.camera.updateDeviceCameraVideoSettings.assert_called_once_with(
+    # Verify that the API was called to enable RTSP for the second camera,
+    # which has it disabled in the mock data.
+    mock_api_client.camera.update_camera_video_settings.assert_called_once_with(
         serial="Q234-EFGH-9012",
         externalRtspEnabled=True,
     )
+
+    # Verify that a refresh was requested on the coordinator
     mock_device_coordinator.async_request_refresh.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_camera_use_lan_ip_for_rtsp(hass: HomeAssistant, mock_device_coordinator):
+    """Test the camera entity with use_lan_ip_for_rtsp."""
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        entry_id="test_entry_id",
+        title="Test Org",
+        data={},
+        options={CONF_AUTO_ENABLE_RTSP: False, CONF_USE_LAN_IP_FOR_RTSP: True},
+    )
+    config_entry.add_to_hass(hass)
+    mock_device_coordinator.config_entry = config_entry
+    mock_device_coordinator.data["devices"][0]["lanIp"] = "192.168.1.100"
+
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN][config_entry.entry_id] = {
+        "coordinator": mock_device_coordinator,
+        DATA_CLIENT: AsyncMock(),
+    }
+
+    async_add_entities = AsyncMock()
+
+    await async_setup_entry(hass, config_entry, async_add_entities)
+    await hass.async_block_till_done()
+
+    assert async_add_entities.call_count == 1
+    entities = async_add_entities.call_args[0][0]
+    camera1 = entities[0]
+    camera1.hass = hass
+    camera1.entity_id = "camera.test_camera"
+
+    camera1._handle_coordinator_update()
+    await hass.async_block_till_done()
+
+    camera1._handle_coordinator_update()
+    await hass.async_block_till_done()
+    assert await camera1.stream_source() == "rtsp://192.168.1.100:9000"
+    mock_device_coordinator.data["devices"][0]["video_settings"][
+        "externalRtspEnabled"
+    ] = False
+    camera1._handle_coordinator_update()
+    await hass.async_block_till_done()
+    assert await camera1.stream_source() is None

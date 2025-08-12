@@ -239,6 +239,18 @@ Please ensure your PR titles are descriptive and include the appropriate prefix 
 
 ## Troubleshooting
 
+### "Data Usage" sensor shows "Disabled" or "Unknown"
+
+The `Data Usage` sensor for an appliance requires "Traffic analysis" to be enabled for its network in the Meraki Dashboard. If this setting is disabled, the sensor will show a "Disabled" state.
+
+To enable this feature:
+1.  Navigate to **Network-wide > General** in your Meraki Dashboard.
+2.  Scroll down to the **Traffic analysis** section.
+3.  Select **Detailed: collect destination hostnames**.
+4.  Click **Save**.
+
+It may take a few minutes for data to start populating after enabling this setting.
+
 ### Known Limitations
 
 - **API Rate Limits:** Frequent polling with a short scan interval on large networks can lead to exceeding Meraki API rate limits. Adjust the scan interval appropriately.

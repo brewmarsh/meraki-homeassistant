@@ -12,7 +12,9 @@ from ..core.coordinators.device import MerakiDeviceCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiCameraSettingSwitchBase(CoordinatorEntity[MerakiDeviceCoordinator], SwitchEntity):
+class MerakiCameraSettingSwitchBase(
+    CoordinatorEntity[MerakiDeviceCoordinator], SwitchEntity
+):
     """Base class for a Meraki Camera Setting Switch."""
 
     def __init__(
@@ -40,7 +42,7 @@ class MerakiCameraSettingSwitchBase(CoordinatorEntity[MerakiDeviceCoordinator], 
         # The state is now derived from the coordinator's data
         for device in self.coordinator.data.get("devices", []):
             if device.get("serial") == self._device_data["serial"]:
-                keys = self._api_field.split('.')
+                keys = self._api_field.split(".")
                 value = device
                 for key in keys:
                     if isinstance(value, dict):
@@ -61,30 +63,31 @@ class MerakiCameraSettingSwitchBase(CoordinatorEntity[MerakiDeviceCoordinator], 
     async def _async_update_setting(self, is_on: bool) -> None:
         """Update the setting via the Meraki API."""
         try:
-            # Construct the payload based on the nested API field
-            payload = {}
-            keys = self._api_field.split('.')
-            current_level = payload
-            for i, key in enumerate(keys):
-                if i == len(keys) - 1:
-                    current_level[key] = is_on
-                else:
-                    current_level[key] = {}
-                    current_level = current_level[key]
-
             if "sense" in self._api_field:
-                await self.client.camera.update_device_camera_sense_settings(
-                    serial=self._device_data["serial"], **payload
+                await self.client.camera.update_camera_sense_settings(
+                    serial=self._device_data["serial"], **{self._api_field: is_on}
                 )
             else:
-                await self.client.camera.update_device_camera_video_settings(
-                    serial=self._device_data["serial"], **payload
+                field_name = (
+                    "externalRtspEnabled"
+                    if "externalRtspEnabled" in self._api_field
+                    else self._api_field
                 )
-            # Optimistically update the state
-            # This assumes the API call will succeed
-            if self.is_on != is_on:
-                # To be implemented: update local state if necessary
-                pass
+                video_settings = await self.client.camera.update_camera_video_settings(
+                    serial=self._device_data["serial"], **{field_name: is_on}
+                )
+                if video_settings:
+                    # Update coordinator data with the new video settings
+                    for i, device in enumerate(
+                        self.coordinator.data.get("devices", [])
+                    ):
+                        if device.get("serial") == self._device_data["serial"]:
+                            self.coordinator.data["devices"][i][
+                                "video_settings"
+                            ] = video_settings
+                            break
+                    self.coordinator.async_update_listeners()
+
             await self.coordinator.async_request_refresh()
         except Exception as e:
             _LOGGER.error(

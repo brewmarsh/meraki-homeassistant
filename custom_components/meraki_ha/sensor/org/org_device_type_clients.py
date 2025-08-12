@@ -6,15 +6,16 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...core.coordinators.device import MerakiDeviceCoordinator
+from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...helpers.entity_helpers import format_entity_name
+from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiOrgDeviceTypeClientsSensor(
-    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
 ):
     """Representation of a Meraki Organization Device Type Clients sensor.
 
@@ -28,7 +29,7 @@ class MerakiOrgDeviceTypeClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiDataCoordinator,
         organization_id: str,
         organization_name: str,
     ) -> None:
@@ -46,9 +47,7 @@ class MerakiOrgDeviceTypeClientsSensor(
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            f"{self._organization_name} Client Types", "sensor", name_format, apply_format=False
-        )
+        self._attr_name = format_entity_name(self._organization_name, "Client Types")
         self._attr_unique_id = f"meraki_org_{self._organization_id}_client_types"
 
         self._clients_on_ssids: Optional[int] = None
@@ -76,19 +75,7 @@ class MerakiOrgDeviceTypeClientsSensor(
                 + (self._clients_on_wireless or 0)
             )
 
-            # _LOGGER.debug(
-            #   "Sensor %s: SSID Clients: %s, Appliance Clients: %s, Wireless Clients: %s, Total State: %s",
-            #   self.unique_id,
-            #   self._clients_on_ssids,
-            #   self._clients_on_appliances,
-            #   self._clients_on_wireless,
-            #   self._attr_native_value
-            # ) # Removed
         else:
-            # _LOGGER.debug(
-            #   "Coordinator data not available for sensor %s. Setting states to 0.",
-            #   self.unique_id
-            # ) # Removed
             self._clients_on_ssids = 0
             self._clients_on_appliances = 0
             self._clients_on_wireless = 0
@@ -103,12 +90,19 @@ class MerakiOrgDeviceTypeClientsSensor(
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information for linking this entity to the Meraki Organization."""
+        org_device_data = {
+            "name": self._organization_name,
+            "productType": "organization",
+        }
+        formatted_name = format_device_name(
+            device=org_device_data,
+            config=self.coordinator.config_entry.options,
+        )
         return DeviceInfo(
-            identifiers={(DOMAIN, self._organization_id)}
-            # The name, manufacturer, and model attributes should be inherited from the
-            # device entry created by MerakiDataUpdateCoordinator.
-            # Providing them here again, especially if the 'name' differs from the
-            # original registration, can lead to unexpected updates or conflicts.
+            identifiers={(DOMAIN, self._organization_id)},
+            name=formatted_name,
+            manufacturer="Cisco Meraki",
+            model="Organization",
         )
 
     @property

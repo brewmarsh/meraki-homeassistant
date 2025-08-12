@@ -21,7 +21,9 @@
 ### Data Retrieval
 | Requirement | Status |
 | :--- | :--- |
-| The integration should retrieve device data, including connected clients for wireless devices (MR/GR) and network switches (MX, MS). | Included |
+| The integration should retrieve device data, including connected clients for wireless devices (MR, GR) | Included |
+| The integration should retrieve device data, including connected clients for appliances (MX, GX). | Included |
+| The integration should retrieve device data, including connected clients for network switches (MS, GS). | Included |
 | Data should be updated at a configurable scan interval. | Included |
 
 ### Home Assistant Integration
@@ -38,33 +40,31 @@
 | Requirement | Status |
 | :--- | :--- |
 | Physical Meraki devices (Wireless, Switch, Appliance, Camera, Sensor) will have corresponding Home Assistant devices. | Included |
-| Meraki networks will also be shown as Home Assistant devices. | Included |
-| Meraki SSIDs (wireless networks) will also be shown as Home Assistant devices. | Included |
-| Meraki VLANs will also be shown as Home Assistant devices. | Not Included |
+| Meraki networks will be shown as Home Assistant devices. | Included |
+| Meraki SSIDs (wireless networks) will be shown as Home Assistant devices. | Included |
+| Meraki VLANs will be shown as Home Assistant devices. | Included |
 
 ### Meraki Appliances
 | Requirement | Status |
 | :--- | :--- |
 | Meraki appliances should have sensors that track data usage. | Included |
 | Meraki appliances should have a sensor that tracks the number of connected clients. | Included |
-| Meraki appliances have VLANs; these VLANs should appear as Home Assistant devices. | Not Included |
-| Meraki appliances have an external hostname; this should appear as details of the Home Assistant device. | Not Included |
+| Meraki appliances have VLANs; these VLANs should appear as Home Assistant devices. | Included |
+| Meraki appliances have an external hostname; this should appear as details of the Home Assistant device. | Included |
 | Meraki appliances should have a sensor that tracks the number of ports in use. | Included |
 | Meraki appliances should have a sensor that tracks the number of ports available. | Included |
-| The MX uplink status is not correct | Fixed |
-| The MX port statuses are not correct | Fixed |
-| Appliance `TypeError` | Fixed |
+| Meraki appliances should show the status of the appliance uplinks | Included |
 
 ### Meraki Wireless
 | Requirement | Status |
 | :--- | :--- |
+| Meraki wireless devices should appear as Home Assistant devices | Included |
 | Meraki wireless devices should have a sensor that tracks the number of connected clients. | Included |
-| SSID names appear to be missing | Fixed |
-| Disabled SSIDs should not be shown in the list | Fixed |
-| SSID names should be updateable | Fixed |
+| Meraki SSID names should appear as Home Assitant devices | Included |
+| Disabled SSIDs should not be shown in the list | Working |
+| SSID names should be updateable | Included |
 | SSIDs should be able to have the "Broadcast SSID" feature enabled / disabled | Fixed |
-| SSIDs do not have a prefix / suffix | Fixed |
-| SSID renaming feature is not working | Fixed |
+| Meraki SSIDs should have sensors for splash page, auth mode, encryption mode, WPA encryption mode, IP assignment mode, band selection, per-client bandwidth limits, per-SSID bandwidth limits, and visibility | Included |
 
 ### Meraki Switches
 | Requirement | Status |
@@ -72,16 +72,12 @@
 | If the Meraki switch supports PoE, the switch should have sensors that aggregated PoE usage. | Included |
 | Meraki switches should have a sensor that tracks the number of ports in use. | Included |
 | Meraki switches should have a sensor that tracks the number of ports available. | Included |
-| Some switches have two prefixes / suffixes; please ensure that they only have one | Fixed |
-| Meraki switch status does not seem to be correct | Fixed |
 
 ### Meraki Cameras
 | Requirement | Status |
 | :--- | :--- |
 | Meraki cameras should have a data element that reflects the URL of the camera stream. | Included |
 | Meraki cameras should have a Home Assistant switch that enables RTSP streaming. | Included |
-| Meraki camera RTSP URLs are not correct | Fixed |
-| camera RTSP enabling does not work | Fixed |
 
 ### Meraki Sensors
 | Requirement | Status |
@@ -164,7 +160,7 @@
   - [ ] Review "Radio profiles are not returned for all MR devices" (from README known issues) and investigate if it's an API limitation or an integration issue.
 - [ ] **Fix SSID entity `device_info`:** Correctly link to parent AP via `via_device` attribute in `MerakiEntity` for SSID-specific entities.
 - [ ] **Tag-based SSID Control Review:** The current `MerakiSSIDSwitch` uses device tags to control SSID state. Evaluate if a more direct API method for enabling/disabling SSIDs per AP (if available and appropriate) would be better, or if the tag strategy is the most robust.
-- [ ] **VLAN Entity Clarification:** Determine if "Meraki VLANs" should be actual HA entities/devices or if VLAN information is purely contextual data for other entities. Adjust documentation and entity creation accordingly.
+- [x] **VLAN Entity Clarification:** Determine if "Meraki VLANs" should be actual HA entities/devices or if VLAN information is purely contextual data for other entities. Adjust documentation and entity creation accordingly.
 
 ### Documentation
 - [ ] **Troubleshooting Section:** Add a comprehensive troubleshooting section to `README.md` covering common issues (API key errors, rate limits, device discovery problems).

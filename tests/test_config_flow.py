@@ -16,6 +16,7 @@ from custom_components.meraki_ha.const import (
 )
 from custom_components.meraki_ha.config_flow import MerakiAuthenticationError
 
+
 @pytest.mark.asyncio
 async def test_async_step_user_success(hass: HomeAssistant) -> None:
     """Test the user step of the config flow with valid credentials."""
@@ -32,20 +33,23 @@ async def test_async_step_user_success(hass: HomeAssistant) -> None:
         user_input = {
             CONF_MERAKI_API_KEY: "test-api-key",
             CONF_MERAKI_ORG_ID: "test-org-id",
+        }
+        options = {
             CONF_SCAN_INTERVAL: 120,
             CONF_DEVICE_NAME_FORMAT: "suffix",
             CONF_AUTO_ENABLE_RTSP: True,
             CONF_WEBHOOK_URL: "http://example.com",
+            "enable_device_tracker": True,
         }
-
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], user_input
+            result["flow_id"], {**user_input, **options}
         )
         await hass.async_block_till_done()
 
         assert result["type"] == "create_entry"
         assert result["title"] == "Test Org"
         assert result["data"] == user_input
+        assert result["options"] == options
 
 
 @pytest.mark.asyncio

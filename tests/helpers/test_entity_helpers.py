@@ -5,16 +5,7 @@ from custom_components.meraki_ha.helpers.entity_helpers import format_entity_nam
 
 def test_format_entity_name():
     """Test the format_entity_name function."""
-    assert (
-        format_entity_name("Test Device", "wireless", "prefix", True)
-        == "[Wireless] Test Device"
-    )
-    assert (
-        format_entity_name("Test Device", "wireless", "suffix", True)
-        == "Test Device [Wireless]"
-    )
-    assert format_entity_name("Test Device", "wireless", "omitted", True) == "Test Device"
-    assert (
-        format_entity_name("Test Device", "wireless", "prefix", False)
-        == "Test Device"
-    )
+    assert format_entity_name("Device Name", "Sensor") == "Device Name Sensor"
+    assert format_entity_name("Device Name", "") == "Device Name"
+    assert format_entity_name("Device Name", " ") == "Device Name"
+    assert format_entity_name("[Wireless] AP", "Status") == "[Wireless] AP Status"

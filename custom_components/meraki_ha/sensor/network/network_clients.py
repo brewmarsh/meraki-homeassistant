@@ -7,14 +7,15 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-from ...core.coordinators.network import MerakiNetworkCoordinator
+from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...helpers.entity_helpers import format_entity_name
+from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiNetworkClientsSensor(
-    CoordinatorEntity[MerakiNetworkCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
 ):
     """Representation of a Meraki Network Clients sensor."""
 
@@ -25,7 +26,7 @@ class MerakiNetworkClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiNetworkCoordinator,
+        coordinator: MerakiDataCoordinator,
         network_id: str,
         network_name: str,
     ) -> None:
@@ -36,9 +37,7 @@ class MerakiNetworkClientsSensor(
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            f"{network_name} Clients", "sensor", name_format, apply_format=False
-        )
+        self._attr_name = format_entity_name(network_name, "Clients")
         self._attr_unique_id = f"meraki_network_clients_{network_id}"
         self._attr_native_value = 0
         self._attr_extra_state_attributes: Dict[str, Any] = {
@@ -56,17 +55,7 @@ class MerakiNetworkClientsSensor(
 
     def _update_state_from_coordinator(self) -> None:
         """Update the sensor's state from coordinator data."""
-        _LOGGER.debug(
-            "Updating Meraki Network Clients sensor for network %s (ID: %s) from coordinator data.",
-            self._network_name,
-            self._network_id,
-        )
         if self.coordinator.data is None or "clients" not in self.coordinator.data:
-            _LOGGER.debug(
-                "Coordinator data or 'clients' key is missing for network %s (ID: %s). Setting to 0 clients.",
-                self._network_name,
-                self._network_id,
-            )
             self._attr_native_value = 0
             clients_for_network: List[Dict[str, Any]] = []
         else:
@@ -77,12 +66,6 @@ class MerakiNetworkClientsSensor(
                 if client.get("networkId") == self._network_id
             ]
             self._attr_native_value = len(clients_for_network)
-            _LOGGER.debug(
-                "Found %d clients for network %s (ID: %s) after filtering.",
-                len(clients_for_network),
-                self._network_name,
-                self._network_id,
-            )
 
         self._attr_extra_state_attributes = {
             "network_id": self._network_id,
@@ -110,9 +93,27 @@ class MerakiNetworkClientsSensor(
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information for linking this entity to the network "device"."""
+        network_data = None
+        if self.coordinator.data and self.coordinator.data.get("networks"):
+            for network in self.coordinator.data["networks"]:
+                if network.get("id") == self._network_id:
+                    network_data = network
+                    break
+
+        if network_data is None:
+            # Fallback in case network data is not found
+            return DeviceInfo(
+                identifiers={(DOMAIN, self._network_id)},
+                name=self._network_name,
+                manufacturer="Cisco Meraki",
+                model="Network",
+            )
+
         return DeviceInfo(
             identifiers={(DOMAIN, self._network_id)},
-            name=self._network_name,
+            name=format_device_name(
+                network_data, self.coordinator.config_entry.options
+            ),
             manufacturer="Cisco Meraki",
             model="Network",
         )

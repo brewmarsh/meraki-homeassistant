@@ -8,23 +8,25 @@ from custom_components.meraki_ha.switch.camera_profiles import (
     MerakiCameraAudioDetectionSwitch,
 )
 
+
 @pytest.fixture
 def mock_device_coordinator():
     """Fixture for a mocked MerakiDeviceCoordinator."""
     coordinator = MagicMock()
     coordinator.data = {
-        'devices': [
+        "devices": [
             {
-                'serial': 'cam1',
-                'name': 'Camera',
-                'model': 'MV12',
-                'productType': 'camera',
-                'senseEnabled': True,
-                'audioDetection': {'enabled': True},
+                "serial": "cam1",
+                "name": "Camera",
+                "model": "MV12",
+                "productType": "camera",
+                "senseEnabled": True,
+                "audioDetection": {"enabled": True},
             }
         ]
     }
     return coordinator
+
 
 @pytest.fixture
 def mock_api_client():
@@ -33,29 +35,31 @@ def mock_api_client():
     client.update_camera_sense_settings = AsyncMock()
     return client
 
+
 async def test_camera_sense_switch(mock_device_coordinator, mock_api_client):
     """Test the camera sense switch."""
-    device = mock_device_coordinator.data['devices'][0]
+    device = mock_device_coordinator.data["devices"][0]
 
     switch = MerakiCameraSenseSwitch(mock_device_coordinator, mock_api_client, device)
 
-    assert switch.unique_id == 'cam1_sense_enabled'
-    assert switch.name == 'MV Sense'
+    assert switch.unique_id == "cam1_sense_enabled"
+    assert switch.name == "MV Sense"
     assert switch.is_on is True
 
     # This test is now covered by the base class test
     pass
 
+
 async def test_camera_audio_detection_switch(mock_device_coordinator, mock_api_client):
     """Test the camera audio detection switch."""
-    device = mock_device_coordinator.data['devices'][0]
+    device = mock_device_coordinator.data["devices"][0]
 
     switch = MerakiCameraAudioDetectionSwitch(
         mock_device_coordinator, mock_api_client, device
     )
 
-    assert switch.unique_id == 'cam1_audio_detection'
-    assert switch.name == 'Audio Detection'
+    assert switch.unique_id == "cam1_audio_detection"
+    assert switch.name == "Audio Detection"
     assert switch.is_on is True
 
     # This test is now covered by the base class test

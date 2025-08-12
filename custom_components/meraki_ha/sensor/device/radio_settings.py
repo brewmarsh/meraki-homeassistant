@@ -19,6 +19,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...helpers.entity_helpers import format_entity_name
+from ...helpers.device_info_helpers import resolve_device_info
 
 # Assuming this function is correctly defined in the meraki_api package
 # from .meraki_api.wireless import get_meraki_device_wireless_radio_settings
@@ -30,9 +31,7 @@ STATE_UNAVAILABLE_VALUE = "Unavailable"
 STATE_ERROR_VALUE = "Error"
 
 
-class MerakiRadioSettingsSensor(
-    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
-):
+class MerakiRadioSettingsSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
     """Representation of a Meraki Radio Settings sensor.
 
     This sensor displays a key piece of radio information (e.g., channel)
@@ -79,9 +78,7 @@ class MerakiRadioSettingsSensor(
         name_format = self.coordinator.config_entry.options.get(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
-        self._attr_name = format_entity_name(
-            f"{device_name} Radio Settings", "sensor", name_format, apply_format=False
-        )
+        self._attr_name = format_entity_name(device_name, "Radio Settings")
         self._attr_unique_id = f"{device_serial}_radio_settings"
 
         # Initialize state attributes, these will be updated from coordinator
@@ -92,7 +89,6 @@ class MerakiRadioSettingsSensor(
         }
         # Set initial state
         self._update_sensor_state()
-        # _LOGGER.debug("Meraki Radio Settings Sensor Initialized: %s", self._attr_name) # Removed
 
     def _update_sensor_state(self) -> None:
         """Update sensor state and attributes from coordinator data.
@@ -176,12 +172,7 @@ class MerakiRadioSettingsSensor(
 
         This links the sensor to the physical Meraki device it represents.
         """
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._device_info_data["serial"])},
-            name=str(
-                self._device_info_data.get("name", self._device_info_data["serial"])
-            ),
-            manufacturer="Cisco Meraki",
-            model=str(self._device_info_data.get("model", "Unknown")),
-            sw_version=str(self._device_info_data.get("firmware", "")),
+        return resolve_device_info(
+            entity_data=self._device_info_data,
+            config_entry=self.coordinator.config_entry,
         )

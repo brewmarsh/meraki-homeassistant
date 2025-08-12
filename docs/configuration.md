@@ -35,7 +35,8 @@ To use this integration, you will need a Meraki API key and your Organization ID
 
 The following options can be configured when you first set up the integration, or at any time by navigating to the integration's card in **Settings -> Devices & Services** and clicking **Configure**.
 
-*   **Scan Interval:** The interval in seconds at which the integration will poll the Meraki API for data updates. The default is 300 seconds.
-*   **Device Name Format:** Choose how device names from Meraki should be formatted in Home Assistant (e.g., with a type prefix like "[Wireless] AP Name", a suffix, or omitted).
-*   **Auto-enable RTSP streams:** If checked, the integration will automatically enable the RTSP stream for all cameras that support it. This is useful for getting camera streams working without manual configuration in the Meraki dashboard.
-*   **Webhook URL (Optional):** A custom URL for Meraki webhooks. If left blank, the integration will use the default Home Assistant webhook URL.
+*   **How many seconds between Meraki API refreshes:** How often (in seconds) to poll the Meraki API for updates. Default: 300. A shorter interval means more responsive sensors but significantly increases API calls to Meraki Cloud and may lead to rate limiting.
+*   **Where would you like the Meraki device type in the name?:** Choose how device names are presented. 'Prefix' adds the Meraki device name before the entity name, 'Suffix' adds it after, 'Omitted' uses only the entity name.
+*   **Auto-enable RTSP camera streams:** If checked, the integration will automatically enable the RTSP stream for all cameras that support it. This is useful for getting camera streams working without manual configuration in the Meraki dashboard.
+*   **Use LAN IP for RTSP stream:** If checked, the integration will use the camera's LAN IP address for the RTSP stream. This is more efficient, but requires that Home Assistant is on the same network as the camera. If unchecked, the public IP address will be used.
+*   **Webhook URL (optional):** A custom URL for Meraki webhooks. If left blank, the integration will use the default Home Assistant webhook URL.

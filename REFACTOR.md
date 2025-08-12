@@ -160,3 +160,26 @@ To improve maintainability and adhere to the agent constraint of keeping files u
     - **`core/utils/device_types.py`:** A large file of utility functions or constants can be broken down by theme. For example, device type lookups could be in one file, and capability checks in another.
     - **`entity.py`:** A base entity class with a lot of boilerplate can be simplified by moving some logic into helper functions or mixin classes.
     - **`sensor/__init__.py`:** If this file is setting up multiple sensor platforms, that logic could be delegated to platform-specific setup files.
+
+## 6. Documentation Improvements
+
+The user documentation is spread across multiple files and is inconsistent and incomplete. The following steps should be taken to improve the documentation:
+
+- **Consolidate Documentation:** Merge the content of the `docs/` directory into a single, comprehensive `README.md` file. This will make it easier for users to find the information they need.
+- **Update and Complete Documentation:** Review the documentation for accuracy and completeness. Ensure that all features and configuration options are documented.
+- **Add Examples:** Include more examples in the documentation, such as screenshots and automation examples.
+- **Improve Troubleshooting Guide:** Expand the troubleshooting guide to cover more common issues and provide more detailed solutions.
+
+## 7. Testing Improvements
+
+The test suite is not comprehensive and some tests are failing. The following steps should be taken to improve the testing:
+
+- **Fix Failing Tests:** Fix the failing tests in `tests/test_camera.py` and `tests/test_options_flow.py`.
+- **Increase Test Coverage:** Increase the test coverage to at least 95% for all integration modules.
+- **Implement Integration Tests:** Add integration tests to ensure that the integration works correctly with a real Home Assistant instance.
+
+## 8. Code Quality Improvements
+
+There are several `TODO` comments in the codebase that should be addressed.
+
+- **Address TODOs:** Review all `TODO` comments and create issues for them in the GitHub repository. This will ensure that they are not forgotten and that they are addressed in a timely manner.

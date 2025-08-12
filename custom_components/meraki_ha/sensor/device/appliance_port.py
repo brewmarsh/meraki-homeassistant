@@ -9,33 +9,19 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-from ...core.coordinators.device import MerakiDeviceCoordinator
+from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...helpers.entity_helpers import format_entity_name
+from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, config_entry, async_add_entities):
-    """Set up Meraki appliance port sensors from a config entry."""
-    device_coordinator = hass.data[DOMAIN][config_entry.entry_id]["device_coordinator"]
-    entities = []
-    for device in device_coordinator.data.get("devices", []):
-        if device.get("productType") == "appliance":
-            for port in device.get("ports", []):
-                entities.append(
-                    MerakiAppliancePortSensor(device_coordinator, device, port)
-                )
-    async_add_entities(entities, True)
-
-
-class MerakiAppliancePortSensor(
-    CoordinatorEntity[MerakiDeviceCoordinator], SensorEntity
-):
+class MerakiAppliancePortSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
     """Representation of a Meraki appliance port sensor."""
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: Dict[str, Any],
         port: Dict[str, Any],
     ) -> None:
@@ -48,10 +34,8 @@ class MerakiAppliancePortSensor(
             CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
         )
         self._attr_name = format_entity_name(
-            f"{self._device['name']} Port {self._port['number']}",
-            "port",
-            name_format,
-            apply_format=False,
+            self._device["name"],
+            f"Port {self._port['number']}",
         )
         self._attr_icon = "mdi:ethernet-port"
 
@@ -60,7 +44,9 @@ class MerakiAppliancePortSensor(
         """Return device information."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._device["serial"])},
-            name=self._device["name"],
+            name=format_device_name(
+                self._device, self.coordinator.config_entry.options
+            ),
             model=self._device["model"],
             manufacturer="Cisco Meraki",
         )

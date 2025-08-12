@@ -9,6 +9,9 @@ from typing import Final, List
 DOMAIN: Final[str] = "meraki_ha"
 """Domain for the component."""
 
+MANUFACTURER: Final[str] = "Cisco Meraki"
+"""Manufacturer for all Meraki devices."""
+
 CONF_MERAKI_API_KEY: Final[str] = "meraki_api_key"
 """Configuration key for the Meraki API key (str)."""
 
@@ -34,6 +37,12 @@ CONF_WEBHOOK_URL: Final[str] = "webhook_url"
 
 CONF_AUTO_ENABLE_RTSP: Final[str] = "auto_enable_rtsp"
 """Configuration key for automatically enabling RTSP on cameras (str)."""
+
+CONF_USE_LAN_IP_FOR_RTSP: Final[str] = "use_lan_ip_for_rtsp"
+"""Configuration key for using LAN IP for RTSP stream (str)."""
+
+CONF_ENABLE_DEVICE_TRACKER: Final[str] = "enable_device_tracker"
+"""Configuration key for enabling device tracker (str)."""
 
 DEFAULT_WEBHOOK_URL: Final[str] = ""
 """Default webhook URL value (empty string)."""
@@ -68,7 +77,6 @@ PLATFORM_CAMERA: Final[str] = "camera"
 
 PLATFORMS: Final[List[str]] = [
     PLATFORM_SENSOR,
-    PLATFORM_DEVICE_TRACKER,
     PLATFORM_SWITCH,
     PLATFORM_TEXT,
     PLATFORM_CAMERA,

@@ -69,7 +69,6 @@ class MerakiNetworkCoordinator(BaseMerakiCoordinator):
                         network_ssids = await self.api_client.get_ssids(network["id"])
                         enabled_ssids = []
                         for ssid in network_ssids:
-                            _LOGGER.debug("Processing SSID: %s", ssid)
                             if ssid.get("enabled"):
                                 ssid["networkId"] = network["id"]
                                 ssid["unique_id"] = f'{network["id"]}_{ssid["number"]}'

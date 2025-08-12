@@ -1,4 +1,5 @@
 """Helper functions for creating Home Assistant DeviceInfo objects."""
+
 import logging
 from typing import Any, Dict, Optional
 
@@ -25,14 +26,13 @@ def resolve_device_info(
 
     Args:
         entity_data: The primary data dictionary for the entity.
+        config_entry: The config entry for the integration.
         ssid_data: Optional SSID data if the entity is SSID-specific.
-        device_name_format_option: The user's preference for device name formatting.
 
     Returns:
         A DeviceInfo object or None if linking is not possible.
     """
     device_serial = entity_data.get("serial")
-    device_name = entity_data.get("name") or device_serial
     device_model = entity_data.get("model")
     device_firmware = entity_data.get("firmware")
 
@@ -41,7 +41,21 @@ def resolve_device_info(
         ssid_number = ssid_data.get("number")
         if network_id:
             ssid_device_identifier = (DOMAIN, f"{network_id}_{ssid_number}")
-            return DeviceInfo(identifiers={ssid_device_identifier})
+
+            # Create a device dict for the SSID to pass to the formatter
+            ssid_device_data = {**ssid_data, "productType": "ssid"}
+
+            formatted_ssid_name = format_device_name(
+                device=ssid_device_data,
+                config=config_entry.options,
+            )
+
+            return DeviceInfo(
+                identifiers={ssid_device_identifier},
+                name=formatted_ssid_name,
+                model="Wireless SSID",
+                manufacturer="Cisco Meraki",
+            )
         else:
             _LOGGER.warning(
                 "SSID-specific entity for SSID number %s is missing 'networkId'. "
@@ -60,10 +74,22 @@ def resolve_device_info(
         config=config_entry.options,
     )
 
-    return DeviceInfo(
-        identifiers={(DOMAIN, device_serial)},
-        name=str(formatted_device_name),
-        manufacturer="Cisco Meraki",
-        model=str(device_model or "Unknown"),
-        sw_version=str(device_firmware or ""),
+    device_info = {
+        "identifiers": {(DOMAIN, device_serial)},
+        "name": str(formatted_device_name),
+        "manufacturer": "Cisco Meraki",
+        "model": str(device_model or "Unknown"),
+        "sw_version": str(device_firmware or ""),
+    }
+
+    if entity_data.get("productType") == "appliance" and entity_data.get("dynamicDns"):
+        hostname = entity_data["dynamicDns"].get("url")
+        if hostname:
+            device_info["configuration_url"] = f"http://{hostname}"
+
+    _LOGGER.debug(
+        "Resolved device info for entity %s: %s",
+        entity_data.get("name", entity_data.get("serial")),
+        device_info,
     )
+    return DeviceInfo(**device_info)

@@ -1,7 +1,7 @@
 """Data update coordinator for the Meraki HA integration."""
+
 from __future__ import annotations
 
-import asyncio
 from datetime import timedelta
 import logging
 
@@ -32,10 +32,16 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
 
         This is the place to fetch data from the API and return it.
         """
-        _LOGGER.debug("Fetching data with MerakiDataCoordinator")
         try:
-            # In future steps, we will implement the full data fetching logic here.
-            # For now, we return a placeholder dictionary.
-            return await self.api.get_all_data()
+            data = await self.api.get_all_data()
+            return data
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}") from err
+
+    def get_device(self, serial: str):
+        """Get device data by serial number."""
+        if self.data and self.data.get("devices"):
+            for device in self.data["devices"]:
+                if device.get("serial") == serial:
+                    return device
+        return None

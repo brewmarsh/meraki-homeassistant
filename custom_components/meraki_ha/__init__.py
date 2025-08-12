@@ -2,7 +2,6 @@
 
 import logging
 import secrets
-from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -32,6 +31,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Meraki from a config entry."""
+    _LOGGER.debug("Setting up Meraki entry: %s", entry.entry_id)
     try:
         api_client = MerakiAPIClient(
             api_key=entry.data[CONF_MERAKI_API_KEY],
@@ -81,21 +81,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Meraki config entry."""
-    if "webhook_id" in entry.data:
-        api_client = hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]
-        await async_unregister_webhook(hass, entry.data["webhook_id"], api_client)
+    if hass.data.get(DOMAIN) and entry.entry_id in hass.data[DOMAIN]:
+        if "webhook_id" in entry.data:
+            api_client = hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]
+            await async_unregister_webhook(hass, entry.data["webhook_id"], api_client)
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id)
-        if not hass.data[DOMAIN]:
-            hass.data.pop(DOMAIN)
+        if DOMAIN in hass.data:
+            hass.data[DOMAIN].pop(entry.entry_id, None)
+            if not hass.data[DOMAIN]:
+                hass.data.pop(DOMAIN)
 
     return unload_ok
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload Meraki config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
+    unload_ok = await async_unload_entry(hass, entry)
+    if unload_ok:
+        await async_setup_entry(hass, entry)
