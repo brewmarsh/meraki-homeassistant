@@ -88,9 +88,12 @@ class MerakiAPIClient:
         ssids = []
         for network in networks:
             network_ssids = await self.wireless.get_network_ssids(network["id"])
+            configured_ssids = []
             for ssid in network_ssids:
-                ssid["networkId"] = network["id"]
-            ssids.extend(network_ssids)
+                if not ssid.get("name", "").startswith("Unconfigured SSID"):
+                    ssid["networkId"] = network["id"]
+                    configured_ssids.append(ssid)
+            ssids.extend(configured_ssids)
 
         for device in devices:
             if device.get("productType") == "wireless":
