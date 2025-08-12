@@ -9,6 +9,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
 from ...helpers.entity_helpers import format_entity_name
+from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -88,7 +89,6 @@ class MerakiOrgDeviceTypeClientsSensor(
         self._update_sensor_state()
         self.async_write_ha_state()
 
-from ...core.utils.naming_utils import format_device_name
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information for linking this entity to the Meraki Organization."""
