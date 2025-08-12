@@ -177,5 +177,5 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
             config_entry,
             ssid_data,
             "broadcast",
-            "broadcast",
+            "visible",
         )
