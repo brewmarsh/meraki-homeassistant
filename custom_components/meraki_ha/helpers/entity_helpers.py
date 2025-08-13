@@ -1,7 +1,6 @@
 """Helper functions for entities."""
 
 
-
 def format_entity_name(
     device_name: str,
     entity_specific_name: str,
