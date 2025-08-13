@@ -1,6 +1,6 @@
 # Meraki Home Assistant Integration 👋
 
-[![codecov](https://codecov.io/gh/brewmarsh/meraki-homeassistant/graph/badge.svg?token=GDR26G8S42)](https://codecov.io/gh/brewmarsh/meraki-homeassistant)
+[![codecov](https://codecov.io/gh/brewmarsh/meraki-homeassistant/graph/badge.svg)](https://codecov.io/gh/brewmarsh/meraki-homeassistant)
 
 Welcome to the Meraki Home Assistant integration! 🚀 This integration lets you connect your Cisco Meraki network to Home Assistant, giving you awesome visibility and control over your network infrastructure. Automate your network, monitor your devices, and build cool new things!
 

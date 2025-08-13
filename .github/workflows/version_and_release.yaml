@@ -48,7 +48,7 @@ jobs:
             increment_type="minor"
           fi
 
-          bump2version --allow-dirty $increment_type
+          bumpversion --allow-dirty $increment_type
           new_version=$(grep -oP '"version": "\K[^"]+' custom_components/meraki_ha/manifest.json)
           echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
 
