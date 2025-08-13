@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 
 from ...utils.api_utils import handle_meraki_errors, validate_response
 from ..cache import async_timed_cache
-from ...core.schemas.network import NETWORK_SCHEMA
+from ...schemas.network import NETWORK_SCHEMA
 
 _LOGGER = logging.getLogger(__name__)
 
