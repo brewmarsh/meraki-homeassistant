@@ -10,7 +10,6 @@ from .sensor.device.connected_clients import MerakiDeviceConnectedClientsSensor
 from .sensor.device.radio_settings import MerakiRadioSettingsSensor
 from .sensor.device.meraki_wan1_connectivity import MerakiWAN1ConnectivitySensor
 from .sensor.device.meraki_wan2_connectivity import MerakiWAN2ConnectivitySensor
-from .sensor.network.meraki_network_info import MerakiNetworkInfoSensor
 from .sensor.device.meraki_firmware_status import MerakiFirmwareStatusSensor
 from .sensor.device.data_usage import MerakiDataUsageSensor
 from .sensor.device.poe_usage import MerakiPoeUsageSensor

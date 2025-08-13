@@ -11,11 +11,9 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from ..const import DOMAIN
 from ..core.api.client import MerakiAPIClient
 from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ..core.utils.icon_utils import get_device_type_icon
-from ..helpers.entity_helpers import format_entity_name
 from homeassistant.helpers.entity import EntityCategory
 from ..helpers.device_info_helpers import resolve_device_info
 

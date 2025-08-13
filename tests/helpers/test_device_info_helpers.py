@@ -8,7 +8,6 @@ from custom_components.meraki_ha.const import (
     DEVICE_NAME_FORMAT_PREFIX,
     DEVICE_NAME_FORMAT_SUFFIX,
     DEVICE_NAME_FORMAT_OMIT,
-    DEFAULT_DEVICE_NAME_FORMAT,
 )
 
 

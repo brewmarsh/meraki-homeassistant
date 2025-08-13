@@ -4,6 +4,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock
 
 from custom_components.meraki_ha.switch.camera_schedules import MerakiCameraRTSPSwitch
+from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 
 
 @pytest.fixture
@@ -24,9 +25,6 @@ def mock_device_coordinator():
         ]
     }
     return coordinator
-
-
-from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 
 
 @pytest.fixture
