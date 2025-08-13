@@ -3,10 +3,10 @@
 import asyncio
 import functools
 import logging
+import voluptuous as vol
 from typing import Any, Callable, Dict, TypeVar, cast
 from aiohttp import ClientError
 from meraki.exceptions import APIError  # type: ignore
-
 from ..errors import (
     MerakiAuthenticationError,
     MerakiConnectionError,
@@ -108,8 +108,6 @@ def _is_network_error(err: APIError) -> bool:
         ]
     )
 
-
-import voluptuous as vol
 
 def validate_response(response: Any, schema: vol.Schema = None) -> Dict[str, Any]:
     """Validate and normalize an API response.
