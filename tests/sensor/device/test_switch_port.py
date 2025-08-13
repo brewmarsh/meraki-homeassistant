@@ -6,15 +6,34 @@ from unittest.mock import MagicMock
 from custom_components.meraki_ha.sensor.device.switch_port import MerakiSwitchPortSensor
 
 
+from custom_components.meraki_ha.const import (
+    DEVICE_NAME_FORMAT_OMIT,
+    DEVICE_NAME_FORMAT_PREFIX,
+    DEVICE_NAME_FORMAT_SUFFIX,
+)
+
+
+@pytest.fixture(
+    params=[
+        (DEVICE_NAME_FORMAT_PREFIX, "[Switch] My Switch"),
+        (DEVICE_NAME_FORMAT_SUFFIX, "My Switch [Switch]"),
+        (DEVICE_NAME_FORMAT_OMIT, "My Switch"),
+    ]
+)
+def device_name_format(request):
+    """Fixture for providing different device name formats."""
+    return request.param
+
+
 @pytest.fixture
-def mock_data_coordinator():
+def mock_data_coordinator(device_name_format):
     """Fixture for a mocked MerakiDataCoordinator."""
     coordinator = MagicMock()
-    coordinator.config_entry.options = {}
+    coordinator.config_entry.options = {"device_name_format": device_name_format[0]}
     return coordinator
 
 
-def test_switch_port_sensor(mock_data_coordinator):
+def test_switch_port_sensor(mock_data_coordinator, device_name_format):
     """Test the switch port sensor."""
     device_data = {
         "serial": "dev1",
@@ -49,7 +68,7 @@ def test_switch_port_sensor(mock_data_coordinator):
     assert sensor1.name == "Port 1 Status"
     assert sensor1.native_value == "connected"
     assert sensor1.extra_state_attributes["speed"] == "1 Gbps"
-    assert sensor1.device_info["name"] == "My Switch"
+    assert sensor1.device_info["name"] == device_name_format[1]
 
     # Test port 2
     port2_data = device_data["ports_statuses"][1]
