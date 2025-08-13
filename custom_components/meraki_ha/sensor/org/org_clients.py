@@ -35,9 +35,6 @@ class MerakiOrganizationSSIDClientsSensor(
         self._org_id = org_id
         self._org_name = org_name
 
-        name_format = self.coordinator.config_entry.options.get(
-            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-        )
         self._attr_name = format_entity_name(org_name, "SSID Clients")
         self._attr_unique_id = f"{org_id}_clients_ssid"
 
@@ -90,9 +87,6 @@ class MerakiOrganizationWirelessClientsSensor(
         self._org_id = org_id
         self._org_name = org_name
 
-        name_format = self.coordinator.config_entry.options.get(
-            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-        )
         self._attr_name = format_entity_name(org_name, "Wireless Clients")
         self._attr_unique_id = f"{org_id}_clients_wireless"
 
@@ -146,9 +140,6 @@ class MerakiOrganizationApplianceClientsSensor(
         self._org_id = org_id
         self._org_name = org_name
 
-        name_format = self.coordinator.config_entry.options.get(
-            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-        )
         self._attr_name = format_entity_name(org_name, "Appliance Clients")
         self._attr_unique_id = f"{org_id}_clients_appliance"
 

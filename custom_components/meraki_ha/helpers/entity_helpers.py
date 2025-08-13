@@ -1,10 +1,5 @@
 """Helper functions for entities."""
 
-from ..const import (
-    DEVICE_NAME_FORMAT_PREFIX,
-    DEVICE_NAME_FORMAT_SUFFIX,
-)
-
 
 def format_entity_name(
     device_name: str,

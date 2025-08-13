@@ -43,9 +43,6 @@ class MerakiTemperatureSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEn
         super().__init__(coordinator)
         self._device = device
         self._attr_unique_id = f"{self._device['serial']}_temperature"
-        name_format = self.coordinator.config_entry.options.get(
-            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-        )
         self._attr_name = format_entity_name(self._device["name"], "Temperature")
 
     @property
@@ -101,9 +98,6 @@ class MerakiHumiditySensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntit
         super().__init__(coordinator)
         self._device = device
         self._attr_unique_id = f"{self._device['serial']}_humidity"
-        name_format = self.coordinator.config_entry.options.get(
-            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-        )
         self._attr_name = format_entity_name(self._device["name"], "Humidity")
 
     @property
@@ -159,9 +153,6 @@ class MerakiWaterDetectionSensor(
         super().__init__(coordinator)
         self._device = device
         self._attr_unique_id = f"{self._device['serial']}_water"
-        name_format = self.coordinator.config_entry.options.get(
-            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-        )
         self._attr_name = format_entity_name(self._device["name"], "Water Detection")
 
     @property

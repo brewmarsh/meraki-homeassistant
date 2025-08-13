@@ -19,8 +19,6 @@ from .const import (
     CONF_AUTO_ENABLE_RTSP,
     CONF_USE_LAN_IP_FOR_RTSP,
     DATA_CLIENT,
-    CONF_DEVICE_NAME_FORMAT,
-    DEFAULT_DEVICE_NAME_FORMAT,
 )
 from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from urllib.parse import urlparse
@@ -118,9 +116,6 @@ class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
             self.coordinator.config_entry.data.get(CONF_USE_LAN_IP_FOR_RTSP, False),
         )
         self._attr_unique_id = f"{self._device['serial']}-camera"
-        name_format = self.coordinator.config_entry.options.get(
-            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-        )
         self._attr_name = format_entity_name(
             format_device_name(self._device, self.coordinator.config_entry.options),
             "",
