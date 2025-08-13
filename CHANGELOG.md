@@ -1,3 +1,12 @@
+## [1.2.2](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.2.1...v1.2.2) (2025-08-13)
+
+
+### Bug Fixes
+
+* consolidate and correct the versioning workflow ([1cf9bb7](https://github.com/brewmarsh/meraki-homeassistant/commit/1cf9bb7c2b912671e9fa50cc32afc9c88638b510))
+
+
+
 ## [1.2.1](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.2.0...v1.2.1) (2025-08-13)
 
 
