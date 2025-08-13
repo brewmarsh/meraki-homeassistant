@@ -20,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiDataUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
     """Representation of a Meraki appliance data usage sensor."""
 
-    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfInformation.MEGABYTES
     _attr_icon = "mdi:chart-bar"
     _attr_has_entity_name = True
@@ -76,7 +76,7 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEnti
             self._attr_native_unit_of_measurement = None
             return
 
-        self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+        self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_native_unit_of_measurement = UnitOfInformation.MEGABYTES
 
         total_sent_kb = sum(item.get("sent", 0) for item in traffic_data)
