@@ -48,7 +48,7 @@ jobs:
             increment_type="minor"
           fi
 
-          bump2version --allow-dirty $increment_type
+          bumpversion --allow-dirty $increment_type
           new_version=$(grep -oP '"version": "\K[^"]+' custom_components/meraki_ha/manifest.json)
           echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
 
@@ -78,7 +78,7 @@ jobs:
 
       - name: Upload Release Notes
         if: steps.increment.outputs.new_version != ''
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: release-notes
           path: RELEASE_NOTES.md
@@ -91,7 +91,7 @@ jobs:
       contents: write
     steps:
       - name: Download Release Notes
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: release-notes
 
