@@ -1,12 +1,22 @@
 """Sensor for Meraki appliance port status."""
 
+import logging
 from typing import Any, Dict
 
-from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-from .base import MerakiDeviceSensor
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.core import callback
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
+from ...const import DOMAIN, CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ...helpers.entity_helpers import format_entity_name
+from ...core.utils.naming_utils import format_device_name
+
+_LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAppliancePortSensor(MerakiDeviceSensor):
+class MerakiAppliancePortSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
     """Representation of a Meraki appliance port sensor."""
 
     def __init__(
@@ -16,30 +26,50 @@ class MerakiAppliancePortSensor(MerakiDeviceSensor):
         port: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(
-            coordinator,
-            device,
-            coordinator.config_entry,
-            f"port_{port['number']}",
-        )
+        super().__init__(coordinator)
+        self._device = device
         self._port = port
-        self._attr_name = f"Port {self._port['number']}"
+        self._attr_unique_id = f"{self._device['serial']}_port_{self._port['number']}"
+        name_format = self.coordinator.config_entry.options.get(
+            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
+        )
+        self._attr_name = format_entity_name(
+            self._device["name"],
+            f"Port {self._port['number']}",
+        )
         self._attr_icon = "mdi:ethernet-port"
 
-    def _update_state(self) -> None:
-        """Update the state of the sensor."""
-        device_data = self._get_current_device_data()
-        if device_data:
-            for port in device_data.get("ports", []):
-                if port["number"] == self._port["number"]:
-                    self._port = port
-                    break
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device["serial"])},
+            name=format_device_name(
+                self._device, self.coordinator.config_entry.options
+            ),
+            model=self._device["model"],
+            manufacturer="Cisco Meraki",
+        )
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        for device in self.coordinator.data.get("devices", []):
+            if device["serial"] == self._device["serial"]:
+                for port in device.get("ports", []):
+                    if port["number"] == self._port["number"]:
+                        self._port = port
+                        self.async_write_ha_state()
+                        return
+
+    @property
+    def state(self) -> str:
+        """Return the state of the sensor."""
         if not self._port.get("enabled"):
-            self._attr_native_value = "disabled"
-        elif self._port.get("status") == "connected":
-            self._attr_native_value = "connected"
-        else:
-            self._attr_native_value = "disconnected"
+            return "disabled"
+        if self._port.get("status") == "connected":
+            return "connected"
+        return "disconnected"
 
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:

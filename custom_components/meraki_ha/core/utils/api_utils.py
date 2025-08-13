@@ -3,10 +3,10 @@
 import asyncio
 import functools
 import logging
-import voluptuous as vol
 from typing import Any, Callable, Dict, TypeVar, cast
 from aiohttp import ClientError
 from meraki.exceptions import APIError  # type: ignore
+
 from ..errors import (
     MerakiAuthenticationError,
     MerakiConnectionError,
@@ -109,12 +109,11 @@ def _is_network_error(err: APIError) -> bool:
     )
 
 
-def validate_response(response: Any, schema: vol.Schema = None) -> Dict[str, Any]:
+def validate_response(response: Any) -> Dict[str, Any]:
     """Validate and normalize an API response.
 
     Args:
         response: The API response to validate
-        schema: The voluptuous schema to validate against
 
     Returns:
         Normalized response dictionary
@@ -125,13 +124,6 @@ def validate_response(response: Any, schema: vol.Schema = None) -> Dict[str, Any
     if response is None:
         _LOGGER.warning("Empty response from API")
         raise MerakiConnectionError("Empty response from API")
-
-    if schema:
-        try:
-            return schema(response)
-        except vol.Invalid as err:
-            _LOGGER.warning("Invalid response from API: %s", err)
-            raise MerakiConnectionError(f"Invalid response from API: {err}")
 
     if isinstance(response, dict):
         if not response:  # Empty dict

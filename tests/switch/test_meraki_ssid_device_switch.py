@@ -21,7 +21,7 @@ def mock_coordinator():
                 "number": 0,
                 "name": "Test SSID",
                 "enabled": True,
-                "visible": True,
+                "broadcast": True,
                 "networkId": "net-123",
                 "productType": "ssid",
             }
@@ -59,6 +59,7 @@ async def test_meraki_ssid_enabled_switch(
         mock_coordinator,
         mock_meraki_client,
         mock_config_entry,
+        ssid_unique_id,
         ssid_data,
     )
 
@@ -72,6 +73,7 @@ async def test_meraki_ssid_enabled_switch(
         mock_coordinator,
         mock_meraki_client,
         mock_config_entry,
+        ssid_unique_id,
         ssid_data,
     )
     assert switch.name == "Enabled Control"
@@ -96,6 +98,7 @@ async def test_meraki_ssid_broadcast_switch(
         mock_coordinator,
         mock_meraki_client,
         mock_config_entry,
+        ssid_unique_id,
         ssid_data,
     )
 
@@ -109,6 +112,7 @@ async def test_meraki_ssid_broadcast_switch(
         mock_coordinator,
         mock_meraki_client,
         mock_config_entry,
+        ssid_unique_id,
         ssid_data,
     )
     assert switch.name == "Broadcast Control"
@@ -116,5 +120,5 @@ async def test_meraki_ssid_broadcast_switch(
 
     await switch.async_turn_off()
     mock_meraki_client.wireless.update_network_wireless_ssid.assert_called_with(
-        networkId="net-123", number=0, visible=False
+        networkId="net-123", number=0, broadcast=False
     )

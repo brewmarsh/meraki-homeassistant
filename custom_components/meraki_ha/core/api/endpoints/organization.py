@@ -5,7 +5,6 @@ from typing import Any, Dict, List
 
 from ...utils.api_utils import handle_meraki_errors, validate_response
 from ..cache import async_timed_cache
-from ...schemas.network import NETWORK_SCHEMA
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,7 +35,11 @@ class OrganizationEndpoints:
             self._dashboard.organizations.getOrganizationNetworks,
             organizationId=self._api_client.organization_id,
         )
-        return validate_response(networks, vol.Schema([NETWORK_SCHEMA]))
+        validated = validate_response(networks)
+        if not isinstance(validated, list):
+            _LOGGER.warning("get_organization_networks did not return a list.")
+            return []
+        return validated
 
     @handle_meraki_errors
     @async_timed_cache()

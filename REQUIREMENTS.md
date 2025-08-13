@@ -123,16 +123,6 @@
 | :--- | :--- |
 | The Integration uses Voluptuous for schema validation. | Included |
 
-## Security Requirements
-
-| Requirement | Status |
-| :--- | :--- |
-| The integration must not contain any hardcoded secrets, such as API keys or passwords. | Included |
-| All API communication must be over HTTPS to ensure data is encrypted in transit. | Included |
-| User input must be validated to prevent injection attacks and other vulnerabilities. | Included |
-| The integration should be regularly scanned for security vulnerabilities using a tool like `bandit`. | Included |
-| Dependencies should be kept up-to-date to avoid known vulnerabilities. | Partially Included |
-
 ## Key Learnings from Debugging
 | Requirement | Status |
 | :--- | :--- |
