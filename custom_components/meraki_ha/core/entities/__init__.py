@@ -12,8 +12,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import (
     DOMAIN,
     MANUFACTURER,
-    CONF_DEVICE_NAME_FORMAT,
-    DEFAULT_DEVICE_NAME_FORMAT,
 )
 from ..coordinators import MerakiDataCoordinator
 from ..utils.naming_utils import format_device_name

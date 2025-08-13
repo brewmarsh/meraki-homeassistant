@@ -1,7 +1,7 @@
 """Sensor for Meraki Device Firmware Status."""
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry

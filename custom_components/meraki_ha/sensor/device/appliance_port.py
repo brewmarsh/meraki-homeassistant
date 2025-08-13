@@ -30,9 +30,6 @@ class MerakiAppliancePortSensor(CoordinatorEntity[MerakiDataCoordinator], Sensor
         self._device = device
         self._port = port
         self._attr_unique_id = f"{self._device['serial']}_port_{self._port['number']}"
-        name_format = self.coordinator.config_entry.options.get(
-            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-        )
         self._attr_name = format_entity_name(
             self._device["name"],
             f"Port {self._port['number']}",
