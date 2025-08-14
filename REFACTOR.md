@@ -207,3 +207,15 @@ The proposed refactoring involves:
 4.  **Refactor `setup_helpers.py`:** Replace the single, dynamic loop with multiple, explicit loops. Each new loop will iterate over a specific list of sensor classes and call their constructors with the correct, hard-coded set of arguments.
 
 This refactoring will remove the ambiguity that confuses `mypy`, resulting in a more robust and maintainable sensor setup process that can be fully validated by the type checker.
+
+## 10. Failing Integration Test
+
+There is a failing test in `tests/test_integration_setup.py` that needs to be addressed.
+
+### Problem
+
+The `test_ssid_device_creation_and_unification` test is failing with a `homeassistant.config_entries.OperationNotAllowed` error. This is because the `MockConfigEntry` is not in the `LOADED` state when the test is run.
+
+### Proposed Solution
+
+The test needs to be refactored to correctly set up the `MockConfigEntry` and get it into the `LOADED` state before the integration setup is called. This may involve using a different mocking strategy or a more complete setup of the `hass` object.

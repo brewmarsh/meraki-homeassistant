@@ -43,7 +43,7 @@ async def test_async_setup_entry(
             return True
 
         hass.config_entries.async_forward_entry_setups = async_forward_entry_setups
-        hass.config_entries.async_update_entry = AsyncMock(return_value=True)
+        hass.config_entries.async_update_entry = MagicMock(return_value=True)
         hass.config_entries._entries = {config_entry.entry_id: config_entry}
         config_entry.title = "test_title"
         with patch("custom_components.meraki_ha.async_unload_entry") as mock_unload:

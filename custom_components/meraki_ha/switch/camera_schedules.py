@@ -4,7 +4,7 @@ import logging
 from typing import Any, Dict
 
 from ..core.api.client import MerakiAPIClient
-from ..core.coordinators.device import MerakiDeviceCoordinator
+from ..core.coordinators import MerakiDataCoordinator
 from .camera_settings import MerakiCameraSettingSwitchBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ class MerakiCameraRTSPSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
-        coordinator: MerakiDeviceCoordinator,
+        coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
         device_data: Dict[str, Any],
     ) -> None:

@@ -13,11 +13,24 @@ from .sensor.device.meraki_wan2_connectivity import MerakiWAN2ConnectivitySensor
 from .sensor.device.meraki_firmware_status import MerakiFirmwareStatusSensor
 from .sensor.device.data_usage import MerakiDataUsageSensor
 from .sensor.device.poe_usage import MerakiPoeUsageSensor
+from .sensor.device.camera_sense_status import MerakiCameraSenseStatusSensor
+from .sensor.device.camera_audio_detection import MerakiCameraAudioDetectionSensor
 
 
 SensorClassList = List[Type[Entity]]
 
-SENSOR_REGISTRY: Dict[str, SensorClassList] = {
+# Sensors with __init__(coordinator, device_info)
+SENSORS_COORD_DEV: Dict[str, SensorClassList] = {
+    "wireless": [
+        MerakiRadioSettingsSensor,
+    ],
+    "switch": [
+        MerakiPoeUsageSensor,
+    ],
+}
+
+# Sensors with __init__(coordinator, device_info, config_entry)
+SENSORS_COORD_DEV_CONF: Dict[str, SensorClassList] = {
     "appliance": [
         MerakiWAN1ConnectivitySensor,
         MerakiWAN2ConnectivitySensor,
@@ -27,20 +40,24 @@ SENSOR_REGISTRY: Dict[str, SensorClassList] = {
     ],
     "wireless": [
         MerakiDeviceConnectedClientsSensor,
-        MerakiRadioSettingsSensor,
     ],
-    "switch": [
-        MerakiPoeUsageSensor,
+    "camera": [
+        MerakiCameraSenseStatusSensor,
+        MerakiCameraAudioDetectionSensor,
+        MerakiFirmwareStatusSensor,
     ],
-    "camera": [],
-    "sensor": [],
 }
 
-COMMON_DEVICE_SENSORS: SensorClassList = [
+# Common sensors for all devices
+COMMON_SENSORS_COORD_DEV_CONF: SensorClassList = [
     MerakiDeviceStatusSensor,
 ]
 
 
-def get_sensors_for_device_type(product_type: str) -> SensorClassList:
+def get_sensors_for_device_type(
+    product_type: str, with_config_entry: bool
+) -> SensorClassList:
     """Return a list of sensor classes for a given Meraki product type."""
-    return SENSOR_REGISTRY.get(product_type, [])
+    if with_config_entry:
+        return SENSORS_COORD_DEV_CONF.get(product_type, [])
+    return SENSORS_COORD_DEV.get(product_type, [])

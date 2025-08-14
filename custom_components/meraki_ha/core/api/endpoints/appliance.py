@@ -21,14 +21,19 @@ class ApplianceEndpoints:
     @async_timed_cache(timeout=60)
     async def get_network_appliance_traffic(
         self, network_id: str, timespan: int = 86400
-    ) -> Dict[str, Any]:
+    ) -> List[Dict[str, Any]]:
         """Get traffic data for a network appliance."""
         traffic = await self._api_client._run_sync(
-            self._dashboard.appliance.getNetworkApplianceTraffic,
+            self._dashboard.networks.getNetworkTraffic,
             networkId=network_id,
             timespan=timespan,
+            deviceType="appliance",
         )
-        return validate_response(traffic)
+        validated = validate_response(traffic)
+        if not isinstance(validated, list):
+            _LOGGER.warning("get_network_appliance_traffic did not return a list.")
+            return []
+        return validated
 
     @handle_meraki_errors
     @async_timed_cache()
@@ -37,7 +42,11 @@ class ApplianceEndpoints:
         vlans = await self._api_client._run_sync(
             self._dashboard.appliance.getNetworkApplianceVlans, networkId=network_id
         )
-        return validate_response(vlans)
+        validated = validate_response(vlans)
+        if not isinstance(validated, list):
+            _LOGGER.warning("get_vlans did not return a list.")
+            return []
+        return validated
 
     @handle_meraki_errors
     @async_timed_cache()
@@ -48,7 +57,13 @@ class ApplianceEndpoints:
         uplinks = await self._api_client._run_sync(
             self._dashboard.appliance.getDeviceApplianceUplinksSettings, serial=serial
         )
-        return validate_response(uplinks)
+        validated = validate_response(uplinks)
+        if not isinstance(validated, dict):
+            _LOGGER.warning(
+                "get_device_appliance_uplinks_settings did not return a dict."
+            )
+            return {}
+        return validated
 
     @handle_meraki_errors
     @async_timed_cache()
@@ -70,4 +85,8 @@ class ApplianceEndpoints:
         settings = await self._api_client._run_sync(
             self._dashboard.appliance.getNetworkApplianceSettings, networkId=network_id
         )
-        return validate_response(settings)
+        validated = validate_response(settings)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("get_network_appliance_settings did not return a dict.")
+            return {}
+        return validated

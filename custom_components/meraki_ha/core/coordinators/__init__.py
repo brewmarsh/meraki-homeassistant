@@ -2,26 +2,19 @@
 
 import logging
 from datetime import timedelta
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import UpdateFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.config_entries import ConfigEntry
 
 from ..api import MerakiAPIClient
-from .base import BaseMerakiCoordinator
-from .device import MerakiDeviceCoordinator
-from .network import MerakiNetworkCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDataCoordinator(BaseMerakiCoordinator):
-    """Main coordinator for all Meraki data.
-
-    This coordinator aggregates data from both device and network coordinators
-    to provide a complete view of the Meraki organization.
-    """
+class MerakiDataCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
+    """Main coordinator for all Meraki data."""
 
     def __init__(
         self,
@@ -40,52 +33,40 @@ class MerakiDataCoordinator(BaseMerakiCoordinator):
         """
         super().__init__(
             hass=hass,
-            api_client=api_client,
+            logger=_LOGGER,
             name="Meraki",
             update_interval=update_interval,
         )
-
+        self.api_client = api_client
         self.config_entry = config_entry
-        self.device_coordinator = MerakiDeviceCoordinator(
-            hass=hass,
-            api_client=api_client,
-            name="Meraki Devices",
-            update_interval=update_interval,
-        )
-        self.network_coordinator = MerakiNetworkCoordinator(
-            hass=hass,
-            api_client=api_client,
-            name="Meraki Networks",
-            update_interval=update_interval,
-        )
 
     async def _async_update_data(self) -> Dict[str, Any]:
-        """Fetch data from all coordinators.
+        """Fetch all data from the Meraki API.
 
         Returns:
             Combined dictionary containing all Meraki data
 
         Raises:
-            UpdateFailed: If any coordinator update fails
+            UpdateFailed: If the update fails
         """
         try:
-            device_data = await self.device_coordinator._async_update_data()
-            network_data = await self.network_coordinator._async_update_data()
-
-            return {
-                **device_data,
-                **network_data,
-                "org_id": self.api_client.organization_id,
-            }
-
+            return await self.api_client.get_all_data()
         except Exception as err:
             _LOGGER.error("Error updating Meraki data: %s", err)
             raise UpdateFailed(f"Error updating Meraki data: {err}")
 
-    def get_device_by_serial(self, serial: str) -> Dict[str, Any]:
+    def get_device_by_serial(self, serial: str) -> Optional[Dict[str, Any]]:
         """Get device data by serial number."""
-        return self.device_coordinator.get_device_by_serial(serial)
+        if self.data:
+            for device in self.data.get("devices", []):
+                if device.get("serial") == serial:
+                    return device
+        return None
 
-    def get_network_by_id(self, network_id: str) -> Dict[str, Any]:
+    def get_network_by_id(self, network_id: str) -> Optional[Dict[str, Any]]:
         """Get network data by network ID."""
-        return self.network_coordinator.get_network_by_id(network_id)
+        if self.data:
+            for network in self.data.get("networks", []):
+                if network.get("id") == network_id:
+                    return network
+        return None
