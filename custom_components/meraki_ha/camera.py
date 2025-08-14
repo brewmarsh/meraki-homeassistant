@@ -58,7 +58,7 @@ async def async_setup_entry(
                 for entity in entities:
                     if not entity._device.get("video_settings", {}).get(
                         "externalRtspEnabled"
-                    ):
+                    ) and not str(entity._attr_model).startswith("MV2"):
                         cameras_to_enable.append(entity)
 
                 if cameras_to_enable:
@@ -160,6 +160,13 @@ class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
 
     async def _enable_rtsp(self) -> None:
         """Enable the RTSP stream for the camera."""
+        if str(self._attr_model).startswith("MV2"):
+            _LOGGER.warning(
+                "RTSP streaming is not supported on MV2 models. Ignoring request to enable for %s.",
+                self._device["serial"],
+            )
+            return
+
         client = self.coordinator.hass.data[DOMAIN][
             self.coordinator.config_entry.entry_id
         ][DATA_CLIENT]
@@ -204,7 +211,9 @@ class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
                 video_settings = device.get("video_settings", {})
 
                 # Update RTSP URL and streaming capabilities
-                if video_settings.get("externalRtspEnabled"):
+                if video_settings.get("externalRtspEnabled") and not str(
+                    self._attr_model
+                ).startswith("MV2"):
                     public_rtsp_url = video_settings.get("rtspUrl")
                     if self._use_lan_ip_for_rtsp:
                         lan_ip = self._device.get("lanIp")
