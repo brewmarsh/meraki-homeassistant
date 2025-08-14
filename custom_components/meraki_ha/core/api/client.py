@@ -66,46 +66,19 @@ class MerakiAPIClient:
     async def get_all_data(self) -> dict:
         """Fetch all data from the Meraki API concurrently."""
         # Initial data fetch
-        initial_tasks = {
-            "networks": self.organization.get_organization_networks(),
-            "devices": self.organization.get_organization_devices(),
-            "availabilities": self.organization.get_organization_devices_availabilities(),
-            "uplink_statuses": self.organization.get_organization_appliance_uplink_statuses(),
-            "clients": self.organization.get_organization_clients(
-                self.organization_id, total_pages="all"
-            ),
-        }
+        initial_tasks = [
+            self.organization.get_organization_networks(),
+            self.organization.get_organization_devices(),
+            self.organization.get_organization_devices_availabilities(),
+            self.organization.get_organization_appliance_uplink_statuses(),
+        ]
 
-        initial_results = await asyncio.gather(
-            *initial_tasks.values(), return_exceptions=True
-        )
-        initial_data = dict(zip(initial_tasks.keys(), initial_results))
-
-        networks = (
-            initial_data["networks"]
-            if not isinstance(initial_data["networks"], Exception)
-            else []
-        )
-        devices = (
-            initial_data["devices"]
-            if not isinstance(initial_data["devices"], Exception)
-            else []
-        )
-        devices_availabilities = (
-            initial_data["availabilities"]
-            if not isinstance(initial_data["availabilities"], Exception)
-            else []
-        )
-        appliance_uplink_statuses = (
-            initial_data["uplink_statuses"]
-            if not isinstance(initial_data["uplink_statuses"], Exception)
-            else []
-        )
-        clients = (
-            initial_data["clients"]
-            if not isinstance(initial_data["clients"], Exception)
-            else []
-        )
+        (
+            networks,
+            devices,
+            devices_availabilities,
+            appliance_uplink_statuses,
+        ) = await asyncio.gather(*initial_tasks, return_exceptions=True)
 
         # Process initial data
         availabilities_by_serial = {
@@ -122,6 +95,20 @@ class MerakiAPIClient:
                 device["status"] = availability["status"]
 
         # Fetch detailed data concurrently
+        client_tasks = [
+            self.network.get_network_clients(network["id"])
+            for network in networks
+            if isinstance(network, dict) and "id" in network
+        ]
+        clients_results = await asyncio.gather(*client_tasks, return_exceptions=True)
+        clients: List[Dict[str, Any]] = []
+        for i, network in enumerate(networks):
+            if isinstance(network, dict) and "id" in network:
+                if not isinstance(clients_results[i], Exception):
+                    for client in clients_results[i]:
+                        client["networkId"] = network["id"]
+                    clients.extend(clients_results[i])
+
         detail_tasks = {}
         for network in networks:
             if isinstance(network, dict) and "id" in network:

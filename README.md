@@ -1,49 +1,40 @@
-# Meraki Home Assistant Integration 👋
+# Meraki Home Assistant Integration
 
-[![codecov](https://codecov.io/gh/brewmarsh/meraki-homeassistant/graph/badge.svg)](https://codecov.io/gh/brewmarsh/meraki-homeassistant)
+This Home Assistant integration allows you to monitor and manage your Cisco Meraki network, including devices, networks, and SSIDs. It leverages the Meraki API to bring data from your Meraki dashboard into Home Assistant, enabling you to gain insights into your network and automate actions based on its status.
 
-Welcome to the Meraki Home Assistant integration! 🚀 This integration lets you connect your Cisco Meraki network to Home Assistant, giving you awesome visibility and control over your network infrastructure. Automate your network, monitor your devices, and build cool new things!
+## Features
 
-## Key Features ✨
-
-- **Device Discovery and Monitoring** 📡
-  - Automatically finds all your Meraki devices.
-  - Real-time device status (online, offline, alerting, dormant) and health metrics.
-  - Detailed device info like model, serial number, and firmware version.
-  - Firmware status for all your devices.
-- **Network Management** 🛠️
-  - Monitor your entire organization and individual networks.
-  - Configure SSIDs: show/hide, update names, and control broadcasting.
-  - Manage and track the status of your MX appliance ports.
-- **Sensor Integration** 🌡️
-  - Network performance metrics.
-  - Client connectivity statistics.
-  - MX uplink status.
-  - MX port status and data usage.
-  - Switch port status, PoE usage, and port counts.
-  - Camera stream via RTSP.
-  - Environmental sensors for temperature, humidity, and water detection.
-- **Advanced Features** 🧠
-  - Smart caching to optimize API calls and avoid rate limiting.
-  - Error recovery and handling for a stable experience.
-  - Configurable update intervals to balance real-time data with API load.
-  - Customizable device name formatting (prefix, suffix, or omit).
-
-## Supported Devices
-
-- **Wireless Access Points**
-- MR Series (Traditional)
-- GR Series (Cloud-Managed)
-- **Network Switches**
-- MS Series (Traditional)
-- GS Series (Cloud-Managed)
-- **Security & Infrastructure**
-- MX Series Security Appliances
-- MG Series Cellular Gateways
-- **Monitoring & IoT**
-- MV Series Smart Cameras
-- MT Series Environmental Sensors
-- Meraki SSIDs (wireless networks)
+- **Device Discovery:** Automatically discovers Meraki hardware devices within your organization and networks.
+- **Supported Devices:**
+  - Wireless Access Points (MR series, GR series)
+  - Switches (MS series, GS series)
+  - Security Appliances (MX series)
+  - Cameras (MV series) - Snapshot generation.
+  - Environmental Sensors (MT series)
+- **Entity Creation:** Creates Home Assistant entities for:
+  - Meraki physical devices (APs, switches, appliances, cameras, sensors)
+  - Meraki networks (represented as devices in HA for grouping)
+  - Meraki SSIDs (wireless networks)
+- **Data Monitoring:**
+  - Device status (online/offline, product type)
+  - Connected client counts (for APs, networks)
+  - Appliance uplink status and potentially other data points (if specific sensors are developed).
+  - Basic camera device status; snapshot URL generation to be explicitly integrated (e.g., as sensor attribute or service).
+  - Sensor values for MT series sensors (Future).
+  - Wireless radio settings for MR/GR access points (e.g., channel).
+  - SSID Availability (Enabled/Disabled administrative status).
+  - SSID Channel (current operational channel).
+  - SSID Client Count.
+- **Switch Entities:**
+  - Control SSID enabled/disabled state (via a tagging strategy).
+- **Configuration:**
+  - API key and Organization ID via Home Assistant configuration flow.
+  - Configurable scan interval for data refresh.
+  - Device name formatting options (prefix, suffix, or omit device type in HA entity names).
+  - Relaxed tag matching option for SSID-to-device association.
+- **Authentication:**
+  - Handles initial API key validation.
+  - Supports re-authentication flow if credentials become invalid.
 
 ## Installation
 
@@ -74,149 +65,178 @@ Welcome to the Meraki Home Assistant integration! 🚀 This integration lets you
 
 ## Configuration
 
-1. Navigate to **Settings** > **Devices & Services** in your Home Assistant UI.
-2. Click the **+ ADD INTEGRATION** button in the bottom right.
-3. Search for "Meraki" (or the specific name given to this integration) and select it.
-4. Follow the on-screen prompts:
+### Obtaining Meraki API Credentials
 
-- **API Key:** Enter your Cisco Meraki API key.
-- **Organization ID:** Enter the ID of the Meraki organization you want to integrate.
-- **Scan Interval (seconds):** Define how often (in seconds) Home Assistant should fetch data from the Meraki API. The default is 300 seconds. Adjust this based on the size of your network and the number of devices to avoid exceeding Meraki API rate limits. Shorter intervals provide more real-time data but increase API load.
-- **Device Name Format:** (Optional) Choose how device names from Meraki should be formatted in Home Assistant (e.g., with a type prefix like "[Wireless] AP Name", a suffix, or omitted).
-- **Auto-enable RTSP streams:** (Optional) If checked, the integration will automatically enable the RTSP stream for all cameras that support it.
+To use this integration, you will need a Meraki API key and your Organization ID.
 
-Once configured, the integration will start discovering your Meraki devices and creating corresponding entities in Home Assistant. These settings can be changed at any time from the integration's options page.
+1.  **Log in to the Meraki Dashboard:** Go to [https://dashboard.meraki.com/](https://dashboard.meraki.com/).
+2.  **Enable API Access:**
+    *   Navigate to **Organization** > **Settings**.
+    *   Under the **Dashboard API access** section, ensure API access is enabled.
+3.  **Generate API Key:**
+    *   Go to your **Profile** (click your name/email in the top right) > **My profile**.
+    *   Scroll down to the **API access** section.
+    *   Click **Generate new API key**.
+    *   **Important:** Copy the generated API key and store it securely. You will not be able to see it again after navigating away from this page.
+4.  **Find Organization ID:**
+    *   The Organization ID is not directly visible in an obvious "Org ID" field.
+    *   One way to find it is to look at the URL when you are viewing your organization dashboard. It might be part of the URL structure (e.g., `nXX...`).
+    *   Alternatively, you can often find it by making a simple API call (e.g., using `curl` or Postman) to the `/organizations` endpoint with your API key. The response will list your accessible organizations and their IDs.
 
-## Removal
+    ```bash
+    curl -L -H 'X-Cisco-Meraki-API-Key: <your_api_key>' -H 'Content-Type: application/json' 'https://api.meraki.com/api/v1/organizations'
+    ```
 
-1. Navigate to **Settings** > **Devices & Services** in your Home Assistant UI.
-2. Find the Meraki integration and click the three dots.
-3. Select **Delete**.
-4. If you also want to remove the integration from HACS, go to the HACS page, find the Meraki integration, and select **Remove**.
+### Setting up the Integration
 
-## Obtaining a Meraki API Key and Organization ID
+1.  Navigate to **Settings** > **Devices & Services** in your Home Assistant UI.
+2.  Click the **+ ADD INTEGRATION** button in the bottom right.
+3.  Search for "Meraki" and select it.
+4.  Follow the on-screen prompts to enter your API Key and Organization ID.
 
-1. **Log in to the Meraki Dashboard:** Go to [https://dashboard.meraki.com/](https://dashboard.meraki.com/).
-2. **Enable API Access:**
+### Configuration Options
 
-- Navigate to **Organization** > **Settings**.
-- Under the **Dashboard API access** section, ensure API access is enabled.
+The following options can be configured when you first set up the integration, or at any time by navigating to the integration's card in **Settings -> Devices & Services** and clicking **Configure**.
 
-3. **Generate API Key:**
+*   **How many seconds between Meraki API refreshes:** How often (in seconds) to poll the Meraki API for updates. Default: 300. A shorter interval means more responsive sensors but significantly increases API calls to Meraki Cloud and may lead to rate limiting.
+*   **Where would you like the Meraki device type in the name?:** Choose how device names are presented. 'Prefix' adds the Meraki device name before the entity name, 'Suffix' adds it after, 'Omitted' uses only the entity name.
+*   **Auto-enable RTSP camera streams:** If checked, the integration will automatically enable the RTSP stream for all cameras that support it. This is useful for getting camera streams working without manual configuration in the Meraki dashboard.
+*   **Use LAN IP for RTSP stream:** If checked, the integration will use the camera's LAN IP address for the RTSP stream. This is more efficient, but requires that Home Assistant is on the same network as the camera. If unchecked, the public IP address will be used.
+*   **Webhook URL (optional):** A custom URL for Meraki webhooks. If left blank, the integration will use the default Home Assistant webhook URL.
 
-- Go to your **Profile** (click your name/email in the top right) > **My profile**.
-- Scroll down to the **API access** section.
-- Click **Generate new API key**.
-- **Important:** Copy the generated API key and store it securely. You will not be able to see it again after navigating away from this page.
+## Entities
 
-4. **Find Organization ID:**
+This integration provides various entities (devices, sensors, switches, etc.).
 
-- The Organization ID is not directly visible in an obvious "Org ID" field.
-- One way to find it is to look at the URL when you are viewing your organization dashboard. It might be part of the URL structure (e.g., `nXX...`).
-- Alternatively, you can often find it by making a simple API call (e.g., using `curl` or Postman) to the `/organizations` endpoint with your API key. The response will list your accessible organizations and their IDs.
+### Meraki Device Types in Home Assistant
 
-```bash
-curl -L -H 'X-Cisco-Meraki-API-Key: <your_api_key>' -H 'Content-Type: application/json' 'https://api.meraki.com/api/v1/organizations'
-```
+The integration automatically categorizes your physical Meraki hardware into `productType` groups based on the device model. This allows for `productType`-specific sensors and controls. The following table details the mapping from model prefixes to the assigned `productType`:
 
-## Supported Functionality
+| `productType` | Model Prefix(es) | Description               |
+| :------------ | :--------------- | :------------------------ |
+| `appliance`   | `MX`, `GX`       | Security Appliances       |
+| `wireless`    | `MR`, `GR`       | Wireless Access Points    |
+| `switch`      | `MS`, `GS`       | Network Switches          |
+| `camera`      | `MV`             | Smart Cameras             |
+| `sensor`      | `MT`             | Environmental Sensors     |
+| `cellular`    | `MG`             | Cellular Gateways         |
 
-This integration supports the following platforms:
+The integration represents different aspects of your Meraki setup as devices within Home Assistant:
 
-- `sensor`
-- `switch`
-- `text`
-- `device_tracker`
-- `camera`
+- **Physical Meraki Devices:** Your actual hardware (APs, switches, security appliances, cameras, environmental sensors) are registered as devices. Entities related to a specific piece of hardware (e.g., its status, IP address, connected clients for an AP) are linked to these devices.
+- **Meraki Networks:** Each Meraki network defined in your dashboard is also registered as a "device" in Home Assistant. This allows for grouping; physical devices belonging to a network are often parented by their respective Meraki Network device in Home Assistant. Some network-wide sensors may also be linked here.
+- **Meraki SSIDs:** Wireless SSIDs are registered as "devices," typically parented by their Meraki Network device. Entities specific to an SSID (e.g., its availability, client count, control switches) are linked to these SSID devices.
+- **Meraki Organization:** A single device entry is created to represent the Meraki Organization itself. This device acts as a parent for organization-wide sensors.
 
-### Entities
+### Organization Device
 
-Entities are dynamically created based on your Meraki setup.
+A conceptual device representing your entire Meraki Organization is created.
 
-- **Camera Entities:**
-  - For each Meraki camera (MV series), a `camera` entity is created.
-  - This entity provides a live video stream from the camera via RTSP.
-  - The RTSP stream must be enabled on the camera in the Meraki dashboard, or you can use the "Auto-enable RTSP streams" option in the integration's configuration to have Home Assistant do this for you.
+- **Naming:** The name of this device is based on the Organization Name fetched from the Meraki Dashboard.
+- **Purpose:** This device serves as a central point for organization-wide information and sensors.
 
-- **Sensor Entities:** センサー
+### Organization-Wide Client Sensors
 
-- **Device Status:** Shows the operational status of Meraki devices (e.g., "online", "offline", "alerting"). Attributes include product type, model, serial, firmware, IPs, etc.
-- **Connected Clients (per Device):** Number of clients connected to a specific device (works for APs and appliances).
-- **Uplink Status (per MX):** Status of the uplinks for MX security appliances (e.g., "online", "ready", "offline"). Attributes include WAN IPs and other details for each uplink.
-- **Data Usage (per MX):** Total data usage for an MX appliance over the last day. Attributes include sent and received data.
-- **Network Client Count (per Network):** Total clients active on a network within a defined timespan.
-- **Network Information (per MX/Appliance):** Provides various network parameters of an MX device as attributes (WAN IPs, DNS servers, LAN IP, Public IP, etc.). The sensor state is the device name.
-- **Firmware Status (per Device):** Current firmware version and whether an update is available. Attributes include latest available version.
-- **WAN1/WAN2 Connectivity (per MX):** "Connected" or "Disconnected" status for the WAN interfaces of an MX device.
-- **Appliance Port Status (per Port):** "connected", "disconnected", or "disabled" status for each port of an MX device. Attributes include link speed, vlan, and access policy.
-- **Switch PoE Usage (per Switch):** Aggregated PoE usage for a switch in watts. Attributes provide per-port usage.
-- **Switch Port Counts (per Switch):** Sensors for the number of ports in use and available on a switch.
-- **SSID Availability:** Administrative status (Enabled/Disabled) of an SSID, represented as ON/OFF.
-- **SSID Channel:** Current operational channel for an SSID (derived data, may not be available for all SSIDs).
-- **SSID Client Count:** Number of clients connected to a specific SSID.
-- **Environmental Sensors (per MT sensor):**
-  - **Temperature:** The current temperature in Celsius.
-  - **Humidity:** The current humidity in percent.
-  - **Water Detection:** `true` if water is detected, `false` otherwise.
+These sensors provide aggregate client counts across your entire Meraki organization and are linked to the Organization device described above. The client data for these sensors is typically based on activity within the **last hour** (timespan increased from 5 minutes for more stable counts).
 
-- **Switch Entities:**
+- **`Organization SSID Clients`** (`sensor.<org_name>_ssid_clients`):
+- **Description:** Total clients connected to all SSIDs across all networks in the organization.
+- **Unit of Measurement:** `clients`
+- **Icon:** `mdi:wifi`
 
-- **SSID Enabled Control:** Allows enabling or disabling an SSID.
-- **SSID Broadcast Control:** Allows making an SSID visible (broadcasting) or hidden.
+- **`Organization Wireless Clients`** (`sensor.<org_name>_wireless_clients`):
+- **Description:** Total clients connected to wireless Access Points (MR series devices) across the organization.
+- **Unit of Measurement:** `clients`
+- **Icon:** `mdi:access-point-network`
 
-- **Text Entities:**
+- **`Organization Appliance Clients`** (`sensor.<org_name>_appliance_clients`):
+- **Description:** Total clients that have routed traffic through Meraki security appliances (MX series devices) across the organization.
+- **Unit of Measurement:** `clients`
+- **Icon:** `mdi:server-network`
 
-- **SSID Name Control:** Allows viewing and changing the name of an SSID.
+### Camera Entities
 
-- **Device Trackers:**
+For each Meraki camera (MV series) in your organization, a `camera` entity is created in Home Assistant.
 
-- Tracks connected client devices, showing if they are connected to the Meraki network.
+| Entity Type | Name           | Description                                                                                                                                                                                             | Availability      |
+| :---------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------- |
+| `camera`    | `[Camera Name]`| Provides a live video stream from the camera. This entity can be used in picture-in-picture cards, dashboards, and other parts of Home Assistant to view the camera's feed. The stream is provided via RTSP. | Meraki MV Cameras |
 
-- **Home Assistant Devices:**
-- Physical Meraki Devices (APs, switches, appliances, cameras, sensors) are registered.
-- Meraki Networks are registered as "devices" to act as parents for physical devices and network-wide entities.
-- Meraki SSIDs are registered as "devices", parented by their network, to group SSID-specific entities.
+To view the camera stream, you must enable the RTSP (Real-Time Streaming Protocol) feature for the camera. You can do this in two ways:
 
-## Developer Guide
+1.  **Individually per Camera:** Each camera device in Home Assistant has a switch entity to toggle the RTSP stream on or off. When you enable the switch, the integration will make an API call to Meraki to enable the RTSP server for that camera. The RTSP stream URL will then become available in the `RTSP Stream URL` sensor.
+2.  **Globally via Configuration:** In the integration's configuration options, you can enable the "Auto-enable RTSP streams" setting. This will automatically enable the RTSP stream for all of your cameras.
 
-This section provides a brief overview for developers looking to extend the integration.
+### Camera Sensors
 
-### Data Update
+| Entity Type | Name              | Description                                                                                                                                                                                           | Availability      |
+| :---------- | :---------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------- |
+| `sensor`    | `RTSP Stream URL` | Displays the RTSP URL for the camera's video stream. The URL is only available when the RTSP stream is enabled for the camera. This sensor's state will be empty if RTSP is disabled. | Meraki MV Cameras |
 
-The integration polls the Meraki API for data at a user-defined interval. The default interval is 60 seconds. The `MerakiDataUpdateCoordinator` is responsible for fetching all data from the Meraki API. The data is then processed and stored in the coordinator's `data` attribute. The entities then get their state from the coordinator's data.
+### Physical Device Sensors
 
-### Coordinators
+These sensors are linked to specific physical Meraki hardware devices.
 
-The integration uses a coordinator pattern to manage data fetching and updates:
+- _(Details of existing physical device sensors like status, uplink, firmware, etc., would go here. This section can be expanded as other sensors are documented.)_
 
-- **`MerakiDeviceCoordinator` (`custom_components/meraki_ha/core/coordinators/device.py`):** This coordinator is responsible for fetching data for all physical Meraki devices in the organization.
-- **`MerakiNetworkCoordinator` (`custom_components/meraki_ha/core/coordinators/network.py`):** This coordinator fetches data for all networks, clients, and SSIDs in the organization.
+### Network Sensors
 
-### Adding Support for New Meraki Device Types
+These sensors are linked to Meraki Network "devices" in Home Assistant.
 
-1. **Data Fetching:** If the new device type requires fetching new API endpoints or processing existing data differently, modifications will be needed in `custom_components/meraki_ha/coordinators/api_data_fetcher.py`. Add new methods or update existing ones to retrieve the necessary information.
-2. **Entity Registration:**
+- **`Network Client Count`** (`sensor.<network_name>_client_count`):
+- **Description:** Shows the number of clients active on a _specific_ Meraki network within a defined timespan.
+- **Note:** This sensor is designed for per-network client counts. For accurate organization-level total client counts, please use the new `Organization SSID Clients`, `Organization Wireless Clients`, or `Organization Appliance Clients` sensors. This sensor relies on the data coordinator providing a specific `network_client_counts` data structure.
 
-- Define new sensor/switch/etc. classes in the respective directories (e.g., `custom_components/meraki_ha/sensor/`).
-- Update `custom_components/meraki_ha/sensor_registry.py` (or a similar registry for other entity types) to map the new device's `productType` (as reported by the Meraki API) to the new entity classes.
-- Ensure the `async_setup_entry` function in the relevant platform's `__init__.py` (e.g., `custom_components/meraki_ha/sensor/__init__.py`) correctly iterates through devices and uses the registry to create your new entities.
+- _(Details of other network-specific sensors like Network Information for MX would go here.)_
 
-3. **Coordinator Logic:** If the new device type has significantly different data patterns or requires unique handling not covered by the main coordinator, you might consider:
+### Appliance Port Sensors
 
-- Adding specific processing logic to `MerakiDataProcessor` and `DataAggregator`.
-- For very distinct devices, potentially introducing a new dedicated `DataUpdateCoordinator` similar to `SSIDDeviceCoordinator`.
+These sensors are linked to Meraki MX security appliance "devices" in Home Assistant.
 
-4. **Device Typing:** Update `custom_components/meraki_ha/coordinators/meraki_device_types.py` if the new device model needs a specific type mapping for display name formatting or other logic.
+| Entity Type | Name | Description | Availability |
+| :--- | :--- | :--- | :--- |
+| Sensor | `[Appliance Name] Port [Port Number]` | Shows the status of a specific port on a Meraki appliance. The state will be "connected" or "disconnected". | Meraki MX Appliances |
 
-### Adding New Sensors/Switches for Existing Device Types
+### SSID Sensors
 
-1. **Data Fetching:** Ensure the data required for your new entity is being fetched by `custom_components/meraki_ha/coordinators/api_data_fetcher.py` and is available in the data provided by the relevant coordinator (`MerakiDataUpdateCoordinator` for physical devices, `SSIDDeviceCoordinator` for SSIDs).
-2. **Entity Class:** Create your new sensor or switch class in the appropriate directory (e.g., `custom_components/meraki_ha/sensor/my_new_sensor.py`). This class will typically inherit from `MerakiEntity` (or a more specific base like `CoordinatorEntity`) and implement the necessary properties and methods.
-3. **Sensor Registry (for physical device sensors):** If it's a sensor for a physical device, add your new sensor class to `custom_components/meraki_ha/sensor_registry.py`, either to `COMMON_DEVICE_SENSORS` (if applicable to all devices) or to the list for the specific `productType` it applies to.
-4. **SSID Entities:** For SSID-specific entities, you'll likely add the instantiation of your new entity class within the `create_ssid_sensors` factory function in `custom_components/meraki_ha/sensor/ssid.py` (or a similar factory for switches/text entities if they are created that way).
-5. **Platform Setup:** Ensure the `async_setup_entry` in the platform's `__init__.py` correctly passes the coordinator and device/SSID data to your new entity's constructor.
+These sensors are linked to Meraki SSID "devices" in Home Assistant.
 
-Remember to test thoroughly, including API error handling and UI representation.
+| Entity Type | Name              | Description                                                                                                                                                                                           | Availability      |
+| :---------- | :---------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------- |
+| `sensor`    | `[SSID Name] Splash Page` | The type of splash page for the SSID. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Auth Mode` | The association control method for the SSID. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Encryption Mode` | The psk encryption mode for the SSID. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] WPA Encryption Mode` | The types of WPA encryption. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] IP Assignment Mode` | The client IP assignment mode. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Band Selection` | The client-serving radio frequencies of this SSID. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Per-Client Bandwidth Limit Up` | The upload bandwidth limit in Kbps. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Per-Client Bandwidth Limit Down` | The download bandwidth limit in Kbps. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Per-SSID Bandwidth Limit Up` | The total upload bandwidth limit in Kbps. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Per-SSID Bandwidth Limit Down` | The total download bandwidth limit in Kbps. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Visible` | Whether the SSID is advertised or hidden. | Meraki Wireless SSIDs |
+
+## Troubleshooting
+
+### Common Issues
+
+#### Invalid Authentication
+
+If you receive an "Invalid authentication" error, it means that your API key or Organization ID is incorrect. Please double-check your credentials and try again.
+
+#### Cannot Connect
+
+If you receive a "Cannot connect" error, it means that Home Assistant is unable to connect to the Meraki API. Please check your internet connection and ensure that there are no firewalls blocking access to the Meraki API.
+
+#### API Rate Limits
+
+The Meraki API has rate limits that restrict the number of API calls that can be made in a given time period. If you have a large number of devices or a short scan interval, you may exceed these rate limits. If this happens, you will see errors in the Home Assistant logs. To resolve this, you can increase the scan interval in the integration's options.
+
+### Getting Help
+
+If you are still having issues, you can get help in the following ways:
+
+*   **Home Assistant Community Forums:** Post a question in the [Meraki integration thread](https://community.home-assistant.io/t/meraki-integration/12345) (link is a placeholder).
+*   **GitHub Issues:** If you believe you have found a bug, please open an issue on the [GitHub repository](https://github.com/your-repo/meraki-ha).
 
 ## Versioning and Releases
 
@@ -237,72 +257,11 @@ Please ensure your PR titles are descriptive and include the appropriate prefix 
 - `meraki`: The official Meraki SDK for Python, used for all API interactions.
 - `aiohttp`: Used by the Meraki SDK for asynchronous HTTP requests.
 
-## Troubleshooting
-
-### "Data Usage" sensor shows "Disabled" or "Unknown"
-
-The `Data Usage` sensor for an appliance requires "Traffic analysis" to be enabled for its network in the Meraki Dashboard. If this setting is disabled, the sensor will show a "Disabled" state.
-
-To enable this feature:
-1.  Navigate to **Network-wide > General** in your Meraki Dashboard.
-2.  Scroll down to the **Traffic analysis** section.
-3.  Select **Detailed: collect destination hostnames**.
-4.  Click **Save**.
-
-It may take a few minutes for data to start populating after enabling this setting.
-
-### Known Limitations
+## Known Issues
 
 - **API Rate Limits:** Frequent polling with a short scan interval on large networks can lead to exceeding Meraki API rate limits. Adjust the scan interval appropriately.
-- **SSID Control:** Enabling/disabling SSIDs and controlling broadcast status are direct API calls to modify SSID settings.
+- **SSID Control:** Enabling/disabling SSIDs is managed by adding/removing specific tags on access points, not by direct administrative status change of the SSID. This is an indirect control method and relies on consistent tag management.
 - **Radio profiles might not be available or fully detailed for all wireless device models through the currently used API endpoints.**
-
-### Reporting Issues
-
-If you encounter any issues with this integration, please report them on the [GitHub issue tracker](https://github.com/brewmarsh/meraki-homeassistant/issues). Please include the following information in your issue report:
-
-- Home Assistant version
-- Integration version
-- A description of the issue
-- Relevant logs from Home Assistant
-
-## Automation Examples
-
-Here are a few examples of how you can use this integration in your automations:
-
-### Turn off a guest SSID when no one is home
-
-```yaml
-automation:
- - alias: 'Turn off guest SSID when no one is home'
-  trigger:
-   - platform: state
-    entity_id: group.all_devices
-    to: 'not_home'
-  action:
-   - service: switch.turn_off
-    entity_id: switch.guest_ssid_enabled_control
-```
-
-### Get a notification when a new device connects to the network
-
-```yaml
-automation:
- - alias: 'Notify when a new device connects'
-  trigger:
-   - platform: state
-    entity_id: sensor.meraki_network_clients
-  action:
-   - service: notify.mobile_app_my_phone
-    data:
-     message: 'A new device has connected to the network.'
-```
-
-## Use Cases
-
-- **Monitor your network status:** Get a quick overview of your network status, including the number of connected devices, uplink status, and more.
-- **Automate your network:** Create automations to turn on/off guest SSIDs, get notifications when new devices connect, and more.
-- **Track devices:** Track the location of your devices and get notifications when they connect or disconnect from the network.
 
 ## Disclaimer
 
