@@ -70,9 +70,7 @@ async def async_setup_entry(
                 )
                 if not model.startswith("MV2"):
                     new_entities.append(
-                        MerakiCameraRTSPSwitch(
-                            coordinator, meraki_client, device_info
-                        ),
+                        MerakiCameraRTSPSwitch(coordinator, meraki_client, device_info),
                     )
     else:
         _LOGGER.info(

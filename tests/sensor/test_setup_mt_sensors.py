@@ -101,7 +101,7 @@ def test_async_setup_mt12_sensors(mock_coordinator):
 
 def test_availability(mock_coordinator):
     """Test sensor availability."""
-    device_info = mock_coordinator.data["devices"][0] # MT10
+    device_info = mock_coordinator.data["devices"][0]  # MT10
     entities = async_setup_mt_sensors(mock_coordinator, device_info)
     temp_sensor = entities[0]
 

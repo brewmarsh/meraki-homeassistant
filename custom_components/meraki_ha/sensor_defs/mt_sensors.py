@@ -73,7 +73,7 @@ MT_NOISE_DESCRIPTION = SensorEntityDescription(
 # Mapping of MT models to their supported sensor descriptions
 MT_SENSOR_MODELS = {
     "MT10": [MT_TEMPERATURE_DESCRIPTION],
-    "MT11": [MT_TEMPERATURE_DESCRIPTION], # Assuming MT11 is a temperature sensor
+    "MT11": [MT_TEMPERATURE_DESCRIPTION],  # Assuming MT11 is a temperature sensor
     "MT12": [MT_WATER_DESCRIPTION],
     "MT14": [
         MT_PM25_DESCRIPTION,
@@ -89,6 +89,6 @@ MT_SENSOR_MODELS = {
         MT_HUMIDITY_DESCRIPTION,
         MT_NOISE_DESCRIPTION,
     ],
-    "MT20": [MT_TEMPERATURE_DESCRIPTION], # Assuming MT20 is a temperature sensor
-    "MT30": [], # Smart Automation Button, no standard sensors
+    "MT20": [MT_TEMPERATURE_DESCRIPTION],  # Assuming MT20 is a temperature sensor
+    "MT30": [],  # Smart Automation Button, no standard sensors
 }
