@@ -9,7 +9,6 @@ from homeassistant.const import (
     CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
     CONCENTRATION_PARTS_PER_MILLION,
     PERCENTAGE,
-    UnitOfPower,
     UnitOfTemperature,
     UnitOfSoundPressure,
 )
