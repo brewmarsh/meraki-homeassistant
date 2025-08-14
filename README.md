@@ -1,8 +1,8 @@
-# Meraki Home Assistant Integration
+# Meraki Home Assistant Integration 🤖
 
 This Home Assistant integration allows you to monitor and manage your Cisco Meraki network, including devices, networks, and SSIDs. It leverages the Meraki API to bring data from your Meraki dashboard into Home Assistant, enabling you to gain insights into your network and automate actions based on its status.
 
-## Features
+## Features ✨
 
 - **Device Discovery:** Automatically discovers Meraki hardware devices within your organization and networks.
 - **Supported Devices:**
@@ -36,7 +36,7 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
   - Handles initial API key validation.
   - Supports re-authentication flow if credentials become invalid.
 
-## Installation
+## Installation 🛠️
 
 ### Prerequisites
 
@@ -63,7 +63,7 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
 
 4. **Restart Home Assistant:** After installation, restart your Home Assistant instance to load the integration.
 
-## Configuration
+## Configuration ⚙️
 
 ### Obtaining Meraki API Credentials
 
@@ -104,7 +104,7 @@ The following options can be configured when you first set up the integration, o
 *   **Use LAN IP for RTSP stream:** If checked, the integration will use the camera's LAN IP address for the RTSP stream. This is more efficient, but requires that Home Assistant is on the same network as the camera. If unchecked, the public IP address will be used.
 *   **Webhook URL (optional):** A custom URL for Meraki webhooks. If left blank, the integration will use the default Home Assistant webhook URL.
 
-## Entities
+## Entities 🧩
 
 This integration provides various entities (devices, sensors, switches, etc.).
 
@@ -137,7 +137,7 @@ A conceptual device representing your entire Meraki Organization is created.
 
 ### Organization-Wide Client Sensors
 
-These sensors provide aggregate client counts across your entire Meraki organization and are linked to the Organization device described above. The client data for these sensors is typically based on activity within the **last hour** (timespan increased from 5 minutes for more stable counts).
+These sensors provide aggregate client counts across your entire Meraki organization and are linked to the Organization device described above. The client data for these sensors is based on activity within the **last day** (the default timespan for the Meraki API).
 
 - **`Organization SSID Clients`** (`sensor.<org_name>_ssid_clients`):
 - **Description:** Total clients connected to all SSIDs across all networks in the organization.
@@ -153,6 +153,11 @@ These sensors provide aggregate client counts across your entire Meraki organiza
 - **Description:** Total clients that have routed traffic through Meraki security appliances (MX series devices) across the organization.
 - **Unit of Measurement:** `clients`
 - **Icon:** `mdi:server-network`
+
+- **`Organization Client Types`** (`sensor.<org_name>_client_types`):
+- **Description:** A sensor that provides a breakdown of client counts by type (SSID, Appliance, Wireless) for the entire organization. The state of the sensor is the total number of clients, and the individual counts are available as attributes.
+- **Unit of Measurement:** `clients`
+- **Icon:** `mdi:account-group`
 
 ### Camera Entities
 
@@ -191,19 +196,33 @@ These sensors are linked to specific physical Meraki hardware devices.
 
 These sensors are linked to Meraki Network "devices" in Home Assistant.
 
-- **`Network Client Count`** (`sensor.<network_name>_client_count`):
-- **Description:** Shows the number of clients active on a _specific_ Meraki network within a defined timespan.
-- **Note:** This sensor is designed for per-network client counts. For accurate organization-level total client counts, please use the new `Organization SSID Clients`, `Organization Wireless Clients`, or `Organization Appliance Clients` sensors. This sensor relies on the data coordinator providing a specific `network_client_counts` data structure.
+- **`[Network Name] Clients`** (`sensor.<network_name>_clients`):
+- **Description:** Shows the number of clients active on a specific Meraki network.
+- **Note:** This sensor is designed for per-network client counts. For accurate organization-level total client counts, please use the `Organization SSID Clients`, `Organization Wireless Clients`, or `Organization Appliance Clients` sensors.
 
-- _(Details of other network-specific sensors like Network Information for MX would go here.)_
+- **`[Network Name] Network Information`** (`sensor.<network_name>_network_information`):
+- **Description:** A sensor that provides detailed information about the network. The state of the sensor is the network name, and additional details such as notes, tags, and time zone are available as attributes.
+
+- **`[Network Name] Network Identity`** (`sensor.<network_name>_network_identity`):
+- **Description:** A sensor that provides basic identity information about the network. The state of the sensor is the network name, and the network ID and type are available as attributes.
+
+### VLAN Sensors
+
+For each VLAN configured in a network, the following sensors are created:
+
+- **`[VLAN Name] Subnet`** (`sensor.<vlan_name>_subnet`):
+- **Description:** Shows the subnet of the VLAN.
+
+- **`[VLAN Name] Appliance IP`** (`sensor.<vlan_name>_appliance_ip`):
+- **Description:** Shows the appliance IP address for the VLAN.
 
 ### Appliance Port Sensors
 
-These sensors are linked to Meraki MX security appliance "devices" in Home Assistant.
+For each port on a Meraki MX security appliance, a sensor is created to monitor its status.
 
 | Entity Type | Name | Description | Availability |
 | :--- | :--- | :--- | :--- |
-| Sensor | `[Appliance Name] Port [Port Number]` | Shows the status of a specific port on a Meraki appliance. The state will be "connected" or "disconnected". | Meraki MX Appliances |
+| `sensor` | `[Appliance Name] Port [Port Number]` | Shows the status of a specific port on a Meraki appliance. The state can be "connected", "disconnected", or "disabled". Additional attributes include link speed, VLAN, type, and access policy. | Meraki MX Appliances |
 
 ### SSID Sensors
 
@@ -222,8 +241,15 @@ These sensors are linked to Meraki SSID "devices" in Home Assistant.
 | `sensor`    | `[SSID Name] Per-SSID Bandwidth Limit Up` | The total upload bandwidth limit in Kbps. | Meraki Wireless SSIDs |
 | `sensor`    | `[SSID Name] Per-SSID Bandwidth Limit Down` | The total download bandwidth limit in Kbps. | Meraki Wireless SSIDs |
 | `sensor`    | `[SSID Name] Visible` | Whether the SSID is advertised or hidden. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Availability` | Whether the SSID is enabled or disabled. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Channel` | The current operational channel of the SSID. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Client Count` | The number of clients connected to the SSID. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Walled Garden` | Whether the walled garden is enabled or disabled. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Mandatory DHCP` | Whether mandatory DHCP is enabled or disabled. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Minimum Bitrate 2.4GHz` | The minimum bitrate for the 2.4GHz band. | Meraki Wireless SSIDs |
+| `sensor`    | `[SSID Name] Minimum Bitrate 5GHz` | The minimum bitrate for the 5GHz band. | Meraki Wireless SSIDs |
 
-## Automation Examples
+## Automation Examples 🚀
 
 Here are a few examples of how you can use the entities from this integration in your Home Assistant automations.
 
@@ -263,7 +289,7 @@ automation:
           entity_id: light.guest_room_lamp
 ```
 
-## Troubleshooting
+## Troubleshooting 🆘
 
 ### Common Issues
 
@@ -306,17 +332,17 @@ This project uses an automated versioning and release process triggered by mergi
 
 Please ensure your PR titles are descriptive and include the appropriate prefix if you intend to trigger a specific type of version bump.
 
-## Dependencies
+## Dependencies 📦
 
 - `meraki`: The official Meraki SDK for Python, used for all API interactions.
 - `aiohttp`: Used by the Meraki SDK for asynchronous HTTP requests.
 
-## Known Issues
+## Known Issues ⚠️
 
 - **API Rate Limits:** Frequent polling with a short scan interval on large networks can lead to exceeding Meraki API rate limits. Adjust the scan interval appropriately.
 - **SSID Control:** Enabling/disabling SSIDs is managed by adding/removing specific tags on access points, not by direct administrative status change of the SSID. This is an indirect control method and relies on consistent tag management.
 - **Radio profiles might not be available or fully detailed for all wireless device models through the currently used API endpoints.**
 
-## Disclaimer
+## Disclaimer 📜
 
 This is a custom Home Assistant integration. It is not officially endorsed or supported by Cisco Meraki or Home Assistant. Use at your own risk.
