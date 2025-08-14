@@ -177,7 +177,15 @@ To view the camera stream, you must enable the RTSP (Real-Time Streaming Protoco
 
 These sensors are linked to specific physical Meraki hardware devices.
 
-- _(Details of existing physical device sensors like status, uplink, firmware, etc., would go here. This section can be expanded as other sensors are documented.)_
+| Entity Type | Name | Description | Availability |
+| :--- | :--- | :--- | :--- |
+| `sensor` | `[Device Name] Status` | Shows the current status of the device (e.g., "online", "offline"). | All |
+| `sensor` | `[Device Name] Connected Clients` | The number of clients currently connected to the device. | Wireless APs, Switches, Appliances |
+| `sensor` | `[Device Name] Data Usage` | The total data usage for the device in the last day. | Appliances |
+| `sensor` | `[Device Name] Firmware Status` | Indicates if a firmware update is available. | All |
+| `sensor` | `[Device Name] PoE Usage` | The total PoE power being consumed by the device. | Switches |
+| `sensor` | `[Device Name] WAN 1 Connectivity` | The connectivity status of the WAN 1 port. | Appliances |
+| `sensor` | `[Device Name] WAN 2 Connectivity` | The connectivity status of the WAN 2 port. | Appliances |
 
 ### Network Sensors
 
@@ -215,6 +223,46 @@ These sensors are linked to Meraki SSID "devices" in Home Assistant.
 | `sensor`    | `[SSID Name] Per-SSID Bandwidth Limit Down` | The total download bandwidth limit in Kbps. | Meraki Wireless SSIDs |
 | `sensor`    | `[SSID Name] Visible` | Whether the SSID is advertised or hidden. | Meraki Wireless SSIDs |
 
+## Automation Examples
+
+Here are a few examples of how you can use the entities from this integration in your Home Assistant automations.
+
+### Notify when a device goes offline
+
+This automation sends a notification to your phone when a Meraki device goes offline.
+
+```yaml
+automation:
+  - alias: "Notify when Meraki device goes offline"
+    trigger:
+      - platform: state
+        entity_id:
+          - sensor.my_access_point_status
+          - sensor.my_switch_status
+        to: "offline"
+    action:
+      - service: notify.mobile_app_my_phone
+        data:
+          message: "{{ trigger.to_state.name }} has gone offline."
+```
+
+### Turn on a light when a client connects to a specific SSID
+
+This automation turns on a light when a new client connects to your guest SSID.
+
+```yaml
+automation:
+  - alias: "Turn on light when guest connects"
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.my_guest_ssid_client_count
+        above: 0
+    action:
+      - service: light.turn_on
+        target:
+          entity_id: light.guest_room_lamp
+```
+
 ## Troubleshooting
 
 ### Common Issues
@@ -230,6 +278,12 @@ If you receive a "Cannot connect" error, it means that Home Assistant is unable 
 #### API Rate Limits
 
 The Meraki API has rate limits that restrict the number of API calls that can be made in a given time period. If you have a large number of devices or a short scan interval, you may exceed these rate limits. If this happens, you will see errors in the Home Assistant logs. To resolve this, you can increase the scan interval in the integration's options.
+
+#### Feature Disabled Errors
+
+Some sensors, such as VLAN and traffic analysis sensors, require specific features to be enabled in your Meraki dashboard. If a required feature is not enabled, you may see errors in the Home Assistant logs, and the corresponding sensors will show a "Disabled" state.
+
+To resolve this, you need to enable the required feature in your Meraki dashboard. For example, to use the traffic analysis sensors, you need to enable "Traffic Analysis with Hostname Visibility" for the network. To use the VLAN sensors, you need to have VLANs enabled for the network.
 
 ### Getting Help
 

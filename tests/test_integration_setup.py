@@ -9,16 +9,22 @@ from homeassistant.helpers.device_registry import async_get as async_get_device_
 from homeassistant.config_entries import ConfigEntryState
 
 from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki_ha import async_setup_entry
+
+
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 
 @pytest.fixture
-def mock_config_entry():
+async def mock_config_entry(hass):
     """Fixture for a mocked config entry."""
-    entry = MagicMock()
-    entry.data = {"meraki_api_key": "fake_key", "meraki_org_id": "fake_org"}
-    entry.options = {}
-    entry.entry_id = "test_entry"
-    entry.state = ConfigEntryState.LOADED
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={"meraki_api_key": "fake_key", "meraki_org_id": "fake_org"},
+        options={},
+        entry_id="test_entry",
+    )
+    await hass.config_entries.async_add(entry)
     return entry
 
 
@@ -54,13 +60,13 @@ async def test_ssid_device_creation_and_unification(
 ):
     """Test that a single device is created for an SSID with all its entities."""
 
-    mock_config_entry.add_to_hass(hass)
-
     with patch(
         "custom_components.meraki_ha.MerakiAPIClient", return_value=mock_meraki_client
-    ), patch("custom_components.meraki_ha.async_unload_entry", return_value=True):
+    ), patch(
+        "custom_components.meraki_ha.async_register_webhook"
+    ) as mock_register_webhook:
         # Set up the component
-        assert await async_setup_component(hass, DOMAIN, {})
+        assert await async_setup_entry(hass, mock_config_entry)
         await hass.async_block_till_done()
 
         # Get the device registry

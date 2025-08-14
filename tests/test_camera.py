@@ -1,6 +1,6 @@
 """Tests for the Meraki camera platform."""
 
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -67,7 +67,7 @@ async def test_camera_entity(hass: HomeAssistant, mock_device_coordinator):
         DATA_CLIENT: AsyncMock(),
     }
 
-    async_add_entities = AsyncMock()
+    async_add_entities = MagicMock()
 
     await async_setup_entry(hass, config_entry, async_add_entities)
     await hass.async_block_till_done()
@@ -129,7 +129,7 @@ async def test_camera_auto_enable_rtsp(hass: HomeAssistant, mock_device_coordina
         DATA_CLIENT: mock_api_client,
     }
 
-    async_add_entities = AsyncMock()
+    async_add_entities = MagicMock()
 
     await async_setup_entry(hass, config_entry, async_add_entities)
     await hass.async_block_till_done()
@@ -162,7 +162,7 @@ async def test_camera_use_lan_ip_for_rtsp(hass: HomeAssistant, mock_device_coord
         DATA_CLIENT: AsyncMock(),
     }
 
-    async_add_entities = AsyncMock()
+    async_add_entities = MagicMock()
 
     await async_setup_entry(hass, config_entry, async_add_entities)
     await hass.async_block_till_done()
@@ -214,7 +214,7 @@ async def test_camera_mv2_no_rtsp_stream(hass: HomeAssistant, mock_device_coordi
         DATA_CLIENT: AsyncMock(),
     }
 
-    async_add_entities = AsyncMock()
+    async_add_entities = MagicMock()
 
     await async_setup_entry(hass, config_entry, async_add_entities)
     await hass.async_block_till_done()
