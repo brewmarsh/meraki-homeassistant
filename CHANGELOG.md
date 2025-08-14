@@ -1,3 +1,12 @@
+## [1.2.3](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.2.2...v1.2.3) (2025-08-14)
+
+
+### Features
+
+* Generate system requirements document ([d789377](https://github.com/brewmarsh/meraki-homeassistant/commit/d789377e8e64a2fcdfc5bf1771ba73e597a71442))
+
+
+
 ## [1.2.2](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.2.1...v1.2.2) (2025-08-13)
 
 
