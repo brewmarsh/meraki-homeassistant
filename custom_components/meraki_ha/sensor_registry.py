@@ -14,11 +14,6 @@ from .sensor.device.meraki_firmware_status import MerakiFirmwareStatusSensor
 from .sensor.device.data_usage import MerakiDataUsageSensor
 from .sensor.device.poe_usage import MerakiPoeUsageSensor
 
-# Camera-specific sensors from new modules
-from .sensor.device.camera_sense_status import MerakiCameraSenseStatusSensor
-from .sensor.device.camera_audio_detection import MerakiCameraAudioDetectionSensor
-from .sensor.device.camera_rtsp_url import MerakiCameraRTSPUrlSensor
-
 
 SensorClassList = List[Type[Entity]]
 
