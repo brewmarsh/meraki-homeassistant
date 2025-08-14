@@ -18,7 +18,11 @@ from .endpoints.network import NetworkEndpoints
 from .endpoints.organization import OrganizationEndpoints
 from .endpoints.switch import SwitchEndpoints
 from .endpoints.wireless import WirelessEndpoints
-from ...core.errors import MerakiAuthenticationError, MerakiConnectionError
+from ...core.errors import (
+    MerakiAuthenticationError,
+    MerakiConnectionError,
+    MerakiNetworkError,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,19 +62,31 @@ class MerakiAPIClient:
         self.switch = SwitchEndpoints(self)
         self.wireless = WirelessEndpoints(self)
 
+        # Semaphore to limit concurrent API calls
+        self._semaphore = asyncio.Semaphore(10)
+
     async def _run_sync(self, func, *args, **kwargs) -> Any:
         """Run a synchronous function in a thread pool."""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, partial(func, *args, **kwargs))
 
+    async def _run_with_semaphore(self, coro):
+        """Run a coroutine with the semaphore."""
+        async with self._semaphore:
+            return await coro
+
     async def get_all_data(self) -> dict:
         """Fetch all data from the Meraki API concurrently."""
         # Initial data fetch
         initial_tasks = [
-            self.organization.get_organization_networks(),
-            self.organization.get_organization_devices(),
-            self.organization.get_organization_devices_availabilities(),
-            self.organization.get_organization_appliance_uplink_statuses(),
+            self._run_with_semaphore(self.organization.get_organization_networks()),
+            self._run_with_semaphore(self.organization.get_organization_devices()),
+            self._run_with_semaphore(
+                self.organization.get_organization_devices_availabilities()
+            ),
+            self._run_with_semaphore(
+                self.organization.get_organization_appliance_uplink_statuses()
+            ),
         ]
 
         (
@@ -96,7 +112,7 @@ class MerakiAPIClient:
 
         # Fetch detailed data concurrently
         client_tasks = [
-            self.network.get_network_clients(network["id"])
+            self._run_with_semaphore(self.network.get_network_clients(network["id"]))
             for network in networks
             if isinstance(network, dict) and "id" in network
         ]
@@ -112,40 +128,54 @@ class MerakiAPIClient:
         detail_tasks = {}
         for network in networks:
             if isinstance(network, dict) and "id" in network:
-                detail_tasks[f"ssids_{network['id']}"] = self.wireless.get_network_ssids(
-                    network["id"]
+                detail_tasks[
+                    f"ssids_{network['id']}"
+                ] = self._run_with_semaphore(
+                    self.wireless.get_network_ssids(network["id"])
                 )
                 if "appliance" in network.get("productTypes", []):
                     detail_tasks[
                         f"traffic_{network['id']}"
-                    ] = self.network.get_network_traffic(network["id"], "appliance")
-                    detail_tasks[f"vlans_{network['id']}"] = self.appliance.get_vlans(
-                        network["id"]
+                    ] = self._run_with_semaphore(
+                        self.network.get_network_traffic(network["id"], "appliance")
                     )
+                    detail_tasks[
+                        f"vlans_{network['id']}"
+                    ] = self._run_with_semaphore(self.appliance.get_vlans(network["id"]))
                 if "wireless" in network.get("productTypes", []):
                     detail_tasks[
                         f"rf_profiles_{network['id']}"
-                    ] = self.wireless.get_network_wireless_rf_profiles(network["id"])
+                    ] = self._run_with_semaphore(
+                        self.wireless.get_network_wireless_rf_profiles(network["id"])
+                    )
 
         for device in devices:
             if isinstance(device, dict) and "serial" in device:
                 if device.get("productType") == "wireless":
                     detail_tasks[
                         f"wireless_settings_{device['serial']}"
-                    ] = self.wireless.get_wireless_settings(device["serial"])
+                    ] = self._run_with_semaphore(
+                        self.wireless.get_wireless_settings(device["serial"])
+                    )
                 elif device.get("productType") == "camera":
                     detail_tasks[
                         f"video_settings_{device['serial']}"
-                    ] = self.camera.get_camera_video_settings(device["serial"])
+                    ] = self._run_with_semaphore(
+                        self.camera.get_camera_video_settings(device["serial"])
+                    )
                 elif device.get("productType") == "switch":
                     detail_tasks[
                         f"ports_statuses_{device['serial']}"
-                    ] = self.switch.get_device_switch_ports_statuses(device["serial"])
+                    ] = self._run_with_semaphore(
+                        self.switch.get_device_switch_ports_statuses(device["serial"])
+                    )
                 elif device.get("productType") == "appliance":
                     detail_tasks[
                         f"appliance_settings_{device['serial']}"
-                    ] = self.appliance.get_network_appliance_settings(
-                        device["networkId"]
+                    ] = self._run_with_semaphore(
+                        self.appliance.get_network_appliance_settings(
+                            device["networkId"]
+                        )
                     )
 
         detail_results = await asyncio.gather(
@@ -172,10 +202,21 @@ class MerakiAPIClient:
                             ssid["networkId"] = network["id"]
                             ssids.append(ssid)
                 network_traffic = detail_data.get(f"traffic_{network['id']}")
-                if network_traffic and not isinstance(network_traffic, Exception):
+                if isinstance(network_traffic, MerakiNetworkError):
+                    appliance_traffic[network["id"]] = {
+                        "error": "disabled",
+                        "reason": str(network_traffic),
+                    }
+                elif network_traffic and not isinstance(network_traffic, Exception):
                     appliance_traffic[network["id"]] = network_traffic
+
                 network_vlans = detail_data.get(f"vlans_{network['id']}")
-                if network_vlans and not isinstance(network_vlans, Exception):
+                if isinstance(network_vlans, MerakiNetworkError):
+                    vlan_by_network[network["id"]] = {
+                        "error": "disabled",
+                        "reason": str(network_vlans),
+                    }
+                elif network_vlans and not isinstance(network_vlans, Exception):
                     vlan_by_network[network["id"]] = network_vlans
                 network_rf_profiles = detail_data.get(f"rf_profiles_{network['id']}")
                 if network_rf_profiles and not isinstance(
