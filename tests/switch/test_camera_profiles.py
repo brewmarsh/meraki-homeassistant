@@ -20,7 +20,7 @@ def mock_device_coordinator():
                 "name": "Camera",
                 "model": "MV12",
                 "productType": "camera",
-                "senseEnabled": True,
+                "sense": {"senseEnabled": True},
                 "audioDetection": {"enabled": True},
             }
         ]
@@ -32,7 +32,8 @@ def mock_device_coordinator():
 def mock_api_client():
     """Fixture for a mocked MerakiAPIClient."""
     client = MagicMock()
-    client.update_camera_sense_settings = AsyncMock()
+    client.camera = MagicMock()
+    client.camera.update_camera_sense_settings = AsyncMock()
     return client
 
 
@@ -46,8 +47,24 @@ async def test_camera_sense_switch(mock_device_coordinator, mock_api_client):
     assert switch.name == "MV Sense"
     assert switch.is_on is True
 
-    # This test is now covered by the base class test
-    pass
+    await switch.async_turn_off()
+    mock_api_client.camera.update_camera_sense_settings.assert_called_once_with(
+        serial="cam1", senseEnabled=False
+    )
+    mock_device_coordinator.async_request_refresh.assert_called_once()
+
+    mock_api_client.camera.update_camera_sense_settings.reset_mock()
+    mock_device_coordinator.async_request_refresh.reset_mock()
+
+    # Simulate the coordinator updating the state
+    mock_device_coordinator.data["devices"][0]["sense"]["senseEnabled"] = False
+    assert switch.is_on is False
+
+    await switch.async_turn_on()
+    mock_api_client.camera.update_camera_sense_settings.assert_called_once_with(
+        serial="cam1", senseEnabled=True
+    )
+    mock_device_coordinator.async_request_refresh.assert_called_once()
 
 
 async def test_camera_audio_detection_switch(mock_device_coordinator, mock_api_client):
