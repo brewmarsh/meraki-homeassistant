@@ -23,6 +23,7 @@ from .network.vlan import MerakiVLANSubnetSensor, MerakiVLANApplianceIpSensor
 from .device.appliance_uplink import MerakiApplianceUplinkSensor
 from .client_tracker import ClientTrackerDeviceSensor, MerakiClientSensor
 from ..const import CONF_ENABLE_DEVICE_TRACKER
+from .setup_mt_sensors import async_setup_mt_sensors
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -66,7 +67,9 @@ def async_setup_sensors(
 
         # Product-type specific sensors
         product_type = device_info.get("productType")
-        if product_type:
+        if product_type == "sensor":
+            entities.extend(async_setup_mt_sensors(coordinator, device_info))
+        elif product_type:
             for sensor_class in get_sensors_for_device_type(product_type):
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
