@@ -37,11 +37,7 @@ SENSOR_REGISTRY: Dict[str, SensorClassList] = {
     "switch": [
         MerakiPoeUsageSensor,
     ],
-    "camera": [
-        MerakiCameraSenseStatusSensor,
-        MerakiCameraAudioDetectionSensor,
-        MerakiCameraRTSPUrlSensor,
-    ],
+    "camera": [],
     "sensor": [],
 }
 

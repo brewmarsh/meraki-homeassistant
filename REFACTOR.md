@@ -183,3 +183,27 @@ The test suite is not comprehensive and some tests are failing. The following st
 There are several `TODO` comments in the codebase that should be addressed.
 
 - **Address TODOs:** Review all `TODO` comments and create issues for them in the GitHub repository. This will ensure that they are not forgotten and that they are addressed in a timely manner.
+
+## 9. Mypy Compliance Issues
+
+### Problem
+
+The `mypy` static type checker fails when analyzing `custom_components/meraki_ha/sensor/setup_helpers.py`. It reports errors like:
+
+- `error: Too many arguments for "Entity"  [call-arg]`
+- `error: Incompatible types in assignment (expression has type "ABCCachedProperties", variable has type "type[Entity]")  [assignment]`
+
+These errors occur in the loops that dynamically instantiate sensor entities. The root cause is `mypy`'s inability to statically analyze the use of `inspect.signature()` to determine the parameters of a sensor's `__init__` method. `mypy` cannot follow this dynamic check and incorrectly infers the type of the sensor class variable, leading to spurious errors.
+
+### Proposed Solution
+
+To make the sensor setup logic fully type-safe and compliant with `mypy`, the dynamic `inspect.signature()` calls should be removed and replaced with an explicit, declarative approach.
+
+The proposed refactoring involves:
+
+1.  **Manual Inspection:** Analyze the `__init__` method of every sensor class defined in the integration.
+2.  **Categorize Sensors:** Group the sensor classes based on their constructor signature. For example, create separate lists for sensors that require `(coordinator, device_info)` and those that require `(coordinator, device_info, config_entry)`.
+3.  **Update `sensor_registry.py`:** Modify the `SENSOR_REGISTRY` or create new data structures to store these categorized lists of sensors.
+4.  **Refactor `setup_helpers.py`:** Replace the single, dynamic loop with multiple, explicit loops. Each new loop will iterate over a specific list of sensor classes and call their constructors with the correct, hard-coded set of arguments.
+
+This refactoring will remove the ambiguity that confuses `mypy`, resulting in a more robust and maintainable sensor setup process that can be fully validated by the type checker.

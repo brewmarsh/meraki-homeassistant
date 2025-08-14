@@ -3,6 +3,7 @@
 import logging
 from typing import Any, Dict, Optional
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -26,7 +27,7 @@ class MerakiCameraSenseStatusSensor(
         self,
         coordinator: MerakiDataCoordinator,
         device_data: Dict[str, Any],
-        config_entry: Dict[str, Any],
+        config_entry: ConfigEntry,
     ) -> None:
         """Initialize the Meraki Camera Sense Status sensor."""
         super().__init__(coordinator)
@@ -97,7 +98,4 @@ class MerakiCameraSenseStatusSensor(
         if not current_device_data:
             return False
 
-        if "senseEnabled" not in current_device_data:
-            return False
-
-        return True
+        return current_device_data.get("senseEnabled") is not None

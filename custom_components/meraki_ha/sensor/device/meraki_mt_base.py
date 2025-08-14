@@ -1,7 +1,7 @@
 """Base class for Meraki MT sensor entities."""
 
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import callback
@@ -54,7 +54,7 @@ class MerakiMtSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
                 return
 
     @property
-    def native_value(self) -> float | bool | None:
+    def native_value(self) -> Union[float, bool, None]:
         """Return the state of the sensor."""
         readings = self._device.get("readings")
         if not readings or not isinstance(readings, list):

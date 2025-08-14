@@ -1,6 +1,6 @@
 """Utility functions for naming Meraki devices and entities."""
 
-from typing import Any, Dict
+from typing import Any, Dict, Mapping
 
 from ...const import (
     CONF_DEVICE_NAME_FORMAT,
@@ -16,7 +16,7 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 
-def format_device_name(device: Dict[str, Any], config: Dict[str, Any]) -> str:
+def format_device_name(device: Dict[str, Any], config: Mapping[str, Any]) -> str:
     """Format the device name based on the user's preference."""
     name = device.get("name")
     if not name:

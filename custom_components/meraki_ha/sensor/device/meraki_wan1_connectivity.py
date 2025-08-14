@@ -1,7 +1,7 @@
 """Sensor for Meraki WAN1 Connectivity."""
 
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -49,7 +49,7 @@ class MerakiWAN1ConnectivitySensor(
         )
         self._update_state()
 
-    def _get_current_device_data(self) -> Dict[str, Any] | None:
+    def _get_current_device_data(self) -> Optional[Dict[str, Any]]:
         """Retrieve the latest data for this sensor's device from the coordinator."""
         if self.coordinator.data and self.coordinator.data.get("devices"):
             for device in self.coordinator.data["devices"]:

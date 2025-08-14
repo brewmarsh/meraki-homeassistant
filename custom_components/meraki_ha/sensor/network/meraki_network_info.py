@@ -1,9 +1,10 @@
 """Sensor for Meraki Device Network Information."""
 
 import logging
-from typing import Any, Dict  # List removed
+from typing import Any, Dict
 
 from homeassistant.components.sensor import SensorEntity
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -25,7 +26,7 @@ class MerakiNetworkInfoSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEn
         self,
         coordinator: MerakiDataCoordinator,
         network_data: Dict[str, Any],
-        config_entry: Dict[str, Any],
+        config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)

@@ -1,7 +1,7 @@
 """Webhook handling for the Meraki integration."""
 
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import get_url
@@ -14,7 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def get_webhook_url(
-    hass: HomeAssistant, webhook_id: str, entry_webhook_url: str | None = None
+    hass: HomeAssistant, webhook_id: str, entry_webhook_url: Optional[str] = None
 ) -> str:
     """Get the URL for a webhook.
 

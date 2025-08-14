@@ -144,7 +144,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
             manufacturer="Cisco Meraki",
         )
 
-    async def stream_source(self) -> str | None:
+    async def stream_source(self) -> Optional[str]:
         """Return the source of the stream."""
         return self._rtsp_url
 
@@ -188,14 +188,14 @@ class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
         return self._rtsp_url is not None
 
     @property
-    def entity_picture(self) -> str | None:
+    def entity_picture(self) -> Optional[str]:
         """Return the entity picture to use in the frontend, if any."""
         if not self.access_tokens:
             return None
         return super().entity_picture
 
     @property
-    def state_attributes(self) -> dict[str, Any] | None:
+    def state_attributes(self) -> Optional[Dict[str, Any]]:
         """Return the state attributes."""
         attrs = {}
         if self.is_streaming and self.access_tokens:
@@ -236,7 +236,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
                 self.async_write_ha_state()
                 return
 
-    async def async_stream(self) -> dict:
+    async def async_stream(self) -> Optional[dict]:
         """Return streaming information."""
         if not self._rtsp_url:
             return {}
