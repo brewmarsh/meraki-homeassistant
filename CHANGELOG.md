@@ -1,3 +1,21 @@
+# [1.3.0](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.2.3...v1.3.0) (2025-08-14)
+
+
+### Bug Fixes
+
+* Correct MV audio detection toggle functionality ([f0c82cc](https://github.com/brewmarsh/meraki-homeassistant/commit/f0c82cc2c9a095414b80bdd1578da6dc6443abbe))
+* Correct MV Sense toggle functionality ([c749987](https://github.com/brewmarsh/meraki-homeassistant/commit/c749987b313992c087f5f853340bc880251eb97e))
+* Remove unused imports ([20a391c](https://github.com/brewmarsh/meraki-homeassistant/commit/20a391ccfa6fc95e0c730f012d8eb7629f4e61be))
+* Remove unused imports from sensor_registry ([2a175aa](https://github.com/brewmarsh/meraki-homeassistant/commit/2a175aac91477703dbe9c30cc9a20daa875a5b2b))
+* Resolve multiple mypy errors and a TypeError ([1b7f1a3](https://github.com/brewmarsh/meraki-homeassistant/commit/1b7f1a3fcae3a333201c1e5d46dcd6ff405ace4c))
+
+
+### Features
+
+* Disable RTSP for MV2 cameras ([0f501df](https://github.com/brewmarsh/meraki-homeassistant/commit/0f501dfdc5f386283ffd6b323e0ef64d60b3e8cf))
+
+
+
 ## [1.2.3](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.2.2...v1.2.3) (2025-08-14)
 
 
