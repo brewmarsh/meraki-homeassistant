@@ -16,6 +16,7 @@ from homeassistant.components.sensor import (
 
 # Added callback for coordinator updates
 from homeassistant.core import callback
+from homeassistant.config_entries import ConfigEntry
 
 # from homeassistant.helpers.entity import EntityDescription # No longer needed
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -52,7 +53,7 @@ class MerakiDeviceStatusSensor(CoordinatorEntity[MerakiDataCoordinator], SensorE
         self,
         coordinator: MerakiDataCoordinator,
         device_data: Dict[str, Any],  # Initial device_data snapshot
-        config_entry: Dict[str, Any],
+        config_entry: ConfigEntry,
     ) -> None:
         """Initialize the Meraki Device Status sensor.
 

@@ -1,7 +1,7 @@
 """Sensor for Meraki Device Firmware Status."""
 
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
@@ -50,7 +50,7 @@ class MerakiFirmwareStatusSensor(
         self._attr_extra_state_attributes: Dict[str, Any] = {}
         self._update_state()
 
-    def _get_current_device_data(self) -> Dict[str, Any] | None:
+    def _get_current_device_data(self) -> Optional[Dict[str, Any]]:
         """Retrieve the latest data for this sensor's device from the coordinator."""
         if self.coordinator.data and self.coordinator.data.get("devices"):
             for device in self.coordinator.data["devices"]:

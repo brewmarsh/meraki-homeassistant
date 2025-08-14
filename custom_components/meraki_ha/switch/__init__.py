@@ -66,9 +66,12 @@ async def async_setup_entry(
                         MerakiCameraAudioDetectionSwitch(
                             coordinator, meraki_client, device_info
                         ),
-                        MerakiCameraRTSPSwitch(coordinator, meraki_client, device_info),
                     ]
                 )
+                if not model.startswith("MV2"):
+                    new_entities.append(
+                        MerakiCameraRTSPSwitch(coordinator, meraki_client, device_info),
+                    )
     else:
         _LOGGER.info(
             "No camera devices found or main coordinator data missing for camera switches."

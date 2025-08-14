@@ -13,16 +13,6 @@ from .sensor.device.meraki_wan2_connectivity import MerakiWAN2ConnectivitySensor
 from .sensor.device.meraki_firmware_status import MerakiFirmwareStatusSensor
 from .sensor.device.data_usage import MerakiDataUsageSensor
 from .sensor.device.poe_usage import MerakiPoeUsageSensor
-from .sensor.device.mt_environmental import (
-    MerakiTemperatureSensor,
-    MerakiHumiditySensor,
-    MerakiWaterDetectionSensor,
-)
-
-# Camera-specific sensors from new modules
-from .sensor.device.camera_sense_status import MerakiCameraSenseStatusSensor
-from .sensor.device.camera_audio_detection import MerakiCameraAudioDetectionSensor
-from .sensor.device.camera_rtsp_url import MerakiCameraRTSPUrlSensor
 
 
 SensorClassList = List[Type[Entity]]
@@ -42,16 +32,8 @@ SENSOR_REGISTRY: Dict[str, SensorClassList] = {
     "switch": [
         MerakiPoeUsageSensor,
     ],
-    "camera": [
-        MerakiCameraSenseStatusSensor,
-        MerakiCameraAudioDetectionSensor,
-        MerakiCameraRTSPUrlSensor,
-    ],
-    "sensor": [
-        MerakiTemperatureSensor,
-        MerakiHumiditySensor,
-        MerakiWaterDetectionSensor,
-    ],
+    "camera": [],
+    "sensor": [],
 }
 
 COMMON_DEVICE_SENSORS: SensorClassList = [

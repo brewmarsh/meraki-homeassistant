@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import timedelta
 import logging
 
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from ...const import DOMAIN
@@ -16,7 +18,13 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiDataCoordinator(DataUpdateCoordinator):
     """A centralized coordinator for Meraki API data."""
 
-    def __init__(self, hass, api_client: ApiClient, scan_interval: int, config_entry):
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        api_client: ApiClient,
+        scan_interval: int,
+        config_entry: ConfigEntry,
+    ) -> None:
         """Initialize the coordinator."""
         super().__init__(
             hass,

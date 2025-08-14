@@ -2,7 +2,7 @@
 
 import logging
 import inspect
-from typing import List, Set
+from typing import List, Set, Type, cast
 
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
@@ -33,7 +33,7 @@ def async_setup_sensors(
     coordinator: MerakiDataCoordinator,
 ) -> List[Entity]:
     """Set up all sensor entities from the central coordinator."""
-    entities = []
+    entities: List[Entity] = []
     added_entities: Set[str] = set()
 
     if not coordinator.data:
@@ -51,7 +51,8 @@ def async_setup_sensors(
         device_info["name"] = device_info.get("name") or f"Meraki Device {serial}"
 
         # Common sensors for all devices
-        for sensor_class in COMMON_DEVICE_SENSORS:
+        for sensor_class_item in COMMON_DEVICE_SENSORS:
+            sensor_class = cast(Type[Entity], sensor_class_item)
             unique_id = f"{serial}_{sensor_class.__name__}"
             if unique_id not in added_entities:
                 # Check if the sensor class requires config_entry
@@ -67,7 +68,8 @@ def async_setup_sensors(
         # Product-type specific sensors
         product_type = device_info.get("productType")
         if product_type:
-            for sensor_class in get_sensors_for_device_type(product_type):
+            for sensor_class_item in get_sensors_for_device_type(product_type):
+                sensor_class = cast(Type[Entity], sensor_class_item)
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
                     sig = inspect.signature(sensor_class.__init__)

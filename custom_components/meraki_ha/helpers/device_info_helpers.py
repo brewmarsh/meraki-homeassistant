@@ -3,6 +3,7 @@
 import logging
 from typing import Any, Dict, Optional
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..const import DOMAIN
@@ -13,7 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def resolve_device_info(
     entity_data: Dict[str, Any],
-    config_entry: Dict[str, Any],
+    config_entry: ConfigEntry,
     ssid_data: Optional[Dict[str, Any]] = None,
 ) -> Optional[DeviceInfo]:
     """

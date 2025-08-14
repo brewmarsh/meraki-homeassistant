@@ -49,7 +49,7 @@ def test_switch_port_sensor(mock_data_coordinator):
     assert sensor1.name == "Port 1 Status"
     assert sensor1.native_value == "connected"
     assert sensor1.extra_state_attributes["speed"] == "1 Gbps"
-    assert sensor1.device_info["name"] == "My Switch"
+    assert sensor1.device_info["name"] == "[Switch] My Switch"
 
     # Test port 2
     port2_data = device_data["ports_statuses"][1]

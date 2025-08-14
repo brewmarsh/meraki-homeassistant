@@ -10,7 +10,7 @@ from functools import partial
 import logging
 from typing import Any
 
-import meraki
+import meraki  # type: ignore[import-untyped]
 
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints

@@ -63,9 +63,17 @@ class MerakiCameraSettingSwitchBase(
     async def _async_update_setting(self, is_on: bool) -> None:
         """Update the setting via the Meraki API."""
         try:
-            if "sense" in self._api_field:
+            if self._key == "sense_enabled":
+                param_name = self._api_field.split(".")[-1]
                 await self.client.camera.update_camera_sense_settings(
-                    serial=self._device_data["serial"], **{self._api_field: is_on}
+                    serial=self._device_data["serial"], **{param_name: is_on}
+                )
+            elif self._key == "audio_detection":
+                top_level_key = self._api_field.split(".")[0]
+                nested_key = self._api_field.split(".")[1]
+                payload = {top_level_key: {nested_key: is_on}}
+                await self.client.camera.update_camera_video_settings(
+                    serial=self._device_data["serial"], **payload
                 )
             else:
                 field_name = (
