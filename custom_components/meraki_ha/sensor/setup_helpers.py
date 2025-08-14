@@ -1,7 +1,6 @@
 """Helper function for setting up all sensor entities."""
 
 import logging
-import inspect
 from typing import List, Set, Type, cast
 
 from homeassistant.core import HomeAssistant
@@ -10,7 +9,7 @@ from homeassistant.helpers.entity import Entity
 
 from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ..sensor_registry import (
-    COMMON_DEVICE_SENSORS,
+    COMMON_SENSORS_COORD_DEV_CONF,
     get_sensors_for_device_type,
 )
 from .network.network_clients import MerakiNetworkClientsSensor
@@ -50,35 +49,29 @@ def async_setup_sensors(
 
         device_info["name"] = device_info.get("name") or f"Meraki Device {serial}"
 
-        # Common sensors for all devices
-        for sensor_class_item in COMMON_DEVICE_SENSORS:
-            sensor_class = cast(Type[Entity], sensor_class_item)
+        # Common sensors with (coordinator, device_info, config_entry)
+        for sensor_class in COMMON_SENSORS_COORD_DEV_CONF:
             unique_id = f"{serial}_{sensor_class.__name__}"
             if unique_id not in added_entities:
-                # Check if the sensor class requires config_entry
-                sig = inspect.signature(sensor_class.__init__)
-                if "config_entry" in sig.parameters:
+                entities.append(sensor_class(coordinator, device_info, config_entry))
+                added_entities.add(unique_id)
+
+        product_type = device_info.get("productType")
+        if product_type:
+            # Sensors with (coordinator, device_info, config_entry)
+            for sensor_class in get_sensors_for_device_type(product_type, True):
+                unique_id = f"{serial}_{sensor_class.__name__}"
+                if unique_id not in added_entities:
                     entities.append(
                         sensor_class(coordinator, device_info, config_entry)
                     )
-                else:
-                    entities.append(sensor_class(coordinator, device_info))
-                added_entities.add(unique_id)
+                    added_entities.add(unique_id)
 
-        # Product-type specific sensors
-        product_type = device_info.get("productType")
-        if product_type:
-            for sensor_class_item in get_sensors_for_device_type(product_type):
-                sensor_class = cast(Type[Entity], sensor_class_item)
+            # Sensors with (coordinator, device_info)
+            for sensor_class in get_sensors_for_device_type(product_type, False):
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
-                    sig = inspect.signature(sensor_class.__init__)
-                    if "config_entry" in sig.parameters:
-                        entities.append(
-                            sensor_class(coordinator, device_info, config_entry)
-                        )
-                    else:
-                        entities.append(sensor_class(coordinator, device_info))
+                    entities.append(sensor_class(coordinator, device_info))
                     added_entities.add(unique_id)
 
         # Appliance port sensors

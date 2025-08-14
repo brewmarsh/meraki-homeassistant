@@ -1,1 +1,2 @@
 meraki==1.36.0
+protobuf==4.25.3
