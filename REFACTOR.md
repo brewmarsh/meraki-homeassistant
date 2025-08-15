@@ -212,6 +212,14 @@ This refactoring will remove the ambiguity that confuses `mypy`, resulting in a 
 
 There is a failing test in `tests/test_integration_setup.py` that needs to be addressed.
 
+## 11. Known Issues
+
+### Failing Test in `tests/test_integration_setup.py`
+
+The `test_ssid_device_creation_and_unification` test is failing with a `homeassistant.config_entries.OperationNotAllowed` error. This is because the `MockConfigEntry` is not in the `LOADED` state when the test is run. This is caused by a `NoURLAvailableError` being raised during the setup of the integration.
+
+The test needs to be refactored to correctly set up the `MockConfigEntry` and get it into the `LOADED` state before the integration setup is called. This may involve using a different mocking strategy or a more complete setup of the `hass` object.
+
 ### Problem
 
 The `test_ssid_device_creation_and_unification` test is failing with a `homeassistant.config_entries.OperationNotAllowed` error. This is because the `MockConfigEntry` is not in the `LOADED` state when the test is run.
