@@ -30,6 +30,7 @@ class MerakiWebServer:
     def _setup_routes(self):
         """Set up the routes for the web application."""
         static_dir = os.path.join(os.path.dirname(__file__), "web_ui", "dist")
+        assets_dir = os.path.join(static_dir, "assets")
 
         # API routes
         self.app.router.add_get("/api/config", self.handle_api_config)
@@ -38,16 +39,21 @@ class MerakiWebServer:
         self.app.router.add_get("/api/clients", self.handle_api_clients)
         self.app.router.add_get("/api/clients/{client_mac}", self.handle_api_client_detail)
 
-        # Static asset route
-        self.app.router.add_static("/", static_dir, name="static")
+        # Static asset route (for JS, CSS, etc.)
+        self.app.router.add_static("/assets", assets_dir, name="assets")
 
-        # Route for serving index.html for any other path, to support client-side routing
-        self.app.router.add_route("*", "/{path:.*}", self.handle_static)
+        # Serve index.html for the root and any other non-API, non-asset path
+        self.app.router.add_get("/{path:.*}", self.handle_spa)
+        self.app.router.add_get("/", self.handle_spa)
 
-    async def handle_static(self, request: web.Request) -> web.FileResponse:
-        """Serve index.html for SPA routing."""
+
+    async def handle_spa(self, request: web.Request) -> web.FileResponse:
+        """Serve the single-page application's entry point (index.html)."""
         static_dir = os.path.join(os.path.dirname(__file__), "web_ui", "dist")
-        return web.FileResponse(os.path.join(static_dir, "index.html"))
+        index_path = os.path.join(static_dir, "index.html")
+        if os.path.exists(index_path):
+            return web.FileResponse(index_path)
+        return web.Response(text="Web UI files not found. Have you built the frontend?", status=404)
 
     async def handle_api_config(self, request: web.Request) -> web.Response:
         """Handle requests for the integration's configuration."""
@@ -60,6 +66,18 @@ class MerakiWebServer:
         if not self.coordinator.data:
             return web.json_response({"error": "Data not available"}, status=503)
         return web.json_response(self.coordinator.data.get("networks", []))
+
+    async def handle_api_client_detail(self, request: web.Request) -> web.Response:
+        """Handle requests for a single client's data."""
+        client_mac = request.match_info.get("client_mac")
+        if not self.coordinator.data or not client_mac:
+            return web.json_response({"error": "Data not available"}, status=503)
+
+        client = next((c for c in self.coordinator.data.get("clients", []) if c.get("mac") == client_mac), None)
+
+        if client:
+            return web.json_response(client)
+        return web.json_response({"error": "Client not found"}, status=404)
 
     async def handle_api_clients(self, request: web.Request) -> web.Response:
         """Handle requests for client data."""
@@ -79,18 +97,6 @@ class MerakiWebServer:
         if network:
             return web.json_response(network)
         return web.json_response({"error": "Network not found"}, status=404)
-
-    async def handle_api_client_detail(self, request: web.Request) -> web.Response:
-        """Handle requests for a single client's data."""
-        client_mac = request.match_info.get("client_mac")
-        if not self.coordinator.data or not client_mac:
-            return web.json_response({"error": "Data not available"}, status=503)
-
-        client = next((c for c in self.coordinator.data.get("clients", []) if c.get("mac") == client_mac), None)
-
-        if client:
-            return web.json_response(client)
-        return web.json_response({"error": "Client not found"}, status=404)
 
     async def start(self):
         """Start the web server."""
