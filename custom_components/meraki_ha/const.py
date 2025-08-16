@@ -44,8 +44,21 @@ CONF_USE_LAN_IP_FOR_RTSP: Final[str] = "use_lan_ip_for_rtsp"
 CONF_ENABLE_DEVICE_TRACKER: Final[str] = "enable_device_tracker"
 """Configuration key for enabling device tracker (str)."""
 
+CONF_ENABLE_WEB_UI: Final[str] = "enable_web_ui"
+"""Configuration key for enabling the web UI (str)."""
+
+CONF_WEB_UI_PORT: Final[str] = "web_ui_port"
+"""Configuration key for the web UI port (str)."""
+
+
 DEFAULT_WEBHOOK_URL: Final[str] = ""
 """Default webhook URL value (empty string)."""
+
+DEFAULT_ENABLE_WEB_UI: Final[bool] = True
+"""Default value for enabling the web UI (bool)."""
+
+DEFAULT_WEB_UI_PORT: Final[int] = 9988
+"""Default value for the web UI port (int)."""
 
 DATA_SSID_DEVICES_COORDINATOR: Final[str] = (
     "ssid_devices"  # New constant for SSID coordinator key
