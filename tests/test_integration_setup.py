@@ -4,29 +4,20 @@ import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
 
 from homeassistant.core import HomeAssistant
-from homeassistant.setup import async_setup_component
 from homeassistant.helpers.device_registry import async_get as async_get_device_registry
-from homeassistant.config_entries import ConfigEntryState
-
-from custom_components.meraki_ha.const import DOMAIN
-from custom_components.meraki_ha import async_setup_entry
-
-
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.meraki_ha.const import DOMAIN
 
 @pytest.fixture
-async def mock_config_entry(hass):
+def config_entry():
     """Fixture for a mocked config entry."""
-    entry = MockConfigEntry(
+    return MockConfigEntry(
         domain=DOMAIN,
         data={"meraki_api_key": "fake_key", "meraki_org_id": "fake_org"},
         options={},
         entry_id="test_entry",
     )
-    await hass.config_entries.async_add(entry)
-    return entry
-
 
 @pytest.fixture
 def mock_meraki_client():
@@ -52,21 +43,23 @@ def mock_meraki_client():
             "rf_profiles": {},
         }
     )
+    client.unregister_webhook = AsyncMock(return_value=None)
     return client
 
 
 async def test_ssid_device_creation_and_unification(
-    hass: HomeAssistant, mock_config_entry, mock_meraki_client
+    hass: HomeAssistant, config_entry, mock_meraki_client
 ):
     """Test that a single device is created for an SSID with all its entities."""
+    config_entry.add_to_hass(hass)
 
     with patch(
         "custom_components.meraki_ha.MerakiAPIClient", return_value=mock_meraki_client
     ), patch(
-        "custom_components.meraki_ha.async_register_webhook"
-    ) as mock_register_webhook:
+        "custom_components.meraki_ha.async_register_webhook", return_value=None
+    ):
         # Set up the component
-        assert await async_setup_entry(hass, mock_config_entry)
+        assert await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
 
         # Get the device registry
@@ -86,7 +79,7 @@ async def test_ssid_device_creation_and_unification(
         entities = [
             entity
             for entity in hass.states.async_all()
-            if entity.attributes.get("device_id") == ssid_device.id
+            if "device_id" in entity.attributes and entity.attributes.get("device_id") == ssid_device.id
         ]
 
         # Assert that multiple entities have been created for this one device

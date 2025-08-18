@@ -9,7 +9,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from ...const import DOMAIN
+from ...const import (
+    DOMAIN,
+    CONF_IGNORED_NETWORKS,
+    DEFAULT_IGNORED_NETWORKS,
+    CONF_HIDE_UNCONFIGURED_SSIDS,
+    DEFAULT_HIDE_UNCONFIGURED_SSIDS,
+)
 from ...core.api.client import MerakiAPIClient as ApiClient
 
 _LOGGER = logging.getLogger(__name__)
@@ -45,6 +51,27 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
             if not data:
                 _LOGGER.warning("API call to get_all_data returned no data.")
                 raise UpdateFailed("API call returned no data.")
+
+            # Filter ignored networks
+            ignored_networks_str = self.config_entry.options.get(
+                CONF_IGNORED_NETWORKS, DEFAULT_IGNORED_NETWORKS
+            )
+            if ignored_networks_str:
+                ignored_names = {name.strip() for name in ignored_networks_str.split(',')}
+                if data.get("networks"):
+                    data["networks"] = [
+                        n for n in data["networks"] if n.get("name") not in ignored_names
+                    ]
+
+            # Filter unconfigured SSIDs
+            if self.config_entry.options.get(
+                CONF_HIDE_UNCONFIGURED_SSIDS, DEFAULT_HIDE_UNCONFIGURED_SSIDS
+            ):
+                if data.get("ssids"):
+                    data["ssids"] = [
+                        s for s in data["ssids"] if s.get("enabled") is True
+                    ]
+
             return data
         except Exception as err:
             _LOGGER.error("Unexpected error fetching Meraki data: %s", err, exc_info=True)

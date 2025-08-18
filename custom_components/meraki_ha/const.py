@@ -50,6 +50,12 @@ CONF_ENABLE_WEB_UI: Final[str] = "enable_web_ui"
 CONF_WEB_UI_PORT: Final[str] = "web_ui_port"
 """Configuration key for the web UI port (str)."""
 
+CONF_HIDE_UNCONFIGURED_SSIDS: Final[str] = "hide_unconfigured_ssids"
+"""Configuration key for hiding unconfigured SSIDs (str)."""
+
+CONF_IGNORED_NETWORKS: Final[str] = "ignored_networks"
+"""Configuration key for a list of network names to ignore (str)."""
+
 
 DEFAULT_WEBHOOK_URL: Final[str] = ""
 """Default webhook URL value (empty string)."""
@@ -59,6 +65,13 @@ DEFAULT_ENABLE_WEB_UI: Final[bool] = True
 
 DEFAULT_WEB_UI_PORT: Final[int] = 9988
 """Default value for the web UI port (int)."""
+
+DEFAULT_HIDE_UNCONFIGURED_SSIDS: Final[bool] = False
+"""Default value for hiding unconfigured SSIDs (bool)."""
+
+DEFAULT_IGNORED_NETWORKS: Final[str] = ""
+"""Default value for the ignored networks list (str)."""
+
 
 DATA_SSID_DEVICES_COORDINATOR: Final[str] = (
     "ssid_devices"  # New constant for SSID coordinator key

@@ -15,11 +15,15 @@ from .const import (
     CONF_WEBHOOK_URL,
     CONF_ENABLE_WEB_UI,
     CONF_WEB_UI_PORT,
+    CONF_HIDE_UNCONFIGURED_SSIDS,
+    CONF_IGNORED_NETWORKS,
     DEFAULT_DEVICE_NAME_FORMAT,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_WEBHOOK_URL,
     DEFAULT_ENABLE_WEB_UI,
     DEFAULT_WEB_UI_PORT,
+    DEFAULT_HIDE_UNCONFIGURED_SSIDS,
+    DEFAULT_IGNORED_NETWORKS,
     DEVICE_NAME_FORMAT_OPTIONS,
 )
 
@@ -99,6 +103,18 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                             CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT
                         ),
                     ): int,
+                    vol.Optional(
+                        CONF_HIDE_UNCONFIGURED_SSIDS,
+                        default=self.config_entry.options.get(
+                            CONF_HIDE_UNCONFIGURED_SSIDS, DEFAULT_HIDE_UNCONFIGURED_SSIDS
+                        ),
+                    ): bool,
+                    vol.Optional(
+                        CONF_IGNORED_NETWORKS,
+                        default=self.config_entry.options.get(
+                            CONF_IGNORED_NETWORKS, DEFAULT_IGNORED_NETWORKS
+                        ),
+                    ): str,
                 }
             ),
         )
