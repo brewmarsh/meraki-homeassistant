@@ -27,7 +27,7 @@ jobs:
       - name: Checkout repository
         # The 'actions/checkout' action checks out your repository code
         # into the runner's workspace directory (e.g., C:\actions-runner\_work\<repo-name>\<repo-name>).
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Copy files to destination folder
         # 'shell: pwsh' specifies that the following 'run' commands should be executed using PowerShell Core.
