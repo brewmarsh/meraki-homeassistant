@@ -11,13 +11,18 @@ from .const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
+    CONF_ENABLE_WEB_UI,
+    CONF_WEB_UI_PORT,
     DATA_CLIENT,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_ENABLE_WEB_UI,
+    DEFAULT_WEB_UI_PORT,
     DOMAIN,
     PLATFORMS,
 )
 from .core.api.client import MerakiAPIClient
 from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from .web_server import MerakiWebServer
 from .webhook import async_register_webhook, async_unregister_webhook
 
 _LOGGER = logging.getLogger(__name__)
@@ -65,6 +70,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         DATA_CLIENT: api_client,
     }
 
+    # Start the web server if enabled
+    if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
+        port = entry.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
+        server = MerakiWebServer(hass, coordinator, port)
+        await server.start()
+        hass.data[DOMAIN][entry.entry_id]["web_server"] = server
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     if "webhook_id" not in entry.data:
@@ -85,6 +97,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if "webhook_id" in entry.data:
             api_client = hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]
             await async_unregister_webhook(hass, entry.data["webhook_id"], api_client)
+
+        if "web_server" in hass.data[DOMAIN][entry.entry_id]:
+            server = hass.data[DOMAIN][entry.entry_id]["web_server"]
+            await server.stop()
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
