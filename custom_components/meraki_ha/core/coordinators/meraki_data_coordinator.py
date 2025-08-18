@@ -44,6 +44,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
             data = await self.api.get_all_data()
             return data
         except Exception as err:
+            _LOGGER.error("Unexpected error fetching Meraki data: %s", err, exc_info=True)
             raise UpdateFailed(f"Error communicating with API: {err}") from err
 
     def get_device(self, serial: str):
