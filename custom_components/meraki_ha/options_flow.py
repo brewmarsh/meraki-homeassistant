@@ -13,9 +13,13 @@ from .const import (
     CONF_USE_LAN_IP_FOR_RTSP,
     CONF_DEVICE_NAME_FORMAT,
     CONF_WEBHOOK_URL,
+    CONF_ENABLE_WEB_UI,
+    CONF_WEB_UI_PORT,
     DEFAULT_DEVICE_NAME_FORMAT,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_WEBHOOK_URL,
+    DEFAULT_ENABLE_WEB_UI,
+    DEFAULT_WEB_UI_PORT,
     DEVICE_NAME_FORMAT_OPTIONS,
 )
 
@@ -83,6 +87,18 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                             CONF_ENABLE_DEVICE_TRACKER, True
                         ),
                     ): bool,
+                    vol.Optional(
+                        CONF_ENABLE_WEB_UI,
+                        default=self.config_entry.options.get(
+                            CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI
+                        ),
+                    ): bool,
+                    vol.Optional(
+                        CONF_WEB_UI_PORT,
+                        default=self.config_entry.options.get(
+                            CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT
+                        ),
+                    ): int,
                 }
             ),
         )
