@@ -1,24 +1,62 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import Sidebar from './components/Sidebar';
 import DashboardPage from './pages/DashboardPage';
 import NetworkDetailPage from './pages/NetworkDetailPage';
 import ClientDetailPage from './pages/ClientDetailPage';
 
-function App() {
-  return (
-    <div className="bg-gray-100 min-h-screen font-sans">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900">Meraki Control</h1>
-        </div>
-      </header>
+function getTitle(pathname) {
+  if (pathname.startsWith('/networks/')) return 'Network Detail';
+  if (pathname.startsWith('/clients/')) return 'Client Detail';
+  switch (pathname) {
+    case '/':
+      return 'Dashboard';
+    case '/networks':
+      return 'Networks';
+    case '/clients':
+      return 'Clients';
+    case '/settings':
+      return 'Settings';
+    default:
+      return 'Dashboard';
+  }
+}
 
-      <Routes>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/networks/:networkId" element={<NetworkDetailPage />} />
-        <Route path="/clients/:clientMac" element={<ClientDetailPage />} />
-      </Routes>
+function App() {
+  const location = useLocation();
+  const title = getTitle(location.pathname);
+
+  return (
+    <div className="flex h-screen bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text">
+      {/* Sidebar */}
+      <div className="w-64 flex-shrink-0">
+        <Sidebar />
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="bg-light-card dark:bg-dark-card shadow-sm border-b border-light-border dark:border-dark-border">
+          <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+            <h1 className="text-lg font-semibold">
+              {title}
+            </h1>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto">
+          <div className="py-6">
+            <Routes>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/networks" element={<div className="px-4">Networks Page Placeholder</div>} />
+              <Route path="/networks/:networkId" element={<NetworkDetailPage />} />
+              <Route path="/clients" element={<div className="px-4">Clients Page Placeholder</div>} />
+              <Route path="/clients/:clientMac" element={<ClientDetailPage />} />
+              <Route path="/settings" element={<div className="px-4">Settings Page Placeholder</div>} />
+            </Routes>
+          </div>
+        </main>
+      </div>
     </div>
-  )
+  );
 }
 
 export default App;
