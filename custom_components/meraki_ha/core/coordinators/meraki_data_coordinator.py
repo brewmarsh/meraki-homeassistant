@@ -42,6 +42,9 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
         """
         try:
             data = await self.api.get_all_data()
+            if not data:
+                _LOGGER.warning("API call to get_all_data returned no data.")
+                raise UpdateFailed("API call returned no data.")
             return data
         except Exception as err:
             _LOGGER.error("Unexpected error fetching Meraki data: %s", err, exc_info=True)
