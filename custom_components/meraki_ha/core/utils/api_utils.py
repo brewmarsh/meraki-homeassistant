@@ -41,26 +41,27 @@ def handle_meraki_errors(func: Callable[..., T]) -> Callable[..., T]:
         try:
             return await func(*args, **kwargs)
         except APIError as err:
-            _LOGGER.error("Meraki API error: %s", err)
+            _LOGGER.error("Meraki API error: %s", err, exc_info=True)
             if _is_auth_error(err):
-                raise MerakiAuthenticationError(f"Authentication failed: {err}")
-            elif _is_device_error(err):
-                raise MerakiDeviceError(f"Device error: {err}")
-            elif _is_network_error(err):
-                raise MerakiNetworkError(f"Network error: {err}")
-            elif _is_rate_limit_error(err):
-                # Wait and retry for rate limit errors
-                _LOGGER.warning("Rate limit exceeded, retrying in 2 seconds...")
-                await asyncio.sleep(2)
+                raise MerakiAuthenticationError(f"Authentication failed: {err}") from err
+            if _is_device_error(err):
+                raise MerakiDeviceError(f"Device error: {err}") from err
+            if _is_network_error(err):
+                raise MerakiNetworkError(f"Network error: {err}") from err
+            if _is_rate_limit_error(err):
+                retry_after = int(err.response.headers.get("Retry-After", 2))
+                _LOGGER.warning(
+                    "Rate limit exceeded, retrying in %s seconds...", retry_after
+                )
+                await asyncio.sleep(retry_after)
                 return await wrapper(*args, **kwargs)
-            else:
-                raise MerakiConnectionError(f"API error: {err}")
+            raise MerakiConnectionError(f"API error: {err}") from err
         except ClientError as err:
-            _LOGGER.error("Connection error: %s", err)
-            raise MerakiConnectionError(f"Connection error: {err}")
+            _LOGGER.error("Connection error: %s", err, exc_info=True)
+            raise MerakiConnectionError(f"Connection error: {err}") from err
         except Exception as err:
-            _LOGGER.error("Unexpected error: %s", err)
-            raise MerakiConnectionError(f"Unexpected error: {err}")
+            _LOGGER.error("Unexpected error: %s", err, exc_info=True)
+            raise MerakiConnectionError(f"Unexpected error: {err}") from err
 
     return cast(Callable[..., T], wrapper)
 

@@ -3,7 +3,7 @@
 import logging
 import secrets
 
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
@@ -11,18 +11,13 @@ from .const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
-    CONF_ENABLE_WEB_UI,
-    CONF_WEB_UI_PORT,
     DATA_CLIENT,
     DEFAULT_SCAN_INTERVAL,
-    DEFAULT_ENABLE_WEB_UI,
-    DEFAULT_WEB_UI_PORT,
     DOMAIN,
     PLATFORMS,
 )
 from .core.api.client import MerakiAPIClient
 from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-from .web_server import MerakiWebServer
 from .webhook import async_register_webhook, async_unregister_webhook
 
 _LOGGER = logging.getLogger(__name__)
@@ -62,22 +57,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         config_entry=entry,
     )
 
-    await coordinator.async_refresh()
-
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
         "coordinator": coordinator,
         DATA_CLIENT: api_client,
     }
 
-    # Start the web server if enabled
-    if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
-        port = entry.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
-        server = MerakiWebServer(hass, coordinator, port)
-        await server.start()
-        hass.data[DOMAIN][entry.entry_id]["web_server"] = server
+    entry.state = ConfigEntryState.LOADED
+    if not await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS):
+        return False
 
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    await coordinator.async_config_entry_first_refresh()
 
     if "webhook_id" not in entry.data:
         webhook_id = entry.entry_id
@@ -97,10 +87,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if "webhook_id" in entry.data:
             api_client = hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]
             await async_unregister_webhook(hass, entry.data["webhook_id"], api_client)
-
-        if "web_server" in hass.data[DOMAIN][entry.entry_id]:
-            server = hass.data[DOMAIN][entry.entry_id]["web_server"]
-            await server.stop()
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 

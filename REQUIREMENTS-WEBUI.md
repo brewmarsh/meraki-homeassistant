@@ -6,7 +6,7 @@ This document outlines the requirements for a standalone web-based user interfac
 
 #### 1. General Requirements
 
-* **Technology Stack:** The UI will be a standalone single-page application using HTML, CSS, and JavaScript. 
+* **Technology Stack:** The UI will be a standalone single-page application using HTML, CSS, and JavaScript. It must not rely on any heavy front-end frameworks (e.g., React, Vue.js).
 * **Web Server:** The integration's back-end component will provide a lightweight web server (e.g., using `aiohttp`) to serve the UI files and handle API requests.
 * **User Flow:** The user will navigate to a specific URL (e.g., `http://<ha_ip>:<ha_port>/meraki_ha_config`) to access the UI.
 * **Communication:** The UI will communicate with the back-end web server via a REST API to save and retrieve configuration data.
@@ -17,7 +17,6 @@ This document outlines the requirements for a standalone web-based user interfac
 
 * **Single-Page Layout:** The UI should be contained within a single HTML page.
 * **Responsive Design:** The UI must be responsive and usable on both desktop and mobile browsers.
-* **Card-based UI** The UI should be card-based and modern in appearance.
 * **Branding:** The UI should have a clean, modern design that is visually consistent with the Home Assistant aesthetic, though it doesn't need to be an exact replica.
 * **Form Validation:** The UI must perform client-side validation on all input fields to ensure data is in the correct format before submission.
 * **User Feedback:** The UI must provide clear and concise feedback to the user upon submission, indicating whether the configuration was saved successfully or if there were errors. This feedback should be non-intrusive (e.g., a temporary banner or message).

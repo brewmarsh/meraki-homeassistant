@@ -46,6 +46,10 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}") from err
 
+    async def async_config_entry_first_refresh(self):
+        """Refresh data for the first time when a config entry is setup."""
+        await self.async_refresh()
+
     def get_device(self, serial: str):
         """Get device data by serial number."""
         if self.data and self.data.get("devices"):

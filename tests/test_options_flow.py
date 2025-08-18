@@ -11,9 +11,6 @@ from custom_components.meraki_ha.const import (
     CONF_AUTO_ENABLE_RTSP,
     CONF_WEBHOOK_URL,
     CONF_USE_LAN_IP_FOR_RTSP,
-    CONF_ENABLE_DEVICE_TRACKER,
-    CONF_ENABLE_WEB_UI,
-    CONF_WEB_UI_PORT,
 )
 
 
@@ -47,9 +44,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         CONF_AUTO_ENABLE_RTSP: True,
         CONF_USE_LAN_IP_FOR_RTSP: False,
         CONF_WEBHOOK_URL: "http://example.com/webhook",
-        CONF_ENABLE_DEVICE_TRACKER: True,
-        CONF_ENABLE_WEB_UI: False,
-        CONF_WEB_UI_PORT: 8080,
+        "enable_device_tracker": True,
     }
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], user_input=user_input

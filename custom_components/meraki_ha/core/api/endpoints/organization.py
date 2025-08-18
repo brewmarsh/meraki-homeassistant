@@ -60,7 +60,7 @@ class OrganizationEndpoints:
     async def get_organization_device_statuses(self) -> List[Dict[str, Any]]:
         """Get status information for all devices in the organization."""
         statuses = await self._api_client._run_sync(
-            self._dashboard.organizations.getOrganizationDeviceStatuses,
+            self._dashboard.organizations.getOrganizationDevicesStatuses,
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(statuses)

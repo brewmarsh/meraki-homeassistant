@@ -175,6 +175,7 @@ The user documentation is spread across multiple files and is inconsistent and i
 The test suite is not comprehensive and some tests are failing. The following steps should be taken to improve the testing:
 
 - **Fix Failing Tests:** Fix the failing tests in `tests/test_camera.py` and `tests/test_options_flow.py`.
+- **Known Issue:** The test `tests/test_integration_setup.py` is failing with the error `homeassistant.config_entries.OperationNotAllowed: The config entry 'Mock Title' (meraki_ha) with entry_id 'test_entry' cannot forward setup for ['sensor', 'switch', 'text', 'camera'] because it is in state ConfigEntryState.SETUP_ERROR, but needs to be in the ConfigEntryState.LOADED state`. This is because the `async_setup_entry` function is failing, which is causing the config entry to be in the `SETUP_ERROR` state.
 - **Increase Test Coverage:** Increase the test coverage to at least 95% for all integration modules.
 - **Implement Integration Tests:** Add integration tests to ensure that the integration works correctly with a real Home Assistant instance.
 
@@ -211,14 +212,6 @@ This refactoring will remove the ambiguity that confuses `mypy`, resulting in a 
 ## 10. Failing Integration Test
 
 There is a failing test in `tests/test_integration_setup.py` that needs to be addressed.
-
-## 11. Known Issues
-
-### Failing Test in `tests/test_integration_setup.py`
-
-The `test_ssid_device_creation_and_unification` test is failing with a `homeassistant.config_entries.OperationNotAllowed` error. This is because the `MockConfigEntry` is not in the `LOADED` state when the test is run. This is caused by a `NoURLAvailableError` being raised during the setup of the integration.
-
-The test needs to be refactored to correctly set up the `MockConfigEntry` and get it into the `LOADED` state before the integration setup is called. This may involve using a different mocking strategy or a more complete setup of the `hass` object.
 
 ### Problem
 
