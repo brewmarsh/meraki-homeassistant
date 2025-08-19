@@ -7,7 +7,7 @@ import {
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_HIDE_UNCONFIGURED_SSIDS,
     CONF_IGNORED_NETWORKS
-} from '../../../const'; // Assuming consts can be imported like this
+} from '../const';
 
 function SettingsPage() {
   const [settings, setSettings] = useState(null);

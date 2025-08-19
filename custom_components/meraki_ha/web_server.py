@@ -71,7 +71,7 @@ class MerakiWebServer:
 
     async def handle_api_get_settings(self, request: web.Request) -> web.Response:
         """Handle requests to get the current integration settings."""
-        return web.json_response(self.coordinator.config_entry.options)
+        return web.json_response(dict(self.coordinator.config_entry.options))
 
     async def handle_api_post_settings(self, request: web.Request) -> web.Response:
         """Handle requests to update the integration settings."""

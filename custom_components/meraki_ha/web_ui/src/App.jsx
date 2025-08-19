@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import DashboardPage from './pages/DashboardPage';
+import NetworksPage from './pages/NetworksPage';
 import NetworkDetailPage from './pages/NetworkDetailPage';
 import SettingsPage from './pages/SettingsPage';
 
@@ -43,7 +44,7 @@ function App() {
           <div className="py-6">
             <Routes>
               <Route path="/" element={<DashboardPage />} />
-              <Route path="/networks" element={<div className="px-4">Networks Page Placeholder</div>} />
+              <Route path="/networks" element={<NetworksPage />} />
               <Route path="/networks/:networkId" element={<NetworkDetailPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Routes>
