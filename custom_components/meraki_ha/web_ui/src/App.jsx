@@ -2,18 +2,15 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import DashboardPage from './pages/DashboardPage';
 import NetworkDetailPage from './pages/NetworkDetailPage';
-import ClientDetailPage from './pages/ClientDetailPage';
+import SettingsPage from './pages/SettingsPage';
 
 function getTitle(pathname) {
   if (pathname.startsWith('/networks/')) return 'Network Detail';
-  if (pathname.startsWith('/clients/')) return 'Client Detail';
   switch (pathname) {
     case '/':
       return 'Dashboard';
     case '/networks':
       return 'Networks';
-    case '/clients':
-      return 'Clients';
     case '/settings':
       return 'Settings';
     default:
@@ -48,9 +45,7 @@ function App() {
               <Route path="/" element={<DashboardPage />} />
               <Route path="/networks" element={<div className="px-4">Networks Page Placeholder</div>} />
               <Route path="/networks/:networkId" element={<NetworkDetailPage />} />
-              <Route path="/clients" element={<div className="px-4">Clients Page Placeholder</div>} />
-              <Route path="/clients/:clientMac" element={<ClientDetailPage />} />
-              <Route path="/settings" element={<div className="px-4">Settings Page Placeholder</div>} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Routes>
           </div>
         </main>

@@ -36,8 +36,10 @@ class MerakiWebServer:
         self.app.router.add_get("/api/config", self.handle_api_config)
         self.app.router.add_get("/api/networks", self.handle_api_networks)
         self.app.router.add_get("/api/networks/{network_id}", self.handle_api_network_detail)
-        self.app.router.add_get("/api/clients", self.handle_api_clients)
-        self.app.router.add_get("/api/clients/{client_mac}", self.handle_api_client_detail)
+
+        # Settings endpoints
+        self.app.router.add_get("/api/settings", self.handle_api_get_settings)
+        self.app.router.add_post("/api/settings", self.handle_api_post_settings)
 
         # Static asset route (for JS, CSS, etc.)
         self.app.router.add_static("/assets", assets_dir, name="assets")
@@ -67,24 +69,24 @@ class MerakiWebServer:
             return web.json_response({"error": "Data not available"}, status=503)
         return web.json_response(self.coordinator.data.get("networks", []))
 
-    async def handle_api_client_detail(self, request: web.Request) -> web.Response:
-        """Handle requests for a single client's data."""
-        client_mac = request.match_info.get("client_mac")
-        if not self.coordinator.data or not client_mac:
-            return web.json_response({"error": "Data not available"}, status=503)
+    async def handle_api_get_settings(self, request: web.Request) -> web.Response:
+        """Handle requests to get the current integration settings."""
+        return web.json_response(self.coordinator.config_entry.options)
 
-        client = next((c for c in self.coordinator.data.get("clients", []) if c.get("mac") == client_mac), None)
+    async def handle_api_post_settings(self, request: web.Request) -> web.Response:
+        """Handle requests to update the integration settings."""
+        try:
+            new_options = await request.json()
+            # It's good practice to merge with existing options, though client should send all
+            updated_options = {**self.coordinator.config_entry.options, **new_options}
+            self.hass.config_entries.async_update_entry(
+                self.coordinator.config_entry, options=updated_options
+            )
+            return web.json_response({"status": "success"}, status=200)
+        except Exception as e:
+            _LOGGER.error("Failed to update settings: %s", e, exc_info=True)
+            return web.json_response({"error": str(e)}, status=500)
 
-        if client:
-            return web.json_response(client)
-        return web.json_response({"error": "Client not found"}, status=404)
-
-    async def handle_api_clients(self, request: web.Request) -> web.Response:
-        """Handle requests for client data."""
-        # Placeholder
-        if not self.coordinator.data:
-            return web.json_response({"error": "Data not available"}, status=503)
-        return web.json_response(self.coordinator.data.get("clients", []))
 
     async def handle_api_network_detail(self, request: web.Request) -> web.Response:
         """Handle requests for a single network's data."""

@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import NetworkCard from '../components/NetworkCard';
-import ClientCard from '../components/ClientCard';
 
 function DashboardPage() {
   const [networks, setNetworks] = useState([]);
-  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -18,13 +16,6 @@ function DashboardPage() {
         }
         const networksData = await networksResponse.json();
         setNetworks(networksData);
-
-        const clientsResponse = await fetch('/api/clients');
-        if (!clientsResponse.ok) {
-          throw new Error(`HTTP error! status: ${clientsResponse.status}`);
-        }
-        const clientsData = await clientsResponse.json();
-        setClients(clientsData);
 
       } catch (e) {
         setError(e.message);
@@ -51,18 +42,6 @@ function DashboardPage() {
             <div className="divide-y divide-light-border dark:divide-dark-border">
               {networks.map(network => (
                 <NetworkCard key={network.id} network={network} />
-              ))}
-            </div>
-          </div>
-
-          {/* Clients Card */}
-          <div className="bg-light-card dark:bg-dark-card shadow rounded-lg">
-            <div className="p-6">
-              <h2 className="text-xl font-semibold">Clients ({clients.length})</h2>
-            </div>
-            <div className="divide-y divide-light-border dark:divide-dark-border">
-              {clients.map(client => (
-                <ClientCard key={client.id} client={client} />
               ))}
             </div>
           </div>
