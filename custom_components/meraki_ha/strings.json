@@ -40,6 +40,7 @@
     "step": {
       "init": {
         "title": "Meraki Options",
+        "description": "[Open Web UI]({web_ui_url})",
         "data": {
           "scan_interval": "How many seconds between Meraki API refreshes",
           "webhook_url": "Webhook URL (optional)",

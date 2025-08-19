@@ -40,8 +40,12 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
+        port = self.config_entry.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
+        web_ui_url = f"http://{self.hass.config.api.host}:{port}"
+
         return self.async_show_form(
             step_id="init",
+            description_placeholders={"web_ui_url": web_ui_url},
             data_schema=vol.Schema(
                 {
                     vol.Optional(
@@ -99,9 +103,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                     ): bool,
                     vol.Optional(
                         CONF_WEB_UI_PORT,
-                        default=self.config_entry.options.get(
-                            CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT
-                        ),
+                        default=port,
                     ): int,
                     vol.Optional(
                         CONF_HIDE_UNCONFIGURED_SSIDS,
