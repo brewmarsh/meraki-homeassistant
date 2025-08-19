@@ -16,4 +16,12 @@ This file contains instructions for AI agents working with this codebase.
 - **Centralized Device Creation:** To ensure device information is consistent, always use the `resolve_device_info` helper in `custom_components/meraki_ha/helpers/device_info_helpers.py` when creating a `DeviceInfo` object for an entity. Do not create `DeviceInfo` objects manually in entity classes.
 - **Device vs. Entity Naming:** Use the `format_device_name` utility for the `name` field within `DeviceInfo`. For the name of an entity itself (`_attr_name`), use the `format_entity_name` helper.
 - **Handling Disabled Features:** When an API call fails because a feature (like Traffic Analysis or VLANs) is disabled in the Meraki Dashboard, the corresponding sensor should reflect this. Instead of becoming `unknown`, its state should be set to `Disabled`, and an attribute should be added to explain the reason.
-- **Testing New Entities:** When adding new sensors that are created dynamically by `setup_helpers.py`, the most effective tests call `async_setup_sensors` with mock coordinator data and then inspect the returned list of entities. This is preferable to testing the sensor class in isolation.
+- **Testing New Entities:** When adding new sensors that are created dynamically by `setup_helpers.py`, a useful pattern is to call `async_setup_sensors` with mock coordinator data and then inspect the returned list of entities. This is preferable to testing the sensor class in isolation.
+
+## Working with the Web UI
+
+The self-hosted web interface is a React application located in `custom_components/meraki_ha/web_ui/`.
+
+- **Source vs. Build:** The human-readable source code is in the `src/` directory. The code that is actually served to the browser is the compiled and optimized output located in the `dist/` directory.
+- **Manual Build Simulation:** As an agent, you cannot run the `npm run build` command. If you make changes to any files in the `src/` directory, you **must** manually update the corresponding file in `dist/` to reflect your changes.
+- **For E2E tests:** The tests run against the `dist/` files. The most important file to keep updated is `dist/assets/index.js`. You may need to write a simplified, non-JSX version of the React logic in this file to ensure the tests pass. This process is for testing purposes only to validate the backend and overall flow.
