@@ -31,7 +31,6 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
   - API key and Organization ID via Home Assistant configuration flow.
   - Configurable scan interval for data refresh.
   - Device name formatting options (prefix, suffix, or omit device type in HA entity names).
-  - Relaxed tag matching option for SSID-to-device association.
 - **Authentication:**
   - Handles initial API key validation.
   - Supports re-authentication flow if credentials become invalid.
@@ -126,6 +125,7 @@ The integration represents different aspects of your Meraki setup as devices wit
 - **Physical Meraki Devices:** Your actual hardware (APs, switches, security appliances, cameras, environmental sensors) are registered as devices. Entities related to a specific piece of hardware (e.g., its status, IP address, connected clients for an AP) are linked to these devices.
 - **Meraki Networks:** Each Meraki network defined in your dashboard is also registered as a "device" in Home Assistant. This allows for grouping; physical devices belonging to a network are often parented by their respective Meraki Network device in Home Assistant. Some network-wide sensors may also be linked here.
 - **Meraki SSIDs:** Wireless SSIDs are registered as "devices," typically parented by their Meraki Network device. Entities specific to an SSID (e.g., its availability, client count, control switches) are linked to these SSID devices.
+- **Meraki VLANs:** Each VLAN is registered as a "device" to group its associated sensors.
 - **Meraki Organization:** A single device entry is created to represent the Meraki Organization itself. This device acts as a parent for organization-wide sensors.
 
 ### Organization Device
@@ -206,15 +206,14 @@ These sensors are linked to Meraki Network "devices" in Home Assistant.
 - **`[Network Name] Network Identity`** (`sensor.<network_name>_network_identity`):
 - **Description:** A sensor that provides basic identity information about the network. The state of the sensor is the network name, and the network ID and type are available as attributes.
 
-### VLAN Sensors
+### VLAN Devices
 
-For each VLAN configured in a network, the following sensors are created:
+Each VLAN configured in a network is represented as a device in Home Assistant. This device groups the sensors related to that VLAN.
 
-- **`[VLAN Name] Subnet`** (`sensor.<vlan_name>_subnet`):
-- **Description:** Shows the subnet of the VLAN.
-
-- **`[VLAN Name] Appliance IP`** (`sensor.<vlan_name>_appliance_ip`):
-- **Description:** Shows the appliance IP address for the VLAN.
+| Entity Type | Name | Description | Availability |
+| :--- | :--- | :--- | :--- |
+| `sensor` | `[VLAN Name] Subnet` | Shows the subnet of the VLAN. | Networks with VLANs |
+| `sensor` | `[VLAN Name] Appliance IP` | Shows the appliance IP address for the VLAN. | Networks with VLANs |
 
 ### Appliance Port Sensors
 

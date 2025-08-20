@@ -34,7 +34,6 @@
 | The integration needs to have a configuration flow to take the API key and org id. | Included |
 | The integration should have option flow, to set scan interval and device name format. | Included |
 | The integration should handle re-authentication of the API key. | Included |
-| The integration should have a relaxed tag matching option for matching SSIDs to wireless devices. | Not Included |
 
 ### Mapping Meraki objects to Home Assistant objects
 | Requirement | Status |
@@ -153,6 +152,7 @@
 - [ ] **Network Health/Event Sensors:** Monitor overall network health or specific Meraki events/alerts.
 
 ### Enhancements / Bug Fixes
+- [ ] **Relaxed Tag Matching:** Add an option to allow for relaxed tag matching when associating SSIDs with wireless devices.
 - [ ] **Configuration Option for SSID Sensor Selection:** Allow users to choose which specific sensors (availability, channel, client count, etc.) they want to enable per SSID to reduce entity clutter.
 - [ ] **Customize Device and Entity Names:** Provide more advanced configuration options for customizing how Meraki device and entity names are generated in Home Assistant.
 - [ ] **Full Home Assistant Branding Support:** Ensure the integration meets all requirements for Home Assistant branding, including logos and documentation links.
@@ -160,7 +160,6 @@
   - [ ] Review "Radio profiles are not returned for all MR devices" (from README known issues) and investigate if it's an API limitation or an integration issue.
 - [ ] **Fix SSID entity `device_info`:** Correctly link to parent AP via `via_device` attribute in `MerakiEntity` for SSID-specific entities.
 - [ ] **Tag-based SSID Control Review:** The current `MerakiSSIDSwitch` uses device tags to control SSID state. Evaluate if a more direct API method for enabling/disabling SSIDs per AP (if available and appropriate) would be better, or if the tag strategy is the most robust.
-- [x] **VLAN Entity Clarification:** Determine if "Meraki VLANs" should be actual HA entities/devices or if VLAN information is purely contextual data for other entities. Adjust documentation and entity creation accordingly.
 
 ### Documentation
 - [ ] **Troubleshooting Section:** Add a comprehensive troubleshooting section to `README.md` covering common issues (API key errors, rate limits, device discovery problems).

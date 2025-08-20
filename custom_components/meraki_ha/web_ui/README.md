@@ -8,6 +8,15 @@ This directory contains the source code for the React-based web interface for th
 *   **Build Tool**: [Vite](https://vitejs.dev/)
 *   **Styling**: [Tailwind CSS](https://tailwindcss.com/)
 
+## Features
+
+The web UI provides a user-friendly interface to manage and monitor your Meraki devices within Home Assistant.
+
+*   **Dashboard**: A central dashboard that provides a high-level overview of your Meraki networks.
+*   **Networks Page**: A detailed view of all your networks in a sortable table, showing information like product types and tags.
+*   **Settings Page**: A page to configure the Meraki integration's options directly from the UI, without needing to edit YAML files.
+*   **Navigation**: A persistent sidebar allows for easy navigation between the different pages of the web UI.
+
 ## Development Workflow
 
 The final JavaScript and CSS that are served to the browser must be "built" or "compiled" from the source code in this `src` directory. The final output is placed in the `dist` directory, which is then served by the integration's Python web server.
