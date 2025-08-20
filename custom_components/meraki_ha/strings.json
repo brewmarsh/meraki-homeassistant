@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Meraki Credentials",
+        "title": "Step 1 of 4: Meraki Credentials",
         "description": "Enter your Meraki API Key and Organization ID.",
         "data": {
           "meraki_api_key": "Meraki API Key",
@@ -10,7 +10,7 @@
         }
       },
       "general": {
-        "title": "General Settings",
+        "title": "Step 2 of 4: General Settings",
         "description": "Configure general settings for the Meraki integration.",
         "data": {
           "scan_interval": "Scan Interval (seconds)",
@@ -18,7 +18,7 @@
         }
       },
       "features": {
-        "title": "Feature Settings",
+        "title": "Step 3 of 4: Feature Settings",
         "description": "Enable or disable specific features of the integration.",
         "data": {
           "auto_enable_rtsp": "Auto-enable RTSP camera streams",
@@ -30,7 +30,7 @@
         }
       },
       "advanced": {
-        "title": "Advanced Settings",
+        "title": "Step 4 of 4: Advanced Settings",
         "description": "Configure advanced settings for the Meraki integration.",
         "data": {
           "webhook_url": "Webhook URL (optional)",
@@ -52,7 +52,7 @@
   "options": {
     "step": {
       "general": {
-        "title": "General Settings",
+        "title": "Step 1 of 3: General Settings",
         "description": "Configure general settings for the Meraki integration.",
         "data": {
           "scan_interval": "Scan Interval (seconds)",
@@ -60,7 +60,7 @@
         }
       },
       "features": {
-        "title": "Feature Settings",
+        "title": "Step 2 of 3: Feature Settings",
         "description": "Enable or disable specific features of the integration. [Open Web UI]({web_ui_url})",
         "data": {
           "auto_enable_rtsp": "Auto-enable RTSP camera streams",
@@ -72,7 +72,7 @@
         }
       },
       "advanced": {
-        "title": "Advanced Settings",
+        "title": "Step 3 of 3: Advanced Settings",
         "description": "Configure advanced settings for the Meraki integration.",
         "data": {
           "webhook_url": "Webhook URL (optional)",
