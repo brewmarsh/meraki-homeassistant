@@ -138,9 +138,12 @@
 - [ ] **Refactor to use `core` components:** The highest priority is to refactor the codebase to use the new `core` components and remove the old, redundant code. This will involve updating the platforms to use the new `core` entities and coordinators, and removing the old API client, coordinators, and entities.
 - [ ] **Improve Error Handling and Logging:** Enhance error catching, provide more user-friendly error messages, and ensure consistent logging across the integration.
 - [ ] **Optimize Data Retrieval:** Review API call patterns to optimize for performance and minimize API rate limit impact, especially for large organizations.
+- [ ] **Real-time Updates:** Investigate using webhooks or WebSockets for real-time data updates.
 
 ### New Features / Entities
 - [ ] **Implement Switches for Internet Ports:** Allow control over WAN/Internet ports on MX appliances if API supports.
+- [ ] **Device Services:** Add services to reboot a device and blink its LEDs.
+- [ ] **Client List Sensor:** Add a sensor that provides a list of connected clients as an attribute.
 - [ ] **Signal Strength and Data Usage Sensors for Connected Clients:** Create sensors to monitor signal strength (RSSI, SNR) and data usage (upload/download) for individual clients connected to Meraki APs.
 - [ ] **More Sensor Types for SSIDs:** Add sensors for additional SSID properties, e.g., security settings (WPA type), traffic statistics (data usage per SSID), active bands.
 - [ ] **Support for Additional Meraki Product Types/Features:**
