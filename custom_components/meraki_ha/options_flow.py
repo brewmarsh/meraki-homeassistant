@@ -37,15 +37,19 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> config_entries.FlowResult:
         """Manage the options flow initialization."""
-        if not hasattr(self, "options"):
-            self.options = dict(self.config_entry.options)
+        self.options = dict(self.config_entry.options)
+        return await self.async_step_general(user_input)
 
+    async def async_step_general(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> config_entries.FlowResult:
+        """Handle the general settings step."""
         if user_input is not None:
             self.options.update(user_input)
             return await self.async_step_features()
 
         return self.async_show_form(
-            step_id="init",
+            step_id="general",
             data_schema=vol.Schema(
                 {
                     vol.Optional(
