@@ -51,18 +51,30 @@
   },
   "options": {
     "step": {
-      "init": {
+      "general": {
         "title": "Meraki Options",
-        "description": "Configure the Meraki integration. [Open Web UI]({web_ui_url})",
+        "description": "Step 1 of 3: General Settings",
         "data": {
           "scan_interval": "Scan Interval (seconds)",
-          "device_name_format": "Device Name Format",
+          "device_name_format": "Device Name Format"
+        }
+      },
+      "features": {
+        "title": "Meraki Options",
+        "description": "Step 2 of 3: Feature Settings\n\n[Open Web UI]({web_ui_url})",
+        "data": {
           "auto_enable_rtsp": "Auto-enable RTSP camera streams",
           "use_lan_ip_for_rtsp": "Use LAN IP for RTSP stream",
           "enable_device_tracker": "Enable Client Tracker",
           "enable_web_ui": "Enable Web UI",
           "web_ui_port": "Web UI Port",
-          "hide_unconfigured_ssids": "Hide Unconfigured SSIDs",
+          "hide_unconfigured_ssids": "Hide Unconfigured SSIDs"
+        }
+      },
+      "advanced": {
+        "title": "Meraki Options",
+        "description": "Step 3 of 3: Advanced Settings",
+        "data": {
           "webhook_url": "Webhook URL (optional)",
           "ignored_networks": "Ignored Networks (comma-separated)"
         }
