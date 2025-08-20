@@ -4,7 +4,7 @@ import logging
 from typing import Any, Dict, Optional
 
 import voluptuous as vol
-from homeassistant import config_entries
+from homeassistant import config_entries, data_entry_flow
 from homeassistant.core import callback
 
 from .authentication import validate_meraki_credentials
@@ -74,6 +74,8 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "invalid_auth"
             except MerakiConnectionError:
                 errors["base"] = "cannot_connect"
+            except data_entry_flow.AbortFlow as e:
+                raise e
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
