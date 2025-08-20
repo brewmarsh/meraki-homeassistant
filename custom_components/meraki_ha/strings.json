@@ -51,7 +51,7 @@
   },
   "options": {
     "step": {
-      "general": {
+      "init": {
         "title": "Step 1 of 3: General Settings",
         "description": "Configure general settings for the Meraki integration.",
         "data": {
