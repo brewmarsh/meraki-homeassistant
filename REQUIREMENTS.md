@@ -153,6 +153,16 @@
   - [ ] More detailed switch port statistics (e.g., per-port traffic, PoE details beyond basic count).
 - [ ] **Firmware Update Sensors/Notifications:** Entities to indicate available firmware updates for devices or networks.
 - [ ] **Network Health/Event Sensors:** Monitor overall network health or specific Meraki events/alerts.
+- [ ] **Parental Controls & Content Filtering (MX Security Appliances):**
+  - [ ] **Content Filtering Policy Switch:** Create a `select` entity to switch between content filtering policies.
+  - [ ] **"Internet Time-Out" Switch per Device:** Create a `switch` entity to block internet access for specific clients.
+- [ ] **Guest Wi-Fi Management (MR Access Points):**
+  - [ ] **Guest Wi-Fi Password Control:** Create a `text` entity to manage the guest Wi-Fi password.
+- [ ] **Enhanced Home Security & Awareness (MV Cameras & MT Sensors):**
+  - [ ] **Camera Motion Events:** Create `binary_sensor` entities for camera motion events.
+  - [ ] **Per-Client Presence Detection:** Enhance the device tracker to show which AP a client is connected to.
+- [ ] **PoE Control for Smart Homes (MS Switches):**
+  - [ ] **Per-Port PoE Control:** Create a `switch` entity for each PoE-capable port.
 
 ### Enhancements / Bug Fixes
 - [ ] **Relaxed Tag Matching:** Add an option to allow for relaxed tag matching when associating SSIDs with wireless devices.
