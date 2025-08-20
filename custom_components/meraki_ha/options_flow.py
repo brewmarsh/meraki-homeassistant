@@ -33,73 +33,76 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle an options flow for the Meraki integration."""
 
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        self.config_entry = config_entry
+        self.options = dict(config_entry.options)
+
     async def async_step_init(
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> config_entries.FlowResult:
         """Manage the options flow initialization."""
-        if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+        return await self.async_step_general()
 
-        port = self.config_entry.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
-        web_ui_url = f"http://{self.hass.config.api.host}:{port}"
+    async def async_step_general(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> config_entries.FlowResult:
+        """Handle the general settings step."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return await self.async_step_features()
 
         return self.async_show_form(
-            step_id="init",
-            description_placeholders={"web_ui_url": web_ui_url},
+            step_id="general",
             data_schema=vol.Schema(
                 {
                     vol.Optional(
                         CONF_SCAN_INTERVAL,
-                        default=self.config_entry.options.get(
-                            CONF_SCAN_INTERVAL,
-                            self.config_entry.data.get(
-                                CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                            ),
+                        default=self.options.get(
+                            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
                         ),
                     ): int,
                     vol.Optional(
                         CONF_DEVICE_NAME_FORMAT,
-                        default=self.config_entry.options.get(
-                            CONF_DEVICE_NAME_FORMAT,
-                            self.config_entry.data.get(
-                                CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-                            ),
+                        default=self.options.get(
+                            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
                         ),
                     ): vol.In(DEVICE_NAME_FORMAT_OPTIONS),
+                }
+            ),
+        )
+
+    async def async_step_features(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> config_entries.FlowResult:
+        """Handle the features settings step."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return await self.async_step_advanced()
+
+        port = self.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
+        web_ui_url = f"http://{self.hass.config.api.host}:{port}"
+
+        return self.async_show_form(
+            step_id="features",
+            description_placeholders={"web_ui_url": web_ui_url},
+            data_schema=vol.Schema(
+                {
                     vol.Optional(
                         CONF_AUTO_ENABLE_RTSP,
-                        default=self.config_entry.options.get(
-                            CONF_AUTO_ENABLE_RTSP,
-                            self.config_entry.data.get(CONF_AUTO_ENABLE_RTSP, False),
-                        ),
+                        default=self.options.get(CONF_AUTO_ENABLE_RTSP, False),
                     ): bool,
                     vol.Optional(
                         CONF_USE_LAN_IP_FOR_RTSP,
-                        default=self.config_entry.options.get(
-                            CONF_USE_LAN_IP_FOR_RTSP,
-                            self.config_entry.data.get(CONF_USE_LAN_IP_FOR_RTSP, False),
-                        ),
+                        default=self.options.get(CONF_USE_LAN_IP_FOR_RTSP, False),
                     ): bool,
                     vol.Optional(
-                        CONF_WEBHOOK_URL,
-                        default=self.config_entry.options.get(
-                            CONF_WEBHOOK_URL,
-                            self.config_entry.data.get(
-                                CONF_WEBHOOK_URL, DEFAULT_WEBHOOK_URL
-                            ),
-                        ),
-                    ): str,
-                    vol.Optional(
                         CONF_ENABLE_DEVICE_TRACKER,
-                        default=self.config_entry.options.get(
-                            CONF_ENABLE_DEVICE_TRACKER, True
-                        ),
+                        default=self.options.get(CONF_ENABLE_DEVICE_TRACKER, True),
                     ): bool,
                     vol.Optional(
                         CONF_ENABLE_WEB_UI,
-                        default=self.config_entry.options.get(
-                            CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI
-                        ),
+                        default=self.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI),
                     ): bool,
                     vol.Optional(
                         CONF_WEB_UI_PORT,
@@ -107,13 +110,34 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                     ): int,
                     vol.Optional(
                         CONF_HIDE_UNCONFIGURED_SSIDS,
-                        default=self.config_entry.options.get(
-                            CONF_HIDE_UNCONFIGURED_SSIDS, DEFAULT_HIDE_UNCONFIGURED_SSIDS
+                        default=self.options.get(
+                            CONF_HIDE_UNCONFIGURED_SSIDS,
+                            DEFAULT_HIDE_UNCONFIGURED_SSIDS,
                         ),
                     ): bool,
+                }
+            ),
+        )
+
+    async def async_step_advanced(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> config_entries.FlowResult:
+        """Handle the advanced settings step."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return self.async_create_entry(title="", data=self.options)
+
+        return self.async_show_form(
+            step_id="advanced",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_WEBHOOK_URL,
+                        default=self.options.get(CONF_WEBHOOK_URL, DEFAULT_WEBHOOK_URL),
+                    ): str,
                     vol.Optional(
                         CONF_IGNORED_NETWORKS,
-                        default=self.config_entry.options.get(
+                        default=self.options.get(
                             CONF_IGNORED_NETWORKS, DEFAULT_IGNORED_NETWORKS
                         ),
                     ): str,

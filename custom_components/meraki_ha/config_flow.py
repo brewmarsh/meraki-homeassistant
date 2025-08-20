@@ -1,9 +1,4 @@
-"""Config flow for the Meraki Home Assistant integration.
-
-This module defines the configuration flow for setting up and managing
-the Meraki integration within Home Assistant. It handles user input for
-API keys, organization IDs, and other configuration options.
-"""
+"""Config flow for the Meraki Home Assistant integration."""
 
 import logging
 from typing import Any, Dict, Optional
@@ -23,9 +18,17 @@ from .const import (
     CONF_SCAN_INTERVAL,
     CONF_WEBHOOK_URL,
     CONF_USE_LAN_IP_FOR_RTSP,
+    CONF_ENABLE_WEB_UI,
+    CONF_WEB_UI_PORT,
+    CONF_HIDE_UNCONFIGURED_SSIDS,
+    CONF_IGNORED_NETWORKS,
     DEFAULT_DEVICE_NAME_FORMAT,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_WEBHOOK_URL,
+    DEFAULT_ENABLE_WEB_UI,
+    DEFAULT_WEB_UI_PORT,
+    DEFAULT_HIDE_UNCONFIGURED_SSIDS,
+    DEFAULT_IGNORED_NETWORKS,
     DEVICE_NAME_FORMAT_OPTIONS,
     DOMAIN,
 )
@@ -40,6 +43,11 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
+    def __init__(self):
+        """Initialize the config flow."""
+        self.data: Dict[str, Any] = {}
+        self.options: Dict[str, Any] = {}
+
     async def async_step_user(
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
@@ -51,9 +59,17 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     user_input[CONF_MERAKI_API_KEY],
                     user_input[CONF_MERAKI_ORG_ID],
                 )
-                org_name = validation_result.get(
+                self.data[CONF_MERAKI_API_KEY] = user_input[CONF_MERAKI_API_KEY]
+                self.data[CONF_MERAKI_ORG_ID] = user_input[CONF_MERAKI_ORG_ID]
+                self.data["org_name"] = validation_result.get(
                     "org_name", user_input[CONF_MERAKI_ORG_ID]
                 )
+
+                await self.async_set_unique_id(user_input[CONF_MERAKI_ORG_ID])
+                self._abort_if_unique_id_configured()
+
+                return await self.async_step_general()
+
             except MerakiAuthenticationError:
                 errors["base"] = "invalid_auth"
             except MerakiConnectionError:
@@ -61,31 +77,6 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
-            else:
-                await self.async_set_unique_id(user_input[CONF_MERAKI_ORG_ID])
-                self._abort_if_unique_id_configured()
-                options = {
-                    CONF_SCAN_INTERVAL: user_input.get(
-                        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                    ),
-                    CONF_DEVICE_NAME_FORMAT: user_input.get(
-                        CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-                    ),
-                    CONF_AUTO_ENABLE_RTSP: user_input.get(CONF_AUTO_ENABLE_RTSP, False),
-                    CONF_WEBHOOK_URL: user_input.get(
-                        CONF_WEBHOOK_URL, DEFAULT_WEBHOOK_URL
-                    ),
-                    CONF_ENABLE_DEVICE_TRACKER: user_input.get(
-                        CONF_ENABLE_DEVICE_TRACKER, True
-                    ),
-                }
-                data = {
-                    CONF_MERAKI_API_KEY: user_input[CONF_MERAKI_API_KEY],
-                    CONF_MERAKI_ORG_ID: user_input[CONF_MERAKI_ORG_ID],
-                }
-                return self.async_create_entry(
-                    title=org_name, data=data, options=options
-                )
 
         return self.async_show_form(
             step_id="user",
@@ -93,20 +84,80 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 {
                     vol.Required(CONF_MERAKI_API_KEY): str,
                     vol.Required(CONF_MERAKI_ORG_ID): str,
-                    vol.Optional(
-                        CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
-                    ): int,
-                    vol.Optional(CONF_WEBHOOK_URL): str,
-                    vol.Optional(
-                        CONF_DEVICE_NAME_FORMAT, default=DEFAULT_DEVICE_NAME_FORMAT
-                    ): vol.In(DEVICE_NAME_FORMAT_OPTIONS),
-                    vol.Optional(CONF_AUTO_ENABLE_RTSP, default=False): bool,
-                    vol.Optional(CONF_USE_LAN_IP_FOR_RTSP, default=False): bool,
-                    vol.Optional(CONF_ENABLE_DEVICE_TRACKER, default=True): bool,
                 }
             ),
             errors=errors,
         )
+
+    async def async_step_general(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Handle the general settings step."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return await self.async_step_features()
+
+        return self.async_show_form(
+            step_id="general",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
+                    ): int,
+                    vol.Optional(
+                        CONF_DEVICE_NAME_FORMAT, default=DEFAULT_DEVICE_NAME_FORMAT
+                    ): vol.In(DEVICE_NAME_FORMAT_OPTIONS),
+                }
+            ),
+        )
+
+    async def async_step_features(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Handle the features settings step."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return await self.async_step_advanced()
+
+        return self.async_show_form(
+            step_id="features",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(CONF_AUTO_ENABLE_RTSP, default=False): bool,
+                    vol.Optional(CONF_USE_LAN_IP_FOR_RTSP, default=False): bool,
+                    vol.Optional(CONF_ENABLE_DEVICE_TRACKER, default=True): bool,
+                    vol.Optional(CONF_ENABLE_WEB_UI, default=DEFAULT_ENABLE_WEB_UI): bool,
+                    vol.Optional(CONF_WEB_UI_PORT, default=DEFAULT_WEB_UI_PORT): int,
+                    vol.Optional(
+                        CONF_HIDE_UNCONFIGURED_SSIDS,
+                        default=DEFAULT_HIDE_UNCONFIGURED_SSIDS,
+                    ): bool,
+                }
+            ),
+        )
+
+    async def async_step_advanced(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Handle the advanced settings step."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return self.async_create_entry(
+                title=self.data["org_name"], data=self.data, options=self.options
+            )
+
+        return self.async_show_form(
+            step_id="advanced",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(CONF_WEBHOOK_URL, default=DEFAULT_WEBHOOK_URL): str,
+                    vol.Optional(
+                        CONF_IGNORED_NETWORKS, default=DEFAULT_IGNORED_NETWORKS
+                    ): str,
+                }
+            ),
+        )
+
 
     @staticmethod
     @callback
@@ -114,4 +165,4 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
         """Get the options flow for this handler."""
-        return MerakiOptionsFlowHandler()
+        return MerakiOptionsFlowHandler(config_entry)

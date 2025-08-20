@@ -2,26 +2,39 @@
   "config": {
     "step": {
       "user": {
-        "description": "Configure Meraki API Credentials",
+        "title": "Meraki Credentials",
+        "description": "Enter your Meraki API Key and Organization ID.",
         "data": {
           "meraki_api_key": "Meraki API Key",
-          "meraki_org_id": "Meraki Organization ID",
-          "scan_interval": "How many seconds between Meraki API refreshes",
-          "webhook_url": "Webhook URL (optional)",
-          "device_name_format": "Where would you like the Meraki device type in the name?",
+          "meraki_org_id": "Meraki Organization ID"
+        }
+      },
+      "general": {
+        "title": "General Settings",
+        "description": "Configure general settings for the Meraki integration.",
+        "data": {
+          "scan_interval": "Scan Interval (seconds)",
+          "device_name_format": "Device Name Format"
+        }
+      },
+      "features": {
+        "title": "Feature Settings",
+        "description": "Enable or disable specific features of the integration.",
+        "data": {
           "auto_enable_rtsp": "Auto-enable RTSP camera streams",
           "use_lan_ip_for_rtsp": "Use LAN IP for RTSP stream",
-          "enable_device_tracker": "Enable Client Tracker"
-        },
-        "data_description": {
-          "enable_device_tracker": "If checked, the integration will create sensor entities for clients on the network.",
-          "meraki_api_key": "Your Meraki Dashboard API key. Ensure it has read access to your organization.",
-          "meraki_org_id": "The ID of your Meraki Organization. Found in the URL when logged into the Meraki Dashboard (e.g., o=YOUR_ORG_ID).",
-          "scan_interval": "How often (in seconds) to poll the Meraki API for updates. Default: 300. A shorter interval means more responsive sensors but significantly increases API calls to Meraki Cloud and may lead to rate limiting.",
-          "webhook_url": "A custom URL for Meraki webhooks. If left blank, the integration will use the default Home Assistant webhook URL.",
-          "device_name_format": "Choose how device names are presented. 'Prefix' adds the Meraki device name before the entity name, 'Suffix' adds it after, 'Omitted' uses only the entity name.",
-          "auto_enable_rtsp": "If checked, the integration will automatically enable the RTSP stream for all cameras that support it. This is useful for getting camera streams working without manual configuration in the Meraki dashboard.",
-          "use_lan_ip_for_rtsp": "If checked, the integration will use the camera's LAN IP address for the RTSP stream. This is more efficient, but requires that Home Assistant is on the same network as the camera. If unchecked, the public IP address will be used."
+          "enable_device_tracker": "Enable Client Tracker",
+          "enable_web_ui": "Enable Web UI",
+          "web_ui_port": "Web UI Port",
+          "hide_unconfigured_ssids": "Hide Unconfigured SSIDs"
+        }
+      },
+      "advanced": {
+        "title": "Advanced Settings",
+        "description": "Configure advanced settings for the Meraki integration.",
+        "data": {
+          "webhook_url": "Webhook URL (optional)",
+          "ignored_networks": "Ignored Networks (comma-separated)"
         }
       }
     },
@@ -38,24 +51,32 @@
   },
   "options": {
     "step": {
-      "init": {
-        "title": "Meraki Options",
-        "description": "[Open Web UI]({web_ui_url})",
+      "general": {
+        "title": "General Settings",
+        "description": "Configure general settings for the Meraki integration.",
         "data": {
-          "scan_interval": "How many seconds between Meraki API refreshes",
-          "webhook_url": "Webhook URL (optional)",
-          "device_name_format": "Where would you like the Meraki device type in the name?",
+          "scan_interval": "Scan Interval (seconds)",
+          "device_name_format": "Device Name Format"
+        }
+      },
+      "features": {
+        "title": "Feature Settings",
+        "description": "Enable or disable specific features of the integration. [Open Web UI]({web_ui_url})",
+        "data": {
           "auto_enable_rtsp": "Auto-enable RTSP camera streams",
           "use_lan_ip_for_rtsp": "Use LAN IP for RTSP stream",
-          "enable_device_tracker": "Enable Client Tracker"
-        },
-        "data_description": {
-          "scan_interval": "How often (in seconds) the integration should poll the Meraki Dashboard API for updates. Default: 300. A shorter interval means more responsive sensors but significantly increases API calls to Meraki Cloud and may lead to rate limiting.",
-          "webhook_url": "A custom URL for Meraki webhooks. If left blank, the integration will use the default Home Assistant webhook URL.",
-          "device_name_format": "Choose how device names are presented for entities. 'Prefix' adds the Meraki device name before the entity name, 'Suffix' adds it after, 'Omitted' uses only the standard entity name.",
-          "auto_enable_rtsp": "If checked, the integration will automatically enable the RTSP stream for all cameras that support it. This is useful for getting camera streams working without manual configuration in the Meraki dashboard.",
-          "use_lan_ip_for_rtsp": "If checked, the integration will use the camera's LAN IP address for the RTSP stream. This is more efficient, but requires that Home Assistant is on the same network as the camera. If unchecked, the public IP address will be used.",
-          "enable_device_tracker": "If checked, the integration will create sensor entities for clients on the network."
+          "enable_device_tracker": "Enable Client Tracker",
+          "enable_web_ui": "Enable Web UI",
+          "web_ui_port": "Web UI Port",
+          "hide_unconfigured_ssids": "Hide Unconfigured SSIDs"
+        }
+      },
+      "advanced": {
+        "title": "Advanced Settings",
+        "description": "Configure advanced settings for the Meraki integration.",
+        "data": {
+          "webhook_url": "Webhook URL (optional)",
+          "ignored_networks": "Ignored Networks (comma-separated)"
         }
       }
     }
