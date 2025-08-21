@@ -90,13 +90,30 @@ class MerakiAPIClient:
         ]
 
         (
-            networks,
-            devices,
-            devices_availabilities,
-            appliance_uplink_statuses,
+            networks_res,
+            devices_res,
+            devices_availabilities_res,
+            appliance_uplink_statuses_res,
         ) = await asyncio.gather(*initial_tasks, return_exceptions=True)
 
-        # Process initial data
+        # Process initial data, checking for exceptions
+        networks = networks_res if not isinstance(networks_res, Exception) else []
+        if isinstance(networks_res, Exception):
+            _LOGGER.warning("Could not fetch Meraki networks: %s", networks_res)
+
+        devices = devices_res if not isinstance(devices_res, Exception) else []
+        if isinstance(devices_res, Exception):
+            _LOGGER.warning("Could not fetch Meraki devices: %s", devices_res)
+
+        devices_availabilities = devices_availabilities_res if not isinstance(devices_availabilities_res, Exception) else []
+        if isinstance(devices_availabilities_res, Exception):
+            _LOGGER.warning("Could not fetch Meraki device availabilities: %s", devices_availabilities_res)
+
+        appliance_uplink_statuses = appliance_uplink_statuses_res if not isinstance(appliance_uplink_statuses_res, Exception) else []
+        if isinstance(appliance_uplink_statuses_res, Exception):
+            _LOGGER.warning("Could not fetch Meraki appliance uplink statuses: %s", appliance_uplink_statuses_res)
+
+
         availabilities_by_serial = {
             availability["serial"]: availability
             for availability in devices_availabilities
