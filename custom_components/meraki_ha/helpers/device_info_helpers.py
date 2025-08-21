@@ -51,6 +51,17 @@ def resolve_device_info(
                 manufacturer="Cisco Meraki",
             )
 
+    # Handle client devices, which are linked to a physical device
+    client_mac = entity_data.get("mac")
+    parent_serial = entity_data.get("recentDeviceSerial")
+    if client_mac and parent_serial:
+        return DeviceInfo(
+            identifiers={(DOMAIN, client_mac)},
+            name=str(entity_data.get("description") or client_mac),
+            manufacturer=str(entity_data.get("manufacturer") or "Unknown"),
+            via_device=(DOMAIN, parent_serial),
+        )
+
     # Fallback to creating device info for a physical device
     device_serial = entity_data.get("serial")
     if device_serial:
@@ -66,5 +77,6 @@ def resolve_device_info(
             sw_version=str(entity_data.get("firmware") or ""),
         )
 
-    _LOGGER.warning("Could not resolve device info for entity data: %s", entity_data)
+    # This may happen temporarily during startup or if a device type is unknown
+    _LOGGER.debug("Could not resolve device info for entity data: %s", entity_data)
     return None
