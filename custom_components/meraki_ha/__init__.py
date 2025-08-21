@@ -22,6 +22,9 @@ from .const import (
 )
 from .core.api.client import MerakiAPIClient
 from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from .core.coordinators.ssid_content_filtering_coordinator import SsidContentFilteringCoordinator
+from .core.coordinators.network_content_filtering_coordinator import NetworkContentFilteringCoordinator
+from .core.coordinators.client_firewall_coordinator import ClientFirewallCoordinator
 from .web_server import MerakiWebServer
 from .webhook import async_register_webhook, async_unregister_webhook
 
@@ -69,6 +72,76 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "coordinator": coordinator,
         DATA_CLIENT: api_client,
     }
+
+    # ---- START DIAGNOSTIC LOGGING ----
+    if coordinator.data:
+        _LOGGER.debug("Main coordinator has data. Networks found: %d, SSIDs found: %d, Clients found: %d",
+                      len(coordinator.data.get("networks", [])),
+                      len(coordinator.data.get("ssids", [])),
+                      len(coordinator.data.get("clients", [])))
+    else:
+        _LOGGER.debug("Main coordinator has no data. Cannot set up parental control coordinators.")
+    # ---- END DIAGNOSTIC LOGGING ----
+
+    # Create content filtering and firewall coordinators
+    hass.data[DOMAIN][entry.entry_id]["ssid_content_filtering_coordinators"] = {}
+    hass.data[DOMAIN][entry.entry_id]["network_content_filtering_coordinators"] = {}
+    hass.data[DOMAIN][entry.entry_id]["client_firewall_coordinators"] = {}
+    if coordinator.data:
+        networks_with_ssids = {
+            ssid["networkId"] for ssid in coordinator.data.get("ssids", [])
+        }
+
+        # Create per-SSID content filtering coordinators
+        for ssid in coordinator.data.get("ssids", []):
+            if "networkId" in ssid and "number" in ssid:
+                ssid_coordinator = SsidContentFilteringCoordinator(
+                    hass=hass,
+                    api_client=api_client,
+                    scan_interval=scan_interval,
+                    network_id=ssid["networkId"],
+                    ssid_number=ssid["number"],
+                )
+                await ssid_coordinator.async_refresh()
+                hass.data[DOMAIN][entry.entry_id]["ssid_content_filtering_coordinators"][
+                    f"{ssid['networkId']}_{ssid['number']}"
+                ] = ssid_coordinator
+
+        # Create network-wide content filtering coordinators for networks without SSIDs
+        for network in coordinator.data.get("networks", []):
+            if network["id"] not in networks_with_ssids and "appliance" in network.get(
+                "productTypes", []
+            ):
+                net_coordinator = NetworkContentFilteringCoordinator(
+                    hass=hass,
+                    api_client=api_client,
+                    scan_interval=scan_interval,
+                    network_id=network["id"],
+                )
+                await net_coordinator.async_refresh()
+                hass.data[DOMAIN][entry.entry_id][
+                    "network_content_filtering_coordinators"
+                ][network["id"]] = net_coordinator
+
+        # Create client firewall coordinators for each network with an appliance
+        for network in coordinator.data["networks"]:
+            if "appliance" in network.get("productTypes", []):
+                cfw_coordinator = ClientFirewallCoordinator(
+                    hass=hass,
+                    api_client=api_client,
+                    scan_interval=scan_interval,
+                    network_id=network["id"],
+                )
+                await cfw_coordinator.async_refresh()
+                hass.data[DOMAIN][entry.entry_id]["client_firewall_coordinators"][
+                    network["id"]
+                ] = cfw_coordinator
+
+    _LOGGER.debug("Created %d SSID content filtering coordinators, %d network content filtering coordinators, and %d client firewall coordinators.",
+                  len(hass.data[DOMAIN][entry.entry_id]["ssid_content_filtering_coordinators"]),
+                  len(hass.data[DOMAIN][entry.entry_id]["network_content_filtering_coordinators"]),
+                  len(hass.data[DOMAIN][entry.entry_id]["client_firewall_coordinators"]))
+
 
     # Start the web server if enabled
     if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
