@@ -1,72 +1,94 @@
-# Design Document: Parental Controls & Content Filtering
+### **Updated Design and Implementation Plan: Parental Controls & Content Filtering** ---
 
-This document outlines the design for the Parental Controls & Content Filtering feature for the Meraki Home Assistant integration.
+### **1. Product Vision & Scope**
 
-## 1. Feature Overview
+The goal is to empower users with an intuitive and responsive interface to manage parental controls on their home network via Home Assistant, leveraging the power of their Meraki MX Security Appliance. This plan prioritizes **simplicity and safety** to ensure the integration is reliable and does not negatively impact existing network configurations.
 
-The goal of this feature is to provide users with simple, powerful tools to manage internet access and content filtering for their home network directly from Home Assistant. This will be achieved by creating new entities that control the features of Meraki MX Security Appliances.
+This plan will focus on two core features:
+* **Network-wide content filtering via policy selection.**
+* **On-demand device-level internet blocking ("time-out").**
 
-The feature will consist of two main components:
+---
 
-1.  **Content Filtering Policy Switch:** A `select` entity in Home Assistant that allows the user to change the active content filtering policy for a network.
-2.  **"Internet Time-Out" Switch per Device:** A `switch` entity for each client device on the network, allowing the user to block or allow internet access for that device on demand.
+### **2. Core Features & User Stories**
 
-## 2. User Interface (UI) Design
+* **Content Filtering Policy Selection:** * **User Story:** As a parent, I want to quickly switch my network’s content filtering policy from "school" to "gaming" to "bedtime" directly from Home Assistant, so I can easily manage my family's internet access throughout the day.
+    * **Implementation:** A `select` entity will be exposed for each Meraki network, allowing the user to choose from a list of predefined content filtering policies from the Meraki dashboard.
 
-The primary user interface for this feature will be a new "Parental Controls" page within the existing Meraki web UI.
+* **On-Demand Device Internet "Time-Out":**
+    * **User Story:** As a parent, I want to instantly disable internet access for my child's device, so I can enforce a "time-out" when they're not listening.
+    * **Implementation:** A `switch` entity will be created for each detected client device. Toggling this switch will create or remove a device-specific Layer 7 (L7) firewall rule, blocking all internet traffic for that client.
 
-### Proposed UI Layout:
+---
 
-```
-------------------------------------------------------
-| Parental Controls                                  |
-------------------------------------------------------
-|                                                    |
-|  **Content Filtering**                             |
-|                                                    |
-|  Network Policy: [ Homework ▼ ]  (Save Button)     |
-|                                                    |
-|  --------------------------------------------------  |
-|                                                    |
-|  **Client Devices**                                |
-|                                                    |
-|  - John's iPad        (Connected)   [ Internet On |o ] |
-|  - Living Room TV     (Connected)   [ Internet On |o ] |
-|  - Guest Phone        (Connected)   [ Internet On |o ] |
-|                                                    |
-------------------------------------------------------
-```
+### **3. Technical Design**
 
-### UI Components:
+#### **3.1. Home Assistant Entities**
 
-*   **Content Filtering Dropdown:** A `<select>` dropdown menu that will be populated with the list of available content filtering policies from the Meraki network.
-*   **Save Button:** A button to apply the selected content filtering policy.
-*   **Client List:** A list of all client devices on the network.
-*   **Internet Access Toggle:** A toggle switch for each client device to enable or disable their internet access.
+* **Entity 1: Content Filtering `select` Entity**
+    * **Entity ID:** `select.meraki_content_filtering_policy_<network_name_slug>`
+    * **Function:** This entity will pull the list of available content filtering policies from the Meraki dashboard. The agent must handle the retrieval of these policy names, including the default categories (`Block all`, `Adult themes`, etc.) and any custom policies.
+    * **API Calls:** * `GET /networks/{networkId}/appliance/contentFiltering` (for initial state)
+        * `PUT /networks/{networkId}/appliance/contentFiltering` (for state change)
 
-## 3. Technical Implementation
+* **Entity 2: Client `switch` Entity**
+    * **Entity ID:** `switch.meraki_client_internet_access_<client_mac_address_slug>`
+    * **Function:** This entity's state will reflect the internet access status for a specific device. Toggling the switch will create or delete a specific L7 firewall rule for that device.
+    * **API Calls:**
+        * `GET /networks/{networkId}/clients` (to get a list of clients and their MAC/IP)
+        * `GET /networks/{networkId}/appliance/firewall/l7FirewallRules` (to check for existing rules)
+        * `PUT /networks/{networkId}/appliance/firewall/l7FirewallRules` (to add/remove rules)
 
-### Home Assistant Entities:
+#### **3.2. Meraki API Interaction**
 
-*   **`select.meraki_content_filtering_policy`:** A `select` entity to control the network's content filtering policy.
-*   **`switch.meraki_client_internet_access_<client_mac>`:** A `switch` entity for each client device to control its internet access.
+* **Content Filtering:** The API endpoints are correctly identified. The agent should be aware that the `PUT` request to update content filtering requires the entire object, including the `allowedUrlPatterns` and `blockedUrlPatterns`. It should **read the current state first, update only the policy, and then write the complete object back**.
+* **Client Firewall Rules:** This is the most critical part of the implementation. The agent must:
+    1.  Use a unique comment to identify its rules. **Suggestion:** `{"comment": "Managed by Home Assistant Meraki Parental Controls"}`. This is essential to prevent conflicts with manually created rules.
+    2.  When a switch is toggled **on** (to block), the agent will add a new L7 firewall rule with the specific client's IP address.
+        * **Rule Type:** Deny
+        * **Protocol:** Any
+        * **Port:** Any
+        * **URL Pattern:** `*`
+        * **Client IP:** The IP of the device. The agent will need to get the IP address from the `/networks/{networkId}/clients` endpoint.
+    3.  When a switch is toggled **off** (to allow), the agent will find the rule with the unique comment and the matching client IP and remove it from the list of rules before sending the `PUT` request.
+    4.  **Important:** The Meraki API has an endpoint to get a client's IP address (`GET /networks/{networkId}/clients/{clientId}/status`). The agent should use this to get the IP, as the `/networks/{networkId}/clients` endpoint might not always have the most up-to-date IP address.
 
-### Meraki API Endpoints:
+#### **3.3. State Management & Polling**
 
-*   **Content Filtering:**
-    *   `GET /networks/{networkId}/appliance/contentFiltering` - To get the current content filtering settings.
-    *   `GET /networks/{networkId}/appliance/contentFiltering/categories` - To get the list of available content filtering categories, which can be used to populate the `select` entity.
-    *   `PUT /networks/{networkId}/appliance/contentFiltering` - To update the content filtering settings.
-*   **Client Firewall Rules:**
-    *   `GET /networks/{networkId}/appliance/firewall/l7FirewallRules` - To get the current layer 7 firewall rules for the network.
-    *   `PUT /networks/{networkId}/appliance/firewall/l7FirewallRules` - To update the layer 7 firewall rules. This will be used to block or allow internet access for specific clients. We will need to manage the rules carefully to avoid overwriting existing user-configured rules.
+* The integration must poll the Meraki API at a reasonable interval (e.g., every 3-5 minutes) to update the state of the Home Assistant entities.
+* The `select` entity's state should reflect the current Meraki network policy.
+* The `switch` entities' states should reflect the presence or absence of the corresponding L7 firewall rules. This ensures the Home Assistant UI stays in sync with the Meraki configuration, even if changes are made outside of Home Assistant.
 
-### Backend Logic:
+---
 
-*   The integration will need to fetch the list of content filtering policies and populate the `select` entity.
-*   When the `select` entity's state is changed, the integration will make a `PUT` request to the Meraki API to update the content filtering policy.
-*   The integration will need to fetch the list of clients on the network.
-*   For each client, a `switch` entity will be created.
-*   When a `switch` entity is toggled, the integration will add or remove a firewall rule to block or allow traffic for that client's IP address. The rule will need to be carefully constructed to block all traffic.
-*   The integration will need to periodically refresh the list of clients and the state of the firewall rules.
-*   **Important:** To avoid interfering with user-defined firewall rules, the integration will add a comment to the rules it creates (e.g., `"comment": "Managed by Home Assistant Meraki Integration"`). When updating the rules, it will only modify the rules with this comment, leaving other rules untouched.
+### **4. Risks & Mitigations**
+
+* **Risk:** Overwriting user-defined firewall rules.
+    * **Mitigation:** The plan to use a unique comment is the correct approach. The agent **must only modify rules that contain this specific comment**. All other rules must be preserved.
+
+* **Risk:** Meraki API rate limiting.
+    * **Mitigation:** The agent should implement a delay or a queue for multiple API calls (e.g., when a user rapidly toggles several switches). Polling intervals should be carefully considered to avoid hitting the API too frequently.
+
+* **Risk:** The Meraki device loses connection or the API key is invalid.
+    * **Mitigation:** The integration should use robust error handling. If an API call fails, the entity state should be set to `unavailable`, and an error message should be logged in Home Assistant.
+
+---
+
+### **5. Additional & Optional Features**
+
+Based on the capabilities of Meraki devices, here are a few more advanced features that would significantly enhance the user experience and create a more robust parental controls solution.
+
+* **Scheduled Access (Time-based Rules):**
+    * **Concept:** Instead of just an on/off switch, allow users to set schedules for internet access. This could be exposed as a **Home Assistant schedule helper entity**.
+    * **How it works:** The integration would manage L7 firewall rules that are only active during specific times (e.g., blocking social media from 9 PM to 7 AM). The Meraki API supports time-of-day-based rules.
+    * **Value:** Automates a common use case for parental controls, reducing the need for manual intervention.
+
+* **Application & URL Blocking:**
+    * **Concept:** Provide a user interface to block specific applications (e.g., "YouTube," "Fortnite") or custom URLs for a device.
+    * **How it works:** Meraki's L7 firewall rules support blocking by application, application category, and URL. The integration could expose a new entity or a service call in Home Assistant for this.
+    * **Value:** Offers more granular control than simple on/off. Parents could block specific games or websites without disabling all internet access.
+
+* **Client Information & Monitoring:**
+    * **Concept:** Expose more information about client devices as sensors in Home Assistant.
+    * **How it works:** Create sensors for **data usage (downlink/uplink)**, **current IP address**, and **connected wireless network name/SSID**.
+    * **Value:** Provides a single-pane-of-glass view for monitoring network activity, which is a key part of parental controls. This leverages Meraki's powerful network visibility features.
