@@ -20,6 +20,7 @@ from .camera_profiles import (
     MerakiCameraAudioDetectionSwitch,
 )
 from .camera_schedules import MerakiCameraRTSPSwitch
+from .meraki_client_blocker import MerakiClientBlockerSwitch
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -105,6 +106,24 @@ async def async_setup_entry(
         _LOGGER.info(
             "Network Coordinator data not available or no SSIDs found for setting up SSID switches."
         )
+
+    # Setup Client Blocker Switches
+    if coordinator and coordinator.data and "clients" in coordinator.data:
+        for client_data in coordinator.data["clients"]:
+            if not isinstance(client_data, dict):
+                continue
+
+            if "mac" not in client_data or "networkId" not in client_data:
+                continue
+            new_entities.append(
+                MerakiClientBlockerSwitch(
+                    coordinator,
+                    meraki_client,
+                    config_entry,
+                    client_data["networkId"],
+                    client_data,
+                )
+            )
 
     if new_entities:
         async_add_entities(new_entities)

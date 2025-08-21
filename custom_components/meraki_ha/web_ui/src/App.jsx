@@ -4,6 +4,7 @@ import DashboardPage from './pages/DashboardPage';
 import NetworksPage from './pages/NetworksPage';
 import NetworkDetailPage from './pages/NetworkDetailPage';
 import SettingsPage from './pages/SettingsPage';
+import ParentalControlsPage from './pages/ParentalControlsPage';
 
 function getTitle(pathname) {
   if (pathname.startsWith('/networks/')) return 'Network Detail';
@@ -12,6 +13,8 @@ function getTitle(pathname) {
       return 'Dashboard';
     case '/networks':
       return 'Networks';
+    case '/parental-controls':
+      return 'Parental Controls';
     case '/settings':
       return 'Settings';
     default:
@@ -46,6 +49,7 @@ function App() {
               <Route path="/" element={<DashboardPage />} />
               <Route path="/networks" element={<NetworksPage />} />
               <Route path="/networks/:networkId" element={<NetworkDetailPage />} />
+              <Route path="/parental-controls" element={<ParentalControlsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Routes>
           </div>

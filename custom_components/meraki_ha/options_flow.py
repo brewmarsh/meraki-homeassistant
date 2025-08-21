@@ -33,23 +33,21 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle an options flow for the Meraki integration."""
 
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        self.config_entry = config_entry
+        self.options = dict(config_entry.options)
+
     async def async_step_init(
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> config_entries.FlowResult:
-        """Manage the options flow initialization."""
-        self.options = dict(self.config_entry.options)
-        return await self.async_step_general(user_input)
-
-    async def async_step_general(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> config_entries.FlowResult:
-        """Handle the general settings step."""
+        """Manage the general settings step."""
         if user_input is not None:
             self.options.update(user_input)
             return await self.async_step_features()
 
         return self.async_show_form(
-            step_id="general",
+            step_id="init",
             data_schema=vol.Schema(
                 {
                     vol.Optional(

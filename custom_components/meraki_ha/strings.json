@@ -51,7 +51,7 @@
   },
   "options": {
     "step": {
-      "general": {
+      "init": {
         "title": "Meraki Options",
         "description": "Step 1 of 3: General Settings",
         "data": {
