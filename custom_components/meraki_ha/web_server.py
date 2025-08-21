@@ -114,7 +114,8 @@ class MerakiWebServer:
     async def handle_api_get_parental_controls_resources(self, request: web.Request) -> web.Response:
         """Get a list of all networks and SSIDs that support content filtering."""
         resources = []
-        entry_data = self.hass.data[self.coordinator.domain][self.coordinator.config_entry.entry_id]
+        domain = self.coordinator.config_entry.domain
+        entry_data = self.hass.data[domain][self.coordinator.config_entry.entry_id]
 
         # Add network-level resources
         if "network_content_filtering_coordinators" in entry_data:
@@ -215,7 +216,8 @@ class MerakiWebServer:
         ssid_number = request.match_info.get("ssid_number")
         coordinator_key = f"{network_id}_{ssid_number}"
 
-        entry_data = self.hass.data[self.coordinator.domain][self.coordinator.config_entry.entry_id]
+        domain = self.coordinator.config_entry.domain
+        entry_data = self.hass.data[domain][self.coordinator.config_entry.entry_id]
         coordinator = entry_data.get("ssid_content_filtering_coordinators", {}).get(coordinator_key)
 
         if not coordinator or not coordinator.data:
@@ -229,7 +231,8 @@ class MerakiWebServer:
         ssid_number = request.match_info.get("ssid_number")
         coordinator_key = f"{network_id}_{ssid_number}"
 
-        entry_data = self.hass.data[self.coordinator.domain][self.coordinator.config_entry.entry_id]
+        domain = self.coordinator.config_entry.domain
+        entry_data = self.hass.data[domain][self.coordinator.config_entry.entry_id]
         coordinator = entry_data.get("ssid_content_filtering_coordinators", {}).get(coordinator_key)
 
         if not coordinator:
