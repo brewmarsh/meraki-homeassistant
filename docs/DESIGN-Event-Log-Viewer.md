@@ -1,106 +1,62 @@
-# Design Proposal: Event / Alert Log Viewer
+### **Updated Design and Implementation Plan: Event / Alert Log Viewer**
 
-This document outlines the design for the "Event / Alert Log Viewer" feature for the Meraki Home Assistant integration's web UI.
+### **1. Product Vision & Scope**
 
-## 1. Feature Goal
+The goal is to provide a performant, scalable, and user-friendly interface for viewing Meraki events and alerts. This feature will focus on providing a quick, at-a-glance view of the most important events while ensuring the ability to dig deeper when needed, all without overwhelming the user or the Home Assistant instance. We'll leverage pagination and intelligent filtering to achieve this.
 
-To provide a clear, filterable, and searchable view of network events and alerts from the Meraki dashboard directly within the Home Assistant web UI. This will allow for quick diagnostics and monitoring without needing to leave the Home Assistant environment.
-
-## 2. UI Design
-
-A new page in the web UI called **"Event Log"** will be created, accessible from the main sidebar.
-
-### Main View
-
-The page will feature a table displaying the event logs. Each row will represent a single event with the following columns:
-
-*   **Timestamp:** When the event occurred.
-*   **Event Type:** A short, descriptive category for the event (e.g., "Client Connected", "Device Disconnected", "Firewall Rule Blocked").
-*   **Description:** A detailed message about the event.
-*   **Severity:** A color-coded indicator (e.g., "Info", "Warning", "Alert") to quickly identify important events.
-
-### Controls
-
-Above the table, there will be several controls to help users find the information they need:
-
-*   **Time Range Filter:** A dropdown to select common time ranges (e.g., "Last Hour," "Last 24 Hours") and a custom date/time picker.
-*   **Event Type Filter:** A multi-select dropdown to show or hide specific categories of events.
-*   **Search Bar:** A text input to search for keywords within the event descriptions.
-
-### UI Sketch
-
-```
----------------------------------------------------------------------
-| Event Log                                                         |
----------------------------------------------------------------------
-|                                                                   |
-|  Time Range: [ Last 24 Hours ▼ ]  Filter: [ All Types ▼ ]  [ Search... ] |
-|                                                                   |
-|  -----------------------------------------------------------------  |
-|  | Timestamp           | Type                  | Description      |
-|  -----------------------------------------------------------------  |
-|  | 2025-08-20 19:00:00 | Client Connected      | John's iPad...   |
-|  | 2025-08-20 18:55:12 | Device Disconnected   | Living Room AP...|
-|  | 2025-08-20 18:52:03 | Content Blocked       | Gaming site...   |
-|                                                                   |
----------------------------------------------------------------------
-```
+The scope of this feature remains a centralized log viewer with robust filtering capabilities.
 
 ---
 
-## 3. Implementation Plan & Instructions for a Continuing Agent
+### **2. Core Features & User Stories**
 
-This section provides a detailed plan for an agent to implement this feature.
+* **User Story: High-Level Monitoring**
+    * **As a user,** I want to see a concise summary of recent network events and alerts at a glance, so I can quickly confirm that my network is operating as expected.
+    * **Implementation:** The main table view with columns for **Timestamp**, **Event Type**, **Description**, and **Severity**.
 
-### Goal
+* **User Story: Focused Troubleshooting**
+    * **As a user,** I want to filter and search through events to pinpoint the cause of a problem, like why a specific device can't connect.
+    * **Implementation:** Add **Time Range**, **Event Type**, and **Search** filters.
 
-Implement the "Event / Alert Log Viewer" as described in the design proposal.
+* **User Story: Performance Management (NEW)**
+    * **As a user,** I want the log viewer to load quickly and not slow down my Home Assistant instance.
+    * **Implementation:** The backend will use Meraki's API pagination features and the frontend will implement infinite scrolling or paginated loading to handle large datasets efficiently.
 
-### Prerequisites
+---
 
-*   Familiarity with React (functional components, hooks like `useState` and `useEffect`).
-*   Understanding of how to make API calls in JavaScript using `fetch`.
-*   Basic knowledge of the existing web UI structure (`App.jsx`, `Sidebar.jsx`, and the `pages` directory).
+### **3. Technical Design**
 
-### Step-by-Step Implementation Plan
+#### **3.1. Meraki API Interaction (Crucial Updates)**
 
-#### 1. Backend: Create the API Endpoint
+The `GET /networks/{networkId}/events` endpoint is a good starting point, but it's limited to a single network. A more scalable solution for users with multiple networks would be to use an organization-level endpoint, if one exists, to avoid multiple API calls. A quick look at the Meraki API documentation shows a number of endpoints for getting events at the network level and for specific event types at the organization level, but not a single organization-wide event feed.
 
-*   **File to Modify:** `custom_components/meraki_ha/web_server.py`
-*   **Tasks:**
-    1.  Add a new route, `/api/events`, to the `_setup_routes` method.
-    2.  Create a new handler function, `handle_api_events`, for this route.
-    3.  This handler should accept query parameters for filtering (e.g., `startTime`, `endTime`, `eventType`).
-    4.  Inside the handler, use the `self.coordinator.api_client` to call the Meraki Dashboard API endpoint to fetch the events. The primary endpoint to investigate is `GET /networks/{networkId}/events`. You may need to fetch events for all networks and combine them, or use an organization-level endpoint if available.
-    5.  Process the data from the Meraki API into a clean JSON format suitable for the frontend and return it.
+Therefore, the best approach is to query each configured network for its events and then combine them on the backend.
 
-#### 2. Frontend: Build the UI
+* **Backend (`web_server.py`):**
+    * The `handle_api_events` function will need to iterate through **all networks** configured in the integration.
+    * For each network, it will call `GET /networks/{networkId}/events`.
+    * It must handle the API's pagination by making multiple requests (using the `perPage` and `startingAfter`/`endingBefore` parameters) to retrieve a full set of events for the requested time range.
+    * The backend should apply the time range and search/type filters **before** returning the data to the frontend, minimizing the amount of data transferred. The Meraki API supports filtering by `includedEventTypes` and `excludedEventTypes`, which should be leveraged to reduce the initial payload size.
 
-*   **Task 1: Create the Event Log Page**
-    *   Create a new file: `custom_components/meraki_ha/web_ui/src/pages/EventLogPage.jsx`.
-    *   In this file, create a new React component named `EventLogPage`.
-    *   Use `useState` to manage the state for the event logs, loading status, errors, and filter values.
-    *   Use `useEffect` to make an initial `fetch` call to your new `/api/events` endpoint when the component mounts.
-    *   Render the UI as described in the design proposal (the filter controls and the table).
+#### **3.2. Frontend: UI & Performance**
 
-*   **Task 2: Add Navigation**
-    *   **File to Modify:** `custom_components/meraki_ha/web_ui/src/components/Sidebar.jsx`
-    *   **Task:** Add a new `NavLink` to the sidebar for the "Event Log" page, pointing to the `/events` route. Choose a suitable icon.
+* **Frontend (`EventLogPage.jsx`):**
+    * The UI design is solid, but the implementation should prioritize performance.
+    * Instead of loading all events at once, the `useEffect` hook should initiate a request for the first page of results (e.g., 50-100 events).
+    * Implement **paginated loading** or **infinite scrolling**. When the user scrolls to the bottom of the table, the frontend should trigger another API call to fetch the next page of results using the Meraki `startingAfter` token.
+    * The search and filter controls should trigger a new API call with the relevant parameters, not just filter the data on the client side. This is vital for performance on large datasets.
 
-*   **Task 3: Add the Route**
-    *   **File to Modify:** `custom_components/meraki_ha/web_ui/src/App.jsx`
-    *   **Task:** Add a new `<Route>` for the `/events` path that renders your new `EventLogPage` component.
+#### **3.3. New Complementary Features**
 
-#### 3. Build and Verify
+1.  **Event Type Icons & Colors:**
+    * **Concept:** Use icons and colors to provide an immediate visual cue for event types and severity.
+    * **Implementation:** Create a mapping in the frontend that assigns an icon (e.g., a "check-circle" for connected, a "warning-triangle" for warnings) and a color to each `eventType` returned by the Meraki API. This makes the log much easier to scan.
 
-*   **Task 1: Build the Frontend**
-    *   Navigate to the `custom_components/meraki_ha/web_ui/` directory.
-    *   Run the command `npm run build` to compile the new frontend code.
-*   **Task 2: Verify with a Test Script**
-    *   Create a new Playwright script (e.g., `jules-scratch/verification/verify_event_log.py`).
-    *   The script should:
-        1.  Start a local web server for the `dist` directory.
-        2.  Navigate to the web UI.
-        3.  Click the "Event Log" link in the sidebar.
-        4.  Verify that the "Event Log" page loads correctly and that the event table is visible.
-        5.  Take a screenshot of the page.
+2.  **Configurable Push Notifications:**
+    * **Concept:** Allow users to receive Home Assistant push notifications for specific, high-severity Meraki events without needing to have the log viewer page open.
+    * **Implementation:** This would be an additional feature, likely configured on a separate settings page. The integration could expose a Home Assistant **sensor entity** or **binary sensor** that triggers an event when a new alert (e.g., a **Firewall Rule Blocked** alert) appears in the Meraki event log. Users could then use Home Assistant automations to send a notification to their phone.
+    * **Value:** Transforms the passive log viewer into an active alerting tool, which is a key value proposition for Home Assistant users.
+
+3.  **Detailed Event Modal:**
+    * **Concept:** Provide a way to view a single event in greater detail.
+    * **Implementation:** When a user clicks a row in the table, a pop-up modal should appear showing all of the available data for that event from the Meraki API response. This often includes granular details like client IP, device MAC, and more, which are too verbose for the main table but crucial for advanced troubleshooting.
