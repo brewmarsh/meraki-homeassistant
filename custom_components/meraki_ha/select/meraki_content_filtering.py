@@ -1,7 +1,7 @@
 """Select entity for controlling Meraki Content Filtering."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.config_entries import ConfigEntry
@@ -11,15 +11,16 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 
-from ..core.api.client import MerakiAPIClient
-from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ..core.coordinators.content_filtering_coordinator import (
+    ContentFilteringCoordinator,
+)
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiContentFilteringSelect(
-    CoordinatorEntity[MerakiDataCoordinator], SelectEntity
+    CoordinatorEntity[ContentFilteringCoordinator], SelectEntity
 ):
     """Representation of a Meraki Content Filtering select entity."""
 
@@ -28,14 +29,12 @@ class MerakiContentFilteringSelect(
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        meraki_client: MerakiAPIClient,
+        coordinator: ContentFilteringCoordinator,
         config_entry: ConfigEntry,
         network_data: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki Content Filtering select entity."""
         super().__init__(coordinator)
-        self._meraki_client = meraki_client
         self._config_entry = config_entry
         self._network_data = network_data
         self._network_id = network_data["id"]
@@ -47,6 +46,7 @@ class MerakiContentFilteringSelect(
         )
 
         self._attr_unique_id = f"meraki-network-{self._network_id}-content-filtering"
+        self._attr_options = ["high", "moderate", "low", "approved"]  # Static for now
         self._update_internal_state()
 
     @property
@@ -70,32 +70,15 @@ class MerakiContentFilteringSelect(
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the select entity."""
-        if self.coordinator.data and self.coordinator.data.get("content_filtering"):
-            content_filtering = self.coordinator.data["content_filtering"].get(
-                self._network_id
-            )
-            if content_filtering:
-                self._attr_current_option = content_filtering.get(
-                    "urlCategoryListSize", "topSites"
-                )
-                self._attr_options = [
-                    "topSites",
-                    "fullList",
-                ]  # This should be dynamic
+        if self.coordinator.data:
+            self._attr_current_option = self.coordinator.data.get("settings")
         else:
             self._attr_current_option = None
-            self._attr_options = []
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
         try:
-            await self._meraki_client.appliance.update_network_appliance_content_filtering(
-                networkId=self._network_id,
-                urlCategoryListSize=option,
-            )
-            self._attr_current_option = option
-            self.async_write_ha_state()
-            await self.coordinator.async_request_refresh()
+            await self.coordinator.async_update_content_filtering(settings=option)
         except Exception as e:
             _LOGGER.error(
                 "Failed to set content filtering policy to '%s' for network %s: %s",

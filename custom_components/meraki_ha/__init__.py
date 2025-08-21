@@ -22,6 +22,8 @@ from .const import (
 )
 from .core.api.client import MerakiAPIClient
 from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from .core.coordinators.content_filtering_coordinator import ContentFilteringCoordinator
+from .core.coordinators.client_firewall_coordinator import ClientFirewallCoordinator
 from .web_server import MerakiWebServer
 from .webhook import async_register_webhook, async_unregister_webhook
 
@@ -68,7 +70,39 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {
         "coordinator": coordinator,
         DATA_CLIENT: api_client,
+        "content_filtering_coordinators": {},
     }
+
+    # Create content filtering coordinators for each network with an appliance
+    if coordinator.data and coordinator.data.get("networks"):
+        for network in coordinator.data["networks"]:
+            if "appliance" in network.get("productTypes", []):
+                cf_coordinator = ContentFilteringCoordinator(
+                    hass=hass,
+                    api_client=api_client,
+                    scan_interval=scan_interval,
+                    network_id=network["id"],
+                )
+                await cf_coordinator.async_refresh()
+                hass.data[DOMAIN][entry.entry_id]["content_filtering_coordinators"][
+                    network["id"]
+                ] = cf_coordinator
+
+    # Create client firewall coordinators for each network with an appliance
+    if coordinator.data and coordinator.data.get("networks"):
+        hass.data[DOMAIN][entry.entry_id]["client_firewall_coordinators"] = {}
+        for network in coordinator.data["networks"]:
+            if "appliance" in network.get("productTypes", []):
+                cfw_coordinator = ClientFirewallCoordinator(
+                    hass=hass,
+                    api_client=api_client,
+                    scan_interval=scan_interval,
+                    network_id=network["id"],
+                )
+                await cfw_coordinator.async_refresh()
+                hass.data[DOMAIN][entry.entry_id]["client_firewall_coordinators"][
+                    network["id"]
+                ] = cfw_coordinator
 
     # Start the web server if enabled
     if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):

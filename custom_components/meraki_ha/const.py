@@ -99,6 +99,8 @@ PLATFORM_TEXT: Final[str] = "text"
 """Represents the text platform (str)."""
 PLATFORM_CAMERA: Final[str] = "camera"
 """Represents the camera platform (str)."""
+PLATFORM_SELECT: Final[str] = "select"
+"""Represents the select platform (str)."""
 
 
 PLATFORMS: Final[List[str]] = [
@@ -106,6 +108,7 @@ PLATFORMS: Final[List[str]] = [
     PLATFORM_SWITCH,
     PLATFORM_TEXT,
     PLATFORM_CAMERA,
+    PLATFORM_SELECT,
 ]
 """List of platforms supported by the integration (List[str])."""
 

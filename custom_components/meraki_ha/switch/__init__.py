@@ -108,22 +108,22 @@ async def async_setup_entry(
         )
 
     # Setup Client Blocker Switches
-    if coordinator and coordinator.data and "clients" in coordinator.data:
-        for client_data in coordinator.data["clients"]:
-            if not isinstance(client_data, dict):
-                continue
+    client_firewall_coordinators = entry_data.get("client_firewall_coordinators", {})
+    for network_id, cfw_coordinator in client_firewall_coordinators.items():
+        if cfw_coordinator.data and "clients" in cfw_coordinator.data:
+            for client_data in cfw_coordinator.data["clients"]:
+                if not isinstance(client_data, dict):
+                    continue
 
-            if "mac" not in client_data or "networkId" not in client_data:
-                continue
-            new_entities.append(
-                MerakiClientBlockerSwitch(
-                    coordinator,
-                    meraki_client,
-                    config_entry,
-                    client_data["networkId"],
-                    client_data,
+                if "mac" not in client_data or "ip" not in client_data:
+                    continue
+                new_entities.append(
+                    MerakiClientBlockerSwitch(
+                        coordinator=cfw_coordinator,
+                        config_entry=config_entry,
+                        client_data=client_data,
+                    )
                 )
-            )
 
     if new_entities:
         async_add_entities(new_entities)

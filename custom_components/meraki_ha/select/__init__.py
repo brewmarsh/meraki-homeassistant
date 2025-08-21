@@ -21,18 +21,27 @@ async def async_setup_entry(
 ) -> None:
     """Set up the Meraki select entities."""
     meraki_data = hass.data[DOMAIN][config_entry.entry_id]
-    coordinator = meraki_data["coordinator"]
-    meraki_client = meraki_data["client"]
+    main_coordinator = meraki_data["coordinator"]
+    cf_coordinators = meraki_data.get("content_filtering_coordinators", {})
 
-    if coordinator.data:
+    if main_coordinator.data and cf_coordinators:
         select_entities = []
-        for network in coordinator.data.get("networks", []):
-            select_entities.append(
-                MerakiContentFilteringSelect(
-                    coordinator,
-                    meraki_client,
-                    config_entry,
-                    network,
-                )
+        for network_id, cf_coordinator in cf_coordinators.items():
+            # Find the network data from the main coordinator
+            network_data = next(
+                (
+                    n
+                    for n in main_coordinator.data.get("networks", [])
+                    if n["id"] == network_id
+                ),
+                None,
             )
+            if network_data:
+                select_entities.append(
+                    MerakiContentFilteringSelect(
+                        coordinator=cf_coordinator,
+                        config_entry=config_entry,
+                        network_data=network_data,
+                    )
+                )
         async_add_entities(select_entities)
