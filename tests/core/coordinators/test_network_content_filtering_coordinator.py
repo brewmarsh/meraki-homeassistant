@@ -9,7 +9,13 @@ from custom_components.meraki_ha.core.coordinators.network_content_filtering_coo
 )
 
 NETWORK_ID = "N_12345"
-MOCK_CONTENT_FILTERING_DATA = {"settings": "high"}
+MOCK_CONTENT_FILTERING_DATA = {
+    "settings": "high",
+    "blockedUrlCategories": [
+        {"id": "meraki:contentFiltering/category/1", "name": "Adult and Pornography"},
+        {"id": "meraki:contentFiltering/category/2", "name": "Gambling"},
+    ],
+}
 
 
 @pytest.mark.asyncio
@@ -27,6 +33,7 @@ async def test_fetch_data(hass: HomeAssistant):
     data = await coordinator._async_update_data()
 
     assert data == MOCK_CONTENT_FILTERING_DATA
+    assert data["blocked_categories_names"] == ["Adult and Pornography", "Gambling"]
     mock_api_client.appliance.get_network_appliance_content_filtering.assert_called_once_with(
         network_id=NETWORK_ID
     )

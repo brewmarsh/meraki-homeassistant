@@ -15,7 +15,14 @@ from custom_components.meraki_ha.core.coordinators.network_content_filtering_coo
 
 NETWORK_ID = "N_12345"
 NETWORK_DATA = {"id": NETWORK_ID, "name": "Test Network"}
-MOCK_CONTENT_FILTERING_DATA = {"settings": "high"}
+MOCK_CONTENT_FILTERING_DATA = {
+    "settings": "high",
+    "blockedUrlCategories": [
+        {"id": "meraki:contentFiltering/category/1", "name": "Adult and Pornography"},
+        {"id": "meraki:contentFiltering/category/2", "name": "Gambling"},
+    ],
+    "blocked_categories_names": ["Adult and Pornography", "Gambling"],
+}
 
 
 @pytest.fixture
@@ -41,6 +48,10 @@ async def test_select_entity_properties(hass: HomeAssistant, mock_coordinator):
     assert entity.name == "Content Filtering Policy"
     assert entity.current_option == "high"
     assert entity.options == ["high", "moderate", "low", "approved"]
+    assert entity.extra_state_attributes["blocked_categories"] == [
+        "Adult and Pornography",
+        "Gambling",
+    ]
 
 
 @pytest.mark.asyncio

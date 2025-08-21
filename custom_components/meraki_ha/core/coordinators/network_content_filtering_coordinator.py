@@ -38,9 +38,15 @@ class NetworkContentFilteringCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch content filtering settings from the API."""
         try:
-            return await self.api.appliance.get_network_appliance_content_filtering(
+            cf_data = await self.api.appliance.get_network_appliance_content_filtering(
                 network_id=self.network_id
             )
+            if cf_data:
+                blocked_categories = cf_data.get("blockedUrlCategories", [])
+                cf_data["blocked_categories_names"] = [
+                    category["name"] for category in blocked_categories if "name" in category
+                ]
+            return cf_data
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}") from err
 

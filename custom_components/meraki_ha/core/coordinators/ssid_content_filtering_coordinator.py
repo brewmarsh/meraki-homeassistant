@@ -40,9 +40,17 @@ class SsidContentFilteringCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch SSID data from the API."""
         try:
-            return await self.api.wireless.get_network_wireless_ssid(
+            ssid_data = await self.api.wireless.get_network_wireless_ssid(
                 network_id=self.network_id, number=self.ssid_number
             )
+            if ssid_data and "contentFiltering" in ssid_data:
+                blocked_categories = ssid_data["contentFiltering"].get(
+                    "blockedUrlCategories", []
+                )
+                ssid_data["blocked_categories_names"] = [
+                    category["name"] for category in blocked_categories if "name" in category
+                ]
+            return ssid_data
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}") from err
 
@@ -58,8 +66,14 @@ class SsidContentFilteringCoordinator(DataUpdateCoordinator):
         updated_content_filtering = {**current_content_filtering, **kwargs}
 
         updated_ssid_data = {
+            **current_ssid_data,
             "contentFiltering": updated_content_filtering,
         }
+
+        # The update method takes network_id and number as separate arguments,
+        # so we need to remove them from the data we pass as kwargs.
+        updated_ssid_data.pop("networkId", None)
+        updated_ssid_data.pop("number", None)
 
         await self.api.wireless.update_network_wireless_ssid(
             network_id=self.network_id,

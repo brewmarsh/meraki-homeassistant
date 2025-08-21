@@ -11,9 +11,17 @@ from custom_components.meraki_ha.core.coordinators.ssid_content_filtering_coordi
 NETWORK_ID = "N_12345"
 SSID_NUMBER = 0
 MOCK_SSID_DATA = {
+    "networkId": NETWORK_ID,
     "number": SSID_NUMBER,
     "name": "Test SSID",
-    "contentFiltering": {"settings": "high"},
+    "contentFiltering": {
+        "settings": "high",
+        "blockedUrlCategories": [
+            {"id": "meraki:contentFiltering/category/1", "name": "Adult and Pornography"},
+            {"id": "meraki:contentFiltering/category/2", "name": "Gambling"},
+        ],
+    },
+    "blocked_categories_names": ["Adult and Pornography", "Gambling"],
 }
 
 
@@ -32,6 +40,7 @@ async def test_fetch_data(hass: HomeAssistant):
     data = await coordinator._async_update_data()
 
     assert data == MOCK_SSID_DATA
+    assert data["blocked_categories_names"] == ["Adult and Pornography", "Gambling"]
     mock_api_client.wireless.get_network_wireless_ssid.assert_called_once_with(
         network_id=NETWORK_ID, number=SSID_NUMBER
     )
@@ -50,11 +59,20 @@ async def test_update_data(hass: HomeAssistant):
 
     await coordinator.async_update_content_filtering(settings="low")
 
-    expected_update_data = {
-        "contentFiltering": {"settings": "low"},
+    expected_kwargs = {
+        "name": "Test SSID",
+        "contentFiltering": {
+            "settings": "low",
+            "blockedUrlCategories": [
+                {"id": "meraki:contentFiltering/category/1", "name": "Adult and Pornography"},
+                {"id": "meraki:contentFiltering/category/2", "name": "Gambling"},
+            ],
+        },
+        "blocked_categories_names": ["Adult and Pornography", "Gambling"],
     }
+
     mock_api_client.wireless.update_network_wireless_ssid.assert_called_once_with(
         network_id=NETWORK_ID,
         number=SSID_NUMBER,
-        **expected_update_data,
+        **expected_kwargs,
     )

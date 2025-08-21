@@ -60,6 +60,17 @@ class MerakiNetworkContentFilteringSelect(
         )
 
     @property
+    def extra_state_attributes(self) -> Dict[str, Any]:
+        """Return the state attributes."""
+        if self.coordinator.data:
+            return {
+                "blocked_categories": self.coordinator.data.get(
+                    "blocked_categories_names", []
+                )
+            }
+        return {}
+
+    @property
     def available(self) -> bool:
         """Return True if entity is available."""
         return super().available and self.coordinator.data is not None

@@ -19,7 +19,14 @@ MOCK_SSID_DATA = {
     "networkId": NETWORK_ID,
     "number": SSID_NUMBER,
     "name": "Test SSID",
-    "contentFiltering": {"settings": "high"},
+    "contentFiltering": {
+        "settings": "high",
+        "blockedUrlCategories": [
+            {"id": "meraki:contentFiltering/category/1", "name": "Adult and Pornography"},
+            {"id": "meraki:contentFiltering/category/2", "name": "Gambling"},
+        ],
+    },
+    "blocked_categories_names": ["Adult and Pornography", "Gambling"],
 }
 
 
@@ -49,6 +56,10 @@ async def test_select_entity_properties(hass: HomeAssistant, mock_coordinator):
     assert entity.name == "Content Filtering Policy"
     assert entity.current_option == "high"
     assert entity.options == ["high", "moderate", "low", "approved"]
+    assert entity.extra_state_attributes["blocked_categories"] == [
+        "Adult and Pornography",
+        "Gambling",
+    ]
 
 
 @pytest.mark.asyncio
