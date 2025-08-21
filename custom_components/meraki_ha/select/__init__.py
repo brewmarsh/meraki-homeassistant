@@ -28,10 +28,12 @@ async def async_setup_entry(
         "network_content_filtering_coordinators", {}
     )
 
+    _LOGGER.debug("Setting up select entities...")
     select_entities = []
 
     # Set up per-SSID select entities
     if main_coordinator.data and ssid_cf_coordinators:
+        _LOGGER.debug("Found %d SSID content filtering coordinators", len(ssid_cf_coordinators))
         for ssid_key, cf_coordinator in ssid_cf_coordinators.items():
             ssid_data = cf_coordinator.data
             if ssid_data:
@@ -45,6 +47,7 @@ async def async_setup_entry(
 
     # Set up network-wide select entities
     if main_coordinator.data and network_cf_coordinators:
+        _LOGGER.debug("Found %d network content filtering coordinators", len(network_cf_coordinators))
         for network_id, cf_coordinator in network_cf_coordinators.items():
             network_data = next(
                 (
@@ -63,4 +66,5 @@ async def async_setup_entry(
                     )
                 )
 
+    _LOGGER.debug("Adding %d select entities", len(select_entities))
     async_add_entities(select_entities)

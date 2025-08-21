@@ -107,10 +107,13 @@ async def async_setup_entry(
             "Network Coordinator data not available or no SSIDs found for setting up SSID switches."
         )
 
+    _LOGGER.debug("Setting up switch entities...")
     # Setup Client Blocker Switches
     client_firewall_coordinators = entry_data.get("client_firewall_coordinators", {})
+    _LOGGER.debug("Found %d client firewall coordinators", len(client_firewall_coordinators))
     for network_id, cfw_coordinator in client_firewall_coordinators.items():
         if cfw_coordinator.data and "clients" in cfw_coordinator.data:
+            _LOGGER.debug("Found %d clients in network %s", len(cfw_coordinator.data["clients"]), network_id)
             for client_data in cfw_coordinator.data["clients"]:
                 if not isinstance(client_data, dict):
                     continue
