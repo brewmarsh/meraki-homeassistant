@@ -167,4 +167,4 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
         """Get the options flow for this handler."""
-        return MerakiOptionsFlowHandler()
+        return MerakiOptionsFlowHandler(config_entry)
