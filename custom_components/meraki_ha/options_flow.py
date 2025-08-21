@@ -75,7 +75,8 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
             return await self.async_step_advanced()
 
         port = self.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
-        web_ui_url = f"http://{self.hass.config.api.host}:{port}"
+        host = self.hass.config.api.host if self.hass.config.api else "localhost"
+        web_ui_url = f"http://{host}:{port}"
 
         return self.async_show_form(
             step_id="features",

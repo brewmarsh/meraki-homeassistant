@@ -1,10 +1,5 @@
 # Meraki Home Assistant Integration 🤖
 
-[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
-[![GitHub Release](https://img.shields.io/github/v/release/brewmarsh/meraki-homeassistant)](https://github.com/brewmarsh/meraki-homeassistant/releases)
-[![Validate](https://github.com/brewmarsh/meraki-homeassistant/actions/workflows/validate.yaml/badge.svg)](https://github.com/brewmarsh/meraki-homeassistant/actions/workflows/validate.yaml)
-[![Quality Scale](https://img.shields.io/badge/quality%20scale-platinum-blueviolet.svg)](docs/QUALITY_SCALE.md)
-
 This Home Assistant integration allows you to monitor and manage your Cisco Meraki network, including devices, networks, and SSIDs. It leverages the Meraki API to bring data from your Meraki dashboard into Home Assistant, enabling you to gain insights into your network and automate actions based on its status.
 
 ## Features ✨
@@ -319,7 +314,7 @@ To resolve this, you need to enable the required feature in your Meraki dashboar
 
 If you are still having issues, you can get help in the following ways:
 
-*   **Home Assistant Community Forums:** [Create a new topic for this integration on the forums](https://community.home-assistant.io/c/share-your-projects/third-party-integrations/25), and then update this link!
+*   **Home Assistant Community Forums:** Post a question in the [Meraki integration thread](https://community.home-assistant.io/t/meraki-integration/12345) (link is a placeholder).
 *   **GitHub Issues:** If you believe you have found a bug, please open an issue on the [GitHub repository](https://github.com/your-repo/meraki-ha).
 
 ## Versioning and Releases

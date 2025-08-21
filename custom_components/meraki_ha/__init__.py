@@ -22,9 +22,6 @@ from .const import (
 )
 from .core.api.client import MerakiAPIClient
 from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-from .core.coordinators.ssid_content_filtering_coordinator import SsidContentFilteringCoordinator
-from .core.coordinators.network_content_filtering_coordinator import NetworkContentFilteringCoordinator
-from .core.coordinators.client_firewall_coordinator import ClientFirewallCoordinator
 from .web_server import MerakiWebServer
 from .webhook import async_register_webhook, async_unregister_webhook
 
@@ -72,68 +69,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "coordinator": coordinator,
         DATA_CLIENT: api_client,
     }
-
-    _LOGGER.debug("Setting up content filtering coordinators...")
-    # Create content filtering coordinators
-    hass.data[DOMAIN][entry.entry_id]["ssid_content_filtering_coordinators"] = {}
-    hass.data[DOMAIN][entry.entry_id]["network_content_filtering_coordinators"] = {}
-    if coordinator.data:
-        networks_with_ssids = {
-            ssid["networkId"] for ssid in coordinator.data.get("ssids", [])
-        }
-
-        # Create per-SSID coordinators
-        _LOGGER.debug("Found %d SSIDs to process for content filtering", len(coordinator.data.get("ssids", [])))
-        for ssid in coordinator.data.get("ssids", []):
-            if "networkId" in ssid and "number" in ssid:
-                _LOGGER.debug("Creating SSID content filtering coordinator for SSID %s in network %s", ssid["number"], ssid["networkId"])
-                ssid_coordinator = SsidContentFilteringCoordinator(
-                    hass=hass,
-                    api_client=api_client,
-                    scan_interval=scan_interval,
-                    network_id=ssid["networkId"],
-                    ssid_number=ssid["number"],
-                )
-                await ssid_coordinator.async_refresh()
-                hass.data[DOMAIN][entry.entry_id]["ssid_content_filtering_coordinators"][
-                    f"{ssid['networkId']}_{ssid['number']}"
-                ] = ssid_coordinator
-
-        # Create network-wide coordinators for networks without SSIDs
-        _LOGGER.debug("Processing %d networks for network-wide content filtering fallback", len(coordinator.data.get("networks", [])))
-        for network in coordinator.data.get("networks", []):
-            if network["id"] not in networks_with_ssids and "appliance" in network.get(
-                "productTypes", []
-            ):
-                _LOGGER.debug("Creating network content filtering coordinator for network %s", network["id"])
-                net_coordinator = NetworkContentFilteringCoordinator(
-                    hass=hass,
-                    api_client=api_client,
-                    scan_interval=scan_interval,
-                    network_id=network["id"],
-                )
-                await net_coordinator.async_refresh()
-                hass.data[DOMAIN][entry.entry_id][
-                    "network_content_filtering_coordinators"
-                ][network["id"]] = net_coordinator
-
-    # Create client firewall coordinators for each network with an appliance
-    _LOGGER.debug("Setting up client firewall coordinators...")
-    if coordinator.data and coordinator.data.get("networks"):
-        hass.data[DOMAIN][entry.entry_id]["client_firewall_coordinators"] = {}
-        for network in coordinator.data["networks"]:
-            if "appliance" in network.get("productTypes", []):
-                _LOGGER.debug("Creating client firewall coordinator for network %s", network["id"])
-                cfw_coordinator = ClientFirewallCoordinator(
-                    hass=hass,
-                    api_client=api_client,
-                    scan_interval=scan_interval,
-                    network_id=network["id"],
-                )
-                await cfw_coordinator.async_refresh()
-                hass.data[DOMAIN][entry.entry_id]["client_firewall_coordinators"][
-                    network["id"]
-                ] = cfw_coordinator
 
     # Start the web server if enabled
     if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):

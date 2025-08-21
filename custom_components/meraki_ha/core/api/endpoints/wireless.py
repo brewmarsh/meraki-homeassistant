@@ -32,19 +32,6 @@ class WirelessEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache()
-    async def get_network_wireless_ssid(
-        self, network_id: str, number: str
-    ) -> Dict[str, Any]:
-        """Get a single SSID."""
-        ssid = await self._api_client._run_sync(
-            self._dashboard.wireless.getNetworkWirelessSsid,
-            networkId=network_id,
-            number=number,
-        )
-        return validate_response(ssid)
-
-    @handle_meraki_errors
-    @async_timed_cache()
     async def get_wireless_settings(self, serial: str) -> Dict[str, Any]:
         """Get wireless radio settings for an access point."""
         settings = await self._api_client._run_sync(

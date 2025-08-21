@@ -5,6 +5,7 @@ from unittest.mock import patch, MagicMock, AsyncMock
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import async_get as async_get_device_registry
+from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
@@ -27,7 +28,7 @@ def mock_meraki_client():
         return_value={
             "devices": [],
             "networks": [
-                {"id": "net1", "name": "Test Network", "productTypes": ["wireless"]}
+                {"id": "net1", "name": "Test Network", "productTypes": ["wireless", "appliance"]}
             ],
             "ssids": [
                 {
@@ -44,6 +45,26 @@ def mock_meraki_client():
         }
     )
     client.unregister_webhook = AsyncMock(return_value=None)
+
+    # Mock for SsidContentFilteringCoordinator
+    client.wireless = MagicMock()
+    client.wireless.get_network_wireless_ssid = AsyncMock(
+        return_value={"number": 0, "name": "Test SSID", "contentFiltering": {}}
+    )
+
+    # Mock for NetworkContentFilteringCoordinator and ClientFirewallCoordinator
+    client.appliance = MagicMock()
+    client.appliance.get_network_appliance_content_filtering = AsyncMock(
+        return_value={"allowedUrlPatterns": [], "blockedUrlPatterns": []}
+    )
+    client.appliance.get_network_appliance_firewall_l7_firewall_rules = AsyncMock(
+        return_value={'rules': []}
+    )
+
+    # Mock for ClientFirewallCoordinator
+    client.network = MagicMock()
+    client.network.get_network_clients = AsyncMock(return_value=[])
+
     return client
 
 
@@ -62,8 +83,9 @@ async def test_ssid_device_creation_and_unification(
         assert await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
 
-        # Get the device registry
+        # Get the device and entity registries
         device_registry = async_get_device_registry(hass)
+        entity_registry = async_get_entity_registry(hass)
 
         # Find devices related to the SSID
         ssid_device_identifier = (DOMAIN, "net1_0")
@@ -75,11 +97,11 @@ async def test_ssid_device_creation_and_unification(
         # Assert that the device has the correct name (default prefix format)
         assert ssid_device.name == "[Ssid] Test SSID"
 
-        # Find all entities associated with this device
+        # Find all entities associated with this device by querying the entity registry
         entities = [
-            entity
-            for entity in hass.states.async_all()
-            if "device_id" in entity.attributes and entity.attributes.get("device_id") == ssid_device.id
+            entity.entity_id
+            for entity in entity_registry.entities.values()
+            if entity.device_id == ssid_device.id
         ]
 
         # Assert that multiple entities have been created for this one device
