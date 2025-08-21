@@ -3,6 +3,7 @@
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/v/release/brewmarsh/meraki-homeassistant)](https://github.com/brewmarsh/meraki-homeassistant/releases)
 [![Validate](https://github.com/brewmarsh/meraki-homeassistant/actions/workflows/validate.yaml/badge.svg)](https://github.com/brewmarsh/meraki-homeassistant/actions/workflows/validate.yaml)
+[![Quality Scale](https://img.shields.io/badge/quality%20scale-platinum-blueviolet.svg)](docs/QUALITY_SCALE.md)
 
 This Home Assistant integration allows you to monitor and manage your Cisco Meraki network, including devices, networks, and SSIDs. It leverages the Meraki API to bring data from your Meraki dashboard into Home Assistant, enabling you to gain insights into your network and automate actions based on its status.
 
