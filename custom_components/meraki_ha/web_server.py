@@ -42,9 +42,13 @@ class MerakiWebServer:
         self.app.router.add_post("/api/settings", self.handle_api_post_settings)
 
         # Parental Controls endpoints
+        self.app.router.add_get("/api/parental_controls/resources", self.handle_api_get_parental_controls_resources)
         self.app.router.add_get("/api/clients", self.handle_api_get_clients)
         self.app.router.add_get("/api/networks/{network_id}/appliance/contentFiltering", self.handle_api_get_content_filtering)
         self.app.router.add_put("/api/networks/{network_id}/appliance/contentFiltering", self.handle_api_put_content_filtering)
+        self.app.router.add_get("/api/contentFiltering/categories", self.handle_api_get_content_filtering_categories)
+        self.app.router.add_get("/api/networks/{network_id}/ssids/{ssid_number}/contentFiltering", self.handle_api_get_ssid_content_filtering)
+        self.app.router.add_put("/api/networks/{network_id}/ssids/{ssid_number}/contentFiltering", self.handle_api_put_ssid_content_filtering)
         self.app.router.add_get("/api/networks/{network_id}/appliance/firewall/l7FirewallRules", self.handle_api_get_l7_firewall_rules)
         self.app.router.add_put("/api/networks/{network_id}/appliance/firewall/l7FirewallRules", self.handle_api_put_l7_firewall_rules)
 
@@ -106,6 +110,38 @@ class MerakiWebServer:
         if network:
             return web.json_response(network)
         return web.json_response({"error": "Network not found"}, status=404)
+
+    async def handle_api_get_parental_controls_resources(self, request: web.Request) -> web.Response:
+        """Get a list of all networks and SSIDs that support content filtering."""
+        resources = []
+        entry_data = self.hass.data[self.coordinator.domain][self.coordinator.config_entry.entry_id]
+
+        # Add network-level resources
+        if "network_content_filtering_coordinators" in entry_data:
+            for network_id, coordinator in entry_data["network_content_filtering_coordinators"].items():
+                network_info = self.coordinator.get_network(network_id)
+                if network_info:
+                    resources.append({
+                        "type": "network",
+                        "network_id": network_id,
+                        "name": network_info.get("name", "Unknown Network"),
+                    })
+
+        # Add SSID-level resources
+        if "ssid_content_filtering_coordinators" in entry_data:
+            for coordinator_key, coordinator in entry_data["ssid_content_filtering_coordinators"].items():
+                network_id = coordinator.network_id
+                ssid_number = coordinator.ssid_number
+                ssid_info = self.coordinator.get_ssid(network_id, ssid_number)
+                if ssid_info:
+                    resources.append({
+                        "type": "ssid",
+                        "network_id": network_id,
+                        "ssid_number": ssid_number,
+                        "name": ssid_info.get("name", f"SSID {ssid_number}"),
+                    })
+
+        return web.json_response(resources)
 
     async def handle_api_get_clients(self, request: web.Request) -> web.Response:
         """Handle requests for client data."""
@@ -172,3 +208,44 @@ class MerakiWebServer:
         if self.runner:
             await self.runner.cleanup()
             _LOGGER.info("Meraki web UI server stopped.")
+
+    async def handle_api_get_ssid_content_filtering(self, request: web.Request) -> web.Response:
+        """Handle requests for SSID-specific content filtering settings."""
+        network_id = request.match_info.get("network_id")
+        ssid_number = request.match_info.get("ssid_number")
+        coordinator_key = f"{network_id}_{ssid_number}"
+
+        entry_data = self.hass.data[self.coordinator.domain][self.coordinator.config_entry.entry_id]
+        coordinator = entry_data.get("ssid_content_filtering_coordinators", {}).get(coordinator_key)
+
+        if not coordinator or not coordinator.data:
+            return web.json_response({"error": "SSID content filtering data not available"}, status=404)
+
+        return web.json_response(coordinator.data.get("contentFiltering", {}))
+
+    async def handle_api_put_ssid_content_filtering(self, request: web.Request) -> web.Response:
+        """Handle requests to update SSID-specific content filtering settings."""
+        network_id = request.match_info.get("network_id")
+        ssid_number = request.match_info.get("ssid_number")
+        coordinator_key = f"{network_id}_{ssid_number}"
+
+        entry_data = self.hass.data[self.coordinator.domain][self.coordinator.config_entry.entry_id]
+        coordinator = entry_data.get("ssid_content_filtering_coordinators", {}).get(coordinator_key)
+
+        if not coordinator:
+            return web.json_response({"error": "SSID coordinator not found"}, status=404)
+
+        try:
+            new_settings = await request.json()
+            await coordinator.async_update_content_filtering(**new_settings)
+            return web.json_response({"status": "success"}, status=200)
+        except Exception as e:
+            _LOGGER.error("Failed to update SSID content filtering settings: %s", e, exc_info=True)
+            return web.json_response({"error": str(e)}, status=500)
+
+    async def handle_api_get_content_filtering_categories(self, request: web.Request) -> web.Response:
+        """Return the list of Meraki content filtering categories."""
+        # This data is static, so we can just return it from the const file.
+        # In a real app, this might come from the API if it can change.
+        from .const import MERAKI_CONTENT_FILTERING_CATEGORIES
+        return web.json_response(MERAKI_CONTENT_FILTERING_CATEGORIES)
