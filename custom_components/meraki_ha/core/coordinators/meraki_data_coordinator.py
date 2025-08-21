@@ -84,3 +84,19 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
                 if device.get("serial") == serial:
                     return device
         return None
+
+    def get_network(self, network_id: str):
+        """Get network data by ID."""
+        if self.data and self.data.get("networks"):
+            for network in self.data["networks"]:
+                if network.get("id") == network_id:
+                    return network
+        return None
+
+    def get_ssid(self, network_id: str, ssid_number: int):
+        """Get SSID data by network ID and SSID number."""
+        if self.data and self.data.get("ssids"):
+            for ssid in self.data["ssids"]:
+                if ssid.get("networkId") == network_id and ssid.get("number") == ssid_number:
+                    return ssid
+        return None
