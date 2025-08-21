@@ -78,9 +78,9 @@ To use this integration, you will need a Meraki API key and your Organization ID
     *   Click **Generate new API key**.
     *   **Important:** Copy the generated API key and store it securely. You will not be able to see it again after navigating away from this page.
 4.  **Find Organization ID:**
-    *   The Organization ID is not directly visible in an obvious "Org ID" field.
-    *   One way to find it is to look at the URL when you are viewing your organization dashboard. It might be part of the URL structure (e.g., `nXX...`).
-    *   Alternatively, you can often find it by making a simple API call (e.g., using `curl` or Postman) to the `/organizations` endpoint with your API key. The response will list your accessible organizations and their IDs.
+    *   **Easiest Method:** The Organization ID is displayed at the bottom of every page in the Meraki dashboard. Simply scroll down to find it.
+    *   **Alternative Method (URL):** The Organization ID can sometimes be found in the URL when you are viewing your organization dashboard.
+    *   **Alternative Method (API):** You can find it by making a simple API call to the `/organizations` endpoint with your API key. The response will list your accessible organizations and their IDs.
 
     ```bash
     curl -L -H 'X-Cisco-Meraki-API-Key: <your_api_key>' -H 'Content-Type: application/json' 'https://api.meraki.com/api/v1/organizations'
