@@ -39,6 +39,8 @@ class MerakiClientBlockerSwitch(
         self._client_data = client_data
         self._client_ip = client_data["ip"]
         self._client_mac = client_data["mac"]
+        self._vlan = client_data.get("vlan")
+        self._ssid = client_data.get("ssid")
 
         self.entity_description = SwitchEntityDescription(
             key=f"client_blocker_{self._client_mac}",
@@ -48,6 +50,11 @@ class MerakiClientBlockerSwitch(
 
         self._attr_unique_id = f"meraki-client-{self._client_mac}-blocker"
         self._update_internal_state()
+
+    @property
+    def extra_state_attributes(self) -> Dict[str, Any]:
+        """Return the state attributes."""
+        return {"vlan": self._vlan, "ssid": self._ssid}
 
     @property
     def device_info(self) -> DeviceInfo:

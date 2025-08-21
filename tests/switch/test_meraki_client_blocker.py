@@ -17,7 +17,7 @@ from custom_components.meraki_ha.core.coordinators.client_firewall_coordinator i
 NETWORK_ID = "N_12345"
 CLIENT_IP = "192.168.1.100"
 CLIENT_MAC = "00:11:22:33:44:55"
-CLIENT_DATA = {"ip": CLIENT_IP, "mac": CLIENT_MAC}
+CLIENT_DATA = {"ip": CLIENT_IP, "mac": CLIENT_MAC, "vlan": 10, "ssid": "Test SSID"}
 
 
 @pytest.fixture
@@ -46,6 +46,8 @@ async def test_switch_entity_properties(hass: HomeAssistant, mock_coordinator):
     assert entity.unique_id == f"meraki-client-{CLIENT_MAC}-blocker"
     assert entity.name == "Internet Access"
     assert not entity.is_on
+    assert entity.extra_state_attributes["vlan"] == 10
+    assert entity.extra_state_attributes["ssid"] == "Test SSID"
 
 
 @pytest.mark.asyncio

@@ -1,9 +1,10 @@
-"""Data update coordinator for Meraki content filtering."""
+"""Data update coordinator for Meraki network content filtering."""
 
 from __future__ import annotations
 
 from datetime import timedelta
 import logging
+from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -14,7 +15,7 @@ from ...core.api.client import MerakiAPIClient
 _LOGGER = logging.getLogger(__name__)
 
 
-class ContentFilteringCoordinator(DataUpdateCoordinator):
+class NetworkContentFilteringCoordinator(DataUpdateCoordinator):
     """A coordinator for Meraki content filtering settings for a single network."""
 
     def __init__(
@@ -28,13 +29,13 @@ class ContentFilteringCoordinator(DataUpdateCoordinator):
         super().__init__(
             hass,
             _LOGGER,
-            name=f"{DOMAIN}_content_filtering_{network_id}",
+            name=f"{DOMAIN}_network_content_filtering_{network_id}",
             update_interval=timedelta(seconds=scan_interval),
         )
         self.api = api_client
         self.network_id = network_id
 
-    async def _async_update_data(self):
+    async def _async_update_data(self) -> dict[str, Any]:
         """Fetch content filtering settings from the API."""
         try:
             return await self.api.appliance.get_network_appliance_content_filtering(
@@ -43,10 +44,9 @@ class ContentFilteringCoordinator(DataUpdateCoordinator):
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}") from err
 
-    async def async_update_content_filtering(self, **kwargs):
+    async def async_update_content_filtering(self, **kwargs: Any) -> None:
         """Update content filtering settings."""
         current_settings = self.data or {}
-
         updated_settings = {**current_settings, **kwargs}
 
         await self.api.appliance.update_network_appliance_content_filtering(
