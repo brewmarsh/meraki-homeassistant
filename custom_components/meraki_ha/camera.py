@@ -53,17 +53,20 @@ async def async_setup_entry(
 
             async def _enable_rtsp_in_background():
                 """Enable RTSP for cameras in the background."""
+                _LOGGER.debug("Starting background task to auto-enable RTSP streams.")
                 client = hass.data[DOMAIN][config_entry.entry_id][DATA_CLIENT]
                 cameras_to_enable = []
+                _LOGGER.debug("Checking %d camera entities for RTSP status.", len(entities))
                 for entity in entities:
-                    if not entity._device.get("video_settings", {}).get(
-                        "externalRtspEnabled"
-                    ) and not str(entity._attr_model).startswith("MV2"):
+                    is_enabled = entity._device.get("video_settings", {}).get("externalRtspEnabled")
+                    is_mv2 = str(entity._attr_model).startswith("MV2")
+                    _LOGGER.debug("Camera %s: externalRtspEnabled=%s, is_mv2=%s", entity._device['serial'], is_enabled, is_mv2)
+                    if not is_enabled and not is_mv2:
                         cameras_to_enable.append(entity)
 
                 if cameras_to_enable:
                     _LOGGER.info(
-                        "Found %d cameras to auto-enable RTSP for",
+                        "Found %d cameras to auto-enable RTSP for.",
                         len(cameras_to_enable),
                     )
                     for entity in cameras_to_enable:
@@ -85,7 +88,10 @@ async def async_setup_entry(
                                 e,
                             )
                     # After enabling, refresh the coordinator to get the updated data
+                    _LOGGER.debug("RTSP auto-enable task finished, requesting coordinator refresh.")
                     await meraki_device_coordinator.async_request_refresh()
+                else:
+                    _LOGGER.debug("No cameras found that require RTSP to be auto-enabled.")
 
             hass.async_create_task(_enable_rtsp_in_background())
 
