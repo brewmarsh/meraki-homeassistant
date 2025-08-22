@@ -9,8 +9,8 @@ from typing import Any, Dict
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from ....const import DOMAIN
-from ....core.api.client import MerakiAPIClient
+from ...const import DOMAIN
+from ...core.api.client import MerakiAPIClient
 
 _LOGGER = logging.getLogger(__name__)
 
