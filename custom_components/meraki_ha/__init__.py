@@ -24,7 +24,6 @@ from .core.api.client import MerakiAPIClient
 from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from .core.coordinators.ssid_content_filtering_coordinator import SsidContentFilteringCoordinator
 from .core.coordinators.network_content_filtering_coordinator import NetworkContentFilteringCoordinator
-from .core.coordinators.client_firewall_coordinator import ClientFirewallCoordinator
 from .core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
 from .web_server import MerakiWebServer
 from .webhook import async_register_webhook, async_unregister_webhook
@@ -87,7 +86,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Create content filtering and firewall coordinators
     hass.data[DOMAIN][entry.entry_id]["ssid_content_filtering_coordinators"] = {}
     hass.data[DOMAIN][entry.entry_id]["network_content_filtering_coordinators"] = {}
-    hass.data[DOMAIN][entry.entry_id]["client_firewall_coordinators"] = {}
     hass.data[DOMAIN][entry.entry_id]["ssid_firewall_coordinators"] = {}
     if coordinator.data:
         networks_with_ssids = {
@@ -139,24 +137,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     "network_content_filtering_coordinators"
                 ][network["id"]] = net_coordinator
 
-        # Create client firewall coordinators for each network with an appliance
-        for network in coordinator.data["networks"]:
-            if "appliance" in network.get("productTypes", []):
-                cfw_coordinator = ClientFirewallCoordinator(
-                    hass=hass,
-                    api_client=api_client,
-                    scan_interval=scan_interval,
-                    network_id=network["id"],
-                )
-                await cfw_coordinator.async_refresh()
-                hass.data[DOMAIN][entry.entry_id]["client_firewall_coordinators"][
-                    network["id"]
-                ] = cfw_coordinator
-
-    _LOGGER.debug("Created %d SSID content filtering coordinators, %d network content filtering coordinators, %d client firewall coordinators, and %d SSID firewall coordinators.",
+    _LOGGER.debug("Created %d SSID content filtering coordinators, %d network content filtering coordinators, and %d SSID firewall coordinators.",
                   len(hass.data[DOMAIN][entry.entry_id]["ssid_content_filtering_coordinators"]),
                   len(hass.data[DOMAIN][entry.entry_id]["network_content_filtering_coordinators"]),
-                  len(hass.data[DOMAIN][entry.entry_id]["client_firewall_coordinators"]),
                   len(hass.data[DOMAIN][entry.entry_id]["ssid_firewall_coordinators"]))
 
 
