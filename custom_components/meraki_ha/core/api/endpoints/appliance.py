@@ -98,7 +98,19 @@ class ApplianceEndpoints:
     ) -> Dict[str, Any]:
         """Get L7 firewall rules for a network."""
         rules = await self._api_client._run_sync(
-            self._dashboard.appliance.getNetworkApplianceL7FirewallRules,
+            self._dashboard.appliance.getNetworkL7FirewallRules,
             networkId=network_id,
+        )
+        return validate_response(rules)
+
+    @handle_meraki_errors
+    async def update_network_appliance_l7_firewall_rules(
+        self, network_id: str, **kwargs
+    ) -> Dict[str, Any]:
+        """Update L7 firewall rules for a network."""
+        rules = await self._api_client._run_sync(
+            self._dashboard.appliance.updateNetworkL7FirewallRules,
+            networkId=network_id,
+            **kwargs,
         )
         return validate_response(rules)
