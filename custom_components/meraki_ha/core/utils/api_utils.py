@@ -46,6 +46,9 @@ def handle_meraki_errors(func: Callable[..., T]) -> Callable[..., T]:
                 raise MerakiAuthenticationError(f"Authentication failed: {err}")
             elif _is_device_error(err):
                 raise MerakiDeviceError(f"Device error: {err}")
+            elif _is_informational_error(err):
+                _LOGGER.debug("Informational Meraki API condition: %s", err)
+                raise MerakiNetworkError(f"Informational error: {err}")
             elif _is_network_error(err):
                 raise MerakiNetworkError(f"Network error: {err}")
             elif _is_rate_limit_error(err):
@@ -107,6 +110,12 @@ def _is_network_error(err: APIError) -> bool:
             "network offline",
         ]
     )
+
+
+def _is_informational_error(err: APIError) -> bool:
+    """Check if error is informational (e.g., feature not enabled)."""
+    error_str = str(err).lower()
+    return "vlans are not enabled" in error_str or "traffic analysis" in error_str
 
 
 def validate_response(response: Any) -> Dict[str, Any]:

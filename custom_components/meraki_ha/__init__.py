@@ -73,16 +73,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         DATA_CLIENT: api_client,
     }
 
-    # ---- START DIAGNOSTIC LOGGING ----
-    if coordinator.data:
-        _LOGGER.debug("Main coordinator has data. Networks found: %d, SSIDs found: %d, Clients found: %d",
-                      len(coordinator.data.get("networks", [])),
-                      len(coordinator.data.get("ssids", [])),
-                      len(coordinator.data.get("clients", [])))
-    else:
-        _LOGGER.debug("Main coordinator has no data. Cannot set up parental control coordinators.")
-    # ---- END DIAGNOSTIC LOGGING ----
-
     # Create content filtering and firewall coordinators
     hass.data[DOMAIN][entry.entry_id]["ssid_content_filtering_coordinators"] = {}
     hass.data[DOMAIN][entry.entry_id]["network_content_filtering_coordinators"] = {}
@@ -136,12 +126,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 hass.data[DOMAIN][entry.entry_id][
                     "network_content_filtering_coordinators"
                 ][network["id"]] = net_coordinator
-
-    _LOGGER.debug("Created %d SSID content filtering coordinators, %d network content filtering coordinators, and %d SSID firewall coordinators.",
-                  len(hass.data[DOMAIN][entry.entry_id]["ssid_content_filtering_coordinators"]),
-                  len(hass.data[DOMAIN][entry.entry_id]["network_content_filtering_coordinators"]),
-                  len(hass.data[DOMAIN][entry.entry_id]["ssid_firewall_coordinators"]))
-
 
     # Start the web server if enabled
     if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
