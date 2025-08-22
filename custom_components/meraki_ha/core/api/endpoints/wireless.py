@@ -80,3 +80,29 @@ class WirelessEndpoints:
             _LOGGER.warning("get_network_wireless_rf_profiles did not return a list.")
             return []
         return validated
+
+    @handle_meraki_errors
+    @async_timed_cache()
+    async def get_network_wireless_ssid_l7_firewall_rules(
+        self, network_id: str, number: str
+    ) -> Dict[str, Any]:
+        """Get L7 firewall rules for an SSID."""
+        rules = await self._api_client._run_sync(
+            self._dashboard.wireless.getNetworkWirelessSsidFirewallL7FirewallRules,
+            networkId=network_id,
+            number=number,
+        )
+        return validate_response(rules)
+
+    @handle_meraki_errors
+    async def update_network_wireless_ssid_l7_firewall_rules(
+        self, network_id: str, number: str, **kwargs
+    ) -> Dict[str, Any]:
+        """Update L7 firewall rules for an SSID."""
+        rules = await self._api_client._run_sync(
+            self._dashboard.wireless.updateNetworkWirelessSsidFirewallL7FirewallRules,
+            networkId=network_id,
+            number=number,
+            **kwargs,
+        )
+        return validate_response(rules)

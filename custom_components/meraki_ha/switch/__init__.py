@@ -107,23 +107,27 @@ async def async_setup_entry(
             "Network Coordinator data not available or no SSIDs found for setting up SSID switches."
         )
 
-    # Setup Client Blocker Switches
+    # Setup Client Blocker Switches (for appliance networks only)
+    client_firewall_coordinators = entry_data.get("client_firewall_coordinators", {})
+
     if coordinator and coordinator.data and "clients" in coordinator.data:
         for client_data in coordinator.data["clients"]:
-            if not isinstance(client_data, dict):
+            if not isinstance(client_data, dict) or "mac" not in client_data:
                 continue
 
-            if "mac" not in client_data or "networkId" not in client_data:
-                continue
-            new_entities.append(
-                MerakiClientBlockerSwitch(
-                    coordinator,
-                    meraki_client,
-                    config_entry,
-                    client_data["networkId"],
-                    client_data,
+            network_id = client_data.get("networkId")
+
+            # Only create blocker switches for clients on networks with an appliance firewall coordinator
+            firewall_coordinator = client_firewall_coordinators.get(network_id)
+
+            if firewall_coordinator:
+                new_entities.append(
+                    MerakiClientBlockerSwitch(
+                        firewall_coordinator,
+                        config_entry,
+                        client_data,
+                    )
                 )
-            )
 
     if new_entities:
         async_add_entities(new_entities)

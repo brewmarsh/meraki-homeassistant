@@ -1,7 +1,7 @@
 """Switch entity for blocking/unblocking Meraki clients."""
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Union
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
@@ -11,16 +11,17 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 
-from ..core.api.client import MerakiAPIClient
-from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ..core.coordinators.client_firewall_coordinator import ClientFirewallCoordinator
+from ..core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
-FIREWALL_RULE_COMMENT = "Managed by Home Assistant Meraki Integration"
 
-
-class MerakiClientBlockerSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntity):
+class MerakiClientBlockerSwitch(
+    CoordinatorEntity[Union[ClientFirewallCoordinator, SsidFirewallCoordinator]],
+    SwitchEntity,
+):
     """Representation of a Meraki Client Blocker switch entity."""
 
     entity_category = EntityCategory.CONFIG
@@ -28,18 +29,17 @@ class MerakiClientBlockerSwitch(CoordinatorEntity[MerakiDataCoordinator], Switch
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        meraki_client: MerakiAPIClient,
+        firewall_coordinator: Union[
+            ClientFirewallCoordinator, SsidFirewallCoordinator
+        ],
         config_entry: ConfigEntry,
-        network_id: str,
         client_data: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki Client Blocker switch entity."""
-        super().__init__(coordinator)
-        self._meraki_client = meraki_client
+        super().__init__(firewall_coordinator)
         self._config_entry = config_entry
-        self._network_id = network_id
         self._client_data = client_data
+        self._client_ip = client_data.get("ip")
         self._client_mac = client_data["mac"]
 
         self.entity_description = SwitchEntityDescription(
@@ -54,8 +54,6 @@ class MerakiClientBlockerSwitch(CoordinatorEntity[MerakiDataCoordinator], Switch
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information to link this entity to the client device."""
-        # This assumes that client devices are already created elsewhere.
-        # If not, we would need to create them here.
         return resolve_device_info(
             entity_data=self._client_data,
             config_entry=self._config_entry,
@@ -74,67 +72,45 @@ class MerakiClientBlockerSwitch(CoordinatorEntity[MerakiDataCoordinator], Switch
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the switch based on firewall rules."""
-        # This is complex. We need to check if a blocking rule exists for this client.
-        # For now, we'll assume the switch is off (not blocked) by default.
-        # A proper implementation would fetch the firewall rules and check for a rule
-        # that blocks this client's IP.
-        self._attr_is_on = False  # Placeholder
+        if not self.coordinator.data or not self._client_ip:
+            self._attr_is_on = False
+            return
+
+        rules = self.coordinator.data.get("rules", [])
+        is_blocked = any(
+            rule.get("policy") == "deny" and self._client_ip in rule.get("value", "")
+            for rule in rules
+        )
+        self._attr_is_on = is_blocked
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on (block the client)."""
-        await self._update_firewall_rule(block=True)
-
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the switch off (unblock the client)."""
-        await self._update_firewall_rule(block=False)
-
-    async def _update_firewall_rule(self, block: bool) -> None:
-        """Add or remove a firewall rule to block the client."""
+        if not self._client_ip:
+            raise HomeAssistantError("Client IP address is not available.")
         try:
-            # Get the current L7 firewall rules
-            ruleset = (
-                await self._meraki_client.appliance.get_network_appliance_firewall_l7_firewall_rules(
-                    networkId=self._network_id
-                )
-            )
-            rules = ruleset.get("rules", [])
-
-            # Filter out our managed rules for this client
-            new_rules = [
-                r
-                for r in rules
-                if not (
-                    r.get("comment") == FIREWALL_RULE_COMMENT
-                    and self._client_data["ip"] in r.get("value", "")
-                )
-            ]
-
-            if block:
-                # Add a new rule to block this client
-                new_rules.append(
-                    {
-                        "policy": "deny",
-                        "type": "host",
-                        "value": self._client_data["ip"],
-                        "comment": FIREWALL_RULE_COMMENT,
-                    }
-                )
-
-            # Update the firewall rules
-            await self._meraki_client.appliance.update_network_appliance_firewall_l7_firewall_rules(
-                networkId=self._network_id, rules=new_rules
-            )
-
-            self._attr_is_on = block
-            self.async_write_ha_state()
-            await self.coordinator.async_request_refresh()
-
+            await self.coordinator.async_block_client(self._client_ip)
         except Exception as e:
             _LOGGER.error(
-                "Failed to update firewall rule for client %s: %s",
+                "Failed to block client %s: %s",
                 self._client_mac,
                 e,
             )
             raise HomeAssistantError(
-                f"Failed to update firewall rule for client {self._client_mac}: {e}"
+                f"Failed to block client {self._client_mac}: {e}"
+            ) from e
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn the switch off (unblock the client)."""
+        if not self._client_ip:
+            raise HomeAssistantError("Client IP address is not available.")
+        try:
+            await self.coordinator.async_unblock_client(self._client_ip)
+        except Exception as e:
+            _LOGGER.error(
+                "Failed to unblock client %s: %s",
+                self._client_mac,
+                e,
+            )
+            raise HomeAssistantError(
+                f"Failed to unblock client {self._client_mac}: {e}"
             ) from e

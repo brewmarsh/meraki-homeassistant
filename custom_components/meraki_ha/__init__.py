@@ -25,6 +25,7 @@ from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from .core.coordinators.ssid_content_filtering_coordinator import SsidContentFilteringCoordinator
 from .core.coordinators.network_content_filtering_coordinator import NetworkContentFilteringCoordinator
 from .core.coordinators.client_firewall_coordinator import ClientFirewallCoordinator
+from .core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
 from .web_server import MerakiWebServer
 from .webhook import async_register_webhook, async_unregister_webhook
 
@@ -87,25 +88,40 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id]["ssid_content_filtering_coordinators"] = {}
     hass.data[DOMAIN][entry.entry_id]["network_content_filtering_coordinators"] = {}
     hass.data[DOMAIN][entry.entry_id]["client_firewall_coordinators"] = {}
+    hass.data[DOMAIN][entry.entry_id]["ssid_firewall_coordinators"] = {}
     if coordinator.data:
         networks_with_ssids = {
             ssid["networkId"] for ssid in coordinator.data.get("ssids", [])
         }
 
-        # Create per-SSID content filtering coordinators
+        # Create per-SSID coordinators
         for ssid in coordinator.data.get("ssids", []):
             if "networkId" in ssid and "number" in ssid:
-                ssid_coordinator = SsidContentFilteringCoordinator(
+                # Content Filtering Coordinator
+                ssid_cf_coordinator = SsidContentFilteringCoordinator(
                     hass=hass,
                     api_client=api_client,
                     scan_interval=scan_interval,
                     network_id=ssid["networkId"],
                     ssid_number=ssid["number"],
                 )
-                await ssid_coordinator.async_refresh()
+                await ssid_cf_coordinator.async_refresh()
                 hass.data[DOMAIN][entry.entry_id]["ssid_content_filtering_coordinators"][
                     f"{ssid['networkId']}_{ssid['number']}"
-                ] = ssid_coordinator
+                ] = ssid_cf_coordinator
+
+                # L7 Firewall Coordinator
+                ssid_fw_coordinator = SsidFirewallCoordinator(
+                    hass=hass,
+                    api_client=api_client,
+                    scan_interval=scan_interval,
+                    network_id=ssid["networkId"],
+                    ssid_number=ssid["number"],
+                )
+                await ssid_fw_coordinator.async_refresh()
+                hass.data[DOMAIN][entry.entry_id]["ssid_firewall_coordinators"][
+                    f"{ssid['networkId']}_{ssid['number']}"
+                ] = ssid_fw_coordinator
 
         # Create network-wide content filtering coordinators for networks without SSIDs
         for network in coordinator.data.get("networks", []):
@@ -137,10 +153,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     network["id"]
                 ] = cfw_coordinator
 
-    _LOGGER.debug("Created %d SSID content filtering coordinators, %d network content filtering coordinators, and %d client firewall coordinators.",
+    _LOGGER.debug("Created %d SSID content filtering coordinators, %d network content filtering coordinators, %d client firewall coordinators, and %d SSID firewall coordinators.",
                   len(hass.data[DOMAIN][entry.entry_id]["ssid_content_filtering_coordinators"]),
                   len(hass.data[DOMAIN][entry.entry_id]["network_content_filtering_coordinators"]),
-                  len(hass.data[DOMAIN][entry.entry_id]["client_firewall_coordinators"]))
+                  len(hass.data[DOMAIN][entry.entry_id]["client_firewall_coordinators"]),
+                  len(hass.data[DOMAIN][entry.entry_id]["ssid_firewall_coordinators"]))
 
 
     # Start the web server if enabled
