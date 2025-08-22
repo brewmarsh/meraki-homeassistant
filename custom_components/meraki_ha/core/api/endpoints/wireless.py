@@ -40,6 +40,19 @@ class WirelessEndpoints:
         return validate_response(settings)
 
     @handle_meraki_errors
+    @async_timed_cache()
+    async def get_network_wireless_ssid(
+        self, network_id: str, number: str
+    ) -> Dict[str, Any]:
+        """Get a single SSID."""
+        ssid = await self._api_client._run_sync(
+            self._dashboard.wireless.getNetworkWirelessSsid,
+            networkId=network_id,
+            number=number,
+        )
+        return validate_response(ssid)
+
+    @handle_meraki_errors
     async def update_network_wireless_ssid(
         self, network_id: str, number: str, **kwargs
     ) -> Dict[str, Any]:
