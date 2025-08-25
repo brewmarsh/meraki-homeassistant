@@ -85,7 +85,7 @@ async def test_camera_entity(hass: HomeAssistant, mock_device_coordinator):
     camera1._handle_coordinator_update()
     await hass.async_block_till_done()
     assert camera1.is_streaming is True
-    assert await camera1.stream_source() == "rtsp://test.com:9000/stream"
+    assert await camera1.stream_source() == "rtsp://test.com:9000/stream/live"
 
     camera2 = entities[1]
     assert isinstance(camera2, MerakiCamera)
@@ -104,6 +104,44 @@ async def test_camera_entity(hass: HomeAssistant, mock_device_coordinator):
     assert camera1.name == "Test Camera"
     assert camera2.is_streaming is False
     assert await camera2.stream_source() is None
+
+
+@pytest.mark.asyncio
+async def test_camera_rtsp_enabled_but_no_url(hass: HomeAssistant, mock_device_coordinator):
+    """Test camera when RTSP is enabled but no URL is provided."""
+    # Modify the mock data for the first camera
+    mock_device_coordinator.data["devices"][0]["video_settings"]["rtspUrl"] = None
+
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        entry_id="test_entry_id",
+        title="Test Org",
+        data={},
+        options={},
+    )
+    config_entry.add_to_hass(hass)
+    mock_device_coordinator.config_entry = config_entry
+
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN][config_entry.entry_id] = {
+        "coordinator": mock_device_coordinator,
+        DATA_CLIENT: AsyncMock(),
+    }
+
+    async_add_entities = MagicMock()
+
+    await async_setup_entry(hass, config_entry, async_add_entities)
+    await hass.async_block_till_done()
+
+    assert async_add_entities.call_count == 1
+    entities = async_add_entities.call_args[0][0]
+    camera1 = entities[0]
+    camera1.hass = hass
+    camera1.entity_id = "camera.test_camera"
+    camera1._handle_coordinator_update()
+    await hass.async_block_till_done()
+    assert camera1.is_streaming is False
+    assert await camera1.stream_source() is None
 
 
 @pytest.mark.asyncio
@@ -178,7 +216,7 @@ async def test_camera_use_lan_ip_for_rtsp(hass: HomeAssistant, mock_device_coord
 
     camera1._handle_coordinator_update()
     await hass.async_block_till_done()
-    assert await camera1.stream_source() == "rtsp://192.168.1.100:9000"
+    assert await camera1.stream_source() == "rtsp://192.168.1.100:9000/live"
     mock_device_coordinator.data["devices"][0]["video_settings"][
         "externalRtspEnabled"
     ] = False
