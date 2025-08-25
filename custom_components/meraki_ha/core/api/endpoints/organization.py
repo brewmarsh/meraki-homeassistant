@@ -25,7 +25,11 @@ class OrganizationEndpoints:
             self._dashboard.organizations.getOrganization,
             organizationId=self._api_client.organization_id,
         )
-        return validate_response(org)
+        validated = validate_response(org)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("get_organization did not return a dict.")
+            return {}
+        return validated
 
     @handle_meraki_errors
     @async_timed_cache(timeout=3600)

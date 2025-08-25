@@ -88,7 +88,7 @@ class SsidStatusCalculator:
                     )
                     continue
 
-                device_model: str = device_info.get("model")
+                device_model: Optional[str] = device_info.get("model")
                 if device_model and device_model.upper().startswith("MR"):
                     device_status_raw = device_info.get("status")
                     device_status: str = "unknown"

@@ -2,6 +2,7 @@
 
 import logging
 import os
+from typing import Union
 from aiohttp import web
 from homeassistant.core import HomeAssistant
 
@@ -85,7 +86,9 @@ class MerakiWebServer:
         self.app.router.add_get("/{path:.*}", self.handle_spa)
         self.app.router.add_get("/", self.handle_spa)
 
-    async def handle_spa(self, request: web.Request) -> web.FileResponse:
+    async def handle_spa(
+        self, request: web.Request
+    ) -> Union[web.FileResponse, web.Response]:
         """Serve the single-page application's entry point (index.html)."""
         static_dir = os.path.join(os.path.dirname(__file__), "web_ui", "dist")
         index_path = os.path.join(static_dir, "index.html")

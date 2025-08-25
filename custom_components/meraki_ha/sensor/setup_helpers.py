@@ -1,9 +1,10 @@
 """Helper function for setting up all sensor entities."""
 
 import logging
-from typing import List, Set
+from typing import List, Set, cast
 
 from homeassistant.core import HomeAssistant
+from ..types import MerakiVlan
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import Entity
 
@@ -163,7 +164,10 @@ def async_setup_sensors(
                 if unique_id_subnet not in added_entities:
                     entities.append(
                         MerakiVLANSubnetSensor(
-                            coordinator, config_entry, network_id, vlan
+                            coordinator,
+                            config_entry,
+                            network_id,
+                            cast(MerakiVlan, vlan),
                         )
                     )
                     added_entities.add(unique_id_subnet)
@@ -172,7 +176,10 @@ def async_setup_sensors(
                 if unique_id_ip not in added_entities:
                     entities.append(
                         MerakiVLANApplianceIpSensor(
-                            coordinator, config_entry, network_id, vlan
+                            coordinator,
+                            config_entry,
+                            network_id,
+                            cast(MerakiVlan, vlan),
                         )
                     )
                     added_entities.add(unique_id_ip)

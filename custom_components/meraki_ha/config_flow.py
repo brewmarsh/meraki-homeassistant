@@ -30,14 +30,13 @@ from .const import (
     DEFAULT_HIDE_UNCONFIGURED_SSIDS,
     DEFAULT_IGNORED_NETWORKS,
     DEVICE_NAME_FORMAT_OPTIONS,
-    DOMAIN,
 )
 from .options_flow import MerakiOptionsFlowHandler
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+class ConfigFlowHandler(config_entries.ConfigFlow):
     """Handle a config flow for Meraki."""
 
     VERSION = 1

@@ -37,7 +37,11 @@ class WirelessEndpoints:
         settings = await self._api_client._run_sync(
             self._dashboard.wireless.getDeviceWirelessRadioSettings, serial=serial
         )
-        return validate_response(settings)
+        validated = validate_response(settings)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("get_wireless_settings did not return a dict.")
+            return {}
+        return validated
 
     @handle_meraki_errors
     @async_timed_cache()
@@ -50,7 +54,11 @@ class WirelessEndpoints:
             networkId=network_id,
             number=number,
         )
-        return validate_response(ssid)
+        validated = validate_response(ssid)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("get_network_wireless_ssid did not return a dict.")
+            return {}
+        return validated
 
     @handle_meraki_errors
     async def update_network_wireless_ssid(
@@ -63,7 +71,11 @@ class WirelessEndpoints:
             number=number,
             **kwargs,
         )
-        return validate_response(ssid)
+        validated = validate_response(ssid)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("update_network_wireless_ssid did not return a dict.")
+            return {}
+        return validated
 
     @handle_meraki_errors
     @async_timed_cache(timeout=3600)
@@ -92,7 +104,13 @@ class WirelessEndpoints:
             networkId=network_id,
             number=number,
         )
-        return validate_response(rules)
+        validated = validate_response(rules)
+        if not isinstance(validated, dict):
+            _LOGGER.warning(
+                "get_network_wireless_ssid_l7_firewall_rules did not return a dict."
+            )
+            return {}
+        return validated
 
     @handle_meraki_errors
     async def update_network_wireless_ssid_l7_firewall_rules(
@@ -105,4 +123,10 @@ class WirelessEndpoints:
             number=number,
             **kwargs,
         )
-        return validate_response(rules)
+        validated = validate_response(rules)
+        if not isinstance(validated, dict):
+            _LOGGER.warning(
+                "update_network_wireless_ssid_l7_firewall_rules did not return a dict."
+            )
+            return {}
+        return validated

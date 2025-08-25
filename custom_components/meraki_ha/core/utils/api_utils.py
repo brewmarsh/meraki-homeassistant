@@ -3,7 +3,7 @@
 import asyncio
 import functools
 import logging
-from typing import Any, Callable, Dict, TypeVar, cast
+from typing import Any, Awaitable, Callable, Dict, List, TypeVar, Union, cast
 from aiohttp import ClientError
 from meraki.exceptions import APIError  # type: ignore
 
@@ -20,7 +20,9 @@ T = TypeVar("T")
 _LOGGER = logging.getLogger(__name__)
 
 
-def handle_meraki_errors(func: Callable[..., T]) -> Callable[..., T]:
+def handle_meraki_errors(
+    func: Callable[..., Awaitable[T]],
+) -> Callable[..., Awaitable[T]]:
     """Decorator to handle Meraki API errors consistently.
 
     This decorator:
@@ -65,7 +67,7 @@ def handle_meraki_errors(func: Callable[..., T]) -> Callable[..., T]:
             _LOGGER.error("Unexpected error: %s", err)
             raise MerakiConnectionError(f"Unexpected error: {err}")
 
-    return cast(Callable[..., T], wrapper)
+    return cast(Callable[..., Awaitable[T]], wrapper)
 
 
 def _is_rate_limit_error(err: APIError) -> bool:
@@ -118,7 +120,7 @@ def _is_informational_error(err: APIError) -> bool:
     return "vlans are not enabled" in error_str or "traffic analysis" in error_str
 
 
-def validate_response(response: Any) -> Dict[str, Any]:
+def validate_response(response: Any) -> Union[Dict[str, Any], List[Any]]:
     """Validate and normalize an API response.
 
     Args:

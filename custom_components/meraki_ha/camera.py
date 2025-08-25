@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from homeassistant.components.camera import (
     Camera,
@@ -127,10 +127,10 @@ class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
         self._rtsp_url: Optional[str] = None
         self._webrtc_provider = None
         self._legacy_webrtc_provider = None
-        self.access_tokens = []
+        self.access_tokens: List[str] = []
         self._supports_native_async_webrtc = False
         self._supports_native_sync_webrtc = False
-        self._cache = {}
+        self._cache: Dict[Any, Any] = {}
         self._create_stream_lock = asyncio.Lock()
         self.stream = None
 
