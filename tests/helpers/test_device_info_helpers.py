@@ -3,7 +3,6 @@
 from unittest.mock import MagicMock
 
 import pytest
-from homeassistant.helpers.device_registry import DeviceInfo
 
 from custom_components.meraki_ha.const import (
     DOMAIN,

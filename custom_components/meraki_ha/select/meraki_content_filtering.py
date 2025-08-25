@@ -1,7 +1,7 @@
 """Select entity for controlling Meraki Content Filtering."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.config_entries import ConfigEntry

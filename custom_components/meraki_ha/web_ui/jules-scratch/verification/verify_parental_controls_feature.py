@@ -1,5 +1,5 @@
 import asyncio
-from playwright.async_api import async_playwright, Page, expect
+from playwright.async_api import async_playwright, expect
 
 
 async def main():

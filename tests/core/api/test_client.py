@@ -1,6 +1,5 @@
 """Tests for the Meraki API client."""
 
-import asyncio
 from unittest.mock import AsyncMock, patch
 
 import pytest

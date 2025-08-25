@@ -1,7 +1,7 @@
 """Helper function for setting up all sensor entities."""
 
 import logging
-from typing import List, Set, Type, cast
+from typing import List, Set
 
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry

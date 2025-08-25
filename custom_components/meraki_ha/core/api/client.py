@@ -18,11 +18,7 @@ from .endpoints.network import NetworkEndpoints
 from .endpoints.organization import OrganizationEndpoints
 from .endpoints.switch import SwitchEndpoints
 from .endpoints.wireless import WirelessEndpoints
-from ...core.errors import (
-    MerakiAuthenticationError,
-    MerakiConnectionError,
-    MerakiNetworkError,
-)
+from ...core.errors import MerakiNetworkError
 
 _LOGGER = logging.getLogger(__name__)
 
