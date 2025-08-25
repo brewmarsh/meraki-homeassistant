@@ -1,9 +1,10 @@
 """Helper function for setting up all sensor entities."""
 
 import logging
-from typing import List, Set, Type, cast
+from typing import List, Set, cast
 
 from homeassistant.core import HomeAssistant
+from ..types import MerakiVlan
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import Entity
 
@@ -109,7 +110,7 @@ def async_setup_sensors(
         unique_id = f"meraki_network_clients_{network_id}"
         if unique_id not in added_entities:
             entities.append(
-                MerakiNetworkClientsSensor(coordinator, network_id, network_name)
+                MerakiNetworkClientsSensor(coordinator, config_entry, network_data)
             )
             added_entities.add(unique_id)
 
@@ -151,8 +152,10 @@ def async_setup_sensors(
     # Set up VLAN sensors
     vlans_by_network = coordinator.data.get("vlans", {})
     for network_id, vlans in vlans_by_network.items():
+        if not isinstance(vlans, list):
+            continue
         for vlan in vlans:
-            if vlan.get("enabled", False):
+            if isinstance(vlan, dict) and vlan.get("enabled", False):
                 vlan_id = vlan.get("id")
                 if not vlan_id:
                     continue
@@ -161,7 +164,10 @@ def async_setup_sensors(
                 if unique_id_subnet not in added_entities:
                     entities.append(
                         MerakiVLANSubnetSensor(
-                            coordinator, config_entry, network_id, vlan
+                            coordinator,
+                            config_entry,
+                            network_id,
+                            cast(MerakiVlan, vlan),
                         )
                     )
                     added_entities.add(unique_id_subnet)
@@ -170,7 +176,10 @@ def async_setup_sensors(
                 if unique_id_ip not in added_entities:
                     entities.append(
                         MerakiVLANApplianceIpSensor(
-                            coordinator, config_entry, network_id, vlan
+                            coordinator,
+                            config_entry,
+                            network_id,
+                            cast(MerakiVlan, vlan),
                         )
                     )
                     added_entities.add(unique_id_ip)

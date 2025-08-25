@@ -24,6 +24,7 @@ class MerakiDataUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEnti
     _attr_native_unit_of_measurement = UnitOfInformation.MEGABYTES
     _attr_icon = "mdi:chart-bar"
     _attr_has_entity_name = True
+    _attr_extra_state_attributes: Dict[str, Any] = {}
 
     def __init__(
         self,

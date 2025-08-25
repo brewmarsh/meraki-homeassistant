@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from homeassistant.components.camera import (
     Camera,
@@ -56,14 +56,16 @@ async def async_setup_entry(
                 client = hass.data[DOMAIN][config_entry.entry_id][DATA_CLIENT]
                 cameras_to_enable = []
                 for entity in entities:
-                    if not entity._device.get("video_settings", {}).get(
+                    is_enabled = entity._device.get("video_settings", {}).get(
                         "externalRtspEnabled"
-                    ) and not str(entity._attr_model).startswith("MV2"):
+                    )
+                    is_mv2 = str(entity._attr_model).startswith("MV2")
+                    if not is_enabled and not is_mv2:
                         cameras_to_enable.append(entity)
 
                 if cameras_to_enable:
                     _LOGGER.info(
-                        "Found %d cameras to auto-enable RTSP for",
+                        "Found %d cameras to auto-enable RTSP for.",
                         len(cameras_to_enable),
                     )
                     for entity in cameras_to_enable:
@@ -125,10 +127,10 @@ class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
         self._rtsp_url: Optional[str] = None
         self._webrtc_provider = None
         self._legacy_webrtc_provider = None
-        self.access_tokens = []
+        self.access_tokens: List[str] = []
         self._supports_native_async_webrtc = False
         self._supports_native_sync_webrtc = False
-        self._cache = {}
+        self._cache: Dict[Any, Any] = {}
         self._create_stream_lock = asyncio.Lock()
         self.stream = None
 

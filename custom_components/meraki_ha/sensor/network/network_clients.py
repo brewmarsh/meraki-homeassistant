@@ -1,15 +1,17 @@
+"""Sensor for tracking clients on a specific network."""
+
 import logging
-from typing import Any, Dict, List
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ...helpers.device_info_helpers import resolve_device_info
 from ...helpers.entity_helpers import format_entity_name
-from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -17,112 +19,41 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiNetworkClientsSensor(
     CoordinatorEntity[MerakiDataCoordinator], SensorEntity
 ):
-    """Representation of a Meraki Network Clients sensor."""
+    """Representation of a Meraki network-level client counter."""
 
-    _attr_icon = "mdi:account-multiple"
-    _attr_native_unit_of_measurement = "clients"
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_should_poll = False
+    _attr_has_entity_name = True
 
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        network_id: str,
-        network_name: str,
+        config_entry: ConfigEntry,
+        network_data: dict,
     ) -> None:
-        """Initialize the Meraki Network Clients sensor."""
+        """Initialize the sensor."""
         super().__init__(coordinator)
-        self._network_id = network_id
-        self._network_name = network_name
-        self._attr_name = format_entity_name(network_name, "Clients")
-        self._attr_unique_id = f"meraki_network_clients_{network_id}"
-        self._attr_native_value = 0
-        self._attr_extra_state_attributes: Dict[str, Any] = {
-            "network_id": self._network_id,
-            "network_name": self._network_name,
-            "clients_list": [],
-        }
-        self._update_state_from_coordinator()
+        self._config_entry = config_entry
+        self._network_data = network_data
+        self._network_id = network_data["id"]
+        self._attr_unique_id = f"meraki_network_clients_{self._network_id}"
+        self._attr_name = format_entity_name(network_data["name"], "Clients")
+        self._attr_device_info = resolve_device_info(
+            self._network_data, self._config_entry
+        )
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._update_state_from_coordinator()
         self.async_write_ha_state()
 
-    def _update_state_from_coordinator(self) -> None:
-        """Update the sensor's state from coordinator data."""
-        if self.coordinator.data is None or "clients" not in self.coordinator.data:
-            self._attr_native_value = 0
-            clients_for_network: List[Dict[str, Any]] = []
-        else:
-            all_clients: List[Dict[str, Any]] = self.coordinator.data.get("clients", [])
-            clients_for_network = [
-                client
-                for client in all_clients
-                if client.get("networkId") == self._network_id
-            ]
-            self._attr_native_value = len(clients_for_network)
-
-        self._attr_extra_state_attributes = {
-            "network_id": self._network_id,
-            "network_name": self._network_name,
-            "clients_list": [
-                {
-                    "mac": client.get("mac"),
-                    "description": client.get("description"),
-                    "ip": client.get("ip"),
-                    "status": client.get("status"),
-                }
-                for client in clients_for_network
-            ],
-        }
-
     @property
-    def available(self) -> bool:
-        """Return True if coordinator has data and the 'clients' key is present."""
-        return (
-            super().available
-            and self.coordinator.data is not None
-            and "clients" in self.coordinator.data
-        )
+    def native_value(self) -> int:
+        """Return the state of the sensor."""
+        if not self.coordinator.data or not self.coordinator.data.get("clients"):
+            return 0
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information for linking this entity to the network "device"."""
-        network_data = None
-        if self.coordinator.data and self.coordinator.data.get("networks"):
-            for network in self.coordinator.data["networks"]:
-                if network.get("id") == self._network_id:
-                    network_data = network
-                    break
-
-        if network_data is None:
-            # Fallback in case network data is not found
-            return DeviceInfo(
-                identifiers={(DOMAIN, self._network_id)},
-                name=self._network_name,
-                manufacturer="Cisco Meraki",
-                model="Network",
-            )
-
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._network_id)},
-            name=format_device_name(
-                network_data, self.coordinator.config_entry.options
-            ),
-            manufacturer="Cisco Meraki",
-            model="Network",
-        )
-
-
-# Remove or comment out the old MerakiNetworkClientCountSensor
-# class MerakiNetworkClientCountSensor(
-#     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
-# ):
-#     ... (rest of the old class)
-#
-# async def get_network_clients_count(
-#     api_key: str, network_id: str, timespan: int = 86400
-# ) -> int:
-#     ... (old placeholder function)
+        count = 0
+        for client in self.coordinator.data["clients"]:
+            if client.get("networkId") == self._network_id:
+                count += 1
+        return count

@@ -73,25 +73,37 @@ def test_network_device_naming(mock_coordinator):
     network_id = "net1"
     network_name = "Test Network"
 
+    network_data = {
+        "id": network_id,
+        "name": network_name,
+        "productTypes": ["wireless"],
+    }
+
     # Test with prefix
     mock_coordinator.config_entry.options = {
         "device_name_format": DEVICE_NAME_FORMAT_PREFIX
     }
-    sensor = MerakiNetworkClientsSensor(mock_coordinator, network_id, network_name)
+    sensor = MerakiNetworkClientsSensor(
+        mock_coordinator, mock_coordinator.config_entry, network_data
+    )
     assert sensor.device_info["name"] == "[Network] Test Network"
 
     # Test with suffix
     mock_coordinator.config_entry.options = {
         "device_name_format": DEVICE_NAME_FORMAT_SUFFIX
     }
-    sensor = MerakiNetworkClientsSensor(mock_coordinator, network_id, network_name)
+    sensor = MerakiNetworkClientsSensor(
+        mock_coordinator, mock_coordinator.config_entry, network_data
+    )
     assert sensor.device_info["name"] == "Test Network [Network]"
 
     # Test with omit
     mock_coordinator.config_entry.options = {
         "device_name_format": DEVICE_NAME_FORMAT_OMIT
     }
-    sensor = MerakiNetworkClientsSensor(mock_coordinator, network_id, network_name)
+    sensor = MerakiNetworkClientsSensor(
+        mock_coordinator, mock_coordinator.config_entry, network_data
+    )
     assert sensor.device_info["name"] == "Test Network"
 
 

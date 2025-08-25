@@ -12,24 +12,21 @@ from typing import Any, Dict, List
 
 import meraki  # type: ignore[import-untyped]
 
+from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
 from .endpoints.network import NetworkEndpoints
 from .endpoints.organization import OrganizationEndpoints
 from .endpoints.switch import SwitchEndpoints
 from .endpoints.wireless import WirelessEndpoints
-from ...core.errors import (
-    MerakiAuthenticationError,
-    MerakiConnectionError,
-    MerakiNetworkError,
-)
+from ...core.errors import MerakiNetworkError
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiAPIClient:
-    """
-    Facade for the Meraki Dashboard API client.
+    """Facade for the Meraki Dashboard API client.
+
     This client provides access to various endpoint categories and handles
     the underlying API session and asynchronous execution.
     """
@@ -90,91 +87,113 @@ class MerakiAPIClient:
         ]
 
         (
-            networks,
-            devices,
-            devices_availabilities,
-            appliance_uplink_statuses,
+            networks_res,
+            devices_res,
+            devices_availabilities_res,
+            appliance_uplink_statuses_res,
         ) = await asyncio.gather(*initial_tasks, return_exceptions=True)
 
-        # Process initial data
+        # Process initial data, checking for exceptions
+        networks: List[MerakiNetwork] = (
+            networks_res if isinstance(networks_res, list) else []
+        )
+        if not isinstance(networks_res, list):
+            _LOGGER.warning("Could not fetch Meraki networks: %s", networks_res)
+
+        devices: List[MerakiDevice] = (
+            devices_res if isinstance(devices_res, list) else []
+        )
+        if not isinstance(devices_res, list):
+            _LOGGER.warning("Could not fetch Meraki devices: %s", devices_res)
+
+        devices_availabilities: List[Dict[str, Any]] = (
+            devices_availabilities_res
+            if isinstance(devices_availabilities_res, list)
+            else []
+        )
+        if not isinstance(devices_availabilities_res, list):
+            _LOGGER.warning(
+                "Could not fetch Meraki device availabilities: %s",
+                devices_availabilities_res,
+            )
+
+        appliance_uplink_statuses: List[Dict[str, Any]] = (
+            appliance_uplink_statuses_res
+            if isinstance(appliance_uplink_statuses_res, list)
+            else []
+        )
+        if not isinstance(appliance_uplink_statuses_res, list):
+            _LOGGER.warning(
+                "Could not fetch Meraki appliance uplink statuses: %s",
+                appliance_uplink_statuses_res,
+            )
+
         availabilities_by_serial = {
             availability["serial"]: availability
             for availability in devices_availabilities
             if isinstance(availability, dict) and "serial" in availability
         }
+
         for device in devices:
-            if (
-                isinstance(device, dict)
-                and "serial" in device
-                and (availability := availabilities_by_serial.get(device["serial"]))
-            ):
+            if availability := availabilities_by_serial.get(device["serial"]):
                 device["status"] = availability["status"]
 
         # Fetch detailed data concurrently
         client_tasks = [
             self._run_with_semaphore(self.network.get_network_clients(network["id"]))
             for network in networks
-            if isinstance(network, dict) and "id" in network
         ]
         clients_results = await asyncio.gather(*client_tasks, return_exceptions=True)
         clients: List[Dict[str, Any]] = []
         for i, network in enumerate(networks):
-            if isinstance(network, dict) and "id" in network:
-                if not isinstance(clients_results[i], Exception):
-                    for client in clients_results[i]:
-                        client["networkId"] = network["id"]
-                    clients.extend(clients_results[i])
+            result = clients_results[i]
+            if isinstance(result, list):
+                for client in result:
+                    client["networkId"] = network["id"]
+                clients.extend(result)
 
         detail_tasks = {}
         for network in networks:
-            if isinstance(network, dict) and "id" in network:
-                detail_tasks[
-                    f"ssids_{network['id']}"
-                ] = self._run_with_semaphore(
-                    self.wireless.get_network_ssids(network["id"])
+            detail_tasks[f"ssids_{network['id']}"] = self._run_with_semaphore(
+                self.wireless.get_network_ssids(network["id"])
+            )
+            if "appliance" in network["productTypes"]:
+                detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
+                    self.network.get_network_traffic(network["id"], "appliance")
                 )
-                if "appliance" in network.get("productTypes", []):
-                    detail_tasks[
-                        f"traffic_{network['id']}"
-                    ] = self._run_with_semaphore(
-                        self.network.get_network_traffic(network["id"], "appliance")
-                    )
-                    detail_tasks[
-                        f"vlans_{network['id']}"
-                    ] = self._run_with_semaphore(self.appliance.get_vlans(network["id"]))
-                if "wireless" in network.get("productTypes", []):
-                    detail_tasks[
-                        f"rf_profiles_{network['id']}"
-                    ] = self._run_with_semaphore(
-                        self.wireless.get_network_wireless_rf_profiles(network["id"])
-                    )
-
+                detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
+                    self.appliance.get_vlans(network["id"])
+                )
+            if "wireless" in network["productTypes"]:
+                detail_tasks[f"rf_profiles_{network['id']}"] = self._run_with_semaphore(
+                    self.wireless.get_network_wireless_rf_profiles(network["id"])
+                )
         for device in devices:
-            if isinstance(device, dict) and "serial" in device:
-                if device.get("productType") == "wireless":
-                    detail_tasks[
-                        f"wireless_settings_{device['serial']}"
-                    ] = self._run_with_semaphore(
+            if device.get("productType") == "wireless":
+                detail_tasks[f"wireless_settings_{device['serial']}"] = (
+                    self._run_with_semaphore(
                         self.wireless.get_wireless_settings(device["serial"])
                     )
-                elif device.get("productType") == "camera":
-                    detail_tasks[
-                        f"video_settings_{device['serial']}"
-                    ] = self._run_with_semaphore(
+                )
+            elif device.get("productType") == "camera":
+                detail_tasks[f"video_settings_{device['serial']}"] = (
+                    self._run_with_semaphore(
                         self.camera.get_camera_video_settings(device["serial"])
                     )
-                elif device.get("productType") == "switch":
-                    detail_tasks[
-                        f"ports_statuses_{device['serial']}"
-                    ] = self._run_with_semaphore(
+                )
+            elif device.get("productType") == "switch":
+                detail_tasks[f"ports_statuses_{device['serial']}"] = (
+                    self._run_with_semaphore(
                         self.switch.get_device_switch_ports_statuses(device["serial"])
                     )
-                elif device.get("productType") == "appliance":
-                    detail_tasks[
-                        f"appliance_settings_{device['serial']}"
-                    ] = self._run_with_semaphore(
-                        self.appliance.get_network_appliance_settings(
-                            device["networkId"]
+                )
+            elif device.get("productType") == "appliance":
+                if "networkId" in device:
+                    detail_tasks[f"appliance_settings_{device['serial']}"] = (
+                        self._run_with_semaphore(
+                            self.appliance.get_network_appliance_settings(
+                                device["networkId"]
+                            )
                         )
                     )
 
@@ -185,76 +204,69 @@ class MerakiAPIClient:
 
         # Process detailed data
         ssids: List[Dict[str, Any]] = []
-        appliance_traffic = {}
-        vlan_by_network = {}
-        rf_profiles_by_network = {}
+        appliance_traffic: Dict[str, Any] = {}
+        vlan_by_network: Dict[str, Any] = {}
+        rf_profiles_by_network: Dict[str, Any] = {}
 
         for network in networks:
-            if isinstance(network, dict) and "id" in network:
-                network_ssids = detail_data.get(f"ssids_{network['id']}")
-                if network_ssids and not isinstance(network_ssids, Exception):
-                    for ssid in network_ssids:
-                        if (
-                            isinstance(ssid, dict)
-                            and "name" in ssid
-                            and "unconfigured ssid" not in ssid["name"].lower()
-                        ):
-                            ssid["networkId"] = network["id"]
-                            ssids.append(ssid)
-                network_traffic = detail_data.get(f"traffic_{network['id']}")
-                if isinstance(network_traffic, MerakiNetworkError):
-                    appliance_traffic[network["id"]] = {
-                        "error": "disabled",
-                        "reason": str(network_traffic),
-                    }
-                elif network_traffic and not isinstance(network_traffic, Exception):
-                    appliance_traffic[network["id"]] = network_traffic
+            network_ssids = detail_data.get(f"ssids_{network['id']}")
+            if isinstance(network_ssids, list):
+                for ssid in network_ssids:
+                    if "unconfigured ssid" not in ssid.get("name", "").lower():
+                        ssid["networkId"] = network["id"]
+                        ssids.append(ssid)
 
-                network_vlans = detail_data.get(f"vlans_{network['id']}")
-                if isinstance(network_vlans, MerakiNetworkError):
-                    vlan_by_network[network["id"]] = {
-                        "error": "disabled",
-                        "reason": str(network_vlans),
-                    }
-                elif network_vlans and not isinstance(network_vlans, Exception):
-                    vlan_by_network[network["id"]] = network_vlans
-                network_rf_profiles = detail_data.get(f"rf_profiles_{network['id']}")
-                if network_rf_profiles and not isinstance(
-                    network_rf_profiles, Exception
-                ):
-                    rf_profiles_by_network[network["id"]] = network_rf_profiles
+            network_traffic = detail_data.get(f"traffic_{network['id']}")
+            if isinstance(network_traffic, MerakiNetworkError):
+                if "traffic analysis" in str(network_traffic).lower():
+                    _LOGGER.info(
+                        "Traffic Analysis with Hostname Visibility is not enabled for %s. Network level traffic data is not available.",
+                        network["name"],
+                    )
+                appliance_traffic[network["id"]] = {
+                    "error": "disabled",
+                    "reason": str(network_traffic),
+                }
+            elif isinstance(network_traffic, dict):
+                appliance_traffic[network["id"]] = network_traffic
+
+            network_vlans = detail_data.get(f"vlans_{network['id']}")
+            if isinstance(network_vlans, MerakiNetworkError):
+                if "vlans are not enabled" in str(network_vlans).lower():
+                    _LOGGER.info(
+                        "VLANs are not enabled for %s. VLAN filtering will not be available.",
+                        network["name"],
+                    )
+                vlan_by_network[network["id"]] = []
+            elif isinstance(network_vlans, list):
+                vlan_by_network[network["id"]] = network_vlans
+            network_rf_profiles = detail_data.get(f"rf_profiles_{network['id']}")
+            if isinstance(network_rf_profiles, list):
+                rf_profiles_by_network[network["id"]] = network_rf_profiles
 
         for device in devices:
-            if isinstance(device, dict) and "serial" in device:
-                if device.get("productType") == "wireless":
-                    wireless_settings = detail_data.get(
-                        f"wireless_settings_{device['serial']}"
-                    )
-                    if wireless_settings and not isinstance(
-                        wireless_settings, Exception
-                    ):
-                        device["radio_settings"] = wireless_settings
-                elif device.get("productType") == "camera":
-                    video_settings = detail_data.get(
-                        f"video_settings_{device['serial']}"
-                    )
-                    if video_settings and not isinstance(video_settings, Exception):
-                        device["video_settings"] = video_settings
-                elif device.get("productType") == "switch":
-                    ports_statuses = detail_data.get(
-                        f"ports_statuses_{device['serial']}"
-                    )
-                    if ports_statuses and not isinstance(ports_statuses, Exception):
-                        device["ports_statuses"] = ports_statuses
-                elif device.get("productType") == "appliance":
-                    appliance_settings = detail_data.get(
-                        f"appliance_settings_{device['serial']}"
-                    )
-                    if appliance_settings and not isinstance(
-                        appliance_settings, Exception
-                    ):
-                        if "dynamicDns" in appliance_settings:
-                            device["dynamicDns"] = appliance_settings["dynamicDns"]
+            if device.get("productType") == "wireless":
+                wireless_settings = detail_data.get(
+                    f"wireless_settings_{device['serial']}"
+                )
+                if isinstance(wireless_settings, dict):
+                    device["radio_settings"] = wireless_settings
+            elif device.get("productType") == "camera":
+                video_settings = detail_data.get(f"video_settings_{device['serial']}")
+                if isinstance(video_settings, dict):
+                    device["video_settings"] = video_settings
+            elif device.get("productType") == "switch":
+                ports_statuses = detail_data.get(f"ports_statuses_{device['serial']}")
+                if isinstance(ports_statuses, list):
+                    device["ports_statuses"] = ports_statuses
+            elif device.get("productType") == "appliance":
+                appliance_settings = detail_data.get(
+                    f"appliance_settings_{device['serial']}"
+                )
+                if isinstance(appliance_settings, dict) and isinstance(
+                    appliance_settings.get("dynamicDns"), dict
+                ):
+                    device["dynamicDns"] = appliance_settings["dynamicDns"]
 
         data = {
             "networks": networks,

@@ -51,7 +51,6 @@ async def test_meraki_ssid_enabled_switch(
 ) -> None:
     """Test the Meraki SSID enabled switch."""
     ssid_data = mock_coordinator.data["ssids"][0]
-    ssid_unique_id = f"ssid-{ssid_data['networkId']}-{ssid_data['number']}"
 
     # Test with prefix format
     mock_config_entry.options = {"device_name_format": "prefix"}
@@ -88,7 +87,6 @@ async def test_meraki_ssid_broadcast_switch(
 ) -> None:
     """Test the Meraki SSID broadcast switch."""
     ssid_data = mock_coordinator.data["ssids"][0]
-    ssid_unique_id = f"ssid-{ssid_data['networkId']}-{ssid_data['number']}"
 
     # Test with prefix format
     mock_config_entry.options = {"device_name_format": "prefix"}

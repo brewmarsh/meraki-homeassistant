@@ -22,75 +22,90 @@ def resolve_device_info(
 
     This function contains the logic to determine whether an entity should be
     linked to a physical device or a logical SSID "device" in the Home
-
     Assistant device registry.
-
-    Args:
-        entity_data: The primary data dictionary for the entity.
-        config_entry: The config entry for the integration.
-        ssid_data: Optional SSID data if the entity is SSID-specific.
-
-    Returns:
-        A DeviceInfo object or None if linking is not possible.
     """
-    device_serial = entity_data.get("serial")
-    device_model = entity_data.get("model")
-    device_firmware = entity_data.get("firmware")
+    # Determine the effective data to use for device resolution.
+    # If ssid_data is explicitly passed, it takes precedence for SSID devices.
+    # Otherwise, check if the entity_data itself represents an SSID.
+    effective_data = entity_data
+    is_ssid = "number" in effective_data and "networkId" in effective_data
+    if ssid_data:
+        is_ssid = True
+        effective_data = ssid_data
 
-    if ssid_data and ssid_data.get("number") is not None:
-        network_id = entity_data.get("networkId")
-        ssid_number = ssid_data.get("number")
+    # Create device info for an SSID
+    if is_ssid:
+        network_id = effective_data.get("networkId")
+        ssid_number = effective_data.get("number")
         if network_id:
-            ssid_device_identifier = (DOMAIN, f"{network_id}_{ssid_number}")
-
-            # Create a device dict for the SSID to pass to the formatter
-            ssid_device_data = {**ssid_data, "productType": "ssid"}
-
-            formatted_ssid_name = format_device_name(
-                device=ssid_device_data,
+            identifier = (DOMAIN, f"{network_id}_{ssid_number}")
+            device_data_for_naming = {**effective_data, "productType": "ssid"}
+            formatted_name = format_device_name(
+                device=device_data_for_naming,
                 config=config_entry.options,
             )
-
             return DeviceInfo(
-                identifiers={ssid_device_identifier},
-                name=formatted_ssid_name,
+                identifiers={identifier},
+                name=formatted_name,
                 model="Wireless SSID",
                 manufacturer="Cisco Meraki",
             )
-        else:
-            _LOGGER.warning(
-                "SSID-specific entity for SSID number %s is missing 'networkId'. "
-                "Falling back to physical device linking.",
-                ssid_number,
-            )
 
-    if not device_serial:
-        _LOGGER.warning(
-            "Meraki entity cannot determine device_info: Missing 'serial' for physical device."
+    # Handle client devices, which are linked to a physical device
+    client_mac = entity_data.get("mac")
+    parent_serial = entity_data.get("recentDeviceSerial")
+    if client_mac and parent_serial:
+        return DeviceInfo(
+            identifiers={(DOMAIN, client_mac)},
+            name=str(entity_data.get("description") or client_mac),
+            manufacturer=str(entity_data.get("manufacturer") or "Unknown"),
+            via_device=(DOMAIN, parent_serial),
         )
-        return None
 
-    formatted_device_name = format_device_name(
-        device=entity_data,
-        config=config_entry.options,
-    )
+    # Handle network devices
+    network_id = entity_data.get("id")
+    is_network = "productTypes" in entity_data and not entity_data.get("serial")
+    if is_network and network_id:
+        device_data_for_naming = {**entity_data, "productType": "network"}
+        formatted_name = format_device_name(
+            device=device_data_for_naming,
+            config=config_entry.options,
+        )
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"network_{network_id}")},
+            name=formatted_name,
+            manufacturer="Cisco Meraki",
+            model="Network",
+        )
 
-    device_info = {
-        "identifiers": {(DOMAIN, device_serial)},
-        "name": str(formatted_device_name),
-        "manufacturer": "Cisco Meraki",
-        "model": str(device_model or "Unknown"),
-        "sw_version": str(device_firmware or ""),
-    }
+    if is_network and network_id:
+        device_data_for_naming = {**entity_data, "productType": "network"}
+        formatted_name = format_device_name(
+            device=device_data_for_naming,
+            config=config_entry.options,
+        )
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"network_{network_id}")},
+            name=formatted_name,
+            manufacturer="Cisco Meraki",
+            model="Network",
+        )
 
-    if entity_data.get("productType") == "appliance" and entity_data.get("dynamicDns"):
-        hostname = entity_data["dynamicDns"].get("url")
-        if hostname:
-            device_info["configuration_url"] = f"http://{hostname}"
+    # Fallback to creating device info for a physical device
+    device_serial = entity_data.get("serial")
+    if device_serial:
+        formatted_name = format_device_name(
+            device=entity_data,
+            config=config_entry.options,
+        )
+        return DeviceInfo(
+            identifiers={(DOMAIN, device_serial)},
+            name=str(formatted_name),
+            manufacturer="Cisco Meraki",
+            model=str(entity_data.get("model") or "Unknown"),
+            sw_version=str(entity_data.get("firmware") or ""),
+        )
 
-    _LOGGER.debug(
-        "Resolved device info for entity %s: %s",
-        entity_data.get("name", entity_data.get("serial")),
-        device_info,
-    )
-    return DeviceInfo(**device_info)
+    # This may happen temporarily during startup or if a device type is unknown
+    _LOGGER.debug("Could not resolve device info for entity data: %s", entity_data)
+    return None

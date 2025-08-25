@@ -20,6 +20,11 @@ async def test_network_clients_sensor(
             {"id": "2", "description": "Client 2", "networkId": "N_123"},
         ],
     }
-    sensor = MerakiNetworkClientsSensor(coordinator, "N_123", "Test Network")
-    sensor._update_state_from_coordinator()
+    config_entry = MagicMock()
+    network_data = {"id": "N_123", "name": "Test Network"}
+    sensor = MerakiNetworkClientsSensor(coordinator, config_entry, network_data)
+    sensor.hass = hass
+    sensor.entity_id = "sensor.test_network_clients"
+    await sensor.async_added_to_hass()
+    sensor._handle_coordinator_update()
     assert sensor.native_value == 2
