@@ -110,7 +110,7 @@ def async_setup_sensors(
         unique_id = f"meraki_network_clients_{network_id}"
         if unique_id not in added_entities:
             entities.append(
-                MerakiNetworkClientsSensor(coordinator, network_id, network_name)
+                MerakiNetworkClientsSensor(coordinator, config_entry, network_data)
             )
             added_entities.add(unique_id)
 

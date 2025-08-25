@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
+from tests.const import MOCK_DEVICE, MOCK_NETWORK
 
 
 @pytest.fixture
@@ -19,10 +20,10 @@ async def test_get_all_data_concurrent(mock_dashboard):
     # Arrange
     api_client = MerakiAPIClient(api_key="test-key", org_id="test-org")
     api_client.organization.get_organization_networks = AsyncMock(
-        return_value=[{"id": "N_123"}]
+        return_value=[MOCK_NETWORK]
     )
     api_client.organization.get_organization_devices = AsyncMock(
-        return_value=[{"serial": "Q234"}]
+        return_value=[MOCK_DEVICE]
     )
     api_client.organization.get_organization_devices_availabilities = AsyncMock(
         return_value=[]
@@ -47,5 +48,5 @@ async def test_get_all_data_concurrent(mock_dashboard):
     assert data is not None
     api_client.organization.get_organization_networks.assert_awaited_once()
     api_client.organization.get_organization_devices.assert_awaited_once()
-    api_client.network.get_network_clients.assert_awaited_once_with("N_123")
+    api_client.network.get_network_clients.assert_awaited_once_with(MOCK_NETWORK["id"])
     # Add more assertions as needed

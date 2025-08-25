@@ -62,6 +62,35 @@ def resolve_device_info(
             via_device=(DOMAIN, parent_serial),
         )
 
+    # Handle network devices
+    network_id = entity_data.get("id")
+    is_network = "productTypes" in entity_data and not entity_data.get("serial")
+    if is_network and network_id:
+        device_data_for_naming = {**entity_data, "productType": "network"}
+        formatted_name = format_device_name(
+            device=device_data_for_naming,
+            config=config_entry.options,
+        )
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"network_{network_id}")},
+            name=formatted_name,
+            manufacturer="Cisco Meraki",
+            model="Network",
+        )
+
+    if is_network and network_id:
+        device_data_for_naming = {**entity_data, "productType": "network"}
+        formatted_name = format_device_name(
+            device=device_data_for_naming,
+            config=config_entry.options,
+        )
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"network_{network_id}")},
+            name=formatted_name,
+            manufacturer="Cisco Meraki",
+            model="Network",
+        )
+
     # Fallback to creating device info for a physical device
     device_serial = entity_data.get("serial")
     if device_serial:

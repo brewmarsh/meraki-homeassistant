@@ -82,7 +82,7 @@ function SettingsPage() {
       <div className="bg-light-card dark:bg-dark-card shadow rounded-lg">
         <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="p-6 space-y-8">
           <div>
-            <h2 className="text-2xl font-bold">Integration Settings</h2>
+            <h2 className="text-2xl font-bold" data-testid="settings-header">Integration Settings</h2>
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
               Changes will be applied after saving, which reloads the integration.
             </p>

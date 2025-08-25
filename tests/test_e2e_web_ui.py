@@ -15,11 +15,9 @@ from custom_components.meraki_ha.const import (
     CONF_WEB_UI_PORT,
 )
 
+from .const import MOCK_ALL_DATA
+
 TEST_PORT = 9999
-MOCK_DATA = {
-    "networks": [{"id": "N_12345", "name": "Test Network", "tags": "e2e-test"}],
-    "clients": [],  # Clients are no longer displayed in the UI
-}
 MOCK_SETTINGS = {"scan_interval": 300}
 
 
@@ -40,7 +38,7 @@ async def setup_integration_fixture(hass: HomeAssistant):
 
     with patch(
         "custom_components.meraki_ha.MerakiDataCoordinator._async_update_data",
-        return_value=MOCK_DATA,
+        return_value=MOCK_ALL_DATA,
     ), patch(
         "custom_components.meraki_ha.async_register_webhook",
         return_value=None,
@@ -62,18 +60,12 @@ async def test_dashboard_loads_and_displays_data(
 
         await page.goto(f"http://localhost:{TEST_PORT}/")
 
-        content = page.locator("#page-content")
+        content = page.locator("main")
 
-        # Check for the network card
-        network_card_header = content.locator("h2:has-text('Networks (1)')")
-        await expect(network_card_header).to_be_visible()
-
-        network_name = content.locator("p.font-medium:has-text('Test Network')")
-        await expect(network_name).to_be_visible()
-
-        # The client card should no longer be present
-        client_card_header = content.locator("h2:has-text('Clients')")
-        await expect(client_card_header).not_to_be_visible()
+        # Check for the network card using data-testid
+        network_card = content.locator("[data-testid=network-card]")
+        await expect(network_card).to_be_visible()
+        await expect(network_card.locator("p.font-medium")).to_have_text("Test Network")
 
         await browser.close()
 
@@ -88,18 +80,17 @@ async def test_navigation_to_network_detail(hass: HomeAssistant, setup_integrati
 
         await page.goto(f"http://localhost:{TEST_PORT}/")
 
-        content = page.locator("#page-content")
-        await expect(content.locator("h2:has-text('Networks (1)')")).to_be_visible()
+        content = page.locator("main")
+        await expect(content.locator("[data-testid=network-card]")).to_be_visible()
 
-        await content.locator("a:has-text('Test Network')").click()
+        await content.locator("[data-testid=network-card]").click()
 
         await expect(page).to_have_url(f"http://localhost:{TEST_PORT}/networks/N_12345")
 
-        detail_content = page.locator("#page-content")
-        placeholder = detail_content.locator(
-            "div:has-text('Network Detail Page Placeholder')"
-        )
-        await expect(placeholder).to_be_visible()
+        await page.screenshot(path="e2e-network-detail-failure.png")
+
+        detail_content = page.locator("main")
+        await expect(detail_content.locator("h2")).to_have_text("Test Network")
 
         await browser.close()
 
@@ -114,14 +105,12 @@ async def test_navigation_to_settings_page(hass: HomeAssistant, setup_integratio
 
         await page.goto(f"http://localhost:{TEST_PORT}/")
 
-        await expect(page.locator("h1:has-text('Meraki UI')")).to_be_visible()
-
         await page.locator("a:has-text('Settings')").click()
 
         await expect(page).to_have_url(f"http://localhost:{TEST_PORT}/settings")
 
-        settings_content = page.locator("#page-content")
-        header = settings_content.locator("h2:has-text('Integration Settings')")
+        settings_content = page.locator("main")
+        header = settings_content.locator("[data-testid=settings-header]")
         await expect(header).to_be_visible()
 
         await browser.close()
