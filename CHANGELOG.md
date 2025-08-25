@@ -1,3 +1,42 @@
+# [1.5.0](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.4.2...v1.5.0) (2025-08-25)
+
+
+### Bug Fixes
+
+* **api:** Add missing endpoint wrappers for coordinators ([4124e29](https://github.com/brewmarsh/meraki-homeassistant/commit/4124e29eed2b3fe8a83d6054027369814c14dd9a))
+* **api:** Correct method names for L7 firewall rules ([28821a0](https://github.com/brewmarsh/meraki-homeassistant/commit/28821a0bfaf75087f509c0b2cbb4442a2131d3ee))
+* **api:** Use correct object for L7 firewall rule calls ([58ebd2c](https://github.com/brewmarsh/meraki-homeassistant/commit/58ebd2cfcd3554df499edc5ddb420a5458eda4a7))
+* Consolidate parental controls backend and UI fixes ([0049dca](https://github.com/brewmarsh/meraki-homeassistant/commit/0049dca0932d858b3de71eb5625de77e20bce2a4))
+* **coordinator:** Add get_network and get_ssid helpers ([086e7d4](https://github.com/brewmarsh/meraki-homeassistant/commit/086e7d483e7844bc3fc3f96adacdd9c5fc79bb3c))
+* **coordinator:** Add resilience to partial API failures ([640b660](https://github.com/brewmarsh/meraki-homeassistant/commit/640b660613a08768c892d3de8371a8502170665c))
+* **coordinator:** Correct relative import path ([a07d9b7](https://github.com/brewmarsh/meraki-homeassistant/commit/a07d9b7b88bab0e94455086646218ab9e39c1226))
+* **coordinator:** Recreate ClientFirewallCoordinator and add graceful failure ([8bf11a1](https://github.com/brewmarsh/meraki-homeassistant/commit/8bf11a1c23ae0737a8fd4ee10a865c9dd2a2b20a))
+* Correctly instantiate MerakiOptionsFlowHandler ([6bc4eec](https://github.com/brewmarsh/meraki-homeassistant/commit/6bc4eec0bb1179b220d05b5a77109acc49207874))
+* **device_info:** Correctly resolve client devices and reduce warnings ([c24f361](https://github.com/brewmarsh/meraki-homeassistant/commit/c24f3611f5d6b75776a73e62ee74611a8bbf7caf))
+* **logging:** Improve error handling and remove diagnostic logs ([dcc14f9](https://github.com/brewmarsh/meraki-homeassistant/commit/dcc14f92e1839ad37bd5dbec1b7701505a434b1e))
+* Remove appliance firewall logic for stability ([cf7955a](https://github.com/brewmarsh/meraki-homeassistant/commit/cf7955aeb6cf9438e14bef8edcfbf1b265352b43))
+* **web_server:** Correct bugs in parental controls API ([7f96f45](https://github.com/brewmarsh/meraki-homeassistant/commit/7f96f456655432d22002d57feb4a0f93337f606b))
+
+
+### Features
+
+* Add debug logging to parental controls setup ([f5f6332](https://github.com/brewmarsh/meraki-homeassistant/commit/f5f63326d1c53c67930429e2727108207c0ad032))
+* Implement Parental Controls feature ([18ba72c](https://github.com/brewmarsh/meraki-homeassistant/commit/18ba72cd4822e90703c53596ccedf9d44c1e1cc8))
+* Implement UI redesign, settings page, and E2E tests ([f58b061](https://github.com/brewmarsh/meraki-homeassistant/commit/f58b0615fd9bec62450bebe78865475946c59131))
+* Implement web UI, filtering, and E2E tests ([da52450](https://github.com/brewmarsh/meraki-homeassistant/commit/da52450fd959981b50fb65afde7d010337982ff2))
+* Improve documentation and HACS integration structure ([0d530ff](https://github.com/brewmarsh/meraki-homeassistant/commit/0d530ff1b28a12e2f7f5e46fb2c7911b74fa018e))
+* Improve documentation and HACS integration structure ([c041c76](https://github.com/brewmarsh/meraki-homeassistant/commit/c041c76a5621e671f5f30f46b0ba974074897bf8))
+* Major Overhaul, New Features, and Design Docs ([3398318](https://github.com/brewmarsh/meraki-homeassistant/commit/339831880dfed3771aea3f66bbd0986d4521cfcc))
+* Organize documentation into a docs directory ([281d59c](https://github.com/brewmarsh/meraki-homeassistant/commit/281d59c73e3c59a360ad9a3950ee6e6fae9d71f0))
+* **parental_controls:** Add SSID-specific firewall rule handling ([04d631a](https://github.com/brewmarsh/meraki-homeassistant/commit/04d631ac562ded38b3aa21f6b75e193dafcc9414))
+* Redesign web UI and fix test suite ([a40b4a1](https://github.com/brewmarsh/meraki-homeassistant/commit/a40b4a128c5fdf7ecb9c4e5abc90285de4c6cdfb))
+* Redesign web UI with new layout and theme ([fe07f71](https://github.com/brewmarsh/meraki-homeassistant/commit/fe07f7183d735636bde105192bf274a59507ada2))
+* Refactor Parental Controls and enhance with blocked categories ([5b0f202](https://github.com/brewmarsh/meraki-homeassistant/commit/5b0f202b6050ed1847497942290aa29f72f60de4))
+* Refactor Parental Controls for per-SSID and network-wide support ([3056f1f](https://github.com/brewmarsh/meraki-homeassistant/commit/3056f1fb1ed1b7d6b9e1ba233bc79121e97fb66f))
+* **ui:** Implement frontend for granular parental controls ([af3ccbe](https://github.com/brewmarsh/meraki-homeassistant/commit/af3ccbe2e0ae110c8c532e6c15a8f9d3998c46ba))
+
+
+
 ## [1.4.2](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.4.1...v1.4.2) (2025-08-20)
 
 
