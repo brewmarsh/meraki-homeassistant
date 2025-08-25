@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+
+from ...types import MerakiVlan
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -24,13 +25,14 @@ class MerakiVLANSubnetSensor(MerakiVLANEntity, SensorEntity):
         coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
-        vlan: dict[str, Any],
+        vlan: MerakiVlan,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, config_entry, network_id, vlan)
-        self._attr_unique_id = get_vlan_entity_id(
-            self._network_id, self._vlan["id"], "subnet"
-        )
+        assert self._network_id, "Network ID cannot be None for a VLAN entity"
+        vlan_id = self._vlan.get("id")
+        assert vlan_id, "VLAN ID should not be None here"
+        self._attr_unique_id = get_vlan_entity_id(self._network_id, vlan_id, "subnet")
         self._attr_name = f"{self._vlan['name']} Subnet"
 
     @property
@@ -47,12 +49,15 @@ class MerakiVLANApplianceIpSensor(MerakiVLANEntity, SensorEntity):
         coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
-        vlan: dict[str, Any],
+        vlan: MerakiVlan,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, config_entry, network_id, vlan)
+        assert self._network_id, "Network ID cannot be None for a VLAN entity"
+        vlan_id = self._vlan.get("id")
+        assert vlan_id, "VLAN ID should not be None here"
         self._attr_unique_id = get_vlan_entity_id(
-            self._network_id, self._vlan["id"], "appliance_ip"
+            self._network_id, vlan_id, "appliance_ip"
         )
         self._attr_name = f"{self._vlan['name']} Appliance IP"
 

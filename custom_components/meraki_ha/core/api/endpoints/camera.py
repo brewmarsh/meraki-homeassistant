@@ -24,7 +24,11 @@ class CameraEndpoints:
         settings = await self._api_client._run_sync(
             self._dashboard.camera.getDeviceCameraSense, serial=serial
         )
-        return validate_response(settings)
+        validated = validate_response(settings)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("get_camera_sense_settings did not return a dict.")
+            return {}
+        return validated
 
     @handle_meraki_errors
     @async_timed_cache()
@@ -33,7 +37,11 @@ class CameraEndpoints:
         settings = await self._api_client._run_sync(
             self._dashboard.camera.getDeviceCameraVideoSettings, serial=serial
         )
-        return validate_response(settings)
+        validated = validate_response(settings)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("get_camera_video_settings did not return a dict.")
+            return {}
+        return validated
 
     @handle_meraki_errors
     @async_timed_cache(timeout=30)
@@ -42,7 +50,11 @@ class CameraEndpoints:
         link = await self._api_client._run_sync(
             self._dashboard.camera.getDeviceCameraVideoLink, serial=serial
         )
-        return validate_response(link)
+        validated = validate_response(link)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("get_device_camera_video_link did not return a dict.")
+            return {}
+        return validated
 
     @handle_meraki_errors
     async def update_camera_video_settings(
@@ -54,4 +66,24 @@ class CameraEndpoints:
             serial=serial,
             **kwargs,
         )
-        return validate_response(result)
+        validated = validate_response(result)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("update_camera_video_settings did not return a dict.")
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    async def update_camera_sense_settings(
+        self, serial: str, **kwargs
+    ) -> Dict[str, Any]:
+        """Update sense settings for a specific camera."""
+        result = await self._api_client._run_sync(
+            self._dashboard.camera.updateDeviceCameraSense,
+            serial=serial,
+            **kwargs,
+        )
+        validated = validate_response(result)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("update_camera_sense_settings did not return a dict.")
+            return {}
+        return validated

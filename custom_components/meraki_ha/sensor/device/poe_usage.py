@@ -1,7 +1,7 @@
 """Sensor for Meraki switch PoE usage."""
 
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.const import UnitOfPower
@@ -61,7 +61,7 @@ class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntit
                 return
 
     @property
-    def native_value(self) -> float | None:
+    def native_value(self) -> Union[float, None]:
         """Return the state of the sensor."""
         port_statuses = self._device.get("port_statuses")
         if not port_statuses or not isinstance(port_statuses, list):

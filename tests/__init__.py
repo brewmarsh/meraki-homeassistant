@@ -1,1 +1,1 @@
-# This file makes the tests directory a package.
+"""Tests for the Meraki integration."""

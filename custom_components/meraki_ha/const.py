@@ -44,8 +44,34 @@ CONF_USE_LAN_IP_FOR_RTSP: Final[str] = "use_lan_ip_for_rtsp"
 CONF_ENABLE_DEVICE_TRACKER: Final[str] = "enable_device_tracker"
 """Configuration key for enabling device tracker (str)."""
 
+CONF_ENABLE_WEB_UI: Final[str] = "enable_web_ui"
+"""Configuration key for enabling the web UI (str)."""
+
+CONF_WEB_UI_PORT: Final[str] = "web_ui_port"
+"""Configuration key for the web UI port (str)."""
+
+CONF_HIDE_UNCONFIGURED_SSIDS: Final[str] = "hide_unconfigured_ssids"
+"""Configuration key for hiding unconfigured SSIDs (str)."""
+
+CONF_IGNORED_NETWORKS: Final[str] = "ignored_networks"
+"""Configuration key for a list of network names to ignore (str)."""
+
+
 DEFAULT_WEBHOOK_URL: Final[str] = ""
 """Default webhook URL value (empty string)."""
+
+DEFAULT_ENABLE_WEB_UI: Final[bool] = True
+"""Default value for enabling the web UI (bool)."""
+
+DEFAULT_WEB_UI_PORT: Final[int] = 9988
+"""Default value for the web UI port (int)."""
+
+DEFAULT_HIDE_UNCONFIGURED_SSIDS: Final[bool] = False
+"""Default value for hiding unconfigured SSIDs (bool)."""
+
+DEFAULT_IGNORED_NETWORKS: Final[str] = ""
+"""Default value for the ignored networks list (str)."""
+
 
 DATA_SSID_DEVICES_COORDINATOR: Final[str] = (
     "ssid_devices"  # New constant for SSID coordinator key
@@ -130,3 +156,106 @@ ERASE_TAGS_WARNING: Final[str] = (
 """Warning message for the tag erasing feature (str)."""
 
 WEBHOOK_ID_FORMAT: Final[str] = "meraki_ha_{entry_id}"
+
+MERAKI_CONTENT_FILTERING_CATEGORIES: Final[List[dict]] = [
+    {
+        "id": "meraki:contentFiltering/category/1",
+        "name": "Adult and Pornography",
+        "description": "Sites featuring sexual content, nudity, or pornography.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/2",
+        "name": "Illegal",
+        "description": "Sites promoting illegal activities, such as drug-making or hacking.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/3",
+        "name": "Gambling",
+        "description": "Online gambling sites, including casinos, sports betting, and lotteries.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/4",
+        "name": "Hate and Racism",
+        "description": "Sites promoting hatred, discrimination, or violence against individuals or groups.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/5",
+        "name": "Weapons",
+        "description": "Sites related to the sale or promotion of weapons.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/6",
+        "name": "Violence",
+        "description": "Sites with graphic or gratuitous violence.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/7",
+        "name": "Peer-to-peer",
+        "description": "Peer-to-peer file sharing sites and applications.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/8",
+        "name": "Malware sites",
+        "description": "Sites known to host or distribute malware, viruses, or other malicious software.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/9",
+        "name": "Phishing and other frauds",
+        "description": "Sites engaged in phishing, scams, or other fraudulent activities.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/10",
+        "name": "Key loggers and monitoring",
+        "description": "Sites for keyloggers, spyware, and other monitoring tools.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/11",
+        "name": "Botnets",
+        "description": "Sites associated with botnet command and control servers.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/12",
+        "name": "Spam URLs",
+        "description": "URLs frequently found in unsolicited email (spam).",
+    },
+    {
+        "id": "meraki:contentFiltering/category/13",
+        "name": "Auctions",
+        "description": "Online auction sites.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/14",
+        "name": "Games",
+        "description": "Online gaming sites.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/15",
+        "name": "Social Networking",
+        "description": "Social networking sites and applications.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/16",
+        "name": "Web-based email",
+        "description": "Web-based email services.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/17",
+        "name": "Internet communications",
+        "description": "Chat, instant messaging, and other communication platforms.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/18",
+        "name": "Shareware and freeware",
+        "description": "Sites for downloading shareware and freeware.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/19",
+        "name": "Web advertisements",
+        "description": "Sites primarily serving advertisements.",
+    },
+    {
+        "id": "meraki:contentFiltering/category/20",
+        "name": "Nudity",
+        "description": "Sites with non-pornographic nudity.",
+    },
+]

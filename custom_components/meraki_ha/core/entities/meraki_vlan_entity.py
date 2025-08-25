@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from homeassistant.helpers.entity import DeviceInfo
 
 from homeassistant.config_entries import ConfigEntry
 from . import BaseMerakiEntity
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ...types import MerakiVlan
 from ...core.utils.naming_utils import format_device_name
 
 
@@ -20,7 +19,7 @@ class MerakiVLANEntity(BaseMerakiEntity):
         coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
-        vlan: dict[str, Any],
+        vlan: MerakiVlan,
     ) -> None:
         """Initialize the VLAN entity."""
         super().__init__(
@@ -29,6 +28,7 @@ class MerakiVLANEntity(BaseMerakiEntity):
             network_id=network_id,
         )
         self._vlan = vlan
+        assert self._network_id is not None
         vlan_device_data = {**vlan, "productType": "vlan"}
         formatted_name = format_device_name(
             device=vlan_device_data,

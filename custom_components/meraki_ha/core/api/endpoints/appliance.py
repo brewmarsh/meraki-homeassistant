@@ -90,3 +90,57 @@ class ApplianceEndpoints:
             _LOGGER.warning("get_network_appliance_settings did not return a dict.")
             return {}
         return validated
+
+    @handle_meraki_errors
+    @async_timed_cache()
+    async def get_network_appliance_l7_firewall_rules(
+        self, network_id: str
+    ) -> Dict[str, Any]:
+        """Get L7 firewall rules for a network."""
+        rules = await self._api_client._run_sync(
+            self._dashboard.networks.getNetworkApplianceL7FirewallRules,
+            networkId=network_id,
+        )
+        validated = validate_response(rules)
+        if not isinstance(validated, dict):
+            _LOGGER.warning(
+                "get_network_appliance_l7_firewall_rules did not return a dict."
+            )
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    async def update_network_appliance_l7_firewall_rules(
+        self, network_id: str, **kwargs
+    ) -> Dict[str, Any]:
+        """Update L7 firewall rules for a network."""
+        rules = await self._api_client._run_sync(
+            self._dashboard.networks.updateNetworkApplianceL7FirewallRules,
+            networkId=network_id,
+            **kwargs,
+        )
+        validated = validate_response(rules)
+        if not isinstance(validated, dict):
+            _LOGGER.warning(
+                "update_network_appliance_l7_firewall_rules did not return a dict."
+            )
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    async def update_network_appliance_content_filtering(
+        self, network_id: str, **kwargs
+    ) -> Dict[str, Any]:
+        """Update content filtering for a network."""
+        result = await self._api_client._run_sync(
+            self._dashboard.appliance.updateNetworkApplianceContentFiltering,
+            networkId=network_id,
+            **kwargs,
+        )
+        validated = validate_response(result)
+        if not isinstance(validated, dict):
+            _LOGGER.warning(
+                "update_network_appliance_content_filtering did not return a dict."
+            )
+            return {}
+        return validated

@@ -5,7 +5,6 @@ from typing import Any, Dict, Optional
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import callback
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
@@ -26,7 +25,6 @@ class MerakiSSIDBaseSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntit
         attribute: str,
     ) -> None:
         """Initialize the sensor."""
-        _LOGGER.debug("Creating SSID sensor for attribute %s", attribute)
         super().__init__(coordinator)
         self._config_entry = config_entry
         self._ssid_data_at_init = ssid_data
@@ -35,6 +33,11 @@ class MerakiSSIDBaseSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntit
         self._ssid_number = ssid_data.get("number")
         self._attr_unique_id = (
             f"ssid-{self._network_id}-{self._ssid_number}-{self._attribute}"
+        )
+        # Set device_info directly in init
+        self._attr_device_info = resolve_device_info(
+            entity_data=self._ssid_data_at_init,
+            config_entry=self._config_entry,
         )
 
     def _get_current_ssid_data(self) -> Optional[Dict[str, Any]]:
@@ -47,15 +50,6 @@ class MerakiSSIDBaseSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntit
             ) == str(self._ssid_number):
                 return ssid
         return None
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information to link this entity to the SSID device."""
-        return resolve_device_info(
-            entity_data={"networkId": self._network_id},
-            config_entry=self._config_entry,
-            ssid_data=self._ssid_data_at_init,
-        )
 
     @property
     def available(self) -> bool:

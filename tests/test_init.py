@@ -29,7 +29,7 @@ async def test_async_setup_entry(
     ) as mock_coordinator, patch(
         "custom_components.meraki_ha.async_register_webhook"
     ) as mock_register_webhook:
-        future = asyncio.Future()
+        future: asyncio.Future = asyncio.Future()
         future.set_result(None)
         mock_coordinator.return_value.async_refresh = AsyncMock()
         mock_coordinator.return_value.async_config_entry_first_refresh.return_value = (
@@ -47,9 +47,9 @@ async def test_async_setup_entry(
         hass.config_entries._entries = {config_entry.entry_id: config_entry}
         config_entry.title = "test_title"
         with patch("custom_components.meraki_ha.async_unload_entry") as mock_unload:
-            future = asyncio.Future()
-            future.set_result(True)
-            mock_unload.return_value = future
+            future2: asyncio.Future = asyncio.Future()
+            future2.set_result(True)
+            mock_unload.return_value = future2
             result = await async_setup_entry(hass, config_entry)
             assert result is True
             mock_register_webhook.assert_called_once()

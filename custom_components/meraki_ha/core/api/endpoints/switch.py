@@ -39,4 +39,8 @@ class SwitchEndpoints:
         ports = await self._api_client._run_sync(
             self._dashboard.switch.getDeviceSwitchPorts, serial=serial
         )
-        return validate_response(ports)
+        validated = validate_response(ports)
+        if not isinstance(validated, list):
+            _LOGGER.warning("get_switch_ports did not return a list.")
+            return []
+        return validated

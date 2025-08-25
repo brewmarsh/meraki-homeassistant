@@ -4,6 +4,7 @@ import logging
 from typing import Any, Dict, Optional
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -26,7 +27,7 @@ class MerakiCameraAudioDetectionSensor(
         self,
         coordinator: MerakiDataCoordinator,
         device_data: Dict[str, Any],
-        config_entry: Dict[str, Any],
+        config_entry: ConfigEntry,
     ) -> None:
         """Initialize the Meraki Camera Audio Detection sensor."""
         super().__init__(coordinator)

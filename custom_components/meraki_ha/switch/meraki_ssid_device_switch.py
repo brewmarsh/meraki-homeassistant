@@ -36,7 +36,6 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
         attribute_to_check: str,  # "enabled" or "visible"
     ) -> None:
         """Initialize the base SSID switch."""
-        _LOGGER.debug("Creating SSID switch for type %s", switch_type)
         super().__init__(coordinator)
         self._meraki_client = meraki_client
         self._config_entry = config_entry

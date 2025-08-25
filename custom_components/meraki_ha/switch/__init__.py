@@ -20,6 +20,7 @@ from .camera_profiles import (
     MerakiCameraAudioDetectionSwitch,
 )
 from .camera_schedules import MerakiCameraRTSPSwitch
+from .meraki_client_blocker import MerakiClientBlockerSwitch
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -105,6 +106,41 @@ async def async_setup_entry(
         _LOGGER.info(
             "Network Coordinator data not available or no SSIDs found for setting up SSID switches."
         )
+
+    # Setup Client Blocker Switches (for wireless clients)
+    ssid_firewall_coordinators = entry_data.get("ssid_firewall_coordinators", {})
+
+    if coordinator and coordinator.data and "clients" in coordinator.data:
+        # Create a lookup to find an SSID's number by its name for a given network
+        ssid_lookup = {
+            (ssid["networkId"], ssid["name"]): ssid["number"]
+            for ssid in coordinator.data.get("ssids", [])
+        }
+
+        for client_data in coordinator.data["clients"]:
+            if not isinstance(client_data, dict) or "mac" not in client_data:
+                continue
+
+            network_id = client_data.get("networkId")
+            ssid_name = client_data.get("ssid")
+
+            # Only create blocker switches for wireless clients on a known SSID
+            if network_id and ssid_name:
+                ssid_number = ssid_lookup.get((network_id, ssid_name))
+                if ssid_number is not None:
+                    coordinator_key = f"{network_id}_{ssid_number}"
+                    firewall_coordinator = ssid_firewall_coordinators.get(
+                        coordinator_key
+                    )
+
+                    if firewall_coordinator:
+                        new_entities.append(
+                            MerakiClientBlockerSwitch(
+                                firewall_coordinator,
+                                config_entry,
+                                client_data,
+                            )
+                        )
 
     if new_entities:
         async_add_entities(new_entities)

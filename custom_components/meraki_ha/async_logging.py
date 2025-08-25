@@ -1,39 +1,30 @@
+"""Module for asynchronous logging utilities."""
+
 import logging
-import threading
-
-_LOGGER = logging.getLogger(__name__)
-
-
-class QueueHandler(logging.Handler):
-    """A logging handler that puts records into a queue."""
-
-    def __init__(self, q):
-        """Initialize the handler."""
-        super().__init__()
-        self.queue = q
-
-    def emit(self, record):
-        """Emit a record."""
-        self.queue.put(record)
+from typing import Any, Callable
+import asyncio
+from functools import wraps
 
 
-class QueueListener(threading.Thread):
-    """A thread that listens for records on a queue and sends them to a handler."""
+def async_log_time(
+    logger: logging.Logger, level: int = logging.INFO
+) -> Callable[..., Any]:
+    """Decorate to log the execution time of an async function."""
 
-    def __init__(self, q, handler):
-        """Initialize the listener."""
-        super().__init__()
-        self.queue = q
-        self.handler = handler
-        self.daemon = True
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        @wraps(func)
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            start_time = asyncio.get_event_loop().time()
+            result = await func(*args, **kwargs)
+            end_time = asyncio.get_event_loop().time()
+            logger.log(
+                level,
+                "Execution of %s took %.4f seconds",
+                func.__name__,
+                end_time - start_time,
+            )
+            return result
 
-    def run(self):
-        """Run the listener."""
-        while True:
-            try:
-                record = self.queue.get()
-                if record is None:
-                    break
-                self.handler.handle(record)
-            except Exception as e:
-                _LOGGER.error(f"Error handling log record: {e}")
+        return wrapper
+
+    return decorator

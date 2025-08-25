@@ -7,7 +7,7 @@ from ._data import DEVICE_PREFIX_MAPPINGS, DEVICE_TYPE_DESCRIPTIONS, MODEL_PATTE
 
 
 def map_meraki_model_to_device_type(model: Optional[str]) -> str:
-    """Maps a Meraki device model string to a generic device type category."""
+    """Map a Meraki device model string to a generic device type category."""
     if not model or not validate_model_string(model):
         return DeviceType.UNKNOWN
 
@@ -23,7 +23,7 @@ def map_meraki_model_to_device_type(model: Optional[str]) -> str:
 
 
 def validate_model_string(model: str) -> bool:
-    """Validates that a model string matches expected Meraki model patterns."""
+    """Validate that a model string matches expected Meraki model patterns."""
     if not model:
         return False
     model_upper = model.upper()
@@ -33,24 +33,24 @@ def validate_model_string(model: str) -> bool:
 
 
 def validate_device_type(device_type: str) -> bool:
-    """Validates that a device type string is one of the valid types."""
+    """Validate that a device type string is one of the valid types."""
     return device_type in VALID_DEVICE_TYPES
 
 
 def get_device_type_description(device_type: str) -> str:
-    """Gets a human-readable description of a device type."""
+    """Get a human-readable description of a device type."""
     if not validate_device_type(device_type):
         return DEVICE_TYPE_DESCRIPTIONS[DeviceType.UNKNOWN]
     return DEVICE_TYPE_DESCRIPTIONS[device_type]
 
 
 def get_supported_model_prefixes() -> set[str]:
-    """Gets all supported Meraki model prefixes."""
+    """Get all supported Meraki model prefixes."""
     return {prefix for prefixes in DEVICE_PREFIX_MAPPINGS.keys() for prefix in prefixes}
 
 
 def get_prefixes_for_device_type(device_type: str) -> set[str]:
-    """Gets all model prefixes for a given device type."""
+    """Get all model prefixes for a given device type."""
     return {
         prefix
         for prefixes, dtype in DEVICE_PREFIX_MAPPINGS.items()
