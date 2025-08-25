@@ -57,10 +57,14 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
                 CONF_IGNORED_NETWORKS, DEFAULT_IGNORED_NETWORKS
             )
             if ignored_networks_str:
-                ignored_names = {name.strip() for name in ignored_networks_str.split(',')}
+                ignored_names = {
+                    name.strip() for name in ignored_networks_str.split(",")
+                }
                 if data.get("networks"):
                     data["networks"] = [
-                        n for n in data["networks"] if n.get("name") not in ignored_names
+                        n
+                        for n in data["networks"]
+                        if n.get("name") not in ignored_names
                     ]
 
             # Filter unconfigured SSIDs
@@ -74,7 +78,9 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
 
             return data
         except Exception as err:
-            _LOGGER.error("Unexpected error fetching Meraki data: %s", err, exc_info=True)
+            _LOGGER.error(
+                "Unexpected error fetching Meraki data: %s", err, exc_info=True
+            )
             raise UpdateFailed(f"Error communicating with API: {err}") from err
 
     def get_device(self, serial: str):
@@ -97,6 +103,9 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
         """Get SSID data by network ID and SSID number."""
         if self.data and self.data.get("ssids"):
             for ssid in self.data["ssids"]:
-                if ssid.get("networkId") == network_id and ssid.get("number") == ssid_number:
+                if (
+                    ssid.get("networkId") == network_id
+                    and ssid.get("number") == ssid_number
+                ):
                     return ssid
         return None

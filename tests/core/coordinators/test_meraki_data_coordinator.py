@@ -5,7 +5,9 @@ from unittest.mock import MagicMock, AsyncMock
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.meraki_ha.core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from custom_components.meraki_ha.core.coordinators.meraki_data_coordinator import (
+    MerakiDataCoordinator,
+)
 from custom_components.meraki_ha.const import (
     DOMAIN,
     CONF_IGNORED_NETWORKS,
@@ -22,6 +24,7 @@ MOCK_API_DATA = {
         {"id": "s_2", "name": "Disabled SSID", "enabled": False},
     ],
 }
+
 
 @pytest.mark.asyncio
 async def test_ignored_networks_filter(hass: HomeAssistant):

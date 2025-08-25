@@ -1,6 +1,7 @@
 import asyncio
 from playwright.async_api import async_playwright, Page, expect
 
+
 async def main():
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
@@ -12,7 +13,9 @@ async def main():
         await page.get_by_role("link", name="Parental Controls").click()
 
         # Verify that the page has loaded
-        await expect(page.get_by_role("heading", name="Content Filtering")).to_be_visible()
+        await expect(
+            page.get_by_role("heading", name="Content Filtering")
+        ).to_be_visible()
         await expect(page.get_by_role("heading", name="Client Devices")).to_be_visible()
 
         # Get the initial state of the first toggle button
@@ -26,9 +29,12 @@ async def main():
         await expect(first_toggle).not_to_have_class(initial_class)
 
         # Take a screenshot
-        await page.screenshot(path="jules-scratch/verification/parental_controls_feature.png")
+        await page.screenshot(
+            path="jules-scratch/verification/parental_controls_feature.png"
+        )
 
         await browser.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

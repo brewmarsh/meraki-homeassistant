@@ -18,11 +18,10 @@ from custom_components.meraki_ha.const import (
 TEST_PORT = 9999
 MOCK_DATA = {
     "networks": [{"id": "N_12345", "name": "Test Network", "tags": "e2e-test"}],
-    "clients": [], # Clients are no longer displayed in the UI
+    "clients": [],  # Clients are no longer displayed in the UI
 }
-MOCK_SETTINGS = {
-    "scan_interval": 300
-}
+MOCK_SETTINGS = {"scan_interval": 300}
+
 
 @pytest.fixture(name="setup_integration")
 async def setup_integration_fixture(hass: HomeAssistant):
@@ -31,7 +30,11 @@ async def setup_integration_fixture(hass: HomeAssistant):
         domain=DOMAIN,
         entry_id="test_e2e_entry",
         data={CONF_MERAKI_API_KEY: "test-key", CONF_MERAKI_ORG_ID: "test-org"},
-        options={CONF_ENABLE_WEB_UI: True, CONF_WEB_UI_PORT: TEST_PORT, **MOCK_SETTINGS},
+        options={
+            CONF_ENABLE_WEB_UI: True,
+            CONF_WEB_UI_PORT: TEST_PORT,
+            **MOCK_SETTINGS,
+        },
     )
     config_entry.add_to_hass(hass)
 
@@ -49,7 +52,9 @@ async def setup_integration_fixture(hass: HomeAssistant):
 
 @pytest.mark.enable_socket
 @pytest.mark.asyncio
-async def test_dashboard_loads_and_displays_data(hass: HomeAssistant, setup_integration):
+async def test_dashboard_loads_and_displays_data(
+    hass: HomeAssistant, setup_integration
+):
     """Test that the dashboard loads and displays network data, but not clients."""
     async with async_playwright() as p:
         browser = await p.chromium.launch()
@@ -91,7 +96,9 @@ async def test_navigation_to_network_detail(hass: HomeAssistant, setup_integrati
         await expect(page).to_have_url(f"http://localhost:{TEST_PORT}/networks/N_12345")
 
         detail_content = page.locator("#page-content")
-        placeholder = detail_content.locator("div:has-text('Network Detail Page Placeholder')")
+        placeholder = detail_content.locator(
+            "div:has-text('Network Detail Page Placeholder')"
+        )
         await expect(placeholder).to_be_visible()
 
         await browser.close()

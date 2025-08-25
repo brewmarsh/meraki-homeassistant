@@ -97,7 +97,9 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                     ): bool,
                     vol.Optional(
                         CONF_ENABLE_WEB_UI,
-                        default=self.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI),
+                        default=self.options.get(
+                            CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI
+                        ),
                     ): bool,
                     vol.Optional(
                         CONF_WEB_UI_PORT,

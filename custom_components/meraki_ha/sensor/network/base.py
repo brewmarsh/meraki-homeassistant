@@ -41,7 +41,6 @@ class MerakiSSIDBaseSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntit
             config_entry=self._config_entry,
         )
 
-
     def _get_current_ssid_data(self) -> Optional[Dict[str, Any]]:
         """Retrieve the latest data for this SSID from the coordinator."""
         if not self.coordinator.data or "ssids" not in self.coordinator.data:

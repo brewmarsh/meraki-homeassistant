@@ -29,9 +29,7 @@ class MerakiClientBlockerSwitch(
 
     def __init__(
         self,
-        firewall_coordinator: Union[
-            ClientFirewallCoordinator, SsidFirewallCoordinator
-        ],
+        firewall_coordinator: Union[ClientFirewallCoordinator, SsidFirewallCoordinator],
         config_entry: ConfigEntry,
         client_data: Dict[str, Any],
     ) -> None:

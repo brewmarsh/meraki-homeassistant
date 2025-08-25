@@ -22,8 +22,12 @@ from .const import (
 )
 from .core.api.client import MerakiAPIClient
 from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-from .core.coordinators.ssid_content_filtering_coordinator import SsidContentFilteringCoordinator
-from .core.coordinators.network_content_filtering_coordinator import NetworkContentFilteringCoordinator
+from .core.coordinators.ssid_content_filtering_coordinator import (
+    SsidContentFilteringCoordinator,
+)
+from .core.coordinators.network_content_filtering_coordinator import (
+    NetworkContentFilteringCoordinator,
+)
 from .core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
 from .web_server import MerakiWebServer
 from .webhook import async_register_webhook, async_unregister_webhook
@@ -94,9 +98,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     ssid_number=ssid["number"],
                 )
                 await ssid_cf_coordinator.async_refresh()
-                hass.data[DOMAIN][entry.entry_id]["ssid_content_filtering_coordinators"][
-                    f"{ssid['networkId']}_{ssid['number']}"
-                ] = ssid_cf_coordinator
+                hass.data[DOMAIN][entry.entry_id][
+                    "ssid_content_filtering_coordinators"
+                ][f"{ssid['networkId']}_{ssid['number']}"] = ssid_cf_coordinator
 
                 # L7 Firewall Coordinator
                 ssid_fw_coordinator = SsidFirewallCoordinator(

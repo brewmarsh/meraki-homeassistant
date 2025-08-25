@@ -128,7 +128,9 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Optional(CONF_AUTO_ENABLE_RTSP, default=False): bool,
                     vol.Optional(CONF_USE_LAN_IP_FOR_RTSP, default=False): bool,
                     vol.Optional(CONF_ENABLE_DEVICE_TRACKER, default=True): bool,
-                    vol.Optional(CONF_ENABLE_WEB_UI, default=DEFAULT_ENABLE_WEB_UI): bool,
+                    vol.Optional(
+                        CONF_ENABLE_WEB_UI, default=DEFAULT_ENABLE_WEB_UI
+                    ): bool,
                     vol.Optional(CONF_WEB_UI_PORT, default=DEFAULT_WEB_UI_PORT): int,
                     vol.Optional(
                         CONF_HIDE_UNCONFIGURED_SSIDS,
@@ -159,7 +161,6 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             ),
         )
-
 
     @staticmethod
     @callback

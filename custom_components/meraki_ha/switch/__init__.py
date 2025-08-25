@@ -113,7 +113,7 @@ async def async_setup_entry(
     if coordinator and coordinator.data and "clients" in coordinator.data:
         # Create a lookup to find an SSID's number by its name for a given network
         ssid_lookup = {
-            (ssid['networkId'], ssid['name']): ssid['number']
+            (ssid["networkId"], ssid["name"]): ssid["number"]
             for ssid in coordinator.data.get("ssids", [])
         }
 
@@ -129,7 +129,9 @@ async def async_setup_entry(
                 ssid_number = ssid_lookup.get((network_id, ssid_name))
                 if ssid_number is not None:
                     coordinator_key = f"{network_id}_{ssid_number}"
-                    firewall_coordinator = ssid_firewall_coordinators.get(coordinator_key)
+                    firewall_coordinator = ssid_firewall_coordinators.get(
+                        coordinator_key
+                    )
 
                     if firewall_coordinator:
                         new_entities.append(

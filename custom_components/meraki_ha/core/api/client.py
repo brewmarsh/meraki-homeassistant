@@ -105,14 +105,27 @@ class MerakiAPIClient:
         if isinstance(devices_res, Exception):
             _LOGGER.warning("Could not fetch Meraki devices: %s", devices_res)
 
-        devices_availabilities = devices_availabilities_res if not isinstance(devices_availabilities_res, Exception) else []
+        devices_availabilities = (
+            devices_availabilities_res
+            if not isinstance(devices_availabilities_res, Exception)
+            else []
+        )
         if isinstance(devices_availabilities_res, Exception):
-            _LOGGER.warning("Could not fetch Meraki device availabilities: %s", devices_availabilities_res)
+            _LOGGER.warning(
+                "Could not fetch Meraki device availabilities: %s",
+                devices_availabilities_res,
+            )
 
-        appliance_uplink_statuses = appliance_uplink_statuses_res if not isinstance(appliance_uplink_statuses_res, Exception) else []
+        appliance_uplink_statuses = (
+            appliance_uplink_statuses_res
+            if not isinstance(appliance_uplink_statuses_res, Exception)
+            else []
+        )
         if isinstance(appliance_uplink_statuses_res, Exception):
-            _LOGGER.warning("Could not fetch Meraki appliance uplink statuses: %s", appliance_uplink_statuses_res)
-
+            _LOGGER.warning(
+                "Could not fetch Meraki appliance uplink statuses: %s",
+                appliance_uplink_statuses_res,
+            )
 
         availabilities_by_serial = {
             availability["serial"]: availability
@@ -145,53 +158,53 @@ class MerakiAPIClient:
         detail_tasks = {}
         for network in networks:
             if isinstance(network, dict) and "id" in network:
-                detail_tasks[
-                    f"ssids_{network['id']}"
-                ] = self._run_with_semaphore(
+                detail_tasks[f"ssids_{network['id']}"] = self._run_with_semaphore(
                     self.wireless.get_network_ssids(network["id"])
                 )
                 if "appliance" in network.get("productTypes", []):
-                    detail_tasks[
-                        f"traffic_{network['id']}"
-                    ] = self._run_with_semaphore(
+                    detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
                         self.network.get_network_traffic(network["id"], "appliance")
                     )
-                    detail_tasks[
-                        f"vlans_{network['id']}"
-                    ] = self._run_with_semaphore(self.appliance.get_vlans(network["id"]))
+                    detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
+                        self.appliance.get_vlans(network["id"])
+                    )
                 if "wireless" in network.get("productTypes", []):
-                    detail_tasks[
-                        f"rf_profiles_{network['id']}"
-                    ] = self._run_with_semaphore(
-                        self.wireless.get_network_wireless_rf_profiles(network["id"])
+                    detail_tasks[f"rf_profiles_{network['id']}"] = (
+                        self._run_with_semaphore(
+                            self.wireless.get_network_wireless_rf_profiles(
+                                network["id"]
+                            )
+                        )
                     )
 
         for device in devices:
             if isinstance(device, dict) and "serial" in device:
                 if device.get("productType") == "wireless":
-                    detail_tasks[
-                        f"wireless_settings_{device['serial']}"
-                    ] = self._run_with_semaphore(
-                        self.wireless.get_wireless_settings(device["serial"])
+                    detail_tasks[f"wireless_settings_{device['serial']}"] = (
+                        self._run_with_semaphore(
+                            self.wireless.get_wireless_settings(device["serial"])
+                        )
                     )
                 elif device.get("productType") == "camera":
-                    detail_tasks[
-                        f"video_settings_{device['serial']}"
-                    ] = self._run_with_semaphore(
-                        self.camera.get_camera_video_settings(device["serial"])
+                    detail_tasks[f"video_settings_{device['serial']}"] = (
+                        self._run_with_semaphore(
+                            self.camera.get_camera_video_settings(device["serial"])
+                        )
                     )
                 elif device.get("productType") == "switch":
-                    detail_tasks[
-                        f"ports_statuses_{device['serial']}"
-                    ] = self._run_with_semaphore(
-                        self.switch.get_device_switch_ports_statuses(device["serial"])
+                    detail_tasks[f"ports_statuses_{device['serial']}"] = (
+                        self._run_with_semaphore(
+                            self.switch.get_device_switch_ports_statuses(
+                                device["serial"]
+                            )
+                        )
                     )
                 elif device.get("productType") == "appliance":
-                    detail_tasks[
-                        f"appliance_settings_{device['serial']}"
-                    ] = self._run_with_semaphore(
-                        self.appliance.get_network_appliance_settings(
-                            device["networkId"]
+                    detail_tasks[f"appliance_settings_{device['serial']}"] = (
+                        self._run_with_semaphore(
+                            self.appliance.get_network_appliance_settings(
+                                device["networkId"]
+                            )
                         )
                     )
 

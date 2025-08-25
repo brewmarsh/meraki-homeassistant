@@ -10,6 +10,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
 
+
 @pytest.fixture
 def config_entry():
     """Fixture for a mocked config entry."""
@@ -20,6 +21,7 @@ def config_entry():
         entry_id="test_entry",
     )
 
+
 @pytest.fixture
 def mock_meraki_client():
     """Fixture for a mocked MerakiAPIClient."""
@@ -28,7 +30,11 @@ def mock_meraki_client():
         return_value={
             "devices": [],
             "networks": [
-                {"id": "net1", "name": "Test Network", "productTypes": ["wireless", "appliance"]}
+                {
+                    "id": "net1",
+                    "name": "Test Network",
+                    "productTypes": ["wireless", "appliance"],
+                }
             ],
             "ssids": [
                 {
@@ -58,7 +64,7 @@ def mock_meraki_client():
         return_value={"allowedUrlPatterns": [], "blockedUrlPatterns": []}
     )
     client.appliance.get_network_appliance_firewall_l7_firewall_rules = AsyncMock(
-        return_value={'rules': []}
+        return_value={"rules": []}
     )
 
     # Mock for ClientFirewallCoordinator
@@ -76,9 +82,7 @@ async def test_ssid_device_creation_and_unification(
 
     with patch(
         "custom_components.meraki_ha.MerakiAPIClient", return_value=mock_meraki_client
-    ), patch(
-        "custom_components.meraki_ha.async_register_webhook", return_value=None
-    ):
+    ), patch("custom_components.meraki_ha.async_register_webhook", return_value=None):
         # Set up the component
         assert await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()

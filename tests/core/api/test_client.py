@@ -19,10 +19,18 @@ async def test_get_all_data_concurrent(mock_dashboard):
     """Test that get_all_data fetches data concurrently."""
     # Arrange
     api_client = MerakiAPIClient(api_key="test-key", org_id="test-org")
-    api_client.organization.get_organization_networks = AsyncMock(return_value=[{"id": "N_123"}])
-    api_client.organization.get_organization_devices = AsyncMock(return_value=[{"serial": "Q234"}])
-    api_client.organization.get_organization_devices_availabilities = AsyncMock(return_value=[])
-    api_client.organization.get_organization_appliance_uplink_statuses = AsyncMock(return_value=[])
+    api_client.organization.get_organization_networks = AsyncMock(
+        return_value=[{"id": "N_123"}]
+    )
+    api_client.organization.get_organization_devices = AsyncMock(
+        return_value=[{"serial": "Q234"}]
+    )
+    api_client.organization.get_organization_devices_availabilities = AsyncMock(
+        return_value=[]
+    )
+    api_client.organization.get_organization_appliance_uplink_statuses = AsyncMock(
+        return_value=[]
+    )
     api_client.network.get_network_clients = AsyncMock(return_value=[])
     api_client.wireless.get_network_ssids = AsyncMock(return_value=[])
     api_client.wireless.get_wireless_settings = AsyncMock(return_value={})
