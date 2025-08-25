@@ -217,23 +217,18 @@ class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
                     self._attr_model
                 ).startswith("MV2"):
                     public_rtsp_url = video_settings.get("rtspUrl")
-                    if public_rtsp_url:
-                        if self._use_lan_ip_for_rtsp:
-                            lan_ip = self._device.get("lanIp")
-                            if lan_ip:
-                                parsed_url = urlparse(public_rtsp_url)
-                                port = parsed_url.port
-                                self._rtsp_url = f"rtsp://{lan_ip}:{port}/live"
-                            else:
-                                self._rtsp_url = f"{public_rtsp_url}/live"
+                    if self._use_lan_ip_for_rtsp:
+                        lan_ip = self._device.get("lanIp")
+                        if lan_ip:
+                            parsed_url = urlparse(public_rtsp_url)
+                            port = parsed_url.port
+                            self._rtsp_url = f"rtsp://{lan_ip}:{port}"
                         else:
-                            self._rtsp_url = f"{public_rtsp_url}/live"
-                        self._attr_supported_features |= CameraEntityFeature.STREAM
-                        self._attr_is_streaming = True
+                            self._rtsp_url = public_rtsp_url
                     else:
-                        self._rtsp_url = None
-                        self._attr_supported_features &= ~CameraEntityFeature.STREAM
-                        self._attr_is_streaming = False
+                        self._rtsp_url = public_rtsp_url
+                    self._attr_supported_features |= CameraEntityFeature.STREAM
+                    self._attr_is_streaming = True
                 else:
                     self._rtsp_url = None
                     self._attr_supported_features &= ~CameraEntityFeature.STREAM

@@ -61,8 +61,8 @@ class MerakiCameraRTSPUrlSensor(CoordinatorEntity[MerakiDataCoordinator], Sensor
             is_rtsp_enabled = video_settings.get("externalRtspEnabled", False)
             rtsp_url = video_settings.get("rtspUrl")
 
-            if is_rtsp_enabled and rtsp_url:
-                self._attr_native_value = f"{rtsp_url}/live"
+            if is_rtsp_enabled:
+                self._attr_native_value = rtsp_url
             else:
                 self._attr_native_value = None
         else:

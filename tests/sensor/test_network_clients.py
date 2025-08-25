@@ -22,9 +22,7 @@ async def test_network_clients_sensor(
     }
     config_entry = MagicMock()
     network_data = {"id": "N_123", "name": "Test Network"}
-    sensor = MerakiNetworkClientsSensor(
-        coordinator, config_entry, network_data
-    )
+    sensor = MerakiNetworkClientsSensor(coordinator, config_entry, network_data)
     sensor.hass = hass
     sensor.entity_id = "sensor.test_network_clients"
     await sensor.async_added_to_hass()
