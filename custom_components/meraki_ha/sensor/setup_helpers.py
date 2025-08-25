@@ -151,8 +151,10 @@ def async_setup_sensors(
     # Set up VLAN sensors
     vlans_by_network = coordinator.data.get("vlans", {})
     for network_id, vlans in vlans_by_network.items():
+        if not isinstance(vlans, list):
+            continue
         for vlan in vlans:
-            if vlan.get("enabled", False):
+            if isinstance(vlan, dict) and vlan.get("enabled", False):
                 vlan_id = vlan.get("id")
                 if not vlan_id:
                     continue

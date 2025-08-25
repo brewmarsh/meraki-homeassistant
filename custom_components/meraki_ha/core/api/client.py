@@ -229,10 +229,7 @@ class MerakiAPIClient:
 
                 network_vlans = detail_data.get(f"vlans_{network['id']}")
                 if isinstance(network_vlans, MerakiNetworkError):
-                    vlan_by_network[network["id"]] = {
-                        "error": "disabled",
-                        "reason": str(network_vlans),
-                    }
+                    vlan_by_network[network["id"]] = []
                 elif network_vlans and not isinstance(network_vlans, Exception):
                     vlan_by_network[network["id"]] = network_vlans
                 network_rf_profiles = detail_data.get(f"rf_profiles_{network['id']}")
