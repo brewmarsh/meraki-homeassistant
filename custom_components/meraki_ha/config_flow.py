@@ -10,6 +10,7 @@ from homeassistant.core import callback
 from .authentication import validate_meraki_credentials
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .const import (
+    DOMAIN,
     CONF_AUTO_ENABLE_RTSP,
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_DEVICE_NAME_FORMAT,
@@ -36,6 +37,7 @@ from .options_flow import MerakiOptionsFlowHandler
 _LOGGER = logging.getLogger(__name__)
 
 
+@config_entries.HANDLERS.register(DOMAIN)
 class ConfigFlowHandler(config_entries.ConfigFlow):
     """Handle a config flow for Meraki."""
 
