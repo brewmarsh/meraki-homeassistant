@@ -1,8 +1,11 @@
+"""A Playwright script to verify the parental controls feature."""
+
 import asyncio
 from playwright.async_api import async_playwright, expect
 
 
 async def main():
+    """Run the main verification script."""
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         page = await browser.new_page()

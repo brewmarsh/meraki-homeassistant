@@ -23,7 +23,7 @@ _LOGGER = logging.getLogger(__name__)
 def handle_meraki_errors(
     func: Callable[..., Awaitable[T]],
 ) -> Callable[..., Awaitable[T]]:
-    """Decorator to handle Meraki API errors consistently.
+    """Decorate to handle Meraki API errors consistently.
 
     This decorator:
     1. Converts Meraki exceptions to our custom exceptions

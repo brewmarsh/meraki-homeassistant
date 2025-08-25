@@ -25,8 +25,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiAPIClient:
-    """
-    Facade for the Meraki Dashboard API client.
+    """Facade for the Meraki Dashboard API client.
+
     This client provides access to various endpoint categories and handles
     the underlying API session and asynchronous execution.
     """

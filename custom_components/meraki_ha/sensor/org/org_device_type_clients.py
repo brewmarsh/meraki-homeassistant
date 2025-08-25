@@ -1,114 +1,66 @@
+"""Sensor for tracking clients by device type for the entire organization."""
+
 import logging
-from typing import Any, Dict, Optional
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-from ...const import DOMAIN
-from ...helpers.entity_helpers import format_entity_name
-from ...core.utils.naming_utils import format_device_name
+from ....const import DOMAIN
+from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ....helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiOrgDeviceTypeClientsSensor(
+class MerakiOrganizationDeviceTypeClientsSensor(
     CoordinatorEntity[MerakiDataCoordinator], SensorEntity
 ):
-    """Representation of a Meraki Organization Device Type Clients sensor.
+    """Representation of a Meraki organization-level client counter by device type."""
 
-    This sensor displays client counts categorized by network device types
-    (SSID, Appliance, Wireless) for the entire Meraki organization.
-    """
-
-    _attr_icon = "mdi:account-group"
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_native_unit_of_measurement = "clients"
+    _attr_has_entity_name = True
 
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        organization_id: str,
-        organization_name: str,
+        config_entry: ConfigEntry,
+        device_type: str,
     ) -> None:
-        """Initialize the Meraki Organization Device Type Clients sensor.
-
-        Args:
-          coordinator: The data update coordinator.
-          organization_id: The ID of the Meraki organization.
-          organization_name: The name of the Meraki organization.
-        """
+        """Initialize the sensor."""
         super().__init__(coordinator)
-        self._organization_id = organization_id
-        self._organization_name = organization_name
+        self._config_entry = config_entry
+        self._device_type = device_type
+        self._org_id = self.coordinator.api_client.organization_id
+        self._attr_unique_id = f"{self._org_id}_{self._device_type}_clients"
+        self._attr_name = format_entity_name(self._device_type.capitalize(), "Clients")
 
-        self._attr_name = format_entity_name(self._organization_name, "Client Types")
-        self._attr_unique_id = f"meraki_org_{self._organization_id}_client_types"
-
-        self._clients_on_ssids: Optional[int] = None
-        self._clients_on_appliances: Optional[int] = None
-        self._clients_on_wireless: Optional[int] = None
-
-        self._update_sensor_state()
-
-    def _update_sensor_state(self) -> None:
-        """Update the sensor's state based on coordinator data."""
-        if self.coordinator.data:
-            # Data comes directly from the coordinator's root
-            self._clients_on_ssids = self.coordinator.data.get("clients_on_ssids", 0)
-            self._clients_on_appliances = self.coordinator.data.get(
-                "clients_on_appliances", 0
-            )
-            self._clients_on_wireless = self.coordinator.data.get(
-                "clients_on_wireless", 0
-            )
-
-            # Main state is the sum of these counts
-            self._attr_native_value = (
-                (self._clients_on_ssids or 0)
-                + (self._clients_on_appliances or 0)
-                + (self._clients_on_wireless or 0)
-            )
-
-        else:
-            self._clients_on_ssids = 0
-            self._clients_on_appliances = 0
-            self._clients_on_wireless = 0
-            self._attr_native_value = 0
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._org_id)},
+            name=self.coordinator.data.get("organization", {}).get(
+                "name", "Meraki Organization"
+            ),
+            manufacturer="Cisco Meraki",
+        )
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._update_sensor_state()
         self.async_write_ha_state()
 
     @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information for linking this entity to the Meraki Organization."""
-        org_device_data = {
-            "name": self._organization_name,
-            "productType": "organization",
-        }
-        formatted_name = format_device_name(
-            device=org_device_data,
-            config=self.coordinator.config_entry.options,
-        )
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._organization_id)},
-            name=formatted_name,
-            manufacturer="Cisco Meraki",
-            model="Organization",
-        )
+    def native_value(self) -> int:
+        """Return the state of the sensor."""
+        if not self.coordinator.data or not self.coordinator.data.get("clients"):
+            return 0
 
-    @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
-        """Return additional state attributes for the sensor."""
-        attrs: Dict[str, Any] = {
-            "organization_id": self._organization_id,
-            "clients_on_ssids": self._clients_on_ssids,
-            "clients_on_appliances": self._clients_on_appliances,
-            "clients_on_wireless": self._clients_on_wireless,
-        }
-        return {k: v for k, v in attrs.items() if v is not None}
+        count = 0
+        for client in self.coordinator.data["clients"]:
+            if client.get("deviceType") == self._device_type:
+                count += 1
+        return count
