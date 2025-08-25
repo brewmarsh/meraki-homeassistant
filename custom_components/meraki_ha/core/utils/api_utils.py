@@ -42,7 +42,6 @@ def handle_meraki_errors(func: Callable[..., T]) -> Callable[..., T]:
             return await func(*args, **kwargs)
         except APIError as err:
             if _is_informational_error(err):
-                _LOGGER.debug("Informational Meraki API condition: %s", err)
                 raise MerakiNetworkError(f"Informational error: {err}")
 
             _LOGGER.error("Meraki API error: %s", err)

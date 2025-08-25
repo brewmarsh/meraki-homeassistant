@@ -220,6 +220,11 @@ class MerakiAPIClient:
                             ssids.append(ssid)
                 network_traffic = detail_data.get(f"traffic_{network['id']}")
                 if isinstance(network_traffic, MerakiNetworkError):
+                    if "traffic analysis" in str(network_traffic).lower():
+                        _LOGGER.info(
+                            "Traffic Analysis with Hostname Visibility is not enabled for %s. Network level traffic data is not available.",
+                            network.get("name"),
+                        )
                     appliance_traffic[network["id"]] = {
                         "error": "disabled",
                         "reason": str(network_traffic),
@@ -229,6 +234,11 @@ class MerakiAPIClient:
 
                 network_vlans = detail_data.get(f"vlans_{network['id']}")
                 if isinstance(network_vlans, MerakiNetworkError):
+                    if "vlans are not enabled" in str(network_vlans).lower():
+                        _LOGGER.info(
+                            "VLANs are not enabled for %s. VLAN filtering will not be available.",
+                            network.get("name"),
+                        )
                     vlan_by_network[network["id"]] = []
                 elif network_vlans and not isinstance(network_vlans, Exception):
                     vlan_by_network[network["id"]] = network_vlans
