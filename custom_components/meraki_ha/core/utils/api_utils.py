@@ -41,14 +41,15 @@ def handle_meraki_errors(func: Callable[..., T]) -> Callable[..., T]:
         try:
             return await func(*args, **kwargs)
         except APIError as err:
+            if _is_informational_error(err):
+                _LOGGER.debug("Informational Meraki API condition: %s", err)
+                raise MerakiNetworkError(f"Informational error: {err}")
+
             _LOGGER.error("Meraki API error: %s", err)
             if _is_auth_error(err):
                 raise MerakiAuthenticationError(f"Authentication failed: {err}")
             elif _is_device_error(err):
                 raise MerakiDeviceError(f"Device error: {err}")
-            elif _is_informational_error(err):
-                _LOGGER.debug("Informational Meraki API condition: %s", err)
-                raise MerakiNetworkError(f"Informational error: {err}")
             elif _is_network_error(err):
                 raise MerakiNetworkError(f"Network error: {err}")
             elif _is_rate_limit_error(err):
