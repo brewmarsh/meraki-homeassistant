@@ -83,3 +83,48 @@ The architecture is based on a clean separation of concerns, ensuring each compo
     * Remove all old, deprecated polling logic.
     * Ensure all new files and directories are correctly added to version control.
     * Confirm docstrings and inline comments are clear and concise.
+  
+A common source of these issues is **monolithic files** that contain too much logic. While the previous plan focused on architectural patterns, we can refine the implementation details to specifically combat file complexity. The solution is to prioritize **function decomposition** and **separation of concerns** at a granular level. 
+
+***
+
+### Updated AI Agent Instructions
+
+1.  **Strictly Enforce File Size Limits:** Do not create any single Python file with more than **300 lines of code**. If a file approaches this limit, stop and refactor the logic into new, smaller files.
+2.  **Prioritize Function Decomposition:** Every function must have a single, clear responsibility. If a function's name includes "and" or "or," it likely needs to be broken into smaller functions.
+3.  **Eliminate Deeply Nested Code:** Avoid `if-elif-else` chains and nested loops that go beyond **three levels of indentation**. Use **guard clauses** (early returns) and extract nested logic into separate, well-named functions.
+4.  **Use Private Helper Methods:** For logic that supports a public method but is not meant to be called externally, use private helper methods (prefixed with `_`) to keep the primary method's body clean and readable.
+
+***
+
+### Updated Implementation Plan
+
+The core architectural plan remains sound, but this update adds an additional layer of detail to the implementation steps, ensuring the resulting code is modular and readable for both humans and AI agents.
+
+#### Phase 1: Foundational Layers (API Client & Repository)
+
+1.  **Develop `MerakiApiClient` (`meraki_ha/api/client.py`)**:
+    * **Focus on Single-Responsibility Methods:** Each method should correspond to a single Meraki API endpoint (e.g., `get_network_devices`, `get_mt_sensors`).
+    * **Limit Indentation:** Use guard clauses to handle invalid inputs or API errors upfront, minimizing nested `try-except` blocks.
+
+2.  **Develop `MerakiRepository` (`meraki_ha/repository/repository.py`)**:
+    * **Decompose Complex Logic:** The methods here (e.g., `_async_update_cache`) should be broken down into smaller, private methods if they exceed 30 lines of code.
+
+#### Phase 2: Core Logic and Dependency Injection
+
+1.  **Refactor `OrganizationHub` and `NetworkHub` (`meraki_ha/hubs/`)**:
+    * **Extract Logic into Helper Methods:** The main `_async_update_data` method should primarily serve as an orchestrator. Move complex data processing, filtering, or transformation logic into private helper methods within the same file.
+    * **Maintain Small File Sizes:** If a hub's file becomes too large, consider whether some of its logic could be moved to a dedicated service class (e.g., `meraki_ha/services/state_manager.py`).
+
+#### Phase 3: Modular Entity Discovery
+
+1.  **Develop `DeviceHandlers` (`meraki_ha/discovery/handlers/`)**:
+    * **Enforce the 300-Line Limit:** If a handler file (e.g., `MRHandler.py`) becomes too large, it suggests that the handler is trying to do too much. Break its entity creation logic into multiple, separate functions.
+
+2.  **Create `DeviceDiscoveryService` (`meraki_ha/discovery/service.py`)**:
+    * **Simplify the Core Loop:** Ensure the `discover_entities` method is a simple loop that delegates all complex work to the `DeviceHandlers`. The code should be clear and have a low cyclomatic complexity. 
+
+#### Phase 4: Testing and Project Cleanup
+
+1.  **Prioritize Lightweight Tests:** When writing tests, focus on testing individual methods and functions, not entire classes. This keeps test files small and prevents the need for large, deeply nested test fixtures.
+2.  **Linting and Formatting:** Use automated tools like `black` or `ruff` to ensure consistent code style and formatting across the entire project. This improves readability and helps prevent subtle errors that can be caused by inconsistent indentation.
