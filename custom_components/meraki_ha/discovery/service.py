@@ -5,6 +5,7 @@ This module defines the DeviceDiscoveryService, which is responsible for
 discovering devices from the Meraki data and delegating entity creation
 to the appropriate handlers.
 """
+
 from __future__ import annotations
 
 import logging
@@ -15,64 +16,79 @@ from .handlers.mv import MVHandler
 from .handlers.mx import MXHandler
 from .handlers.gx import GXHandler
 from .handlers.ms import MSHandler
-
+from .handlers.mt import MTHandler
+from .handlers.network import NetworkHandler
 
 if TYPE_CHECKING:
-    from ..hubs.organization import OrganizationHub
-    from ...types import MerakiDevice
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.helpers.entity import Entity
+    from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from ..services.camera_service import CameraService
     from ..services.device_control_service import DeviceControlService
-    from ..core.coordinators.switch_port_status_coordinator import SwitchPortStatusCoordinator
-
+    from ..services.network_control_service import NetworkControlService
 
 _LOGGER = logging.getLogger(__name__)
 
 HANDLER_MAPPING = {
-    "wireless": MRHandler,
-    "appliance": MXHandler,
-    "cellularGateway": GXHandler,
-    "camera": MVHandler,
-    "switch": MSHandler,
+    "MR": MRHandler,
+    "MV": MVHandler,
+    "MX": MXHandler,
+    "GX": GXHandler,
+    "MS": MSHandler,
+    "GS": MSHandler,
+    "MT": MTHandler,
+    "GR": GXHandler,
 }
 
 
 class DeviceDiscoveryService:
-    """A service to discover devices and create corresponding entities."""
+    """Service for discovering Meraki devices and creating corresponding entities."""
 
     def __init__(
         self,
         coordinator: "MerakiDataCoordinator",
         config_entry: "ConfigEntry",
+        camera_service: "CameraService",
         control_service: "DeviceControlService",
-        switch_port_coordinator: "SwitchPortStatusCoordinator",
+        network_control_service: "NetworkControlService",
     ) -> None:
         """Initialize the DeviceDiscoveryService."""
         self._coordinator = coordinator
         self._config_entry = config_entry
+        self._camera_service = camera_service
         self._control_service = control_service
-        self._switch_port_coordinator = switch_port_coordinator
-        self._devices: List[MerakiDevice] = self._coordinator.data.get("devices", [])
+        self._network_control_service = network_control_service
 
-    def discover_entities(self) -> list:
-        """
-        Discover all entities for all devices.
+    async def discover_devices(self) -> List["Entity"]:
+        """Discover Meraki devices and create corresponding entities."""
+        all_entities: List["Entity"] = []
+        self._devices = self._coordinator.data.get("devices", [])
 
-        This method iterates through all devices in the organization and uses
-        the HANDLER_MAPPING to delegate entity creation to the appropriate
-        handler based on the device's product type.
-        """
-        all_entities = []
+        # Create network handler for network-wide entities
+        network_handler = NetworkHandler(
+            self._coordinator, self._config_entry, self._network_control_service
+        )
+        network_entities = await network_handler.discover_entities()
+        all_entities.extend(network_entities)
+
         _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
+
         for device in self._devices:
-            product_type = device.get("productType")
-            if not product_type:
-                _LOGGER.warning("Device %s has no product type, skipping", device.get("serial"))
+            model = device.get("model")
+            if not model:
+                _LOGGER.warning(
+                    "Device %s has no model, skipping", device.get("serial")
+                )
                 continue
 
-            handler_class = HANDLER_MAPPING.get(product_type)
+            # Get the first two letters of the model (e.g., "MR" from "MR36")
+            model_prefix = model[:2]
+            handler_class = HANDLER_MAPPING.get(model_prefix)
+
             if not handler_class:
                 _LOGGER.debug(
-                    "No handler found for product type '%s', skipping device %s",
-                    product_type,
+                    "No handler found for model '%s', skipping device %s",
+                    model,
                     device.get("serial"),
                 )
                 continue
@@ -82,28 +98,27 @@ class DeviceDiscoveryService:
                 handler_class.__name__,
                 device.get("serial"),
             )
-            if product_type == "switch":
+
+            # Pass the correct services to the handler based on its type
+            if model_prefix in ("MX", "GX"):
                 handler = handler_class(
                     self._coordinator,
                     device,
                     self._config_entry,
                     self._control_service,
-                    self._switch_port_coordinator,
+                    self._network_control_service,
                 )
             else:
                 handler = handler_class(
                     self._coordinator,
                     device,
                     self._config_entry,
+                    self._camera_service,
                     self._control_service,
                 )
-            discovered = handler.discover_entities()
-            all_entities.extend(discovered)
-            _LOGGER.debug(
-                "Discovered %d entities for device %s",
-                len(discovered),
-                device.get("serial"),
-            )
+
+            entities = await handler.discover_entities()
+            all_entities.extend(entities)
 
         _LOGGER.info("Entity discovery complete. Found %d entities.", len(all_entities))
         return all_entities

@@ -7,10 +7,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN, DATA_CLIENT
-from ..discovery.service import DeviceDiscoveryService
 from .setup_helpers import async_setup_sensors
 from ..core.repository import MerakiRepository
+from ..core.repositories.camera_repository import CameraRepository
 from ..services.device_control_service import DeviceControlService
+from ..services.camera_service import CameraService
+from ..services.network_control_service import NetworkControlService
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,18 +28,33 @@ async def async_setup_entry(
     coordinator = entry_data.get("coordinator")
     api_client = entry_data.get(DATA_CLIENT)
 
-    repository = MerakiRepository(api_client)
-    control_service = DeviceControlService(repository)
+    # Initialize repositories and services for the new architecture
+    # MerakiRepository is used for all general device services
+    meraki_repository = MerakiRepository(api_client)
+    control_service = DeviceControlService(meraki_repository)
+
+    # CameraRepository and CameraService are specifically for camera functionality
+    camera_repository = CameraRepository(api_client, api_client.organization_id)
+    camera_service = CameraService(camera_repository)
+
+    # Instantiate the new NetworkControlService
+    network_control_service = NetworkControlService(api_client, coordinator)
 
     # Legacy sensor setup
     entities = async_setup_sensors(hass, config_entry, coordinator)
 
-    # New discovery service setup
-    switch_port_coordinator = entry_data.get("switch_port_coordinator")
+    # New discovery service setup. We now pass both the control and camera services.
+    from ..discovery.service import DeviceDiscoveryService
+
     discovery_service = DeviceDiscoveryService(
-        coordinator, config_entry, control_service, switch_port_coordinator
+        coordinator,
+        config_entry,
+        camera_service,
+        control_service,
+        network_control_service,
     )
-    discovered_entities = await discovery_service.async_discover_entities()
+    # The discover_entities method is asynchronous and must be awaited
+    discovered_entities = await discovery_service.discover_devices()
     entities.extend(discovered_entities)
 
     if entities:

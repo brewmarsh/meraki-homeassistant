@@ -4,6 +4,7 @@ Meraki MS Switch Handler
 This module defines the MSHandler class, which is responsible for discovering
 entities for Meraki MS switches.
 """
+
 from __future__ import annotations
 
 import logging
@@ -16,8 +17,8 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
     from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-    from ....core.coordinators.switch_port_status_coordinator import SwitchPortStatusCoordinator
     from ....services.device_control_service import DeviceControlService
+    from ....services.camera_service import CameraService
     from ....types import MerakiDevice
 
 
@@ -32,21 +33,22 @@ class MSHandler(BaseDeviceHandler):
         coordinator: "MerakiDataCoordinator",
         device: "MerakiDevice",
         config_entry: "ConfigEntry",
+        camera_service: "CameraService",
         control_service: "DeviceControlService",
-        switch_port_coordinator: "SwitchPortStatusCoordinator",
     ) -> None:
         """Initialize the MSHandler."""
         super().__init__(coordinator, device, config_entry)
         self._control_service = control_service
-        self._switch_port_coordinator = switch_port_coordinator
+        self._camera_service = camera_service
 
-    def discover_entities(self) -> List[Entity]:
+    async def discover_entities(self) -> List[Entity]:
         """Discover entities for the MS switch."""
         _LOGGER.debug("Discovering entities for MS switch %s", self.device["serial"])
-        entities = []
+        entities: List[Entity] = []
+
+        # Add switch port sensors
         ports = self.device.get("ports_statuses", [])
         for port in ports:
-            entities.append(
-                SwitchPortSensor(self._switch_port_coordinator, self.device, port)
-            )
+            entities.append(SwitchPortSensor(self._coordinator, self.device, port))
+
         return entities
