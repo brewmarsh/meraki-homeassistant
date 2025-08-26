@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING, List
 if TYPE_CHECKING:
     from ....types import MerakiDevice
     from homeassistant.helpers.entity import Entity
+    from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from homeassistant.config_entries import ConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,9 +21,16 @@ _LOGGER = logging.getLogger(__name__)
 class BaseDeviceHandler:
     """Base class for device-specific entity handlers."""
 
-    def __init__(self, device: MerakiDevice) -> None:
+    def __init__(
+        self,
+        coordinator: MerakiDataCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+    ) -> None:
         """Initialize the BaseDeviceHandler."""
+        self._coordinator = coordinator
         self.device = device
+        self._config_entry = config_entry
 
     def discover_entities(self) -> List[Entity]:
         """

@@ -13,12 +13,24 @@ from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
+    from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from homeassistant.config_entries import ConfigEntry
+    from ....types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MRHandler(BaseDeviceHandler):
     """Handler for Meraki MR (wireless) devices."""
+
+    def __init__(
+        self,
+        coordinator: MerakiDataCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+    ) -> None:
+        """Initialize the MRHandler."""
+        super().__init__(coordinator, device, config_entry)
 
     def discover_entities(self) -> List[Entity]:
         """Discover entities for a wireless device."""

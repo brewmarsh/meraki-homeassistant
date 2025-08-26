@@ -1,67 +1,63 @@
-"""Tests for the Meraki camera RTSP URL sensor."""
+"""Tests for the Meraki Camera RTSP URL sensor."""
 
-import pytest
 from unittest.mock import MagicMock
-
+import pytest
 from custom_components.meraki_ha.sensor.device.camera_rtsp_url import (
     MerakiCameraRTSPUrlSensor,
 )
-
-from custom_components.meraki_ha.core.coordinators.meraki_data_coordinator import (
-    MerakiDataCoordinator,
-)
-
+from tests.const import MOCK_DEVICE
 
 @pytest.fixture
-def mock_device_coordinator():
-    """Fixture for a mocked MerakiDeviceCoordinator."""
-    coordinator = MagicMock(spec=MerakiDataCoordinator)
-    device1_data = {
-        "serial": "cam1",
-        "name": "Camera",
-        "model": "MV12",
-        "productType": "camera",
-        "video_settings": {
-            "externalRtspEnabled": True,
-            "rtspUrl": "rtsp://...",
-        },
-    }
-    device2_data = {
-        "serial": "cam2",
-        "name": "Camera 2",
-        "model": "MV22",
-        "productType": "camera",
-        "video_settings": {
-            "externalRtspEnabled": False,
-            "rtspUrl": None,
-        },
-    }
+def mock_config_entry():
+    """Fixture for a mocked config entry."""
+    return MagicMock()
 
-    def get_device(serial):
-        if serial == "cam1":
-            return device1_data
-        if serial == "cam2":
-            return device2_data
-        return None
-
-    coordinator.get_device = MagicMock(side_effect=get_device)
-    coordinator.last_update_success = True
+def create_coordinator_with_device_data(device_data):
+    """Helper to create a mock coordinator with specific device data."""
+    coordinator = MagicMock()
+    coordinator.get_device.return_value = device_data
     return coordinator
 
+def test_rtsp_sensor_enabled(mock_config_entry):
+    """Test the RTSP URL sensor when the stream is enabled."""
+    # Arrange
+    device = MOCK_DEVICE.copy()
+    device["video_settings"] = {
+        "externalRtspEnabled": True,
+        "rtspUrl": "rtsp://test.url/stream",
+    }
+    coordinator = create_coordinator_with_device_data(device)
 
-def test_camera_rtsp_url_sensor(mock_device_coordinator):
-    """Test the camera RTSP URL sensor."""
-    device1 = {"serial": "cam1", "name": "Camera"}
-    device2 = {"serial": "cam2", "name": "Camera 2"}
+    # Act
+    sensor = MerakiCameraRTSPUrlSensor(coordinator, device, mock_config_entry)
 
-    sensor1 = MerakiCameraRTSPUrlSensor(mock_device_coordinator, device1)
-    sensor1._update_state()
-    assert sensor1.unique_id == "cam1_rtsp_url"
-    assert sensor1.name == "Camera RTSP Stream URL"
-    assert sensor1.native_value == "rtsp://..."
+    # Assert
+    assert sensor.native_value == "rtsp://test.url/stream"
 
-    sensor2 = MerakiCameraRTSPUrlSensor(mock_device_coordinator, device2)
-    sensor2._update_state()
-    assert sensor2.unique_id == "cam2_rtsp_url"
-    assert sensor2.name == "Camera 2 RTSP Stream URL"
-    assert sensor2.native_value is None
+def test_rtsp_sensor_disabled(mock_config_entry):
+    """Test the RTSP URL sensor when the stream is disabled."""
+    # Arrange
+    device = MOCK_DEVICE.copy()
+    device["video_settings"] = {
+        "externalRtspEnabled": False,
+        "rtspUrl": "rtsp://test.url/stream",
+    }
+    coordinator = create_coordinator_with_device_data(device)
+
+    # Act
+    sensor = MerakiCameraRTSPUrlSensor(coordinator, device, mock_config_entry)
+
+    # Assert
+    assert sensor.native_value is None
+
+def test_rtsp_sensor_no_video_settings(mock_config_entry):
+    """Test the RTSP URL sensor when there are no video settings."""
+    # Arrange
+    device = MOCK_DEVICE.copy()
+    coordinator = create_coordinator_with_device_data(device)
+
+    # Act
+    sensor = MerakiCameraRTSPUrlSensor(coordinator, device, mock_config_entry)
+
+    # Assert
+    assert sensor.native_value is None

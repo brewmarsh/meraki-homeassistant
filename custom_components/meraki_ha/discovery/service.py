@@ -11,6 +11,7 @@ import logging
 from typing import TYPE_CHECKING, List
 
 from .handlers.mr import MRHandler
+from .handlers.mv import MVHandler
 
 if TYPE_CHECKING:
     from ..hubs.organization import OrganizationHub
@@ -28,17 +29,22 @@ HANDLER_MAPPING = {
     "wireless": MRHandler,
     # "switch": MSHandler,
     # "appliance": MXHandler,
-    # "camera": MVHandler,
+    "camera": MVHandler,
 }
 
 
 class DeviceDiscoveryService:
     """A service to discover devices and create corresponding entities."""
 
-    def __init__(self, org_hub: OrganizationHub) -> None:
+    def __init__(
+        self,
+        coordinator: "MerakiDataCoordinator",
+        config_entry: "ConfigEntry",
+    ) -> None:
         """Initialize the DeviceDiscoveryService."""
-        self._org_hub = org_hub
-        self._devices: List[MerakiDevice] = self._org_hub.data.get("devices", [])
+        self._coordinator = coordinator
+        self._config_entry = config_entry
+        self._devices: List[MerakiDevice] = self._coordinator.data.get("devices", [])
 
     def discover_entities(self) -> list:
         """
@@ -70,7 +76,7 @@ class DeviceDiscoveryService:
                 handler_class.__name__,
                 device.get("serial"),
             )
-            handler = handler_class(device)
+            handler = handler_class(self._coordinator, device, self._config_entry)
             discovered = handler.discover_entities()
             all_entities.extend(discovered)
             _LOGGER.debug(
