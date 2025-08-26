@@ -114,7 +114,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
     @property
     def supported_features(self) -> CameraEntityFeature:
         """Return supported features."""
-        return CameraEntityFeature.STREAM | CameraEntityFeature.IMAGE
+        return CameraEntityFeature.STREAM
 
     @property
     def is_streaming(self) -> bool:
