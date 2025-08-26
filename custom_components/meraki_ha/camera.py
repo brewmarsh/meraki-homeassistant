@@ -38,9 +38,13 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Meraki camera entities from a config entry."""
-    # The setup is now handled by the discovery service, so this function is
-    # intentionally left empty.
-    pass
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    discovered_entities = entry_data.get("entities", [])
+
+    camera_entities = [e for e in discovered_entities if isinstance(e, MerakiCamera)]
+
+    if camera_entities:
+        async_add_entities(camera_entities)
 
 
 class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):

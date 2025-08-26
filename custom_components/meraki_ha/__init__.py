@@ -97,6 +97,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await server.start()
         hass.data[DOMAIN][entry.entry_id]["web_server"] = server
 
+    # Initialize repositories and services for the new architecture
+    from .core.repository import MerakiRepository
+    from .core.repositories.camera_repository import CameraRepository
+    from .services.device_control_service import DeviceControlService
+    from .services.camera_service import CameraService
+
+    meraki_repository = MerakiRepository(api_client)
+    control_service = DeviceControlService(meraki_repository)
+    camera_repository = CameraRepository(api_client, api_client.organization_id)
+    camera_service = CameraService(camera_repository)
+
+    # New discovery service setup. We now pass both the control and camera services.
+    from .discovery.service import DeviceDiscoveryService
+    discovery_service = DeviceDiscoveryService(
+        coordinator, entry, camera_service, control_service
+    )
+    # The discover_entities method is asynchronous and must be awaited
+    discovered_entities = await discovery_service.discover_entities()
+    hass.data[DOMAIN][entry.entry_id]["entities"] = discovered_entities
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     if "webhook_id" not in entry.data:
