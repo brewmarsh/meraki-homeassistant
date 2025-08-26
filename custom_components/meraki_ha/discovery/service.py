@@ -15,6 +15,8 @@ from .handlers.mr import MRHandler
 from .handlers.mv import MVHandler
 from .handlers.mx import MXHandler
 from .handlers.gx import GXHandler
+from .handlers.ms import MSHandler
+from .handlers.mt import MTHandler
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -29,10 +31,14 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 HANDLER_MAPPING = {
-    "wireless": MRHandler,
-    "appliance": MXHandler,
-    "cellularGateway": GXHandler,
-    "camera": MVHandler,
+    "MR": MRHandler,
+    "MV": MVHandler,
+    "MX": MXHandler,
+    "GX": GXHandler,
+    "MS": MSHandler,
+    "GS": MSHandler,
+    "MT": MTHandler,
+    "GR": GXHandler,
 }
 
 
