@@ -87,3 +87,37 @@ class CameraEndpoints:
             _LOGGER.warning("update_camera_sense_settings did not return a dict.")
             return {}
         return validated
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=30)
+    async def get_device_camera_analytics_overview(
+        self, serial: str
+    ) -> Dict[str, Any]:
+        """Get analytics overview for a specific camera."""
+        overview = await self._api_client._run_sync(
+            self._dashboard.camera.getDeviceCameraAnalyticsOverview,
+            serial=serial,
+        )
+        validated = validate_response(overview)
+        if not isinstance(validated, dict):
+            _LOGGER.warning(
+                "get_device_camera_analytics_overview did not return a dict."
+            )
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=30)
+    async def get_device_camera_analytics_zones(
+        self, serial: str
+    ) -> Dict[str, Any]:
+        """Get analytics zones for a specific camera."""
+        zones = await self._api_client._run_sync(
+            self._dashboard.camera.getDeviceCameraAnalyticsZones,
+            serial=serial,
+        )
+        validated = validate_response(zones)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("get_device_camera_analytics_zones did not return a dict.")
+            return {}
+        return validated

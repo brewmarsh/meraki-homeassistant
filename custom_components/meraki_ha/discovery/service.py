@@ -9,26 +9,23 @@ from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING, List
+import asyncio
 
 from .handlers.mr import MRHandler
 from .handlers.mv import MVHandler
+from ..core.repositories.camera_repository import CameraRepository
+from ..services.camera_service import CameraService
+from ..const import DOMAIN, DATA_CLIENT
 
 if TYPE_CHECKING:
-    from ..hubs.organization import OrganizationHub
-    from ...types import MerakiDevice
-    # from .handlers.ms import MSHandler
-    # from .handlers.mx import MXHandler
-    # from .handlers.mv import MVHandler
+    from homeassistant.config_entries import ConfigEntry
+    from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from ..core.api.client import MerakiAPIClient
+
 
 _LOGGER = logging.getLogger(__name__)
-# In the future, this will be a mapping of product types to handler classes
-# from .handlers.ms import MSHandler
-# from .handlers.mx import MXHandler
-# from .handlers.mv import MVHandler
 HANDLER_MAPPING = {
     "wireless": MRHandler,
-    # "switch": MSHandler,
-    # "appliance": MXHandler,
     "camera": MVHandler,
 }
 
@@ -44,9 +41,14 @@ class DeviceDiscoveryService:
         """Initialize the DeviceDiscoveryService."""
         self._coordinator = coordinator
         self._config_entry = config_entry
-        self._devices: List[MerakiDevice] = self._coordinator.data.get("devices", [])
+        self._devices = self._coordinator.data.get("devices", [])
+        self._api_client: MerakiAPIClient = self._coordinator.hass.data[DOMAIN][
+            self._config_entry.entry_id
+        ][DATA_CLIENT]
+        self._camera_repository = CameraRepository(self._api_client)
+        self._camera_service = CameraService(self._camera_repository)
 
-    def discover_entities(self) -> list:
+    async def discover_entities(self) -> list:
         """
         Discover all entities for all devices.
 
@@ -56,6 +58,8 @@ class DeviceDiscoveryService:
         """
         all_entities = []
         _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
+
+        discovery_tasks = []
         for device in self._devices:
             product_type = device.get("productType")
             if not product_type:
@@ -76,14 +80,20 @@ class DeviceDiscoveryService:
                 handler_class.__name__,
                 device.get("serial"),
             )
-            handler = handler_class(self._coordinator, device, self._config_entry)
-            discovered = handler.discover_entities()
-            all_entities.extend(discovered)
-            _LOGGER.debug(
-                "Discovered %d entities for device %s",
-                len(discovered),
-                device.get("serial"),
-            )
+
+            if product_type == "camera":
+                handler = handler_class(
+                    self._coordinator, device, self._config_entry, self._camera_service
+                )
+                discovery_tasks.append(handler.discover_entities())
+            else:
+                handler = handler_class(self._coordinator, device, self._config_entry)
+                all_entities.extend(handler.discover_entities())
+
+        if discovery_tasks:
+            discovered_sets = await asyncio.gather(*discovery_tasks)
+            for discovered in discovered_sets:
+                all_entities.extend(discovered)
 
         _LOGGER.info("Entity discovery complete. Found %d entities.", len(all_entities))
         return all_entities
