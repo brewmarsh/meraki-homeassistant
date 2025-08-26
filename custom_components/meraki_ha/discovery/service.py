@@ -65,16 +65,21 @@ class DeviceDiscoveryService:
         _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
 
         for device in self._devices:
-            product_type = device.get("productType")
-            if not product_type:
-                _LOGGER.warning("Device %s has no product type, skipping", device.get("serial"))
+            model = device.get("model")
+            if not model:
+                _LOGGER.warning("Device %s has no model, skipping", device.get("serial"))
                 continue
 
-            handler_class = HANDLER_MAPPING.get(product_type)
+            handler_class = None
+            for prefix, handler in HANDLER_MAPPING.items():
+                if model.startswith(prefix):
+                    handler_class = handler
+                    break
+
             if not handler_class:
                 _LOGGER.debug(
-                    "No handler found for product type '%s', skipping device %s",
-                    product_type,
+                    "No handler found for model '%s', skipping device %s",
+                    model,
                     device.get("serial"),
                 )
                 continue
@@ -87,7 +92,7 @@ class DeviceDiscoveryService:
             
             # Pass the correct services to the handler based on its type.
             # This ensures that each handler receives only the services it needs.
-            if product_type == "camera":
+            if model.startswith("MV"):
                 handler = handler_class(
                     self._coordinator,
                     device,
@@ -100,6 +105,7 @@ class DeviceDiscoveryService:
                     self._coordinator,
                     device,
                     self._config_entry,
+                    self._camera_service,
                     self._control_service,
                 )
                 
