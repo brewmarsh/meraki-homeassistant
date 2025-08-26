@@ -44,15 +44,17 @@ class CameraRepository:
 
         return features
 
-    async def get_analytics_data(self, serial: str) -> Optional[Dict[str, Any]]:
+    async def get_analytics_data(
+        self, serial: str, object_type: str
+    ) -> Optional[List[Dict[str, Any]]]:
         """Fetch object detection and motion data."""
         try:
-            overview = (
-                await self._api_client.camera.get_device_camera_analytics_overview(
-                    serial
+            recent = (
+                await self._api_client.camera.get_device_camera_analytics_recent(
+                    serial, object_type
                 )
             )
-            return overview
+            return recent
         except Exception as e:
             _LOGGER.error("Error fetching analytics data for %s: %s", serial, e)
             return None
@@ -79,3 +81,16 @@ class CameraRepository:
         except Exception as e:
             _LOGGER.error("Error fetching analytics history: %s", e)
             return []
+
+    async def generate_snapshot(self, serial: str) -> Optional[str]:
+        """Generate a snapshot and return the URL."""
+        try:
+            snapshot_data = (
+                await self._api_client.camera.generate_device_camera_snapshot(
+                    serial
+                )
+            )
+            return snapshot_data.get("url")
+        except Exception as e:
+            _LOGGER.error("Error generating snapshot for %s: %s", serial, e)
+            return None

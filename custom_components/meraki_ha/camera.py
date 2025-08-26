@@ -6,10 +6,12 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
+import aiohttp
 from homeassistant.components.camera import (
     Camera,
     CameraEntityFeature,
 )
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
@@ -80,8 +82,26 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
         self, width: Optional[int] = None, height: Optional[int] = None
     ) -> Optional[bytes]:
         """Return a still image from the camera."""
-        # In a future step, we could implement fetching a snapshot here.
-        return None
+        serial = self._device["serial"]
+        url = await self._camera_service.generate_snapshot(serial)
+        if not url:
+            _LOGGER.error("Failed to get snapshot URL for %s", serial)
+            return None
+
+        try:
+            session = async_get_clientsession(self.hass)
+            async with session.get(url) as response:
+                if response.status != 200:
+                    _LOGGER.error(
+                        "Error fetching snapshot for %s: %s",
+                        serial,
+                        response.status,
+                    )
+                    return None
+                return await response.read()
+        except aiohttp.ClientError as e:
+            _LOGGER.error("Error fetching snapshot for %s: %s", serial, e)
+            return None
 
     async def stream_source(self) -> Optional[str]:
         """Return the source of the stream."""
@@ -94,7 +114,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
     @property
     def supported_features(self) -> CameraEntityFeature:
         """Return supported features."""
-        return CameraEntityFeature.STREAM
+        return CameraEntityFeature.STREAM | CameraEntityFeature.IMAGE
 
     @property
     def is_streaming(self) -> bool:

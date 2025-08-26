@@ -1,6 +1,6 @@
 """Tests for the DeviceDiscoveryService."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from tests.const import MOCK_DEVICE
@@ -28,16 +28,21 @@ def test_discovery_service_init(mock_coordinator):
     assert service._coordinator is mock_coordinator
     assert len(service._devices) == 3
 
-def test_discover_entities_delegates_to_handler(mock_coordinator, caplog):
+@pytest.mark.asyncio
+async def test_discover_entities_delegates_to_handler(mock_coordinator, caplog):
     """Test that discover_entities delegates to the correct handlers."""
     # Arrange
     mock_mr_handler = MagicMock()
     mock_mr_handler.__name__ = "MRHandler"
-    mock_mr_handler.return_value.discover_entities.return_value = ["mr_entity"]
+    mock_mr_handler.return_value.discover_entities = AsyncMock(
+        return_value=["mr_entity"]
+    )
 
     mock_mv_handler = MagicMock()
     mock_mv_handler.__name__ = "MVHandler"
-    mock_mv_handler.return_value.discover_entities.return_value = ["mv_entity"]
+    mock_mv_handler.return_value.discover_entities = AsyncMock(
+        return_value=["mv_entity"]
+    )
 
     mock_config_entry = MagicMock()
 
@@ -48,16 +53,22 @@ def test_discover_entities_delegates_to_handler(mock_coordinator, caplog):
         service = DeviceDiscoveryService(mock_coordinator, mock_config_entry)
 
         # Act
-        entities = service.discover_entities()
+        entities = await service.discover_entities()
 
         # Assert
         assert len(entities) == 2
         assert "mr_entity" in entities
         assert "mv_entity" in entities
         mock_mr_handler.assert_called_once_with(
-            mock_coordinator, mock_coordinator.data["devices"][0], mock_config_entry
+            mock_coordinator,
+            mock_coordinator.data["devices"][0],
+            mock_config_entry,
+            service._camera_service,
         )
         mock_mv_handler.assert_called_once_with(
-            mock_coordinator, mock_coordinator.data["devices"][1], mock_config_entry
+            mock_coordinator,
+            mock_coordinator.data["devices"][1],
+            mock_config_entry,
+            service._camera_service,
         )
         assert "No handler found for product type 'unsupported'" in caplog.text

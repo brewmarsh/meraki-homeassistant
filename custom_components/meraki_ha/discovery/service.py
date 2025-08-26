@@ -59,7 +59,6 @@ class DeviceDiscoveryService:
         all_entities = []
         _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
 
-        discovery_tasks = []
         for device in self._devices:
             product_type = device.get("productType")
             if not product_type:
@@ -81,19 +80,11 @@ class DeviceDiscoveryService:
                 device.get("serial"),
             )
 
-            if product_type == "camera":
-                handler = handler_class(
-                    self._coordinator, device, self._config_entry, self._camera_service
-                )
-                discovery_tasks.append(handler.discover_entities())
-            else:
-                handler = handler_class(self._coordinator, device, self._config_entry)
-                all_entities.extend(handler.discover_entities())
-
-        if discovery_tasks:
-            discovered_sets = await asyncio.gather(*discovery_tasks)
-            for discovered in discovered_sets:
-                all_entities.extend(discovered)
+            handler = handler_class(
+                self._coordinator, device, self._config_entry, self._camera_service
+            )
+            entities = await handler.discover_entities()
+            all_entities.extend(entities)
 
         _LOGGER.info("Entity discovery complete. Found %d entities.", len(all_entities))
         return all_entities

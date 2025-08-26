@@ -15,8 +15,22 @@ def mock_config_entry():
     """Fixture for a mocked config entry."""
     return MagicMock()
 
-def test_mr_handler_discover_entities(mock_coordinator, mock_config_entry):
+from unittest.mock import AsyncMock
+
+
+@pytest.fixture
+def mock_camera_service():
+    """Fixture for a mocked CameraService."""
+    return AsyncMock()
+
+
+@pytest.mark.asyncio
+async def test_mr_handler_discover_entities(
+    mock_coordinator, mock_config_entry, mock_camera_service
+):
     """Test that the MRHandler's discover_entities returns an empty list (for now)."""
-    handler = MRHandler(mock_coordinator, MOCK_DEVICE, mock_config_entry)
-    entities = handler.discover_entities()
+    handler = MRHandler(
+        mock_coordinator, MOCK_DEVICE, mock_config_entry, mock_camera_service
+    )
+    entities = await handler.discover_entities()
     assert entities == []

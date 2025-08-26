@@ -25,14 +25,15 @@ class MRHandler(BaseDeviceHandler):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        device: MerakiDevice,
-        config_entry: ConfigEntry,
+        coordinator: "MerakiDataCoordinator",
+        device: "MerakiDevice",
+        config_entry: "ConfigEntry",
+        camera_service: "CameraService",
     ) -> None:
         """Initialize the MRHandler."""
-        super().__init__(coordinator, device, config_entry)
+        super().__init__(coordinator, device, config_entry, camera_service)
 
-    def discover_entities(self) -> List[Entity]:
+    async def discover_entities(self) -> List[Entity]:
         """Discover entities for a wireless device."""
         _LOGGER.debug(
             "Discovering entities for MR device: %s", self.device.get("serial")

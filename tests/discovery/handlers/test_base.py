@@ -15,15 +15,30 @@ def mock_config_entry():
     """Fixture for a mocked config entry."""
     return MagicMock()
 
-def test_base_handler_init(mock_coordinator, mock_config_entry):
+from unittest.mock import AsyncMock
+
+
+@pytest.fixture
+def mock_camera_service():
+    """Fixture for a mocked CameraService."""
+    return AsyncMock()
+
+
+def test_base_handler_init(mock_coordinator, mock_config_entry, mock_camera_service):
     """Test the initialization of the BaseDeviceHandler."""
-    handler = BaseDeviceHandler(mock_coordinator, MOCK_DEVICE, mock_config_entry)
+    handler = BaseDeviceHandler(
+        mock_coordinator, MOCK_DEVICE, mock_config_entry, mock_camera_service
+    )
     assert handler.device is MOCK_DEVICE
 
-def test_base_handler_discover_entities_raises_not_implemented(
-    mock_coordinator, mock_config_entry
+
+@pytest.mark.asyncio
+async def test_base_handler_discover_entities_raises_not_implemented(
+    mock_coordinator, mock_config_entry, mock_camera_service
 ):
     """Test that the base handler's discover_entities raises NotImplementedError."""
-    handler = BaseDeviceHandler(mock_coordinator, MOCK_DEVICE, mock_config_entry)
+    handler = BaseDeviceHandler(
+        mock_coordinator, MOCK_DEVICE, mock_config_entry, mock_camera_service
+    )
     with pytest.raises(NotImplementedError):
-        handler.discover_entities()
+        await handler.discover_entities()

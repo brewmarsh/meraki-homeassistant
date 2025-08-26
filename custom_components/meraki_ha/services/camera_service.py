@@ -36,21 +36,34 @@ class CameraService:
         ]
         return analytics
 
-    async def get_analytics_data(self, serial: str) -> Optional[Dict[str, Any]]:
+    async def get_analytics_data(
+        self, serial: str, object_type: str
+    ) -> Optional[List[Dict[str, Any]]]:
         """Get the latest analytics data for a camera."""
-        return await self._repository.get_analytics_data(serial)
+        return await self._repository.get_analytics_data(serial, object_type)
 
     async def get_video_stream_url(self, serial: str) -> Optional[str]:
         """Get the video stream URL for a camera."""
         return await self._repository.get_video_url(serial)
 
-    async def get_motion_history(
-        self, network_id: str
-    ) -> List[Dict[str, Any]]:
-        """Get the motion history for a network."""
-        # The API provides 'person' or 'vehicle' object types.
-        # We might need a more generic way to detect motion.
-        # For now, we'll fetch person detection history as a proxy for motion.
-        return await self._repository.get_analytics_history(
-            network_id, object_type="person"
-        )
+    async def get_motion_history(self, serial: str) -> List[Dict[str, Any]]:
+        """
+        Get the motion history for a camera.
+
+        This method fetches both person and vehicle detection history and
+        combines them to represent general motion.
+        """
+        person_history = await self.get_analytics_data(serial, "person")
+        vehicle_history = await self.get_analytics_data(serial, "vehicle")
+
+        motion_events = []
+        if person_history:
+            motion_events.extend(person_history)
+        if vehicle_history:
+            motion_events.extend(vehicle_history)
+
+        return motion_events
+
+    async def generate_snapshot(self, serial: str) -> Optional[str]:
+        """Generate a snapshot and return the URL."""
+        return await self._repository.generate_snapshot(serial)

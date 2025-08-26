@@ -7,7 +7,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN
-from ..discovery.service import DeviceDiscoveryService
 from .setup_helpers import async_setup_sensors
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,8 +25,10 @@ async def async_setup_entry(
     entities = async_setup_sensors(hass, config_entry, coordinator)
 
     # New discovery service setup
+    from ..discovery.service import DeviceDiscoveryService
+
     discovery_service = DeviceDiscoveryService(coordinator, config_entry)
-    discovered_entities = discovery_service.discover_entities()
+    discovered_entities = await discovery_service.discover_entities()
     entities.extend(discovered_entities)
 
     if entities:

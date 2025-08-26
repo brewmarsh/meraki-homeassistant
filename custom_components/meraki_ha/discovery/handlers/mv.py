@@ -11,18 +11,19 @@ from typing import TYPE_CHECKING, List
 
 from .base import BaseDeviceHandler
 
+from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ...services.camera_service import CameraService
+from ...camera import MerakiCamera
+from ...sensor.device.camera_analytics import (
+    MerakiPersonCountSensor,
+    MerakiVehicleCountSensor,
+)
+from ...binary_sensor.device.camera_motion import MerakiMotionSensor
+from ...button.device.camera_snapshot import MerakiSnapshotButton
+
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
-    from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-    from ...services.camera_service import CameraService
-    from ...camera import MerakiCamera
-    from ...sensor.device.camera_analytics import (
-        MerakiPersonCountSensor,
-        MerakiVehicleCountSensor,
-    )
-    from ...binary_sensor.device.camera_motion import MerakiMotionSensor
-    from ...button.device.camera_snapshot import MerakiSnapshotButton
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -39,10 +40,7 @@ class MVHandler(BaseDeviceHandler):
         camera_service: CameraService,
     ) -> None:
         """Initialize the MVHandler."""
-        super().__init__(coordinator, device, config_entry)
-        self._coordinator = coordinator
-        self._config_entry = config_entry
-        self._camera_service = camera_service
+        super().__init__(coordinator, device, config_entry, camera_service)
 
     async def discover_entities(self) -> List[Entity]:
         """Discover entities for a camera device."""
