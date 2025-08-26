@@ -6,9 +6,14 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity import Entity
+from homeassistant.components.switch import SwitchEntity
+from homeassistant.components.text import TextEntity
+from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.button import ButtonEntity
 
 from ..const import DOMAIN
 from .setup_helpers import async_setup_sensors
+from ..camera import MerakiCamera
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -30,16 +35,10 @@ async def async_setup_entry(
     discovered_entities = entry_data.get("entities", [])
 
     # Filter for sensor entities
-    # This is a bit of a hack, we should have a better way to identify sensor entities
-    # For now, we will assume that any entity that is not a camera, switch, or text is a sensor
-    from ..camera import MerakiCamera
-    from ..switch import MerakiSwitch
-    from ..text import MerakiText
-
     sensor_entities = [
         e
         for e in discovered_entities
-        if not isinstance(e, (MerakiCamera, MerakiSwitch, MerakiText))
+        if not isinstance(e, (MerakiCamera, SwitchEntity, TextEntity, BinarySensorEntity, ButtonEntity))
     ]
 
     entities.extend(sensor_entities)
