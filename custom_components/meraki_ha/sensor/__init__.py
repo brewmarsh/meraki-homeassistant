@@ -45,6 +45,7 @@ async def async_setup_entry(
 
     # New discovery service setup. We now pass both the control and camera services.
     from ..discovery.service import DeviceDiscoveryService
+
     discovery_service = DeviceDiscoveryService(
         coordinator,
         config_entry,
@@ -53,7 +54,7 @@ async def async_setup_entry(
         network_control_service,
     )
     # The discover_entities method is asynchronous and must be awaited
-    discovered_entities = await discovery_service.discover_entities()
+    discovered_entities = await discovery_service.discover_devices()
     entities.extend(discovered_entities)
 
     if entities:

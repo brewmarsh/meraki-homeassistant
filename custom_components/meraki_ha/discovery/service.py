@@ -5,6 +5,7 @@ This module defines the DeviceDiscoveryService, which is responsible for
 discovering devices from the Meraki data and delegating entity creation
 to the appropriate handlers.
 """
+
 from __future__ import annotations
 
 import logging
@@ -25,8 +26,6 @@ if TYPE_CHECKING:
     from ..services.camera_service import CameraService
     from ..services.device_control_service import DeviceControlService
     from ..services.network_control_service import NetworkControlService
-    from ...types import MerakiDevice
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,14 +42,14 @@ HANDLER_MAPPING = {
 
 
 class DeviceDiscoveryService:
-    """A service to discover devices and create corresponding entities."""
+    """Service for discovering Meraki devices and creating corresponding entities."""
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        config_entry: ConfigEntry,
-        camera_service: CameraService,
-        control_service: DeviceControlService,
+        coordinator: "MerakiDataCoordinator",
+        config_entry: "ConfigEntry",
+        camera_service: "CameraService",
+        control_service: "DeviceControlService",
         network_control_service: "NetworkControlService",
     ) -> None:
         """Initialize the DeviceDiscoveryService."""
@@ -59,20 +58,13 @@ class DeviceDiscoveryService:
         self._camera_service = camera_service
         self._control_service = control_service
         self._network_control_service = network_control_service
-        self._devices: List[MerakiDevice] = self._coordinator.data.get("devices", [])
 
-    async def discover_entities(self) -> list:
-        """
-        Discover all entities for all devices and networks.
+    async def discover_devices(self) -> List["Entity"]:
+        """Discover Meraki devices and create corresponding entities."""
+        all_entities: List["Entity"] = []
+        self._devices = self._coordinator.data.get("devices", [])
 
-        This method iterates through all devices in the organization and uses
-        the HANDLER_MAPPING to delegate entity creation to the appropriate
-        handler based on the device's product type. It also discovers
-        network-level entities.
-        """
-        all_entities = []
-
-        # Discover network-level entities
+        # Create network handler for network-wide entities
         network_handler = NetworkHandler(
             self._coordinator, self._config_entry, self._network_control_service
         )
@@ -84,14 +76,14 @@ class DeviceDiscoveryService:
         for device in self._devices:
             model = device.get("model")
             if not model:
-                _LOGGER.warning("Device %s has no model, skipping", device.get("serial"))
+                _LOGGER.warning(
+                    "Device %s has no model, skipping", device.get("serial")
+                )
                 continue
 
-            handler_class = None
-            for prefix, handler in HANDLER_MAPPING.items():
-                if model.startswith(prefix):
-                    handler_class = handler
-                    break
+            # Get the first two letters of the model (e.g., "MR" from "MR36")
+            model_prefix = model[:2]
+            handler_class = HANDLER_MAPPING.get(model_prefix)
 
             if not handler_class:
                 _LOGGER.debug(
@@ -107,21 +99,21 @@ class DeviceDiscoveryService:
                 device.get("serial"),
             )
 
-            # Pass the correct services to the handler based on its type.
-            # This ensures that each handler receives only the services it needs.
-            if model.startswith("MV"):
+            # Pass the correct services to the handler based on its type
+            if model_prefix in ("MX", "GX"):
                 handler = handler_class(
                     self._coordinator,
                     device,
                     self._config_entry,
-                    self._camera_service,
                     self._control_service,
+                    self._network_control_service,
                 )
             else:
                 handler = handler_class(
                     self._coordinator,
                     device,
                     self._config_entry,
+                    self._camera_service,
                     self._control_service,
                 )
 
