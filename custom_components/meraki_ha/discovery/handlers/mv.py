@@ -11,8 +11,9 @@ from typing import TYPE_CHECKING, List
 
 from .base import BaseDeviceHandler
 
-from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-from ...services.camera_service import CameraService
+# These are no longer needed here as they are now handled by the import below
+# from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+# from ...services.camera_service import CameraService
 from ...camera import MerakiCamera
 from ...sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
@@ -24,6 +25,9 @@ from ...button.device.camera_snapshot import MerakiSnapshotButton
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
+    from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from ...services.camera_service import CameraService
+    from ...services.device_control_service import DeviceControlService
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -38,9 +42,14 @@ class MVHandler(BaseDeviceHandler):
         device: dict,
         config_entry: ConfigEntry,
         camera_service: CameraService,
+        control_service: DeviceControlService,
     ) -> None:
         """Initialize the MVHandler."""
-        super().__init__(coordinator, device, config_entry, camera_service)
+        super().__init__(coordinator, device, config_entry)
+        self._coordinator = coordinator
+        self._config_entry = config_entry
+        self._camera_service = camera_service
+        self._control_service = control_service
 
     async def discover_entities(self) -> List[Entity]:
         """Discover entities for a camera device."""

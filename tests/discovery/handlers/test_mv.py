@@ -40,14 +40,20 @@ def mock_camera_service():
     return service
 
 
+@pytest.fixture
+def mock_control_service():
+    """Fixture for a mock DeviceControlService."""
+    return MagicMock()
+
+
 @pytest.mark.asyncio
 async def test_mv_handler_all_features(
-    mock_coordinator, mock_config_entry, mock_camera_service
+    mock_coordinator, mock_config_entry, mock_camera_service, mock_control_service
 ):
     """Test that the MVHandler discovers all entities for a capable camera."""
     # Arrange
     device = MOCK_DEVICE.copy()
-    handler = MVHandler(mock_coordinator, device, mock_config_entry, mock_camera_service)
+    handler = MVHandler(mock_coordinator, device, mock_config_entry, mock_camera_service, mock_control_service)
 
     # Act
     entities = await handler.discover_entities()
@@ -63,7 +69,7 @@ async def test_mv_handler_all_features(
 
 @pytest.mark.asyncio
 async def test_mv_handler_some_features(
-    mock_coordinator, mock_config_entry, mock_camera_service
+    mock_coordinator, mock_config_entry, mock_camera_service, mock_control_service
 ):
     """Test that the MVHandler discovers some entities for a less capable camera."""
     # Arrange
@@ -71,7 +77,7 @@ async def test_mv_handler_some_features(
     mock_camera_service.get_supported_analytics = AsyncMock(
         return_value=["person_detection"]
     )
-    handler = MVHandler(mock_coordinator, device, mock_config_entry, mock_camera_service)
+    handler = MVHandler(mock_coordinator, device, mock_config_entry, mock_camera_service, mock_control_service)
 
     # Act
     entities = await handler.discover_entities()
@@ -87,13 +93,13 @@ async def test_mv_handler_some_features(
 
 @pytest.mark.asyncio
 async def test_mv_handler_no_extra_features(
-    mock_coordinator, mock_config_entry, mock_camera_service
+    mock_coordinator, mock_config_entry, mock_camera_service, mock_control_service
 ):
     """Test that the MVHandler discovers only basic entities for a basic camera."""
     # Arrange
     device = MOCK_DEVICE.copy()
     mock_camera_service.get_supported_analytics = AsyncMock(return_value=[])
-    handler = MVHandler(mock_coordinator, device, mock_config_entry, mock_camera_service)
+    handler = MVHandler(mock_coordinator, device, mock_config_entry, mock_camera_service, mock_control_service)
 
     # Act
     entities = await handler.discover_entities()
@@ -105,3 +111,4 @@ async def test_mv_handler_no_extra_features(
     assert not any(isinstance(e, MerakiVehicleCountSensor) for e in entities)
     assert any(isinstance(e, MerakiMotionSensor) for e in entities)
     assert any(isinstance(e, MerakiSnapshotButton) for e in entities)
+
