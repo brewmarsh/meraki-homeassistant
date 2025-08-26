@@ -14,6 +14,8 @@ from .handlers.mr import MRHandler
 from .handlers.mv import MVHandler
 from .handlers.mx import MXHandler
 from .handlers.gx import GXHandler
+from .handlers.ms import MSHandler
+from .handlers.mt import MTHandler
 from .handlers.network import NetworkHandler
 
 if TYPE_CHECKING:
@@ -29,10 +31,14 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 HANDLER_MAPPING = {
-    "wireless": MRHandler,
-    "appliance": MXHandler,
-    "cellularGateway": GXHandler,
-    "camera": MVHandler,
+    "MR": MRHandler,
+    "MV": MVHandler,
+    "MX": MXHandler,
+    "GX": GXHandler,
+    "MS": MSHandler,
+    "GS": MSHandler,
+    "MT": MTHandler,
+    "GR": GXHandler,
 }
 
 
@@ -76,18 +82,21 @@ class DeviceDiscoveryService:
         _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
 
         for device in self._devices:
-            product_type = device.get("productType")
-            if not product_type:
-                _LOGGER.warning(
-                    "Device %s has no product type, skipping", device.get("serial")
-                )
+            model = device.get("model")
+            if not model:
+                _LOGGER.warning("Device %s has no model, skipping", device.get("serial"))
                 continue
 
-            handler_class = HANDLER_MAPPING.get(product_type)
+            handler_class = None
+            for prefix, handler in HANDLER_MAPPING.items():
+                if model.startswith(prefix):
+                    handler_class = handler
+                    break
+
             if not handler_class:
                 _LOGGER.debug(
-                    "No handler found for product type '%s', skipping device %s",
-                    product_type,
+                    "No handler found for model '%s', skipping device %s",
+                    model,
                     device.get("serial"),
                 )
                 continue
@@ -100,7 +109,7 @@ class DeviceDiscoveryService:
 
             # Pass the correct services to the handler based on its type.
             # This ensures that each handler receives only the services it needs.
-            if product_type == "camera":
+            if model.startswith("MV"):
                 handler = handler_class(
                     self._coordinator,
                     device,

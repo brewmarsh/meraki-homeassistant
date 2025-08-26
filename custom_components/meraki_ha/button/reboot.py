@@ -13,12 +13,12 @@ from homeassistant.components.button import ButtonEntity
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 
-from .const import DOMAIN
-from .helpers.device_info_helpers import resolve_device_info
+from ..const import DOMAIN
+from ..helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
-    from .services.device_control_service import DeviceControlService
-    from .types import MerakiDevice
+    from ..services.device_control_service import DeviceControlService
+    from ..types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 

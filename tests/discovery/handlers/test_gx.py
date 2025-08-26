@@ -1,11 +1,11 @@
 """
 Tests for the GXHandler.
 """
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, AsyncMock
 
 import pytest
 
-from custom_components.meraki_ha.button import MerakiRebootButton
+from custom_components.meraki_ha.button.reboot import MerakiRebootButton
 from custom_components.meraki_ha.discovery.handlers.gx import GXHandler
 from ...const import MOCK_CONFIG_ENTRY, MOCK_GX_DEVICE
 
@@ -24,15 +24,26 @@ def mock_control_service():
     return MagicMock()
 
 
-def test_discover_entities_creates_reboot_button(
-    mock_coordinator, mock_control_service
+@pytest.fixture
+def mock_camera_service():
+    """Fixture for a mocked CameraService."""
+    return AsyncMock()
+
+
+@pytest.mark.asyncio
+async def test_discover_entities_creates_reboot_button(
+    mock_coordinator, mock_camera_service, mock_control_service
 ):
     """Test that discover_entities creates a MerakiRebootButton."""
     handler = GXHandler(
-        mock_coordinator, MOCK_GX_DEVICE, MOCK_CONFIG_ENTRY, mock_control_service
+        mock_coordinator,
+        MOCK_GX_DEVICE,
+        MOCK_CONFIG_ENTRY,
+        mock_camera_service,
+        mock_control_service,
     )
 
-    entities = handler.discover_entities()
+    entities = await handler.discover_entities()
 
     assert len(entities) == 1
     assert isinstance(entities[0], MerakiRebootButton)
