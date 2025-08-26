@@ -44,25 +44,6 @@ class SwitchPortSensor(CoordinatorEntity[SwitchPortStatusCoordinator], BinarySen
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
-        # config_entry is not available on the new coordinator, so we need to get it from the device
-        # This is a bit of a hack. A better solution would be to pass the config entry to the sensor.
-        # But for now, this will work.
-        # Let's check where config_entry comes from.
-        # It's on the coordinator. I need to add it to the new coordinator.
-        # No, I can get it from the main coordinator.
-        # The MSHandler has access to both coordinators. It can pass the config entry.
-        # Let's assume for now that the coordinator has the config_entry.
-        # I will add it to the coordinator later if needed.
-        # The base CoordinatorEntity does not have config_entry.
-        # The MerakiDataCoordinator has it. I will add it to my new coordinator.
-        # For now, I will just access it.
-        # Let's look at `resolve_device_info`. It needs `config_entry`.
-        # I'll modify the coordinator to hold the config_entry.
-        # Let's do that in the next step.
-        # For now, I'll just assume it's there. This will fail the tests, but I'll fix it.
-        # Actually, I can get it from the device dictionary. No, that's not right.
-        # The handler has the config entry. I should pass it to the sensor.
-        # I will modify the sensor's __init__ to accept the config_entry.
         return resolve_device_info(self._device, self.coordinator.config_entry)
 
     @callback

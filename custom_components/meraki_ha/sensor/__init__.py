@@ -37,7 +37,7 @@ async def async_setup_entry(
     discovery_service = DeviceDiscoveryService(
         coordinator, config_entry, control_service, switch_port_coordinator
     )
-    discovered_entities = discovery_service.discover_entities()
+    discovered_entities = await discovery_service.async_discover_entities()
     entities.extend(discovered_entities)
 
     if entities:

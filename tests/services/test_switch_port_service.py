@@ -12,7 +12,7 @@ async def test_async_get_ports_statuses():
     # Arrange
     mock_repository = MagicMock()
     mock_repository.async_get_switch_port_statuses = AsyncMock(
-        return_value=[{"portId": 1, "status": "Connected"}]
+        return_value=[{"portId": "1", "status": "Connected"}]
     )
     service = SwitchPortService(mock_repository)
     serial = "Q234-ABCD-5678"
@@ -22,4 +22,46 @@ async def test_async_get_ports_statuses():
 
     # Assert
     mock_repository.async_get_switch_port_statuses.assert_called_once_with(serial)
-    assert result == [{"portId": 1, "status": "Connected"}]
+    assert result == [{"portId": "1", "status": "Connected"}]
+
+
+@pytest.mark.asyncio
+async def test_async_get_port_status():
+    """Test getting a single port's status."""
+    # Arrange
+    mock_repository = MagicMock()
+    mock_repository.async_get_switch_port_statuses = AsyncMock(
+        return_value=[
+            {"portId": "1", "status": "Connected"},
+            {"portId": "2", "status": "Disconnected"},
+        ]
+    )
+    service = SwitchPortService(mock_repository)
+    serial = "Q234-ABCD-5678"
+
+    # Act
+    result = await service.async_get_port_status(serial, "1")
+
+    # Assert
+    assert result == "Connected"
+
+
+@pytest.mark.asyncio
+async def test_async_get_port_speed():
+    """Test getting a single port's speed."""
+    # Arrange
+    mock_repository = MagicMock()
+    mock_repository.async_get_switch_port_statuses = AsyncMock(
+        return_value=[
+            {"portId": "1", "speed": "1000 Mbps"},
+            {"portId": "2", "speed": "100 Mbps"},
+        ]
+    )
+    service = SwitchPortService(mock_repository)
+    serial = "Q234-ABCD-5678"
+
+    # Act
+    result = await service.async_get_port_speed(serial, "1")
+
+    # Assert
+    assert result == "1000 Mbps"
