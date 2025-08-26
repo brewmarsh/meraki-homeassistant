@@ -33,8 +33,7 @@ async def async_setup_entry(
     control_service = DeviceControlService(meraki_repository)
 
     # CameraRepository and CameraService are specifically for camera functionality
-    organization_id = coordinator.data["organizations"][0]["id"]
-    camera_repository = CameraRepository(api_client, organization_id)
+    camera_repository = CameraRepository(api_client, api_client.organization_id)
     camera_service = CameraService(camera_repository)
 
     # Legacy sensor setup
