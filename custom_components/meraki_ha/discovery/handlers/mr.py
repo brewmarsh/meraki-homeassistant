@@ -30,10 +30,11 @@ class MRHandler(BaseDeviceHandler):
         coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
+        camera_service: "CameraService",
         control_service: "DeviceControlService",
     ) -> None:
         """Initialize the MRHandler."""
-        super().__init__(coordinator, device, config_entry)
+        super().__init__(coordinator, device, config_entry, camera_service)
         self._control_service = control_service
 
     async def discover_entities(self) -> List[Entity]:

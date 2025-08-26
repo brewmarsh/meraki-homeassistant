@@ -13,10 +13,10 @@ def mock_coordinator():
     wireless_device = MOCK_DEVICE.copy()
     camera_device = MOCK_DEVICE.copy()
     camera_device["serial"] = "camera_serial"
-    camera_device["productType"] = "camera"
+    camera_device["model"] = "MV12"
     unsupported_device = MOCK_DEVICE.copy()
     unsupported_device["serial"] = "unsupported_serial"
-    unsupported_device["productType"] = "unsupported"
+    unsupported_device["model"] = "unsupported"
     coordinator.data = {
         "devices": [wireless_device, camera_device, unsupported_device]
     }
@@ -27,6 +27,12 @@ def mock_coordinator():
 def mock_camera_service():
     """Fixture for a mocked CameraService."""
     return AsyncMock()
+
+
+@pytest.fixture
+def mock_config_entry():
+    """Fixture for a mocked config entry."""
+    return MagicMock()
 
 
 @pytest.fixture
@@ -56,20 +62,17 @@ async def test_discover_entities_delegates_to_handler(
 ):
     """Test that discover_entities delegates to the correct handlers."""
     # We must mock the handlers directly to assert their instantiation arguments
-    with patch(
-        "custom_components.meraki_ha.discovery.service.MRHandler"
-    ) as MockMRHandler, patch(
-        "custom_components.meraki_ha.discovery.service.MVHandler"
-    ) as MockMVHandler:
+    MockMRHandler = MagicMock()
+    MockMRHandler.__name__ = "MRHandler"
+    MockMVHandler = MagicMock()
+    MockMVHandler.__name__ = "MVHandler"
+    MockMRHandler.return_value.discover_entities = AsyncMock(return_value=["mr_entity"])
+    MockMVHandler.return_value.discover_entities = AsyncMock(return_value=["mv_entity"])
 
-        # Mock the discover_entities method of the handler instances
-        MockMRHandler.return_value.discover_entities = AsyncMock(
-            return_value=["mr_entity"]
-        )
-        MockMVHandler.return_value.discover_entities = AsyncMock(
-            return_value=["mv_entity"]
-        )
-
+    with patch.dict(
+        "custom_components.meraki_ha.discovery.service.HANDLER_MAPPING",
+        {"MR": MockMRHandler, "MV": MockMVHandler},
+    ):
         service = DeviceDiscoveryService(
             mock_coordinator,
             mock_config_entry,
@@ -90,6 +93,7 @@ async def test_discover_entities_delegates_to_handler(
             mock_coordinator,
             mock_coordinator.data["devices"][0],
             mock_config_entry,
+            mock_camera_service,
             mock_control_service,
         )
         MockMVHandler.assert_called_once_with(
@@ -99,5 +103,5 @@ async def test_discover_entities_delegates_to_handler(
             mock_camera_service,
             mock_control_service,
         )
-        assert "No handler found for product type 'unsupported'" in caplog.text
+        assert "No handler found for model 'unsupported'" in caplog.text
 

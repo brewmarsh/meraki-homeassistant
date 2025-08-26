@@ -7,7 +7,7 @@ import logging
 from typing import TYPE_CHECKING, List
 
 from .base import BaseDeviceHandler
-from ...button import MerakiRebootButton
+from ...button.reboot import MerakiRebootButton
 
 if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
@@ -28,13 +28,14 @@ class MXHandler(BaseDeviceHandler):
         coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
+        camera_service: "CameraService",
         control_service: DeviceControlService,
     ) -> None:
         """Initialize the MXHandler."""
-        super().__init__(coordinator, device, config_entry)
+        super().__init__(coordinator, device, config_entry, camera_service)
         self._control_service = control_service
 
-    def discover_entities(self) -> List[Entity]:
+    async def discover_entities(self) -> List[Entity]:
         """Discover entities for the device."""
         entities: List[Entity] = []
         _LOGGER.debug("Discovering entities for MX device %s", self.device["serial"])

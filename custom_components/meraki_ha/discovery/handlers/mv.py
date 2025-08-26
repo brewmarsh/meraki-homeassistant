@@ -45,7 +45,7 @@ class MVHandler(BaseDeviceHandler):
         control_service: DeviceControlService,
     ) -> None:
         """Initialize the MVHandler."""
-        super().__init__(coordinator, device, config_entry)
+        super().__init__(coordinator, device, config_entry, camera_service)
         self._coordinator = coordinator
         self._config_entry = config_entry
         self._camera_service = camera_service
