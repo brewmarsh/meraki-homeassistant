@@ -16,6 +16,8 @@ if TYPE_CHECKING:
     from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
     from homeassistant.config_entries import ConfigEntry
     from ....types import MerakiDevice
+    from ...services.device_control_service import DeviceControlService
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,9 +30,11 @@ class MRHandler(BaseDeviceHandler):
         coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
+        control_service: "DeviceControlService",
     ) -> None:
         """Initialize the MRHandler."""
         super().__init__(coordinator, device, config_entry)
+        self._control_service = control_service
 
     def discover_entities(self) -> List[Entity]:
         """Discover entities for a wireless device."""

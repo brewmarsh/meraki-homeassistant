@@ -66,6 +66,18 @@ class ApplianceEndpoints:
         return validated
 
     @handle_meraki_errors
+    async def reboot_device(self, serial: str) -> Dict[str, Any]:
+        """Reboot a device."""
+        result = await self._api_client._run_sync(
+            self._dashboard.devices.rebootDevice, serial=serial
+        )
+        validated = validate_response(result)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("reboot_device did not return a dict.")
+            return {}
+        return validated
+
+    @handle_meraki_errors
     @async_timed_cache()
     async def get_appliance_ports(self, network_id: str) -> List[Dict[str, Any]]:
         """Get all ports for an appliance."""

@@ -326,3 +326,7 @@ class MerakiAPIClient:
         """Unregister a webhook with the Meraki API."""
         # This is a placeholder. The actual implementation will be added in a future step.
         pass
+
+    async def async_reboot_device(self, serial: str) -> dict:
+        """Reboot a device."""
+        return await self.appliance.reboot_device(serial)

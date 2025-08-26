@@ -12,23 +12,22 @@ from typing import TYPE_CHECKING, List
 
 from .handlers.mr import MRHandler
 from .handlers.mv import MVHandler
+from .handlers.mx import MXHandler
+from .handlers.gx import GXHandler
+
 
 if TYPE_CHECKING:
     from ..hubs.organization import OrganizationHub
     from ...types import MerakiDevice
-    # from .handlers.ms import MSHandler
-    # from .handlers.mx import MXHandler
-    # from .handlers.mv import MVHandler
+    from ..services.device_control_service import DeviceControlService
+
 
 _LOGGER = logging.getLogger(__name__)
-# In the future, this will be a mapping of product types to handler classes
-# from .handlers.ms import MSHandler
-# from .handlers.mx import MXHandler
-# from .handlers.mv import MVHandler
+
 HANDLER_MAPPING = {
     "wireless": MRHandler,
-    # "switch": MSHandler,
-    # "appliance": MXHandler,
+    "appliance": MXHandler,
+    "cellularGateway": GXHandler,
     "camera": MVHandler,
 }
 
@@ -40,10 +39,12 @@ class DeviceDiscoveryService:
         self,
         coordinator: "MerakiDataCoordinator",
         config_entry: "ConfigEntry",
+        control_service: "DeviceControlService",
     ) -> None:
         """Initialize the DeviceDiscoveryService."""
         self._coordinator = coordinator
         self._config_entry = config_entry
+        self._control_service = control_service
         self._devices: List[MerakiDevice] = self._coordinator.data.get("devices", [])
 
     def discover_entities(self) -> list:
@@ -76,7 +77,9 @@ class DeviceDiscoveryService:
                 handler_class.__name__,
                 device.get("serial"),
             )
-            handler = handler_class(self._coordinator, device, self._config_entry)
+            handler = handler_class(
+                self._coordinator, device, self._config_entry, self._control_service
+            )
             discovered = handler.discover_entities()
             all_entities.extend(discovered)
             _LOGGER.debug(
