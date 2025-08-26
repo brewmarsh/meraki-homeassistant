@@ -72,9 +72,8 @@ class MerakiAPIClient:
         async with self._semaphore:
             return await coro
 
-    async def get_all_data(self) -> dict:
-        """Fetch all data from the Meraki API concurrently."""
-        # Initial data fetch
+    async def _async_fetch_initial_data(self) -> tuple:
+        """Fetch the initial batch of data from the Meraki API."""
         initial_tasks = [
             self._run_with_semaphore(self.organization.get_organization_networks()),
             self._run_with_semaphore(self.organization.get_organization_devices()),
@@ -85,15 +84,17 @@ class MerakiAPIClient:
                 self.organization.get_organization_appliance_uplink_statuses()
             ),
         ]
+        return await asyncio.gather(*initial_tasks, return_exceptions=True)
 
+    def _process_initial_data(self, results: tuple) -> dict:
+        """Process the initial data, handling errors and merging."""
         (
             networks_res,
             devices_res,
             devices_availabilities_res,
             appliance_uplink_statuses_res,
-        ) = await asyncio.gather(*initial_tasks, return_exceptions=True)
+        ) = results
 
-        # Process initial data, checking for exceptions
         networks: List[MerakiNetwork] = (
             networks_res if isinstance(networks_res, list) else []
         )
@@ -138,7 +139,16 @@ class MerakiAPIClient:
             if availability := availabilities_by_serial.get(device["serial"]):
                 device["status"] = availability["status"]
 
-        # Fetch detailed data concurrently
+        return {
+            "networks": networks,
+            "devices": devices,
+            "appliance_uplink_statuses": appliance_uplink_statuses,
+        }
+
+    async def _async_fetch_client_data(
+        self, networks: List[MerakiNetwork]
+    ) -> List[Dict[str, Any]]:
+        """Fetch client data for all networks."""
         client_tasks = [
             self._run_with_semaphore(self.network.get_network_clients(network["id"]))
             for network in networks
@@ -151,7 +161,12 @@ class MerakiAPIClient:
                 for client in result:
                     client["networkId"] = network["id"]
                 clients.extend(result)
+        return clients
 
+    def _build_detail_tasks(
+        self, networks: List[MerakiNetwork], devices: List[MerakiDevice]
+    ) -> dict:
+        """Build a dictionary of tasks to fetch detailed data."""
         detail_tasks = {}
         for network in networks:
             detail_tasks[f"ssids_{network['id']}"] = self._run_with_semaphore(
@@ -187,22 +202,23 @@ class MerakiAPIClient:
                         self.switch.get_device_switch_ports_statuses(device["serial"])
                     )
                 )
-            elif device.get("productType") == "appliance":
-                if "networkId" in device:
-                    detail_tasks[f"appliance_settings_{device['serial']}"] = (
-                        self._run_with_semaphore(
-                            self.appliance.get_network_appliance_settings(
-                                device["networkId"]
-                            )
+            elif device.get("productType") == "appliance" and "networkId" in device:
+                detail_tasks[f"appliance_settings_{device['serial']}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_network_appliance_settings(
+                            device["networkId"]
                         )
                     )
+                )
+        return detail_tasks
 
-        detail_results = await asyncio.gather(
-            *detail_tasks.values(), return_exceptions=True
-        )
-        detail_data = dict(zip(detail_tasks.keys(), detail_results))
-
-        # Process detailed data
+    def _process_detailed_data(
+        self,
+        detail_data: dict,
+        networks: List[MerakiNetwork],
+        devices: List[MerakiDevice],
+    ) -> dict:
+        """Process the detailed data and merge it into the main data structure."""
         ssids: List[Dict[str, Any]] = []
         appliance_traffic: Dict[str, Any] = {}
         vlan_by_network: Dict[str, Any] = {}
@@ -220,8 +236,7 @@ class MerakiAPIClient:
             if isinstance(network_traffic, MerakiNetworkError):
                 if "traffic analysis" in str(network_traffic).lower():
                     _LOGGER.info(
-                        "Traffic Analysis with Hostname Visibility is not enabled for %s. Network level traffic data is not available.",
-                        network["name"],
+                        "Traffic Analysis is not enabled for %s.", network["name"]
                     )
                 appliance_traffic[network["id"]] = {
                     "error": "disabled",
@@ -233,52 +248,69 @@ class MerakiAPIClient:
             network_vlans = detail_data.get(f"vlans_{network['id']}")
             if isinstance(network_vlans, MerakiNetworkError):
                 if "vlans are not enabled" in str(network_vlans).lower():
-                    _LOGGER.info(
-                        "VLANs are not enabled for %s. VLAN filtering will not be available.",
-                        network["name"],
-                    )
+                    _LOGGER.info("VLANs are not enabled for %s.", network["name"])
                 vlan_by_network[network["id"]] = []
             elif isinstance(network_vlans, list):
                 vlan_by_network[network["id"]] = network_vlans
+
             network_rf_profiles = detail_data.get(f"rf_profiles_{network['id']}")
             if isinstance(network_rf_profiles, list):
                 rf_profiles_by_network[network["id"]] = network_rf_profiles
 
         for device in devices:
-            if device.get("productType") == "wireless":
-                wireless_settings = detail_data.get(
-                    f"wireless_settings_{device['serial']}"
-                )
-                if isinstance(wireless_settings, dict):
-                    device["radio_settings"] = wireless_settings
-            elif device.get("productType") == "camera":
-                video_settings = detail_data.get(f"video_settings_{device['serial']}")
-                if isinstance(video_settings, dict):
-                    device["video_settings"] = video_settings
-            elif device.get("productType") == "switch":
-                ports_statuses = detail_data.get(f"ports_statuses_{device['serial']}")
-                if isinstance(ports_statuses, list):
-                    device["ports_statuses"] = ports_statuses
-            elif device.get("productType") == "appliance":
-                appliance_settings = detail_data.get(
+            product_type = device.get("productType")
+            if product_type == "wireless":
+                if settings := detail_data.get(f"wireless_settings_{device['serial']}"):
+                    device["radio_settings"] = settings
+            elif product_type == "camera":
+                if settings := detail_data.get(f"video_settings_{device['serial']}"):
+                    device["video_settings"] = settings
+            elif product_type == "switch":
+                if statuses := detail_data.get(f"ports_statuses_{device['serial']}"):
+                    device["ports_statuses"] = statuses
+            elif product_type == "appliance":
+                if settings := detail_data.get(
                     f"appliance_settings_{device['serial']}"
-                )
-                if isinstance(appliance_settings, dict) and isinstance(
-                    appliance_settings.get("dynamicDns"), dict
                 ):
-                    device["dynamicDns"] = appliance_settings["dynamicDns"]
+                    if isinstance(settings.get("dynamicDns"), dict):
+                        device["dynamicDns"] = settings["dynamicDns"]
 
-        data = {
-            "networks": networks,
-            "devices": devices,
-            "clients": clients,
+        return {
             "ssids": ssids,
             "appliance_traffic": appliance_traffic,
             "vlans": vlan_by_network,
-            "appliance_uplink_statuses": appliance_uplink_statuses,
             "rf_profiles": rf_profiles_by_network,
         }
-        return data
+
+    async def get_all_data(self) -> dict:
+        """Fetch all data from the Meraki API concurrently."""
+        initial_results = await self._async_fetch_initial_data()
+        processed_initial_data = self._process_initial_data(initial_results)
+
+        networks = processed_initial_data["networks"]
+        devices = processed_initial_data["devices"]
+
+        clients = await self._async_fetch_client_data(networks)
+
+        detail_tasks = self._build_detail_tasks(networks, devices)
+        detail_results = await asyncio.gather(
+            *detail_tasks.values(), return_exceptions=True
+        )
+        detail_data = dict(zip(detail_tasks.keys(), detail_results))
+
+        processed_detailed_data = self._process_detailed_data(
+            detail_data, networks, devices
+        )
+
+        return {
+            "networks": networks,
+            "devices": devices,
+            "clients": clients,
+            "appliance_uplink_statuses": processed_initial_data[
+                "appliance_uplink_statuses"
+            ],
+            **processed_detailed_data,
+        }
 
     @property
     def organization_id(self) -> str:

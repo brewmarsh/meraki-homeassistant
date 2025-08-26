@@ -41,40 +41,37 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
         self.api = api_client
         self.config_entry = config_entry
 
-    async def _async_update_data(self):
-        """Fetch data from API endpoint.
+    def _filter_ignored_networks(self, data: dict) -> None:
+        """Filter out networks that the user has chosen to ignore."""
+        ignored_networks_str = self.config_entry.options.get(
+            CONF_IGNORED_NETWORKS, DEFAULT_IGNORED_NETWORKS
+        )
+        if ignored_networks_str and "networks" in data:
+            ignored_names = {name.strip() for name in ignored_networks_str.split(",")}
+            data["networks"] = [
+                n for n in data["networks"] if n.get("name") not in ignored_names
+            ]
 
-        This is the place to fetch data from the API and return it.
-        """
+    def _filter_unconfigured_ssids(self, data: dict) -> None:
+        """Filter out unconfigured SSIDs if the user has chosen to hide them."""
+        if (
+            self.config_entry.options.get(
+                CONF_HIDE_UNCONFIGURED_SSIDS, DEFAULT_HIDE_UNCONFIGURED_SSIDS
+            )
+            and "ssids" in data
+        ):
+            data["ssids"] = [s for s in data["ssids"] if s.get("enabled")]
+
+    async def _async_update_data(self):
+        """Fetch data from API endpoint and apply filters."""
         try:
             data = await self.api.get_all_data()
             if not data:
                 _LOGGER.warning("API call to get_all_data returned no data.")
                 raise UpdateFailed("API call returned no data.")
 
-            # Filter ignored networks
-            ignored_networks_str = self.config_entry.options.get(
-                CONF_IGNORED_NETWORKS, DEFAULT_IGNORED_NETWORKS
-            )
-            if ignored_networks_str:
-                ignored_names = {
-                    name.strip() for name in ignored_networks_str.split(",")
-                }
-                if data.get("networks"):
-                    data["networks"] = [
-                        n
-                        for n in data["networks"]
-                        if n.get("name") not in ignored_names
-                    ]
-
-            # Filter unconfigured SSIDs
-            if self.config_entry.options.get(
-                CONF_HIDE_UNCONFIGURED_SSIDS, DEFAULT_HIDE_UNCONFIGURED_SSIDS
-            ):
-                if data.get("ssids"):
-                    data["ssids"] = [
-                        s for s in data["ssids"] if s.get("enabled") is True
-                    ]
+            self._filter_ignored_networks(data)
+            self._filter_unconfigured_ssids(data)
 
             return data
         except Exception as err:

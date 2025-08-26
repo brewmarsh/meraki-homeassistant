@@ -1,11 +1,10 @@
 """Tests for the Meraki API client."""
 
-from unittest.mock import AsyncMock, patch
-
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
+from custom_components.meraki_ha.core.errors import MerakiNetworkError
 from tests.const import MOCK_DEVICE, MOCK_NETWORK
-
 
 @pytest.fixture
 def mock_dashboard():
@@ -13,40 +12,110 @@ def mock_dashboard():
     with patch("meraki.DashboardAPI") as mock_dashboard_api:
         yield mock_dashboard_api
 
+@pytest.fixture
+def api_client(mock_dashboard):
+    """Fixture for a MerakiAPIClient instance."""
+    return MerakiAPIClient(api_key="test-key", org_id="test-org")
 
 @pytest.mark.asyncio
-async def test_get_all_data_concurrent(mock_dashboard):
-    """Test that get_all_data fetches data concurrently."""
+async def test_get_all_data_orchestration(api_client):
+    """Test that get_all_data correctly orchestrates helper methods."""
     # Arrange
-    api_client = MerakiAPIClient(api_key="test-key", org_id="test-org")
-    api_client.organization.get_organization_networks = AsyncMock(
-        return_value=[MOCK_NETWORK]
+    api_client._async_fetch_initial_data = AsyncMock(return_value=())
+    api_client._process_initial_data = MagicMock(
+        return_value={"networks": [MOCK_NETWORK], "devices": [MOCK_DEVICE], "appliance_uplink_statuses": []}
     )
-    api_client.organization.get_organization_devices = AsyncMock(
-        return_value=[MOCK_DEVICE]
-    )
-    api_client.organization.get_organization_devices_availabilities = AsyncMock(
-        return_value=[]
-    )
-    api_client.organization.get_organization_appliance_uplink_statuses = AsyncMock(
-        return_value=[]
-    )
-    api_client.network.get_network_clients = AsyncMock(return_value=[])
-    api_client.wireless.get_network_ssids = AsyncMock(return_value=[])
-    api_client.wireless.get_wireless_settings = AsyncMock(return_value={})
-    api_client.camera.get_camera_video_settings = AsyncMock(return_value={})
-    api_client.switch.get_device_switch_ports_statuses = AsyncMock(return_value=[])
-    api_client.appliance.get_network_appliance_settings = AsyncMock(return_value={})
-    api_client.network.get_network_traffic = AsyncMock(return_value=[])
-    api_client.appliance.get_vlans = AsyncMock(return_value=[])
-    api_client.wireless.get_network_wireless_rf_profiles = AsyncMock(return_value=[])
+    api_client._async_fetch_client_data = AsyncMock(return_value=[])
+    api_client._build_detail_tasks = MagicMock(return_value={})
+    api_client._process_detailed_data = MagicMock(return_value={})
 
     # Act
-    data = await api_client.get_all_data()
+    await api_client.get_all_data()
 
     # Assert
-    assert data is not None
-    api_client.organization.get_organization_networks.assert_awaited_once()
-    api_client.organization.get_organization_devices.assert_awaited_once()
-    api_client.network.get_network_clients.assert_awaited_once_with(MOCK_NETWORK["id"])
-    # Add more assertions as needed
+    api_client._async_fetch_initial_data.assert_awaited_once()
+    api_client._process_initial_data.assert_called_once()
+    api_client._async_fetch_client_data.assert_awaited_once_with([MOCK_NETWORK])
+    api_client._build_detail_tasks.assert_called_once_with([MOCK_NETWORK], [MOCK_DEVICE])
+    api_client._process_detailed_data.assert_called_once()
+
+def test_process_initial_data_merges_availability(api_client):
+    """Test that _process_initial_data merges device availability."""
+    # Arrange
+    device_with_status = MOCK_DEVICE.copy()
+    availabilities = [{"serial": MOCK_DEVICE["serial"], "status": "online"}]
+    results = ([MOCK_NETWORK], [device_with_status], availabilities, [])
+
+    # Act
+    data = api_client._process_initial_data(results)
+
+    # Assert
+    assert data["devices"][0]["status"] == "online"
+
+def test_process_initial_data_handles_errors(api_client, caplog):
+    """Test that _process_initial_data handles API errors gracefully."""
+    # Arrange
+    results = (Exception("Network error"), Exception("Device error"), [], [])
+
+    # Act
+    data = api_client._process_initial_data(results)
+
+    # Assert
+    assert data["networks"] == []
+    assert data["devices"] == []
+    assert "Could not fetch Meraki networks" in caplog.text
+    assert "Could not fetch Meraki devices" in caplog.text
+
+def test_build_detail_tasks(api_client):
+    """Test that _build_detail_tasks creates the correct task dictionary."""
+    # Arrange
+    switch_device = {"serial": "s123", "productType": "switch"}
+    camera_device = {"serial": "c123", "productType": "camera"}
+    appliance_device = {"serial": "a123", "productType": "appliance", "networkId": "N_123"}
+    network_with_appliance = {"id": "N_123", "productTypes": ["appliance", "wireless"]}
+    devices = [MOCK_DEVICE, switch_device, camera_device, appliance_device]
+    networks = [MOCK_NETWORK, network_with_appliance]
+
+    # Act
+    tasks = api_client._build_detail_tasks(networks, devices)
+
+    # Assert
+    assert f"ssids_{MOCK_NETWORK['id']}" in tasks
+    assert f"wireless_settings_{MOCK_DEVICE['serial']}" in tasks
+    assert f"ports_statuses_{switch_device['serial']}" in tasks
+    assert f"video_settings_{camera_device['serial']}" in tasks
+    assert f"appliance_settings_{appliance_device['serial']}" in tasks
+    assert f"traffic_{network_with_appliance['id']}" in tasks
+    assert f"vlans_{network_with_appliance['id']}" in tasks
+    assert f"rf_profiles_{network_with_appliance['id']}" in tasks
+
+def test_process_detailed_data_handles_errors(api_client, caplog):
+    """Test that _process_detailed_data handles disabled features."""
+    # Arrange
+    detail_data = {
+        f"traffic_{MOCK_NETWORK['id']}": MerakiNetworkError("Traffic analysis is not enabled"),
+        f"vlans_{MOCK_NETWORK['id']}": MerakiNetworkError("VLANs are not enabled"),
+    }
+
+    # Act
+    processed_data = api_client._process_detailed_data(detail_data, [MOCK_NETWORK], [])
+
+    # Assert
+    assert processed_data["appliance_traffic"][MOCK_NETWORK["id"]]["error"] == "disabled"
+    assert processed_data["vlans"][MOCK_NETWORK["id"]] == []
+    assert "Traffic Analysis is not enabled" in caplog.text
+    assert "VLANs are not enabled" in caplog.text
+
+def test_process_detailed_data_merges_device_info(api_client):
+    """Test that _process_detailed_data merges details into device objects."""
+    # Arrange
+    device = MOCK_DEVICE.copy()
+    radio_settings = {"fiveGhzSettings": {"channel": 149}}
+    detail_data = {f"wireless_settings_{device['serial']}": radio_settings}
+
+    # Act
+    api_client._process_detailed_data(detail_data, [], [device])
+
+    # Assert
+    assert "radio_settings" in device
+    assert device["radio_settings"]["fiveGhzSettings"]["channel"] == 149

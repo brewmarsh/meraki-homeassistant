@@ -104,8 +104,6 @@ def async_setup_sensors(
         if not network_id:
             continue
 
-        network_name = network_data.get("name", f"Unnamed Network {network_id}")
-
         # Network Clients Sensor
         unique_id = f"meraki_network_clients_{network_id}"
         if unique_id not in added_entities:

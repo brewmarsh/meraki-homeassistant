@@ -4,6 +4,7 @@ from custom_components.meraki_ha.types import MerakiDevice, MerakiNetwork
 
 MOCK_NETWORK: MerakiNetwork = {
     "id": "N_12345",
+    "organizationId": "test-org",
     "name": "Test Network",
     "productTypes": ["appliance", "switch", "wireless"],
     "tags": "e2e-test",
