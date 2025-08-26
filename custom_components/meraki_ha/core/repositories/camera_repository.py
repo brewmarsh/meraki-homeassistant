@@ -20,9 +20,10 @@ _LOGGER = logging.getLogger(__name__)
 class CameraRepository:
     """Repository for camera-related data."""
 
-    def __init__(self, api_client: MerakiAPIClient) -> None:
+    def __init__(self, api_client: MerakiAPIClient, organization_id: str) -> None:
         """Initialize the camera repository."""
         self._api_client = api_client
+        self._organization_id = organization_id
 
     async def get_camera_features(self, serial: str) -> List[str]:
         """
@@ -35,7 +36,9 @@ class CameraRepository:
         # In the future, this could involve a call to get device details
         # and then a lookup based on the model.
         # For now, we'll hardcode some features for demonstration.
-        device = await self._api_client.organization.get_organization_device(serial)
+        device = await self._api_client.organizations.get_organization_device(
+            self._organization_id, serial
+        )
         model = device.get("model", "")
 
         features = ["video_stream"]
