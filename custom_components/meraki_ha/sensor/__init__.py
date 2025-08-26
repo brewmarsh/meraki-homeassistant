@@ -12,6 +12,7 @@ from ..core.repository import MerakiRepository
 from ..core.repositories.camera_repository import CameraRepository
 from ..services.device_control_service import DeviceControlService
 from ..services.camera_service import CameraService
+from ..services.network_control_service import NetworkControlService
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -36,13 +37,20 @@ async def async_setup_entry(
     camera_repository = CameraRepository(api_client, api_client.organization_id)
     camera_service = CameraService(camera_repository)
 
+    # Instantiate the new NetworkControlService
+    network_control_service = NetworkControlService(api_client, coordinator)
+
     # Legacy sensor setup
     entities = async_setup_sensors(hass, config_entry, coordinator)
 
     # New discovery service setup. We now pass both the control and camera services.
     from ..discovery.service import DeviceDiscoveryService
     discovery_service = DeviceDiscoveryService(
-        coordinator, config_entry, camera_service, control_service
+        coordinator,
+        config_entry,
+        camera_service,
+        control_service,
+        network_control_service,
     )
     # The discover_entities method is asynchronous and must be awaited
     discovered_entities = await discovery_service.discover_entities()
