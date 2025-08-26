@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING, List
-import asyncio
 
 from .handlers.mr import MRHandler
 from .handlers.mv import MVHandler
@@ -17,14 +16,15 @@ from .handlers.mx import MXHandler
 from .handlers.gx import GXHandler
 from .handlers.ms import MSHandler
 from .handlers.mt import MTHandler
+from .handlers.network import NetworkHandler
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
     from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-    from ..hubs.organization import OrganizationHub
     from ..services.camera_service import CameraService
     from ..services.device_control_service import DeviceControlService
+    from ..services.network_control_service import NetworkControlService
     from ...types import MerakiDevice
 
 
@@ -51,23 +51,34 @@ class DeviceDiscoveryService:
         config_entry: ConfigEntry,
         camera_service: CameraService,
         control_service: DeviceControlService,
+        network_control_service: "NetworkControlService",
     ) -> None:
         """Initialize the DeviceDiscoveryService."""
         self._coordinator = coordinator
         self._config_entry = config_entry
         self._camera_service = camera_service
         self._control_service = control_service
+        self._network_control_service = network_control_service
         self._devices: List[MerakiDevice] = self._coordinator.data.get("devices", [])
 
     async def discover_entities(self) -> list:
         """
-        Discover all entities for all devices.
+        Discover all entities for all devices and networks.
 
         This method iterates through all devices in the organization and uses
         the HANDLER_MAPPING to delegate entity creation to the appropriate
-        handler based on the device's product type.
+        handler based on the device's product type. It also discovers
+        network-level entities.
         """
         all_entities = []
+
+        # Discover network-level entities
+        network_handler = NetworkHandler(
+            self._coordinator, self._config_entry, self._network_control_service
+        )
+        network_entities = await network_handler.discover_entities()
+        all_entities.extend(network_entities)
+
         _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
 
         for device in self._devices:
@@ -95,7 +106,7 @@ class DeviceDiscoveryService:
                 handler_class.__name__,
                 device.get("serial"),
             )
-            
+
             # Pass the correct services to the handler based on its type.
             # This ensures that each handler receives only the services it needs.
             if model.startswith("MV"):
@@ -111,10 +122,9 @@ class DeviceDiscoveryService:
                     self._coordinator,
                     device,
                     self._config_entry,
-                    self._camera_service,
                     self._control_service,
                 )
-                
+
             entities = await handler.discover_entities()
             all_entities.extend(entities)
 
