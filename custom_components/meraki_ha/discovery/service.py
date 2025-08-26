@@ -96,24 +96,13 @@ class DeviceDiscoveryService:
                 device.get("serial"),
             )
             
-            # Pass the correct services to the handler based on its type.
-            # This ensures that each handler receives only the services it needs.
-            if model.startswith("MV"):
-                handler = handler_class(
-                    self._coordinator,
-                    device,
-                    self._config_entry,
-                    self._camera_service,
-                    self._control_service,
-                )
-            else:
-                handler = handler_class(
-                    self._coordinator,
-                    device,
-                    self._config_entry,
-                    self._camera_service,
-                    self._control_service,
-                )
+            handler = handler_class(
+                self._coordinator,
+                device,
+                self._config_entry,
+                self._camera_service,
+                self._control_service,
+            )
                 
             entities = await handler.discover_entities()
             all_entities.extend(entities)

@@ -10,12 +10,8 @@ import logging
 from typing import TYPE_CHECKING, List
 
 from .base import BaseDeviceHandler
-from ...core.errors import MerakiInformationalError
-
-# These are no longer needed here as they are now handled by the import below
-# from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-# from ...services.camera_service import CameraService
 from ...camera import MerakiCamera
+from ...core.errors import MerakiInformationalError
 from ...sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
@@ -58,30 +54,14 @@ class MVHandler(BaseDeviceHandler):
         entities: List[Entity] = []
         serial = self.device["serial"]
 
-        # Check for stream availability before creating the camera entity
-        try:
-            stream_available = await self._camera_service.get_video_stream_url(serial)
-            if stream_available:
-                _LOGGER.debug("RTSP stream found for %s, creating camera entity.", serial)
-                entities.append(
-                    MerakiCamera(
-                        self._coordinator,
-                        self.device,
-                        self._camera_service,
-                    )
-                )
-            else:
-                _LOGGER.info("No RTSP stream found for %s, not creating camera entity.", serial)
-        except MerakiInformationalError as e:
-            _LOGGER.info(
-                "Not creating camera entity for %s due to informational error: %s",
-                serial,
-                e,
+        # Always create the base camera entity
+        entities.append(
+            MerakiCamera(
+                self._coordinator,
+                self.device,
+                self._camera_service,
             )
-        except Exception as e:
-            _LOGGER.error(
-                "Unexpected error checking for stream for camera %s: %s", serial, e
-            )
+        )
 
         # The rest of the sensors should probably be created regardless of stream availability
         features = await self._camera_service.get_supported_analytics(serial)
