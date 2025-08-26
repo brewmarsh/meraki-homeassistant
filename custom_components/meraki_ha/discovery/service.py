@@ -14,12 +14,14 @@ from .handlers.mr import MRHandler
 from .handlers.mv import MVHandler
 from .handlers.mx import MXHandler
 from .handlers.gx import GXHandler
+from .handlers.ms import MSHandler
 
 
 if TYPE_CHECKING:
     from ..hubs.organization import OrganizationHub
     from ...types import MerakiDevice
     from ..services.device_control_service import DeviceControlService
+    from ..core.coordinators.switch_port_status_coordinator import SwitchPortStatusCoordinator
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,6 +31,7 @@ HANDLER_MAPPING = {
     "appliance": MXHandler,
     "cellularGateway": GXHandler,
     "camera": MVHandler,
+    "switch": MSHandler,
 }
 
 
@@ -40,11 +43,13 @@ class DeviceDiscoveryService:
         coordinator: "MerakiDataCoordinator",
         config_entry: "ConfigEntry",
         control_service: "DeviceControlService",
+        switch_port_coordinator: "SwitchPortStatusCoordinator",
     ) -> None:
         """Initialize the DeviceDiscoveryService."""
         self._coordinator = coordinator
         self._config_entry = config_entry
         self._control_service = control_service
+        self._switch_port_coordinator = switch_port_coordinator
         self._devices: List[MerakiDevice] = self._coordinator.data.get("devices", [])
 
     def discover_entities(self) -> list:
@@ -77,9 +82,21 @@ class DeviceDiscoveryService:
                 handler_class.__name__,
                 device.get("serial"),
             )
-            handler = handler_class(
-                self._coordinator, device, self._config_entry, self._control_service
-            )
+            if product_type == "switch":
+                handler = handler_class(
+                    self._coordinator,
+                    device,
+                    self._config_entry,
+                    self._control_service,
+                    self._switch_port_coordinator,
+                )
+            else:
+                handler = handler_class(
+                    self._coordinator,
+                    device,
+                    self._config_entry,
+                    self._control_service,
+                )
             discovered = handler.discover_entities()
             all_entities.extend(discovered)
             _LOGGER.debug(

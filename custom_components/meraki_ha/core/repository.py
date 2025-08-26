@@ -37,3 +37,20 @@ class MerakiRepository:
         except Exception as e:
             _LOGGER.error("Failed to reboot device %s: %s", serial, e)
             return None
+
+    async def async_get_switch_port_statuses(self, serial: str) -> list[dict[str, Any]] | None:
+        """
+        Get statuses for all ports of a switch.
+
+        Args:
+            serial: The serial number of the switch.
+
+        Returns:
+            A list of port statuses, or None if an error occurred.
+        """
+        try:
+            response = await self._api_client.async_get_switch_port_statuses(serial)
+            return response
+        except Exception as e:
+            _LOGGER.error("Failed to get switch port statuses for %s: %s", serial, e)
+            return None

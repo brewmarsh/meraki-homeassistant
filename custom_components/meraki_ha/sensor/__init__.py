@@ -33,8 +33,9 @@ async def async_setup_entry(
     entities = async_setup_sensors(hass, config_entry, coordinator)
 
     # New discovery service setup
+    switch_port_coordinator = entry_data.get("switch_port_coordinator")
     discovery_service = DeviceDiscoveryService(
-        coordinator, config_entry, control_service
+        coordinator, config_entry, control_service, switch_port_coordinator
     )
     discovered_entities = discovery_service.discover_entities()
     entities.extend(discovered_entities)

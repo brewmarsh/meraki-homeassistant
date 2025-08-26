@@ -330,3 +330,7 @@ class MerakiAPIClient:
     async def async_reboot_device(self, serial: str) -> dict:
         """Reboot a device."""
         return await self.appliance.reboot_device(serial)
+
+    async def async_get_switch_port_statuses(self, serial: str) -> list[dict[str, Any]]:
+        """Get statuses for all ports of a switch."""
+        return await self.switch.get_device_switch_ports_statuses(serial)

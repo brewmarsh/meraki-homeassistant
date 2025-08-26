@@ -22,7 +22,9 @@ from .const import (
 )
 from .core.api.client import MerakiAPIClient
 from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from .core.coordinators.switch_port_status_coordinator import SwitchPortStatusCoordinator
 from .core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
+from .core.repository import MerakiRepository
 from .web_server import MerakiWebServer
 from .webhook import async_register_webhook, async_unregister_webhook
 
@@ -70,6 +72,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "coordinator": coordinator,
         DATA_CLIENT: api_client,
     }
+
+    # Create switch port status coordinator
+    repository = MerakiRepository(api_client)
+    switch_port_coordinator = SwitchPortStatusCoordinator(
+        hass=hass,
+        repository=repository,
+        main_coordinator=coordinator,
+        config_entry=entry,
+    )
+    await switch_port_coordinator.async_refresh()
+    hass.data[DOMAIN][entry.entry_id]["switch_port_coordinator"] = switch_port_coordinator
 
     # Create content filtering and firewall coordinators
     hass.data[DOMAIN][entry.entry_id]["ssid_firewall_coordinators"] = {}

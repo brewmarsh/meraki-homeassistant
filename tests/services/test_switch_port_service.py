@@ -1,0 +1,25 @@
+"""Tests for the SwitchPortService."""
+
+import pytest
+from unittest.mock import AsyncMock, MagicMock
+
+from custom_components.meraki_ha.services.switch_port_service import SwitchPortService
+
+
+@pytest.mark.asyncio
+async def test_async_get_ports_statuses():
+    """Test getting port statuses."""
+    # Arrange
+    mock_repository = MagicMock()
+    mock_repository.async_get_switch_port_statuses = AsyncMock(
+        return_value=[{"portId": 1, "status": "Connected"}]
+    )
+    service = SwitchPortService(mock_repository)
+    serial = "Q234-ABCD-5678"
+
+    # Act
+    result = await service.async_get_ports_statuses(serial)
+
+    # Assert
+    mock_repository.async_get_switch_port_statuses.assert_called_once_with(serial)
+    assert result == [{"portId": 1, "status": "Connected"}]
