@@ -1,7 +1,7 @@
 """Meraki API endpoints for cameras."""
 
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from ...utils.api_utils import handle_meraki_errors, validate_response
 from ..cache import async_timed_cache
@@ -85,5 +85,57 @@ class CameraEndpoints:
         validated = validate_response(result)
         if not isinstance(validated, dict):
             _LOGGER.warning("update_camera_sense_settings did not return a dict.")
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=30)
+    async def get_device_camera_analytics_recent(
+        self, serial: str, object_type: str = "person"
+    ) -> List[Dict[str, Any]]:
+        """Get recent analytics for a specific camera."""
+        recent = await self._api_client._run_sync(
+            self._dashboard.camera.getDeviceCameraAnalyticsRecent,
+            serial=serial,
+            objectType=object_type,
+        )
+        validated = validate_response(recent)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_device_camera_analytics_recent did not return a list."
+            )
+            return []
+        return validated
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=30)
+    async def get_device_camera_analytics_zones(
+        self, serial: str
+    ) -> List[Dict[str, Any]]:
+        """Get analytics zones for a specific camera."""
+        zones = await self._api_client._run_sync(
+            self._dashboard.camera.getDeviceCameraAnalyticsZones,
+            serial=serial,
+        )
+        validated = validate_response(zones)
+        if not isinstance(validated, list):
+            _LOGGER.warning("get_device_camera_analytics_zones did not return a list.")
+            return []
+        return validated
+
+    @handle_meraki_errors
+    async def generate_device_camera_snapshot(
+        self, serial: str
+    ) -> Dict[str, Any]:
+        """Generate a snapshot of what the camera sees."""
+        snapshot = await self._api_client._run_sync(
+            self._dashboard.camera.generateDeviceCameraSnapshot,
+            serial=serial,
+        )
+        validated = validate_response(snapshot)
+        if not isinstance(validated, dict):
+            _LOGGER.warning(
+                "generate_device_camera_snapshot did not return a dict."
+            )
             return {}
         return validated

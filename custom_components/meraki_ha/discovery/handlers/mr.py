@@ -36,7 +36,7 @@ class MRHandler(BaseDeviceHandler):
         super().__init__(coordinator, device, config_entry)
         self._control_service = control_service
 
-    def discover_entities(self) -> List[Entity]:
+    async def discover_entities(self) -> List[Entity]:
         """Discover entities for a wireless device."""
         _LOGGER.debug(
             "Discovering entities for MR device: %s", self.device.get("serial")

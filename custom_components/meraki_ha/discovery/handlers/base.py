@@ -26,13 +26,15 @@ class BaseDeviceHandler:
         coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
+        camera_service: "CameraService",
     ) -> None:
         """Initialize the BaseDeviceHandler."""
         self._coordinator = coordinator
         self.device = device
         self._config_entry = config_entry
+        self._camera_service = camera_service
 
-    def discover_entities(self) -> List[Entity]:
+    async def discover_entities(self) -> List[Entity]:
         """
         Discover entities for the device.
 

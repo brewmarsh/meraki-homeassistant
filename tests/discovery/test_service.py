@@ -1,9 +1,10 @@
 """Tests for the DeviceDiscoveryService."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from tests.const import MOCK_DEVICE
+
 
 @pytest.fixture
 def mock_coordinator():
@@ -23,61 +24,80 @@ def mock_coordinator():
 
 
 @pytest.fixture
+def mock_camera_service():
+    """Fixture for a mocked CameraService."""
+    return AsyncMock()
+
+
+@pytest.fixture
 def mock_control_service():
     """Fixture for a mock DeviceControlService."""
     return MagicMock()
 
 
-def test_discovery_service_init(mock_coordinator, mock_control_service):
+def test_discovery_service_init(
+    mock_coordinator, mock_config_entry, mock_camera_service, mock_control_service
+):
     """Test the initialization of the DeviceDiscoveryService."""
-    mock_config_entry = MagicMock()
     service = DeviceDiscoveryService(
-        mock_coordinator, mock_config_entry, mock_control_service
+        mock_coordinator, mock_config_entry, mock_camera_service, mock_control_service
     )
     assert service._coordinator is mock_coordinator
     assert len(service._devices) == 3
 
 
-def test_discover_entities_delegates_to_handler(
-    mock_coordinator, mock_control_service, caplog
+@pytest.mark.asyncio
+async def test_discover_entities_delegates_to_handler(
+    mock_coordinator,
+    mock_config_entry,
+    mock_camera_service,
+    mock_control_service,
+    caplog,
 ):
     """Test that discover_entities delegates to the correct handlers."""
-    # Arrange
-    mock_mr_handler = MagicMock()
-    mock_mr_handler.__name__ = "MRHandler"
-    mock_mr_handler.return_value.discover_entities.return_value = ["mr_entity"]
+    # We must mock the handlers directly to assert their instantiation arguments
+    with patch(
+        "custom_components.meraki_ha.discovery.service.MRHandler"
+    ) as MockMRHandler, patch(
+        "custom_components.meraki_ha.discovery.service.MVHandler"
+    ) as MockMVHandler:
 
-    mock_mv_handler = MagicMock()
-    mock_mv_handler.__name__ = "MVHandler"
-    mock_mv_handler.return_value.discover_entities.return_value = ["mv_entity"]
+        # Mock the discover_entities method of the handler instances
+        MockMRHandler.return_value.discover_entities = AsyncMock(
+            return_value=["mr_entity"]
+        )
+        MockMVHandler.return_value.discover_entities = AsyncMock(
+            return_value=["mv_entity"]
+        )
 
-    mock_config_entry = MagicMock()
-
-    with patch.dict(
-        "custom_components.meraki_ha.discovery.service.HANDLER_MAPPING",
-        {"wireless": mock_mr_handler, "camera": mock_mv_handler},
-    ) as HANDLER_MAPPING:
         service = DeviceDiscoveryService(
-            mock_coordinator, mock_config_entry, mock_control_service
+            mock_coordinator,
+            mock_config_entry,
+            mock_camera_service,
+            mock_control_service,
         )
 
         # Act
-        entities = service.discover_entities()
+        entities = await service.discover_entities()
 
         # Assert
         assert len(entities) == 2
         assert "mr_entity" in entities
         assert "mv_entity" in entities
-        mock_mr_handler.assert_called_once_with(
+
+        # Assert correct services are passed to each handler
+        MockMRHandler.assert_called_once_with(
             mock_coordinator,
             mock_coordinator.data["devices"][0],
             mock_config_entry,
             mock_control_service,
         )
-        mock_mv_handler.assert_called_once_with(
+        MockMVHandler.assert_called_once_with(
             mock_coordinator,
             mock_coordinator.data["devices"][1],
             mock_config_entry,
+            mock_camera_service,
             mock_control_service,
         )
         assert "No handler found for product type 'unsupported'" in caplog.text
+

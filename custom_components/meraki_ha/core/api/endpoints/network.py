@@ -113,3 +113,22 @@ class NetworkEndpoints:
                 networkId=network["id"],
                 httpServerId=webhook_id,
             )
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=60)
+    async def get_network_camera_analytics_history(
+        self, network_id: str, object_type: str
+    ) -> List[Dict[str, Any]]:
+        """Get analytics history for a network."""
+        history = await self._api_client._run_sync(
+            self._dashboard.camera.getNetworkCameraAnalyticsRecent,
+            networkId=network_id,
+            objectType=object_type,
+        )
+        validated = validate_response(history)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_network_camera_analytics_history did not return a list."
+            )
+            return []
+        return validated
