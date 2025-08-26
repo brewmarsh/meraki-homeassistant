@@ -38,5 +38,7 @@ class MXHandler(BaseDeviceHandler):
         """Discover entities for the device."""
         entities: List[Entity] = []
         _LOGGER.debug("Discovering entities for MX device %s", self.device["serial"])
-        entities.append(MerakiRebootButton(self._control_service, self.device))
+        entities.append(
+            MerakiRebootButton(self._control_service, self.device, self._config_entry)
+        )
         return entities

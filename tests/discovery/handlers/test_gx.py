@@ -29,7 +29,7 @@ def test_discover_entities_creates_reboot_button(
 ):
     """Test that discover_entities creates a MerakiRebootButton."""
     handler = GXHandler(
-        mock_coordinator, MOCK_DEVICE, MOCK_CONFIG_ENTRY, mock_control_service
+        mock_coordinator, MOCK_GX_DEVICE, MOCK_CONFIG_ENTRY, mock_control_service
     )
 
     entities = handler.discover_entities()

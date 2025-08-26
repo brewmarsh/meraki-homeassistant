@@ -7,14 +7,14 @@ import pytest
 
 from custom_components.meraki_ha.button import MerakiRebootButton
 from custom_components.meraki_ha.discovery.handlers.mx import MXHandler
-from ...const import MOCK_CONFIG_ENTRY, MOCK_MX_DEVICE
+from ...const import MOCK_CONFIG_ENTRY, MOCK_MX_DEVICE, MOCK_DEVICE
 
 
 @pytest.fixture
 def mock_coordinator():
     """Fixture for a mock MerakiDataCoordinator."""
     coordinator = MagicMock()
-    coordinator.data = {"devices": [MOCK_DEVICE]}
+    coordinator.data = {"devices": [MOCK_MX_DEVICE]}
     return coordinator
 
 
@@ -29,7 +29,7 @@ def test_discover_entities_creates_reboot_button(
 ):
     """Test that discover_entities creates a MerakiRebootButton."""
     handler = MXHandler(
-        mock_coordinator, MOCK_DEVICE, MOCK_CONFIG_ENTRY, mock_control_service
+        mock_coordinator, MOCK_MX_DEVICE, MOCK_CONFIG_ENTRY, mock_control_service
     )
 
     entities = handler.discover_entities()

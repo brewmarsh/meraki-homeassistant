@@ -18,12 +18,21 @@ def mock_config_entry():
     """Fixture for a mocked config entry."""
     return MagicMock()
 
-def test_mv_handler_with_video_settings(mock_coordinator, mock_config_entry):
+
+@pytest.fixture
+def mock_control_service():
+    """Fixture for a mock DeviceControlService."""
+    return MagicMock()
+
+
+def test_mv_handler_with_video_settings(
+    mock_coordinator, mock_config_entry, mock_control_service
+):
     """Test that the MVHandler discovers the RTSP sensor."""
     # Arrange
     device = MOCK_DEVICE.copy()
     device["video_settings"] = {"externalRtspEnabled": True}
-    handler = MVHandler(mock_coordinator, device, mock_config_entry)
+    handler = MVHandler(mock_coordinator, device, mock_config_entry, mock_control_service)
 
     # Act
     entities = handler.discover_entities()
@@ -32,11 +41,14 @@ def test_mv_handler_with_video_settings(mock_coordinator, mock_config_entry):
     assert len(entities) == 1
     assert isinstance(entities[0], MerakiCameraRTSPUrlSensor)
 
-def test_mv_handler_without_video_settings(mock_coordinator, mock_config_entry):
+
+def test_mv_handler_without_video_settings(
+    mock_coordinator, mock_config_entry, mock_control_service
+):
     """Test that the MVHandler discovers no sensors if video_settings are missing."""
     # Arrange
     device = MOCK_DEVICE.copy()
-    handler = MVHandler(mock_coordinator, device, mock_config_entry)
+    handler = MVHandler(mock_coordinator, device, mock_config_entry, mock_control_service)
 
     # Act
     entities = handler.discover_entities()

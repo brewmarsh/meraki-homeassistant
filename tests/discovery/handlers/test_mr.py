@@ -15,8 +15,18 @@ def mock_config_entry():
     """Fixture for a mocked config entry."""
     return MagicMock()
 
-def test_mr_handler_discover_entities(mock_coordinator, mock_config_entry):
+@pytest.fixture
+def mock_control_service():
+    """Fixture for a mock DeviceControlService."""
+    return MagicMock()
+
+
+def test_mr_handler_discover_entities(
+    mock_coordinator, mock_config_entry, mock_control_service
+):
     """Test that the MRHandler's discover_entities returns an empty list (for now)."""
-    handler = MRHandler(mock_coordinator, MOCK_DEVICE, mock_config_entry)
+    handler = MRHandler(
+        mock_coordinator, MOCK_DEVICE, mock_config_entry, mock_control_service
+    )
     entities = handler.discover_entities()
     assert entities == []

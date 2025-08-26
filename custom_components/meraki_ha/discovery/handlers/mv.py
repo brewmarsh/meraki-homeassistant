@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
     from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from ...services.device_control_service import DeviceControlService
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -27,11 +28,13 @@ class MVHandler(BaseDeviceHandler):
         coordinator: MerakiDataCoordinator,
         device: dict,
         config_entry: ConfigEntry,
+        control_service: "DeviceControlService",
     ) -> None:
         """Initialize the MVHandler."""
         super().__init__(coordinator, device, config_entry)
         self._coordinator = coordinator
         self._config_entry = config_entry
+        self._control_service = control_service
 
 
     def discover_entities(self) -> List[Entity]:
