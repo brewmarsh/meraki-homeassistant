@@ -36,9 +36,11 @@ class CameraRepository:
         # In the future, this could involve a call to get device details
         # and then a lookup based on the model.
         # For now, we'll hardcode some features for demonstration.
-        device = await self._api_client.organizations.get_organization_device(
-            self._organization_id, serial
-        )
+        devices = await self._api_client.organization.get_organization_devices()
+        device = next((d for d in devices if d.get("serial") == serial), None)
+        if not device:
+            return []
+
         model = device.get("model", "")
 
         features = ["video_stream"]
