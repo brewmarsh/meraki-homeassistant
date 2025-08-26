@@ -11,6 +11,7 @@ from ..errors import (
     MerakiAuthenticationError,
     MerakiConnectionError,
     MerakiDeviceError,
+    MerakiInformationalError,
     MerakiNetworkError,
 )
 
@@ -44,7 +45,7 @@ def handle_meraki_errors(
             return await func(*args, **kwargs)
         except APIError as err:
             if _is_informational_error(err):
-                raise MerakiNetworkError(f"Informational error: {err}")
+                raise MerakiInformationalError(f"Informational error: {err}")
 
             _LOGGER.error("Meraki API error: %s", err)
             if _is_auth_error(err):
@@ -117,7 +118,11 @@ def _is_network_error(err: APIError) -> bool:
 def _is_informational_error(err: APIError) -> bool:
     """Check if error is informational (e.g., feature not enabled)."""
     error_str = str(err).lower()
-    return "vlans are not enabled" in error_str or "traffic analysis" in error_str
+    return (
+        "vlans are not enabled" in error_str
+        or "traffic analysis" in error_str
+        or "historical viewing is not supported" in error_str
+    )
 
 
 def validate_response(response: Any) -> Union[Dict[str, Any], List[Any]]:

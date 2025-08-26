@@ -16,6 +16,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
+from .core.errors import MerakiInformationalError
 from .helpers.entity_helpers import format_entity_name
 from .core.utils.naming_utils import format_device_name
 
@@ -65,6 +66,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
         )
         self._attr_model = device.get("model")
         self._rtsp_url: Optional[str] = None
+        self._stream_error: Optional[str] = None
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -105,11 +107,26 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
 
     async def stream_source(self) -> Optional[str]:
         """Return the source of the stream."""
-        if self._rtsp_url is None:
-            self._rtsp_url = await self._camera_service.get_video_stream_url(
-                self._device["serial"]
-            )
+        if self._rtsp_url is None and self._stream_error is None:
+            try:
+                self._rtsp_url = await self._camera_service.get_video_stream_url(
+                    self._device["serial"]
+                )
+            except MerakiInformationalError as e:
+                _LOGGER.warning(
+                    "Could not retrieve stream for camera %s: %s", self.name, e
+                )
+                self._stream_error = str(e)
+                self.async_write_ha_state()
         return self._rtsp_url
+
+    @property
+    def extra_state_attributes(self) -> Dict[str, Any]:
+        """Return the state attributes."""
+        attrs = {}
+        if self._stream_error:
+            attrs["stream_error"] = self._stream_error
+        return attrs
 
     @property
     def supported_features(self) -> CameraEntityFeature:
