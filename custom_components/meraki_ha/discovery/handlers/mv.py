@@ -73,7 +73,6 @@ class MVHandler(BaseDeviceHandler):
 
     async def discover_entities(self) -> List[Entity]:
         """Discover entities for a camera device."""
-        _LOGGER.debug("Discovering entities for MV device: %s", self.device.get("serial"))
         entities: List[Entity] = []
         serial = self.device["serial"]
 

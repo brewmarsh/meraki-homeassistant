@@ -64,7 +64,6 @@ class GXHandler(BaseDeviceHandler):
     async def discover_entities(self) -> List[Entity]:
         """Discover entities for the device."""
         entities: List[Entity] = []
-        _LOGGER.debug("Discovering entities for GX device %s", self.device["serial"])
         entities.append(
             MerakiRebootButton(self._control_service, self.device, self._config_entry)
         )

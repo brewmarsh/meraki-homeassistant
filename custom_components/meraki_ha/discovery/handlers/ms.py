@@ -67,7 +67,6 @@ class MSHandler(BaseDeviceHandler):
 
     async def discover_entities(self) -> List[Entity]:
         """Discover entities for the MS switch."""
-        _LOGGER.debug("Discovering entities for MS switch %s", self.device["serial"])
         entities: List[Entity] = []
 
         # Add switch port sensors, but only for enabled ports to avoid flooding

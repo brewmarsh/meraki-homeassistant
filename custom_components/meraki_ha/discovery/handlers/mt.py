@@ -60,5 +60,4 @@ class MTHandler(BaseDeviceHandler):
     async def discover_entities(self) -> List[Entity]:
         """Discover entities for the device."""
         entities: List[Entity] = []
-        _LOGGER.debug("Discovering entities for MT device %s", self.device["serial"])
         return entities

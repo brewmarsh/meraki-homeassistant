@@ -62,9 +62,6 @@ class MRHandler(BaseDeviceHandler):
 
     async def discover_entities(self) -> List[Entity]:
         """Discover entities for a wireless device."""
-        _LOGGER.debug(
-            "Discovering entities for MR device: %s", self.device.get("serial")
-        )
         entities: List[Entity] = []
 
         # In the future, this is where we would create entities like:
