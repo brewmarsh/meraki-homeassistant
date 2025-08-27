@@ -43,14 +43,21 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Meraki from a config entry."""
-    _LOGGER.debug("Setting up Meraki entry: %s", entry.entry_id)
+from datetime import timedelta
+
+async def async_setup_or_update_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up or update Meraki from a config entry."""
+    _LOGGER.debug("Setting up or updating Meraki entry: %s", entry.entry_id)
+
+    entry_data = hass.data.setdefault(DOMAIN, {}).setdefault(entry.entry_id, {})
+
     try:
-        api_client = MerakiAPIClient(
-            api_key=entry.data[CONF_MERAKI_API_KEY],
-            org_id=entry.data[CONF_MERAKI_ORG_ID],
-        )
+        if DATA_CLIENT not in entry_data:
+            entry_data[DATA_CLIENT] = MerakiAPIClient(
+                api_key=entry.data[CONF_MERAKI_API_KEY],
+                org_id=entry.data[CONF_MERAKI_ORG_ID],
+            )
+        api_client = entry_data[DATA_CLIENT]
     except KeyError as err:
         _LOGGER.error("Missing required configuration: %s", err)
         return False
@@ -64,81 +71,111 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     except (ValueError, TypeError):
         scan_interval = DEFAULT_SCAN_INTERVAL
 
-    coordinator = MerakiDataCoordinator(
-        hass=hass,
-        api_client=api_client,
-        scan_interval=scan_interval,
-        config_entry=entry,
-    )
+    if "coordinator" not in entry_data:
+        entry_data["coordinator"] = MerakiDataCoordinator(
+            hass=hass,
+            api_client=api_client,
+            scan_interval=scan_interval,
+            config_entry=entry,
+        )
+        await entry_data["coordinator"].async_config_entry_first_refresh()
+    else:
+        entry_data["coordinator"].async_set_update_interval(
+            timedelta(seconds=scan_interval)
+        )
+        await entry_data["coordinator"].async_refresh()
+    coordinator = entry_data["coordinator"]
 
-    await coordinator.async_refresh()
+    if "meraki_repository" not in entry_data:
+        entry_data["meraki_repository"] = MerakiRepository(api_client)
+    meraki_repository = entry_data["meraki_repository"]
 
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = {
-        "coordinator": coordinator,
-        DATA_CLIENT: api_client,
-    }
+    if "switch_port_coordinator" not in entry_data:
+        entry_data["switch_port_coordinator"] = SwitchPortStatusCoordinator(
+            hass=hass,
+            repository=meraki_repository,
+            main_coordinator=coordinator,
+            config_entry=entry,
+        )
+        await entry_data["switch_port_coordinator"].async_refresh()
+    switch_port_coordinator = entry_data["switch_port_coordinator"]
 
-    # Create switch port status coordinator
-    repository = MerakiRepository(api_client)
-    switch_port_coordinator = SwitchPortStatusCoordinator(
-        hass=hass,
-        repository=repository,
-        main_coordinator=coordinator,
-        config_entry=entry,
-    )
-    await switch_port_coordinator.async_refresh()
-    hass.data[DOMAIN][entry.entry_id]["switch_port_coordinator"] = switch_port_coordinator
+    if "ssid_firewall_coordinators" not in entry_data:
+        entry_data["ssid_firewall_coordinators"] = {}
+    ssid_firewall_coordinators = entry_data["ssid_firewall_coordinators"]
 
-    # Create content filtering and firewall coordinators
-    hass.data[DOMAIN][entry.entry_id]["ssid_firewall_coordinators"] = {}
     if coordinator.data:
         # Create per-SSID coordinators
         for ssid in coordinator.data.get("ssids", []):
             if "networkId" in ssid and "number" in ssid:
-                # L7 Firewall Coordinator
-                ssid_fw_coordinator = SsidFirewallCoordinator(
-                    hass=hass,
-                    api_client=api_client,
-                    scan_interval=scan_interval,
-                    network_id=ssid["networkId"],
-                    ssid_number=ssid["number"],
-                )
-                await ssid_fw_coordinator.async_refresh()
-                hass.data[DOMAIN][entry.entry_id]["ssid_firewall_coordinators"][
-                    f"{ssid['networkId']}_{ssid['number']}"
-                ] = ssid_fw_coordinator
+                ssid_coord_key = f"{ssid['networkId']}_{ssid['number']}"
+                if ssid_coord_key not in ssid_firewall_coordinators:
+                    ssid_firewall_coordinators[ssid_coord_key] = SsidFirewallCoordinator(
+                        hass=hass,
+                        api_client=api_client,
+                        scan_interval=scan_interval,
+                        network_id=ssid["networkId"],
+                        ssid_number=ssid["number"],
+                    )
+                    await ssid_firewall_coordinators[ssid_coord_key].async_refresh()
 
-    # Start the web server if enabled
-    if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
-        port = entry.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
-        server = MerakiWebServer(hass, coordinator, port)
-        await server.start()
-        hass.data[DOMAIN][entry.entry_id]["web_server"] = server
+    # Handle web server
+    web_ui_enabled = entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI)
+    web_server = entry_data.get("web_server")
+    if web_ui_enabled:
+        if not web_server:
+            port = entry.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
+            server = MerakiWebServer(hass, coordinator, port)
+            await server.start()
+            entry_data["web_server"] = server
+        else:
+            # Check if port changed
+            new_port = entry.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
+            if web_server.port != new_port:
+                await web_server.stop()
+                server = MerakiWebServer(hass, coordinator, new_port)
+                await server.start()
+                entry_data["web_server"] = server
+    elif web_server:
+        # Web UI was disabled
+        await web_server.stop()
+        entry_data.pop("web_server", None)
 
     # Initialize repositories and services for the new architecture
-    meraki_repository = MerakiRepository(api_client)
-    control_service = DeviceControlService(meraki_repository)
-    camera_repository = CameraRepository(api_client, api_client.organization_id)
-    camera_service = CameraService(camera_repository)
-    network_control_service = NetworkControlService(api_client, coordinator)
+    if "control_service" not in entry_data:
+        entry_data["control_service"] = DeviceControlService(meraki_repository)
+    control_service = entry_data["control_service"]
+
+    if "camera_repository" not in entry_data:
+        entry_data["camera_repository"] = CameraRepository(api_client, api_client.organization_id)
+    camera_repository = entry_data["camera_repository"]
+
+    if "camera_service" not in entry_data:
+        entry_data["camera_service"] = CameraService(camera_repository)
+    camera_service = entry_data["camera_service"]
+
+    if "network_control_service" not in entry_data:
+        entry_data["network_control_service"] = NetworkControlService(api_client, coordinator)
+    network_control_service = entry_data["network_control_service"]
 
     # Defer import to avoid circular dependencies and blocking startup
     from .discovery.service import DeviceDiscoveryService
 
-    # New discovery service setup. We now pass both the control and camera services.
-    discovery_service = DeviceDiscoveryService(
-        coordinator=coordinator,
-        config_entry=entry,
-        meraki_client=api_client,
-        switch_port_coordinator=switch_port_coordinator,
-        camera_service=camera_service,
-        control_service=control_service,
-        network_control_service=network_control_service,
-    )
-    # The discover_entities method is asynchronous and must be awaited
+    # New discovery service setup.
+    if "discovery_service" not in entry_data:
+        entry_data["discovery_service"] = DeviceDiscoveryService(
+            coordinator=coordinator,
+            config_entry=entry,
+            meraki_client=api_client,
+            switch_port_coordinator=switch_port_coordinator,
+            camera_service=camera_service,
+            control_service=control_service,
+            network_control_service=network_control_service,
+        )
+    discovery_service = entry_data["discovery_service"]
+
     discovered_entities = await discovery_service.discover_entities()
-    hass.data[DOMAIN][entry.entry_id]["entities"] = discovered_entities
+    entry_data["entities"] = discovered_entities
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -150,19 +187,33 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             entry, data={**entry.data, "webhook_id": webhook_id, "secret": secret}
         )
 
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     return True
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up Meraki from a config entry."""
+    if not await async_setup_or_update_entry(hass, entry):
+        return False
+
+    entry.async_on_unload(entry.add_update_listener(async_update_entry))
+    return True
+
+
+async def async_update_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Update a given config entry."""
+    await async_setup_or_update_entry(hass, entry)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Meraki config entry."""
-    if hass.data.get(DOMAIN) and entry.entry_id in hass.data[DOMAIN]:
+    entry_data = hass.data[DOMAIN].get(entry.entry_id)
+    if entry_data:
         if "webhook_id" in entry.data:
-            api_client = hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]
+            api_client = entry_data[DATA_CLIENT]
             await async_unregister_webhook(hass, entry.data["webhook_id"], api_client)
 
-        if "web_server" in hass.data[DOMAIN][entry.entry_id]:
-            server = hass.data[DOMAIN][entry.entry_id]["web_server"]
+        if "web_server" in entry_data:
+            server = entry_data["web_server"]
             await server.stop()
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
@@ -174,10 +225,3 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 hass.data.pop(DOMAIN)
 
     return unload_ok
-
-
-async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload Meraki config entry."""
-    unload_ok = await async_unload_entry(hass, entry)
-    if unload_ok:
-        await async_setup_entry(hass, entry)
