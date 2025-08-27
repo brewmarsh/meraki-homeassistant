@@ -17,8 +17,10 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
     from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from ....core.coordinators.switch_port_status_coordinator import (
+        SwitchPortStatusCoordinator,
+    )
     from ....services.device_control_service import DeviceControlService
-    from ....services.camera_service import CameraService
     from ....types import MerakiDevice
 
 
@@ -33,13 +35,13 @@ class MSHandler(BaseDeviceHandler):
         coordinator: "MerakiDataCoordinator",
         device: "MerakiDevice",
         config_entry: "ConfigEntry",
-        camera_service: "CameraService",
+        switch_port_coordinator: "SwitchPortStatusCoordinator",
         control_service: "DeviceControlService",
     ) -> None:
         """Initialize the MSHandler."""
-        super().__init__(coordinator, device, config_entry)
+        super().__init__(coordinator, device, config_entry, None)
+        self._switch_port_coordinator = switch_port_coordinator
         self._control_service = control_service
-        self._camera_service = camera_service
 
     async def discover_entities(self) -> List[Entity]:
         """Discover entities for the MS switch."""
@@ -49,6 +51,8 @@ class MSHandler(BaseDeviceHandler):
         # Add switch port sensors
         ports = self.device.get("ports_statuses", [])
         for port in ports:
-            entities.append(SwitchPortSensor(self._coordinator, self.device, port))
+            entities.append(
+                SwitchPortSensor(self._switch_port_coordinator, self.device, port)
+            )
 
         return entities

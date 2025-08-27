@@ -2,8 +2,9 @@
 from unittest.mock import MagicMock
 from custom_components.meraki_ha.types import MerakiDevice, MerakiNetwork
 
+MOCK_CONFIG_ENTRY_ID = "test_entry"
 MOCK_CONFIG_ENTRY = MagicMock()
-MOCK_CONFIG_ENTRY.entry_id = "test_entry"
+MOCK_CONFIG_ENTRY.entry_id = MOCK_CONFIG_ENTRY_ID
 
 
 MOCK_NETWORK: MerakiNetwork = {
@@ -45,9 +46,38 @@ MOCK_GX_DEVICE: MerakiDevice = {
     "status": "online",
 }
 
+MOCK_SSID = {
+    "number": 0,
+    "name": "Test SSID",
+    "enabled": True,
+    "splashPage": "None",
+    "ssidAdminAccessible": False,
+    "authMode": "psk",
+    "psk": "password",
+    "encryptionMode": "wpa",
+    "wpaEncryptionMode": "WPA2 only",
+    "ipAssignmentMode": "NAT mode",
+    "useVlanTagging": False,
+    "walledGardenEnabled": False,
+    "walledGardenRanges": [],
+    "minBitrate": 11,
+    "bandSelection": "Dual band with band steering",
+    "perClientBandwidthLimitUp": 0,
+    "perClientBandwidthLimitDown": 0,
+    "perSsidBandwidthLimitUp": 0,
+    "perSsidBandwidthLimitDown": 0,
+    "mandatoryDhcpEnabled": False,
+    "visible": True,
+    "availableOnAllAps": True,
+    "availabilityTags": [],
+    "networkId": "N_12345",
+    "clientCount": 3,
+}
+
 
 MOCK_ALL_DATA = {
     "networks": [MOCK_NETWORK],
     "devices": [MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE],
+    "ssids": [MOCK_SSID],
     "clients": [],
 }

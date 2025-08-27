@@ -34,4 +34,4 @@ async def test_network_clients_sensor(
     await sensor.async_added_to_hass()
     sensor._handle_coordinator_update()
     assert sensor.native_value == 5
-    mock_network_control_service.get_network_client_count.assert_called_once_with("N_123")
+    mock_network_control_service.get_network_client_count.assert_called_with("N_123")

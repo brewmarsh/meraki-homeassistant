@@ -9,10 +9,6 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, List
 
-from ...switch.meraki_ssid_device_switch import (
-    MerakiSSIDEnabledSwitch,
-    MerakiSSIDBroadcastSwitch,
-)
 from ...text.meraki_ssid_name import MerakiSSIDNameText
 from .base import BaseDeviceHandler
 
@@ -69,18 +65,23 @@ class SSIDHandler(BaseDeviceHandler):
 
     async def discover_entities(self) -> List[Entity]:
         """Discover entities for all SSIDs."""
+        from ...switch.meraki_ssid_device_switch import (
+            MerakiSSIDEnabledSwitch,
+            MerakiSSIDBroadcastSwitch,
+        )
+
         entities: List[Entity] = []
-        if not self.coordinator.data or "ssids" not in self.coordinator.data:
+        if not self._coordinator.data or "ssids" not in self._coordinator.data:
             return entities
 
-        for ssid in self.coordinator.data["ssids"]:
-            if "networkId" not in ssid or "number" not in ssid:
+        for ssid in self._coordinator.data["ssids"]:
+            if "networkId" not in ssid or "number" in ssid:
                 continue
 
             # Find the RF profile for this SSID's network
             rf_profile = None
-            if self.coordinator.data and self.coordinator.data.get("rf_profiles"):
-                network_rf_profiles = self.coordinator.data["rf_profiles"].get(
+            if self._coordinator.data and self._coordinator.data.get("rf_profiles"):
+                network_rf_profiles = self._coordinator.data["rf_profiles"].get(
                     ssid["networkId"]
                 )
                 if network_rf_profiles:
@@ -89,78 +90,78 @@ class SSIDHandler(BaseDeviceHandler):
             entities.extend(
                 [
                     MerakiSSIDEnabledSwitch(
-                        self.coordinator,
+                        self._coordinator,
                         self._meraki_client,
-                        self.config_entry,
+                        self._config_entry,
                         ssid,
                     ),
                     MerakiSSIDBroadcastSwitch(
-                        self.coordinator,
+                        self._coordinator,
                         self._meraki_client,
-                        self.config_entry,
+                        self._config_entry,
                         ssid,
                     ),
                     MerakiSSIDNameText(
-                        self.coordinator,
+                        self._coordinator,
                         self._meraki_client,
-                        self.config_entry,
+                        self._config_entry,
                         ssid,
                     ),
                     MerakiSSIDAvailabilitySensor(
-                        self.coordinator, self.config_entry, ssid
+                        self._coordinator, self._config_entry, ssid
                     ),
-                    MerakiSSIDChannelSensor(self.coordinator, self.config_entry, ssid),
+                    MerakiSSIDChannelSensor(self._coordinator, self._config_entry, ssid),
                     MerakiSSIDClientCountSensor(
-                        self.coordinator, self.config_entry, ssid
+                        self._coordinator, self._config_entry, ssid
                     ),
                     MerakiSSIDSplashPageSensor(
-                        self.coordinator, self.config_entry, ssid
+                        self._coordinator, self._config_entry, ssid
                     ),
                     MerakiSSIDAuthModeSensor(
-                        self.coordinator, self.config_entry, ssid
+                        self._coordinator, self._config_entry, ssid
                     ),
                     MerakiSSIDEncryptionModeSensor(
-                        self.coordinator, self.config_entry, ssid
+                        self._coordinator, self._config_entry, ssid
                     ),
                     MerakiSSIDWPAEncryptionModeSensor(
-                        self.coordinator, self.config_entry, ssid
+                        self._coordinator, self._config_entry, ssid
                     ),
                     MerakiSSIDIPAssignmentModeSensor(
-                        self.coordinator, self.config_entry, ssid
+                        self._coordinator, self._config_entry, ssid
                     ),
                     MerakiSSIDBandSelectionSensor(
-                        self.coordinator, self.config_entry, ssid
+                        self._coordinator, self._config_entry, ssid
                     ),
                     MerakiSSIDPerClientBandwidthLimitSensor(
-                        self.coordinator, self.config_entry, ssid, "up"
+                        self._coordinator, self._config_entry, ssid, "up"
                     ),
                     MerakiSSIDPerClientBandwidthLimitSensor(
-                        self.coordinator, self.config_entry, ssid, "down"
+                        self._coordinator, self._config_entry, ssid, "down"
                     ),
                     MerakiSSIDPerSsidBandwidthLimitSensor(
-                        self.coordinator, self.config_entry, ssid, "up"
+                        self._coordinator, self._config_entry, ssid, "up"
                     ),
                     MerakiSSIDPerSsidBandwidthLimitSensor(
-                        self.coordinator, self.config_entry, ssid, "down"
+                        self._coordinator, self._config_entry, ssid, "down"
                     ),
-                    MerakiSSIDVisibleSensor(self.coordinator, self.config_entry, ssid),
+                    MerakiSSIDVisibleSensor(self._coordinator, self._config_entry, ssid),
                     MerakiSSIDWalledGardenSensor(
-                        self.coordinator, self.config_entry, ssid, rf_profile
+                        self._coordinator, self._config_entry, ssid, rf_profile
                     ),
                     MerakiSSIDTotalUploadLimitSensor(
-                        self.coordinator, self.config_entry, ssid, rf_profile
+                        self._coordinator, self._config_entry, ssid, rf_profile
                     ),
                     MerakiSSIDTotalDownloadLimitSensor(
-                        self.coordinator, self.config_entry, ssid, rf_profile
+                        self._coordinator, self._config_entry, ssid, rf_profile
                     ),
                     MerakiSSIDMandatoryDhcpSensor(
-                        self.coordinator, self.config_entry, ssid, rf_profile
+                        self._coordinator, self._config_entry, ssid, rf_profile
                     ),
                     MerakiSSIDMinBitrate24GhzSensor(
-                        self.coordinator, self.config_entry, ssid, rf_profile
+                        self._coordinator, self._config_entry, ssid, rf_profile
                     ),
                     MerakiSSIDMinBitrate5GhzSensor(
-                        self.coordinator, self.config_entry, ssid, rf_profile
+                        self._coordinator, self._config_entry, ssid, rf_profile
                     ),
                 ]
             )

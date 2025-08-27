@@ -9,6 +9,7 @@ from homeassistant.helpers.entity_registry import async_get as async_get_entity_
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
+from tests.const import MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE
 
 
 @pytest.fixture
@@ -25,10 +26,10 @@ def config_entry():
 @pytest.fixture
 def mock_meraki_client():
     """Fixture for a mocked MerakiAPIClient."""
-    client = MagicMock()
+    client = AsyncMock()
     client.get_all_data = AsyncMock(
         return_value={
-            "devices": [],
+            "devices": [MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE],
             "networks": [
                 {
                     "id": "net1",
@@ -71,6 +72,13 @@ def mock_meraki_client():
     client.network = MagicMock()
     client.network.get_network_clients = AsyncMock(return_value=[])
 
+    # Mock for SsidFirewallCoordinator
+    ssids_mock = MagicMock()
+    ssids_mock.get_network_ssid_l7_firewall_rules = AsyncMock(
+        return_value={"rules": []}
+    )
+    client.ssids = ssids_mock
+
     return client
 
 
@@ -82,7 +90,12 @@ async def test_ssid_device_creation_and_unification(
 
     with patch(
         "custom_components.meraki_ha.MerakiAPIClient", return_value=mock_meraki_client
-    ), patch("custom_components.meraki_ha.async_register_webhook", return_value=None):
+    ), patch(
+        "custom_components.meraki_ha.async_register_webhook", return_value=None
+    ), patch(
+        "custom_components.meraki_ha.core.coordinators.ssid_firewall_coordinator.SsidFirewallCoordinator._async_update_data",
+        return_value={"rules": []},
+    ):
         # Set up the component
         assert await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()

@@ -25,6 +25,9 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
     from ..core.api.client import MerakiAPIClient
     from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from ..core.coordinators.switch_port_status_coordinator import (
+        SwitchPortStatusCoordinator,
+    )
     from ..services.camera_service import CameraService
     from ..services.device_control_service import DeviceControlService
     from ..services.network_control_service import NetworkControlService
@@ -53,6 +56,7 @@ class DeviceDiscoveryService:
         coordinator: "MerakiDataCoordinator",
         config_entry: "ConfigEntry",
         meraki_client: "MerakiAPIClient",
+        switch_port_coordinator: "SwitchPortStatusCoordinator",
         camera_service: "CameraService",
         control_service: "DeviceControlService",
         network_control_service: "NetworkControlService",
@@ -61,6 +65,7 @@ class DeviceDiscoveryService:
         self._coordinator = coordinator
         self._config_entry = config_entry
         self._meraki_client = meraki_client
+        self._switch_port_coordinator = switch_port_coordinator
         self._camera_service = camera_service
         self._control_service = control_service
         self._network_control_service = network_control_service
@@ -128,6 +133,14 @@ class DeviceDiscoveryService:
                     self._config_entry,
                     self._control_service,
                     self._network_control_service,
+                )
+            elif model_prefix in ("MS", "GS"):
+                handler = handler_class(
+                    self._coordinator,
+                    device,
+                    self._config_entry,
+                    self._switch_port_coordinator,
+                    self._control_service,
                 )
             else:
                 handler = handler_class(

@@ -84,7 +84,10 @@ def test_network_device_naming(mock_coordinator):
         "device_name_format": DEVICE_NAME_FORMAT_PREFIX
     }
     sensor = MerakiNetworkClientsSensor(
-        mock_coordinator, mock_coordinator.config_entry, network_data
+        mock_coordinator,
+        mock_coordinator.config_entry,
+        network_data,
+        MagicMock(),
     )
     assert sensor.device_info["name"] == "[Network] Test Network"
 
@@ -93,7 +96,10 @@ def test_network_device_naming(mock_coordinator):
         "device_name_format": DEVICE_NAME_FORMAT_SUFFIX
     }
     sensor = MerakiNetworkClientsSensor(
-        mock_coordinator, mock_coordinator.config_entry, network_data
+        mock_coordinator,
+        mock_coordinator.config_entry,
+        network_data,
+        MagicMock(),
     )
     assert sensor.device_info["name"] == "Test Network [Network]"
 
@@ -102,7 +108,10 @@ def test_network_device_naming(mock_coordinator):
         "device_name_format": DEVICE_NAME_FORMAT_OMIT
     }
     sensor = MerakiNetworkClientsSensor(
-        mock_coordinator, mock_coordinator.config_entry, network_data
+        mock_coordinator,
+        mock_coordinator.config_entry,
+        network_data,
+        MagicMock(),
     )
     assert sensor.device_info["name"] == "Test Network"
 
