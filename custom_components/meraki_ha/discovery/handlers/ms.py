@@ -22,6 +22,8 @@ if TYPE_CHECKING:
     )
     from ....services.device_control_service import DeviceControlService
     from ....types import MerakiDevice
+    from ....services.camera_service import CameraService
+    from ....services.network_control_service import NetworkControlService
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -39,9 +41,29 @@ class MSHandler(BaseDeviceHandler):
         control_service: "DeviceControlService",
     ) -> None:
         """Initialize the MSHandler."""
-        super().__init__(coordinator, device, config_entry, None)
+        super().__init__(coordinator, device, config_entry)
         self._switch_port_coordinator = switch_port_coordinator
         self._control_service = control_service
+
+    @classmethod
+    def create(
+        cls,
+        coordinator: "MerakiDataCoordinator",
+        device: "MerakiDevice",
+        config_entry: "ConfigEntry",
+        camera_service: "CameraService",
+        control_service: "DeviceControlService",
+        network_control_service: "NetworkControlService",
+        switch_port_coordinator: "SwitchPortStatusCoordinator",
+    ) -> "MSHandler":
+        """Create an instance of the handler."""
+        return cls(
+            coordinator,
+            device,
+            config_entry,
+            switch_port_coordinator,
+            control_service,
+        )
 
     async def discover_entities(self) -> List[Entity]:
         """Discover entities for the MS switch."""

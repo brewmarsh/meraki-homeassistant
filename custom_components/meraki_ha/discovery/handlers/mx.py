@@ -16,6 +16,10 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from ...services.device_control_service import DeviceControlService
     from ...services.network_control_service import NetworkControlService
+    from ....services.camera_service import CameraService
+    from ....core.coordinators.switch_port_status_coordinator import (
+        SwitchPortStatusCoordinator,
+    )
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,9 +37,29 @@ class MXHandler(BaseDeviceHandler):
         network_control_service: "NetworkControlService",
     ) -> None:
         """Initialize the MXHandler."""
-        super().__init__(coordinator, device, config_entry, None)
+        super().__init__(coordinator, device, config_entry)
         self._control_service = control_service
         self._network_control_service = network_control_service
+
+    @classmethod
+    def create(
+        cls,
+        coordinator: "MerakiDataCoordinator",
+        device: "MerakiDevice",
+        config_entry: "ConfigEntry",
+        camera_service: "CameraService",
+        control_service: "DeviceControlService",
+        network_control_service: "NetworkControlService",
+        switch_port_coordinator: "SwitchPortStatusCoordinator",
+    ) -> "MXHandler":
+        """Create an instance of the handler."""
+        return cls(
+            coordinator,
+            device,
+            config_entry,
+            control_service,
+            network_control_service,
+        )
 
     async def discover_entities(self) -> List[Entity]:
         """Discover entities for the device."""
