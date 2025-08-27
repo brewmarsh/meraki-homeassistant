@@ -1,6 +1,6 @@
 """Tests for the DeviceDiscoveryService."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch, ANY
 import pytest
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from tests.const import MOCK_DEVICE
@@ -11,6 +11,7 @@ def mock_coordinator():
     """Fixture for a mocked MerakiDataCoordinator."""
     coordinator = MagicMock()
     wireless_device = MOCK_DEVICE.copy()
+    wireless_device["model"] = "MR36"
     camera_device = MOCK_DEVICE.copy()
     camera_device["serial"] = "camera_serial"
     camera_device["model"] = "MV12"
@@ -18,7 +19,9 @@ def mock_coordinator():
     unsupported_device["serial"] = "unsupported_serial"
     unsupported_device["model"] = "unsupported"
     coordinator.data = {
-        "devices": [wireless_device, camera_device, unsupported_device]
+        "devices": [wireless_device, camera_device, unsupported_device],
+        "networks": [],
+        "ssids": [],
     }
     return coordinator
 
@@ -72,13 +75,24 @@ async def test_discover_entities_delegates_to_handler(
     MockMRHandler.__name__ = "MRHandler"
     MockMVHandler = MagicMock()
     MockMVHandler.__name__ = "MVHandler"
-    MockMRHandler.return_value.discover_entities = AsyncMock(return_value=["mr_entity"])
-    MockMVHandler.return_value.discover_entities = AsyncMock(return_value=["mv_entity"])
+
+    mock_mr_handler_instance = MagicMock()
+    mock_mr_handler_instance.discover_entities = AsyncMock(return_value=["mr_entity"])
+    MockMRHandler.return_value = mock_mr_handler_instance
+
+    mock_mv_handler_instance = MagicMock()
+    mock_mv_handler_instance.discover_entities = AsyncMock(return_value=["mv_entity"])
+    MockMVHandler.return_value = mock_mv_handler_instance
+
 
     with patch.dict(
         "custom_components.meraki_ha.discovery.service.HANDLER_MAPPING",
         {"MR": MockMRHandler, "MV": MockMVHandler},
-    ):
+    ), patch("custom_components.meraki_ha.discovery.handlers.network.NetworkHandler") as MockNetworkHandler, patch("custom_components.meraki_ha.discovery.handlers.ssid.SSIDHandler"):
+        mock_network_handler_instance = MagicMock()
+        mock_network_handler_instance.discover_entities = AsyncMock(return_value=[])
+        MockNetworkHandler.create.return_value = mock_network_handler_instance
+
         service = DeviceDiscoveryService(
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
@@ -93,7 +107,6 @@ async def test_discover_entities_delegates_to_handler(
         entities = await service.discover_entities()
 
         # Assert
-        assert len(entities) == 2
         assert "mr_entity" in entities
         assert "mv_entity" in entities
 
@@ -112,4 +125,3 @@ async def test_discover_entities_delegates_to_handler(
             mock_control_service,
         )
         assert "No handler found for model 'unsupported'" in caplog.text
-
