@@ -140,6 +140,14 @@ class DeviceDiscoveryService:
                     self._control_service,
                     self._network_control_service,
                 )
+            elif model_prefix in ("MS", "GS"):
+                handler = handler_class(
+                    self._coordinator,
+                    device,
+                    self._config_entry,
+                    self._switch_port_coordinator,
+                    self._control_service,
+                )
             else:
                 handler = handler_class(
                     self._coordinator,

@@ -89,7 +89,7 @@ class SSIDHandler(BaseHandler):
             return entities
 
         for ssid in self._coordinator.data["ssids"]:
-            if "networkId" not in ssid or "number" in ssid:
+            if "networkId" not in ssid or "number" not in ssid:
                 continue
 
             # Find the RF profile for this SSID's network
