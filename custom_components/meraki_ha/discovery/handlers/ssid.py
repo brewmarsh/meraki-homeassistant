@@ -63,6 +63,20 @@ class SSIDHandler(BaseHandler):
         super().__init__(coordinator, config_entry)
         self._meraki_client = meraki_client
 
+    @classmethod
+    def create(
+        cls,
+        coordinator: "MerakiDataCoordinator",
+        config_entry: "ConfigEntry",
+        meraki_client: "MerakiAPIClient",
+    ) -> "SSIDHandler":
+        """Create an instance of the handler."""
+        return cls(
+            coordinator,
+            config_entry,
+            meraki_client,
+        )
+
     async def discover_entities(self) -> List[Entity]:
         """Discover entities for all SSIDs."""
         from ...switch.meraki_ssid_device_switch import (

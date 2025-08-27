@@ -15,8 +15,14 @@ from ...sensor.network.network_clients import MerakiNetworkClientsSensor
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
+    from ....types import MerakiDevice
     from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
     from ...services.network_control_service import NetworkControlService
+    from ....services.camera_service import CameraService
+    from ....services.device_control_service import DeviceControlService
+    from ....core.coordinators.switch_port_status_coordinator import (
+        SwitchPortStatusCoordinator,
+    )
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -34,6 +40,24 @@ class NetworkHandler(BaseHandler):
         """Initialize the NetworkHandler."""
         super().__init__(coordinator, config_entry)
         self._network_control_service = network_control_service
+
+    @classmethod
+    def create(
+        cls,
+        coordinator: "MerakiDataCoordinator",
+        device: "MerakiDevice",
+        config_entry: "ConfigEntry",
+        camera_service: "CameraService",
+        control_service: "DeviceControlService",
+        network_control_service: "NetworkControlService",
+        switch_port_coordinator: "SwitchPortStatusCoordinator",
+    ) -> "NetworkHandler":
+        """Create an instance of the handler."""
+        return cls(
+            coordinator,
+            config_entry,
+            network_control_service,
+        )
 
     async def discover_entities(self) -> List["Entity"]:
         """Discover network-level entities."""

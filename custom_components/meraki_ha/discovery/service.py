@@ -83,8 +83,14 @@ class DeviceDiscoveryService:
         all_entities: List["Entity"] = []
 
         # Discover network-level entities
-        network_handler = NetworkHandler(
-            self._coordinator, self._config_entry, self._network_control_service
+        network_handler = NetworkHandler.create(
+            self._coordinator,
+            None,
+            self._config_entry,
+            self._camera_service,
+            self._control_service,
+            self._network_control_service,
+            self._switch_port_coordinator,
         )
         network_entities = await network_handler.discover_entities()
         all_entities.extend(network_entities)
@@ -133,7 +139,7 @@ class DeviceDiscoveryService:
             all_entities.extend(entities)
 
         # Create SSID handler for virtual SSID devices
-        ssid_handler = SSIDHandler(
+        ssid_handler = SSIDHandler.create(
             self._coordinator, self._config_entry, self._meraki_client
         )
         ssid_entities = await ssid_handler.discover_entities()
