@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
     from homeassistant.config_entries import ConfigEntry
     from ...services.device_control_service import DeviceControlService
+    from ...services.network_control_service import NetworkControlService
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,10 +26,10 @@ class MXHandler(BaseDeviceHandler):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        device: MerakiDevice,
-        config_entry: ConfigEntry,
-        control_service: DeviceControlService,
+        coordinator: "MerakiDataCoordinator",
+        device: "MerakiDevice",
+        config_entry: "ConfigEntry",
+        control_service: "DeviceControlService",
         network_control_service: "NetworkControlService",
     ) -> None:
         """Initialize the MXHandler."""
