@@ -7,6 +7,10 @@
         "data": {
           "meraki_api_key": "Meraki API Key",
           "meraki_org_id": "Meraki Organization ID"
+        },
+        "data_description": {
+          "meraki_api_key": "Your personal API key for the Meraki Dashboard.",
+          "meraki_org_id": "The ID of the Meraki Organization you want to add."
         }
       },
       "general": {
@@ -15,6 +19,10 @@
         "data": {
           "scan_interval": "Scan Interval (seconds)",
           "device_name_format": "Device Name Format"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the Meraki API for updates, in seconds.",
+          "device_name_format": "Choose how devices should be named in Home Assistant."
         }
       },
       "features": {
@@ -27,6 +35,14 @@
           "enable_web_ui": "Enable Web UI",
           "web_ui_port": "Web UI Port",
           "hide_unconfigured_ssids": "Hide Unconfigured SSIDs"
+        },
+        "data_description": {
+          "auto_enable_rtsp": "Automatically enable the RTSP stream for compatible cameras.",
+          "use_lan_ip_for_rtsp": "Use the camera's LAN IP address for the RTSP stream. Requires local network access.",
+          "enable_device_tracker": "Enable tracking of clients connected to the network.",
+          "enable_web_ui": "Enable the self-hosted web interface for advanced controls.",
+          "web_ui_port": "The port for the self-hosted web interface.",
+          "hide_unconfigured_ssids": "Hide SSIDs that are not fully configured."
         }
       },
       "advanced": {
@@ -35,6 +51,10 @@
         "data": {
           "webhook_url": "Webhook URL (optional)",
           "ignored_networks": "Ignored Networks (comma-separated)"
+        },
+        "data_description": {
+          "webhook_url": "The publicly accessible URL for Meraki webhooks. Leave empty to use Home Assistant's cloud link.",
+          "ignored_networks": "A comma-separated list of network IDs to ignore."
         }
       }
     },
@@ -57,6 +77,10 @@
         "data": {
           "scan_interval": "Scan Interval (seconds)",
           "device_name_format": "Device Name Format"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the Meraki API for updates, in seconds.",
+          "device_name_format": "Choose how devices should be named in Home Assistant."
         }
       },
       "features": {
@@ -69,6 +93,14 @@
           "enable_web_ui": "Enable Web UI",
           "web_ui_port": "Web UI Port",
           "hide_unconfigured_ssids": "Hide Unconfigured SSIDs"
+        },
+        "data_description": {
+          "auto_enable_rtsp": "Automatically enable the RTSP stream for compatible cameras.",
+          "use_lan_ip_for_rtsp": "Use the camera's LAN IP address for the RTSP stream. Requires local network access.",
+          "enable_device_tracker": "Enable tracking of clients connected to the network.",
+          "enable_web_ui": "Enable the self-hosted web interface for advanced controls.",
+          "web_ui_port": "The port for the self-hosted web interface.",
+          "hide_unconfigured_ssids": "Hide SSIDs that are not fully configured."
         }
       },
       "advanced": {
@@ -77,6 +109,10 @@
         "data": {
           "webhook_url": "Webhook URL (optional)",
           "ignored_networks": "Ignored Networks (comma-separated)"
+        },
+        "data_description": {
+          "webhook_url": "The publicly accessible URL for Meraki webhooks. Leave empty to use Home Assistant's cloud link.",
+          "ignored_networks": "A comma-separated list of network IDs to ignore."
         }
       }
     }

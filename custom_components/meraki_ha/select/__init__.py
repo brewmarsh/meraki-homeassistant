@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import asyncio
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -35,4 +36,12 @@ async def async_setup_entry(
                     network,
                 )
             )
-        async_add_entities(select_entities)
+
+        if select_entities:
+            _LOGGER.debug("Adding %d select entities", len(select_entities))
+            chunk_size = 50
+            for i in range(0, len(select_entities), chunk_size):
+                chunk = select_entities[i:i + chunk_size]
+                async_add_entities(chunk)
+                if len(select_entities) > chunk_size:
+                    await asyncio.sleep(1)

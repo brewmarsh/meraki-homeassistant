@@ -1,6 +1,7 @@
 """Text platform for Meraki."""
 
 import logging
+import asyncio
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -35,6 +36,12 @@ async def async_setup_entry(
 
     _LOGGER.debug("Found %d text entities", len(text_entities))
     if text_entities:
-        async_add_entities(text_entities)
+        _LOGGER.debug("Adding %d text entities", len(text_entities))
+        chunk_size = 50
+        for i in range(0, len(text_entities), chunk_size):
+            chunk = text_entities[i:i + chunk_size]
+            async_add_entities(chunk)
+            if len(text_entities) > chunk_size:
+                await asyncio.sleep(1)
 
     return True
