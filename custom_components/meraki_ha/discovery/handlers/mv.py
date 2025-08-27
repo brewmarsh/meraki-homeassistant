@@ -80,6 +80,7 @@ class MVHandler(BaseDeviceHandler):
         entities.append(
             MerakiCamera(
                 self._coordinator,
+                self._config_entry,
                 self.device,
                 self._camera_service,
             )

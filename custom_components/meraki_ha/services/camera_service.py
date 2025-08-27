@@ -67,3 +67,7 @@ class CameraService:
     async def generate_snapshot(self, serial: str) -> Optional[str]:
         """Generate a snapshot and return the URL."""
         return await self._repository.generate_snapshot(serial)
+
+    async def async_set_rtsp_stream_enabled(self, serial: str, enabled: bool) -> None:
+        """Enable or disable RTSP stream for a camera."""
+        await self._repository.set_rtsp_stream_enabled(serial, enabled)

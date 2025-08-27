@@ -123,17 +123,30 @@ class DeviceDiscoveryService:
                 device.get("serial"),
             )
 
-            # The `create` method is responsible for selecting the correct
-            # services for the handler.
-            handler = handler_class.create(
-                self._coordinator,
-                device,
-                self._config_entry,
-                self._camera_service,
-                self._control_service,
-                self._network_control_service,
-                self._switch_port_coordinator,
-            )
+            # Pass the correct services to the handler based on its type
+            if model_prefix == "MV":
+                handler = handler_class(
+                    self._coordinator,
+                    device,
+                    self._config_entry,
+                    self._camera_service,
+                    self._control_service,
+                )
+            elif model_prefix in ("MX", "GX"):
+                handler = handler_class(
+                    self._coordinator,
+                    device,
+                    self._config_entry,
+                    self._control_service,
+                    self._network_control_service,
+                )
+            else:
+                handler = handler_class(
+                    self._coordinator,
+                    device,
+                    self._config_entry,
+                    self._control_service,
+                )
 
             entities = await handler.discover_entities()
             all_entities.extend(entities)

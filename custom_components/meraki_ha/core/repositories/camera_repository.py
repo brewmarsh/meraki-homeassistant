@@ -112,3 +112,12 @@ class CameraRepository:
         except Exception as e:
             _LOGGER.error("Error generating snapshot for %s: %s", serial, e)
             return None
+
+    async def set_rtsp_stream_enabled(self, serial: str, enabled: bool) -> None:
+        """Enable or disable RTSP stream for a camera."""
+        try:
+            await self._api_client.camera.update_device_camera_video_settings(
+                serial, rtsp_server_enabled=enabled
+            )
+        except Exception as e:
+            _LOGGER.error("Error setting RTSP stream for %s: %s", serial, e)

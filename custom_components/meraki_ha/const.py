@@ -38,6 +38,9 @@ CONF_WEBHOOK_URL: Final[str] = "webhook_url"
 CONF_AUTO_ENABLE_RTSP: Final[str] = "auto_enable_rtsp"
 """Configuration key for automatically enabling RTSP on cameras (str)."""
 
+CONF_RTSP_STREAM_ENABLED: Final[str] = "rtsp_stream_enabled"
+"""Configuration key for enabling RTSP stream on a camera (str)."""
+
 CONF_USE_LAN_IP_FOR_RTSP: Final[str] = "use_lan_ip_for_rtsp"
 """Configuration key for using LAN IP for RTSP stream (str)."""
 

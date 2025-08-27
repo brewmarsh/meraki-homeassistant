@@ -16,6 +16,14 @@ def mock_coordinator():
 
 
 @pytest.fixture
+def mock_config_entry():
+    """Fixture for a mocked ConfigEntry."""
+    entry = MagicMock()
+    entry.options = {"rtsp_stream_enabled": True}
+    return entry
+
+
+@pytest.fixture
 def mock_camera_service():
     """Fixture for a mocked CameraService."""
     service = AsyncMock()
@@ -25,11 +33,15 @@ def mock_camera_service():
 
 
 @pytest.mark.asyncio
-async def test_camera_stream_source(mock_coordinator, mock_camera_service):
+async def test_camera_stream_source(
+    mock_coordinator, mock_config_entry, mock_camera_service
+):
     """Test the camera stream source."""
     # Arrange
     device = MOCK_DEVICE.copy()
-    camera = MerakiCamera(mock_coordinator, device, mock_camera_service)
+    camera = MerakiCamera(
+        mock_coordinator, mock_config_entry, device, mock_camera_service
+    )
 
     # Act
     source = await camera.stream_source()
@@ -39,11 +51,13 @@ async def test_camera_stream_source(mock_coordinator, mock_camera_service):
 
 
 @pytest.mark.asyncio
-async def test_camera_image(mock_coordinator, mock_camera_service):
+async def test_camera_image(mock_coordinator, mock_config_entry, mock_camera_service):
     """Test the camera image."""
     # Arrange
     device = MOCK_DEVICE.copy()
-    camera = MerakiCamera(mock_coordinator, device, mock_camera_service)
+    camera = MerakiCamera(
+        mock_coordinator, mock_config_entry, device, mock_camera_service
+    )
 
     with patch(
         "custom_components.meraki_ha.camera.async_get_clientsession"
