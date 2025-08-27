@@ -70,11 +70,13 @@ class MSHandler(BaseDeviceHandler):
         _LOGGER.debug("Discovering entities for MS switch %s", self.device["serial"])
         entities: List[Entity] = []
 
-        # Add switch port sensors
+        # Add switch port sensors, but only for enabled ports to avoid flooding
+        # the entity registry.
         ports = self.device.get("ports_statuses", [])
         for port in ports:
-            entities.append(
-                SwitchPortSensor(self._switch_port_coordinator, self.device, port)
-            )
+            if port.get("enabled"):
+                entities.append(
+                    SwitchPortSensor(self._switch_port_coordinator, self.device, port)
+                )
 
         return entities

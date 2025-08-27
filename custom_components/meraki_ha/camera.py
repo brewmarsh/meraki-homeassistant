@@ -117,9 +117,16 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
                     self._device["serial"]
                 )
             except MerakiInformationalError as e:
-                _LOGGER.warning(
-                    "Could not retrieve stream for camera %s: %s", self.name, e
-                )
+                # Check for the specific, non-critical error about historical viewing
+                if "Historical viewing is not supported" in str(e):
+                    _LOGGER.info(
+                        "Could not retrieve stream for camera %s because it does not have cloud archive enabled. This is expected for this device.",
+                        self.name,
+                    )
+                else:
+                    _LOGGER.warning(
+                        "Could not retrieve stream for camera %s: %s", self.name, e
+                    )
                 self._stream_error = str(e)
                 self.async_write_ha_state()
         return self._rtsp_url
