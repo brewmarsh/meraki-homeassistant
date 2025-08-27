@@ -28,6 +28,8 @@ if TYPE_CHECKING:
     from ..services.camera_service import CameraService
     from ..services.device_control_service import DeviceControlService
     from ..services.network_control_service import NetworkControlService
+    from ...types import MerakiDevice
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -62,13 +64,20 @@ class DeviceDiscoveryService:
         self._camera_service = camera_service
         self._control_service = control_service
         self._network_control_service = network_control_service
+        self._devices: List[MerakiDevice] = self._coordinator.data.get("devices", [])
 
-    async def discover_devices(self) -> List["Entity"]:
-        """Discover Meraki devices and create corresponding entities."""
+    async def discover_entities(self) -> List["Entity"]:
+        """
+        Discover all entities for all devices and networks.
+
+        This method iterates through all devices in the organization and uses
+        the HANDLER_MAPPING to delegate entity creation to the appropriate
+        handler based on the device's model type. It also discovers
+        network-level and virtual SSID entities.
+        """
         all_entities: List["Entity"] = []
-        self._devices = self._coordinator.data.get("devices", [])
 
-        # Create network handler for network-wide entities
+        # Discover network-level entities
         network_handler = NetworkHandler(
             self._coordinator, self._config_entry, self._network_control_service
         )
@@ -104,7 +113,15 @@ class DeviceDiscoveryService:
             )
 
             # Pass the correct services to the handler based on its type
-            if model_prefix in ("MX", "GX"):
+            if model_prefix == "MV":
+                handler = handler_class(
+                    self._coordinator,
+                    device,
+                    self._config_entry,
+                    self._camera_service,
+                    self._control_service,
+                )
+            elif model_prefix in ("MX", "GX"):
                 handler = handler_class(
                     self._coordinator,
                     device,
@@ -117,7 +134,6 @@ class DeviceDiscoveryService:
                     self._coordinator,
                     device,
                     self._config_entry,
-                    self._camera_service,
                     self._control_service,
                 )
 

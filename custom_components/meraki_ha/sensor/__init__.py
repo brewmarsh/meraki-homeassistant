@@ -5,6 +5,11 @@ import logging
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
+from homeassistant.components.switch import SwitchEntity
+from homeassistant.components.text import TextEntity
+from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.button import ButtonEntity
 
 from ..const import DOMAIN, DATA_CLIENT
 from ..core.repository import MerakiRepository
@@ -12,6 +17,9 @@ from ..core.repositories.camera_repository import CameraRepository
 from ..services.device_control_service import DeviceControlService
 from ..services.camera_service import CameraService
 from ..services.network_control_service import NetworkControlService
+from ..discovery.service import DeviceDiscoveryService
+from ..camera import MerakiCamera
+from .setup_helpers import async_setup_sensors
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -27,21 +35,16 @@ async def async_setup_entry(
     coordinator = entry_data.get("coordinator")
     api_client = entry_data.get(DATA_CLIENT)
 
-    # Initialize repositories and services for the new architecture
-    # MerakiRepository is used for all general device services
-    meraki_repository = MerakiRepository(api_client)
-    control_service = DeviceControlService(meraki_repository)
+    # Instantiate repositories
+    repository = MerakiRepository(api_client)
+    camera_repository = CameraRepository(api_client)
 
-    # CameraRepository and CameraService are specifically for camera functionality
-    camera_repository = CameraRepository(api_client, api_client.organization_id)
+    # Instantiate services
+    control_service = DeviceControlService(repository)
     camera_service = CameraService(camera_repository)
-
-    # Instantiate the new NetworkControlService
     network_control_service = NetworkControlService(api_client, coordinator)
 
-    # New discovery service setup. We now pass both the control and camera services.
-    from ..discovery.service import DeviceDiscoveryService
-
+    # New discovery service setup. We now pass all necessary services.
     discovery_service = DeviceDiscoveryService(
         coordinator,
         config_entry,
@@ -50,8 +53,12 @@ async def async_setup_entry(
         control_service,
         network_control_service,
     )
-    # The discover_entities method is asynchronous and must be awaited
-    discovered_entities = await discovery_service.discover_devices()
+
+    # The discover_devices method is asynchronous and must be awaited
+    discovered_entities = await discovery_service.discover_entities()
+
+    # The new discovery service finds ALL entities, so we no longer need the
+    # legacy sensor setup.
 
     if discovered_entities:
         async_add_entities(discovered_entities)

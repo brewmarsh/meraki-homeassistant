@@ -9,6 +9,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
+from ..errors import MerakiInformationalError
+
 
 if TYPE_CHECKING:
     from ..api.client import MerakiAPIClient
@@ -71,6 +73,8 @@ class CameraRepository:
                 await self._api_client.camera.get_device_camera_video_link(serial)
             )
             return video_link_data.get("url")
+        except MerakiInformationalError:
+            raise  # Re-raise to be handled by the entity
         except Exception as e:
             _LOGGER.error("Error fetching video link for %s: %s", serial, e)
             return None

@@ -5,6 +5,7 @@
 This document outlines a refactoring plan for the `meraki-ha` custom component. The analysis of the provided logs reveals significant opportunities for optimization. The current implementation suffers from redundant API calls, potential race conditions during data updates, and inefficient data fetching strategies.
 
 The proposed refactoring focuses on the following key areas:
+
 - **Centralizing Data Fetching:** Introduce a unified data coordinator to eliminate duplicate API calls.
 - **Optimizing API Usage:** Leverage bulk API endpoints and implement concurrent API calls to reduce latency.
 - **Improving State Management:** Ensure atomic updates to prevent race conditions and data inconsistencies.
@@ -23,6 +24,7 @@ The most severe issue is the repeated fetching of the same data within short int
 - **Observation:** The logs show that `getOrganizationDevices` and `getOrganizationDevicesStatuses` are called multiple times. Many device-specific calls (e.g., `getDeviceSwitchPortsStatuses`, `getDeviceCameraSense`) are also duplicated for the same devices. This happens during the initial setup and again in what appears to be a subsequent, immediate refresh.
 
 - **Log Evidence:**
+
   - `getOrganizationDevices` called at `16:24:37.153`, `16:24:37.774`, and `16:24:50.950`.
   - A full sequence of device-specific API calls starting at `16:24:37.774` is repeated almost identically at `16:24:50.950`.
 
@@ -61,19 +63,22 @@ The following steps should be taken to address the issues identified above. No c
 
 - **Action:** Refactor the existing coordinators to use a single, primary data fetching mechanism. A "main" coordinator should be responsible for fetching all organization-level and network-level data once per update interval.
 - **Implementation:**
-    1.  Create a central `MerakiData` object or similar structure that holds all the data fetched from the API for one update cycle.
-    2.  The main coordinator will fetch `getOrganization`, `getOrganizationDevices`, `getOrganizationDevicesStatuses`, etc., and populate the `MerakiData` object.
-    3.  Other coordinators and entities should no longer make their own API calls. Instead, they should read the pre-fetched data from the central `MerakiData` object.
-    4.  This will eliminate all redundant API calls and ensure data consistency across the integration.
+
+1. Create a central `MerakiData` object or similar structure that holds all the data fetched from the API for one update cycle.
+2. The main coordinator will fetch `getOrganization`, `getOrganizationDevices`, `getOrganizationDevicesStatuses`, etc., and populate the `MerakiData` object.
+3. Other coordinators and entities should no longer make their own API calls. Instead, they should read the pre-fetched data from the central `MerakiData` object.
+4. This will eliminate all redundant API calls and ensure data consistency across the integration.
 
 ### 3.2. Optimize API Calls
 
 - **Action:** Modify the API client to use bulk endpoints and run API calls concurrently.
 - **Implementation:**
-    1.  **Use Bulk Endpoints:** Where possible, replace loops of single-device API calls with their bulk counterparts. For example, use `getOrganizationDevicesStatuses` and then distribute the results to the relevant device entities, rather than each device entity calling `getDeviceStatus`.
-    2.  **Concurrent Fetching:** For API calls that cannot be bulked, use `asyncio.gather` to run them concurrently. This will dramatically reduce the total time spent waiting for I/O.
+
+  1. **Use Bulk Endpoints:** Where possible, replace loops of single-device API calls with their bulk counterparts. For example, use `getOrganizationDevicesStatuses` and then distribute the results to the relevant device entities, rather than each device entity calling `getDeviceStatus`.
+  2. **Concurrent Fetching:** For API calls that cannot be bulked, use `asyncio.gather` to run them concurrently. This will dramatically reduce the total time spent waiting for I/O.
 
 - **Pseudocode Example for Concurrent Fetching:**
+
   ```python
   # In the main coordinator's _async_update_data method
 
@@ -106,9 +111,10 @@ The following steps should be taken to address the issues identified above. No c
 
 - **Action:** Correct the erroneous API calls and add more robust handling for different API responses.
 - **Implementation:**
-    1.  **Fix Attribute Errors:** Review the Meraki SDK documentation to find the correct methods for `getDeviceSensorCommand` and `getNetworkApplianceTraffic`. Replace the incorrect calls with the correct ones.
-    2.  **Handle Data Types:** For `get_device_appliance_uplinks`, the code should be updated to correctly process the dictionary that the API returns, instead of expecting a list.
-    3.  **Defensive Coding:** Add checks to validate the structure of API responses before trying to access nested keys. This will prevent `KeyError` or `TypeError` exceptions if the API returns an unexpected payload.
+
+1. **Fix Attribute Errors:** Review the Meraki SDK documentation to find the correct methods for `getDeviceSensorCommand` and `getNetworkApplianceTraffic`. Replace the incorrect calls with the correct ones.
+2. **Handle Data Types:** For `get_device_appliance_uplinks`, the code should be updated to correctly process the dictionary that the API returns, instead of expecting a list.
+3. **Defensive Coding:** Add checks to validate the structure of API responses before trying to access nested keys. This will prevent `KeyError` or `TypeError` exceptions if the API returns an unexpected payload.
 
 ### 3.4. Address Dependency Warnings
 
@@ -122,11 +128,11 @@ By creating this file, I am outlining the path to a more efficient and stable in
 The proposed refactoring is significant and carries risks. These should be addressed proactively.
 
 - **Risk 1: Over-Centralization (God Object):** The new central coordinator could become a monolithic object that is difficult to maintain.
-    - **Mitigation:** Design the central `MerakiData` object as a structured container of data, not a manager of logic. Use dataclasses or typed dictionaries for clear contracts. Components should only subscribe to or be passed the specific slices of data they need, not the entire object.
+  - **Mitigation:** Design the central `MerakiData` object as a structured container of data, not a manager of logic. Use dataclasses or typed dictionaries for clear contracts. Components should only subscribe to or be passed the specific slices of data they need, not the entire object.
 - **Risk 2: Fragile Error Handling:** A single failure in the central coordinator could break all entities.
-    - **Mitigation:** The coordinator's update process must be highly resilient. Use `asyncio.gather(..., return_exceptions=True)` to ensure that one failed API call doesn't stop others. The coordinator should log the error and continue to process the data that was successfully fetched. This allows for graceful degradation—some entities might show stale data, but the whole integration doesn't collapse.
+  - **Mitigation:** The coordinator's update process must be highly resilient. Use `asyncio.gather(..., return_exceptions=True)` to ensure that one failed API call doesn't stop others. The coordinator should log the error and continue to process the data that was successfully fetched. This allows for graceful degradation—some entities might show stale data, but the whole integration doesn't collapse.
 - **Risk 3: Increased Complexity:** The new layers of abstraction could make the data flow harder to trace.
-    - **Mitigation:** Document the new architecture clearly in the `DESIGN.md` or a similar developer-focused document. Add extensive logging with clear context (e.g., which coordinator is running, what data it's fetching) to make debugging easier.
+  - **Mitigation:** Document the new architecture clearly in the `DESIGN.md` or a similar developer-focused document. Add extensive logging with clear context (e.g., which coordinator is running, what data it's fetching) to make debugging easier.
 
 By addressing these risks head-on, we can ensure the refactoring leads to a more robust and maintainable codebase.
 
@@ -136,12 +142,12 @@ To further reduce API calls and improve resilience, a persistent, short-lived ca
 
 - **Problem:** The current data fetching is stateless. Every reload of the integration or restart of Home Assistant results in a full storm of API calls. Intermittent network failures or API errors can lead to missing entities until the next successful update.
 - **Recommendation:** Implement a persistent cache for API responses with a short Time-To-Live (TTL).
-    - **Mechanism:** Use a library like `cachetools` with a `TTLCache`. This cache can be stored in memory within the integration's global data.
-    - **TTL:** A TTL of 1-5 minutes is recommended. This provides a good balance between data freshness and API call reduction.
-    - **Benefits:**
-        1. **Reduced API Calls:** If the integration is reloaded or an entity is re-added within the TTL period, the cached data can be used, avoiding new API calls.
-        2. **Improved Startup Time:** The UI can feel more responsive on startup by initially loading cached data while a background refresh is in progress.
-        3. **Increased Resilience:** If an API call fails, the system can continue to operate with the last known good data until the cache expires and the next refresh succeeds.
+  - **Mechanism:** Use a library like `cachetools` with a `TTLCache`. This cache can be stored in memory within the integration's global data.
+  - **TTL:** A TTL of 1-5 minutes is recommended. This provides a good balance between data freshness and API call reduction.
+  - **Benefits:**
+    1. **Reduced API Calls:** If the integration is reloaded or an entity is re-added within the TTL period, the cached data can be used, avoiding new API calls.
+    2. **Improved Startup Time:** The UI can feel more responsive on startup by initially loading cached data while a background refresh is in progress.
+    3. **Increased Resilience:** If an API call fails, the system can continue to operate with the last known good data until the cache expires and the next refresh succeeds.
 
 ## 5. Code Modularity and File Size
 
@@ -149,17 +155,17 @@ To improve maintainability and adhere to the agent constraint of keeping files u
 
 - **Problem:** Several files in the codebase exceed 250 lines, making them difficult to manage and process for some agents.
 - **Identified Files:**
-    - `custom_components/meraki_ha/core/api/client.py` (666 lines)
-    - `custom_components/meraki_ha/sensor/device/camera_settings.py` (301 lines)
-    - `custom_components/meraki_ha/core/utils/device_types.py` (285 lines)
-    - `custom_components/meraki_ha/entity.py` (266 lines)
-    - `custom_components/meraki_ha/sensor/__init__.py` (252 lines)
+  - `custom_components/meraki_ha/core/api/client.py` (666 lines)
+  - `custom_components/meraki_ha/sensor/device/camera_settings.py` (301 lines)
+  - `custom_components/meraki_ha/core/utils/device_types.py` (285 lines)
+  - `custom_components/meraki_ha/entity.py` (266 lines)
+  - `custom_components/meraki_ha/sensor/__init__.py` (252 lines)
 - **Recommendation:** Break down these files into smaller, more focused modules.
-    - **`core/api/client.py`:** This is the most critical one. The single `ApiClient` class should be split. API calls for different Meraki products (e.g., MS for switches, MV for cameras, MR for wireless) can be grouped into separate helper classes or modules. For example, `core/api/camera.py`, `core/api/switch.py`, etc. The main `ApiClient` would then become a facade that delegates calls to these smaller modules.
-    - **`sensor/device/camera_settings.py`:** This file likely contains multiple sensor definitions related to camera settings. These can be split into individual files per sensor type if they are sufficiently complex.
-    - **`core/utils/device_types.py`:** A large file of utility functions or constants can be broken down by theme. For example, device type lookups could be in one file, and capability checks in another.
-    - **`entity.py`:** A base entity class with a lot of boilerplate can be simplified by moving some logic into helper functions or mixin classes.
-    - **`sensor/__init__.py`:** If this file is setting up multiple sensor platforms, that logic could be delegated to platform-specific setup files.
+  - **`core/api/client.py`:** This is the most critical one. The single `ApiClient` class should be split. API calls for different Meraki products (e.g., MS for switches, MV for cameras, MR for wireless) can be grouped into separate helper classes or modules. For example, `core/api/camera.py`, `core/api/switch.py`, etc. The main `ApiClient` would then become a facade that delegates calls to these smaller modules.
+  - **`sensor/device/camera_settings.py`:** This file likely contains multiple sensor definitions related to camera settings. These can be split into individual files per sensor type if they are sufficiently complex.
+  - **`core/utils/device_types.py`:** A large file of utility functions or constants can be broken down by theme. For example, device type lookups could be in one file, and capability checks in another.
+  - **`entity.py`:** A base entity class with a lot of boilerplate can be simplified by moving some logic into helper functions or mixin classes.
+  - **`sensor/__init__.py`:** If this file is setting up multiple sensor platforms, that logic could be delegated to platform-specific setup files.
 
 ## 6. Documentation Improvements
 
@@ -201,10 +207,10 @@ To make the sensor setup logic fully type-safe and compliant with `mypy`, the dy
 
 The proposed refactoring involves:
 
-1.  **Manual Inspection:** Analyze the `__init__` method of every sensor class defined in the integration.
-2.  **Categorize Sensors:** Group the sensor classes based on their constructor signature. For example, create separate lists for sensors that require `(coordinator, device_info)` and those that require `(coordinator, device_info, config_entry)`.
-3.  **Update `sensor_registry.py`:** Modify the `SENSOR_REGISTRY` or create new data structures to store these categorized lists of sensors.
-4.  **Refactor `setup_helpers.py`:** Replace the single, dynamic loop with multiple, explicit loops. Each new loop will iterate over a specific list of sensor classes and call their constructors with the correct, hard-coded set of arguments.
+1. **Manual Inspection:** Analyze the `__init__` method of every sensor class defined in the integration.
+2. **Categorize Sensors:** Group the sensor classes based on their constructor signature. For example, create separate lists for sensors that require `(coordinator, device_info)` and those that require `(coordinator, device_info, config_entry)`.
+3. **Update `sensor_registry.py`:** Modify the `SENSOR_REGISTRY` or create new data structures to store these categorized lists of sensors.
+4. **Refactor `setup_helpers.py`:** Replace the single, dynamic loop with multiple, explicit loops. Each new loop will iterate over a specific list of sensor classes and call their constructors with the correct, hard-coded set of arguments.
 
 This refactoring will remove the ambiguity that confuses `mypy`, resulting in a more robust and maintainable sensor setup process that can be fully validated by the type checker.
 
@@ -212,10 +218,10 @@ This refactoring will remove the ambiguity that confuses `mypy`, resulting in a 
 
 There is a failing test in `tests/test_integration_setup.py` that needs to be addressed.
 
-### Problem
+### Integration Test Problem
 
 The `test_ssid_device_creation_and_unification` test is failing with a `homeassistant.config_entries.OperationNotAllowed` error. This is because the `MockConfigEntry` is not in the `LOADED` state when the test is run.
 
-### Proposed Solution
+### Integration Test Solution
 
 The test needs to be refactored to correctly set up the `MockConfigEntry` and get it into the `LOADED` state before the integration setup is called. This may involve using a different mocking strategy or a more complete setup of the `hass` object.

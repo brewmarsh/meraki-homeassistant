@@ -38,3 +38,9 @@ class MerakiNetworkError(MerakiError):
     """Error to indicate a network-specific problem."""
 
     pass
+
+
+class MerakiInformationalError(MerakiError):
+    """Error to indicate an informational/non-critical problem."""
+
+    pass

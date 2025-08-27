@@ -27,6 +27,11 @@ from .core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
 from .core.repository import MerakiRepository
 from .web_server import MerakiWebServer
 from .webhook import async_register_webhook, async_unregister_webhook
+from .core.repository import MerakiRepository
+from .core.repositories.camera_repository import CameraRepository
+from .services.device_control_service import DeviceControlService
+from .services.camera_service import CameraService
+from .discovery.service import DeviceDiscoveryService
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -109,6 +114,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         server = MerakiWebServer(hass, coordinator, port)
         await server.start()
         hass.data[DOMAIN][entry.entry_id]["web_server"] = server
+
+    # Initialize repositories and services for the new architecture
+    meraki_repository = MerakiRepository(api_client)
+    control_service = DeviceControlService(meraki_repository)
+    camera_repository = CameraRepository(api_client, api_client.organization_id)
+    camera_service = CameraService(camera_repository)
+
+    # New discovery service setup. We now pass both the control and camera services.
+    discovery_service = DeviceDiscoveryService(
+        coordinator, entry, camera_service, control_service
+    )
+    # The discover_entities method is asynchronous and must be awaited
+    discovered_entities = await discovery_service.discover_entities()
+    hass.data[DOMAIN][entry.entry_id]["entities"] = discovered_entities
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
