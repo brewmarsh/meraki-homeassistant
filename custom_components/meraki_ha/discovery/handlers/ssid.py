@@ -10,7 +10,7 @@ import logging
 from typing import TYPE_CHECKING, List
 
 from ...text.meraki_ssid_name import MerakiSSIDNameText
-from .base import BaseDeviceHandler
+from .base import BaseHandler
 
 # Import the specific sensor classes
 from ...sensor.network.ssid_availability import MerakiSSIDAvailabilitySensor
@@ -50,7 +50,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class SSIDHandler(BaseDeviceHandler):
+class SSIDHandler(BaseHandler):
     """Handler for Meraki SSIDs."""
 
     def __init__(
@@ -60,7 +60,7 @@ class SSIDHandler(BaseDeviceHandler):
         meraki_client: "MerakiAPIClient",
     ) -> None:
         """Initialize the SSIDHandler."""
-        super().__init__(coordinator, None, config_entry, None)
+        super().__init__(coordinator, config_entry)
         self._meraki_client = meraki_client
 
     async def discover_entities(self) -> List[Entity]:

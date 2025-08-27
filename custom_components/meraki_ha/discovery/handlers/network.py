@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, List
 
-from .base import BaseDeviceHandler
+from .base import BaseHandler
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
 
 if TYPE_CHECKING:
@@ -22,18 +22,17 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class NetworkHandler(BaseDeviceHandler):
+class NetworkHandler(BaseHandler):
     """Handler for network-level entities."""
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        config_entry: ConfigEntry,
+        coordinator: "MerakiDataCoordinator",
+        config_entry: "ConfigEntry",
         network_control_service: "NetworkControlService",
     ) -> None:
         """Initialize the NetworkHandler."""
-        # This handler is not device-specific, so we pass None for the device.
-        super().__init__(coordinator, device=None, config_entry=config_entry, camera_service=None)
+        super().__init__(coordinator, config_entry)
         self._network_control_service = network_control_service
 
     async def discover_entities(self) -> List["Entity"]:

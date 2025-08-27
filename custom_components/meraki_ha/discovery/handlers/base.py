@@ -26,7 +26,25 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class BaseDeviceHandler(ABC):
+class BaseHandler(ABC):
+    """Base class for entity handlers."""
+
+    def __init__(
+        self,
+        coordinator: "MerakiDataCoordinator",
+        config_entry: "ConfigEntry",
+    ) -> None:
+        """Initialize the BaseHandler."""
+        self._coordinator = coordinator
+        self._config_entry = config_entry
+
+    @abstractmethod
+    async def discover_entities(self) -> List[Entity]:
+        """Discover entities."""
+        raise NotImplementedError("Subclasses must implement discover_entities")
+
+
+class BaseDeviceHandler(BaseHandler, ABC):
     """Base class for device-specific entity handlers."""
 
     def __init__(
@@ -36,9 +54,8 @@ class BaseDeviceHandler(ABC):
         config_entry: "ConfigEntry",
     ) -> None:
         """Initialize the BaseDeviceHandler."""
-        self._coordinator = coordinator
+        super().__init__(coordinator, config_entry)
         self.device = device
-        self._config_entry = config_entry
 
     @classmethod
     @abstractmethod
@@ -54,12 +71,3 @@ class BaseDeviceHandler(ABC):
     ) -> "BaseDeviceHandler":
         """Create an instance of the handler."""
         raise NotImplementedError
-
-    async def discover_entities(self) -> List[Entity]:
-        """
-        Discover entities for the device.
-
-        This method should be implemented by subclasses to return a list
-        of entities for the specific device type.
-        """
-        raise NotImplementedError("Subclasses must implement discover_entities")
