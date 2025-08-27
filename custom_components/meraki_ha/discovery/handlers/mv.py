@@ -10,11 +10,8 @@ import logging
 from typing import TYPE_CHECKING, List
 
 from .base import BaseDeviceHandler
-
-# These are no longer needed here as they are now handled by the import below
-# from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-# from ...services.camera_service import CameraService
 from ...camera import MerakiCamera
+from ...core.errors import MerakiInformationalError
 from ...sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
@@ -53,13 +50,9 @@ class MVHandler(BaseDeviceHandler):
 
     async def discover_entities(self) -> List[Entity]:
         """Discover entities for a camera device."""
-        _LOGGER.debug(
-            "Discovering entities for MV device: %s", self.device.get("serial")
-        )
+        _LOGGER.debug("Discovering entities for MV device: %s", self.device.get("serial"))
         entities: List[Entity] = []
         serial = self.device["serial"]
-
-        features = await self._camera_service.get_supported_analytics(serial)
 
         # Always create the base camera entity
         entities.append(
@@ -69,6 +62,9 @@ class MVHandler(BaseDeviceHandler):
                 self._camera_service,
             )
         )
+
+        # The rest of the sensors should probably be created regardless of stream availability
+        features = await self._camera_service.get_supported_analytics(serial)
 
         if "person_detection" in features:
             entities.append(

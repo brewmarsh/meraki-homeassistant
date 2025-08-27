@@ -5,22 +5,11 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.components.switch import SwitchEntity
 
 from ..const import (
     DOMAIN,
-    DATA_CLIENT,
 )
-from ..core.api.client import MerakiAPIClient
-from .meraki_ssid_device_switch import (
-    MerakiSSIDEnabledSwitch,
-    MerakiSSIDBroadcastSwitch,
-)
-from .camera_profiles import (
-    MerakiCameraSenseSwitch,
-    MerakiCameraAudioDetectionSwitch,
-)
-from .camera_schedules import MerakiCameraRTSPSwitch
-from .meraki_client_blocker import MerakiClientBlockerSwitch
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,22 +20,16 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki switch entities from a config entry."""
-    try:
-        entry_data = hass.data[DOMAIN][config_entry.entry_id]
-        meraki_client: MerakiAPIClient = entry_data[DATA_CLIENT]
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
 
-        # Get the main data coordinator for physical device switches (like camera settings)
-        coordinator = entry_data["coordinator"]
+    # Add discovered entities
+    discovered_entities = entry_data.get("entities", [])
 
-    except KeyError as e:
-        _LOGGER.error(
-            "Switch platform: Essential data not found in hass.data for entry %s. Error: %s",
-            config_entry.entry_id,
-            e,
-        )
-        return False
+    switch_entities = [e for e in discovered_entities if isinstance(e, SwitchEntity)]
 
-    new_entities: list = []
+    # The other switches are not created by the discovery service, so we need to create them here
+    coordinator = entry_data["coordinator"]
+    meraki_client = entry_data["client"]
 
     # Setup Camera Setting Switches
     if coordinator and coordinator.data and "devices" in coordinator.data:
@@ -59,7 +42,12 @@ async def async_setup_entry(
             model = str(device_info.get("model", "")).upper()
 
             if serial and (product_type == "camera" or model.startswith("MV")):
-                new_entities.extend(
+                from .camera_profiles import (
+                    MerakiCameraSenseSwitch,
+                    MerakiCameraAudioDetectionSwitch,
+                )
+                from .camera_schedules import MerakiCameraRTSPSwitch
+                switch_entities.extend(
                     [
                         MerakiCameraSenseSwitch(
                             coordinator, meraki_client, device_info
@@ -70,13 +58,9 @@ async def async_setup_entry(
                     ]
                 )
                 if not model.startswith("MV2"):
-                    new_entities.append(
+                    switch_entities.append(
                         MerakiCameraRTSPSwitch(coordinator, meraki_client, device_info),
                     )
-    else:
-        _LOGGER.info(
-            "No camera devices found or main coordinator data missing for camera switches."
-        )
 
     # Setup SSID Switches
     if coordinator and coordinator.data and "ssids" in coordinator.data:
@@ -86,7 +70,11 @@ async def async_setup_entry(
 
             if "networkId" not in ssid_data or "number" not in ssid_data:
                 continue
-            new_entities.extend(
+            from .meraki_ssid_device_switch import (
+                MerakiSSIDEnabledSwitch,
+                MerakiSSIDBroadcastSwitch,
+            )
+            switch_entities.extend(
                 [
                     MerakiSSIDEnabledSwitch(
                         coordinator,
@@ -102,10 +90,6 @@ async def async_setup_entry(
                     ),
                 ]
             )
-    else:
-        _LOGGER.info(
-            "Network Coordinator data not available or no SSIDs found for setting up SSID switches."
-        )
 
     # Setup Client Blocker Switches (for wireless clients)
     ssid_firewall_coordinators = entry_data.get("ssid_firewall_coordinators", {})
@@ -134,7 +118,8 @@ async def async_setup_entry(
                     )
 
                     if firewall_coordinator:
-                        new_entities.append(
+                        from .meraki_client_blocker import MerakiClientBlockerSwitch
+                        switch_entities.append(
                             MerakiClientBlockerSwitch(
                                 firewall_coordinator,
                                 config_entry,
@@ -142,7 +127,7 @@ async def async_setup_entry(
                             )
                         )
 
-    if new_entities:
-        async_add_entities(new_entities)
+    if switch_entities:
+        async_add_entities(switch_entities)
 
     return True

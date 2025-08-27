@@ -7,6 +7,16 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
+from .core.api.client import MerakiAPIClient
+from .core.repository import MerakiRepository
+from .core.repositories.camera_repository import CameraRepository
+from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from .core.coordinators.switch_port_status_coordinator import (
+    SwitchPortStatusCoordinator,
+)
+from .core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
+from .services.device_control_service import DeviceControlService
+from .services.camera_service import CameraService
 from .const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
@@ -20,11 +30,6 @@ from .const import (
     DOMAIN,
     PLATFORMS,
 )
-from .core.api.client import MerakiAPIClient
-from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-from .core.coordinators.switch_port_status_coordinator import SwitchPortStatusCoordinator
-from .core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
-from .core.repository import MerakiRepository
 from .web_server import MerakiWebServer
 from .webhook import async_register_webhook, async_unregister_webhook
 
@@ -74,7 +79,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     }
 
     # Create switch port status coordinator
-    repository = MerakiRepository(api_client)
+    repository = MerakiRepository(
+        api_client=api_client
+    )  # Initialize repository with API client
     switch_port_coordinator = SwitchPortStatusCoordinator(
         hass=hass,
         repository=repository,
@@ -82,7 +89,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         config_entry=entry,
     )
     await switch_port_coordinator.async_refresh()
-    hass.data[DOMAIN][entry.entry_id]["switch_port_coordinator"] = switch_port_coordinator
+    hass.data[DOMAIN][entry.entry_id][
+        "switch_port_coordinator"
+    ] = switch_port_coordinator
 
     # Create content filtering and firewall coordinators
     hass.data[DOMAIN][entry.entry_id]["ssid_firewall_coordinators"] = {}
@@ -109,6 +118,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         server = MerakiWebServer(hass, coordinator, port)
         await server.start()
         hass.data[DOMAIN][entry.entry_id]["web_server"] = server
+
+    # Initialize services for all device types
+    camera_repository = CameraRepository(api_client, api_client.organization_id)
+    camera_service = CameraService(camera_repository)
+    control_service = DeviceControlService(
+        repository
+    )  # Use the already created repository
+
+    # Setup device discovery service
+    from .discovery.service import DeviceDiscoveryService
+
+    discovery_service = DeviceDiscoveryService(
+        coordinator, entry, camera_service, control_service
+    )
+    discovered_entities = await discovery_service.discover_devices()
+    hass.data[DOMAIN][entry.entry_id]["entities"] = discovered_entities
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

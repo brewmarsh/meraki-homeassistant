@@ -85,6 +85,10 @@ DEFAULT_SCAN_INTERVAL: Final[int] = 300
 """Default scan interval in seconds for the Meraki API data (int)."""
 
 # Platform types
+PLATFORM_BINARY_SENSOR: Final[str] = "binary_sensor"
+"""Represents the binary_sensor platform (str)."""
+PLATFORM_BUTTON: Final[str] = "button"
+"""Represents the button platform (str)."""
 PLATFORM_SENSOR: Final[str] = "sensor"
 """Represents the sensor platform (str)."""
 PLATFORM_DEVICE_TRACKER: Final[str] = "device_tracker"
@@ -102,6 +106,8 @@ PLATFORM_CAMERA: Final[str] = "camera"
 
 
 PLATFORMS: Final[List[str]] = [
+    PLATFORM_BINARY_SENSOR,
+    PLATFORM_BUTTON,
     PLATFORM_SENSOR,
     PLATFORM_SWITCH,
     PLATFORM_TEXT,
