@@ -22,9 +22,14 @@ from ...button.device.camera_snapshot import MerakiSnapshotButton
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
+    from ....types import MerakiDevice
     from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
     from ...services.camera_service import CameraService
     from ...services.device_control_service import DeviceControlService
+    from ....services.network_control_service import NetworkControlService
+    from ....core.coordinators.switch_port_status_coordinator import (
+        SwitchPortStatusCoordinator,
+    )
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -35,22 +40,39 @@ class MVHandler(BaseDeviceHandler):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        device: dict,
-        config_entry: ConfigEntry,
-        camera_service: CameraService,
-        control_service: DeviceControlService,
+        coordinator: "MerakiDataCoordinator",
+        device: "MerakiDevice",
+        config_entry: "ConfigEntry",
+        camera_service: "CameraService",
+        control_service: "DeviceControlService",
     ) -> None:
         """Initialize the MVHandler."""
-        super().__init__(coordinator, device, config_entry, camera_service)
-        self._coordinator = coordinator
-        self._config_entry = config_entry
+        super().__init__(coordinator, device, config_entry)
         self._camera_service = camera_service
         self._control_service = control_service
 
+    @classmethod
+    def create(
+        cls,
+        coordinator: "MerakiDataCoordinator",
+        device: "MerakiDevice",
+        config_entry: "ConfigEntry",
+        camera_service: "CameraService",
+        control_service: "DeviceControlService",
+        network_control_service: "NetworkControlService",
+        switch_port_coordinator: "SwitchPortStatusCoordinator",
+    ) -> "MVHandler":
+        """Create an instance of the handler."""
+        return cls(
+            coordinator,
+            device,
+            config_entry,
+            camera_service,
+            control_service,
+        )
+
     async def discover_entities(self) -> List[Entity]:
         """Discover entities for a camera device."""
-        _LOGGER.debug("Discovering entities for MV device: %s", self.device.get("serial"))
         entities: List[Entity] = []
         serial = self.device["serial"]
 

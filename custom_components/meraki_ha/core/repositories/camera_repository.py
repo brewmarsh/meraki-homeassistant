@@ -72,7 +72,16 @@ class CameraRepository:
             video_link_data = (
                 await self._api_client.camera.get_device_camera_video_link(serial)
             )
-            return video_link_data.get("url")
+            url = video_link_data.get("url")
+            if url and url.startswith("rtsp"):
+                return url
+
+            _LOGGER.debug(
+                "API returned a non-RTSP URL for camera %s, assuming no stream available: %s",
+                serial,
+                url,
+            )
+            return None
         except MerakiInformationalError:
             raise  # Re-raise to be handled by the entity
         except Exception as e:

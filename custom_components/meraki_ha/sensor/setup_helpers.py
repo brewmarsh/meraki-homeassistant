@@ -17,8 +17,6 @@ from .network.network_clients import MerakiNetworkClientsSensor
 from .network.network_identity import MerakiNetworkIdentitySensor
 from .network.meraki_network_info import MerakiNetworkInfoSensor
 from .device.appliance_port import MerakiAppliancePortSensor
-from .device.switch_port import MerakiSwitchPortSensor
-from .network.ssid import create_ssid_sensors
 from .network.vlan import MerakiVLANSubnetSensor, MerakiVLANApplianceIpSensor
 from .device.appliance_uplink import MerakiApplianceUplinkSensor
 from .client_tracker import ClientTrackerDeviceSensor, MerakiClientSensor
@@ -85,32 +83,12 @@ def async_setup_sensors(
                     )
                     added_entities.add(unique_id)
 
-        # Switch port sensors
-        if product_type == "switch":
-            for port in device_info.get("ports_statuses", []):
-                unique_id = f"{serial}_port_{port['portId']}"
-                if unique_id not in added_entities:
-                    entities.append(
-                        MerakiSwitchPortSensor(
-                            coordinator, device_info, config_entry, port
-                        )
-                    )
-                    added_entities.add(unique_id)
-
     # Set up network-specific sensors
     networks = coordinator.data.get("networks", [])
     for network_data in networks:
         network_id = network_data.get("id")
         if not network_id:
             continue
-
-        # Network Clients Sensor
-        unique_id = f"meraki_network_clients_{network_id}"
-        if unique_id not in added_entities:
-            entities.append(
-                MerakiNetworkClientsSensor(coordinator, config_entry, network_data)
-            )
-            added_entities.add(unique_id)
 
         # Network Identity Sensor
         unique_id = f"meraki_network_identity_{network_id}"
@@ -127,12 +105,6 @@ def async_setup_sensors(
                 MerakiNetworkInfoSensor(coordinator, network_data, config_entry)
             )
             added_entities.add(unique_id)
-
-    # Set up SSID-specific sensors
-    ssids = coordinator.data.get("ssids", [])
-    for ssid_data in ssids:
-        if "networkId" in ssid_data and "number" in ssid_data:
-            entities.extend(create_ssid_sensors(coordinator, config_entry, ssid_data))
 
     # Set up Client Tracker sensors
     if config_entry.options.get(CONF_ENABLE_DEVICE_TRACKER, True):

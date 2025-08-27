@@ -7,16 +7,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.text import TextEntity
 
-from ..const import (
-    DOMAIN,
-    DATA_CLIENT,
-)
-from ..core.repository import MerakiRepository
-from ..core.repositories.camera_repository import CameraRepository
-from ..services.device_control_service import DeviceControlService
-from ..services.camera_service import CameraService
-from ..services.network_control_service import NetworkControlService
-from ..discovery.service import DeviceDiscoveryService
+from ..const import DOMAIN
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -28,30 +19,12 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki text entities from a config entry."""
-    entry_data = hass.data[DOMAIN][config_entry.entry_id]
-    coordinator = entry_data.get("coordinator")
-    api_client = entry_data.get(DATA_CLIENT)
+    entry_data = hass.data.get(DOMAIN, {}).get(config_entry.entry_id, {})
+    if not entry_data:
+        _LOGGER.warning("Meraki entry data not found for %s", config_entry.entry_id)
+        return False
 
-    # Instantiate repositories
-    repository = MerakiRepository(api_client)
-    camera_repository = CameraRepository(api_client)
-
-    # Instantiate services
-    control_service = DeviceControlService(repository)
-    camera_service = CameraService(camera_repository)
-    network_control_service = NetworkControlService(api_client, coordinator)
-
-    # New discovery service setup.
-    discovery_service = DeviceDiscoveryService(
-        coordinator,
-        config_entry,
-        api_client,
-        camera_service,
-        control_service,
-        network_control_service,
-    )
-    
-    discovered_entities = await discovery_service.discover_entities()
+    discovered_entities = entry_data.get("entities", [])
 
     # Filter for text entities
     text_entities = [
@@ -60,6 +33,7 @@ async def async_setup_entry(
         if isinstance(entity, TextEntity)
     ]
 
+    _LOGGER.debug("Found %d text entities", len(text_entities))
     if text_entities:
         async_add_entities(text_entities)
 

@@ -46,7 +46,13 @@ def test_discovery_service_init(
 ):
     """Test the initialization of the DeviceDiscoveryService."""
     service = DeviceDiscoveryService(
-        mock_coordinator, mock_config_entry, mock_camera_service, mock_control_service
+        coordinator=mock_coordinator,
+        config_entry=mock_config_entry,
+        meraki_client=MagicMock(),
+        switch_port_coordinator=MagicMock(),
+        camera_service=mock_camera_service,
+        control_service=mock_control_service,
+        network_control_service=MagicMock(),
     )
     assert service._coordinator is mock_coordinator
     assert len(service._devices) == 3
@@ -74,10 +80,13 @@ async def test_discover_entities_delegates_to_handler(
         {"MR": MockMRHandler, "MV": MockMVHandler},
     ):
         service = DeviceDiscoveryService(
-            mock_coordinator,
-            mock_config_entry,
-            mock_camera_service,
-            mock_control_service,
+            coordinator=mock_coordinator,
+            config_entry=mock_config_entry,
+            meraki_client=MagicMock(),
+            switch_port_coordinator=MagicMock(),
+            camera_service=mock_camera_service,
+            control_service=mock_control_service,
+            network_control_service=MagicMock(),
         )
 
         # Act
@@ -93,7 +102,6 @@ async def test_discover_entities_delegates_to_handler(
             mock_coordinator,
             mock_coordinator.data["devices"][0],
             mock_config_entry,
-            mock_camera_service,
             mock_control_service,
         )
         MockMVHandler.assert_called_once_with(

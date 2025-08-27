@@ -36,7 +36,6 @@ async def test_mr_handler_discover_entities(
         mock_coordinator,
         MOCK_DEVICE,
         mock_config_entry,
-        mock_camera_service,
         mock_control_service,
     )
     entities = await handler.discover_entities()

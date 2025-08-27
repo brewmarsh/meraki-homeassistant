@@ -9,32 +9,55 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, List
 
-from .base import BaseDeviceHandler
+from .base import BaseHandler
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
+    from ....types import MerakiDevice
     from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
     from ...services.network_control_service import NetworkControlService
+    from ....services.camera_service import CameraService
+    from ....services.device_control_service import DeviceControlService
+    from ....core.coordinators.switch_port_status_coordinator import (
+        SwitchPortStatusCoordinator,
+    )
 
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class NetworkHandler(BaseDeviceHandler):
+class NetworkHandler(BaseHandler):
     """Handler for network-level entities."""
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        config_entry: ConfigEntry,
+        coordinator: "MerakiDataCoordinator",
+        config_entry: "ConfigEntry",
         network_control_service: "NetworkControlService",
     ) -> None:
         """Initialize the NetworkHandler."""
-        # This handler is not device-specific, so we pass None for the device.
-        super().__init__(coordinator, device=None, config_entry=config_entry, camera_service=None)
+        super().__init__(coordinator, config_entry)
         self._network_control_service = network_control_service
+
+    @classmethod
+    def create(
+        cls,
+        coordinator: "MerakiDataCoordinator",
+        device: "MerakiDevice",
+        config_entry: "ConfigEntry",
+        camera_service: "CameraService",
+        control_service: "DeviceControlService",
+        network_control_service: "NetworkControlService",
+        switch_port_coordinator: "SwitchPortStatusCoordinator",
+    ) -> "NetworkHandler":
+        """Create an instance of the handler."""
+        return cls(
+            coordinator,
+            config_entry,
+            network_control_service,
+        )
 
     async def discover_entities(self) -> List["Entity"]:
         """Discover network-level entities."""

@@ -31,7 +31,8 @@ from .core.repository import MerakiRepository
 from .core.repositories.camera_repository import CameraRepository
 from .services.device_control_service import DeviceControlService
 from .services.camera_service import CameraService
-from .discovery.service import DeviceDiscoveryService
+from .services.network_control_service import NetworkControlService
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -120,10 +121,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     control_service = DeviceControlService(meraki_repository)
     camera_repository = CameraRepository(api_client, api_client.organization_id)
     camera_service = CameraService(camera_repository)
+    network_control_service = NetworkControlService(api_client, coordinator)
+
+    # Defer import to avoid circular dependencies and blocking startup
+    from .discovery.service import DeviceDiscoveryService
 
     # New discovery service setup. We now pass both the control and camera services.
     discovery_service = DeviceDiscoveryService(
-        coordinator, entry, camera_service, control_service
+        coordinator=coordinator,
+        config_entry=entry,
+        meraki_client=api_client,
+        switch_port_coordinator=switch_port_coordinator,
+        camera_service=camera_service,
+        control_service=control_service,
+        network_control_service=network_control_service,
     )
     # The discover_entities method is asynchronous and must be awaited
     discovered_entities = await discovery_service.discover_entities()
