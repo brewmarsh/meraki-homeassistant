@@ -19,6 +19,10 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki sensor entities from a config entry."""
+    # All entities are discovered and created in the main __init__.py's
+    # async_setup_entry function. They are stored in hass.data.
+    # This platform setup function simply needs to filter for the
+    # sensor entities that have already been created.
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
 
     # Add discovered entities
