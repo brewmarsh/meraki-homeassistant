@@ -9,7 +9,15 @@ from homeassistant.components.switch import SwitchEntity
 
 from ..const import (
     DOMAIN,
+    DATA_CLIENT,
 )
+from ..core.repository import MerakiRepository
+from ..core.repositories.camera_repository import CameraRepository
+from ..services.device_control_service import DeviceControlService
+from ..services.camera_service import CameraService
+from ..services.network_control_service import NetworkControlService
+from ..discovery.service import DeviceDiscoveryService
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,112 +29,37 @@ async def async_setup_entry(
 ) -> bool:
     """Set up Meraki switch entities from a config entry."""
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = entry_data.get("coordinator")
+    api_client = entry_data.get(DATA_CLIENT)
 
-    # Add discovered entities
-    discovered_entities = entry_data.get("entities", [])
+    # Instantiate repositories
+    repository = MerakiRepository(api_client)
+    camera_repository = CameraRepository(api_client)
 
-    switch_entities = [e for e in discovered_entities if isinstance(e, SwitchEntity)]
+    # Instantiate services
+    control_service = DeviceControlService(repository)
+    camera_service = CameraService(camera_repository)
+    network_control_service = NetworkControlService(api_client, coordinator)
+    
+    # Use the unified discovery service to find all entities
+    discovery_service = DeviceDiscoveryService(
+        coordinator,
+        config_entry,
+        api_client,
+        camera_service,
+        control_service,
+        network_control_service,
+    )
 
-    # The other switches are not created by the discovery service, so we need to create them here
-    coordinator = entry_data["coordinator"]
-    meraki_client = entry_data["client"]
+    discovered_entities = await discovery_service.discover_entities()
 
-    # Setup Camera Setting Switches
-    if coordinator and coordinator.data and "devices" in coordinator.data:
-        for device_info in coordinator.data["devices"]:
-            if not isinstance(device_info, dict):
-                continue
-
-            serial = device_info.get("serial")
-            product_type = str(device_info.get("productType", "")).lower()
-            model = str(device_info.get("model", "")).upper()
-
-            if serial and (product_type == "camera" or model.startswith("MV")):
-                from .camera_profiles import (
-                    MerakiCameraSenseSwitch,
-                    MerakiCameraAudioDetectionSwitch,
-                )
-                from .camera_schedules import MerakiCameraRTSPSwitch
-                switch_entities.extend(
-                    [
-                        MerakiCameraSenseSwitch(
-                            coordinator, meraki_client, device_info
-                        ),
-                        MerakiCameraAudioDetectionSwitch(
-                            coordinator, meraki_client, device_info
-                        ),
-                    ]
-                )
-                if not model.startswith("MV2"):
-                    switch_entities.append(
-                        MerakiCameraRTSPSwitch(coordinator, meraki_client, device_info),
-                    )
-
-    # Setup SSID Switches
-    if coordinator and coordinator.data and "ssids" in coordinator.data:
-        for ssid_data in coordinator.data["ssids"]:
-            if not isinstance(ssid_data, dict):
-                continue
-
-            if "networkId" not in ssid_data or "number" not in ssid_data:
-                continue
-            from .meraki_ssid_device_switch import (
-                MerakiSSIDEnabledSwitch,
-                MerakiSSIDBroadcastSwitch,
-            )
-            switch_entities.extend(
-                [
-                    MerakiSSIDEnabledSwitch(
-                        coordinator,
-                        meraki_client,
-                        config_entry,
-                        ssid_data,
-                    ),
-                    MerakiSSIDBroadcastSwitch(
-                        coordinator,
-                        meraki_client,
-                        config_entry,
-                        ssid_data,
-                    ),
-                ]
-            )
-
-    # Setup Client Blocker Switches (for wireless clients)
-    ssid_firewall_coordinators = entry_data.get("ssid_firewall_coordinators", {})
-
-    if coordinator and coordinator.data and "clients" in coordinator.data:
-        # Create a lookup to find an SSID's number by its name for a given network
-        ssid_lookup = {
-            (ssid["networkId"], ssid["name"]): ssid["number"]
-            for ssid in coordinator.data.get("ssids", [])
-        }
-
-        for client_data in coordinator.data["clients"]:
-            if not isinstance(client_data, dict) or "mac" not in client_data:
-                continue
-
-            network_id = client_data.get("networkId")
-            ssid_name = client_data.get("ssid")
-
-            # Only create blocker switches for wireless clients on a known SSID
-            if network_id and ssid_name:
-                ssid_number = ssid_lookup.get((network_id, ssid_name))
-                if ssid_number is not None:
-                    coordinator_key = f"{network_id}_{ssid_number}"
-                    firewall_coordinator = ssid_firewall_coordinators.get(
-                        coordinator_key
-                    )
-
-                    if firewall_coordinator:
-                        from .meraki_client_blocker import MerakiClientBlockerSwitch
-                        switch_entities.append(
-                            MerakiClientBlockerSwitch(
-                                firewall_coordinator,
-                                config_entry,
-                                client_data,
-                            )
-                        )
-
+    # Filter for switch entities
+    switch_entities = [
+        entity
+        for entity in discovered_entities
+        if isinstance(entity, SwitchEntity)
+    ]
+    
     if switch_entities:
         async_add_entities(switch_entities)
 

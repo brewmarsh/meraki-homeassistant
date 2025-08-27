@@ -9,7 +9,14 @@ from homeassistant.components.text import TextEntity
 
 from ..const import (
     DOMAIN,
+    DATA_CLIENT,
 )
+from ..core.repository import MerakiRepository
+from ..core.repositories.camera_repository import CameraRepository
+from ..services.device_control_service import DeviceControlService
+from ..services.camera_service import CameraService
+from ..services.network_control_service import NetworkControlService
+from ..discovery.service import DeviceDiscoveryService
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,35 +29,36 @@ async def async_setup_entry(
 ) -> bool:
     """Set up Meraki text entities from a config entry."""
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = entry_data.get("coordinator")
+    api_client = entry_data.get(DATA_CLIENT)
 
-    # Add discovered entities
-    discovered_entities = entry_data.get("entities", [])
+    # Instantiate repositories
+    repository = MerakiRepository(api_client)
+    camera_repository = CameraRepository(api_client)
 
-    text_entities = [e for e in discovered_entities if isinstance(e, TextEntity)]
+    # Instantiate services
+    control_service = DeviceControlService(repository)
+    camera_service = CameraService(camera_repository)
+    network_control_service = NetworkControlService(api_client, coordinator)
 
-    # The other text entities are not created by the discovery service, so we need to create them here
-    coordinator = entry_data["coordinator"]
-    meraki_client = entry_data["client"]
+    # New discovery service setup.
+    discovery_service = DeviceDiscoveryService(
+        coordinator,
+        config_entry,
+        api_client,
+        camera_service,
+        control_service,
+        network_control_service,
+    )
+    
+    discovered_entities = await discovery_service.discover_entities()
 
-    if coordinator and coordinator.data and "ssids" in coordinator.data:
-        ssids = coordinator.data["ssids"]
-        for ssid_data in ssids:
-            if not isinstance(ssid_data, dict):
-                continue
-            network_id = ssid_data.get("networkId")
-            ssid_number = ssid_data.get("number")
-            if not network_id or ssid_number is None:
-                continue
-
-            from .meraki_ssid_name import MerakiSSIDNameText
-            text_entities.append(
-                MerakiSSIDNameText(
-                    coordinator,
-                    meraki_client,
-                    config_entry,
-                    ssid_data,
-                )
-            )
+    # Filter for text entities
+    text_entities = [
+        entity
+        for entity in discovered_entities
+        if isinstance(entity, TextEntity)
+    ]
 
     if text_entities:
         async_add_entities(text_entities)

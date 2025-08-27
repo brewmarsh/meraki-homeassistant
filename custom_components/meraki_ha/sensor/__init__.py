@@ -11,9 +11,15 @@ from homeassistant.components.text import TextEntity
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.components.button import ButtonEntity
 
-from ..const import DOMAIN
-from .setup_helpers import async_setup_sensors
+from ..const import DOMAIN, DATA_CLIENT
+from ..core.repository import MerakiRepository
+from ..core.repositories.camera_repository import CameraRepository
+from ..services.device_control_service import DeviceControlService
+from ..services.camera_service import CameraService
+from ..services.network_control_service import NetworkControlService
+from ..discovery.service import DeviceDiscoveryService
 from ..camera import MerakiCamera
+from .setup_helpers import async_setup_sensors
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -27,24 +33,34 @@ async def async_setup_entry(
     """Set up Meraki sensor entities from a config entry."""
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
     coordinator = entry_data.get("coordinator")
+    api_client = entry_data.get(DATA_CLIENT)
 
-    # Legacy sensor setup
-    entities = async_setup_sensors(hass, config_entry, coordinator)
+    # Instantiate repositories
+    repository = MerakiRepository(api_client)
+    camera_repository = CameraRepository(api_client)
 
-    # Add discovered entities
-    discovered_entities = entry_data.get("entities", [])
+    # Instantiate services
+    control_service = DeviceControlService(repository)
+    camera_service = CameraService(camera_repository)
+    network_control_service = NetworkControlService(api_client, coordinator)
 
-    # Filter for sensor entities
-    sensor_entities = [
-        e
-        for e in discovered_entities
-        if not isinstance(e, (MerakiCamera, SwitchEntity, TextEntity, BinarySensorEntity, ButtonEntity))
-    ]
+    # New discovery service setup. We now pass all necessary services.
+    discovery_service = DeviceDiscoveryService(
+        coordinator,
+        config_entry,
+        api_client,
+        camera_service,
+        control_service,
+        network_control_service,
+    )
 
-    entities.extend(sensor_entities)
+    # The discover_devices method is asynchronous and must be awaited
+    discovered_entities = await discovery_service.discover_entities()
 
+    # The new discovery service finds ALL entities, so we no longer need the
+    # legacy sensor setup.
 
-    if entities:
-        async_add_entities(entities)
+    if discovered_entities:
+        async_add_entities(discovered_entities)
 
     return True
