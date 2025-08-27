@@ -18,10 +18,12 @@ from .handlers.gx import GXHandler
 from .handlers.ms import MSHandler
 from .handlers.mt import MTHandler
 from .handlers.network import NetworkHandler
+from .handlers.ssid import SSIDHandler
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
+    from ..core.api.client import MerakiAPIClient
     from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
     from ..services.camera_service import CameraService
     from ..services.device_control_service import DeviceControlService
@@ -48,6 +50,7 @@ class DeviceDiscoveryService:
         self,
         coordinator: "MerakiDataCoordinator",
         config_entry: "ConfigEntry",
+        meraki_client: "MerakiAPIClient",
         camera_service: "CameraService",
         control_service: "DeviceControlService",
         network_control_service: "NetworkControlService",
@@ -55,6 +58,7 @@ class DeviceDiscoveryService:
         """Initialize the DeviceDiscoveryService."""
         self._coordinator = coordinator
         self._config_entry = config_entry
+        self._meraki_client = meraki_client
         self._camera_service = camera_service
         self._control_service = control_service
         self._network_control_service = network_control_service
@@ -119,6 +123,13 @@ class DeviceDiscoveryService:
 
             entities = await handler.discover_entities()
             all_entities.extend(entities)
+
+        # Create SSID handler for virtual SSID devices
+        ssid_handler = SSIDHandler(
+            self._coordinator, self._config_entry, self._meraki_client
+        )
+        ssid_entities = await ssid_handler.discover_entities()
+        all_entities.extend(ssid_entities)
 
         _LOGGER.info("Entity discovery complete. Found %d entities.", len(all_entities))
         return all_entities

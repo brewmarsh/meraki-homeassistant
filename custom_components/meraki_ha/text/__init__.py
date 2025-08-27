@@ -5,14 +5,18 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.components.text import TextEntity
 
 from ..const import (
     DOMAIN,
     DATA_CLIENT,
 )
-from ..core.api.client import MerakiAPIClient
-from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-from .meraki_ssid_name import MerakiSSIDNameText
+from ..core.repository import MerakiRepository
+from ..core.repositories.camera_repository import CameraRepository
+from ..services.device_control_service import DeviceControlService
+from ..services.camera_service import CameraService
+from ..services.network_control_service import NetworkControlService
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,42 +27,38 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki text entities from a config entry."""
-    try:
-        entry_data = hass.data[DOMAIN][config_entry.entry_id]
-        meraki_client: MerakiAPIClient = entry_data[DATA_CLIENT]
-        coordinator: MerakiDataCoordinator = entry_data.get("coordinator")
-    except KeyError as e:
-        _LOGGER.error(
-            "Text platform: Essential data not found in hass.data for entry %s. Error: %s",
-            config_entry.entry_id,
-            e,
-        )
-        return False
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = entry_data.get("coordinator")
+    api_client = entry_data.get(DATA_CLIENT)
 
-    new_entities: list = []
+    # Initialize repositories and services for the new architecture
+    meraki_repository = MerakiRepository(api_client)
+    control_service = DeviceControlService(meraki_repository)
+    camera_repository = CameraRepository(api_client, api_client.organization_id)
+    camera_service = CameraService(camera_repository)
+    network_control_service = NetworkControlService(api_client, coordinator)
 
-    if coordinator and coordinator.data and "ssids" in coordinator.data:
-        ssids = coordinator.data["ssids"]
-        for ssid_data in ssids:
-            if not isinstance(ssid_data, dict):
-                continue
-            network_id = ssid_data.get("networkId")
-            ssid_number = ssid_data.get("number")
-            if not network_id or ssid_number is None:
-                continue
+    # New discovery service setup
+    from ..discovery.service import DeviceDiscoveryService
 
-            new_entities.append(
-                MerakiSSIDNameText(
-                    coordinator,
-                    meraki_client,
-                    config_entry,
-                    ssid_data,
-                )
-            )
-    else:
-        _LOGGER.info("No SSIDs found for setting up text entities.")
+    discovery_service = DeviceDiscoveryService(
+        coordinator,
+        config_entry,
+        api_client,
+        camera_service,
+        control_service,
+        network_control_service,
+    )
+    discovered_entities = await discovery_service.discover_devices()
 
-    if new_entities:
-        async_add_entities(new_entities)
+    # Filter for text entities
+    text_entities = [
+        entity
+        for entity in discovered_entities
+        if isinstance(entity, TextEntity)
+    ]
+
+    if text_entities:
+        async_add_entities(text_entities)
 
     return True

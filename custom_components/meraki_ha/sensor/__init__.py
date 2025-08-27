@@ -7,7 +7,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN, DATA_CLIENT
-from .setup_helpers import async_setup_sensors
 from ..core.repository import MerakiRepository
 from ..core.repositories.camera_repository import CameraRepository
 from ..services.device_control_service import DeviceControlService
@@ -40,24 +39,21 @@ async def async_setup_entry(
     # Instantiate the new NetworkControlService
     network_control_service = NetworkControlService(api_client, coordinator)
 
-    # Legacy sensor setup
-    entities = async_setup_sensors(hass, config_entry, coordinator)
-
     # New discovery service setup. We now pass both the control and camera services.
     from ..discovery.service import DeviceDiscoveryService
 
     discovery_service = DeviceDiscoveryService(
         coordinator,
         config_entry,
+        api_client,
         camera_service,
         control_service,
         network_control_service,
     )
     # The discover_entities method is asynchronous and must be awaited
     discovered_entities = await discovery_service.discover_devices()
-    entities.extend(discovered_entities)
 
-    if entities:
-        async_add_entities(entities)
+    if discovered_entities:
+        async_add_entities(discovered_entities)
 
     return True
