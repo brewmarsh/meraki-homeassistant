@@ -28,12 +28,13 @@ class MXHandler(BaseDeviceHandler):
         coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
-        camera_service: "CameraService",
         control_service: DeviceControlService,
+        network_control_service: "NetworkControlService",
     ) -> None:
         """Initialize the MXHandler."""
-        super().__init__(coordinator, device, config_entry, camera_service)
+        super().__init__(coordinator, device, config_entry, None)
         self._control_service = control_service
+        self._network_control_service = network_control_service
 
     async def discover_entities(self) -> List[Entity]:
         """Discover entities for the device."""
