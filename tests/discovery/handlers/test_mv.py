@@ -1,6 +1,6 @@
 """Tests for the MVHandler."""
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from custom_components.meraki_ha.camera import MerakiCamera
@@ -53,7 +53,14 @@ async def test_mv_handler_all_features(
     """Test that the MVHandler discovers all entities for a capable camera."""
     # Arrange
     device = MOCK_DEVICE.copy()
-    handler = MVHandler(mock_coordinator, device, mock_config_entry, mock_camera_service, mock_control_service)
+    with patch.multiple(MVHandler, __abstractmethods__=set()):
+        handler = MVHandler(
+            mock_coordinator,
+            device,
+            mock_config_entry,
+            mock_camera_service,
+            mock_control_service,
+        )
 
     # Act
     entities = await handler.discover_entities()
@@ -77,7 +84,14 @@ async def test_mv_handler_some_features(
     mock_camera_service.get_supported_analytics = AsyncMock(
         return_value=["person_detection"]
     )
-    handler = MVHandler(mock_coordinator, device, mock_config_entry, mock_camera_service, mock_control_service)
+    with patch.multiple(MVHandler, __abstractmethods__=set()):
+        handler = MVHandler(
+            mock_coordinator,
+            device,
+            mock_config_entry,
+            mock_camera_service,
+            mock_control_service,
+        )
 
     # Act
     entities = await handler.discover_entities()
@@ -99,7 +113,14 @@ async def test_mv_handler_no_extra_features(
     # Arrange
     device = MOCK_DEVICE.copy()
     mock_camera_service.get_supported_analytics = AsyncMock(return_value=[])
-    handler = MVHandler(mock_coordinator, device, mock_config_entry, mock_camera_service, mock_control_service)
+    with patch.multiple(MVHandler, __abstractmethods__=set()):
+        handler = MVHandler(
+            mock_coordinator,
+            device,
+            mock_config_entry,
+            mock_camera_service,
+            mock_control_service,
+        )
 
     # Act
     entities = await handler.discover_entities()
@@ -111,4 +132,3 @@ async def test_mv_handler_no_extra_features(
     assert not any(isinstance(e, MerakiVehicleCountSensor) for e in entities)
     assert any(isinstance(e, MerakiMotionSensor) for e in entities)
     assert any(isinstance(e, MerakiSnapshotButton) for e in entities)
-
