@@ -33,10 +33,12 @@ class MTHandler(BaseDeviceHandler):
         device: "MerakiDevice",
         config_entry: "ConfigEntry",
         control_service: "DeviceControlService",
+        network_control_service: "NetworkControlService",
     ) -> None:
         """Initialize the MTHandler."""
         super().__init__(coordinator, device, config_entry)
         self._control_service = control_service
+        self._network_control_service = network_control_service
 
     @classmethod
     def create(
@@ -55,6 +57,7 @@ class MTHandler(BaseDeviceHandler):
             device,
             config_entry,
             control_service,
+            network_control_service,
         )
 
     async def discover_entities(self) -> List[Entity]:

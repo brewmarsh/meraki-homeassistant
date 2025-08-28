@@ -45,11 +45,13 @@ class MVHandler(BaseDeviceHandler):
         config_entry: "ConfigEntry",
         camera_service: "CameraService",
         control_service: "DeviceControlService",
+        network_control_service: "NetworkControlService",
     ) -> None:
         """Initialize the MVHandler."""
         super().__init__(coordinator, device, config_entry)
         self._camera_service = camera_service
         self._control_service = control_service
+        self._network_control_service = network_control_service
 
     @classmethod
     def create(
@@ -69,6 +71,7 @@ class MVHandler(BaseDeviceHandler):
             config_entry,
             camera_service,
             control_service,
+            network_control_service,
         )
 
     async def discover_entities(self) -> List[Entity]:
