@@ -9,6 +9,27 @@ Your task is to refactor the Meraki MV camera integration to properly handle var
 
 ***
 
+### Camera Entity Requirements
+
+To ensure a consistent and feature-rich experience, all Meraki camera devices must have the following entities created by the `MVHandler`.
+
+- **`MerakiCamera`**: The main `camera` entity that displays the RTSP video stream.
+- **`MerakiMotionSensor`**: A `binary_sensor` that indicates motion.
+- **`MerakiSnapshotButton`**: A `button` entity to trigger a snapshot.
+- **`MerakiRtspUrlSensor`**: A `sensor` that displays the current RTSP stream URL.
+- **`RTSPStreamSwitch`**: A `switch` entity to enable or disable the RTSP stream.
+- **`AnalyticsSwitch`**: A `switch` entity to enable or disable camera analytics.
+
+**Conditional Entities:**
+- **`MerakiPersonCountSensor`**: A `sensor` for the person count, created only if the camera model supports person detection.
+- **`MerakiVehicleCountSensor`**: A `sensor` for the vehicle count, created only if the camera model supports vehicle detection.
+
+**Important Implementation Details:**
+- All camera-related entities must have a `device_info` property that correctly links them to the parent Meraki camera device in Home Assistant.
+- The on/off control for the RTSP stream must be handled by the `RTSPStreamSwitch` entity, not by methods on the `MerakiCamera` entity itself.
+
+***
+
 ### Refactor Plan for Meraki MV Cameras
 
 This plan builds on the existing architecture to implement a dynamic and feature-rich integration for Meraki MV cameras, properly handling the unique capabilities of each model.
