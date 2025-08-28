@@ -19,7 +19,7 @@ from .endpoints.network import NetworkEndpoints
 from .endpoints.organization import OrganizationEndpoints
 from .endpoints.switch import SwitchEndpoints
 from .endpoints.wireless import WirelessEndpoints
-from ...core.errors import MerakiNetworkError
+from ...core.errors import MerakiInformationalError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ class MerakiAPIClient:
         self.wireless = WirelessEndpoints(self)
 
         # Semaphore to limit concurrent API calls
-        self._semaphore = asyncio.Semaphore(5)
+        self._semaphore = asyncio.Semaphore(2)
 
     async def _run_sync(self, func, *args, **kwargs) -> Any:
         """Run a synchronous function in a thread pool."""
@@ -244,7 +244,7 @@ class MerakiAPIClient:
                         ssids.append(ssid)
 
             network_traffic = detail_data.get(f"traffic_{network['id']}")
-            if isinstance(network_traffic, MerakiNetworkError):
+            if isinstance(network_traffic, MerakiInformationalError):
                 if "traffic analysis" in str(network_traffic).lower():
                     _LOGGER.info(
                         "Traffic Analysis is not enabled for %s.", network["name"]
@@ -257,7 +257,7 @@ class MerakiAPIClient:
                 appliance_traffic[network["id"]] = network_traffic
 
             network_vlans = detail_data.get(f"vlans_{network['id']}")
-            if isinstance(network_vlans, MerakiNetworkError):
+            if isinstance(network_vlans, MerakiInformationalError):
                 if "vlans are not enabled" in str(network_vlans).lower():
                     _LOGGER.info("VLANs are not enabled for %s.", network["name"])
                 vlan_by_network[network["id"]] = []

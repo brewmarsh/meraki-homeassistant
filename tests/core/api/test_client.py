@@ -3,7 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
-from custom_components.meraki_ha.core.errors import MerakiNetworkError
+from custom_components.meraki_ha.core.errors import MerakiInformationalError
 from tests.const import MOCK_DEVICE, MOCK_NETWORK
 
 @pytest.fixture
@@ -93,8 +93,8 @@ def test_process_detailed_data_handles_errors(api_client, caplog):
     """Test that _process_detailed_data handles disabled features."""
     # Arrange
     detail_data = {
-        f"traffic_{MOCK_NETWORK['id']}": MerakiNetworkError("Traffic analysis is not enabled"),
-        f"vlans_{MOCK_NETWORK['id']}": MerakiNetworkError("VLANs are not enabled"),
+        f"traffic_{MOCK_NETWORK['id']}": MerakiInformationalError("Traffic analysis is not enabled"),
+        f"vlans_{MOCK_NETWORK['id']}": MerakiInformationalError("VLANs are not enabled"),
     }
 
     # Act
