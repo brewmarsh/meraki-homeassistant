@@ -8,8 +8,10 @@ from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
@@ -38,6 +40,11 @@ class MerakiAnalyticsSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEnti
             f"{self._device['name']} {object_type.capitalize()} Count"
         )
         self._analytics_data: Dict[str, Any] = {}
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information."""
+        return resolve_device_info(self._device, self.coordinator.config_entry)
 
     @property
     def native_value(self) -> Optional[int]:

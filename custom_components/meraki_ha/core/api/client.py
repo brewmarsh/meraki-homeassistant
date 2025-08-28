@@ -196,6 +196,11 @@ class MerakiAPIClient:
                         self.camera.get_camera_video_settings(device["serial"])
                     )
                 )
+                detail_tasks[f"sense_settings_{device['serial']}"] = (
+                    self._run_with_semaphore(
+                        self.camera.get_camera_sense_settings(device["serial"])
+                    )
+                )
             elif device.get("productType") == "switch":
                 detail_tasks[f"ports_statuses_{device['serial']}"] = (
                     self._run_with_semaphore(
@@ -265,6 +270,8 @@ class MerakiAPIClient:
             elif product_type == "camera":
                 if settings := detail_data.get(f"video_settings_{device['serial']}"):
                     device["video_settings"] = settings
+                if settings := detail_data.get(f"sense_settings_{device['serial']}"):
+                    device["sense_settings"] = settings
             elif product_type == "switch":
                 if statuses := detail_data.get(f"ports_statuses_{device['serial']}"):
                     device["ports_statuses"] = statuses

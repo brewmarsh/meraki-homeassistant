@@ -11,8 +11,10 @@ from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
 )
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
@@ -39,6 +41,11 @@ class MerakiMotionSensor(CoordinatorEntity[MerakiDataCoordinator], BinarySensorE
         self._attr_unique_id = f"{self._device['serial']}-motion"
         self._attr_name = f"{self._device['name']} Motion"
         self._motion_events: List[Dict[str, Any]] = []
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information."""
+        return resolve_device_info(self._device, self.coordinator.config_entry)
 
     @property
     def is_on(self) -> bool:

@@ -18,6 +18,8 @@ from ...sensor.device.camera_analytics import (
 )
 from ...binary_sensor.device.camera_motion import MerakiMotionSensor
 from ...button.device.camera_snapshot import MerakiSnapshotButton
+from ...sensor.device.rtsp_url import MerakiRtspUrlSensor
+from ...switch.camera_controls import RTSPStreamSwitch, AnalyticsSwitch
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -26,10 +28,7 @@ if TYPE_CHECKING:
     from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
     from ...services.camera_service import CameraService
     from ...services.device_control_service import DeviceControlService
-    from ....services.network_control_service import NetworkControlService
-    from ....core.coordinators.switch_port_status_coordinator import (
-        SwitchPortStatusCoordinator,
-    )
+    from ...core.api.client import MerakiAPIClient
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -45,31 +44,14 @@ class MVHandler(BaseDeviceHandler):
         config_entry: "ConfigEntry",
         camera_service: "CameraService",
         control_service: "DeviceControlService",
+        meraki_client: "MerakiAPIClient",
     ) -> None:
         """Initialize the MVHandler."""
         super().__init__(coordinator, device, config_entry)
         self._camera_service = camera_service
         self._control_service = control_service
+        self._meraki_client = meraki_client
 
-    @classmethod
-    def create(
-        cls,
-        coordinator: "MerakiDataCoordinator",
-        device: "MerakiDevice",
-        config_entry: "ConfigEntry",
-        camera_service: "CameraService",
-        control_service: "DeviceControlService",
-        network_control_service: "NetworkControlService",
-        switch_port_coordinator: "SwitchPortStatusCoordinator",
-    ) -> "MVHandler":
-        """Create an instance of the handler."""
-        return cls(
-            coordinator,
-            device,
-            config_entry,
-            camera_service,
-            control_service,
-        )
 
     async def discover_entities(self) -> List[Entity]:
         """Discover entities for a camera device."""
@@ -122,6 +104,31 @@ class MVHandler(BaseDeviceHandler):
                 self._coordinator,
                 self.device,
                 self._camera_service,
+            )
+        )
+
+        # Add RTSP URL sensor
+        entities.append(
+            MerakiRtspUrlSensor(
+                self._coordinator,
+                self.device,
+                self._camera_service,
+            )
+        )
+
+        # Add control switches
+        entities.append(
+            RTSPStreamSwitch(
+                self._coordinator,
+                self._meraki_client,
+                self.device,
+            )
+        )
+        entities.append(
+            AnalyticsSwitch(
+                self._coordinator,
+                self._meraki_client,
+                self.device,
             )
         )
 
