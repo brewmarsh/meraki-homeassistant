@@ -131,6 +131,7 @@ class CameraEndpoints:
         snapshot = await self._api_client._run_sync(
             self._dashboard.camera.generateDeviceCameraSnapshot,
             serial=serial,
+            fullframe=False,
         )
         validated = validate_response(snapshot)
         if not isinstance(validated, dict):
