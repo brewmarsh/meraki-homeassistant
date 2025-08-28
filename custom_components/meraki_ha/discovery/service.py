@@ -131,6 +131,7 @@ class DeviceDiscoveryService:
                     self._config_entry,
                     self._camera_service,
                     self._control_service,
+                    self._meraki_client,
                 )
             elif model_prefix in ("MX", "GX", "GR"):
                 handler = handler_class(
