@@ -7,10 +7,7 @@ import logging
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
 import aiohttp
-from homeassistant.components.camera import (
-    Camera,
-    CameraEntityFeature,
-)
+from homeassistant.components.camera import Camera
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -19,6 +16,12 @@ from .const import CONF_RTSP_STREAM_ENABLED, DOMAIN
 from .core.errors import MerakiInformationalError
 from .helpers.entity_helpers import format_entity_name
 from .core.utils.naming_utils import format_device_name
+
+try:
+    from homeassistant.components.camera import CameraEntityFeature
+    SUPPORT_STREAM = CameraEntityFeature.STREAM
+except (ImportError, AttributeError):
+    from homeassistant.components.camera import SUPPORT_STREAM
 
 
 if TYPE_CHECKING:
@@ -146,13 +149,9 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
         return attrs
 
     @property
-    def supported_features(self) -> CameraEntityFeature:
+    def supported_features(self) -> int:
         """Return supported features."""
-        return (
-            CameraEntityFeature.STREAM
-            | CameraEntityFeature.TURN_ON
-            | CameraEntityFeature.TURN_OFF
-        )
+        return SUPPORT_STREAM
 
     @property
     def is_streaming(self) -> bool:
