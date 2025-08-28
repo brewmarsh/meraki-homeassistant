@@ -12,7 +12,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from .const import CONF_RTSP_STREAM_ENABLED, DOMAIN
+from .const import DOMAIN
 from .core.errors import MerakiInformationalError
 from .helpers.entity_helpers import format_entity_name
 from .core.utils.naming_utils import format_device_name
@@ -116,10 +116,6 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
 
     async def stream_source(self) -> Optional[str]:
         """Return the source of the stream."""
-        if not self.is_on:
-            self._stream_error = "RTSP stream is disabled in configuration."
-            return None
-
         if self._rtsp_url is None and self._stream_error is None:
             try:
                 self._rtsp_url = await self._camera_service.get_video_stream_url(
@@ -157,30 +153,3 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
     def is_streaming(self) -> bool:
         """Return true if the camera is streaming."""
         return self._rtsp_url is not None
-
-    @property
-    def is_on(self) -> bool:
-        """Return true if the camera is on."""
-        return self._config_entry.options.get(CONF_RTSP_STREAM_ENABLED, False)
-
-    async def async_turn_on(self) -> None:
-        """Turn the camera on."""
-        await self._camera_service.async_set_rtsp_stream_enabled(
-            self._device["serial"], True
-        )
-        new_options = {**self._config_entry.options}
-        new_options[CONF_RTSP_STREAM_ENABLED] = True
-        self.hass.config_entries.async_update_entry(
-            self._config_entry, options=new_options
-        )
-
-    async def async_turn_off(self) -> None:
-        """Turn the camera off."""
-        await self._camera_service.async_set_rtsp_stream_enabled(
-            self._device["serial"], False
-        )
-        new_options = {**self._config_entry.options}
-        new_options[CONF_RTSP_STREAM_ENABLED] = False
-        self.hass.config_entries.async_update_entry(
-            self._config_entry, options=new_options
-        )

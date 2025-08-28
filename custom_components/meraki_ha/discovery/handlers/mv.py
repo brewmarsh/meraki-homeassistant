@@ -52,6 +52,27 @@ class MVHandler(BaseDeviceHandler):
         self._control_service = control_service
         self._meraki_client = meraki_client
 
+    @classmethod
+    def create(
+        cls,
+        coordinator: "MerakiDataCoordinator",
+        device: "MerakiDevice",
+        config_entry: "ConfigEntry",
+        camera_service: "CameraService",
+        control_service: "DeviceControlService",
+        network_control_service: "NetworkControlService",
+        switch_port_coordinator: "SwitchPortStatusCoordinator",
+        meraki_client: "MerakiAPIClient",
+    ) -> "MVHandler":
+        """Create an instance of the handler."""
+        return cls(
+            coordinator,
+            device,
+            config_entry,
+            camera_service,
+            control_service,
+            meraki_client,
+        )
 
     async def discover_entities(self) -> List[Entity]:
         """Discover entities for a camera device."""
