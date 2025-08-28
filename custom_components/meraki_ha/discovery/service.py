@@ -132,7 +132,7 @@ class DeviceDiscoveryService:
                     self._camera_service,
                     self._control_service,
                 )
-            elif model_prefix in ("MX", "GX"):
+            elif model_prefix in ("MX", "GX", "GR"):
                 handler = handler_class(
                     self._coordinator,
                     device,
