@@ -12,6 +12,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
+from homeassistant.const import CONF_API_KEY
 from .const import DOMAIN
 from .core.errors import MerakiInformationalError
 from .helpers.entity_helpers import format_entity_name
@@ -106,8 +107,10 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
             return None
 
         try:
+            api_key = self._config_entry.data[CONF_API_KEY]
+            headers = {"X-Cisco-Meraki-API-Key": api_key}
             session = async_get_clientsession(self.hass)
-            async with session.get(url) as response:
+            async with session.get(url, headers=headers) as response:
                 response.raise_for_status()
                 return await response.read()
         except aiohttp.ClientError as e:

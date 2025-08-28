@@ -43,9 +43,9 @@ class MerakiAPIClient:
         self._dashboard = meraki.DashboardAPI(
             api_key=api_key,
             base_url=base_url,
-            output_log=True,
+            output_log=False,
             print_console=False,
-            suppress_logging=False,
+            suppress_logging=True,
             maximum_retries=3,
             wait_on_rate_limit=True,
             nginx_429_retry_wait_time=2,
@@ -60,7 +60,7 @@ class MerakiAPIClient:
         self.wireless = WirelessEndpoints(self)
 
         # Semaphore to limit concurrent API calls
-        self._semaphore = asyncio.Semaphore(10)
+        self._semaphore = asyncio.Semaphore(5)
 
     async def _run_sync(self, func, *args, **kwargs) -> Any:
         """Run a synchronous function in a thread pool."""
