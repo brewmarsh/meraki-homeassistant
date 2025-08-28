@@ -66,24 +66,31 @@ class CameraRepository:
             _LOGGER.error("Error fetching analytics data for %s: %s", serial, e)
             return None
 
-    async def get_video_url(self, serial: str) -> Optional[str]:
-        """Get the video stream URL for a camera."""
+    async def async_get_rtsp_stream_url(self, serial: str) -> Optional[str]:
+        """
+        Get the RTSP video stream URL for a camera.
+
+        This method validates that the URL is a valid RTSP stream URL.
+        """
         try:
             video_link_data = (
                 await self._api_client.camera.get_device_camera_video_link(serial)
             )
             url = video_link_data.get("url")
-            if url and url.startswith("rtsp"):
+
+            # Validate that we received a valid RTSP URL
+            if url and url.startswith("rtsp://"):
                 return url
 
-            _LOGGER.debug(
-                "API returned a non-RTSP URL for camera %s, assuming no stream available: %s",
-                serial,
-                url,
-            )
+            # If we get a non-RTSP URL, log it and return None
+            if url:
+                _LOGGER.debug(
+                    "API returned a non-RTSP URL, assuming no stream available: %s",
+                    url,
+                )
             return None
         except MerakiInformationalError:
-            raise  # Re-raise to be handled by the entity
+            raise  # Re-raise to be handled by the service/entity
         except Exception as e:
             _LOGGER.error("Error fetching video link for %s: %s", serial, e)
             return None

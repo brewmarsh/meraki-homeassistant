@@ -98,10 +98,10 @@ async def test_handle_meraki_errors():
 
 def test_validate_response():
     """Test the validate_response function."""
-    with pytest.raises(MerakiConnectionError):
-        validate_response(None)
-    with pytest.raises(MerakiConnectionError):
-        validate_response({})
+    # Now returns an empty dict instead of raising an error
+    assert validate_response(None) == {}
+    # Now returns the empty dict instead of raising an error
+    assert validate_response({}) == {}
     assert validate_response({"key": "value"}) == {"key": "value"}
     assert validate_response([1, 2, 3]) == [1, 2, 3]
     assert validate_response("string") == {"value": "string"}

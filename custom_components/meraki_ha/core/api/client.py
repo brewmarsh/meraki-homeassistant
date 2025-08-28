@@ -201,6 +201,12 @@ class MerakiAPIClient:
                         self.camera.get_camera_sense_settings(device["serial"])
                     )
                 )
+                # Also fetch the video link so we can get the RTSP stream URL
+                detail_tasks[f"video_link_{device['serial']}"] = (
+                    self._run_with_semaphore(
+                        self.camera.get_device_camera_video_link(device["serial"])
+                    )
+                )
             elif device.get("productType") == "switch":
                 detail_tasks[f"ports_statuses_{device['serial']}"] = (
                     self._run_with_semaphore(
@@ -272,6 +278,11 @@ class MerakiAPIClient:
                     device["video_settings"] = settings
                 if settings := detail_data.get(f"sense_settings_{device['serial']}"):
                     device["sense_settings"] = settings
+                if video_link := detail_data.get(f"video_link_{device['serial']}"):
+                    if isinstance(video_link, dict):
+                        device["rtsp_url"] = video_link.get("url")
+                    else:
+                        device["rtsp_url"] = None
             elif product_type == "switch":
                 if statuses := detail_data.get(f"ports_statuses_{device['serial']}"):
                     device["ports_statuses"] = statuses

@@ -3,7 +3,9 @@
 import asyncio
 import functools
 import logging
+from json import JSONDecodeError
 from typing import Any, Awaitable, Callable, Dict, List, TypeVar, Union, cast
+
 from aiohttp import ClientError
 from meraki.exceptions import APIError  # type: ignore
 
@@ -43,6 +45,9 @@ def handle_meraki_errors(
         """Wrap the API function with error handling."""
         try:
             return await func(*args, **kwargs)
+        except JSONDecodeError as err:
+            _LOGGER.warning("Empty or invalid JSON response from API: %s", err)
+            return cast(T, {})
         except APIError as err:
             if _is_informational_error(err):
                 raise MerakiInformationalError(f"Informational error: {err}")
@@ -126,38 +131,33 @@ def _is_informational_error(err: APIError) -> bool:
 
 
 def validate_response(response: Any) -> Union[Dict[str, Any], List[Any]]:
-    """Validate and normalize an API response.
+    """
+    Validate and normalize an API response.
 
     Args:
         response: The API response to validate
 
     Returns:
-        Normalized response dictionary
-
-    Raises:
-        MerakiConnectionError: If response is invalid or empty
+        Normalized response dictionary or list. Returns an empty dict if the
+        response is None or an empty dict.
     """
     if response is None:
-        _LOGGER.warning("Empty response from API")
-        raise MerakiConnectionError("Empty response from API")
+        _LOGGER.warning("Empty response from API, returning empty dictionary.")
+        return {}
 
     if isinstance(response, dict):
-        if not response:  # Empty dict
-            _LOGGER.warning("Empty response dictionary")
-            raise MerakiConnectionError("Empty response dictionary")
+        if not response:
+            _LOGGER.warning("Empty response dictionary from API, returning as-is.")
         return response
 
     if isinstance(response, list):
-        # Lists are common responses, return them as is
         return response
 
     if isinstance(response, (str, int, float, bool)):
-        # Single values should be wrapped in a proper structure
         return {"value": response}
 
     _LOGGER.warning(
         "Invalid response format: %s. Expected dict or list.", type(response)
     )
-    raise MerakiConnectionError(
-        f"Invalid response format: {type(response)}. Expected dict or list."
-    )
+    # To maintain stability, we'll return an empty dict for unknown types
+    return {}
