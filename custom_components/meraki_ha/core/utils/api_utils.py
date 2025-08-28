@@ -2,6 +2,7 @@
 
 import asyncio
 import functools
+import inspect
 import logging
 from json import JSONDecodeError
 from typing import Any, Awaitable, Callable, Dict, List, TypeVar, Union, cast
@@ -26,18 +27,14 @@ _LOGGER = logging.getLogger(__name__)
 def handle_meraki_errors(
     func: Callable[..., Awaitable[T]],
 ) -> Callable[..., Awaitable[T]]:
-    """Decorate to handle Meraki API errors consistently.
+    """
+    Decorate to handle Meraki API errors consistently.
 
     This decorator:
     1. Converts Meraki exceptions to our custom exceptions
     2. Adds logging for API errors
     3. Includes proper rate limit handling
-
-    Args:
-        func: The API function to wrap
-
-    Returns:
-        Wrapped function with error handling
+    4. Handles empty/invalid responses by returning a type-safe empty value
     """
 
     @functools.wraps(func)
@@ -45,8 +42,20 @@ def handle_meraki_errors(
         """Wrap the API function with error handling."""
         try:
             return await func(*args, **kwargs)
-        except JSONDecodeError as err:
-            _LOGGER.warning("Empty or invalid JSON response from API: %s", err)
+        except (JSONDecodeError, MerakiConnectionError) as err:
+            _LOGGER.warning(
+                "API call %s failed with an empty or invalid response: %s",
+                func.__name__,
+                err,
+            )
+            # Inspect the wrapped function's return type to return a safe empty value
+            sig = inspect.signature(func)
+            return_type = sig.return_annotation
+            if return_type == list or getattr(return_type, "__origin__", None) in (
+                list,
+                List,
+            ):
+                return cast(T, [])
             return cast(T, {})
         except APIError as err:
             if _is_informational_error(err):
@@ -131,23 +140,23 @@ def _is_informational_error(err: APIError) -> bool:
 
 
 def validate_response(response: Any) -> Union[Dict[str, Any], List[Any]]:
-    """
-    Validate and normalize an API response.
+    """Validate and normalize an API response.
 
     Args:
         response: The API response to validate
 
     Returns:
-        Normalized response dictionary or list. Returns an empty dict if the
-        response is None or an empty dict.
+        Normalized response dictionary
+
+    Raises:
+        MerakiConnectionError: If response is invalid or empty
     """
     if response is None:
-        _LOGGER.warning("Empty response from API, returning empty dictionary.")
-        return {}
+        raise MerakiConnectionError("Empty response from API")
 
     if isinstance(response, dict):
         if not response:
-            _LOGGER.warning("Empty response dictionary from API, returning as-is.")
+            _LOGGER.warning("Empty response dictionary from API")
         return response
 
     if isinstance(response, list):
@@ -156,8 +165,6 @@ def validate_response(response: Any) -> Union[Dict[str, Any], List[Any]]:
     if isinstance(response, (str, int, float, bool)):
         return {"value": response}
 
-    _LOGGER.warning(
-        "Invalid response format: %s. Expected dict or list.", type(response)
+    raise MerakiConnectionError(
+        f"Invalid response format: {type(response)}. Expected dict or list."
     )
-    # To maintain stability, we'll return an empty dict for unknown types
-    return {}

@@ -80,6 +80,9 @@ async def dummy_api_call_generic_error():
     raise Exception("test")
 
 
+from typing import Dict, List
+
+
 @pytest.mark.asyncio
 async def test_handle_meraki_errors():
     """Test the handle_meraki_errors decorator."""
@@ -96,11 +99,31 @@ async def test_handle_meraki_errors():
         await dummy_api_call_generic_error()
 
 
+@handle_meraki_errors
+async def dummy_api_call_empty_dict() -> Dict[str, str]:
+    """A dummy API call that raises an error and expects a dict."""
+    raise MerakiConnectionError("test")
+
+
+@handle_meraki_errors
+async def dummy_api_call_empty_list() -> List[str]:
+    """A dummy API call that raises an error and expects a list."""
+    raise MerakiConnectionError("test")
+
+
+@pytest.mark.asyncio
+async def test_handle_meraki_errors_empty_response():
+    """Test that the decorator returns a type-safe empty value."""
+    assert await dummy_api_call_empty_dict() == {}
+    assert await dummy_api_call_empty_list() == []
+
+
 def test_validate_response():
     """Test the validate_response function."""
-    # Now returns an empty dict instead of raising an error
-    assert validate_response(None) == {}
-    # Now returns the empty dict instead of raising an error
+    with pytest.raises(MerakiConnectionError):
+        validate_response(None)
+
+    # Empty dicts are now allowed, but will log a warning
     assert validate_response({}) == {}
     assert validate_response({"key": "value"}) == {"key": "value"}
     assert validate_response([1, 2, 3]) == [1, 2, 3]
