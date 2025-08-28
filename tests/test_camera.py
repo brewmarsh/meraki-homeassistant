@@ -108,6 +108,43 @@ async def test_camera_turn_off(mock_coordinator, mock_config_entry, mock_camera_
     mock_coordinator.async_request_refresh.assert_called_once()
 
 
+@pytest.mark.parametrize(
+    "video_settings, rtsp_url, expected_is_streaming",
+    [
+        ({"rtspServerEnabled": True}, "rtsp://test.com/stream", True),
+        ({"rtspServerEnabled": False}, "rtsp://test.com/stream", False),
+        ({"rtspServerEnabled": True}, None, False),
+        ({"rtspServerEnabled": True}, "http://test.com/stream", False),
+        ({}, "rtsp://test.com/stream", False),
+    ],
+)
+def test_is_streaming_logic(
+    mock_coordinator,
+    mock_config_entry,
+    mock_camera_service,
+    video_settings,
+    rtsp_url,
+    expected_is_streaming,
+):
+    """Test the logic of the is_streaming property."""
+    # Arrange
+    mock_device_data = {
+        **MOCK_CAMERA_DEVICE,
+        "video_settings": video_settings,
+        "rtsp_url": rtsp_url,
+    }
+    mock_coordinator.get_device.return_value = mock_device_data
+    camera = MerakiCamera(
+        mock_coordinator,
+        mock_config_entry,
+        mock_device_data,
+        mock_camera_service,
+    )
+
+    # Act & Assert
+    assert camera.is_streaming == expected_is_streaming
+
+
 @pytest.mark.asyncio
 async def test_camera_image(mock_coordinator, mock_config_entry, mock_camera_service):
     """Test the camera image fetching."""

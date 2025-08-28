@@ -116,11 +116,8 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
 
     async def stream_source(self) -> Optional[str]:
         """Return the source of the stream, if enabled."""
-        if not self.is_streaming:
-            return None
-        url = self.device_data.get("rtsp_url")
-        if url and isinstance(url, str) and url.startswith("rtsp://"):
-            return url
+        if self.is_streaming:
+            return self.device_data.get("rtsp_url")
         return None
 
     @property
@@ -143,9 +140,20 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
 
     @property
     def is_streaming(self) -> bool:
-        """Return true if the camera is streaming."""
+        """
+        Return true if the camera is streaming.
+
+        This requires both the rtspServerEnabled setting to be true and a
+        valid rtsp:// URL to be available.
+        """
         video_settings = self.device_data.get("video_settings", {})
-        return video_settings.get("rtspServerEnabled", False)
+        if not video_settings.get("rtspServerEnabled", False):
+            return False
+
+        url = self.device_data.get("rtsp_url")
+        return (
+            url is not None and isinstance(url, str) and url.startswith("rtsp://")
+        )
 
     async def async_turn_on(self) -> None:
         """Turn on the camera stream."""
