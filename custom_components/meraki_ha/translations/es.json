@@ -2,10 +2,10 @@
   "config": {
     "step": {
       "user": {
-        "description": "TODO_TRANSLATE Configure Meraki API Credentials",
+        "description": "Configure Meraki API Credentials",
         "data": {
-          "meraki_api_key": "TODO_TRANSLATE Meraki API Key",
-          "meraki_org_id": "TODO_TRANSLATE Meraki Organization ID",
+          "meraki_api_key": "Meraki API Key",
+          "meraki_org_id": "Meraki Organization ID",
           "scan_interval": "Intervalo de escaneo (segundos)",
           "device_name_format": "Formato del nombre del dispositivo"
         },
@@ -18,19 +18,19 @@
       }
     },
     "error": {
-      "invalid_auth": "TODO_TRANSLATE Invalid API key.",
-      "invalid_org_id": "TODO_TRANSLATE Invalid Organization ID.",
-      "cannot_connect": "TODO_TRANSLATE Cannot connect to Meraki API.",
-      "unknown": "TODO_TRANSLATE An unknown error occurred."
+      "invalid_auth": "Invalid API key.",
+      "invalid_org_id": "Invalid Organization ID.",
+      "cannot_connect": "Cannot connect to Meraki API.",
+      "unknown": "An unknown error occurred."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "TODO_TRANSLATE Meraki Options",
+        "title": "Meraki Options",
         "data": {
           "device_name_format": "Formato del nombre del dispositivo",
-          "scan_interval": "TODO_TRANSLATE Scan Interval (seconds)"
+          "scan_interval": "Scan Interval (seconds)"
         },
         "data_description": {
           "scan_interval": "Con qué frecuencia (en segundos) la integración debe consultar la API del Dashboard de Meraki para obtener actualizaciones. Un interval más corto significa sensores más receptivos pero más llamadas API.",
@@ -42,29 +42,29 @@
   "entity": {
     "sensor": {
       "meraki_wan1_connectivity": {
-        "name": "TODO_TRANSLATE WAN 1 Connectivity"
+        "name": "WAN 1 Connectivity"
       },
       "meraki_wan2_connectivity": {
-        "name": "TODO_TRANSLATE WAN 2 Connectivity"
+        "name": "WAN 2 Connectivity"
       },
       "meraki_network_info": {
-        "name": "TODO_TRANSLATE Network Information"
+        "name": "Network Information"
       },
       "meraki_firmware_status": {
-        "name": "TODO_TRANSLATE Firmware Status"
+        "name": "Firmware Status"
       }
     }
   },
   "state": {
     "sensor__meraki_wan1_connectivity": {
-      "connected": "TODO_TRANSLATE Connected",
-      "disconnected": "TODO_TRANSLATE Disconnected",
-      "unknown": "TODO_TRANSLATE Unknown"
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "unknown": "Unknown"
     },
     "sensor__meraki_wan2_connectivity": {
-      "connected": "TODO_TRANSLATE Connected",
-      "disconnected": "TODO_TRANSLATE Disconnected",
-      "unknown": "TODO_TRANSLATE Unknown"
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "unknown": "Unknown"
     }
   }
 }

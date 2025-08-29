@@ -21,10 +21,12 @@ def mock_coordinator():
     """Fixture for a mocked MerakiDataCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
-    # Configure get_device to return our mock camera data
-    coordinator.get_device.return_value = MOCK_CAMERA_DEVICE
+    # Set the coordinator's data attribute to contain our mock device
+    coordinator.data = {"devices": [MOCK_CAMERA_DEVICE]}
     # Mock the async_request_refresh method so it can be awaited
     coordinator.async_request_refresh = AsyncMock()
+    # Mock async_write_ha_state
+    coordinator.async_write_ha_state = MagicMock()
     return coordinator
 
 
@@ -62,8 +64,6 @@ async def test_camera_stream_source(
 
     # Assert
     assert source == "rtsp://test.com/stream"
-    # Ensure get_device was called to fetch the state
-    mock_coordinator.get_device.assert_called_with(MOCK_CAMERA_DEVICE["serial"])
 
 
 @pytest.mark.asyncio
@@ -133,7 +133,7 @@ def test_is_streaming_logic(
         "video_settings": video_settings,
         "rtsp_url": rtsp_url,
     }
-    mock_coordinator.get_device.return_value = mock_device_data
+    # The entity is initialized with this data, so we pass it directly
     camera = MerakiCamera(
         mock_coordinator,
         mock_config_entry,
@@ -176,3 +176,31 @@ async def test_camera_image(mock_coordinator, mock_config_entry, mock_camera_ser
         mock_camera_service.generate_snapshot.assert_called_once_with(
             MOCK_CAMERA_DEVICE["serial"]
         )
+
+
+def test_coordinator_update(mock_coordinator, mock_config_entry, mock_camera_service):
+    """Test that the entity state updates when the coordinator data changes."""
+    # Arrange
+    camera = MerakiCamera(
+        mock_coordinator,
+        mock_config_entry,
+        MOCK_CAMERA_DEVICE,
+        mock_camera_service,
+    )
+    # The initial state should be streaming
+    assert camera.is_streaming is True
+
+    # Act
+    # Simulate a coordinator update with new data where the stream is disabled
+    updated_device_data = {
+        **MOCK_CAMERA_DEVICE,
+        "video_settings": {"rtspServerEnabled": False},
+    }
+    mock_coordinator.data = {"devices": [updated_device_data]}
+    camera._handle_coordinator_update()
+
+    # Assert
+    # The camera's internal state should now reflect the new data
+    assert camera.is_streaming is False
+    # Check that async_write_ha_state was called to notify HA of the change
+    camera.async_write_ha_state.assert_called_once()

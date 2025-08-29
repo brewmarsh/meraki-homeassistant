@@ -82,5 +82,9 @@ async def test_options_flow(hass: HomeAssistant) -> None:
 
     # Final assertions
     assert result["type"] == "create_entry"
-    expected_options = {**init_input, **features_input, **advanced_input}
+    # The expected options should be the original options updated with the user inputs
+    expected_options = config_entry.options.copy()
+    expected_options.update(init_input)
+    expected_options.update(features_input)
+    expected_options.update(advanced_input)
     assert config_entry.options == expected_options

@@ -72,17 +72,22 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
         self._config_entry = config_entry
         self._device_serial = device["serial"]
         self._camera_service = camera_service
+        self._device_data = device  # Store initial data
         self._attr_unique_id = f"{self._device_serial}-camera"
         self._attr_name = format_entity_name(
-            format_device_name(self.device_data, self.coordinator.config_entry.options),
+            format_device_name(self._device_data, self.coordinator.config_entry.options),
             "",
         )
-        self._attr_model = self.device_data.get("model")
+        self._attr_model = self._device_data.get("model")
 
-    @property
-    def device_data(self) -> Dict[str, Any]:
-        """Return the device data from the coordinator."""
-        return self.coordinator.get_device(self._device_serial) or {}
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        # Find the updated device data from the coordinator's payload
+        for device in self.coordinator.data.get("devices", []):
+            if device.get("serial") == self._device_serial:
+                self._device_data = device
+                break
+        self.async_write_ha_state()
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -90,9 +95,9 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(
-                self.device_data, self.coordinator.config_entry.options
+                self._device_data, self.coordinator.config_entry.options
             ),
-            model=self.device_data.get("model"),
+            model=self._device_data.get("model"),
             manufacturer="Cisco Meraki",
         )
 
@@ -123,20 +128,20 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
     async def stream_source(self) -> Optional[str]:
         """Return the source of the stream, if enabled."""
         if self.is_streaming:
-            return self.device_data.get("rtsp_url")
+            return self._device_data.get("rtsp_url")
         return None
 
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:
         """Return the state attributes."""
         attrs = {}
-        video_settings = self.device_data.get("video_settings", {})
+        video_settings = self._device_data.get("video_settings", {})
         if not video_settings.get("rtspServerEnabled", False):
             attrs["stream_status"] = "Disabled in Meraki Dashboard"
             self.coordinator.add_status_message(
                 self._device_serial, "RTSP stream is disabled in the Meraki dashboard."
             )
-        elif not self.device_data.get("rtsp_url"):
+        elif not self._device_data.get("rtsp_url"):
             attrs["stream_status"] = "Stream URL not available. This may be because the camera does not support cloud archival."
             self.coordinator.add_status_message(
                 self._device_serial, "RTSP stream URL is not available. The camera might not support cloud archival."
@@ -158,11 +163,11 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
         This requires both the rtspServerEnabled setting to be true and a
         valid rtsp:// URL to be available.
         """
-        video_settings = self.device_data.get("video_settings", {})
+        video_settings = self._device_data.get("video_settings", {})
         if not video_settings.get("rtspServerEnabled", False):
             return False
 
-        url = self.device_data.get("rtsp_url")
+        url = self._device_data.get("rtsp_url")
         return (
             url is not None and isinstance(url, str) and url.startswith("rtsp://")
         )

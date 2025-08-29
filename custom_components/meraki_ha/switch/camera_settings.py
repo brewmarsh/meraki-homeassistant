@@ -32,25 +32,37 @@ class MerakiCameraSettingSwitchBase(
         self._key = key
         self._api_field = api_field
         self._attr_unique_id = f"{self._device_data['serial']}_{self._key}"
+        self._update_state()  # Set initial state
+
+    def _get_value_from_device(self, device: Dict[str, Any]) -> bool:
+        """Drill down into the device dictionary to get the state value."""
+        keys = self._api_field.split(".")
+        value = device
+        for key in keys:
+            if isinstance(value, dict):
+                value = value.get(key)
+            else:
+                return False
+        return bool(value)
+
+    def _update_state(self) -> None:
+        """Update the internal state of the switch."""
+        device = self.coordinator.get_device(self._device_data["serial"])
+        if device:
+            self._device_data = device
+            self._attr_is_on = self._get_value_from_device(device)
+        else:
+            self._attr_is_on = False
+
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._update_state()
+        self.async_write_ha_state()
 
     @property
     def is_on(self) -> bool:
         """Return the current state of the switch."""
-        # The state is derived from the coordinator's data
-        # This assumes the data is structured like: {'video_settings': {'senseEnabled': True}}
-        # or {'audio_settings': {'audioDetection': {'enabled': True}}}
-        # The state is now derived from the coordinator's data
-        for device in self.coordinator.data.get("devices", []):
-            if device.get("serial") == self._device_data["serial"]:
-                keys = self._api_field.split(".")
-                value = device
-                for key in keys:
-                    if isinstance(value, dict):
-                        value = value.get(key)
-                    else:
-                        return False
-                return bool(value)
-        return False
+        return self._attr_is_on
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the setting on."""

@@ -49,36 +49,10 @@ def mock_meraki_client():
             "vlans": {},
             "appliance_uplink_statuses": [],
             "rf_profiles": {},
+            "appliance_traffic": {},
         }
     )
     client.unregister_webhook = AsyncMock(return_value=None)
-
-    # Mock for SsidContentFilteringCoordinator
-    client.wireless = MagicMock()
-    client.wireless.get_network_wireless_ssid = AsyncMock(
-        return_value={"number": 0, "name": "Test SSID", "contentFiltering": {}}
-    )
-
-    # Mock for NetworkContentFilteringCoordinator and ClientFirewallCoordinator
-    client.appliance = MagicMock()
-    client.appliance.get_network_appliance_content_filtering = AsyncMock(
-        return_value={"allowedUrlPatterns": [], "blockedUrlPatterns": []}
-    )
-    client.appliance.get_network_appliance_firewall_l7_firewall_rules = AsyncMock(
-        return_value={"rules": []}
-    )
-
-    # Mock for ClientFirewallCoordinator
-    client.network = MagicMock()
-    client.network.get_network_clients = AsyncMock(return_value=[])
-
-    # Mock for SsidFirewallCoordinator
-    ssids_mock = MagicMock()
-    ssids_mock.get_network_ssid_l7_firewall_rules = AsyncMock(
-        return_value={"rules": []}
-    )
-    client.ssids = ssids_mock
-
     return client
 
 
@@ -92,9 +66,6 @@ async def test_ssid_device_creation_and_unification(
         "custom_components.meraki_ha.MerakiAPIClient", return_value=mock_meraki_client
     ), patch(
         "custom_components.meraki_ha.async_register_webhook", return_value=None
-    ), patch(
-        "custom_components.meraki_ha.core.coordinators.ssid_firewall_coordinator.SsidFirewallCoordinator._async_update_data",
-        return_value={"rules": []},
     ):
         # Set up the component
         assert await hass.config_entries.async_setup(config_entry.entry_id)

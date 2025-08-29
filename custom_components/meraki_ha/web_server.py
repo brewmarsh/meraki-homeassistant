@@ -146,15 +146,7 @@ class MerakiWebServer:
         if not self.coordinator.data or not network_id:
             return web.json_response({"error": "Data not available"}, status=503)
 
-        network = next(
-            (
-                n
-                for n in self.coordinator.data.get("networks", [])
-                if n.get("id") == network_id
-            ),
-            None,
-        )
-
+        network = self.coordinator.get_network(network_id)
         if network:
             return web.json_response(network)
         return web.json_response({"error": "Network not found"}, status=404)

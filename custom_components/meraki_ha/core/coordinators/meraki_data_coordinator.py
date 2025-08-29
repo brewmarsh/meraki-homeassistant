@@ -41,6 +41,9 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
         )
         self.api = api_client
         self.config_entry = config_entry
+        self.devices_by_serial: dict = {}
+        self.networks_by_id: dict = {}
+        self.ssids_by_network_and_number: dict = {}
 
     def _filter_ignored_networks(self, data: dict) -> None:
         """Filter out networks that the user has chosen to ignore."""
@@ -74,6 +77,19 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
             self._filter_ignored_networks(data)
             self._filter_unconfigured_ssids(data)
 
+            # Create lookup tables for efficient access in entities
+            self.devices_by_serial = {
+                d["serial"]: d for d in data.get("devices", []) if "serial" in d
+            }
+            self.networks_by_id = {
+                n["id"]: n for n in data.get("networks", []) if "id" in n
+            }
+            self.ssids_by_network_and_number = {
+                (s["networkId"], s["number"]): s
+                for s in data.get("ssids", [])
+                if "networkId" in s and "number" in s
+            }
+
             if data and "devices" in data:
                 ent_reg = er.async_get(self.hass)
                 dev_reg = dr.async_get(self.hass)
@@ -82,19 +98,24 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
                         device["status_messages"] = []
 
                     device["entities"] = []
-                    ha_device = dev_reg.async_get_device(identifiers={(DOMAIN, device["serial"])})
+                    ha_device = dev_reg.async_get_device(
+                        identifiers={(DOMAIN, device["serial"])}
+                    )
                     if ha_device:
-                        entities_for_device = er.async_entries_for_device(ent_reg, ha_device.id)
+                        entities_for_device = er.async_entries_for_device(
+                            ent_reg, ha_device.id
+                        )
                         for entity_entry in entities_for_device:
                             state = self.hass.states.get(entity_entry.entity_id)
                             if state:
-                                device["entities"].append({
-                                    "entity_id": entity_entry.entity_id,
-                                    "name": state.name,
-                                    "state": state.state,
-                                    "attributes": dict(state.attributes),
-                                })
-
+                                device["entities"].append(
+                                    {
+                                        "entity_id": entity_entry.entity_id,
+                                        "name": state.name,
+                                        "state": state.state,
+                                        "attributes": dict(state.attributes),
+                                    }
+                                )
 
             return data
         except Exception as err:
@@ -105,30 +126,15 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
 
     def get_device(self, serial: str):
         """Get device data by serial number."""
-        if self.data and self.data.get("devices"):
-            for device in self.data["devices"]:
-                if device.get("serial") == serial:
-                    return device
-        return None
+        return self.devices_by_serial.get(serial)
 
     def get_network(self, network_id: str):
         """Get network data by ID."""
-        if self.data and self.data.get("networks"):
-            for network in self.data["networks"]:
-                if network.get("id") == network_id:
-                    return network
-        return None
+        return self.networks_by_id.get(network_id)
 
     def get_ssid(self, network_id: str, ssid_number: int):
         """Get SSID data by network ID and SSID number."""
-        if self.data and self.data.get("ssids"):
-            for ssid in self.data["ssids"]:
-                if (
-                    ssid.get("networkId") == network_id
-                    and ssid.get("number") == ssid_number
-                ):
-                    return ssid
-        return None
+        return self.ssids_by_network_and_number.get((network_id, ssid_number))
 
     def add_status_message(self, serial: str, message: str) -> None:
         """Add a status message for a device."""
