@@ -30,7 +30,7 @@ class MerakiWebServer:
 
     def _setup_routes(self):
         """Set up the routes for the web application."""
-        static_dir = os.path.join(os.path.dirname(__file__), "web_ui", "dist")
+        static_dir = os.path.join(os.path.dirname(__file__), "www", "dist")
         assets_dir = os.path.join(static_dir, "assets")
 
         # API routes
@@ -90,10 +90,19 @@ class MerakiWebServer:
         self, request: web.Request
     ) -> Union[web.FileResponse, web.Response]:
         """Serve the single-page application's entry point (index.html)."""
-        static_dir = os.path.join(os.path.dirname(__file__), "web_ui", "dist")
+        static_dir = os.path.join(os.path.dirname(__file__), "www", "dist")
         index_path = os.path.join(static_dir, "index.html")
         if os.path.exists(index_path):
-            return web.FileResponse(index_path)
+            with open(index_path, "r") as f:
+                content = f.read()
+
+            ha_url = str(self.hass.config.api.base_url)
+            content = content.replace("__HA_URL__", ha_url)
+
+            config_entry_id = self.coordinator.config_entry.entry_id
+            content = content.replace("__CONFIG_ENTRY_ID__", config_entry_id)
+
+            return web.Response(text=content, content_type="text/html")
         return web.Response(
             text="Web UI files not found. Have you built the frontend?", status=404
         )

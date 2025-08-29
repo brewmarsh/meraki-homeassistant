@@ -7,6 +7,7 @@ import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from ...const import (
@@ -73,6 +74,28 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
             self._filter_ignored_networks(data)
             self._filter_unconfigured_ssids(data)
 
+            if data and "devices" in data:
+                ent_reg = er.async_get(self.hass)
+                dev_reg = dr.async_get(self.hass)
+                for device in data["devices"]:
+                    if "status_messages" not in device:
+                        device["status_messages"] = []
+
+                    device["entities"] = []
+                    ha_device = dev_reg.async_get_device(identifiers={(DOMAIN, device["serial"])})
+                    if ha_device:
+                        entities_for_device = er.async_entries_for_device(ent_reg, ha_device.id)
+                        for entity_entry in entities_for_device:
+                            state = self.hass.states.get(entity_entry.entity_id)
+                            if state:
+                                device["entities"].append({
+                                    "entity_id": entity_entry.entity_id,
+                                    "name": state.name,
+                                    "state": state.state,
+                                    "attributes": dict(state.attributes),
+                                })
+
+
             return data
         except Exception as err:
             _LOGGER.error(
@@ -106,3 +129,15 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
                 ):
                     return ssid
         return None
+
+    def add_status_message(self, serial: str, message: str) -> None:
+        """Add a status message for a device."""
+        if self.data and self.data.get("devices"):
+            for device in self.data["devices"]:
+                if device.get("serial") == serial:
+                    if "status_messages" not in device:
+                        device["status_messages"] = []
+                    # Avoid duplicate messages
+                    if message not in device["status_messages"]:
+                        device["status_messages"].append(message)
+                    break

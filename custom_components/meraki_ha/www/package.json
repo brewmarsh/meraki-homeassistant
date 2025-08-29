@@ -1,5 +1,5 @@
 {
-  "name": "meraki-ha-webui",
+  "name": "meraki-ha-www",
   "private": true,
   "version": "0.0.0",
   "type": "module",
