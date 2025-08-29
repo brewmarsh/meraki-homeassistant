@@ -7,6 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
+from .api.websocket import async_setup_websocket_api
 from .const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
@@ -40,6 +41,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Meraki integration."""
     hass.data.setdefault(DOMAIN, {})
+    async_setup_websocket_api(hass)
     return True
 
 

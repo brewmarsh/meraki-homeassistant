@@ -102,7 +102,9 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
         """Return a still image from the camera."""
         url = await self._camera_service.generate_snapshot(self._device_serial)
         if not url:
-            _LOGGER.error("Failed to get snapshot URL for %s", self._device_serial)
+            msg = f"Failed to get snapshot URL for {self.name}"
+            _LOGGER.error(msg)
+            self.coordinator.add_status_message(self._device_serial, msg)
             return None
 
         try:
@@ -113,7 +115,9 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
                 response.raise_for_status()
                 return await response.read()
         except aiohttp.ClientError as e:
-            _LOGGER.error("Error fetching snapshot for %s: %s", self._device_serial, e)
+            msg = f"Error fetching snapshot for {self.name}: {e}"
+            _LOGGER.error(msg)
+            self.coordinator.add_status_message(self._device_serial, msg)
             return None
 
     async def stream_source(self) -> Optional[str]:
@@ -129,8 +133,14 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
         video_settings = self.device_data.get("video_settings", {})
         if not video_settings.get("rtspServerEnabled", False):
             attrs["stream_status"] = "Disabled in Meraki Dashboard"
+            self.coordinator.add_status_message(
+                self._device_serial, "RTSP stream is disabled in the Meraki dashboard."
+            )
         elif not self.device_data.get("rtsp_url"):
             attrs["stream_status"] = "Stream URL not available. This may be because the camera does not support cloud archival."
+            self.coordinator.add_status_message(
+                self._device_serial, "RTSP stream URL is not available. The camera might not support cloud archival."
+            )
         else:
             attrs["stream_status"] = "Enabled"
         return attrs

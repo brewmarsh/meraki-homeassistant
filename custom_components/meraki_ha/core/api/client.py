@@ -43,9 +43,9 @@ class MerakiAPIClient:
         self._dashboard = meraki.DashboardAPI(
             api_key=api_key,
             base_url=base_url,
-            output_log=False,
+            output_log=True,
             print_console=False,
-            suppress_logging=True,
+            suppress_logging=False,
             maximum_retries=3,
             wait_on_rate_limit=True,
             nginx_429_retry_wait_time=2,
