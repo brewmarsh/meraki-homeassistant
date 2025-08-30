@@ -17,6 +17,8 @@ from .const import (
     CONF_WEB_UI_PORT,
     CONF_HIDE_UNCONFIGURED_SSIDS,
     CONF_IGNORED_NETWORKS,
+    CONF_USE_STALE_DATA,
+    CONF_STALE_DATA_THRESHOLD,
     DEFAULT_DEVICE_NAME_FORMAT,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_WEBHOOK_URL,
@@ -137,6 +139,14 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                             CONF_IGNORED_NETWORKS, DEFAULT_IGNORED_NETWORKS
                         ),
                     ): str,
+                    vol.Optional(
+                        CONF_USE_STALE_DATA,
+                        default=self.options.get(CONF_USE_STALE_DATA, True),
+                    ): bool,
+                    vol.Optional(
+                        CONF_STALE_DATA_THRESHOLD,
+                        default=self.options.get(CONF_STALE_DATA_THRESHOLD, 30),
+                    ): int,
                 }
             ),
         )

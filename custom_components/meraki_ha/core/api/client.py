@@ -227,6 +227,7 @@ class MerakiAPIClient:
         detail_data: dict,
         networks: List[MerakiNetwork],
         devices: List[MerakiDevice],
+        previous_data: dict,
     ) -> dict:
         """Process the detailed data and merge it into the main data structure."""
         ssids: List[Dict[str, Any]] = []
@@ -235,14 +236,18 @@ class MerakiAPIClient:
         rf_profiles_by_network: Dict[str, Any] = {}
 
         for network in networks:
-            network_ssids = detail_data.get(f"ssids_{network['id']}")
+            network_ssids_key = f"ssids_{network['id']}"
+            network_ssids = detail_data.get(network_ssids_key)
             if isinstance(network_ssids, list):
                 for ssid in network_ssids:
                     if "unconfigured ssid" not in ssid.get("name", "").lower():
                         ssid["networkId"] = network["id"]
                         ssids.append(ssid)
+            elif previous_data and network_ssids_key in previous_data:
+                ssids.extend(previous_data[network_ssids_key])
 
-            network_traffic = detail_data.get(f"traffic_{network['id']}")
+            network_traffic_key = f"traffic_{network['id']}"
+            network_traffic = detail_data.get(network_traffic_key)
             if isinstance(network_traffic, MerakiInformationalError):
                 if "traffic analysis" in str(network_traffic).lower():
                     _LOGGER.info(
@@ -254,18 +259,28 @@ class MerakiAPIClient:
                 }
             elif isinstance(network_traffic, dict):
                 appliance_traffic[network["id"]] = network_traffic
+            elif previous_data and network_traffic_key in previous_data:
+                appliance_traffic[network["id"]] = previous_data[network_traffic_key]
 
-            network_vlans = detail_data.get(f"vlans_{network['id']}")
+            network_vlans_key = f"vlans_{network['id']}"
+            network_vlans = detail_data.get(network_vlans_key)
             if isinstance(network_vlans, MerakiInformationalError):
                 if "vlans are not enabled" in str(network_vlans).lower():
                     _LOGGER.info("VLANs are not enabled for %s.", network["name"])
                 vlan_by_network[network["id"]] = []
             elif isinstance(network_vlans, list):
                 vlan_by_network[network["id"]] = network_vlans
+            elif previous_data and network_vlans_key in previous_data:
+                vlan_by_network[network["id"]] = previous_data[network_vlans_key]
 
-            network_rf_profiles = detail_data.get(f"rf_profiles_{network['id']}")
+            network_rf_profiles_key = f"rf_profiles_{network['id']}"
+            network_rf_profiles = detail_data.get(network_rf_profiles_key)
             if isinstance(network_rf_profiles, list):
                 rf_profiles_by_network[network["id"]] = network_rf_profiles
+            elif previous_data and network_rf_profiles_key in previous_data:
+                rf_profiles_by_network[network["id"]] = previous_data[
+                    network_rf_profiles_key
+                ]
 
         for device in devices:
             product_type = device.get("productType")
@@ -299,8 +314,10 @@ class MerakiAPIClient:
             "rf_profiles": rf_profiles_by_network,
         }
 
-    async def get_all_data(self) -> dict:
+    async def get_all_data(self, previous_data: dict = None) -> dict:
         """Fetch all data from the Meraki API concurrently, with caching."""
+        if previous_data is None:
+            previous_data = {}
         cache_key = f"meraki_data_{self._org_id}"
         cached_data = self._cache.get(cache_key)
         if cached_data:
@@ -323,7 +340,7 @@ class MerakiAPIClient:
         detail_data = dict(zip(detail_tasks.keys(), detail_results))
 
         processed_detailed_data = self._process_detailed_data(
-            detail_data, networks, devices
+            detail_data, networks, devices, previous_data
         )
 
         fresh_data = {

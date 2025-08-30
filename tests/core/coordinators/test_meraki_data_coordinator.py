@@ -9,10 +9,15 @@ import copy
 from custom_components.meraki_ha.core.coordinators.meraki_data_coordinator import (
     MerakiDataCoordinator,
 )
+from datetime import datetime, timedelta
+from homeassistant.helpers.update_coordinator import UpdateFailed
+
 from custom_components.meraki_ha.const import (
     DOMAIN,
     CONF_IGNORED_NETWORKS,
     CONF_HIDE_UNCONFIGURED_SSIDS,
+    CONF_USE_STALE_DATA,
+    CONF_STALE_DATA_THRESHOLD,
 )
 
 BASE_MOCK_DATA = {
@@ -90,3 +95,39 @@ def test_hide_unconfigured_ssids_filter(hass: HomeAssistant, mock_api_client):
     # Assert
     assert len(data["ssids"]) == 1
     assert data["ssids"][0]["name"] == "Enabled SSID"
+
+
+@pytest.mark.asyncio
+async def test_stale_data_on_api_failure(hass: HomeAssistant, mock_api_client):
+    """Test that stale data is returned if the API fails but the data is recent."""
+    # Arrange
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        options={
+            CONF_USE_STALE_DATA: True,
+            CONF_STALE_DATA_THRESHOLD: 15,  # 15 minutes
+        },
+    )
+    coordinator = MerakiDataCoordinator(hass, mock_api_client, 60, config_entry)
+
+    # --- First, a successful run to populate the data ---
+    await coordinator._async_update_data()
+    assert coordinator.data["networks"][0]["name"] == "Network To Keep"
+    assert coordinator.last_successful_update is not None
+
+    # --- Now, simulate an API failure ---
+    mock_api_client.get_all_data.side_effect = Exception("API has exploded")
+
+    # Act: The API call fails, but the data is not yet stale
+    stale_data = await coordinator._async_update_data()
+
+    # Assert: The coordinator should return the old data and not raise UpdateFailed
+    assert stale_data["networks"][0]["name"] == "Network To Keep"
+
+    # --- Now, simulate time passing beyond the threshold ---
+    # Manually set the last successful update time to be in the past
+    coordinator.last_successful_update = datetime.now() - timedelta(minutes=20)
+
+    # Act & Assert: This time, the failure should propagate
+    with pytest.raises(UpdateFailed):
+        await coordinator._async_update_data()

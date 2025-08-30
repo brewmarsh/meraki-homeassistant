@@ -59,6 +59,12 @@ CONF_HIDE_UNCONFIGURED_SSIDS: Final[str] = "hide_unconfigured_ssids"
 CONF_IGNORED_NETWORKS: Final[str] = "ignored_networks"
 """Configuration key for a list of network names to ignore (str)."""
 
+CONF_USE_STALE_DATA: Final[str] = "use_stale_data"
+"""Configuration key for using stale data on API failure (bool)."""
+
+CONF_STALE_DATA_THRESHOLD: Final[str] = "stale_data_threshold"
+"""Configuration key for stale data threshold in minutes (int)."""
+
 
 DEFAULT_WEBHOOK_URL: Final[str] = ""
 """Default webhook URL value (empty string)."""

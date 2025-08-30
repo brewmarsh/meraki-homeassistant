@@ -38,6 +38,22 @@ The `MerakiAPIClient`, located in `custom_components/meraki_ha/core/api/client.p
 - **`setup_helpers.py`:** The logic for creating all sensor entities is centralized in `custom_components/meraki_ha/sensor/setup_helpers.py`. This file was refactored from a single large function into several smaller, more manageable helper functions, each responsible for a specific category of sensor (e.g., `_setup_device_sensors`, `_setup_network_sensors`).
 - **`sensor_registry.py`:** To ensure type safety and avoid `mypy` errors, the integration uses a sensor registry (`custom_components/meraki_ha/sensor_registry.py`). This registry explicitly defines which sensor classes should be created for each Meraki device type and what their constructor arguments are. This avoids the need for dynamic, untyped introspection.
 
-## 3. Webhook Implementation Status
+## 3. Error Handling and Resiliency
 
-The integration includes placeholder code for handling real-time updates from Meraki via webhooks (see `webhook.py` and methods in `core/api/client.py`). However, the implementation of this feature is incomplete and is considered future work. The integration currently relies solely on a polling mechanism via the `MerakiDataCoordinator` to fetch data from the Meraki API. The `TODO` comment in `webhook.py` reflects this status.
+The integration is designed to be resilient to transient API errors and network issues, providing a stable user experience.
+
+### 3.1. Stale Data on Failure
+
+If the `MerakiDataCoordinator` fails to fetch an update from the Meraki API, it does not immediately mark all entities as unavailable. Instead, it checks the timestamp of the last successful update. If the last successful data is within a configurable threshold (defaulting to 30 minutes), the coordinator will log a warning but continue to provide the existing "stale" data to all entities. This makes the integration resilient to brief network or API outages, preventing the user's dashboard from going blank due to a temporary glitch. This feature can be configured in the integration's options.
+
+### 3.2. Partial Data Merging
+
+The `MerakiAPIClient` fetches data from multiple endpoints concurrently. If one of these sub-requests fails, the integration does not discard all the data from the successful requests. Instead, it will use the data from the last successful coordinator run for the specific slice of data that failed. For example, if fetching VLAN information fails but device statuses succeed, the VLAN sensors will continue to show their previous state, while the device status sensors will show the latest information. This prevents a single, non-critical API failure from causing an entire category of sensors to become unavailable.
+
+### 3.3. Persistent Caching
+
+To improve startup times for Home Assistant, the integration uses a persistent disk cache (`diskcache`). The results of the `get_all_data` API call are cached on disk with a short TTL (2 minutes). When Home Assistant restarts, the integration can load the cached data almost instantly, making entities available right away while a fresh API call is made in the background.
+
+## 4. Webhook Implementation Status
+
+The integration now has a functional webhook implementation for real-time updates. The system can register a webhook with the Meraki API and handle incoming alerts. Currently, it processes alerts for "APs went down" and "Client connectivity changed" to provide near real-time status updates for device and client entities. The framework is in place to easily add handlers for more alert types in the future.

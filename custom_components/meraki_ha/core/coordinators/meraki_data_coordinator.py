@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 import logging
 
 from homeassistant.config_entries import ConfigEntry
@@ -16,6 +16,8 @@ from ...const import (
     DEFAULT_IGNORED_NETWORKS,
     CONF_HIDE_UNCONFIGURED_SSIDS,
     DEFAULT_HIDE_UNCONFIGURED_SSIDS,
+    CONF_USE_STALE_DATA,
+    CONF_STALE_DATA_THRESHOLD,
 )
 from ...core.api.client import MerakiAPIClient as ApiClient
 
@@ -44,6 +46,8 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
         self.devices_by_serial: dict = {}
         self.networks_by_id: dict = {}
         self.ssids_by_network_and_number: dict = {}
+        self.last_successful_update: datetime | None = None
+        self.last_successful_data: dict = {}
 
     def _filter_ignored_networks(self, data: dict) -> None:
         """Filter out networks that the user has chosen to ignore."""
@@ -69,7 +73,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self):
         """Fetch data from API endpoint and apply filters."""
         try:
-            data = await self.api.get_all_data()
+            data = await self.api.get_all_data(self.last_successful_data)
             if not data:
                 _LOGGER.warning("API call to get_all_data returned no data.")
                 raise UpdateFailed("API call returned no data.")
@@ -116,9 +120,27 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
                                         "attributes": dict(state.attributes),
                                     }
                                 )
-
+            self.last_successful_update = datetime.now()
+            self.last_successful_data = data
             return data
         except Exception as err:
+            use_stale = self.config_entry.options.get(CONF_USE_STALE_DATA, True)
+            stale_threshold = self.config_entry.options.get(
+                CONF_STALE_DATA_THRESHOLD, 30
+            )
+            if (
+                use_stale
+                and self.last_successful_update
+                and (datetime.now() - self.last_successful_update)
+                < timedelta(minutes=stale_threshold)
+            ):
+                _LOGGER.warning(
+                    "Failed to fetch new Meraki data, using stale data from %s ago. Error: %s",
+                    (datetime.now() - self.last_successful_update),
+                    err,
+                )
+                return self.data
+
             _LOGGER.error(
                 "Unexpected error fetching Meraki data: %s", err, exc_info=True
             )

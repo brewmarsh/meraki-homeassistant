@@ -72,3 +72,44 @@ async def test_caching_logic(mock_hass):
     third_call_result = await api_client.get_all_data()
     assert api_client._async_fetch_initial_data.call_count == 2
     assert third_call_result is not None
+
+
+@pytest.mark.asyncio
+async def test_partial_data_merging(mock_hass):
+    """Test that if a detail task fails, data from the previous run is used."""
+    # Arrange
+    api_client = MerakiAPIClient(
+        hass=mock_hass, api_key="fake_key", org_id="fake_org"
+    )
+    api_client._cache.clear()  # Ensure no caching for this test
+
+    # Mock initial data fetching
+    mock_networks = [{"id": "N_1", "productTypes": ["wireless"]}]
+    mock_devices = [{"serial": "D_1", "productType": "camera"}]
+    api_client._async_fetch_initial_data = AsyncMock(return_value=([], [], [], []))
+    api_client._process_initial_data = MagicMock(
+        return_value={"networks": mock_networks, "devices": mock_devices}
+    )
+    api_client._async_fetch_client_data = AsyncMock(return_value=[])
+
+    # This represents the last successful run
+    previous_data = {
+        "ssids_N_1": [{"name": "Old SSID"}],
+        "video_settings_D_1": {"setting": "old"},
+    }
+
+    # In the new run, the SSID fetch will fail, but video settings will succeed
+    with patch("asyncio.gather", new=AsyncMock()) as mock_gather:
+        mock_gather.return_value = [
+            Exception("Failed to fetch SSIDs"),
+            {"setting": "new"},
+        ]
+
+        # Act
+        result = await api_client.get_all_data(previous_data=previous_data)
+
+        # Assert
+        # Check that the new, successful data is present
+        assert result["devices"][0]["video_settings"]["setting"] == "new"
+        # Check that the old, fallback data is present for the failed call
+        assert result["ssids"][0]["name"] == "Old SSID"
