@@ -95,7 +95,9 @@ The following options can be configured when you first set up the integration, o
 *   **How many seconds between Meraki API refreshes:** How often (in seconds) to poll the Meraki API for updates. Default: 300.
 *   **Where would you like the Meraki device type in the name?:** Choose how device names are presented. 'Prefix' adds the Meraki device name before the entity name, 'Suffix' adds it after, 'Omitted' uses only the entity name.
 *   **Auto-enable RTSP camera streams:** If checked, the integration will automatically enable the RTSP stream for all cameras that support it.
-*   **Use LAN IP for RTSP stream:** If checked, the integration will use the camera's LAN IP address for the RTSP stream. This is more efficient but requires that Home Assistant is on the same network as the camera.
+*   **Use LAN IP for RTSP stream:** Controls how the RTSP stream URL is determined for cameras.
+    *   **When checked:** The integration will prioritize using a local IP address for the stream. It will first check if the URL from the Meraki API is already a local address. If not, it will try to construct a URL using the camera's detected LAN IP. This is the most efficient option if your Home Assistant instance is on the same local network as your cameras.
+    *   **When unchecked (default):** The integration will prioritize the URL provided by the Meraki API. If that URL is unavailable or invalid, it will fall back to using the camera's LAN IP as a last resort.
 *   **Webhook URL (optional):** A custom URL for Meraki webhooks. If left blank, the integration will use the default Home Assistant webhook URL.
 
 ## Web UI 🌐

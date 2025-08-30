@@ -12,10 +12,11 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from .const import DOMAIN, CONF_MERAKI_API_KEY
+from .const import DOMAIN, CONF_MERAKI_API_KEY, CONF_USE_LAN_IP_FOR_RTSP
 from .core.errors import MerakiInformationalError
 from .helpers.entity_helpers import format_entity_name
 from .core.utils.naming_utils import format_device_name
+from .core.utils.network_utils import is_private_ip, construct_rtsp_url
 
 try:
     from homeassistant.components.camera import CameraEntityFeature
@@ -127,8 +128,39 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
 
     async def stream_source(self) -> Optional[str]:
         """Return the source of the stream, if enabled."""
-        if self.is_streaming:
-            return self._device_data.get("rtsp_url")
+        if not self.is_streaming:
+            return None
+
+        api_url = self._device_data.get("rtsp_url")
+        lan_ip = self._device_data.get("lanIp")
+        use_lan_ip = self._config_entry.options.get(CONF_USE_LAN_IP_FOR_RTSP, False)
+
+        final_url = None
+
+        if use_lan_ip:
+            # User wants to prioritize LAN IP.
+            # Check if API URL is already a private IP.
+            if api_url and is_private_ip(api_url):
+                final_url = api_url
+            # If not, try to construct one from the lanIp field.
+            elif lan_ip:
+                final_url = construct_rtsp_url(lan_ip)
+            # As a last resort, use the public API URL if available.
+            else:
+                final_url = api_url
+        else:
+            # Default behavior: prioritize public API URL.
+            # Fall back to LAN IP if public is missing or invalid.
+            if api_url:
+                final_url = api_url
+            elif lan_ip:
+                final_url = construct_rtsp_url(lan_ip)
+
+        # Final validation before returning
+        if final_url and final_url.startswith("rtsp://"):
+            return final_url
+
+        _LOGGER.warning("Could not determine a valid RTSP URL for camera %s", self.name)
         return None
 
     @property
