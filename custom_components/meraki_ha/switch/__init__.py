@@ -28,9 +28,7 @@ async def async_setup_entry(
 
     # Filter for switch entities
     switch_entities = [
-        entity
-        for entity in discovered_entities
-        if isinstance(entity, SwitchEntity)
+        entity for entity in discovered_entities if isinstance(entity, SwitchEntity)
     ]
 
     _LOGGER.debug("Found %d switch entities", len(switch_entities))

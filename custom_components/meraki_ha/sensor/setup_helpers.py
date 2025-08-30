@@ -13,7 +13,6 @@ from ..sensor_registry import (
     COMMON_SENSORS_COORD_DEV_CONF,
     get_sensors_for_device_type,
 )
-from .network.network_clients import MerakiNetworkClientsSensor
 from .network.network_identity import MerakiNetworkIdentitySensor
 from .network.meraki_network_info import MerakiNetworkInfoSensor
 from .device.appliance_port import MerakiAppliancePortSensor
@@ -182,7 +181,6 @@ def _setup_uplink_sensors(
     """Set up appliance uplink sensors."""
     entities: List[Entity] = []
     appliance_uplinks = coordinator.data.get("appliance_uplink_statuses", [])
-    devices = coordinator.data.get("devices", [])
     for uplink_status in appliance_uplinks:
         serial = uplink_status.get("serial")
         if not serial:

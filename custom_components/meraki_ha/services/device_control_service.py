@@ -4,6 +4,7 @@ Device Control Service
 This module defines the DeviceControlService class, which is responsible for
 handling device-specific control actions.
 """
+
 from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any

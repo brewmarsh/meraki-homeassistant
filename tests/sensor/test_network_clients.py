@@ -9,6 +9,7 @@ from custom_components.meraki_ha.sensor.network.network_clients import (
     MerakiNetworkClientsSensor,
 )
 
+
 @pytest.fixture
 def mock_network_control_service():
     """Fixture for a mock NetworkControlService."""
@@ -23,7 +24,7 @@ async def test_network_clients_sensor(
 ) -> None:
     """Test the Meraki network clients sensor."""
     coordinator = MagicMock()
-    coordinator.data = {} # Data is no longer read from coordinator
+    coordinator.data = {}  # Data is no longer read from coordinator
     config_entry = MagicMock()
     network_data = {"id": "N_123", "name": "Test Network"}
     sensor = MerakiNetworkClientsSensor(

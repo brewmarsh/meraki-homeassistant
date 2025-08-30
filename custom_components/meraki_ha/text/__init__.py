@@ -28,9 +28,7 @@ async def async_setup_entry(
 
     # Filter for text entities
     text_entities = [
-        entity
-        for entity in discovered_entities
-        if isinstance(entity, TextEntity)
+        entity for entity in discovered_entities if isinstance(entity, TextEntity)
     ]
 
     _LOGGER.debug("Found %d text entities", len(text_entities))

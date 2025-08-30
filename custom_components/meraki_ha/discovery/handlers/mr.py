@@ -4,6 +4,7 @@ MR (Wireless) Device Handler
 This module defines the MRHandler class, which is responsible for discovering
 entities for Meraki MR series (wireless) devices.
 """
+
 from __future__ import annotations
 
 import logging

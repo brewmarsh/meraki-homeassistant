@@ -1,13 +1,14 @@
 """
 Tests for the MXHandler.
 """
+
 from unittest.mock import MagicMock
 
 import pytest
 
 from custom_components.meraki_ha.button.reboot import MerakiRebootButton
 from custom_components.meraki_ha.discovery.handlers.mx import MXHandler
-from ...const import MOCK_CONFIG_ENTRY, MOCK_MX_DEVICE, MOCK_DEVICE
+from ...const import MOCK_CONFIG_ENTRY, MOCK_MX_DEVICE
 
 
 @pytest.fixture

@@ -24,11 +24,12 @@ async def test_async_setup_entry(
         "scan_interval": 300,
         "device_name_format": "omitted",
     }
-    with patch(
-        "custom_components.meraki_ha.MerakiDataCoordinator"
-    ) as mock_coordinator, patch(
-        "custom_components.meraki_ha.async_register_webhook"
-    ) as mock_register_webhook:
+    with (
+        patch("custom_components.meraki_ha.MerakiDataCoordinator") as mock_coordinator,
+        patch(
+            "custom_components.meraki_ha.async_register_webhook"
+        ) as mock_register_webhook,
+    ):
         future: asyncio.Future = asyncio.Future()
         future.set_result(None)
         mock_coordinator.return_value.async_refresh = AsyncMock()

@@ -1,10 +1,11 @@
 """
 Binary sensor for camera motion.
 """
+
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import Any, Dict, List
 
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
@@ -61,9 +62,7 @@ class MerakiMotionSensor(CoordinatorEntity[MerakiDataCoordinator], BinarySensorE
         """Update the sensor."""
         serial = self._device["serial"]
         try:
-            self._motion_events = await self._camera_service.get_motion_history(
-                serial
-            )
+            self._motion_events = await self._camera_service.get_motion_history(serial)
         except Exception as e:
             _LOGGER.error("Error updating motion sensor for %s: %s", serial, e)
             self._motion_events = []

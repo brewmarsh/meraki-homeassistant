@@ -1,9 +1,7 @@
 """Tests for the caching functionality of the Meraki API client."""
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 from tests.const import MOCK_DEVICE
@@ -78,9 +76,7 @@ async def test_caching_logic(mock_hass):
 async def test_partial_data_merging(mock_hass):
     """Test that if a detail task fails, data from the previous run is used."""
     # Arrange
-    api_client = MerakiAPIClient(
-        hass=mock_hass, api_key="fake_key", org_id="fake_org"
-    )
+    api_client = MerakiAPIClient(hass=mock_hass, api_key="fake_key", org_id="fake_org")
     api_client._cache.clear()  # Ensure no caching for this test
 
     # Mock initial data fetching

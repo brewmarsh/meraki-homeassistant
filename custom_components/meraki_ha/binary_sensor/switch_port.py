@@ -11,7 +11,9 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..core.coordinators.switch_port_status_coordinator import SwitchPortStatusCoordinator
+from ..core.coordinators.switch_port_status_coordinator import (
+    SwitchPortStatusCoordinator,
+)
 from ..helpers.entity_helpers import format_entity_name
 from ..helpers.device_info_helpers import resolve_device_info
 
@@ -19,7 +21,9 @@ from ..helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class SwitchPortSensor(CoordinatorEntity[SwitchPortStatusCoordinator], BinarySensorEntity):
+class SwitchPortSensor(
+    CoordinatorEntity[SwitchPortStatusCoordinator], BinarySensorEntity
+):
     """Representation of a Meraki switch port sensor."""
 
     _attr_state_color = True

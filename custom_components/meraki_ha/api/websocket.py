@@ -1,4 +1,5 @@
 """WebSocket API for Meraki HA."""
+
 from __future__ import annotations
 
 import voluptuous as vol

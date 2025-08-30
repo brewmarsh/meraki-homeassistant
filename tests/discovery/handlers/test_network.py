@@ -1,15 +1,19 @@
 """
 Tests for the NetworkHandler.
 """
-from unittest.mock import MagicMock, AsyncMock
+
+from unittest.mock import MagicMock
 import pytest
 
 from custom_components.meraki_ha.discovery.handlers.network import NetworkHandler
-from custom_components.meraki_ha.sensor.network.network_clients import MerakiNetworkClientsSensor
+from custom_components.meraki_ha.sensor.network.network_clients import (
+    MerakiNetworkClientsSensor,
+)
 from ...const import MOCK_CONFIG_ENTRY
 
 MOCK_NETWORK_1 = {"id": "N_1234", "name": "Network 1"}
 MOCK_NETWORK_2 = {"id": "N_5678", "name": "Network 2"}
+
 
 @pytest.fixture
 def mock_coordinator():
@@ -17,6 +21,7 @@ def mock_coordinator():
     coordinator = MagicMock()
     coordinator.data = {"networks": [MOCK_NETWORK_1, MOCK_NETWORK_2]}
     return coordinator
+
 
 @pytest.fixture
 def mock_network_control_service():

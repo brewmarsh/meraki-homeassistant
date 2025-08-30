@@ -5,15 +5,18 @@ from unittest.mock import MagicMock, patch
 from custom_components.meraki_ha.discovery.handlers.base import BaseDeviceHandler
 from tests.const import MOCK_DEVICE
 
+
 @pytest.fixture
 def mock_coordinator():
     """Fixture for a mocked MerakiDataCoordinator."""
     return MagicMock()
 
+
 @pytest.fixture
 def mock_config_entry():
     """Fixture for a mocked config entry."""
     return MagicMock()
+
 
 from unittest.mock import AsyncMock
 
@@ -27,9 +30,7 @@ def mock_camera_service():
 def test_base_handler_init(mock_coordinator, mock_config_entry):
     """Test the initialization of the BaseDeviceHandler."""
     with patch.multiple(BaseDeviceHandler, __abstractmethods__=set()):
-        handler = BaseDeviceHandler(
-            mock_coordinator, MOCK_DEVICE, mock_config_entry
-        )
+        handler = BaseDeviceHandler(mock_coordinator, MOCK_DEVICE, mock_config_entry)
         assert handler.device is MOCK_DEVICE
 
 
@@ -39,9 +40,7 @@ async def test_base_handler_discover_entities_raises_not_implemented(
 ):
     """Test that the base handler's discover_entities raises NotImplementedError."""
     with patch.multiple(BaseDeviceHandler, __abstractmethods__=set()):
-        handler = BaseDeviceHandler(
-            mock_coordinator, MOCK_DEVICE, mock_config_entry
-        )
+        handler = BaseDeviceHandler(mock_coordinator, MOCK_DEVICE, mock_config_entry)
         # The abstract method should raise NotImplementedError
         BaseDeviceHandler.discover_entities.__isabstractmethod__ = False
         with pytest.raises(NotImplementedError):

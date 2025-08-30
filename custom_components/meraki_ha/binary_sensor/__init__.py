@@ -24,7 +24,9 @@ async def async_setup_entry(
     # Add discovered entities
     discovered_entities = entry_data.get("entities", [])
 
-    binary_sensor_entities = [e for e in discovered_entities if isinstance(e, BinarySensorEntity)]
+    binary_sensor_entities = [
+        e for e in discovered_entities if isinstance(e, BinarySensorEntity)
+    ]
 
     if binary_sensor_entities:
         async_add_entities(binary_sensor_entities)

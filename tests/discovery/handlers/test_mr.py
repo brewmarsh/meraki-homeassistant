@@ -5,15 +5,18 @@ from unittest.mock import MagicMock, AsyncMock
 from custom_components.meraki_ha.discovery.handlers.mr import MRHandler
 from tests.const import MOCK_DEVICE
 
+
 @pytest.fixture
 def mock_coordinator():
     """Fixture for a mocked MerakiDataCoordinator."""
     return MagicMock()
 
+
 @pytest.fixture
 def mock_config_entry():
     """Fixture for a mocked config entry."""
     return MagicMock()
+
 
 @pytest.fixture
 def mock_control_service():

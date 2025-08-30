@@ -5,6 +5,7 @@ import pytest
 from custom_components.meraki_ha.hubs.network import NetworkHub
 from tests.const import MOCK_NETWORK, MOCK_DEVICE
 
+
 @pytest.fixture
 def mock_coordinator():
     """Fixture for a mocked MerakiDataCoordinator."""
@@ -26,17 +27,20 @@ def mock_coordinator():
     coordinator.get_network.return_value = MOCK_NETWORK
     return coordinator
 
+
 def test_network_hub_init(mock_coordinator):
     """Test the initialization of the NetworkHub."""
     hub = NetworkHub(mock_coordinator, MOCK_NETWORK["id"])
     assert hub._coordinator is mock_coordinator
     assert hub.network_id == MOCK_NETWORK["id"]
 
+
 def test_network_info_property(mock_coordinator):
     """Test the network_info property."""
     hub = NetworkHub(mock_coordinator, MOCK_NETWORK["id"])
     assert hub.network_info == MOCK_NETWORK
     mock_coordinator.get_network.assert_called_once_with(MOCK_NETWORK["id"])
+
 
 def test_devices_property(mock_coordinator):
     """Test the devices property filters correctly."""
@@ -45,12 +49,14 @@ def test_devices_property(mock_coordinator):
     assert len(devices) == 1
     assert devices[0]["networkId"] == MOCK_NETWORK["id"]
 
+
 def test_ssids_property(mock_coordinator):
     """Test the ssids property filters correctly."""
     hub = NetworkHub(mock_coordinator, MOCK_NETWORK["id"])
     ssids = hub.ssids
     assert len(ssids) == 1
     assert ssids[0]["networkId"] == MOCK_NETWORK["id"]
+
 
 @pytest.mark.asyncio
 async def test_async_update_data(mock_coordinator):

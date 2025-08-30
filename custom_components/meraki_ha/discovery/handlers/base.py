@@ -4,6 +4,7 @@ Base Device Handler
 This module defines the BaseDeviceHandler class, which provides a common
 interface for all device-specific handlers.
 """
+
 from __future__ import annotations
 from abc import ABC, abstractmethod
 

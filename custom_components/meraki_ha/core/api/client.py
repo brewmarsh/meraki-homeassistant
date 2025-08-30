@@ -8,7 +8,7 @@ Meraki API endpoint categories.
 import asyncio
 from functools import partial
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import diskcache as dc
 from homeassistant.core import HomeAssistant
@@ -35,16 +35,18 @@ class MerakiAPIClient:
 
     def __init__(
         self,
-        hass: HomeAssistant,
         api_key: str,
         org_id: str,
+        hass: Optional[HomeAssistant] = None,
         base_url: str = "https://api.meraki.com/api/v1",
     ) -> None:
         """Initialize the API client."""
         self._api_key = api_key
         self._org_id = org_id
-        cache_dir = hass.config.path("meraki_cache")
-        self._cache = dc.Cache(cache_dir)
+        self._cache = None
+        if hass:
+            cache_dir = hass.config.path("meraki_cache")
+            self._cache = dc.Cache(cache_dir)
         self._dashboard = meraki.DashboardAPI(
             api_key=api_key,
             base_url=base_url,
@@ -77,7 +79,7 @@ class MerakiAPIClient:
         async with self._semaphore:
             return await coro
 
-    async def _async_fetch_initial_data(self) -> tuple:
+    async def _async_fetch_initial_data(self) -> list:
         """Fetch the initial batch of data from the Meraki API."""
         initial_tasks = [
             self._run_with_semaphore(self.organization.get_organization_networks()),
@@ -91,7 +93,7 @@ class MerakiAPIClient:
         ]
         return await asyncio.gather(*initial_tasks, return_exceptions=True)
 
-    def _process_initial_data(self, results: tuple) -> dict:
+    def _process_initial_data(self, results: list) -> dict:
         """Process the initial data, handling errors and merging."""
         (
             networks_res,
@@ -314,15 +316,17 @@ class MerakiAPIClient:
             "rf_profiles": rf_profiles_by_network,
         }
 
-    async def get_all_data(self, previous_data: dict = None) -> dict:
+    async def get_all_data(self, previous_data: Optional[dict] = None) -> dict:
         """Fetch all data from the Meraki API concurrently, with caching."""
         if previous_data is None:
             previous_data = {}
-        cache_key = f"meraki_data_{self._org_id}"
-        cached_data = self._cache.get(cache_key)
-        if cached_data:
-            _LOGGER.debug("Returning cached Meraki data")
-            return cached_data
+
+        if self._cache:
+            cache_key = f"meraki_data_{self._org_id}"
+            cached_data = self._cache.get(cache_key)
+            if cached_data:
+                _LOGGER.debug("Returning cached Meraki data")
+                return cached_data
 
         _LOGGER.debug("Fetching fresh Meraki data from API")
         initial_results = await self._async_fetch_initial_data()
@@ -352,7 +356,8 @@ class MerakiAPIClient:
             ],
             **processed_detailed_data,
         }
-        if fresh_data:
+        if fresh_data and self._cache:
+            cache_key = f"meraki_data_{self._org_id}"
             self._cache.set(cache_key, fresh_data, expire=120)  # Cache for 2 minutes
 
         return fresh_data

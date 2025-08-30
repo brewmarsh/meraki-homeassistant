@@ -4,6 +4,7 @@ Meraki Repository
 This module defines the MerakiRepository class, which is responsible for
 interacting with the Meraki API client and handling data processing.
 """
+
 from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
@@ -38,7 +39,9 @@ class MerakiRepository:
             _LOGGER.error("Failed to reboot device %s: %s", serial, e)
             return None
 
-    async def async_get_switch_port_statuses(self, serial: str) -> list[dict[str, Any]] | None:
+    async def async_get_switch_port_statuses(
+        self, serial: str
+    ) -> list[dict[str, Any]] | None:
         """
         Get statuses for all ports of a switch.
 

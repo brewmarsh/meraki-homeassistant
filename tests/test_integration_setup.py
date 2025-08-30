@@ -1,7 +1,7 @@
 """Integration-level tests for the Meraki HA component."""
 
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, AsyncMock
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import async_get as async_get_device_registry
@@ -62,10 +62,12 @@ async def test_ssid_device_creation_and_unification(
     """Test that a single device is created for an SSID with all its entities."""
     config_entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.meraki_ha.MerakiAPIClient", return_value=mock_meraki_client
-    ), patch(
-        "custom_components.meraki_ha.async_register_webhook", return_value=None
+    with (
+        patch(
+            "custom_components.meraki_ha.MerakiAPIClient",
+            return_value=mock_meraki_client,
+        ),
+        patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
     ):
         # Set up the component
         assert await hass.config_entries.async_setup(config_entry.entry_id)

@@ -1,7 +1,5 @@
 """Sensor for tracking clients on a specific network."""
 
-"""Sensor for tracking clients on a specific network."""
-
 import logging
 from typing import TYPE_CHECKING
 

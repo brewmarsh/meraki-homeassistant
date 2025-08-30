@@ -1,6 +1,7 @@
 """
 Device handler for Meraki GX appliances.
 """
+
 from __future__ import annotations
 
 import logging

@@ -48,7 +48,7 @@ class MerakiCameraSettingSwitchBase(
     def _update_state(self) -> None:
         """Update the internal state of the switch."""
         device = self.coordinator.get_device(self._device_data["serial"])
-        if device:
+        if device is not None:
             self._device_data = device
             self._attr_is_on = self._get_value_from_device(device)
         else:
@@ -102,9 +102,9 @@ class MerakiCameraSettingSwitchBase(
                         self.coordinator.data.get("devices", [])
                     ):
                         if device.get("serial") == self._device_data["serial"]:
-                            self.coordinator.data["devices"][i][
-                                "video_settings"
-                            ] = video_settings
+                            self.coordinator.data["devices"][i]["video_settings"] = (
+                                video_settings
+                            )
                             break
                     self.coordinator.async_update_listeners()
 

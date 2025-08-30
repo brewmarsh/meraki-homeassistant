@@ -3,6 +3,7 @@
 import pytest
 from aiohttp import ClientError
 from meraki.exceptions import APIError
+from typing import Dict, List
 
 from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
@@ -78,9 +79,6 @@ async def dummy_api_call_client_error():
 async def dummy_api_call_generic_error():
     """A dummy API call that raises a generic error."""
     raise Exception("test")
-
-
-from typing import Dict, List
 
 
 @pytest.mark.asyncio

@@ -84,11 +84,16 @@ async def test_discover_entities_delegates_to_handler(
     mock_mv_handler_instance.discover_entities = AsyncMock(return_value=["mv_entity"])
     MockMVHandler.return_value = mock_mv_handler_instance
 
-
-    with patch.dict(
-        "custom_components.meraki_ha.discovery.service.HANDLER_MAPPING",
-        {"MR": MockMRHandler, "MV": MockMVHandler},
-    ), patch("custom_components.meraki_ha.discovery.handlers.network.NetworkHandler") as MockNetworkHandler, patch("custom_components.meraki_ha.discovery.handlers.ssid.SSIDHandler"):
+    with (
+        patch.dict(
+            "custom_components.meraki_ha.discovery.service.HANDLER_MAPPING",
+            {"MR": MockMRHandler, "MV": MockMVHandler},
+        ),
+        patch(
+            "custom_components.meraki_ha.discovery.handlers.network.NetworkHandler"
+        ) as MockNetworkHandler,
+        patch("custom_components.meraki_ha.discovery.handlers.ssid.SSIDHandler"),
+    ):
         mock_network_handler_instance = MagicMock()
         mock_network_handler_instance.discover_entities = AsyncMock(return_value=[])
         MockNetworkHandler.create.return_value = mock_network_handler_instance
@@ -123,6 +128,6 @@ async def test_discover_entities_delegates_to_handler(
             mock_config_entry,
             mock_camera_service,
             mock_control_service,
-            ANY, # meraki_client
+            ANY,  # meraki_client
         )
         assert "No handler found for model 'unsupported'" in caplog.text

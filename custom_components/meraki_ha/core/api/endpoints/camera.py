@@ -101,9 +101,7 @@ class CameraEndpoints:
         )
         validated = validate_response(recent)
         if not isinstance(validated, list):
-            _LOGGER.warning(
-                "get_device_camera_analytics_recent did not return a list."
-            )
+            _LOGGER.warning("get_device_camera_analytics_recent did not return a list.")
             return []
         return validated
 
@@ -124,9 +122,7 @@ class CameraEndpoints:
         return validated
 
     @handle_meraki_errors
-    async def generate_device_camera_snapshot(
-        self, serial: str
-    ) -> Dict[str, Any]:
+    async def generate_device_camera_snapshot(self, serial: str) -> Dict[str, Any]:
         """Generate a snapshot of what the camera sees."""
         snapshot = await self._api_client._run_sync(
             self._dashboard.camera.generateDeviceCameraSnapshot,
@@ -135,8 +131,6 @@ class CameraEndpoints:
         )
         validated = validate_response(snapshot)
         if not isinstance(validated, dict):
-            _LOGGER.warning(
-                "generate_device_camera_snapshot did not return a dict."
-            )
+            _LOGGER.warning("generate_device_camera_snapshot did not return a dict.")
             return {}
         return validated

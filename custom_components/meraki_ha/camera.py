@@ -1,6 +1,7 @@
 """
 Support for Meraki cameras.
 """
+
 from __future__ import annotations
 
 import logging
@@ -13,16 +14,19 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN, CONF_MERAKI_API_KEY, CONF_USE_LAN_IP_FOR_RTSP
-from .core.errors import MerakiInformationalError
 from .helpers.entity_helpers import format_entity_name
 from .core.utils.naming_utils import format_device_name
 from .core.utils.network_utils import is_private_ip, construct_rtsp_url
 
+# SUPPORT_STREAM was deprecated in 2024.2, and CameraEntityFeature was added.
+# This try/except block is for backward compatibility.
 try:
     from homeassistant.components.camera import CameraEntityFeature
     SUPPORT_STREAM = CameraEntityFeature.STREAM
 except (ImportError, AttributeError):
-    from homeassistant.components.camera import SUPPORT_STREAM
+    from homeassistant.components.camera import (
+        SUPPORT_STREAM,
+    )  # pyright: ignore[reportGeneralTypeIssues]
 
 
 if TYPE_CHECKING:
@@ -76,10 +80,18 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
         self._device_data = device  # Store initial data
         self._attr_unique_id = f"{self._device_serial}-camera"
         self._attr_name = format_entity_name(
-            format_device_name(self._device_data, self.coordinator.config_entry.options),
+            format_device_name(
+                self._device_data, self.coordinator.config_entry.options
+            ),
             "",
         )
         self._attr_model = self._device_data.get("model")
+        self._attr_entity_registry_enabled_default = True
+        self._disabled_reason = None
+
+        if not self._device_data.get("rtsp_url") and not self._device_data.get("lanIp"):
+            self._attr_entity_registry_enabled_default = False
+            self._disabled_reason = "The camera did not provide a stream URL or a LAN IP address from the API."
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -167,6 +179,10 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
     def extra_state_attributes(self) -> Dict[str, Any]:
         """Return the state attributes."""
         attrs = {}
+        if self._disabled_reason:
+            attrs["disabled_reason"] = self._disabled_reason
+            return attrs
+
         video_settings = self._device_data.get("video_settings", {})
         if not video_settings.get("rtspServerEnabled", False):
             attrs["stream_status"] = "Disabled in Meraki Dashboard"
@@ -174,9 +190,12 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
                 self._device_serial, "RTSP stream is disabled in the Meraki dashboard."
             )
         elif not self._device_data.get("rtsp_url"):
-            attrs["stream_status"] = "Stream URL not available. This may be because the camera does not support cloud archival."
+            attrs["stream_status"] = (
+                "Stream URL not available. This may be because the camera does not support cloud archival."
+            )
             self.coordinator.add_status_message(
-                self._device_serial, "RTSP stream URL is not available. The camera might not support cloud archival."
+                self._device_serial,
+                "RTSP stream URL is not available. The camera might not support cloud archival.",
             )
         else:
             attrs["stream_status"] = "Enabled"
@@ -200,9 +219,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
             return False
 
         url = self._device_data.get("rtsp_url")
-        return (
-            url is not None and isinstance(url, str) and url.startswith("rtsp://")
-        )
+        return url is not None and isinstance(url, str) and url.startswith("rtsp://")
 
     async def async_turn_on(self) -> None:
         """Turn on the camera stream."""

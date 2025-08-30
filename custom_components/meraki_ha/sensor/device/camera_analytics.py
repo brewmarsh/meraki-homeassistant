@@ -1,6 +1,7 @@
 """
 Sensor entities for camera analytics.
 """
+
 from __future__ import annotations
 
 import logging
@@ -36,9 +37,7 @@ class MerakiAnalyticsSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEnti
         self._camera_service = camera_service
         self._object_type = object_type
         self._attr_unique_id = f"{self._device['serial']}-{object_type}-count"
-        self._attr_name = (
-            f"{self._device['name']} {object_type.capitalize()} Count"
-        )
+        self._attr_name = f"{self._device['name']} {object_type.capitalize()} Count"
         self._analytics_data: Dict[str, Any] = {}
 
     @property
@@ -66,15 +65,11 @@ class MerakiAnalyticsSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEnti
         """Update the sensor."""
         serial = self._device["serial"]
         try:
-            self._analytics_data = (
-                await self._camera_service.get_analytics_data(
-                    serial, self._object_type
-                )
+            self._analytics_data = await self._camera_service.get_analytics_data(
+                serial, self._object_type
             )
         except Exception as e:
-            _LOGGER.error(
-                "Error updating analytics sensor for %s: %s", serial, e
-            )
+            _LOGGER.error("Error updating analytics sensor for %s: %s", serial, e)
             self._analytics_data = {}
 
 

@@ -4,6 +4,7 @@ Meraki SSID Handler
 This module defines the SSIDHandler class, which is responsible for discovering
 virtual devices and entities for each Meraki SSID.
 """
+
 from __future__ import annotations
 
 import logging
@@ -124,7 +125,9 @@ class SSIDHandler(BaseHandler):
                     MerakiSSIDAvailabilitySensor(
                         self._coordinator, self._config_entry, ssid
                     ),
-                    MerakiSSIDChannelSensor(self._coordinator, self._config_entry, ssid),
+                    MerakiSSIDChannelSensor(
+                        self._coordinator, self._config_entry, ssid
+                    ),
                     MerakiSSIDClientCountSensor(
                         self._coordinator, self._config_entry, ssid
                     ),
@@ -158,7 +161,9 @@ class SSIDHandler(BaseHandler):
                     MerakiSSIDPerSsidBandwidthLimitSensor(
                         self._coordinator, self._config_entry, ssid, "down"
                     ),
-                    MerakiSSIDVisibleSensor(self._coordinator, self._config_entry, ssid),
+                    MerakiSSIDVisibleSensor(
+                        self._coordinator, self._config_entry, ssid
+                    ),
                     MerakiSSIDWalledGardenSensor(
                         self._coordinator, self._config_entry, ssid, rf_profile
                     ),

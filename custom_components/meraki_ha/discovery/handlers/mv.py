@@ -4,6 +4,7 @@ MV (Camera) Device Handler
 This module defines the MVHandler class, which is responsible for discovering
 entities for Meraki MV series (camera) devices.
 """
+
 from __future__ import annotations
 
 import logging
@@ -26,8 +27,12 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
     from ....types import MerakiDevice
     from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from ...core.coordinators.switch_port_status_coordinator import (
+        SwitchPortStatusCoordinator,
+    )
     from ...services.camera_service import CameraService
     from ...services.device_control_service import DeviceControlService
+    from ...services.network_control_service import NetworkControlService
     from ...core.api.client import MerakiAPIClient
 
 
@@ -88,9 +93,7 @@ class MVHandler(BaseDeviceHandler):
                 )
                 await self._camera_service.async_set_rtsp_stream_enabled(serial, True)
             except MerakiInformationalError as e:
-                _LOGGER.warning(
-                    "Could not enable RTSP stream for %s: %s", serial, e
-                )
+                _LOGGER.warning("Could not enable RTSP stream for %s: %s", serial, e)
 
         # Always create the base camera entity
         entities.append(

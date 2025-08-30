@@ -1,6 +1,7 @@
 """
 Tests for the DeviceControlService.
 """
+
 from unittest.mock import AsyncMock, MagicMock
 import pytest
 

@@ -4,6 +4,7 @@ Repository for camera-related data.
 This module defines the CameraRepository class, which is responsible for
 fetching and processing camera-related data from the Meraki API.
 """
+
 from __future__ import annotations
 
 import logging
@@ -46,7 +47,11 @@ class CameraRepository:
         model = device.get("model", "")
 
         features = ["video_stream"]
-        if model.startswith("MV12") or model.startswith("MV22") or model.startswith("MV72"):
+        if (
+            model.startswith("MV12")
+            or model.startswith("MV22")
+            or model.startswith("MV72")
+        ):
             features.extend(["person_detection", "vehicle_detection"])
 
         return features
@@ -56,10 +61,8 @@ class CameraRepository:
     ) -> Optional[List[Dict[str, Any]]]:
         """Fetch object detection and motion data."""
         try:
-            recent = (
-                await self._api_client.camera.get_device_camera_analytics_recent(
-                    serial, object_type
-                )
+            recent = await self._api_client.camera.get_device_camera_analytics_recent(
+                serial, object_type
             )
             return recent
         except Exception as e:
@@ -111,9 +114,7 @@ class CameraRepository:
         """Generate a snapshot and return the URL."""
         try:
             snapshot_data = (
-                await self._api_client.camera.generate_device_camera_snapshot(
-                    serial
-                )
+                await self._api_client.camera.generate_device_camera_snapshot(serial)
             )
             return snapshot_data.get("url")
         except Exception as e:
@@ -123,7 +124,7 @@ class CameraRepository:
     async def set_rtsp_stream_enabled(self, serial: str, enabled: bool) -> None:
         """Enable or disable RTSP stream for a camera."""
         try:
-            await self._api_client.camera.update_device_camera_video_settings(
+            await self._api_client.camera.update_camera_video_settings(
                 serial, rtsp_server_enabled=enabled
             )
         except Exception as e:

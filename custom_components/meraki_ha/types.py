@@ -35,3 +35,5 @@ class MerakiDevice(TypedDict, total=False):
     ports_statuses: list
     radio_settings: dict
     dynamicDns: dict
+    rtsp_url: Optional[str]
+    sense_settings: dict

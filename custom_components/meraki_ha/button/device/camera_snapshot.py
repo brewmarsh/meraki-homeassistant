@@ -1,6 +1,7 @@
 """
 Button entity for taking a camera snapshot.
 """
+
 from __future__ import annotations
 
 import logging

@@ -1,0 +1,30 @@
+custom_components/meraki_ha/core/api/cache.py:18: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+custom_components/meraki_ha/core/api/cache.py:20: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+custom_components/meraki_ha/core/api/client.py:92: error: Incompatible return value type (got "list[Any | BaseException]", expected "tuple[Any, ...]")  [return-value]
+custom_components/meraki_ha/core/api/client.py:295: error: TypedDict "MerakiDevice" has no key "rtsp_url"  [typeddict-unknown-key]
+custom_components/meraki_ha/core/api/client.py:297: error: TypedDict "MerakiDevice" has no key "rtsp_url"  [typeddict-unknown-key]
+custom_components/meraki_ha/core/api/client.py:299: error: TypedDict "MerakiDevice" has no key "sense_settings"  [typeddict-unknown-key]
+custom_components/meraki_ha/core/api/client.py:317: error: Incompatible default for argument "previous_data" (default has type "None", argument has type "dict[Any, Any]")  [assignment]
+custom_components/meraki_ha/core/api/client.py:317: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+custom_components/meraki_ha/core/api/client.py:317: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+custom_components/meraki_ha/authentication.py:57: error: Missing positional argument "hass" in call to "MerakiAPIClient"  [call-arg]
+custom_components/meraki_ha/core/repositories/camera_repository.py:127: error: "CameraEndpoints" has no attribute "update_device_camera_video_settings"; maybe "update_camera_video_settings", "get_camera_video_settings", or "get_device_camera_video_link"?  [attr-defined]
+custom_components/meraki_ha/config_flow.py:49: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+custom_components/meraki_ha/config_flow.py:50: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+custom_components/meraki_ha/hubs/organization.py:25: error: Need type annotation for "data" (hint: "data: dict[<type>, <type>] = ...")  [var-annotated]
+custom_components/meraki_ha/camera.py:26: error: Name "SUPPORT_STREAM" already defined on line 24  [no-redef]
+custom_components/meraki_ha/switch/camera_settings.py:43: error: Incompatible types in assignment (expression has type "Any | None", variable has type "dict[str, Any]")  [assignment]
+custom_components/meraki_ha/sensor/device/rtsp_url.py:50: error: Incompatible types in assignment (expression has type "str | None", variable has type "None")  [assignment]
+custom_components/meraki_ha/sensor/device/camera_analytics.py:55: error: Invalid index type "int" for "dict[str, Any]"; expected type "str"  [index]
+custom_components/meraki_ha/sensor/device/camera_analytics.py:68: error: Incompatible types in assignment (expression has type "list[dict[str, Any]] | None", variable has type "dict[str, Any]")  [assignment]
+custom_components/meraki_ha/button/reboot.py:45: error: Argument 1 to "resolve_device_info" has incompatible type "MerakiDevice"; expected "dict[str, Any]"  [arg-type]
+custom_components/meraki_ha/binary_sensor/device/camera_motion.py:20: error: Name "TYPE_CHECKING" is not defined  [name-defined]
+custom_components/meraki_ha/discovery/handlers/network.py:65: error: Need type annotation for "entities" (hint: "entities: list[<type>] = ...")  [var-annotated]
+custom_components/meraki_ha/discovery/handlers/mv.py:61: error: Signature of "create" incompatible with supertype "custom_components.meraki_ha.discovery.handlers.base.BaseDeviceHandler"  [override]
+custom_components/meraki_ha/discovery/handlers/mv.py:61: note:      Superclass:
+custom_components/meraki_ha/discovery/handlers/mv.py:61: note:          @classmethod
+custom_components/meraki_ha/discovery/handlers/mv.py:61: note:          def create(cls, coordinator: Any, device: Any, config_entry: Any, camera_service: Any, control_service: Any, network_control_service: Any, switch_port_coordinator: Any) -> BaseDeviceHandler
+custom_components/meraki_ha/discovery/handlers/mv.py:61: note:      Subclass:
+custom_components/meraki_ha/discovery/handlers/mv.py:61: note:          @classmethod
+custom_components/meraki_ha/discovery/handlers/mv.py:61: note:          def create(cls, coordinator: MerakiDataCoordinator, device: Any, config_entry: Any, camera_service: CameraService, control_service: DeviceControlService, network_control_service: NetworkControlService, switch_port_coordinator: SwitchPortStatusCoordinator, meraki_client: MerakiAPIClient) -> MVHandler
+Found 17 errors in 12 files (checked 140 source files)

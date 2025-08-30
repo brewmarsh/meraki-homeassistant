@@ -1,6 +1,7 @@
 """
 Tests for the NetworkControlService.
 """
+
 from unittest.mock import MagicMock
 import pytest
 
@@ -8,10 +9,12 @@ from custom_components.meraki_ha.services.network_control_service import (
     NetworkControlService,
 )
 
+
 @pytest.fixture
 def mock_api_client():
     """Fixture for a mock MerakiAPIClient."""
     return MagicMock()
+
 
 @pytest.fixture
 def mock_coordinator():
@@ -42,6 +45,7 @@ def test_get_network_client_count(mock_api_client, mock_coordinator):
     # Test with a network that has no clients
     count = service.get_network_client_count("N_9999")
     assert count == 0
+
 
 def test_get_network_client_count_no_clients_data(mock_api_client):
     """Test get_network_client_count when there is no client data."""

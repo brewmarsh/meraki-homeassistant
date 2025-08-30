@@ -93,6 +93,7 @@ def is_private_ip(url_or_ip: Optional[str]) -> bool:
         return False
     try:
         from urllib.parse import urlparse
+
         # Assume it's a full URL and parse it
         hostname = urlparse(url_or_ip).hostname
         # If parsing results in a hostname, use that. Otherwise, assume the original string was the IP.

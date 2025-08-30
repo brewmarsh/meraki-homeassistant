@@ -31,12 +31,14 @@ BASE_MOCK_DATA = {
     ],
 }
 
+
 @pytest.fixture
 def mock_api_client():
     """Fixture for a mocked API client."""
     client = MagicMock()
     client.get_all_data = AsyncMock(return_value=copy.deepcopy(BASE_MOCK_DATA))
     return client
+
 
 @pytest.mark.asyncio
 async def test_async_update_data_orchestration(hass: HomeAssistant, mock_api_client):

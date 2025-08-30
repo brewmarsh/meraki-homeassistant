@@ -1,6 +1,7 @@
 """
 Tests for the GXHandler.
 """
+
 from unittest.mock import MagicMock, AsyncMock
 
 import pytest

@@ -4,6 +4,7 @@ Switch Port Service
 This module defines the SwitchPortService class, which is responsible for
 handling business logic related to switch ports.
 """
+
 from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
@@ -21,7 +22,9 @@ class SwitchPortService:
         """Initialize the SwitchPortService."""
         self._repository = repository
 
-    async def async_get_ports_statuses(self, serial: str) -> list[dict[str, Any]] | None:
+    async def async_get_ports_statuses(
+        self, serial: str
+    ) -> list[dict[str, Any]] | None:
         """
         Get statuses for all ports of a switch.
 

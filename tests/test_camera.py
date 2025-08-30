@@ -157,7 +157,9 @@ async def test_camera_turn_on(mock_coordinator, mock_config_entry, mock_camera_s
 
 
 @pytest.mark.asyncio
-async def test_camera_turn_off(mock_coordinator, mock_config_entry, mock_camera_service):
+async def test_camera_turn_off(
+    mock_coordinator, mock_config_entry, mock_camera_service
+):
     """Test turning the camera stream off."""
     # Arrange
     camera = MerakiCamera(
@@ -273,3 +275,28 @@ def test_coordinator_update(mock_coordinator, mock_config_entry, mock_camera_ser
     assert camera.is_streaming is False
     # Check that async_write_ha_state was called to notify HA of the change
     camera.async_write_ha_state.assert_called_once()
+
+
+def test_entity_disabled_if_no_url(
+    mock_coordinator, mock_config_entry, mock_camera_service
+):
+    """Test that the camera entity is disabled by default if no stream URL can be determined."""
+    # Arrange
+    # Create a mock device with no way to determine a stream URL
+    mock_device_no_url = {
+        **MOCK_CAMERA_DEVICE,
+        "rtsp_url": None,
+        "lanIp": None,
+    }
+
+    # Act
+    camera = MerakiCamera(
+        mock_coordinator,
+        mock_config_entry,
+        mock_device_no_url,
+        mock_camera_service,
+    )
+
+    # Assert
+    assert camera.entity_registry_enabled_default is False
+    assert camera.extra_state_attributes["disabled_reason"] is not None

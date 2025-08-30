@@ -5,6 +5,7 @@ This module defines the CameraService class, which encapsulates the business
 logic for handling Meraki cameras. It uses the CameraRepository to interact
 with the API and provides a clean interface for other parts of the integration.
 """
+
 from __future__ import annotations
 
 import logging

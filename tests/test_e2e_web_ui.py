@@ -36,12 +36,15 @@ async def setup_integration_fixture(hass: HomeAssistant, socket_enabled):
     )
     config_entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.meraki_ha.MerakiDataCoordinator._async_update_data",
-        return_value=MOCK_ALL_DATA,
-    ), patch(
-        "custom_components.meraki_ha.async_register_webhook",
-        return_value=None,
+    with (
+        patch(
+            "custom_components.meraki_ha.MerakiDataCoordinator._async_update_data",
+            return_value=MOCK_ALL_DATA,
+        ),
+        patch(
+            "custom_components.meraki_ha.async_register_webhook",
+            return_value=None,
+        ),
     ):
         await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
