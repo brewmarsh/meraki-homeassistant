@@ -10,6 +10,8 @@ from functools import partial
 import logging
 from typing import Any, Dict, List
 
+import diskcache as dc
+from homeassistant.core import HomeAssistant
 import meraki  # type: ignore[import-untyped]
 
 from ...types import MerakiDevice, MerakiNetwork
@@ -33,6 +35,7 @@ class MerakiAPIClient:
 
     def __init__(
         self,
+        hass: HomeAssistant,
         api_key: str,
         org_id: str,
         base_url: str = "https://api.meraki.com/api/v1",
@@ -40,6 +43,8 @@ class MerakiAPIClient:
         """Initialize the API client."""
         self._api_key = api_key
         self._org_id = org_id
+        cache_dir = hass.config.path("meraki_cache")
+        self._cache = dc.Cache(cache_dir)
         self._dashboard = meraki.DashboardAPI(
             api_key=api_key,
             base_url=base_url,
@@ -201,12 +206,6 @@ class MerakiAPIClient:
                         self.camera.get_camera_sense_settings(device["serial"])
                     )
                 )
-                # Also fetch the video link so we can get the RTSP stream URL
-                detail_tasks[f"video_link_{device['serial']}"] = (
-                    self._run_with_semaphore(
-                        self.camera.get_device_camera_video_link(device["serial"])
-                    )
-                )
             elif device.get("productType") == "switch":
                 detail_tasks[f"ports_statuses_{device['serial']}"] = (
                     self._run_with_semaphore(
@@ -276,13 +275,13 @@ class MerakiAPIClient:
             elif product_type == "camera":
                 if settings := detail_data.get(f"video_settings_{device['serial']}"):
                     device["video_settings"] = settings
-                if settings := detail_data.get(f"sense_settings_{device['serial']}"):
-                    device["sense_settings"] = settings
-                if video_link := detail_data.get(f"video_link_{device['serial']}"):
-                    if isinstance(video_link, dict):
-                        device["rtsp_url"] = video_link.get("url")
+                    # The video_settings endpoint also provides the RTSP URL
+                    if isinstance(settings, dict):
+                        device["rtsp_url"] = settings.get("rtspUrl")
                     else:
                         device["rtsp_url"] = None
+                if settings := detail_data.get(f"sense_settings_{device['serial']}"):
+                    device["sense_settings"] = settings
             elif product_type == "switch":
                 if statuses := detail_data.get(f"ports_statuses_{device['serial']}"):
                     device["ports_statuses"] = statuses
@@ -301,7 +300,14 @@ class MerakiAPIClient:
         }
 
     async def get_all_data(self) -> dict:
-        """Fetch all data from the Meraki API concurrently."""
+        """Fetch all data from the Meraki API concurrently, with caching."""
+        cache_key = f"meraki_data_{self._org_id}"
+        cached_data = self._cache.get(cache_key)
+        if cached_data:
+            _LOGGER.debug("Returning cached Meraki data")
+            return cached_data
+
+        _LOGGER.debug("Fetching fresh Meraki data from API")
         initial_results = await self._async_fetch_initial_data()
         processed_initial_data = self._process_initial_data(initial_results)
 
@@ -320,7 +326,7 @@ class MerakiAPIClient:
             detail_data, networks, devices
         )
 
-        return {
+        fresh_data = {
             "networks": networks,
             "devices": devices,
             "clients": clients,
@@ -329,21 +335,25 @@ class MerakiAPIClient:
             ],
             **processed_detailed_data,
         }
+        if fresh_data:
+            self._cache.set(cache_key, fresh_data, expire=120)  # Cache for 2 minutes
+
+        return fresh_data
 
     @property
     def organization_id(self) -> str:
         """Get the organization ID."""
         return self._org_id
 
-    async def register_webhook(self, webhook_url: str, secret: str) -> None:
+    async def register_webhook(self, webhook_url: str, secret: str) -> Dict[str, Any]:
         """Register a webhook with the Meraki API."""
-        # This is a placeholder. The actual implementation will be added in a future step.
-        pass
+        return await self.organization.create_organization_webhook(
+            name="Home Assistant", url=webhook_url, secret=secret
+        )
 
     async def unregister_webhook(self, webhook_id: str) -> None:
         """Unregister a webhook with the Meraki API."""
-        # This is a placeholder. The actual implementation will be added in a future step.
-        pass
+        await self.organization.delete_organization_webhook(webhook_id)
 
     async def async_reboot_device(self, serial: str) -> dict:
         """Reboot a device."""

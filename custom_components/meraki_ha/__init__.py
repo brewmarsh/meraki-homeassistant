@@ -50,6 +50,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug("Setting up Meraki entry: %s", entry.entry_id)
     try:
         api_client = MerakiAPIClient(
+            hass=hass,
             api_key=entry.data[CONF_MERAKI_API_KEY],
             org_id=entry.data[CONF_MERAKI_ORG_ID],
         )
@@ -144,13 +145,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    if "webhook_id" not in entry.data:
+    if "webhook_http_server_id" not in entry.data:
+        # The webhook_id for Home Assistant is the config entry id
         webhook_id = entry.entry_id
         secret = secrets.token_hex(16)
-        await async_register_webhook(hass, webhook_id, secret, api_client, entry)
-        hass.config_entries.async_update_entry(
-            entry, data={**entry.data, "webhook_id": webhook_id, "secret": secret}
+        webhook = await async_register_webhook(
+            hass, webhook_id, secret, api_client, entry
         )
+        if webhook and "id" in webhook:
+            hass.config_entries.async_update_entry(
+                entry,
+                data={
+                    **entry.data,
+                    "webhook_http_server_id": webhook["id"],
+                    "secret": secret,
+                },
+            )
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     return True
@@ -159,9 +169,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Meraki config entry."""
     if hass.data.get(DOMAIN) and entry.entry_id in hass.data[DOMAIN]:
-        if "webhook_id" in entry.data:
+        if "webhook_http_server_id" in entry.data:
             api_client = hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]
-            await async_unregister_webhook(hass, entry.data["webhook_id"], api_client)
+            await async_unregister_webhook(
+                hass, entry.data["webhook_http_server_id"], api_client
+            )
 
         if "web_server" in hass.data[DOMAIN][entry.entry_id]:
             server = hass.data[DOMAIN][entry.entry_id]["web_server"]
