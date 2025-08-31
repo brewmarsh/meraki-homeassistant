@@ -4,17 +4,14 @@
   <a href="https://github.com/hacs/integration">
     <img src="https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge" alt="HACS">
   </a>
-  <!-- Linter Status Badge -->
-  <a href="https://github.com/meraki-analytics/meraki-ha/actions/workflows/python-lint.yaml">
-    <img src="https://github.com/meraki-analytics/meraki-ha/actions/workflows/python-lint.yaml/badge.svg" alt="Python Lint">
+  <!-- CI Status Badge -->
+  <a href="https://github.com/meraki-analytics/meraki-ha/actions/workflows/python-ci.yaml">
+    <img src="https://github.com/meraki-analytics/meraki-ha/actions/workflows/python-ci.yaml/badge.svg" alt="Python CI">
   </a>
-  <!-- Code Coverage Badge (Placeholder) -->
-  <!-- Uncomment this after setting up Codecov or a similar service -->
-  <!--
+  <!-- Code Coverage Badge -->
   <a href="https://codecov.io/gh/meraki-analytics/meraki-ha">
     <img src="https://codecov.io/gh/meraki-analytics/meraki-ha/branch/main/graph/badge.svg" alt="Code Coverage">
   </a>
-  -->
   <!-- License Badge -->
   <a href="https://github.com/meraki-analytics/meraki-ha/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/meraki-analytics/meraki-ha" alt="GitHub License">
