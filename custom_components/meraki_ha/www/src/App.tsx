@@ -20,7 +20,32 @@ interface AppProps {
   config_entry_id: string;
 }
 
+import ThemeSelector from './components/ThemeSelector';
+
 const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
+  const [theme, setTheme] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme || 'system';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+
+    const root = window.document.documentElement;
+    const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+    root.classList.toggle('dark', isDark);
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+      if (theme === 'system') {
+        root.classList.toggle('dark', mediaQuery.matches);
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [theme]);
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -85,7 +110,10 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Meraki HA Web UI</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Meraki HA Web UI</h1>
+        <ThemeSelector theme={theme} setTheme={setTheme} />
+      </div>
       {activeView.view === 'dashboard' ? (
         <Dashboard setActiveView={setActiveView} data={data} />
       ) : (
