@@ -2,91 +2,78 @@ import React, { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
 import DeviceView from './components/DeviceView';
 
+// Define a simplified type for the Home Assistant object
+interface Hass {
+  connection: {
+    subscribeMessage: (callback: (message: any) => void, subscription: any) => Promise<() => void>;
+  };
+  // Add other properties of hass object if needed
+}
+
 // Define the types for our data
 interface MerakiData {
   [key: string]: any;
 }
 
-interface AppProps {}
+interface AppProps {
+  hass: Hass;
+  config_entry_id: string;
+}
 
-const App: React.FC<AppProps> = () => {
+const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeView, setActiveView] = useState({ view: 'dashboard', deviceId: undefined });
 
   useEffect(() => {
-    let accessToken = localStorage.getItem('meraki_ha_llat');
-    if (!accessToken) {
-      accessToken = prompt('Please enter your Home Assistant Long-Lived Access Token:');
-      if (accessToken) {
-        localStorage.setItem('meraki_ha_llat', accessToken);
-      } else {
-        setError('No access token provided.');
-        setLoading(false);
-        return;
-      }
+    if (!hass || !hass.connection) {
+      setError("Home Assistant connection object not found.");
+      setLoading(false);
+      return;
     }
 
-    const haUrl = (window as any).HA_URL.replace(/^http/, 'ws');
-    const wsUrl = `${haUrl}/api/websocket`;
-    const socket = new WebSocket(wsUrl);
-    let messageId = 1;
-
-    socket.onopen = () => {
-      console.log('WebSocket connection established');
-      socket.send(JSON.stringify({
-        type: 'auth',
-        access_token: accessToken,
-      }));
-    };
-
-    socket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-
-      if (message.type === 'auth_ok') {
-        console.log('Authenticated successfully');
-        socket.send(JSON.stringify({
-          id: messageId,
-          type: 'meraki_ha/subscribe_meraki_data',
-          config_entry_id: (window as any).CONFIG_ENTRY_ID,
-        }));
-      } else if (message.type === 'auth_invalid') {
-        console.error('Authentication failed:', message.message);
-        setError('Authentication failed. Please check your token.');
-        setLoading(false);
-        localStorage.removeItem('meraki_ha_llat');
-      } else if (message.id === messageId) {
-        if (message.type === 'result') {
-          if (message.success) {
-            setData(message.result);
-          } else {
-            console.error('Subscription failed:', message.error);
-            setError(`Subscription failed: ${message.error.message}`);
+    const subscribe = async () => {
+      try {
+        const unsub = await hass.connection.subscribeMessage(
+          (message) => {
+            if (message.type === 'result') {
+              if (message.success) {
+                setData(message.result);
+              } else {
+                setError(`Subscription failed: ${message.error.message}`);
+              }
+              setLoading(false);
+            } else if (message.type === 'event') {
+              setData(message.event.data);
+            } else {
+              setData(message);
+              setLoading(false);
+            }
+          },
+          {
+            type: 'meraki_ha/subscribe_meraki_data',
+            config_entry_id: config_entry_id,
           }
-          setLoading(false);
-        } else if (message.type === 'event') {
-          setData(message.event.data);
-        }
+        );
+        return unsub;
+      } catch (err) {
+        console.error('Error subscribing to Meraki data:', err);
+        setError('Failed to subscribe to Meraki data. See console for details.');
+        setLoading(false);
       }
     };
 
-    socket.onerror = (err) => {
-      console.error('WebSocket error:', err);
-      setError('WebSocket connection error. See console for details.');
-      setLoading(false);
-    };
-
-    socket.onclose = () => {
-      console.log('WebSocket connection closed');
-    };
+    const unsubscribePromise = subscribe();
 
     return () => {
-      if (socket.readyState === 1) {
-        socket.close();
-      }
+      unsubscribePromise.then(unsub => {
+        if (unsub) {
+          unsub();
+        }
+      });
     };
-  }, []);
+  }, [hass, config_entry_id]);
 
   if (loading) {
     return <div className="p-4">Loading...</div>;

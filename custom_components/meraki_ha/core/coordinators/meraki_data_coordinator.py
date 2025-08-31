@@ -102,6 +102,12 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
                         device["status_messages"] = []
 
                     device["entities"] = []
+                # START TEST CODE
+                if data["devices"]:
+                    data["devices"][0]["status_messages"].append(
+                        "This is a test message to verify the UI."
+                    )
+                # END TEST CODE
                     ha_device = dev_reg.async_get_device(
                         identifiers={(DOMAIN, device["serial"])}
                     )

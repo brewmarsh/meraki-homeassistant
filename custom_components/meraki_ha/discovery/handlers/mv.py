@@ -94,6 +94,9 @@ class MVHandler(BaseDeviceHandler):
                 await self._camera_service.async_set_rtsp_stream_enabled(serial, True)
             except MerakiInformationalError as e:
                 _LOGGER.warning("Could not enable RTSP stream for %s: %s", serial, e)
+                self._coordinator.add_status_message(
+                    serial, f"Could not enable RTSP stream: {e}"
+                )
 
         # Always create the base camera entity
         entities.append(
