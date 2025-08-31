@@ -1,3 +1,26 @@
+<!-- Badges -->
+<p align="center">
+  <!-- HACS Badge -->
+  <a href="https://github.com/hacs/integration">
+    <img src="https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge" alt="HACS">
+  </a>
+  <!-- Linter Status Badge -->
+  <a href="https://github.com/meraki-analytics/meraki-ha/actions/workflows/python-lint.yaml">
+    <img src="https://github.com/meraki-analytics/meraki-ha/actions/workflows/python-lint.yaml/badge.svg" alt="Python Lint">
+  </a>
+  <!-- Code Coverage Badge (Placeholder) -->
+  <!-- Uncomment this after setting up Codecov or a similar service -->
+  <!--
+  <a href="https://codecov.io/gh/meraki-analytics/meraki-ha">
+    <img src="https://codecov.io/gh/meraki-analytics/meraki-ha/branch/main/graph/badge.svg" alt="Code Coverage">
+  </a>
+  -->
+  <!-- License Badge -->
+  <a href="https://github.com/meraki-analytics/meraki-ha/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/meraki-analytics/meraki-ha" alt="GitHub License">
+  </a>
+</p>
+
 # Meraki Home Assistant Integration 🤖
 
 This Home Assistant integration allows you to monitor and manage your Cisco Meraki network, including devices, networks, and SSIDs. It leverages the Meraki API to bring data from your Meraki dashboard into Home Assistant, enabling you to gain insights into your network and automate actions based on its status.
