@@ -16,6 +16,14 @@
   <a href="https://github.com/meraki-analytics/meraki-ha/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/meraki-analytics/meraki-ha" alt="GitHub License">
   </a>
+  <!-- GitHub Latest Release -->
+  <a href="https://github.com/meraki-analytics/meraki-ha/releases/latest">
+    <img src="https://img.shields.io/github/v/release/meraki-analytics/meraki-ha?style=for-the-badge" alt="Latest Release">
+  </a>
+  <!-- Last Commit -->
+  <a href="https://github.com/meraki-analytics/meraki-ha/commits/main">
+    <img src="https://img.shields.io/github/last-commit/meraki-analytics/meraki-ha?style=for-the-badge" alt="Last Commit">
+  </a>
 </p>
 
 # Meraki Home Assistant Integration 🤖
