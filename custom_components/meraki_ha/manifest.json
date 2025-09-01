@@ -17,7 +17,8 @@
   "quality_scale": "platinum",
   "requirements": [
     "meraki>=1.36.0",
-    "aiohttp"
+    "aiohttp",
+    "diskcache==5.6.3"
   ],
   "version": "1.5.0"
 }
