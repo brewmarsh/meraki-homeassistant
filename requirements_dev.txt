@@ -2,4 +2,6 @@ homeassistant
 voluptuous
 flake8
 bandit
+pytest
+pytest-cov
 pytest-homeassistant-custom-component
