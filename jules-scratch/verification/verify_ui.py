@@ -1,21 +1,31 @@
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, Page, expect
 import traceback
 
-print("Starting verification script...")
-try:
+def run_test():
     with sync_playwright() as p:
-        print("Playwright started.")
-        browser = p.chromium.launch(headless=True)
-        print("Browser launched.")
-        page = browser.new_page()
-        print("New page created.")
-        page.goto("http://localhost:9999/")
-        print("Navigated to page.")
-        page.screenshot(path="/app/verification.png")
-        print("Screenshot taken.")
-        browser.close()
-        print("Browser closed.")
-except Exception as e:
-    print("An error occurred:")
-    traceback.print_exc()
-print("Verification script finished.")
+        try:
+            print("Launching browser")
+            browser = p.chromium.launch()
+            page = browser.new_page()
+            print("Starting test_new_ui")
+
+            print("Navigating to http://localhost:5174")
+            page.goto("http://localhost:5174", timeout=60000) # Increased timeout
+            print("Navigation complete")
+
+            # Give the page some time to load completely
+            page.wait_for_load_state('networkidle')
+
+            print("Taking screenshot to verification.png")
+            page.screenshot(path="/app/jules-scratch/verification/verification.png")
+            print("Screenshot taken")
+
+            browser.close()
+            print("Finished test_new_ui")
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            traceback.print_exc()
+
+if __name__ == "__main__":
+    run_test()
