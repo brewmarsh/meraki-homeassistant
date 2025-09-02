@@ -90,32 +90,6 @@ class OrganizationEndpoints:
             return []
         return validated
 
-    @handle_meraki_errors
-    async def create_organization_webhook(
-        self, name: str, url: str, secret: str
-    ) -> Dict[str, Any]:
-        """Create a webhook for the organization."""
-        webhook = await self._api_client._run_sync(
-            self._dashboard.organizations.create_organization_webhooks_http_server,
-            organizationId=self._api_client.organization_id,
-            name=name,
-            url=url,
-            sharedSecret=secret,
-        )
-        validated = validate_response(webhook)
-        if not isinstance(validated, dict):
-            _LOGGER.warning("create_organization_webhook did not return a dict.")
-            return {}
-        return validated
-
-    @handle_meraki_errors
-    async def delete_organization_webhook(self, webhook_id: str) -> None:
-        """Delete a webhook for the organization."""
-        await self._api_client._run_sync(
-            self._dashboard.organizations.delete_organization_webhooks_http_server,
-            organizationId=self._api_client.organization_id,
-            httpServerId=webhook_id,
-        )
 
     @handle_meraki_errors
     @async_timed_cache()

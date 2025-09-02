@@ -373,7 +373,7 @@ class MerakiAPIClient:
 
     async def unregister_webhook(self, webhook_id: str) -> None:
         """Unregister a webhook with the Meraki API."""
-        await self.organization.delete_organization_webhook(webhook_id)
+        await self.network.unregister_webhook(webhook_id)
 
     async def async_reboot_device(self, serial: str) -> dict:
         """Reboot a device."""
