@@ -50,7 +50,7 @@ class MerakiAPIClient:
         self._dashboard = meraki.DashboardAPI(
             api_key=api_key,
             base_url=base_url,
-            output_log=True,
+            output_log=False,
             print_console=False,
             suppress_logging=False,
             maximum_retries=3,
@@ -367,11 +367,9 @@ class MerakiAPIClient:
         """Get the organization ID."""
         return self._org_id
 
-    async def register_webhook(self, webhook_url: str, secret: str) -> Dict[str, Any]:
+    async def register_webhook(self, webhook_url: str, secret: str) -> None:
         """Register a webhook with the Meraki API."""
-        return await self.organization.create_organization_webhook(
-            name="Home Assistant", url=webhook_url, secret=secret
-        )
+        await self.network.register_webhook(webhook_url, secret)
 
     async def unregister_webhook(self, webhook_id: str) -> None:
         """Unregister a webhook with the Meraki API."""

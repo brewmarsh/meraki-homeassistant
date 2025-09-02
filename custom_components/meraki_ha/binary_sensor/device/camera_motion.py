@@ -4,6 +4,7 @@ Binary sensor for camera motion.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 import logging
 from typing import Any, Dict, List
 
