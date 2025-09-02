@@ -1,31 +1,3 @@
-<!-- Badges -->
-<p align="center">
-  <!-- HACS Badge -->
-  <a href="https://github.com/hacs/integration">
-    <img src="https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge" alt="HACS">
-  </a>
-  <!-- CI Status Badge -->
-  <a href="https://github.com/meraki-analytics/meraki-ha/actions/workflows/python-ci.yaml">
-    <img src="https://github.com/meraki-analytics/meraki-ha/actions/workflows/python-ci.yaml/badge.svg" alt="Python CI">
-  </a>
-  <!-- Code Coverage Badge -->
-  <a href="https://codecov.io/gh/meraki-analytics/meraki-ha">
-    <img src="https://codecov.io/gh/meraki-analytics/meraki-ha/branch/main/graph/badge.svg" alt="Code Coverage">
-  </a>
-  <!-- License Badge -->
-  <a href="https://github.com/meraki-analytics/meraki-ha/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/meraki-analytics/meraki-ha" alt="GitHub License">
-  </a>
-  <!-- GitHub Latest Release -->
-  <a href="https://github.com/meraki-analytics/meraki-ha/releases/latest">
-    <img src="https://img.shields.io/github/v/release/meraki-analytics/meraki-ha?style=for-the-badge" alt="Latest Release">
-  </a>
-  <!-- Last Commit -->
-  <a href="https://github.com/meraki-analytics/meraki-ha/commits/main">
-    <img src="https://img.shields.io/github/last-commit/meraki-analytics/meraki-ha?style=for-the-badge" alt="Last Commit">
-  </a>
-</p>
-
 # Meraki Home Assistant Integration 🤖
 
 This Home Assistant integration allows you to monitor and manage your Cisco Meraki network, including devices, networks, and SSIDs. It leverages the Meraki API to bring data from your Meraki dashboard into Home Assistant, enabling you to gain insights into your network and automate actions based on its status.
