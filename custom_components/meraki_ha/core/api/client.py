@@ -50,7 +50,7 @@ class MerakiAPIClient:
         self._dashboard = meraki.DashboardAPI(
             api_key=api_key,
             base_url=base_url,
-            output_log=True,
+            output_log=False,
             print_console=False,
             suppress_logging=False,
             maximum_retries=3,
