@@ -22,7 +22,7 @@ class OrganizationEndpoints:
     async def get_organization(self) -> Dict[str, Any]:
         """Get organization details."""
         org = await self._api_client._run_sync(
-            self._dashboard.organizations.get_organization,
+            self._dashboard.organizations.getOrganization,
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(org)
@@ -36,7 +36,7 @@ class OrganizationEndpoints:
     async def get_organization_networks(self) -> List[Dict[str, Any]]:
         """Get all networks for an organization."""
         networks = await self._api_client._run_sync(
-            self._dashboard.organizations.get_organization_networks,
+            self._dashboard.organizations.getOrganizationNetworks,
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(networks)
@@ -50,7 +50,7 @@ class OrganizationEndpoints:
     async def get_organization_firmware_upgrades(self) -> List[Dict[str, Any]]:
         """Get firmware upgrade status for the organization."""
         upgrades = await self._api_client._run_sync(
-            self._dashboard.organizations.get_organization_firmware_upgrades,
+            self._dashboard.organizations.getOrganizationFirmwareUpgrades,
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(upgrades)
@@ -64,7 +64,7 @@ class OrganizationEndpoints:
     async def get_organization_device_statuses(self) -> List[Dict[str, Any]]:
         """Get status information for all devices in the organization."""
         statuses = await self._api_client._run_sync(
-            self._dashboard.organizations.get_organization_device_statuses,
+            self._dashboard.organizations.getOrganizationDeviceStatuses,
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(statuses)
@@ -78,7 +78,7 @@ class OrganizationEndpoints:
     async def get_organization_devices_availabilities(self) -> List[Dict[str, Any]]:
         """Get availability information for all devices in the organization."""
         availabilities = await self._api_client._run_sync(
-            self._dashboard.organizations.get_organization_devices_availabilities,
+            self._dashboard.organizations.getOrganizationDevicesAvailabilities,
             organizationId=self._api_client.organization_id,
             total_pages="all",
         )
@@ -90,13 +90,39 @@ class OrganizationEndpoints:
             return []
         return validated
 
+    @handle_meraki_errors
+    async def create_organization_webhook(
+        self, name: str, url: str, secret: str
+    ) -> Dict[str, Any]:
+        """Create a webhook for the organization."""
+        webhook = await self._api_client._run_sync(
+            self._dashboard.organizations.createOrganizationWebhooksHttpServer,
+            organizationId=self._api_client.organization_id,
+            name=name,
+            url=url,
+            sharedSecret=secret,
+        )
+        validated = validate_response(webhook)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("create_organization_webhook did not return a dict.")
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    async def delete_organization_webhook(self, webhook_id: str) -> None:
+        """Delete a webhook for the organization."""
+        await self._api_client._run_sync(
+            self._dashboard.organizations.deleteOrganizationWebhooksHttpServer,
+            organizationId=self._api_client.organization_id,
+            httpServerId=webhook_id,
+        )
 
     @handle_meraki_errors
     @async_timed_cache()
     async def get_organization_devices(self) -> List[Dict[str, Any]]:
         """Get all devices in the organization."""
         devices = await self._api_client._run_sync(
-            self._dashboard.organizations.get_organization_devices,
+            self._dashboard.organizations.getOrganizationDevices,
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(devices)
@@ -110,7 +136,7 @@ class OrganizationEndpoints:
     async def get_organizations(self) -> List[Dict[str, Any]]:
         """Get all organizations accessible by the API key."""
         orgs = await self._api_client._run_sync(
-            self._dashboard.organizations.get_organizations
+            self._dashboard.organizations.getOrganizations
         )
         validated = validate_response(orgs)
         if not isinstance(validated, list):
@@ -123,7 +149,7 @@ class OrganizationEndpoints:
     async def get_organization_appliance_uplink_statuses(self) -> List[Dict[str, Any]]:
         """Get uplink status for all appliances in the organization."""
         statuses = await self._api_client._run_sync(
-            self._dashboard.appliance.get_organization_appliance_uplink_statuses,
+            self._dashboard.appliance.getOrganizationApplianceUplinkStatuses,
             organizationId=self._api_client.organization_id,
             total_pages="all",
         )
