@@ -24,7 +24,7 @@ class SwitchEndpoints:
     ) -> List[Dict[str, Any]]:
         """Get statuses for all ports of a switch."""
         statuses = await self._api_client._run_sync(
-            self._dashboard.switch.get_device_switch_ports_statuses, serial=serial
+            self._dashboard.switch.getDeviceSwitchPortsStatuses, serial=serial
         )
         validated = validate_response(statuses)
         if not isinstance(validated, list):
@@ -37,7 +37,7 @@ class SwitchEndpoints:
     async def get_switch_ports(self, serial: str) -> List[Dict[str, Any]]:
         """Get ports for a switch."""
         ports = await self._api_client._run_sync(
-            self._dashboard.switch.get_device_switch_ports, serial=serial
+            self._dashboard.switch.getDeviceSwitchPorts, serial=serial
         )
         validated = validate_response(ports)
         if not isinstance(validated, list):

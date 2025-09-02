@@ -25,3 +25,36 @@ The self-hosted web interface is a React application located in `custom_componen
 - **Source vs. Build:** The human-readable source code is in the `src/` directory. The code that is actually served to the browser is the compiled and optimized output located in the `dist/` directory.
 - **Manual Build Simulation:** As an agent, you cannot run the `npm run build` command. If you make changes to any files in the `src/` directory, you **must** manually update the corresponding file in `dist/` to reflect your changes.
 - **For E2E tests:** The tests run against the `dist/` files. The most important file to keep updated is `dist/assets/index.js`. You may need to write a simplified, non-JSX version of the React logic in this file to ensure the tests pass. This process is for testing purposes only to validate the backend and overall flow.
+
+### **Coding Style Guide**
+
+To maintain consistency and readability across the repository, please adhere to the following coding style guidelines.
+
+#### **Python (Backend)**
+
+The Python code strictly follows the [PEP 8](https://www.python.org/dev/peps/pep-0008/) style guide.
+
+*   **Naming Conventions:**
+    *   **Variables & Functions:** Use `snake_case` (e.g., `network_id`, `get_devices`).
+    *   **Classes:** Use `PascalCase` (e.g., `MerakiDataCoordinator`).
+    *   **Constants:** Use `UPPER_CASE_SNAKE_CASE` (e.g., `DOMAIN`, `_LOGGER`).
+
+*   **External Libraries:**
+    *   Be mindful of the naming conventions of external libraries. The `meraki` library, for example, uses `snake_case` for its methods. Always call library functions using their defined style.
+
+*   **Code Organization:**
+    *   Code is organized by feature domain. For example, all API endpoint logic is located in `core/api/endpoints/`, and entity-specific logic is in directories like `binary_sensor/` or `switch/`.
+
+#### **TypeScript/React (Frontend)**
+
+The frontend code in `custom_components/meraki_ha/www/src/` follows standard React and TypeScript conventions.
+
+*   **Naming Conventions:**
+    *   **Components & Files:** Use `PascalCase` for component names and filenames (e.g., `DeviceTable`, `DeviceTable.tsx`).
+    *   **Variables & Props:** Use `camelCase` for variables, props, and functions (e.g., `activeView`, `setActiveView`).
+
+*   **Code Organization:**
+    *   Components are organized by their function. Reusable UI elements are placed in `src/components/`, while top-level page components would go in `src/pages/`.
+
+*   **Styling:**
+    *   Styling is done using [Tailwind CSS](https://tailwindcss.com/). Use utility classes in the `className` prop for styling. Custom theme colors are defined in `tailwind.config.js`.
