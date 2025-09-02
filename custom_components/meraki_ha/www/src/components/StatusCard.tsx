@@ -3,21 +3,16 @@ import React from 'react';
 interface StatusCardProps {
   title: string;
   value: number | string;
-  icon?: React.ReactNode;
-  onClick?: () => void;
+  icon: string;
 }
 
-const StatusCard: React.FC<StatusCardProps> = ({ title, value, icon, onClick }) => {
+const StatusCard: React.FC<StatusCardProps> = ({ title, value, icon }) => {
   return (
-    <div
-      className="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md flex items-center transition-shadow duration-200"
-      onClick={onClick}
-      style={{ cursor: onClick ? 'pointer' : 'default' }}
-    >
-      {icon && <div className="mr-4 text-cisco-blue">{icon}</div>}
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex items-center">
+      <div className="text-3xl mr-4">{icon}</div>
       <div>
         <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
-        <p className="text-2xl font-bold text-dark-text dark:text-light-text">{value}</p>
+        <p className="text-2xl font-semibold text-gray-900 dark:text-white">{value}</p>
       </div>
     </div>
   );

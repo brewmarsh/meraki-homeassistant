@@ -28,7 +28,7 @@ async def test_caching_logic(mock_hass):
     # Mock the internal data fetching methods to track calls
     api_client._async_fetch_initial_data = AsyncMock(return_value=([], [], [], []))
     api_client._process_initial_data = MagicMock(
-        return_value={"networks": [], "devices": [MOCK_DEVICE]}
+        return_value={"networks": [], "devices": [MOCK_DEVICE], "appliance_uplink_statuses": []}
     )
     api_client._async_fetch_client_data = AsyncMock(return_value=[])
     api_client._build_detail_tasks = MagicMock(return_value={})
@@ -84,7 +84,7 @@ async def test_partial_data_merging(mock_hass):
     mock_devices = [{"serial": "D_1", "productType": "camera"}]
     api_client._async_fetch_initial_data = AsyncMock(return_value=([], [], [], []))
     api_client._process_initial_data = MagicMock(
-        return_value={"networks": mock_networks, "devices": mock_devices}
+        return_value={"networks": mock_networks, "devices": mock_devices, "appliance_uplink_statuses": []}
     )
     api_client._async_fetch_client_data = AsyncMock(return_value=[])
 

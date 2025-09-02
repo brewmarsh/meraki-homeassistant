@@ -119,7 +119,7 @@ def test_process_detailed_data_handles_errors(api_client, caplog):
     }
 
     # Act
-    processed_data = api_client._process_detailed_data(detail_data, [MOCK_NETWORK], [])
+    processed_data = api_client._process_detailed_data(detail_data, [MOCK_NETWORK], [], previous_data={})
 
     # Assert
     assert (
@@ -138,7 +138,7 @@ def test_process_detailed_data_merges_device_info(api_client):
     detail_data = {f"wireless_settings_{device['serial']}": radio_settings}
 
     # Act
-    api_client._process_detailed_data(detail_data, [], [device])
+    api_client._process_detailed_data(detail_data, [], [device], previous_data={})
 
     # Assert
     assert "radio_settings" in device

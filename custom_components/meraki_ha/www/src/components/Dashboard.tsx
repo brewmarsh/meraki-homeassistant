@@ -3,7 +3,7 @@ import StatusCard from './StatusCard';
 import DeviceTable from './DeviceTable';
 
 interface DashboardProps {
-  setActiveView: (view: { view:string; deviceId?: string }) => void;
+  setActiveView: (view: { view:string; deviceId?: string, networkId?: string }) => void;
   data: any;
 }
 
@@ -12,7 +12,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data }) => {
     return <div>Loading dashboard...</div>;
   }
 
-  const { devices = [], ssids = [] } = data;
+  const { devices = [], ssids = [], networks = [] } = data;
 
   const metrics = {
     totalDevices: devices.length,
@@ -32,7 +32,21 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data }) => {
         <StatusCard title="Virtual SSIDs" value={metrics.ssids} icon="📶" />
       </div>
 
-      <h2 className="text-xl font-semibold mb-4">All Devices</h2>
+      <h2 className="text-xl font-semibold mb-4">Networks</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {networks.map((network: any) => (
+          <div
+            key={network.id}
+            data-testid="network-card"
+            className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 cursor-pointer"
+            onClick={() => setActiveView({ view: 'network', networkId: network.id })}
+          >
+            <p className="font-medium text-gray-900 dark:text-white">{network.name}</p>
+          </div>
+        ))}
+      </div>
+
+      <h2 className="text-xl font-semibold mb-4 mt-8">All Devices</h2>
       <DeviceTable devices={devices} setActiveView={setActiveView} />
     </div>
   );

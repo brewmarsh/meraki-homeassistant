@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 interface DeviceTableProps {
   devices: any[];
@@ -6,46 +6,28 @@ interface DeviceTableProps {
 }
 
 const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const filteredDevices = devices.filter(device =>
-    device.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    device.serial?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   return (
-    <div className="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md">
-      <input
-        type="text"
-        placeholder="Search by name or serial..."
-        className="w-full p-2 mb-4 border rounded-lg bg-light-background dark:bg-dark-background dark:border-gray-600"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-      <div className="overflow-x-auto">
-        <table className="min-w-full">
-          <thead>
-            <tr className="border-b border-light-border dark:border-dark-border">
-              <th className="text-left p-4 font-semibold">Name</th>
-              <th className="text-left p-4 font-semibold">Model</th>
-              <th className="text-left p-4 font-semibold">Status</th>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+      <table className="min-w-full">
+        <thead className="bg-gray-50 dark:bg-gray-700">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Model</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">MAC Address</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
+          {devices.map((device) => (
+            <tr key={device.serial} onClick={() => setActiveView({ view: 'device', deviceId: device.serial })} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{device.name || device.mac}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{device.status}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{device.model}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{device.mac}</td>
             </tr>
-          </thead>
-          <tbody>
-            {filteredDevices.map(device => (
-              <tr
-                key={device.serial}
-                className="border-b border-light-border dark:border-dark-border cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-                onClick={() => setActiveView({ view: 'device', deviceId: device.serial })}
-              >
-                <td className="p-4">{device.name || 'N/A'}</td>
-                <td className="p-4">{device.model || 'N/A'}</td>
-                <td className="p-4 capitalize">{device.status || 'N/A'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };

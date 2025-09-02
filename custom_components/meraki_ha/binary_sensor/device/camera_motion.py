@@ -5,7 +5,7 @@ Binary sensor for camera motion.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List
 
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
 import DeviceView from './components/DeviceView';
+import NetworkView from './components/NetworkView';
 
 // Define a simplified type for the Home Assistant object
 interface Hass {
@@ -24,7 +25,7 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState({ view: 'dashboard', deviceId: undefined });
+  const [activeView, setActiveView] = useState<{ view: string; deviceId?: string; networkId?: string }>({ view: 'dashboard' });
 
   useEffect(() => {
     if (!hass || !hass.connection) {
@@ -83,14 +84,23 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
     return <div className="p-4 text-red-500">Error: {error}</div>;
   }
 
+  const renderView = () => {
+    switch (activeView.view) {
+      case 'dashboard':
+        return <Dashboard setActiveView={setActiveView} data={data} />;
+      case 'device':
+        return <DeviceView activeView={activeView} setActiveView={setActiveView} data={data} />;
+      case 'network':
+        return <NetworkView activeView={activeView} setActiveView={setActiveView} data={data} />;
+      default:
+        return <Dashboard setActiveView={setActiveView} data={data} />;
+    }
+  }
+
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Meraki HA Web UI</h1>
-      {activeView.view === 'dashboard' ? (
-        <Dashboard setActiveView={setActiveView} data={data} />
-      ) : (
-        <DeviceView activeView={activeView} setActiveView={setActiveView} data={data} />
-      )}
+      {renderView()}
     </div>
   );
 };
