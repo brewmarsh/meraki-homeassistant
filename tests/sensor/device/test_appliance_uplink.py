@@ -48,6 +48,7 @@ def mock_coordinator():
         "ssids": [],
         "vlans": {},
     }
+    coordinator.get_device.return_value = coordinator.data["devices"][0]
     return coordinator
 
 

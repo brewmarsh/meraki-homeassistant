@@ -24,6 +24,7 @@ def mock_device_coordinator():
             }
         ]
     }
+    coordinator.get_device.return_value = coordinator.data["devices"][0]
     return coordinator
 
 

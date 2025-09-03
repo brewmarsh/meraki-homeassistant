@@ -51,7 +51,7 @@ async def test_async_update_data_orchestration(hass: HomeAssistant, mock_api_cli
     coordinator._filter_unconfigured_ssids = MagicMock()
 
     # Act
-    await coordinator._async_update_data()
+    await coordinator.async_refresh()
 
     # Assert
     coordinator.api.get_all_data.assert_awaited_once()
@@ -100,7 +100,7 @@ def test_hide_unconfigured_ssids_filter(hass: HomeAssistant, mock_api_client):
 
 
 @pytest.mark.asyncio
-async def test_stale_data_on_api_failure(hass: HomeAssistant, mock_api_client):
+async def test_stale_data_on_api_failure(hass: HomeAssistant, mock_api_client, freezer):
     """Test that stale data is returned if the API fails but the data is recent."""
     # Arrange
     config_entry = MockConfigEntry(
@@ -113,7 +113,7 @@ async def test_stale_data_on_api_failure(hass: HomeAssistant, mock_api_client):
     coordinator = MerakiDataCoordinator(hass, mock_api_client, 60, config_entry)
 
     # --- First, a successful run to populate the data ---
-    await coordinator._async_update_data()
+    await coordinator.async_refresh()
     assert coordinator.data["networks"][0]["name"] == "Network To Keep"
     assert coordinator.last_successful_update is not None
 
@@ -121,15 +121,14 @@ async def test_stale_data_on_api_failure(hass: HomeAssistant, mock_api_client):
     mock_api_client.get_all_data.side_effect = Exception("API has exploded")
 
     # Act: The API call fails, but the data is not yet stale
-    stale_data = await coordinator._async_update_data()
+    await coordinator.async_refresh()
 
     # Assert: The coordinator should return the old data and not raise UpdateFailed
-    assert stale_data["networks"][0]["name"] == "Network To Keep"
+    assert coordinator.data["networks"][0]["name"] == "Network To Keep"
 
     # --- Now, simulate time passing beyond the threshold ---
-    # Manually set the last successful update time to be in the past
-    coordinator.last_successful_update = datetime.now() - timedelta(minutes=20)
+    freezer.move_to(coordinator.last_successful_update + timedelta(minutes=20))
 
     # Act & Assert: This time, the failure should propagate
     with pytest.raises(UpdateFailed):
-        await coordinator._async_update_data()
+        await coordinator.async_refresh()

@@ -59,6 +59,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
             data["networks"] = [
                 n for n in data["networks"] if n.get("name") not in ignored_names
             ]
+            _LOGGER.warning("networks after filter: %s", data["networks"])
 
     def _filter_unconfigured_ssids(self, data: dict) -> None:
         """Filter out unconfigured SSIDs if the user has chosen to hide them."""

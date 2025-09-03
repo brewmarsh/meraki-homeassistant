@@ -11,15 +11,22 @@ from custom_components.meraki_ha.webhook import async_handle_webhook
 def mock_hass_with_webhook_data():
     """Fixture for a mocked Home Assistant object with webhook data."""
     hass = MagicMock()
-    coordinator = MagicMock()
-    coordinator.data = {
-        "devices": [{"serial": "Q234-ABCD-5678", "status": "online"}],
-        "clients": [],
-    }
-    hass.data[DOMAIN] = {
-        "test_webhook_id": {
-            "coordinator": coordinator,
-            "secret": "test_secret",
+
+    class MockCoordinator:
+        def __init__(self):
+            self.data = {
+                "devices": [{"serial": "Q234-ABCD-5678", "status": "online"}],
+                "clients": [],
+            }
+        async_update_listeners = MagicMock()
+
+    coordinator = MockCoordinator()
+    hass.data = {
+        DOMAIN: {
+            "test_webhook_id": {
+                "coordinator": coordinator,
+                "secret": "test_secret",
+            }
         }
     }
     return hass

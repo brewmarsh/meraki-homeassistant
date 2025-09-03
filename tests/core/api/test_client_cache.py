@@ -24,6 +24,7 @@ async def test_caching_logic(mock_hass):
         api_key="fake_key",
         org_id="fake_org",
     )
+    api_client._cache.clear()
 
     # Mock the internal data fetching methods to track calls
     api_client._async_fetch_initial_data = AsyncMock(return_value=([], [], [], []))
@@ -97,8 +98,10 @@ async def test_partial_data_merging(mock_hass):
     # In the new run, the SSID fetch will fail, but video settings will succeed
     with patch("asyncio.gather", new=AsyncMock()) as mock_gather:
         mock_gather.return_value = [
-            Exception("Failed to fetch SSIDs"),
-            {"setting": "new"},
+            Exception("Failed to fetch SSIDs"),  # Corresponds to ssids_N_1
+            None,  # Corresponds to rf_profiles_N_1
+            {"setting": "new"},  # Corresponds to video_settings_D_1
+            None,  # Corresponds to sense_settings_D_1
         ]
 
         # Act

@@ -7,6 +7,8 @@ from custom_components.meraki_ha.switch.camera_profiles import (
     MerakiCameraSenseSwitch,
     MerakiCameraAudioDetectionSwitch,
 )
+from custom_components.meraki_ha.core.api.client import MerakiAPIClient
+from custom_components.meraki_ha.core.api.endpoints.camera import CameraEndpoints
 
 
 @pytest.fixture
@@ -25,16 +27,17 @@ def mock_device_coordinator():
             }
         ]
     }
+    coordinator.get_device.return_value = coordinator.data["devices"][0]
     return coordinator
 
 
 @pytest.fixture
 def mock_api_client():
     """Fixture for a mocked MerakiAPIClient."""
-    client = MagicMock()
-    client.camera = MagicMock()
-    client.camera.update_camera_sense_settings = AsyncMock()
-    client.camera.update_camera_video_settings = AsyncMock()
+    client = MagicMock(spec=MerakiAPIClient)
+    client.camera = MagicMock(spec=CameraEndpoints)
+    client.camera.update_camera_sense_settings = AsyncMock(return_value={})
+    client.camera.update_camera_video_settings = AsyncMock(return_value={})
     return client
 
 
@@ -43,6 +46,8 @@ async def test_camera_sense_switch(mock_device_coordinator, mock_api_client):
     device = mock_device_coordinator.data["devices"][0]
 
     switch = MerakiCameraSenseSwitch(mock_device_coordinator, mock_api_client, device)
+    switch.hass = MagicMock()
+    switch.entity_id = "switch.mv_sense"
 
     assert switch.unique_id == "cam1_sense_enabled"
     assert switch.name == "MV Sense"
@@ -59,6 +64,7 @@ async def test_camera_sense_switch(mock_device_coordinator, mock_api_client):
 
     # Simulate the coordinator updating the state
     mock_device_coordinator.data["devices"][0]["sense"]["senseEnabled"] = False
+    switch._handle_coordinator_update()
     assert switch.is_on is False
 
     await switch.async_turn_on()
@@ -75,6 +81,8 @@ async def test_camera_audio_detection_switch(mock_device_coordinator, mock_api_c
     switch = MerakiCameraAudioDetectionSwitch(
         mock_device_coordinator, mock_api_client, device
     )
+    switch.hass = MagicMock()
+    switch.entity_id = "switch.audio_detection"
 
     assert switch.unique_id == "cam1_audio_detection"
     assert switch.name == "Audio Detection"
@@ -91,6 +99,7 @@ async def test_camera_audio_detection_switch(mock_device_coordinator, mock_api_c
 
     # Simulate the coordinator updating the state
     mock_device_coordinator.data["devices"][0]["audioDetection"]["enabled"] = False
+    switch._handle_coordinator_update()
     assert switch.is_on is False
 
     await switch.async_turn_on()

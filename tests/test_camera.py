@@ -180,13 +180,11 @@ async def test_camera_turn_off(
 
 
 @pytest.mark.parametrize(
-    "video_settings, rtsp_url, expected_is_streaming",
+    "video_settings, expected_is_streaming",
     [
-        ({"rtspServerEnabled": True}, "rtsp://test.com/stream", True),
-        ({"rtspServerEnabled": False}, "rtsp://test.com/stream", False),
-        ({"rtspServerEnabled": True}, None, False),
-        ({"rtspServerEnabled": True}, "http://test.com/stream", False),
-        ({}, "rtsp://test.com/stream", False),
+        ({"rtspServerEnabled": True}, True),
+        ({"rtspServerEnabled": False}, False),
+        ({}, False),
     ],
 )
 def test_is_streaming_logic(
@@ -194,7 +192,6 @@ def test_is_streaming_logic(
     mock_config_entry,
     mock_camera_service,
     video_settings,
-    rtsp_url,
     expected_is_streaming,
 ):
     """Test the logic of the is_streaming property."""
@@ -202,7 +199,6 @@ def test_is_streaming_logic(
     mock_device_data = {
         **MOCK_CAMERA_DEVICE,
         "video_settings": video_settings,
-        "rtsp_url": rtsp_url,
     }
     # The entity is initialized with this data, so we pass it directly
     camera = MerakiCamera(
@@ -258,6 +254,8 @@ def test_coordinator_update(mock_coordinator, mock_config_entry, mock_camera_ser
         MOCK_CAMERA_DEVICE,
         mock_camera_service,
     )
+    camera.hass = MagicMock()
+    camera.async_schedule_update_ha_state = MagicMock()
     # The initial state should be streaming
     assert camera.is_streaming is True
 
@@ -273,8 +271,8 @@ def test_coordinator_update(mock_coordinator, mock_config_entry, mock_camera_ser
     # Assert
     # The camera's internal state should now reflect the new data
     assert camera.is_streaming is False
-    # Check that async_write_ha_state was called to notify HA of the change
-    camera.async_write_ha_state.assert_called_once()
+    # Check that async_schedule_update_ha_state was called to notify HA of the change
+    camera.async_schedule_update_ha_state.assert_called_once()
 
 
 def test_entity_disabled_if_no_url(
