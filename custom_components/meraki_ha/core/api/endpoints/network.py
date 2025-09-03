@@ -88,7 +88,7 @@ class NetworkEndpoints:
     @handle_meraki_errors
     async def register_webhook(self, webhook_url: str, secret: str) -> None:
         """Register a webhook with the Meraki API."""
-        networks = await self._api_client.organization.getOrganizationNetworks()
+        networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
             network_id = network["id"]
             existing_webhook = await self.find_webhook_by_url(network_id, webhook_url)
@@ -106,7 +106,7 @@ class NetworkEndpoints:
     @handle_meraki_errors
     async def unregister_webhook(self, webhook_id: str) -> None:
         """Unregister a webhook with the Meraki API."""
-        networks = await self._api_client.organization.getOrganizationNetworks()
+        networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
             await self._api_client._run_sync(
                 self._dashboard.networks.deleteNetworkWebhooksHttpServer,
