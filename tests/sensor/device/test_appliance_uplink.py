@@ -11,16 +11,15 @@ def mock_coordinator():
     """Fixture for a mocked MerakiDataCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
+    mock_device_data = {
+        "serial": "dev1",
+        "name": "Test Appliance",
+        "model": "MX64",
+        "product_type": "appliance",
+        "networkId": "net1",
+    }
     coordinator.data = {
-        "devices": [
-            {
-                "serial": "dev1",
-                "name": "Test Appliance",
-                "model": "MX64",
-                "productType": "appliance",
-                "networkId": "net1",
-            }
-        ],
+        "devices": [mock_device_data],
         "appliance_uplink_statuses": [
             {
                 "serial": "dev1",
@@ -48,7 +47,7 @@ def mock_coordinator():
         "ssids": [],
         "vlans": {},
     }
-    coordinator.get_device.return_value = coordinator.data["devices"][0]
+    coordinator.get_device.return_value = mock_device_data
     return coordinator
 
 

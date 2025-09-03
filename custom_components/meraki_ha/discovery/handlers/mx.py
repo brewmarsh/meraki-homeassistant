@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, List
 
 from .base import BaseDeviceHandler
 from ...button.reboot import MerakiRebootButton
+from ...sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
 
 if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
@@ -68,4 +69,19 @@ class MXHandler(BaseDeviceHandler):
         entities.append(
             MerakiRebootButton(self._control_service, self.device, self._config_entry)
         )
+        # Add uplink sensors
+        if self._coordinator.data and self._coordinator.data.get(
+            "appliance_uplink_statuses"
+        ):
+            for status in self._coordinator.data["appliance_uplink_statuses"]:
+                if status.get("serial") == self.device["serial"]:
+                    for uplink in status.get("uplinks", []):
+                        entities.append(
+                            MerakiApplianceUplinkSensor(
+                                coordinator=self._coordinator,
+                                device_data=self.device,
+                                config_entry=self._config_entry,
+                                uplink_data=uplink,
+                            )
+                        )
         return entities

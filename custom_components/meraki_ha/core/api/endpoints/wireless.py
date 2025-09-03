@@ -22,7 +22,7 @@ class WirelessEndpoints:
     async def get_network_ssids(self, network_id: str) -> List[Dict[str, Any]]:
         """Get all SSIDs for a network."""
         ssids = await self._api_client._run_sync(
-            self._dashboard.wireless.getNetworkWirelessSsids, networkId=network_id
+            self._dashboard.wireless.get_network_wireless_ssids, networkId=network_id
         )
         validated = validate_response(ssids)
         if not isinstance(validated, list):
@@ -35,7 +35,7 @@ class WirelessEndpoints:
     async def get_wireless_settings(self, serial: str) -> Dict[str, Any]:
         """Get wireless radio settings for an access point."""
         settings = await self._api_client._run_sync(
-            self._dashboard.wireless.getDeviceWirelessRadioSettings, serial=serial
+            self._dashboard.wireless.get_device_wireless_radio_settings, serial=serial
         )
         validated = validate_response(settings)
         if not isinstance(validated, dict):
@@ -50,7 +50,7 @@ class WirelessEndpoints:
     ) -> Dict[str, Any]:
         """Get a single SSID."""
         ssid = await self._api_client._run_sync(
-            self._dashboard.wireless.getNetworkWirelessSsid,
+            self._dashboard.wireless.get_network_wireless_ssid,
             networkId=network_id,
             number=number,
         )
@@ -66,7 +66,7 @@ class WirelessEndpoints:
     ) -> Dict[str, Any]:
         """Update an SSID."""
         ssid = await self._api_client._run_sync(
-            self._dashboard.wireless.updateNetworkWirelessSsid,
+            self._dashboard.wireless.update_network_wireless_ssid,
             networkId=network_id,
             number=number,
             **kwargs,
@@ -84,7 +84,7 @@ class WirelessEndpoints:
     ) -> List[Dict[str, Any]]:
         """Get all RF profiles for a network."""
         profiles = await self._api_client._run_sync(
-            self._dashboard.wireless.getNetworkWirelessRfProfiles,
+            self._dashboard.wireless.get_network_wireless_rf_profiles,
             networkId=network_id,
         )
         validated = validate_response(profiles)
@@ -100,7 +100,7 @@ class WirelessEndpoints:
     ) -> Dict[str, Any]:
         """Get L7 firewall rules for an SSID."""
         rules = await self._api_client._run_sync(
-            self._dashboard.wireless.getNetworkWirelessSsidFirewallL7FirewallRules,
+            self._dashboard.wireless.get_network_wireless_ssid_firewall_l7_firewall_rules,
             networkId=network_id,
             number=number,
         )
@@ -118,7 +118,7 @@ class WirelessEndpoints:
     ) -> Dict[str, Any]:
         """Update L7 firewall rules for an SSID."""
         rules = await self._api_client._run_sync(
-            self._dashboard.wireless.updateNetworkWirelessSsidFirewallL7FirewallRules,
+            self._dashboard.wireless.update_network_wireless_ssid_firewall_l7_firewall_rules,
             networkId=network_id,
             number=number,
             **kwargs,

@@ -66,9 +66,9 @@ class MerakiApplianceUplinkSensor(
             self._attr_extra_state_attributes = {
                 "ip": uplink_data.get("ip"),
                 "gateway": uplink_data.get("gateway"),
-                "public_ip": uplink_data.get("publicIp"),
-                "primary_dns": uplink_data.get("primaryDns"),
-                "secondary_dns": uplink_data.get("secondaryDns"),
+                "public_ip": uplink_data.get("public_ip"),
+                "primary_dns": uplink_data.get("primary_dns"),
+                "secondary_dns": uplink_data.get("secondary_dns"),
             }
             self._attr_icon = "mdi:wan" if self.native_value == "active" else "mdi:wan"
         else:

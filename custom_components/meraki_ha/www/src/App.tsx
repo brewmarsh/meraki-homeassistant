@@ -46,7 +46,7 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
               }
               setLoading(false);
             } else if (message.type === 'event') {
-              setData(message.event.data);
+              setData(message.event);
             } else {
               setData(message);
               setLoading(false);

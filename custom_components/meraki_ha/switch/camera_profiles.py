@@ -27,7 +27,7 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
             meraki_client,
             device_data,
             "sense_enabled",
-            "sense.senseEnabled",
+            "sense_settings.sense_enabled",
         )
         self.entity_description = EntityDescription(
             key="sense_enabled", name="MV Sense"
@@ -54,7 +54,7 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
             meraki_client,
             device_data,
             "audio_detection",
-            "audioDetection.enabled",
+            "video_settings.audio_detection.enabled",
         )
         self.entity_description = EntityDescription(
             key="audio_detection", name="Audio Detection"

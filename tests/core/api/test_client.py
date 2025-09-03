@@ -81,14 +81,14 @@ def test_process_initial_data_handles_errors(api_client, caplog):
 def test_build_detail_tasks(api_client):
     """Test that _build_detail_tasks creates the correct task dictionary."""
     # Arrange
-    switch_device = {"serial": "s123", "productType": "switch"}
-    camera_device = {"serial": "c123", "productType": "camera"}
+    switch_device = {"serial": "s123", "product_type": "switch"}
+    camera_device = {"serial": "c123", "product_type": "camera"}
     appliance_device = {
         "serial": "a123",
-        "productType": "appliance",
-        "networkId": "N_123",
+        "product_type": "appliance",
+        "network_id": "N_123",
     }
-    network_with_appliance = {"id": "N_123", "productTypes": ["appliance", "wireless"]}
+    network_with_appliance = {"id": "N_123", "product_types": ["appliance", "wireless"]}
     devices = [MOCK_DEVICE, switch_device, camera_device, appliance_device]
     networks = [MOCK_NETWORK, network_with_appliance]
 
@@ -134,7 +134,7 @@ def test_process_detailed_data_merges_device_info(api_client):
     """Test that _process_detailed_data merges details into device objects."""
     # Arrange
     device = MOCK_DEVICE.copy()
-    radio_settings = {"fiveGhzSettings": {"channel": 149}}
+    radio_settings = {"five_ghz_settings": {"channel": 149}}
     detail_data = {f"wireless_settings_{device['serial']}": radio_settings}
 
     # Act
@@ -142,4 +142,4 @@ def test_process_detailed_data_merges_device_info(api_client):
 
     # Assert
     assert "radio_settings" in device
-    assert device["radio_settings"]["fiveGhzSettings"]["channel"] == 149
+    assert device["radio_settings"]["five_ghz_settings"]["channel"] == 149

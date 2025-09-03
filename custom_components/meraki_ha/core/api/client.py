@@ -179,25 +179,25 @@ class MerakiAPIClient:
             detail_tasks[f"ssids_{network['id']}"] = self._run_with_semaphore(
                 self.wireless.get_network_ssids(network["id"])
             )
-            if "appliance" in network["productTypes"]:
+            if "appliance" in network.get("product_types", []):
                 detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
                     self.network.get_network_traffic(network["id"], "appliance")
                 )
                 detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
                     self.appliance.get_vlans(network["id"])
                 )
-            if "wireless" in network["productTypes"]:
+            if "wireless" in network.get("product_types", []):
                 detail_tasks[f"rf_profiles_{network['id']}"] = self._run_with_semaphore(
                     self.wireless.get_network_wireless_rf_profiles(network["id"])
                 )
         for device in devices:
-            if device.get("productType") == "wireless":
+            if device.get("product_type") == "wireless":
                 detail_tasks[f"wireless_settings_{device['serial']}"] = (
                     self._run_with_semaphore(
                         self.wireless.get_wireless_settings(device["serial"])
                     )
                 )
-            elif device.get("productType") == "camera":
+            elif device.get("product_type") == "camera":
                 detail_tasks[f"video_settings_{device['serial']}"] = (
                     self._run_with_semaphore(
                         self.camera.get_camera_video_settings(device["serial"])
@@ -208,17 +208,17 @@ class MerakiAPIClient:
                         self.camera.get_camera_sense_settings(device["serial"])
                     )
                 )
-            elif device.get("productType") == "switch":
+            elif device.get("product_type") == "switch":
                 detail_tasks[f"ports_statuses_{device['serial']}"] = (
                     self._run_with_semaphore(
                         self.switch.get_device_switch_ports_statuses(device["serial"])
                     )
                 )
-            elif device.get("productType") == "appliance" and "networkId" in device:
+            elif device.get("product_type") == "appliance" and "network_id" in device:
                 detail_tasks[f"appliance_settings_{device['serial']}"] = (
                     self._run_with_semaphore(
                         self.appliance.get_network_appliance_settings(
-                            device["networkId"]
+                            device["network_id"]
                         )
                     )
                 )
@@ -285,7 +285,7 @@ class MerakiAPIClient:
                 ]
 
         for device in devices:
-            product_type = device.get("productType")
+            product_type = device.get("product_type")
             if product_type == "wireless":
                 if settings := detail_data.get(f"wireless_settings_{device['serial']}"):
                     device["radio_settings"] = settings
@@ -294,7 +294,7 @@ class MerakiAPIClient:
                     device["video_settings"] = settings
                     # The video_settings endpoint also provides the RTSP URL
                     if isinstance(settings, dict):
-                        device["rtsp_url"] = settings.get("rtspUrl")
+                        device["rtsp_url"] = settings.get("rtsp_url")
                     else:
                         device["rtsp_url"] = None
                 if settings := detail_data.get(f"sense_settings_{device['serial']}"):
@@ -306,8 +306,8 @@ class MerakiAPIClient:
                 if settings := detail_data.get(
                     f"appliance_settings_{device['serial']}"
                 ):
-                    if isinstance(settings.get("dynamicDns"), dict):
-                        device["dynamicDns"] = settings["dynamicDns"]
+                    if isinstance(settings.get("dynamic_dns"), dict):
+                        device["dynamic_dns"] = settings["dynamic_dns"]
 
         return {
             "ssids": ssids,

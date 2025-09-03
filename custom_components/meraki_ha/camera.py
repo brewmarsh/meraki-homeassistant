@@ -100,7 +100,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
             if device.get("serial") == self._device_serial:
                 self._device_data = device
                 break
-        self.async_schedule_update_ha_state()
+        self.async_write_ha_state()
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -157,19 +157,19 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
             # If not, try to construct one from the lanIp field.
             elif lan_ip:
                 final_url = construct_rtsp_url(lan_ip)
-            # As a last resort, use the public API URL if available and valid.
-            elif api_url and api_url.startswith("rtsp://"):
+            # As a last resort, use the public API URL if available.
+            else:
                 final_url = api_url
         else:
             # Default behavior: prioritize public API URL.
             # Fall back to LAN IP if public is missing or invalid.
-            if api_url and api_url.startswith("rtsp://"):
+            if api_url:
                 final_url = api_url
             elif lan_ip:
                 final_url = construct_rtsp_url(lan_ip)
 
         # Final validation before returning
-        if final_url:
+        if final_url and final_url.startswith("rtsp://"):
             return final_url
 
         _LOGGER.warning("Could not determine a valid RTSP URL for camera %s", self.name)
@@ -211,10 +211,15 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
         """
         Return true if the camera is streaming.
 
-        This requires the rtspServerEnabled setting to be true.
+        This requires both the rtspServerEnabled setting to be true and a
+        valid rtsp:// URL to be available.
         """
         video_settings = self._device_data.get("video_settings", {})
-        return video_settings.get("rtspServerEnabled", False)
+        if not video_settings.get("rtspServerEnabled", False):
+            return False
+
+        url = self._device_data.get("rtsp_url")
+        return url is not None and isinstance(url, str) and url.startswith("rtsp://")
 
     async def async_turn_on(self) -> None:
         """Turn on the camera stream."""

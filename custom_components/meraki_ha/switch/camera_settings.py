@@ -57,7 +57,7 @@ class MerakiCameraSettingSwitchBase(
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._update_state()
-        self.async_schedule_update_ha_state()
+        self.async_write_ha_state()
 
     @property
     def is_on(self) -> bool:
@@ -81,9 +81,8 @@ class MerakiCameraSettingSwitchBase(
                     serial=self._device_data["serial"], **{param_name: is_on}
                 )
             elif self._key == "audio_detection":
-                top_level_key = self._api_field.split(".")[0]
-                nested_key = self._api_field.split(".")[1]
-                payload = {top_level_key: {nested_key: is_on}}
+                parts = self._api_field.split(".")
+                payload = {parts[0]: {parts[1]: {parts[2]: is_on}}}
                 await self.client.camera.update_camera_video_settings(
                     serial=self._device_data["serial"], **payload
                 )

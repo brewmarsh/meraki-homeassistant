@@ -47,7 +47,7 @@ def _setup_device_sensors(
                 entities.append(sensor_class(coordinator, device_info, config_entry))
                 added_entities.add(unique_id)
 
-        product_type = device_info.get("productType")
+        product_type = device_info.get("product_type")
         if product_type:
             # Sensors with (coordinator, device_info, config_entry)
             for sensor_class in get_sensors_for_device_type(product_type, True):
