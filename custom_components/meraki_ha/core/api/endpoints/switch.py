@@ -19,7 +19,7 @@ class SwitchEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
-    async def get_device_switch_ports_statuses(
+    async def getDeviceSwitchPortsStatuses(
         self, serial: str
     ) -> List[Dict[str, Any]]:
         """Get statuses for all ports of a switch."""
@@ -34,7 +34,7 @@ class SwitchEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache()
-    async def get_switch_ports(self, serial: str) -> List[Dict[str, Any]]:
+    async def getSwitchPorts(self, serial: str) -> List[Dict[str, Any]]:
         """Get ports for a switch."""
         ports = await self._api_client._run_sync(
             self._dashboard.switch.getDeviceSwitchPorts, serial=serial

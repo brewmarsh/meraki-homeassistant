@@ -19,7 +19,7 @@ class WirelessEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache()
-    async def get_network_ssids(self, network_id: str) -> List[Dict[str, Any]]:
+    async def getNetworkSsids(self, network_id: str) -> List[Dict[str, Any]]:
         """Get all SSIDs for a network."""
         ssids = await self._api_client._run_sync(
             self._dashboard.wireless.getNetworkWirelessSsids, networkId=network_id
@@ -32,7 +32,7 @@ class WirelessEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache()
-    async def get_wireless_settings(self, serial: str) -> Dict[str, Any]:
+    async def getWirelessSettings(self, serial: str) -> Dict[str, Any]:
         """Get wireless radio settings for an access point."""
         settings = await self._api_client._run_sync(
             self._dashboard.wireless.getDeviceWirelessRadioSettings, serial=serial
@@ -45,7 +45,7 @@ class WirelessEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache()
-    async def get_network_wireless_ssid(
+    async def getNetworkWirelessSsid(
         self, network_id: str, number: str
     ) -> Dict[str, Any]:
         """Get a single SSID."""
@@ -61,7 +61,7 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
-    async def update_network_wireless_ssid(
+    async def updateNetworkWirelessSsid(
         self, network_id: str, number: str, **kwargs
     ) -> Dict[str, Any]:
         """Update an SSID."""
@@ -79,7 +79,7 @@ class WirelessEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=3600)
-    async def get_network_wireless_rf_profiles(
+    async def getNetworkWirelessRfProfiles(
         self, network_id: str
     ) -> List[Dict[str, Any]]:
         """Get all RF profiles for a network."""

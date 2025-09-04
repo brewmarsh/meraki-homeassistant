@@ -42,6 +42,10 @@ async def setup_integration_fixture(hass: HomeAssistant, socket_enabled):
             return_value=MOCK_ALL_DATA,
         ),
         patch(
+            "custom_components.meraki_ha.core.coordinators.ssid_firewall_coordinator.SsidFirewallCoordinator._async_update_data",
+            return_value=MOCK_ALL_DATA["l7_firewall_rules"],
+        ),
+        patch(
             "custom_components.meraki_ha.async_register_webhook",
             return_value=None,
         ),
