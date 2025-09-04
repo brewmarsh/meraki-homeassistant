@@ -386,4 +386,4 @@ class MerakiAPIClient:
 
     async def async_get_switch_port_statuses(self, serial: str) -> list[dict[str, Any]]:
         """Get statuses for all ports of a switch."""
-        return await self.switch.getDeviceSwitchPortsStatuses(serial)
+        return await self.switch.get_device_switch_ports_statuses(serial)
