@@ -76,9 +76,21 @@ MOCK_SSID = {
 }
 
 
+MOCK_L7_FIREWALL_RULES = {
+    "rules": [
+        {
+            "policy": "deny",
+            "type": "ipRange",
+            "value": "192.168.1.1",
+            "comment": "Managed by Home Assistant Meraki Parental Controls",
+        }
+    ]
+}
+
 MOCK_ALL_DATA = {
     "networks": [MOCK_NETWORK],
     "devices": [MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE],
     "ssids": [MOCK_SSID],
     "clients": [],
+    "l7_firewall_rules": MOCK_L7_FIREWALL_RULES,
 }

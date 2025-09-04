@@ -22,7 +22,7 @@ class CameraEndpoints:
     async def get_camera_sense_settings(self, serial: str) -> Dict[str, Any]:
         """Get sense settings for a specific camera."""
         settings = await self._api_client._run_sync(
-            self._dashboard.camera.get_device_camera_sense, serial=serial
+            self._dashboard.camera.getDeviceCameraSense, serial=serial
         )
         validated = validate_response(settings)
         if not isinstance(validated, dict):
@@ -35,7 +35,7 @@ class CameraEndpoints:
     async def get_camera_video_settings(self, serial: str) -> Dict[str, Any]:
         """Get video settings for a specific camera."""
         settings = await self._api_client._run_sync(
-            self._dashboard.camera.get_device_camera_video_settings, serial=serial
+            self._dashboard.camera.getDeviceCameraVideoSettings, serial=serial
         )
         validated = validate_response(settings)
         if not isinstance(validated, dict):
@@ -48,7 +48,7 @@ class CameraEndpoints:
     async def get_device_camera_video_link(self, serial: str) -> Dict[str, Any]:
         """Get video link for a specific camera."""
         link = await self._api_client._run_sync(
-            self._dashboard.camera.get_device_camera_video_link, serial=serial
+            self._dashboard.camera.getDeviceCameraVideoLink, serial=serial
         )
         validated = validate_response(link)
         if not isinstance(validated, dict):
@@ -62,7 +62,7 @@ class CameraEndpoints:
     ) -> Dict[str, Any]:
         """Update video settings for a specific camera."""
         result = await self._api_client._run_sync(
-            self._dashboard.camera.update_device_camera_video_settings,
+            self._dashboard.camera.updateDeviceCameraVideoSettings,
             serial=serial,
             **kwargs,
         )
@@ -78,7 +78,7 @@ class CameraEndpoints:
     ) -> Dict[str, Any]:
         """Update sense settings for a specific camera."""
         result = await self._api_client._run_sync(
-            self._dashboard.camera.update_device_camera_sense,
+            self._dashboard.camera.updateDeviceCameraSense,
             serial=serial,
             **kwargs,
         )
@@ -95,7 +95,7 @@ class CameraEndpoints:
     ) -> List[Dict[str, Any]]:
         """Get recent analytics for a specific camera."""
         recent = await self._api_client._run_sync(
-            self._dashboard.camera.get_device_camera_analytics_recent,
+            self._dashboard.camera.getDeviceCameraAnalyticsRecent,
             serial=serial,
             objectType=object_type,
         )
@@ -112,7 +112,7 @@ class CameraEndpoints:
     ) -> List[Dict[str, Any]]:
         """Get analytics zones for a specific camera."""
         zones = await self._api_client._run_sync(
-            self._dashboard.camera.get_device_camera_analytics_zones,
+            self._dashboard.camera.getDeviceCameraAnalyticsZones,
             serial=serial,
         )
         validated = validate_response(zones)
@@ -125,7 +125,7 @@ class CameraEndpoints:
     async def generate_device_camera_snapshot(self, serial: str) -> Dict[str, Any]:
         """Generate a snapshot of what the camera sees."""
         snapshot = await self._api_client._run_sync(
-            self._dashboard.camera.generate_device_camera_snapshot,
+            self._dashboard.camera.generateDeviceCameraSnapshot,
             serial=serial,
             fullframe=False,
         )
