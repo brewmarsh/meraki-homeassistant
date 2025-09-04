@@ -5,13 +5,21 @@ import pytest
 
 from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.webhook import async_handle_webhook
+from custom_components.meraki_ha.core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 
 
 @pytest.fixture
-def mock_hass_with_webhook_data():
+def mock_hass_with_webhook_data(hass):
     """Fixture for a mocked Home Assistant object with webhook data."""
-    hass = MagicMock()
-    coordinator = MagicMock()
+    api_client = MagicMock(spec=MerakiAPIClient)
+    config_entry = MagicMock()
+    coordinator = MerakiDataCoordinator(
+        hass,
+        api_client,
+        3600,
+        config_entry,
+    )
     coordinator.data = {
         "devices": [{"serial": "Q234-ABCD-5678", "status": "online"}],
         "clients": [],
@@ -37,6 +45,7 @@ async def test_handle_webhook_device_down(mock_hass_with_webhook_data):
         "deviceSerial": "Q234-ABCD-5678",
     }
     coordinator = mock_hass_with_webhook_data.data[DOMAIN][webhook_id]["coordinator"]
+    coordinator.async_update_listeners = MagicMock()
 
     # Act
     await async_handle_webhook(mock_hass_with_webhook_data, webhook_id, request)
@@ -58,6 +67,7 @@ async def test_handle_webhook_invalid_secret(mock_hass_with_webhook_data):
         "deviceSerial": "Q234-ABCD-5678",
     }
     coordinator = mock_hass_with_webhook_data.data[DOMAIN][webhook_id]["coordinator"]
+    coordinator.async_update_listeners = MagicMock()
 
     # Act
     await async_handle_webhook(mock_hass_with_webhook_data, webhook_id, request)
@@ -78,6 +88,7 @@ async def test_handle_webhook_unknown_alert(mock_hass_with_webhook_data):
         "alertType": "Some other alert",
     }
     coordinator = mock_hass_with_webhook_data.data[DOMAIN][webhook_id]["coordinator"]
+    coordinator.async_update_listeners = MagicMock()
 
     # Act
     await async_handle_webhook(mock_hass_with_webhook_data, webhook_id, request)

@@ -23,7 +23,7 @@ def test_organization_hub_init(mock_coordinator):
 def test_organization_id_property(mock_coordinator):
     """Test the organization_id property."""
     hub = OrganizationHub(mock_coordinator)
-    assert hub.organization_id == MOCK_NETWORK["organization_id"]
+    assert hub.organization_id == MOCK_NETWORK["organizationId"]
 
 
 def test_organization_id_property_no_data(mock_coordinator):

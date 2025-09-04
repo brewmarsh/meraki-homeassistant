@@ -21,7 +21,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({ activeView, setActiveView, da
             <h2 className="text-xl font-semibold mb-4">Network Information</h2>
             <p>Name: {network.name}</p>
             <p>ID: {network.id}</p>
-            <p>Product Types: {network.productTypes.join(', ')}</p>
+            <p>Product Types: {network.product_types.join(', ')}</p>
         </div>
     );
 };

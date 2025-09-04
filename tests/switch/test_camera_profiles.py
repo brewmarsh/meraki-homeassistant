@@ -43,6 +43,7 @@ async def test_camera_sense_switch(hass, mock_device_coordinator, mock_api_clien
     switch = MerakiCameraSenseSwitch(mock_device_coordinator, mock_api_client, device)
     switch.hass = hass
     switch.entity_id = "switch.mv_sense"
+    switch.async_write_ha_state = AsyncMock()
 
     assert switch.unique_id == "cam1_sense_enabled"
     assert switch.name == "MV Sense"
@@ -59,8 +60,7 @@ async def test_camera_sense_switch(hass, mock_device_coordinator, mock_api_clien
 
     # Simulate the coordinator updating the state
     mock_device_coordinator.data["devices"][0]["sense_settings"]["sense_enabled"] = False
-    hass.loop.call_soon_threadsafe(switch._handle_coordinator_update)
-    await hass.async_block_till_done()
+    await switch._handle_coordinator_update()
     assert switch.is_on is False
 
     await switch.async_turn_on()
@@ -81,6 +81,7 @@ async def test_camera_audio_detection_switch(
     )
     switch.hass = hass
     switch.entity_id = "switch.audio_detection"
+    switch.async_write_ha_state = AsyncMock()
 
     assert switch.unique_id == "cam1_audio_detection"
     assert switch.name == "Audio Detection"
@@ -99,8 +100,7 @@ async def test_camera_audio_detection_switch(
     mock_device_coordinator.data["devices"][0]["video_settings"]["audio_detection"][
         "enabled"
     ] = False
-    hass.loop.call_soon_threadsafe(switch._handle_coordinator_update)
-    await hass.async_block_till_done()
+    await switch._handle_coordinator_update()
     assert switch.is_on is False
 
     await switch.async_turn_on()

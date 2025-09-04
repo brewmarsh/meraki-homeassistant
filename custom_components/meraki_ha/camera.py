@@ -89,7 +89,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
         self._attr_entity_registry_enabled_default = True
         self._disabled_reason = None
 
-        if not self._device_data.get("rtsp_url") and not self._device_data.get("lanIp"):
+        if not self._device_data.get("rtspUrl") and not self._device_data.get("lanIp"):
             self._attr_entity_registry_enabled_default = False
             self._disabled_reason = "The camera did not provide a stream URL or a LAN IP address from the API."
 
@@ -143,7 +143,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
         if not self.is_streaming:
             return None
 
-        api_url = self._device_data.get("rtsp_url")
+        api_url = self._device_data.get("rtspUrl")
         lan_ip = self._device_data.get("lanIp")
         use_lan_ip = self._config_entry.options.get(CONF_USE_LAN_IP_FOR_RTSP, False)
 
@@ -189,7 +189,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
             self.coordinator.add_status_message(
                 self._device_serial, "RTSP stream is disabled in the Meraki dashboard."
             )
-        elif not self._device_data.get("rtsp_url"):
+        elif not self._device_data.get("rtspUrl"):
             attrs["stream_status"] = (
                 "Stream URL not available. This may be because the camera does not support cloud archival."
             )
@@ -218,7 +218,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
         if not video_settings.get("rtspServerEnabled", False):
             return False
 
-        url = self._device_data.get("rtsp_url")
+        url = self._device_data.get("rtspUrl")
         return url is not None and isinstance(url, str) and url.startswith("rtsp://")
 
     async def async_turn_on(self) -> None:
