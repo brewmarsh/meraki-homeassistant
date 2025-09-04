@@ -111,6 +111,17 @@ You can access the web UI at `http://<your-home-assistant-ip>:9988`.
 - **Guest Wi-Fi Management:** Create and manage guest Wi-Fi access.
 - **Event Log Viewer:** A dedicated viewer for integration-specific events.
 
+### Obtaining a Home Assistant Long-Lived Access Token
+
+To access the web UI, you need to provide a Home Assistant long-lived access token.
+
+1.  Navigate to your Home Assistant profile page. This is usually `http://<your-home-assistant-ip>:8123/profile`.
+2.  Scroll down to the "Long-Lived Access Tokens" section.
+3.  Click on "Create Token".
+4.  Give the token a name (e.g., "Meraki HA Web UI") and click "OK".
+5.  Copy the generated token and store it in a safe place. You will not be able to see it again.
+6.  Use this token to log in to the Meraki HA Web UI.
+
 ## Services & Controls 🎛️
 
 This integration provides several ways to control your Meraki network directly from Home Assistant.
