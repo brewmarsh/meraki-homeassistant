@@ -54,7 +54,12 @@ def test_process_initial_data_merges_availability(api_client):
     # Arrange
     device_with_status = MOCK_DEVICE.copy()
     availabilities = [{"serial": MOCK_DEVICE["serial"], "status": "online"}]
-    results = ([MOCK_NETWORK], [device_with_status], availabilities, [])
+    results = {
+        "networks": [MOCK_NETWORK],
+        "devices": [device_with_status],
+        "devices_availabilities": availabilities,
+        "appliance_uplink_statuses": [],
+    }
 
     # Act
     data = api_client._process_initial_data(results)
@@ -66,7 +71,12 @@ def test_process_initial_data_merges_availability(api_client):
 def test_process_initial_data_handles_errors(api_client, caplog):
     """Test that _process_initial_data handles API errors gracefully."""
     # Arrange
-    results = (Exception("Network error"), Exception("Device error"), [], [])
+    results = {
+        "networks": Exception("Network error"),
+        "devices": Exception("Device error"),
+        "devices_availabilities": [],
+        "appliance_uplink_statuses": [],
+    }
 
     # Act
     data = api_client._process_initial_data(results)

@@ -79,28 +79,31 @@ class MerakiAPIClient:
         async with self._semaphore:
             return await coro
 
-    async def _async_fetch_initial_data(self) -> list:
+    async def _async_fetch_initial_data(self) -> dict:
         """Fetch the initial batch of data from the Meraki API."""
-        initial_tasks = [
-            self._run_with_semaphore(self.organization.getOrganizationNetworks()),
-            self._run_with_semaphore(self.organization.getOrganizationDevices()),
-            self._run_with_semaphore(
-                self.organization.getOrganizationDevicesAvailabilities()
+        tasks = {
+            "networks": self._run_with_semaphore(
+                self.organization.getOrganizationNetworks()
             ),
-            self._run_with_semaphore(
-                self.organization.getOrganizationApplianceUplinkStatuses()
+            "devices": self._run_with_semaphore(
+                self.organization.getOrganizationDevices()
             ),
-        ]
-        return await asyncio.gather(*initial_tasks, return_exceptions=True)
+            "devices_availabilities": self._run_with_semaphore(
+                self.organization.get_organization_devices_availabilities()
+            ),
+            "appliance_uplink_statuses": self._run_with_semaphore(
+                self.organization.get_organization_appliance_uplink_statuses()
+            ),
+        }
+        results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+        return dict(zip(tasks.keys(), results))
 
-    def _process_initial_data(self, results: list) -> dict:
+    def _process_initial_data(self, results: dict) -> dict:
         """Process the initial data, handling errors and merging."""
-        (
-            networks_res,
-            devices_res,
-            devices_availabilities_res,
-            appliance_uplink_statuses_res,
-        ) = results
+        networks_res = results.get("networks")
+        devices_res = results.get("devices")
+        devices_availabilities_res = results.get("devices_availabilities")
+        appliance_uplink_statuses_res = results.get("appliance_uplink_statuses")
 
         networks: List[MerakiNetwork] = (
             networks_res if isinstance(networks_res, list) else []
@@ -157,7 +160,7 @@ class MerakiAPIClient:
     ) -> List[Dict[str, Any]]:
         """Fetch client data for all networks."""
         client_tasks = [
-            self._run_with_semaphore(self.network.getNetworkClients(network["id"]))
+            self._run_with_semaphore(self.network.get_network_clients(network["id"]))
             for network in networks
         ]
         clients_results = await asyncio.gather(*client_tasks, return_exceptions=True)
@@ -177,47 +180,47 @@ class MerakiAPIClient:
         detail_tasks = {}
         for network in networks:
             detail_tasks[f"ssids_{network['id']}"] = self._run_with_semaphore(
-                self.wireless.getNetworkSsids(network["id"])
+                self.wireless.get_network_ssids(network["id"])
             )
             if "appliance" in network.get("product_types", []):
                 detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
-                    self.network.getNetworkTraffic(network["id"], "appliance")
+                    self.network.get_network_traffic(network["id"], "appliance")
                 )
                 detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
-                    self.appliance.getNetworkApplianceVlans(network["id"])
+                    self.appliance.get_vlans(network["id"])
                 )
             if "wireless" in network.get("product_types", []):
                 detail_tasks[f"rf_profiles_{network['id']}"] = self._run_with_semaphore(
-                    self.wireless.getNetworkWirelessRfProfiles(network["id"])
+                    self.wireless.get_network_wireless_rf_profiles(network["id"])
                 )
         for device in devices:
             if device.get("product_type") == "wireless":
                 detail_tasks[f"wireless_settings_{device['serial']}"] = (
                     self._run_with_semaphore(
-                        self.wireless.getDeviceWirelessRadioSettings(device["serial"])
+                        self.wireless.get_wireless_settings(device["serial"])
                     )
                 )
             elif device.get("product_type") == "camera":
                 detail_tasks[f"video_settings_{device['serial']}"] = (
                     self._run_with_semaphore(
-                        self.camera.getDeviceCameraVideoSettings(device["serial"])
+                        self.camera.get_camera_video_settings(device["serial"])
                     )
                 )
                 detail_tasks[f"sense_settings_{device['serial']}"] = (
                     self._run_with_semaphore(
-                        self.camera.getDeviceCameraSense(device["serial"])
+                        self.camera.get_camera_sense_settings(device["serial"])
                     )
                 )
             elif device.get("product_type") == "switch":
                 detail_tasks[f"ports_statuses_{device['serial']}"] = (
                     self._run_with_semaphore(
-                        self.switch.getDeviceSwitchPortsStatuses(device["serial"])
+                        self.switch.get_device_switch_ports_statuses(device["serial"])
                     )
                 )
             elif device.get("product_type") == "appliance" and "network_id" in device:
                 detail_tasks[f"appliance_settings_{device['serial']}"] = (
                     self._run_with_semaphore(
-                        self.appliance.getNetworkApplianceSettings(
+                        self.appliance.get_network_appliance_settings(
                             device["network_id"]
                         )
                     )

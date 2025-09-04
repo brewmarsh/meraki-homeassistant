@@ -92,7 +92,7 @@ class OrganizationEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache()
-    async def get_organization_devices(self) -> List[Dict[str, Any]]:
+    async def getOrganizationDevices(self) -> List[Dict[str, Any]]:
         """Get all devices in the organization."""
         devices = await self._api_client._run_sync(
             self._dashboard.organizations.getOrganizationDevices,
