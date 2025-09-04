@@ -89,7 +89,7 @@ class MerakiContentFilteringSelect(
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
         try:
-            await self._meraki_client.appliance.updateNetworkApplianceContentFiltering(
+            await self._meraki_client.appliance.update_network_appliance_content_filtering(
                 networkId=self._network_id,
                 urlCategoryListSize=option,
             )

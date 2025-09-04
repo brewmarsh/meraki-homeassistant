@@ -19,7 +19,7 @@ class NetworkEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
-    async def getNetworkClients(self, network_id: str) -> List[Dict[str, Any]]:
+    async def get_network_clients(self, network_id: str) -> List[Dict[str, Any]]:
         """Get all clients in a network."""
         clients = await self._api_client._run_sync(
             self._dashboard.networks.getNetworkClients, networkId=network_id
@@ -32,7 +32,7 @@ class NetworkEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
-    async def getNetworkTraffic(
+    async def get_network_traffic(
         self, network_id: str, device_type: str
     ) -> List[Dict[str, Any]]:
         """Get traffic data for a network, filtered by device type."""
@@ -50,7 +50,7 @@ class NetworkEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=10)
-    async def getWebhooks(self, network_id: str) -> List[Dict[str, Any]]:
+    async def get_webhooks(self, network_id: str) -> List[Dict[str, Any]]:
         """Get all webhooks for a network."""
         webhooks = await self._api_client._run_sync(
             self._dashboard.networks.getNetworkWebhooksHttpServers,
@@ -63,7 +63,7 @@ class NetworkEndpoints:
         return validated
 
     @handle_meraki_errors
-    async def deleteWebhook(self, network_id: str, webhook_id: str) -> None:
+    async def delete_webhook(self, network_id: str, webhook_id: str) -> None:
         """Delete a webhook from a network."""
         await self._api_client._run_sync(
             self._dashboard.networks.deleteNetworkWebhooksHttpServer,
@@ -72,12 +72,12 @@ class NetworkEndpoints:
         )
 
     @handle_meraki_errors
-    async def findWebhookByUrl(
+    async def find_webhook_by_url(
         self, network_id: str, url: str
     ) -> Optional[Dict[str, Any]]:
         """Find a webhook by its URL."""
         try:
-            webhooks = await self.getWebhooks(network_id)
+            webhooks = await self.get_webhooks(network_id)
             for webhook in webhooks:
                 if webhook.get("url") == url:
                     return webhook
@@ -86,14 +86,14 @@ class NetworkEndpoints:
         return None
 
     @handle_meraki_errors
-    async def registerWebhook(self, webhook_url: str, secret: str) -> None:
+    async def register_webhook(self, webhook_url: str, secret: str) -> None:
         """Register a webhook with the Meraki API."""
-        networks = await self._api_client.organization.getOrganizationNetworks()
+        networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
             network_id = network["id"]
-            existing_webhook = await self.findWebhookByUrl(network_id, webhook_url)
+            existing_webhook = await self.find_webhook_by_url(network_id, webhook_url)
             if existing_webhook:
-                await self.deleteWebhook(network_id, existing_webhook["id"])
+                await self.delete_webhook(network_id, existing_webhook["id"])
 
             await self._api_client._run_sync(
                 self._dashboard.networks.createNetworkWebhooksHttpServer,
@@ -104,9 +104,9 @@ class NetworkEndpoints:
             )
 
     @handle_meraki_errors
-    async def unregisterWebhook(self, webhook_id: str) -> None:
+    async def unregister_webhook(self, webhook_id: str) -> None:
         """Unregister a webhook with the Meraki API."""
-        networks = await self._api_client.organization.getOrganizationNetworks()
+        networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
             await self._api_client._run_sync(
                 self._dashboard.networks.deleteNetworkWebhooksHttpServer,
@@ -116,12 +116,12 @@ class NetworkEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
-    async def getNetworkCameraAnalyticsHistory(
+    async def get_network_camera_analytics_history(
         self, network_id: str, object_type: str
     ) -> List[Dict[str, Any]]:
         """Get analytics history for a network."""
         history = await self._api_client._run_sync(
-            self._dashboard.camera.get_network_camera_analytics_recent,
+            self._dashboard.camera.getNetworkCameraAnalyticsRecent,
             networkId=network_id,
             objectType=object_type,
         )

@@ -83,10 +83,10 @@ class MerakiAPIClient:
         """Fetch the initial batch of data from the Meraki API."""
         tasks = {
             "networks": self._run_with_semaphore(
-                self.organization.getOrganizationNetworks()
+                self.organization.get_organization_networks()
             ),
             "devices": self._run_with_semaphore(
-                self.organization.getOrganizationDevices()
+                self.organization.get_organization_devices()
             ),
             "devices_availabilities": self._run_with_semaphore(
                 self.organization.get_organization_devices_availabilities()
@@ -160,7 +160,7 @@ class MerakiAPIClient:
     ) -> List[Dict[str, Any]]:
         """Fetch client data for all networks."""
         client_tasks = [
-            self._run_with_semaphore(self.network.getNetworkClients(network["id"]))
+            self._run_with_semaphore(self.network.get_network_clients(network["id"]))
             for network in networks
         ]
         clients_results = await asyncio.gather(*client_tasks, return_exceptions=True)
@@ -214,7 +214,9 @@ class MerakiAPIClient:
             elif device.get("product_type") == "switch":
                 detail_tasks[f"ports_statuses_{device['serial']}"] = (
                     self._run_with_semaphore(
-                        self.switch.get_device_switch_ports_statuses(device["serial"])
+                        self.switch.get_device_switch_ports_statuses(
+                            device["serial"]
+                        )
                     )
                 )
             elif device.get("product_type") == "appliance" and "network_id" in device:
@@ -380,8 +382,8 @@ class MerakiAPIClient:
 
     async def async_reboot_device(self, serial: str) -> dict:
         """Reboot a device."""
-        return await self.appliance.reboot_device(serial)
+        return await self.appliance.rebootDevice(serial)
 
     async def async_get_switch_port_statuses(self, serial: str) -> list[dict[str, Any]]:
         """Get statuses for all ports of a switch."""
-        return await self.switch.get_device_switch_ports_statuses(serial)
+        return await self.switch.getDeviceSwitchPortsStatuses(serial)

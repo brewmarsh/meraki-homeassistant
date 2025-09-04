@@ -19,7 +19,7 @@ class WirelessEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache()
-    async def getNetworkSsids(self, network_id: str) -> List[Dict[str, Any]]:
+    async def get_network_ssids(self, network_id: str) -> List[Dict[str, Any]]:
         """Get all SSIDs for a network."""
         ssids = await self._api_client._run_sync(
             self._dashboard.wireless.getNetworkWirelessSsids, networkId=network_id
@@ -32,7 +32,7 @@ class WirelessEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache()
-    async def getWirelessSettings(self, serial: str) -> Dict[str, Any]:
+    async def get_wireless_settings(self, serial: str) -> Dict[str, Any]:
         """Get wireless radio settings for an access point."""
         settings = await self._api_client._run_sync(
             self._dashboard.wireless.getDeviceWirelessRadioSettings, serial=serial
@@ -45,7 +45,7 @@ class WirelessEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache()
-    async def getNetworkWirelessSsid(
+    async def get_network_wireless_ssid(
         self, network_id: str, number: str
     ) -> Dict[str, Any]:
         """Get a single SSID."""
@@ -61,7 +61,7 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
-    async def updateNetworkWirelessSsid(
+    async def update_network_wireless_ssid(
         self, network_id: str, number: str, **kwargs
     ) -> Dict[str, Any]:
         """Update an SSID."""
@@ -79,7 +79,7 @@ class WirelessEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=3600)
-    async def getNetworkWirelessRfProfiles(
+    async def get_network_wireless_rf_profiles(
         self, network_id: str
     ) -> List[Dict[str, Any]]:
         """Get all RF profiles for a network."""
@@ -95,7 +95,7 @@ class WirelessEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache()
-    async def getNetworkWirelessSsidL7FirewallRules(
+    async def get_network_wireless_ssid_l7_firewall_rules(
         self, network_id: str, number: str
     ) -> Dict[str, Any]:
         """Get L7 firewall rules for an SSID."""
@@ -113,7 +113,7 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
-    async def updateNetworkWirelessSsidL7FirewallRules(
+    async def update_network_wireless_ssid_l7_firewall_rules(
         self, network_id: str, number: str, **kwargs
     ) -> Dict[str, Any]:
         """Update L7 firewall rules for an SSID."""

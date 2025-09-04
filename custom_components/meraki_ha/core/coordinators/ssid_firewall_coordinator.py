@@ -42,7 +42,7 @@ class SsidFirewallCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> Dict[str, Any]:
         """Fetch SSID L7 firewall data from the API."""
         try:
-            return await self.api.wireless.getNetworkWirelessSsidL7FirewallRules(
+            return await self.api.wireless.get_network_wireless_ssid_l7_firewall_rules(
                 network_id=self.network_id, number=str(self.ssid_number)
             )
         except Exception as err:
@@ -60,7 +60,7 @@ class SsidFirewallCoordinator(DataUpdateCoordinator):
         # Avoid adding duplicate rules
         if not any(r.get("value") == client_ip for r in rules):
             rules.append(new_rule)
-            await self.api.wireless.updateNetworkWirelessSsidL7FirewallRules(
+            await self.api.wireless.update_network_wireless_ssid_l7_firewall_rules(
                 network_id=self.network_id,
                 number=str(self.ssid_number),
                 rules=rules,
@@ -79,7 +79,7 @@ class SsidFirewallCoordinator(DataUpdateCoordinator):
             )
         ]
         if len(updated_rules) < len(rules):
-            await self.api.wireless.updateNetworkWirelessSsidL7FirewallRules(
+            await self.api.wireless.update_network_wireless_ssid_l7_firewall_rules(
                 network_id=self.network_id,
                 number=str(self.ssid_number),
                 rules=updated_rules,

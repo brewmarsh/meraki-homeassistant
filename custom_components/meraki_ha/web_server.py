@@ -223,7 +223,7 @@ class MerakiWebServer:
         network_id = request.match_info.get("network_id")
         try:
             new_settings = await request.json()
-            await self.coordinator.api_client.appliance.updateNetworkApplianceContentFiltering(
+            await self.coordinator.api_client.appliance.update_network_appliance_content_filtering(
                 networkId=network_id, **new_settings
             )
             return web.json_response({"status": "success"}, status=200)
