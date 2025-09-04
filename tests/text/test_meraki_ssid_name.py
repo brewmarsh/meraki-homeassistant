@@ -12,7 +12,7 @@ from custom_components.meraki_ha.text.meraki_ssid_name import MerakiSSIDNameText
 def mock_meraki_client():
     """Fixture for a mocked MerakiAPIClient."""
     client = MagicMock()
-    client.wireless.updateNetworkWirelessSsid = AsyncMock()
+    client.wireless.update_network_wireless_ssid = AsyncMock()
     return client
 
 
@@ -45,7 +45,7 @@ async def test_ssid_name_set_value(
     await entity.async_set_value(new_name)
 
     # Verify that the API was called with the correct parameters
-    mock_meraki_client.wireless.updateNetworkWirelessSsid.assert_called_once_with(
+    mock_meraki_client.wireless.update_network_wireless_ssid.assert_called_once_with(
         networkId="net1",
         number="0",
         name=new_name,
