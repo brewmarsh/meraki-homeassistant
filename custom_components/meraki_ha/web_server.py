@@ -206,7 +206,7 @@ class MerakiWebServer:
         """Handle requests for content filtering settings."""
         network_id = request.match_info.get("network_id")
         try:
-            settings = await self.coordinator.api_client.appliance.get_network_appliance_content_filtering(
+            settings = await self.coordinator.api_client.appliance.getNetworkApplianceContentFiltering(
                 networkId=network_id
             )
             return web.json_response(settings)
@@ -223,7 +223,7 @@ class MerakiWebServer:
         network_id = request.match_info.get("network_id")
         try:
             new_settings = await request.json()
-            await self.coordinator.api_client.appliance.update_network_appliance_content_filtering(
+            await self.coordinator.api_client.appliance.updateNetworkApplianceContentFiltering(
                 networkId=network_id, **new_settings
             )
             return web.json_response({"status": "success"}, status=200)
@@ -239,7 +239,7 @@ class MerakiWebServer:
         """Handle requests for L7 firewall rules."""
         network_id = request.match_info.get("network_id")
         try:
-            rules = await self.coordinator.api_client.appliance.get_network_appliance_firewall_l7_firewall_rules(
+            rules = await self.coordinator.api_client.appliance.getNetworkApplianceFirewallL7FirewallRules(
                 networkId=network_id
             )
             return web.json_response(rules)
@@ -254,7 +254,7 @@ class MerakiWebServer:
         network_id = request.match_info.get("network_id")
         try:
             new_rules = await request.json()
-            await self.coordinator.api_client.appliance.update_network_appliance_firewall_l7_firewall_rules(
+            await self.coordinator.api_client.appliance.updateNetworkApplianceFirewallL7FirewallRules(
                 networkId=network_id, **new_rules
             )
             return web.json_response({"status": "success"}, status=200)

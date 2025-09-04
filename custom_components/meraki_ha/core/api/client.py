@@ -160,7 +160,7 @@ class MerakiAPIClient:
     ) -> List[Dict[str, Any]]:
         """Fetch client data for all networks."""
         client_tasks = [
-            self._run_with_semaphore(self.network.get_network_clients(network["id"]))
+            self._run_with_semaphore(self.network.getNetworkClients(network["id"]))
             for network in networks
         ]
         clients_results = await asyncio.gather(*client_tasks, return_exceptions=True)

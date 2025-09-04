@@ -34,7 +34,7 @@ def mock_coordinator():
 def mock_meraki_client():
     """Fixture for a mocked MerakiAPIClient."""
     client = MagicMock()
-    client.wireless.update_network_wireless_ssid = AsyncMock()
+    client.wireless.updateNetworkWirelessSsid = AsyncMock()
     return client
 
 

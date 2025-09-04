@@ -39,7 +39,7 @@ class CameraRepository:
         # In the future, this could involve a call to get device details
         # and then a lookup based on the model.
         # For now, we'll hardcode some features for demonstration.
-        devices = await self._api_client.organization.get_organization_devices()
+        devices = await self._api_client.organization.getOrganizationDevices()
         device = next((d for d in devices if d.get("serial") == serial), None)
         if not device:
             return []
@@ -61,7 +61,7 @@ class CameraRepository:
     ) -> Optional[List[Dict[str, Any]]]:
         """Fetch object detection and motion data."""
         try:
-            recent = await self._api_client.camera.get_device_camera_analytics_recent(
+            recent = await self._api_client.camera.getDeviceCameraAnalyticsRecent(
                 serial, object_type
             )
             return recent
@@ -77,7 +77,7 @@ class CameraRepository:
         """
         try:
             video_link_data = (
-                await self._api_client.camera.get_device_camera_video_link(serial)
+                await self._api_client.camera.getDeviceCameraVideoLink(serial)
             )
             url = video_link_data.get("url")
 
@@ -103,7 +103,7 @@ class CameraRepository:
     ) -> List[Dict[str, Any]]:
         """Get analytics history for a network."""
         try:
-            return await self._api_client.network.get_network_camera_analytics_history(
+            return await self._api_client.network.getNetworkCameraAnalyticsHistory(
                 network_id, object_type
             )
         except Exception as e:
@@ -114,7 +114,7 @@ class CameraRepository:
         """Generate a snapshot and return the URL."""
         try:
             snapshot_data = (
-                await self._api_client.camera.generate_device_camera_snapshot(serial)
+                await self._api_client.camera.generateDeviceCameraSnapshot(serial)
             )
             return snapshot_data.get("url")
         except Exception as e:
@@ -124,7 +124,7 @@ class CameraRepository:
     async def set_rtsp_stream_enabled(self, serial: str, enabled: bool) -> None:
         """Enable or disable RTSP stream for a camera."""
         try:
-            await self._api_client.camera.update_camera_video_settings(
+            await self._api_client.camera.updateCameraVideoSettings(
                 serial, rtsp_server_enabled=enabled
             )
         except Exception as e:

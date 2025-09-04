@@ -31,8 +31,8 @@ def mock_api_client():
     """Fixture for a mocked MerakiAPIClient."""
     client = MagicMock()
     client.camera = MagicMock()
-    client.camera.update_camera_sense_settings = AsyncMock()
-    client.camera.update_camera_video_settings = AsyncMock()
+    client.camera.updateCameraSenseSettings = AsyncMock()
+    client.camera.updateCameraVideoSettings = AsyncMock()
     return client
 
 
@@ -50,12 +50,12 @@ async def test_camera_sense_switch(hass, mock_device_coordinator, mock_api_clien
     assert switch.is_on is True
 
     await switch.async_turn_off()
-    mock_api_client.camera.update_camera_sense_settings.assert_called_once_with(
+    mock_api_client.camera.updateCameraSenseSettings.assert_called_once_with(
         serial="cam1", sense_enabled=False
     )
     mock_device_coordinator.async_request_refresh.assert_called_once()
 
-    mock_api_client.camera.update_camera_sense_settings.reset_mock()
+    mock_api_client.camera.updateCameraSenseSettings.reset_mock()
     mock_device_coordinator.async_request_refresh.reset_mock()
 
     # Simulate the coordinator updating the state
@@ -64,7 +64,7 @@ async def test_camera_sense_switch(hass, mock_device_coordinator, mock_api_clien
     assert switch.is_on is False
 
     await switch.async_turn_on()
-    mock_api_client.camera.update_camera_sense_settings.assert_called_once_with(
+    mock_api_client.camera.updateCameraSenseSettings.assert_called_once_with(
         serial="cam1", sense_enabled=True
     )
     mock_device_coordinator.async_request_refresh.assert_called_once()
@@ -88,12 +88,12 @@ async def test_camera_audio_detection_switch(
     assert switch.is_on is True
 
     await switch.async_turn_off()
-    mock_api_client.camera.update_camera_video_settings.assert_called_once_with(
+    mock_api_client.camera.updateCameraVideoSettings.assert_called_once_with(
         serial="cam1", video_settings={"audio_detection": {"enabled": False}}
     )
     mock_device_coordinator.async_request_refresh.assert_called_once()
 
-    mock_api_client.camera.update_camera_video_settings.reset_mock()
+    mock_api_client.camera.updateCameraVideoSettings.reset_mock()
     mock_device_coordinator.async_request_refresh.reset_mock()
 
     # Simulate the coordinator updating the state
@@ -104,7 +104,7 @@ async def test_camera_audio_detection_switch(
     assert switch.is_on is False
 
     await switch.async_turn_on()
-    mock_api_client.camera.update_camera_video_settings.assert_called_once_with(
+    mock_api_client.camera.updateCameraVideoSettings.assert_called_once_with(
         serial="cam1", video_settings={"audio_detection": {"enabled": True}}
     )
     mock_device_coordinator.async_request_refresh.assert_called_once()

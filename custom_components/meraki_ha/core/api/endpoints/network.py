@@ -66,7 +66,7 @@ class NetworkEndpoints:
     async def deleteWebhook(self, network_id: str, webhook_id: str) -> None:
         """Delete a webhook from a network."""
         await self._api_client._run_sync(
-            self._dashboard.networks.delete_network_webhooks_http_server,
+            self._dashboard.networks.deleteNetworkWebhooksHttpServer,
             networkId=network_id,
             httpServerId=webhook_id,
         )
@@ -96,7 +96,7 @@ class NetworkEndpoints:
                 await self.deleteWebhook(network_id, existing_webhook["id"])
 
             await self._api_client._run_sync(
-                self._dashboard.networks.create_network_webhooks_http_server,
+                self._dashboard.networks.createNetworkWebhooksHttpServer,
                 networkId=network_id,
                 url=webhook_url,
                 sharedSecret=secret,
@@ -109,7 +109,7 @@ class NetworkEndpoints:
         networks = await self._api_client.organization.getOrganizationNetworks()
         for network in networks:
             await self._api_client._run_sync(
-                self._dashboard.networks.delete_network_webhooks_http_server,
+                self._dashboard.networks.deleteNetworkWebhooksHttpServer,
                 networkId=network["id"],
                 httpServerId=webhook_id,
             )

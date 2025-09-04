@@ -77,13 +77,13 @@ class MerakiCameraSettingSwitchBase(
         try:
             if self._key == "sense_enabled":
                 param_name = self._api_field.split(".")[-1]
-                await self.client.camera.update_camera_sense_settings(
+                await self.client.camera.updateCameraSenseSettings(
                     serial=self._device_data["serial"], **{param_name: is_on}
                 )
             elif self._key == "audio_detection":
                 parts = self._api_field.split(".")
                 payload = {parts[0]: {parts[1]: {parts[2]: is_on}}}
-                await self.client.camera.update_camera_video_settings(
+                await self.client.camera.updateCameraVideoSettings(
                     serial=self._device_data["serial"], **payload
                 )
             else:
@@ -92,7 +92,7 @@ class MerakiCameraSettingSwitchBase(
                     if "externalRtspEnabled" in self._api_field
                     else self._api_field
                 )
-                video_settings = await self.client.camera.update_camera_video_settings(
+                video_settings = await self.client.camera.updateCameraVideoSettings(
                     serial=self._device_data["serial"], **{field_name: is_on}
                 )
                 if video_settings:
