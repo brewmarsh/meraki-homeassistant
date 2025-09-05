@@ -37,6 +37,7 @@ class MerakiWebServer:
         assets_dir = os.path.join(static_dir, "assets")
 
         # API routes
+        self.app.router.add_get("/api/all_data", self.handle_api_all_data) # New comprehensive endpoint
         self.app.router.add_get("/api/config", self.handle_api_config)
         self.app.router.add_get("/api/networks", self.handle_api_networks)
         self.app.router.add_get(
@@ -109,6 +110,12 @@ class MerakiWebServer:
         return web.Response(
             text="Web UI files not found. Have you built the frontend?", status=404
         )
+
+    async def handle_api_all_data(self, request: web.Request) -> web.Response:
+        """Handle requests for all coordinator data."""
+        if not self.coordinator.data:
+            return web.json_response({"error": "Data not available"}, status=503)
+        return web.json_response(self.coordinator.data)
 
     async def handle_api_config(self, request: web.Request) -> web.Response:
         """Handle requests for the integration's configuration."""

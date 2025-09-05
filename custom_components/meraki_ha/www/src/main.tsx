@@ -15,7 +15,7 @@ const rootElement = document.getElementById('root');
 if (rootElement) {
   ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
-      <App hass={window.hass} config_entry_id={window.config_entry_id} />
+      <App />
     </React.StrictMode>,
   );
 } else {

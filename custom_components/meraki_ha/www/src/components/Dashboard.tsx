@@ -39,6 +39,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data }) => {
             key={network.id}
             data-testid="network-card"
             className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 cursor-pointer"
+            style={{ display: 'block' }} // Diagnostic style
             onClick={() => setActiveView({ view: 'network', networkId: network.id })}
           >
             <p className="font-medium text-gray-900 dark:text-white">{network.name}</p>
