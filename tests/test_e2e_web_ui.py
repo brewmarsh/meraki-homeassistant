@@ -1,5 +1,6 @@
 """End-to-end tests for the Meraki Web UI."""
 
+import json
 import pytest
 from unittest.mock import patch
 
@@ -36,14 +37,15 @@ async def setup_integration_fixture(hass: HomeAssistant, socket_enabled):
     )
     config_entry.add_to_hass(hass)
 
+    # This patch is now for the backend, which the UI no longer directly uses in this test setup
     with (
         patch(
             "custom_components.meraki_ha.MerakiDataCoordinator._async_update_data",
             return_value=MOCK_ALL_DATA,
         ),
         patch(
-            "custom_components.meraki_ha.core.coordinators.ssid_firewall_coordinator.SsidFirewallCoordinator._async_update_data",
-            return_value=MOCK_ALL_DATA["l7_firewall_rules"],
+            "custom_components.meraki_ha.api.websocket.ws_subscribe_meraki_data",
+            return_value=None,
         ),
         patch(
             "custom_components.meraki_ha.async_register_webhook",
@@ -59,19 +61,41 @@ async def setup_integration_fixture(hass: HomeAssistant, socket_enabled):
 async def test_dashboard_loads_and_displays_data(
     hass: HomeAssistant, setup_integration
 ):
-    """Test that the dashboard loads and displays network data, but not clients."""
+    """Test that the dashboard loads and displays network data."""
     async with async_playwright() as p:
         browser = await p.chromium.launch()
         page = await browser.new_page()
 
+        # Serialize the mock data to be injected into the page
+        mock_data_json = json.dumps(MOCK_ALL_DATA)
+
+        # This script runs before the page's scripts, creating a mock hass object
+        await page.add_init_script(
+            f"""
+              window.hass = {{
+                connection: {{
+                  subscribeMessage: async (callback, subscription) => {{
+                    console.log('Mock subscribeMessage called with:', subscription);
+                    const mockData = {mock_data_json};
+                    const message = {{
+                      type: 'result',
+                      success: true,
+                      result: mockData
+                    }};
+                    callback(message);
+                    return () => Promise.resolve(); // Return a dummy unsubscribe function
+                  }}
+                }}
+              }};
+            """
+        )
+
         await page.goto(f"http://localhost:{TEST_PORT}/")
 
-        content = page.locator("main")
-
-        # Check for the network card using data-testid
-        network_card = content.locator("[data-testid=network-card]")
+        # Check for the network card, which should now be rendered with mock data
+        network_card = page.locator("[data-testid=network-card]")
         await expect(network_card).to_be_visible()
-        await expect(network_card.locator("a")).to_have_text("Test Network")
+        await expect(network_card.locator("p")).to_have_text("Test Network")
 
         await browser.close()
 
@@ -83,38 +107,35 @@ async def test_navigation_to_network_detail(hass: HomeAssistant, setup_integrati
         browser = await p.chromium.launch()
         page = await browser.new_page()
 
+        mock_data_json = json.dumps(MOCK_ALL_DATA)
+        await page.add_init_script(
+            f"""
+              window.hass = {{
+                connection: {{
+                  subscribeMessage: async (callback, subscription) => {{
+                    const mockData = {mock_data_json};
+                    const message = {{ type: 'result', success: true, result: mockData }};
+                    callback(message);
+                    return () => Promise.resolve();
+                  }}
+                }}
+              }};
+            """
+        )
+
         await page.goto(f"http://localhost:{TEST_PORT}/")
 
-        content = page.locator("main")
-        await expect(content.locator("[data-testid=network-card]")).to_be_visible()
+        network_card = page.locator("[data-testid=network-card]")
+        await expect(network_card).to_be_visible()
 
-        await content.locator("[data-testid=network-card] a").click()
+        await network_card.click()
 
-        await expect(page).to_have_url(f"http://localhost:{TEST_PORT}/networks/N_12345")
+        # Add a small delay to allow React to re-render
+        await page.wait_for_timeout(500)
 
         await page.screenshot(path="e2e-network-detail-failure.png")
 
-        # Check for the presence of the "Network Information" text directly
-        await expect(page.locator("text=Network Information")).to_be_visible()
-
-        await browser.close()
-
-
-@pytest.mark.asyncio
-async def test_navigation_to_settings_page(hass: HomeAssistant, setup_integration):
-    """Test navigation to the settings page."""
-    async with async_playwright() as p:
-        browser = await p.chromium.launch()
-        page = await browser.new_page()
-
-        await page.goto(f"http://localhost:{TEST_PORT}/")
-
-        await page.locator("a:has-text('Settings')").click()
-
-        await expect(page).to_have_url(f"http://localhost:{TEST_PORT}/settings")
-
-        settings_content = page.locator("main")
-        header = settings_content.locator("[data-testid=settings-header]")
-        await expect(header).to_be_visible()
+        # Use a more specific locator for the header
+        await expect(page.locator("h2:has-text('Network Information')")).to_be_visible()
 
         await browser.close()

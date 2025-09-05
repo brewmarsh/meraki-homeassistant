@@ -3,7 +3,13 @@ import Dashboard from './components/Dashboard';
 import DeviceView from './components/DeviceView';
 import NetworkView from './components/NetworkView';
 
-// The Hass object is no longer used
+// Define a simplified type for the Home Assistant object
+interface Hass {
+  connection: {
+    subscribeMessage: (callback: (message: any) => void, subscription: any) => Promise<() => void>;
+  };
+  // Add other properties of hass object if needed
+}
 
 // Define the types for our data
 interface MerakiData {
@@ -11,35 +17,64 @@ interface MerakiData {
 }
 
 interface AppProps {
-  // No props are needed now
+  hass: Hass;
+  config_entry_id: string;
 }
 
-const App: React.FC<AppProps> = () => {
+const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<{ view: string; deviceId?: string; networkId?: string }>({ view: 'dashboard' });
 
   useEffect(() => {
-    const fetchData = async () => {
+    if (!hass || !hass.connection) {
+      setError("Home Assistant connection object not found.");
+      setLoading(false);
+      return;
+    }
+
+    const subscribe = async () => {
       try {
-        // Use a relative path to fetch all data from the integration's web server
-        const response = await fetch('/api/all_data');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setData(data);
+        const unsub = await hass.connection.subscribeMessage(
+          (message) => {
+            if (message.type === 'result') {
+              if (message.success) {
+                setData(message.result);
+              } else {
+                setError(`Subscription failed: ${message.error.message}`);
+              }
+              setLoading(false);
+            } else if (message.type === 'event') {
+              setData(message.event);
+            } else {
+              setData(message);
+              setLoading(false);
+            }
+          },
+          {
+            type: 'meraki_ha/subscribe_meraki_data',
+            config_entry_id: config_entry_id,
+          }
+        );
+        return unsub;
       } catch (err) {
-        console.error('Error fetching Meraki data:', err);
-        setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-      } finally {
+        console.error('Error subscribing to Meraki data:', err);
+        setError('Failed to subscribe to Meraki data. See console for details.');
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []); // The empty dependency array means this effect runs once on mount.
+    const unsubscribePromise = subscribe();
+
+    return () => {
+      unsubscribePromise.then(unsub => {
+        if (unsub) {
+          unsub();
+        }
+      });
+    };
+  }, [hass, config_entry_id]);
 
   if (loading) {
     return <div className="p-4">Loading...</div>;
