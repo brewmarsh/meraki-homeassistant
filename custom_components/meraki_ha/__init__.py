@@ -182,7 +182,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             server = hass.data[DOMAIN][entry.entry_id]["web_server"]
             await server.stop()
 
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    try:
+        unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    except ValueError:
+        _LOGGER.debug("Ignoring 'Config entry was never loaded!' error during unload.")
+        unload_ok = True
 
     if unload_ok:
         if DOMAIN in hass.data:
