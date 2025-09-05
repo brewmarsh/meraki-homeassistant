@@ -3,6 +3,8 @@
 import logging
 import os
 from typing import Union
+import aiofiles
+import aiofiles.os
 from aiohttp import web
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import get_url
@@ -93,9 +95,9 @@ class MerakiWebServer:
         """Serve the single-page application's entry point (index.html)."""
         static_dir = os.path.join(os.path.dirname(__file__), "www", "dist")
         index_path = os.path.join(static_dir, "index.html")
-        if os.path.exists(index_path):
-            with open(index_path, "r") as f:
-                content = f.read()
+        if await aiofiles.os.path.exists(index_path):
+            async with aiofiles.open(index_path, "r") as f:
+                content = await f.read()
 
             ha_url = get_url(self.hass, prefer_external=True)
             content = content.replace("__HA_URL__", ha_url)
