@@ -65,39 +65,49 @@ async def test_dashboard_loads_and_displays_data(
     async with async_playwright() as p:
         browser = await p.chromium.launch()
         page = await browser.new_page()
+        page.on("console", lambda msg: print(f"BROWSER LOG: {msg.text()}"))
 
         # Serialize the mock data to be injected into the page
         mock_data_json = json.dumps(MOCK_ALL_DATA)
 
-        # This script runs before the page's scripts, creating a mock hass object
-        await page.add_init_script(
-            f"""
-              window.hass = {{
-                connection: {{
-                  subscribeMessage: async (callback, subscription) => {{
-                    console.log('Mock subscribeMessage called with:', subscription);
-                    const mockData = {mock_data_json};
-                    const message = {{
-                      type: 'result',
-                      success: true,
-                      result: mockData
-                    }};
-                    callback(message);
-                    return () => Promise.resolve(); // Return a dummy unsubscribe function
-                  }}
-                }}
-              }};
-            """
-        )
+        try:
+            await page.goto(f"http://localhost:{TEST_PORT}/")
 
-        await page.goto(f"http://localhost:{TEST_PORT}/")
+            # Create the mock hass object in the page
+            await page.evaluate(
+                f"""
+                window.mockHass = {{
+                    connection: {{
+                        subscribeMessage: async (callback, subscription) => {{
+                            console.log('Mock subscribeMessage called with:', subscription);
+                            const mockData = {mock_data_json};
+                            const message = {{
+                                type: 'result',
+                                success: true,
+                                result: mockData
+                            }};
+                            callback(message);
+                            return () => Promise.resolve();
+                        }}
+                    }}
+                }};
+                """
+            )
 
-        # Check for the network card, which should now be rendered with mock data
-        network_card = page.locator("[data-testid=network-card]")
-        await expect(network_card).to_be_visible()
-        await expect(network_card.locator("p")).to_have_text("Test Network")
+            # Get the panel and set the hass property
+            await page.evaluate("document.querySelector('meraki-ha-panel').setAttribute('config_entry_id', 'test_e2e_entry')")
+            await page.evaluate("document.querySelector('meraki-ha-panel').hass = window.mockHass")
 
-        await browser.close()
+            # Wait for the network card to be visible, which indicates the data has loaded
+            await page.wait_for_selector("[data-testid=network-card]", timeout=10000)
+
+            # Now that we know it's there, we can make assertions
+            network_card = page.locator("[data-testid=network-card]")
+            await expect(network_card).to_be_visible()
+            await expect(network_card.locator("p")).to_have_text("Test Network")
+
+        finally:
+            await browser.close()
 
 
 # @pytest.mark.asyncio
