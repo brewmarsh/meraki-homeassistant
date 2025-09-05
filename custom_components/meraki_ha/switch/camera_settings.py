@@ -54,10 +54,10 @@ class MerakiCameraSettingSwitchBase(
         else:
             self._attr_is_on = False
 
-    async def _handle_coordinator_update(self) -> None:
+    def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._update_state()
-        await self.async_write_ha_state()
+        self.async_write_ha_state()
 
     @property
     def is_on(self) -> bool:

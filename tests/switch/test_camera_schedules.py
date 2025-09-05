@@ -43,7 +43,7 @@ async def test_camera_rtsp_switch(hass, mock_device_coordinator, mock_api_client
     switch = MerakiCameraRTSPSwitch(mock_device_coordinator, mock_api_client, device)
     switch.hass = hass
     switch.entity_id = "switch.test"
-    switch.async_write_ha_state = AsyncMock()
+    switch.async_write_ha_state = MagicMock()
 
     assert switch.is_on is True
 
@@ -54,7 +54,7 @@ async def test_camera_rtsp_switch(hass, mock_device_coordinator, mock_api_client
 
     # Simulate coordinator update
     mock_device_coordinator.get_device.return_value["video_settings"]["externalRtspEnabled"] = False
-    await switch._handle_coordinator_update()
+    switch._handle_coordinator_update()
     assert switch.is_on is False
 
     await switch.async_turn_on()
@@ -64,5 +64,5 @@ async def test_camera_rtsp_switch(hass, mock_device_coordinator, mock_api_client
 
     # Simulate coordinator update
     mock_device_coordinator.get_device.return_value["video_settings"]["externalRtspEnabled"] = True
-    await switch._handle_coordinator_update()
+    switch._handle_coordinator_update()
     assert switch.is_on is True
