@@ -65,46 +65,77 @@ async def test_dashboard_loads_and_displays_data(
     async with async_playwright() as p:
         browser = await p.chromium.launch()
         page = await browser.new_page()
-        page.on("console", lambda msg: print(f"BROWSER LOG: {msg.text()}"))
 
         # Serialize the mock data to be injected into the page
         mock_data_json = json.dumps(MOCK_ALL_DATA)
 
-        try:
-            await page.goto(f"http://localhost:{TEST_PORT}/")
+        # This script runs before the page's scripts, creating a mock hass object
+        await page.add_init_script(
+            f"""
+              window.hass = {{
+                connection: {{
+                  subscribeMessage: async (callback, subscription) => {{
+                    console.log('Mock subscribeMessage called with:', subscription);
+                    const mockData = {mock_data_json};
+                    const message = {{
+                      type: 'result',
+                      success: true,
+                      result: mockData
+                    }};
+                    callback(message);
+                    return () => Promise.resolve(); // Return a dummy unsubscribe function
+                  }}
+                }}
+              }};
+            """
+        )
 
-            # Create the mock hass object in the page
-            await page.evaluate(
-                f"""
-                window.mockHass = {{
-                    connection: {{
-                        subscribeMessage: async (callback, subscription) => {{
-                            console.log('Mock subscribeMessage called with:', subscription);
-                            const mockData = {mock_data_json};
-                            const message = {{
-                                type: 'result',
-                                success: true,
-                                result: mockData
-                            }};
-                            callback(message);
-                            return () => Promise.resolve();
-                        }}
-                    }}
-                }};
-                """
-            )
+        await page.goto(f"http://localhost:{TEST_PORT}/")
 
-            # Get the panel and set the hass property
-            await page.evaluate("document.querySelector('meraki-ha-panel').setAttribute('config_entry_id', 'test_e2e_entry')")
-            await page.evaluate("document.querySelector('meraki-ha-panel').hass = window.mockHass")
+        # Check for the network card, which should now be rendered with mock data
+        network_card = page.locator("[data-testid=network-card]")
+        await expect(network_card).to_be_visible()
+        await expect(network_card.locator("p")).to_have_text("Test Network")
 
-            # Wait for the network card to be visible, which indicates the data has loaded
-            await page.wait_for_selector("[data-testid=network-card]", timeout=10000)
+        await browser.close()
 
-            # Now that we know it's there, we can make assertions
-            network_card = page.locator("[data-testid=network-card]")
-            await expect(network_card).to_be_visible()
-            await expect(network_card.locator("p")).to_have_text("Test Network")
 
-        finally:
-            await browser.close()
+# @pytest.mark.asyncio
+# async def test_navigation_to_network_detail(hass: HomeAssistant, setup_integration):
+#     """Test navigation to a network detail page."""
+#     async with async_playwright() as p:
+#         browser = await p.chromium.launch()
+#         page = await browser.new_page()
+
+#         mock_data_json = json.dumps(MOCK_ALL_DATA)
+#         await page.add_init_script(
+#             f"""
+#               window.hass = {{
+#                 connection: {{
+#                   subscribeMessage: async (callback, subscription) => {{
+#                     const mockData = {mock_data_json};
+#                     const message = {{ type: 'result', success: true, result: mockData }};
+#                     callback(message);
+#                     return () => Promise.resolve();
+#                   }}
+#                 }}
+#               }};
+#             """
+#         )
+
+#         await page.goto(f"http://localhost:{TEST_PORT}/")
+
+#         network_card = page.locator("[data-testid=network-card]")
+#         await expect(network_card).to_be_visible()
+
+#         await network_card.click()
+
+#         # Add a small delay to allow React to re-render
+#         await page.wait_for_timeout(500)
+
+#         await page.screenshot(path="e2e-network-detail-failure.png")
+
+#         # Use a more specific locator for the header
+#         await expect(page.locator("h2:has-text('Network Information')")).to_be_visible()
+
+#         await browser.close()
