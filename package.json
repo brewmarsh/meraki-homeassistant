@@ -11,8 +11,5 @@
   },
   "engines": {
     "node": ">=18"
-  },
-  "dependencies": {
-    "vite-plugin-singlefile": "^2.3.0"
   }
 }

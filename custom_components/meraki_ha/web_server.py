@@ -82,7 +82,7 @@ class MerakiWebServer:
             self.handle_api_put_l7_firewall_rules,
         )
 
-        # Static asset route (for JS, CSS, etc.)
+        # Static asset route
         self.app.router.add_static("/static", static_dir)
 
         # Serve index.html for the root and any other non-API, non-asset path
