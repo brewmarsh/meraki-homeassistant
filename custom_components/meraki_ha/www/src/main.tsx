@@ -24,10 +24,10 @@ class MerakiHaPanel extends HTMLElement {
   }
 
   private _render() {
-    if (this.root && this._hass && this._config_entry_id) {
+    if (this.root) {
       this.root.render(
         <React.StrictMode>
-          <App hass={this._hass} config_entry_id={this._config_entry_id} />
+          <App hass={null} config_entry_id="dummy_id" />
         </React.StrictMode>
       );
     }

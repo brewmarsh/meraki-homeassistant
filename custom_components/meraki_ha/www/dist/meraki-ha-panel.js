@@ -6381,8 +6381,8 @@ class Ad extends HTMLElement {
     n.id = "root", this.shadowRoot.appendChild(n), this.root = Yl.createRoot(n), this._render();
   }
   _render() {
-    this.root && this._hass && this._config_entry_id && this.root.render(
-      /* @__PURE__ */ _.jsx(Ec.StrictMode, { children: /* @__PURE__ */ _.jsx($d, { hass: this._hass, config_entry_id: this._config_entry_id }) })
+    this.root && this.root.render(
+      /* @__PURE__ */ _.jsx(Ec.StrictMode, { children: /* @__PURE__ */ _.jsx($d, { hass: null, config_entry_id: "dummy_id" }) })
     );
   }
 }

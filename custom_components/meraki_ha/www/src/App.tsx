@@ -17,7 +17,7 @@ interface MerakiData {
 }
 
 interface AppProps {
-  hass: Hass;
+  hass: Hass | null;
   config_entry_id: string;
 }
 
