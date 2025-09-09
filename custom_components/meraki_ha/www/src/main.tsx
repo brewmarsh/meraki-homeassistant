@@ -1,19 +1,23 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
 
-class MerakiHaPanel extends HTMLElement {
-  connectedCallback() {
-    this.attachShadow({ mode: 'open' });
-    const rootDiv = document.createElement('div');
-    rootDiv.id = 'root';
-    this.shadowRoot!.appendChild(rootDiv);
-    const root = ReactDOM.createRoot(rootDiv);
-    root.render(
-      <React.StrictMode>
-        <h1>Hello from Meraki!</h1>
-      </React.StrictMode>
-    );
+// Allow access to HA-provided properties on the window object
+declare global {
+  interface Window {
+    hass: any;
+    config_entry_id: string;
   }
 }
 
-customElements.define('meraki-ha-panel', MerakiHaPanel);
+const rootElement = document.getElementById('root');
+if (rootElement) {
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      <App hass={window.hass} config_entry_id={window.config_entry_id} />
+    </React.StrictMode>,
+  );
+} else {
+  console.error('Root element not found');
+}
