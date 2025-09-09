@@ -34,6 +34,7 @@ class MerakiWebServer:
     def _setup_routes(self):
         """Set up the routes for the web application."""
         static_dir = os.path.join(os.path.dirname(__file__), "www", "dist")
+        assets_dir = os.path.join(static_dir, "assets")
 
         # API routes
         self.app.router.add_get("/api/all_data", self.handle_api_all_data) # New comprehensive endpoint
@@ -82,8 +83,8 @@ class MerakiWebServer:
             self.handle_api_put_l7_firewall_rules,
         )
 
-        # Static asset route
-        self.app.router.add_static("/static", static_dir)
+        # Static asset route (for JS, CSS, etc.)
+        self.app.router.add_static("/assets", assets_dir, name="assets")
 
         # Serve index.html for the root and any other non-API, non-asset path
         self.app.router.add_get("/{path:.*}", self.handle_spa)
