@@ -115,12 +115,30 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     f"{ssid['networkId']}_{ssid['number']}"
                 ] = ssid_fw_coordinator
 
-    # Start the web server if enabled
+    # Start the web server and register the panel if enabled
     if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
         port = entry.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
         server = MerakiWebServer(hass, coordinator, port)
         await server.start()
         hass.data[DOMAIN][entry.entry_id]["web_server"] = server
+
+        # Register the panel
+        panel_url = f"http://localhost:{port}"
+        await hass.components.frontend.async_register_built_in_panel(
+            component_name="meraki",
+            sidebar_title="Meraki",
+            sidebar_icon="mdi:cisco-webex",
+            frontend_url_path="meraki",
+            config={
+                "_panel_custom": {
+                    "name": "ha-panel-iframe",
+                    "embed_iframe": True,
+                    "trust_external_script": True,
+                    "url": panel_url,
+                }
+            },
+            require_admin=True,
+        )
 
     # Initialize repositories and services for the new architecture
     meraki_repository = MerakiRepository(api_client)
@@ -181,6 +199,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if "web_server" in hass.data[DOMAIN][entry.entry_id]:
             server = hass.data[DOMAIN][entry.entry_id]["web_server"]
             await server.stop()
+            hass.components.frontend.async_remove_panel("meraki")
 
     try:
         unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
