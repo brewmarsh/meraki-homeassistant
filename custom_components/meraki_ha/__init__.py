@@ -3,9 +3,11 @@
 import logging
 import secrets
 
+from yarl import URL
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.helpers.network import get_url
 from homeassistant.components.frontend import (
     async_register_built_in_panel,
     async_remove_panel,
@@ -127,7 +129,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN][entry.entry_id]["web_server"] = server
 
         # Register the panel
-        panel_url = f"http://localhost:{port}"
+        hass_url = URL(get_url(hass, require_current_request=False, prefer_internal=True))
+        panel_url = str(hass_url.with_port(port))
         async_register_built_in_panel(
             hass,
             component_name="meraki",
