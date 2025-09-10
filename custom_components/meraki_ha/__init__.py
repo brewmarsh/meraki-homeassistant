@@ -128,7 +128,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         # Register the panel
         panel_url = f"http://localhost:{port}"
-        await async_register_built_in_panel(
+        async_register_built_in_panel(
             hass,
             component_name="meraki",
             sidebar_title="Meraki",
