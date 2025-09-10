@@ -6,7 +6,9 @@
     "@brewmarsh"
   ],
   "config_flow": true,
-  "dependencies": [],
+  "dependencies": [
+    "frontend"
+  ],
   "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
