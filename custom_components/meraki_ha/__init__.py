@@ -6,6 +6,10 @@ import secrets
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.components.frontend import (
+    async_register_built_in_panel,
+    async_remove_panel,
+)
 
 from .api.websocket import async_setup_websocket_api
 from .const import (
@@ -124,7 +128,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         # Register the panel
         panel_url = f"http://localhost:{port}"
-        await hass.components.frontend.async_register_built_in_panel(
+        await async_register_built_in_panel(
+            hass,
             component_name="meraki",
             sidebar_title="Meraki",
             sidebar_icon="mdi:cisco-webex",
@@ -199,7 +204,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if "web_server" in hass.data[DOMAIN][entry.entry_id]:
             server = hass.data[DOMAIN][entry.entry_id]["web_server"]
             await server.stop()
-            hass.components.frontend.async_remove_panel("meraki")
+            async_remove_panel(hass, "meraki")
 
     try:
         unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
