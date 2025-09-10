@@ -129,7 +129,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN][entry.entry_id]["web_server"] = server
 
         # Register the panel
-        hass_url = URL(get_url(hass, require_current_request=False, prefer_internal=True))
+        hass_url = URL(get_url(hass, require_current_request=False))
         panel_url = str(hass_url.with_port(port))
         async_register_built_in_panel(
             hass,
