@@ -14,7 +14,7 @@ declare global {
 const rootElement = document.getElementById('root');
 
 const renderApp = () => {
-  if (rootElement && window.hass) {
+  if (rootElement && window.hass && window.hass.connection) {
     ReactDOM.createRoot(rootElement).render(
       <React.StrictMode>
         <App hass={window.hass} config_entry_id={window.config_entry_id} />
@@ -22,7 +22,7 @@ const renderApp = () => {
     );
   } else if (rootElement) {
       const interval = setInterval(() => {
-          if (window.hass) {
+          if (window.hass && window.hass.connection) {
               clearInterval(interval);
               renderApp();
           }
