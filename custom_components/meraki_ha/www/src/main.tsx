@@ -12,12 +12,24 @@ declare global {
 }
 
 const rootElement = document.getElementById('root');
-if (rootElement) {
-  ReactDOM.createRoot(rootElement).render(
-    <React.StrictMode>
-      <App hass={window.hass} config_entry_id={window.config_entry_id} />
-    </React.StrictMode>,
-  );
-} else {
-  console.error('Root element not found');
-}
+
+const renderApp = () => {
+  if (rootElement && window.hass) {
+    ReactDOM.createRoot(rootElement).render(
+      <React.StrictMode>
+        <App hass={window.hass} config_entry_id={window.config_entry_id} />
+      </React.StrictMode>,
+    );
+  } else if (rootElement) {
+      const interval = setInterval(() => {
+          if (window.hass) {
+              clearInterval(interval);
+              renderApp();
+          }
+      }, 100);
+  } else {
+    console.error('Root element not found');
+  }
+};
+
+renderApp();
