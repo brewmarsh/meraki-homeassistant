@@ -1,3 +1,41 @@
+### Instructions for the next Jules agent
+
+**Objective:** Fix the Meraki Home Assistant integration's web UI.
+
+**Blocker:** The execution environment is extremely unstable. The `custom_components/meraki_ha/www/` directory is repeatedly deleted, preventing the frontend build from completing.
+
+**Solution (The Plan to Execute):** The next agent must implement the following refactoring plan. The solution has been fully worked out.
+
+**!! CRITICAL INSTRUCTION !!**
+Due to the environment instability, **all file modifications should be performed in a single, rapid sequence** to minimize the window of time in which the files can be deleted. Do not perform exploratory actions. Execute this plan directly.
+
+---
+
+### The Plan
+
+**1. Apply Backend Refactor**
+*   **Action:** Delete the file `custom_components/meraki_ha/web_server.py`.
+*   **Action:** Overwrite `custom_components/meraki_ha/__init__.py` with the content provided below in "Code Block 1".
+
+**2. Refactor the Frontend**
+*   **Action:** Overwrite `custom_components/meraki_ha/www/vite.config.js` with the content provided below in "Code Block 2".
+*   **Action:** Overwrite `custom_components/meraki_ha/www/src/main.tsx` with the content provided below in "Code Block 3".
+*   **Note:** The original `www/index.html` file is not present in the base repository and is no longer needed; do not create it.
+
+**3. Build and Submit**
+*   **Action:** Run the following command in the shell:
+    ```bash
+    cd custom_components/meraki_ha/www/ && npm install && npm run build
+    ```
+*   **Action:** Verify that the file `custom_components/meraki_ha/www/dist/meraki-panel.js` exists.
+*   **Action:** Submit the changes with a descriptive commit message.
+
+---
+
+### Code Blocks
+
+**Code Block 1: `custom_components/meraki_ha/__init__.py`**
+```python
 """The Meraki Home Assistant integration."""
 
 import logging
@@ -86,7 +124,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         DATA_CLIENT: api_client,
     }
 
-    # Create switch port status coordinator
     repository = MerakiRepository(api_client)
     switch_port_coordinator = SwitchPortStatusCoordinator(
         hass=hass,
@@ -99,13 +136,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         switch_port_coordinator
     )
 
-    # Create content filtering and firewall coordinators
     hass.data[DOMAIN][entry.entry_id]["ssid_firewall_coordinators"] = {}
     if coordinator.data:
-        # Create per-SSID coordinators
         for ssid in coordinator.data.get("ssids", []):
             if "networkId" in ssid and "number" in ssid:
-                # L7 Firewall Coordinator
                 ssid_fw_coordinator = SsidFirewallCoordinator(
                     hass=hass,
                     api_client=api_client,
@@ -118,10 +152,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     f"{ssid['networkId']}_{ssid['number']}"
                 ] = ssid_fw_coordinator
 
-    # Register the custom panel if enabled
     if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
         panel_url_path = f"meraki_{entry.entry_id}"
-
         async_register_built_in_panel(
             hass,
             component_name="meraki",
@@ -132,18 +164,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             require_admin=True,
         )
 
-
-    # Initialize repositories and services for the new architecture
-    meraki_repository = MerakiRepository(api_client)
     control_service = DeviceControlService(meraki_repository)
     camera_repository = CameraRepository(api_client, api_client.organization_id)
     camera_service = CameraService(camera_repository)
     network_control_service = NetworkControlService(api_client, coordinator)
 
-    # Defer import to avoid circular dependencies and blocking startup
     from .discovery.service import DeviceDiscoveryService
 
-    # New discovery service setup. We now pass both the control and camera services.
     discovery_service = DeviceDiscoveryService(
         coordinator=coordinator,
         config_entry=entry,
@@ -153,14 +180,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         control_service=control_service,
         network_control_service=network_control_service,
     )
-    # The discover_entities method is asynchronous and must be awaited
     discovered_entities = await discovery_service.discover_entities()
     hass.data[DOMAIN][entry.entry_id]["entities"] = discovered_entities
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     if "webhook_http_server_id" not in entry.data:
-        # The webhook_id for Home Assistant is the config entry id
         webhook_id = entry.entry_id
         secret = secrets.token_hex(16)
         webhook = await async_register_webhook(
@@ -189,7 +214,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 hass, entry.data["webhook_http_server_id"], api_client
             )
 
-        # Unregister the panel
         if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
             panel_url_path = f"meraki_{entry.entry_id}"
             async_remove_panel(hass, panel_url_path)
@@ -214,3 +238,95 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     unload_ok = await async_unload_entry(hass, entry)
     if unload_ok:
         await async_setup_entry(hass, entry)
+```
+
+**Code Block 2: `custom_components/meraki_ha/www/vite.config.js`**
+```javascript
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  build: {
+    lib: {
+      entry: 'src/main.tsx',
+      name: 'MerakiPanel',
+      fileName: (format) => `meraki-panel.js`,
+      formats: ['es'],
+    },
+    rollupOptions: {
+      external: ['react', 'react-dom'],
+      output: {
+        globals: {
+          react: 'React',
+          'react-dom': 'ReactDOM',
+        },
+      },
+    },
+    outDir: 'dist',
+    sourcemap: false,
+    minify: true,
+  },
+});
+```
+
+**Code Block 3: `custom_components/meraki_ha/www/src/main.tsx`**
+```typescript
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
+
+interface PanelInfo {
+  config: {
+    config_entry_id: string;
+  };
+}
+
+interface HassObject {
+  connection: any;
+  connected: boolean;
+}
+
+class MerakiPanel extends HTMLElement {
+  private _root?: ReactDOM.Root;
+  private _hass?: HassObject;
+  private _panel?: PanelInfo;
+
+  connectedCallback() {
+    this._root = ReactDOM.createRoot(this);
+    this._render();
+  }
+
+  disconnectedCallback() {
+    if (this._root) {
+      this._root.unmount();
+      this._root = undefined;
+    }
+  }
+
+  set hass(hass: HassObject) {
+    this._hass = hass;
+    this._render();
+  }
+
+  set panel(panel: PanelInfo) {
+    this._panel = panel;
+    this._render();
+  }
+
+  private _render() {
+    if (!this._root || !this._hass || !this._panel) {
+      return;
+    }
+
+    this._root.render(
+      <React.StrictMode>
+        <App hass={this._hass} config_entry_id={this._panel.config.config_entry_id} />
+      </React.StrictMode>
+    );
+  }
+}
+
+customElements.define('meraki-panel', MerakiPanel);
+```
