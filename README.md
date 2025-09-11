@@ -124,9 +124,8 @@ You must first add the `meraki-panel.js` file as a frontend resource in Home Ass
 The card needs to know which Meraki integration to display data from.
 
 1.  Go to **Settings > Devices & Services**.
-2.  Find the Meraki integration. It should show a link with the number of devices (e.g., "5 devices"). Click on that link.
-3.  Look at the URL in your browser's address bar. It will end with something like `...&config_entry=01K4DADJGNTHWECBB7Z4J7NATH`.
-4.  The long string of characters after `&config_entry=` is your **Config Entry ID**. Copy this ID.
+2.  Find the Meraki integration and click **"CONFIGURE"**.
+3.  The **Config Entry ID** will be the first item shown in the dialog. Copy this ID.
 
 **Step 3: Add the Card to your Dashboard**
 

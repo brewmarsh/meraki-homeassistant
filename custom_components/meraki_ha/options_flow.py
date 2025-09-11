@@ -37,6 +37,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
+        self.config_entry = config_entry
         self.options = dict(config_entry.options)
 
     async def async_step_init(
@@ -51,6 +52,10 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
             step_id="init",
             data_schema=vol.Schema(
                 {
+                    vol.Disabled(
+                        "config_entry_id_display",
+                        description={"suggested_value": self.config_entry.entry_id},
+                    ): str,
                     vol.Optional(
                         CONF_SCAN_INTERVAL,
                         default=self.options.get(
