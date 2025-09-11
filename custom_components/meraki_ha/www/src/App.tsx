@@ -8,6 +8,7 @@ interface Hass {
   connection: {
     subscribeMessage: (callback: (message: any) => void, subscription: any) => Promise<() => void>;
   };
+  connected: boolean;
   // Add other properties of hass object if needed
 }
 
@@ -28,8 +29,8 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
   const [activeView, setActiveView] = useState<{ view: string; deviceId?: string; networkId?: string }>({ view: 'dashboard' });
 
   useEffect(() => {
-    if (!hass || !hass.connection) {
-      setError("Home Assistant connection object not found.");
+    if (!hass || !hass.connection || !hass.connected) {
+      setError("Home Assistant connection object not found or not connected. Make sure you are accessing this from your Home Assistant instance.");
       setLoading(false);
       return;
     }

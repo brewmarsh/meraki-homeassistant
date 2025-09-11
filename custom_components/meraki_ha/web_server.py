@@ -273,10 +273,11 @@ class MerakiWebServer:
             return web.json_response({"error": str(e)}, status=500)
 
     async def start(self):
-        """Start the web server."""
+        """Start the web server, with SSL support if configured in Home Assistant."""
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
 
+        # Create SSL context if HA is configured with SSL, to prevent mixed content errors.
         ssl_context = None
         protocol = "http"
         if self.hass.http.ssl_certificate:

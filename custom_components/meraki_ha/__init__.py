@@ -9,6 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.network import get_url
 from homeassistant.components.frontend import (
+    # Panel registration for the Web UI
     async_register_built_in_panel,
     async_remove_panel,
 )
@@ -129,7 +130,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN][entry.entry_id]["web_server"] = server
 
         # Register the panel
-        _LOGGER.debug("Attempting to register Meraki web UI panel.")
+        panel_url_path = f"meraki_{entry.entry_id}"
+        _LOGGER.debug(
+            "Attempting to register Meraki web UI panel with path: %s", panel_url_path
+        )
         hass_url = URL(get_url(hass, require_current_request=False))
         panel_url = str(hass_url.with_port(port))
         _LOGGER.debug("Calculated panel URL: %s", panel_url)
@@ -138,7 +142,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             component_name="meraki",
             sidebar_title="Meraki",
             sidebar_icon="mdi:cisco-webex",
-            frontend_url_path="meraki",
+            frontend_url_path=panel_url_path,
             config={
                 "_panel_custom": {
                     "name": "ha-panel-iframe",
@@ -209,7 +213,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if "web_server" in hass.data[DOMAIN][entry.entry_id]:
             server = hass.data[DOMAIN][entry.entry_id]["web_server"]
             await server.stop()
-            async_remove_panel(hass, "meraki")
+            panel_url_path = f"meraki_{entry.entry_id}"
+            async_remove_panel(hass, panel_url_path)
 
     try:
         unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
