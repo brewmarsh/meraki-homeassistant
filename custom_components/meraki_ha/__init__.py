@@ -148,7 +148,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     "name": "ha-panel-iframe",
                     "embed_iframe": True,
                     "trust_external_script": True,
-                    "url": panel_url,
+                    "iframe_url": panel_url,
                 }
             },
             require_admin=True,
