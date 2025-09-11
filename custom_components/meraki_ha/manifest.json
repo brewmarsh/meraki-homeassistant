@@ -6,7 +6,6 @@
     "@brewmarsh"
   ],
   "config_flow": true,
-  // "frontend" is required for the custom panel to be registered.
   "dependencies": [
     "frontend"
   ],
