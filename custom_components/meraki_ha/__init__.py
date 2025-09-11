@@ -122,17 +122,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
         panel_url_path = f"meraki_{entry.entry_id}"
 
-        # The module_url is critical for HA to load the panel's javascript
-        module_url = f"/api/panel_custom/{panel_url_path}"
         async_register_built_in_panel(
             hass,
             component_name="meraki",
             sidebar_title="Meraki",
             sidebar_icon="mdi:cisco-webex",
             frontend_url_path=panel_url_path,
-            config={"config_entry_id": entry.entry_id},
+            config={
+                "config_entry_id": entry.entry_id,
+                "module_url": f"/api/panel_custom/{panel_url_path}",
+            },
             require_admin=True,
-            module_url=module_url,
         )
 
 
