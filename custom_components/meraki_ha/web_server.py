@@ -2,6 +2,7 @@
 
 import logging
 import os
+import ssl
 from typing import Union
 import aiofiles
 import aiofiles.os
@@ -275,10 +276,29 @@ class MerakiWebServer:
         """Start the web server."""
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
-        site = web.TCPSite(self.runner, "0.0.0.0", self.port)
+
+        ssl_context = None
+        protocol = "http"
+        if self.hass.http.ssl_certificate:
+            try:
+                ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+                ssl_context.load_cert_chain(
+                    self.hass.http.ssl_certificate, self.hass.http.ssl_key
+                )
+                protocol = "https"
+            except Exception as e:
+                _LOGGER.error("Failed to create SSL context for web UI: %s", e)
+                # Fallback to http if SSL setup fails
+                ssl_context = None
+
+        site = web.TCPSite(
+            self.runner, "0.0.0.0", self.port, ssl_context=ssl_context
+        )
         try:
             await site.start()
-            _LOGGER.info("Meraki web UI server started at http://0.0.0.0:%d", self.port)
+            _LOGGER.info(
+                "Meraki web UI server started at %s://0.0.0.0:%d", protocol, self.port
+            )
         except Exception as e:
             _LOGGER.error("Failed to start Meraki web UI server: %s", e)
 
