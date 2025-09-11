@@ -53,7 +53,7 @@
     "step": {
       "init": {
         "title": "Meraki Options",
-        "description": "Step 1 of 3: General Settings",
+        "description": "Your Config Entry ID for use in the Lovelace card is: {config_entry_id}\n\nStep 1 of 3: General Settings",
         "data": {
           "scan_interval": "Scan Interval (seconds)",
           "device_name_format": "Device Name Format"
