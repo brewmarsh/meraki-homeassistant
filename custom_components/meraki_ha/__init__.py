@@ -86,6 +86,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         DATA_CLIENT: api_client,
     }
 
+    # Create switch port status coordinator
     repository = MerakiRepository(api_client)
     switch_port_coordinator = SwitchPortStatusCoordinator(
         hass=hass,
@@ -98,10 +99,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         switch_port_coordinator
     )
 
+    # Create content filtering and firewall coordinators
     hass.data[DOMAIN][entry.entry_id]["ssid_firewall_coordinators"] = {}
     if coordinator.data:
+        # Create per-SSID coordinators
         for ssid in coordinator.data.get("ssids", []):
             if "networkId" in ssid and "number" in ssid:
+                # L7 Firewall Coordinator
                 ssid_fw_coordinator = SsidFirewallCoordinator(
                     hass=hass,
                     api_client=api_client,
@@ -114,8 +118,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     f"{ssid['networkId']}_{ssid['number']}"
                 ] = ssid_fw_coordinator
 
+    # Register the custom panel if enabled
     if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
         panel_url_path = f"meraki_{entry.entry_id}"
+
         async_register_built_in_panel(
             hass,
             component_name="meraki",
@@ -126,13 +132,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             require_admin=True,
         )
 
+
+    # Initialize repositories and services for the new architecture
+    meraki_repository = MerakiRepository(api_client)
     control_service = DeviceControlService(meraki_repository)
     camera_repository = CameraRepository(api_client, api_client.organization_id)
     camera_service = CameraService(camera_repository)
     network_control_service = NetworkControlService(api_client, coordinator)
 
+    # Defer import to avoid circular dependencies and blocking startup
     from .discovery.service import DeviceDiscoveryService
 
+    # New discovery service setup. We now pass both the control and camera services.
     discovery_service = DeviceDiscoveryService(
         coordinator=coordinator,
         config_entry=entry,
@@ -142,12 +153,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         control_service=control_service,
         network_control_service=network_control_service,
     )
+    # The discover_entities method is asynchronous and must be awaited
     discovered_entities = await discovery_service.discover_entities()
     hass.data[DOMAIN][entry.entry_id]["entities"] = discovered_entities
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     if "webhook_http_server_id" not in entry.data:
+        # The webhook_id for Home Assistant is the config entry id
         webhook_id = entry.entry_id
         secret = secrets.token_hex(16)
         webhook = await async_register_webhook(
@@ -176,6 +189,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 hass, entry.data["webhook_http_server_id"], api_client
             )
 
+        # Unregister the panel
         if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
             panel_url_path = f"meraki_{entry.entry_id}"
             async_remove_panel(hass, panel_url_path)

@@ -3,13 +3,16 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 
+// Define the types for the properties Home Assistant will pass to the panel
 interface PanelInfo {
   config: {
     config_entry_id: string;
   };
+  // Add other panel properties if needed
 }
 
 interface HassObject {
+  // Define a minimal hass object type
   connection: any;
   connected: boolean;
 }
