@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   build: {
@@ -12,7 +11,6 @@ export default defineConfig({
       formats: ['es'],
     },
     rollupOptions: {
-      // Don't bundle react, it's provided by Home Assistant
       external: ['react', 'react-dom'],
       output: {
         globals: {
