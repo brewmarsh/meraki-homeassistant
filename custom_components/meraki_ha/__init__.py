@@ -2,6 +2,7 @@
 
 import logging
 import secrets
+import os
 
 from yarl import URL
 from homeassistant.config_entries import ConfigEntry
@@ -122,16 +123,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
         panel_url_path = f"meraki_{entry.entry_id}"
 
+        panel_url = f"/api/panel_custom/{panel_url_path}"
+
+        panel_path = hass.config.path(
+            "custom_components/meraki_ha/www/meraki-panel.js"
+        )
+
+        hass.http.register_static_path(panel_url, panel_path)
+
         async_register_built_in_panel(
             hass,
             component_name="meraki",
             sidebar_title="Meraki",
             sidebar_icon="mdi:cisco-webex",
             frontend_url_path=panel_url_path,
-            config={
-                "config_entry_id": entry.entry_id,
-                "module_url": f"/api/panel_custom/{panel_url_path}",
-            },
+            module_url=panel_url,
+            config={"config_entry_id": entry.entry_id},
             require_admin=True,
         )
 
