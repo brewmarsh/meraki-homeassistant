@@ -125,7 +125,7 @@ The card needs to know which Meraki integration to display data from.
 
 1.  Go to **Settings > Devices & Services**.
 2.  Find the Meraki integration and click **"CONFIGURE"**.
-3.  The **Config Entry ID** will be the first item shown in the dialog. Copy this ID.
+3.  The **Config Entry ID** will be shown in the description text at the top of the dialog (e.g., "Your Config Entry ID is: ..."). Copy this ID.
 
 **Step 3: Add the Card to your Dashboard**
 

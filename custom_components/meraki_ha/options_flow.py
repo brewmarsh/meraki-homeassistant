@@ -37,7 +37,6 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
-        self.config_entry = config_entry
         self.options = dict(config_entry.options)
 
     async def async_step_init(
@@ -45,17 +44,17 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
     ) -> config_entries.FlowResult:
         """Manage the general settings step."""
         if user_input is not None:
+            # We don't want to save the display-only field
+            user_input.pop("config_entry_id_display", None)
             self.options.update(user_input)
             return await self.async_step_features()
 
+        # The config_entry is available as self.config_entry in an options flow
         return self.async_show_form(
             step_id="init",
+            description_placeholders={"config_entry_id": self.config_entry.entry_id},
             data_schema=vol.Schema(
                 {
-                    vol.Disabled(
-                        "config_entry_id_display",
-                        description={"suggested_value": self.config_entry.entry_id},
-                    ): str,
                     vol.Optional(
                         CONF_SCAN_INTERVAL,
                         default=self.options.get(
