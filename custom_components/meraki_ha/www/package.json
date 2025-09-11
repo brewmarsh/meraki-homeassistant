@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host",
     "build": "tsc && vite build",
-    "postbuild": "cp dist/index.html index.html",
+    "postbuild": "cp dist/meraki-panel.js . && cp dist/style.css .",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
