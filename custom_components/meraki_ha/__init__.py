@@ -129,8 +129,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN][entry.entry_id]["web_server"] = server
 
         # Register the panel
+        _LOGGER.debug("Attempting to register Meraki web UI panel.")
         hass_url = URL(get_url(hass, require_current_request=False, prefer_external=True))
         panel_url = str(hass_url.with_port(port))
+        _LOGGER.debug("Calculated panel URL: %s", panel_url)
         async_register_built_in_panel(
             hass,
             component_name="meraki",
