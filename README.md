@@ -100,27 +100,47 @@ The following options can be configured when you first set up the integration, o
     *   **When unchecked (default):** The integration will prioritize the URL provided by the Meraki API. If that URL is unavailable or invalid, it will fall back to using the camera's LAN IP as a last resort.
 *   **Webhook URL (optional):** A custom URL for Meraki webhooks. If left blank, the integration will use the default Home Assistant webhook URL.
 
-## Web UI 🌐
+## Lovelace Dashboard Card 🖼️
 
-This integration includes a dedicated web UI for advanced features that don't fit into the standard Home Assistant entity model.
+This integration provides a custom Lovelace card to display a dashboard of your Meraki network.
 
-**How to Access:**
-You can access the web UI at `http://<your-home-assistant-ip>:9988`.
+### How to Add the Card
 
-**Features:**
-- **Guest Wi-Fi Management:** Create and manage guest Wi-Fi access.
-- **Event Log Viewer:** A dedicated viewer for integration-specific events.
+**Step 1: Add the Javascript as a Lovelace Resource**
 
-### Obtaining a Home Assistant Long-Lived Access Token
+You must first add the `meraki-panel.js` file as a frontend resource in Home Assistant.
 
-To access the web UI, you need to provide a Home Assistant long-lived access token.
+1.  Navigate to any of your dashboards.
+2.  Click the **"..."** menu in the top right and select **"Edit Dashboard"**.
+3.  Click the **"..."** menu again and select **"Manage resources"**.
+4.  Click **"ADD RESOURCE"**.
+5.  For the **URL**, enter `/hacsfiles/meraki-homeassistant/meraki-panel.js`.
+    *   *Note: This path assumes you installed the integration via HACS. If you installed it manually, the path will be `/local/meraki-panel.js` (if you placed the file in your `<config>/www` directory).*
+6.  For **Resource type**, select **"JavaScript Module"**.
+7.  Click **"CREATE"**.
 
-1.  Navigate to your Home Assistant profile page. This is usually `http://<your-home-assistant-ip>:8123/profile`.
-2.  Scroll down to the "Long-Lived Access Tokens" section.
-3.  Click on "Create Token".
-4.  Give the token a name (e.g., "Meraki HA Web UI") and click "OK".
-5.  Copy the generated token and store it in a safe place. You will not be able to see it again.
-6.  Use this token to log in to the Meraki HA Web UI.
+**Step 2: Find your Meraki Config Entry ID**
+
+The card needs to know which Meraki integration to display data from.
+
+1.  Go to **Settings > Devices & Services**.
+2.  Find the Meraki integration. It should show a link with the number of devices (e.g., "5 devices"). Click on that link.
+3.  Look at the URL in your browser's address bar. It will end with something like `...&config_entry=01K4DADJGNTHWECBB7Z4J7NATH`.
+4.  The long string of characters after `&config_entry=` is your **Config Entry ID**. Copy this ID.
+
+**Step 3: Add the Card to your Dashboard**
+
+1.  Go back to your dashboard and click **"ADD CARD"**.
+2.  At the bottom of the list, choose the **"Manual"** card type.
+3.  In the YAML editor, paste the following code:
+
+    ```yaml
+    type: custom:meraki-lovelace-card
+    config_entry_id: YOUR_CONFIG_ENTRY_ID_HERE
+    ```
+
+4.  Replace `YOUR_CONFIG_ENTRY_ID_HERE` with the ID you copied in Step 2.
+5.  Click **"SAVE"**.
 
 ## Services & Controls 🎛️
 
