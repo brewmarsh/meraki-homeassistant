@@ -375,10 +375,13 @@ class MerakiAPIClient:
         return self._org_id
 
     def clear_cache(self) -> None:
-        """Clear the disk cache."""
+        """Clear the main data cache entry."""
         if self._cache:
-            self._cache.clear()
-            _LOGGER.debug("Meraki data cache cleared.")
+            cache_key = f"meraki_data_{self._org_id}"
+            if self._cache.delete(cache_key):
+                _LOGGER.debug("Meraki data cache entry deleted.")
+            else:
+                _LOGGER.debug("Meraki data cache entry not found to delete.")
 
     async def register_webhook(self, webhook_url: str, secret: str) -> None:
         """Register a webhook with the Meraki API."""
