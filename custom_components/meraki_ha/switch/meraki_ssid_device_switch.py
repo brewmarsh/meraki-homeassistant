@@ -135,6 +135,73 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
             self._attr_is_on = current_ssid_data.get(self._attribute_to_check, False)
 
     async def _update_ssid_setting(self, value: bool) -> None:
+        """Update the specific SSID setting (enabled or visible) via API."""
+        if not self._network_id or self._ssid_number is None:
+            _LOGGER.error(
+                f"Cannot update SSID {self.name}: Missing networkId or SSID number for API call."
+            )
+            return
+
+        # The payload for the API call uses the `_attribute_to_check` (e.g., 'enabled' or 'visible')
+        # as the key, and the new boolean `value` as its value.
+        payload = {self._attribute_to_check: value}
+
+        try:
+            # Make the API call to update the specific SSID setting.
+            await self._meraki_client.wireless.update_network_wireless_ssid(
+                network_id=self._network_id,
+                number=self._ssid_number,
+                **payload,
+            )
+            # After a successful API call, request the coordinator to refresh its data.
+            await self.coordinator.async_request_refresh()
+        except Exception as e:
+            _LOGGER.error(
+                f"Failed to update SSID {self.name} ({self._attribute_to_check} to {value}): {e}"
+            )
+            raise HomeAssistantError(f"Failed to update SSID {self.name}: {e}") from e
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn the switch on."""
+        await self._update_ssid_setting(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn the switch off."""
+        await self._update_ssid_setting(False)
+
+
+class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
+    """Switch to control the enabled/disabled state of a Meraki SSID."""
+
+    def __init__(
+        self,
+        coordinator: MerakiDataCoordinator,
+        meraki_client: MerakiAPIClient,
+        config_entry: ConfigEntry,
+        ssid_data: Dict[str, Any],
+    ) -> None:
+        """Initialize the SSID Enabled switch."""
+        super().__init__(
+            coordinator,
+            meraki_client,
+            config_entry,
+            ssid_data,
+            "enabled",
+            "enabled",
+        )
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        # This switch controls the enabled state, so it should be available
+        # even when the SSID is disabled.
+        # We check that the coordinator is updating and has data.
+        if not self.coordinator.last_update_success or not self.coordinator.data:
+            return False
+        # And we check that we can find the data for this specific SSID.
+        return self._get_current_ssid_data() is not None
+
+    async def _update_ssid_setting(self, value: bool) -> None:
         """
         Update the SSID state by adding/removing tags on associated APs.
         This is an indirect control method as described in the README.
@@ -203,46 +270,6 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
         await asyncio.sleep(5)
         _LOGGER.debug("Requesting coordinator refresh.")
         await self.coordinator.async_request_refresh()
-
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn the switch on."""
-        await self._update_ssid_setting(True)
-
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the switch off."""
-        await self._update_ssid_setting(False)
-
-
-class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
-    """Switch to control the enabled/disabled state of a Meraki SSID."""
-
-    def __init__(
-        self,
-        coordinator: MerakiDataCoordinator,
-        meraki_client: MerakiAPIClient,
-        config_entry: ConfigEntry,
-        ssid_data: Dict[str, Any],
-    ) -> None:
-        """Initialize the SSID Enabled switch."""
-        super().__init__(
-            coordinator,
-            meraki_client,
-            config_entry,
-            ssid_data,
-            "enabled",
-            "enabled",
-        )
-
-    @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        # This switch controls the enabled state, so it should be available
-        # even when the SSID is disabled.
-        # We check that the coordinator is updating and has data.
-        if not self.coordinator.last_update_success or not self.coordinator.data:
-            return False
-        # And we check that we can find the data for this specific SSID.
-        return self._get_current_ssid_data() is not None
 
 
 class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
