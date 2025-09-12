@@ -162,6 +162,9 @@ DEVICE_NAME_FORMAT_OPTIONS: Final[List[str]] = [
 
 DEFAULT_DEVICE_NAME_FORMAT: Final[str] = DEVICE_NAME_FORMAT_PREFIX
 """Default device name format (str)."""
+
+TAG_HA_DISABLED: Final[str] = "ha-disabled"
+"""Tag used to indirectly disable an SSID on an access point."""
 # CONF_RELAXED_TAG_MATCHING was removed as the feature was removed.
 
 ERASE_TAGS_WARNING: Final[str] = (

@@ -1,0 +1,31 @@
+"""Meraki API endpoints for devices."""
+
+import logging
+from typing import Any, Dict
+
+from ....utils.api_utils import handle_meraki_errors, validate_response
+
+_LOGGER = logging.getLogger(__name__)
+
+
+class DevicesEndpoints:
+    """Device-related endpoints."""
+
+    def __init__(self, api_client):
+        """Initialize the endpoint."""
+        self._api_client = api_client
+        self._dashboard = api_client._dashboard
+
+    @handle_meraki_errors
+    async def update_device(self, serial: str, **kwargs) -> Dict[str, Any]:
+        """Update a device."""
+        device = await self._api_client._run_sync(
+            self._dashboard.devices.updateDevice,
+            serial=serial,
+            **kwargs,
+        )
+        validated = validate_response(device)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("update_device did not return a dict.")
+            return {}
+        return validated

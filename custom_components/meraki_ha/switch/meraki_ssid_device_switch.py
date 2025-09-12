@@ -11,11 +11,13 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
+from ..const import TAG_HA_DISABLED
 from ..core.api.client import MerakiAPIClient
 from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from ..core.utils.icon_utils import get_device_type_icon
 from homeassistant.helpers.entity import EntityCategory
 from ..helpers.device_info_helpers import resolve_device_info
+from ..helpers.ssid_status_calculator import SsidStatusCalculator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -100,38 +102,70 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
             self._attr_is_on = False
 
     async def _update_ssid_setting(self, value: bool) -> None:
-        """Update the specific SSID setting (enabled or visible) via API."""
+        """
+        Update the SSID state by adding/removing tags on associated APs.
+        This is an indirect control method as described in the README.
+        """
+        # value is True to turn ON (enable), False to turn OFF (disable).
+        # Turning ON means REMOVING the ha-disabled tag.
+        # Turning OFF means ADDING the ha-disabled tag.
         if not self._network_id or self._ssid_number is None:
             _LOGGER.error(
-                f"Cannot update SSID {self.name}: Missing networkId or SSID number for API call."
+                f"Cannot update SSID {self.name}: Missing networkId or SSID number."
             )
             return
 
-        # The payload for the API call uses the `_attribute_to_check` (e.g., 'enabled' or 'visible')
-        # as the key, and the new boolean `value` as its value.
-        payload = {self._attribute_to_check: value}
+        current_ssid_data = self._get_current_ssid_data()
+        if not current_ssid_data:
+            _LOGGER.warning(f"Could not find current data for SSID {self.name}")
+            return
 
-        try:
-            # Make the API call to update the specific SSID setting.
-            await self._meraki_client.wireless.update_network_wireless_ssid(
-                network_id=self._network_id,
-                number=self._ssid_number,
-                **payload,
+        all_devices = self.coordinator.data.get("devices", [])
+        ssid_tags = current_ssid_data.get("tags", [])
+
+        # Find all APs in the same network that should broadcast this SSID
+        aps_for_ssid = [
+            device
+            for device in all_devices
+            if device.get("networkId") == self._network_id
+            and device.get("model", "").startswith("MR")
+            and SsidStatusCalculator._does_device_match_ssid_tags(
+                ssid_tags, device.get("tags", [])
             )
-            # After a successful API call, request the coordinator to refresh its data.
-            # This ensures that Home Assistant's state for this switch (and any related entities)
-            # is updated to reflect the actual state confirmed by the Meraki dashboard.
-            await self.coordinator.async_request_refresh()
-        except Exception as e:
-            _LOGGER.error(
-                f"Failed to update SSID {self.name} ({self._attribute_to_check} to {value}): {e}"
+        ]
+
+        if not aps_for_ssid:
+            _LOGGER.warning(
+                f"No matching Access Points found for SSID '{current_ssid_data.get('name')}'. Cannot toggle state."
             )
-            raise HomeAssistantError(f"Failed to update SSID {self.name}: {e}") from e
-            # If the API call fails, an error is logged. The state in HA might become stale
-            # until the next successful coordinator refresh. Consider if immediate refresh
-            # or error state handling is needed here.
-            # For now, we rely on the coordinator's next scheduled refresh or manual refresh
-            # to eventually reflect the true state or clear the error.
+            return
+
+        # For each of these APs, update its tags
+        for ap in aps_for_ssid:
+            try:
+                current_tags = set(ap.get("tags", []))
+                new_tags = set(current_tags)
+
+                if value is True:  # Turn ON -> remove tag
+                    new_tags.discard(TAG_HA_DISABLED)
+                else:  # Turn OFF -> add tag
+                    new_tags.add(TAG_HA_DISABLED)
+
+                if current_tags != new_tags:
+                    _LOGGER.debug(
+                        f"Updating tags for AP {ap['serial']} from {current_tags} to {new_tags}"
+                    )
+                    await self._meraki_client.devices.update_device(
+                        serial=ap["serial"], tags=list(new_tags)
+                    )
+            except Exception as e:
+                _LOGGER.error(
+                    f"Failed to update tags for AP {ap.get('name', ap.get('serial'))}: {e}"
+                )
+                # We don't re-raise here to attempt to update other APs
+
+        # After all updates, refresh the coordinator
+        await self.coordinator.async_request_refresh()
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""

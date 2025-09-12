@@ -17,6 +17,7 @@ import meraki  # type: ignore[import-untyped]
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
+from .endpoints.devices import DevicesEndpoints
 from .endpoints.network import NetworkEndpoints
 from .endpoints.organization import OrganizationEndpoints
 from .endpoints.switch import SwitchEndpoints
@@ -61,6 +62,7 @@ class MerakiAPIClient:
         # Initialize endpoint handlers
         self.appliance = ApplianceEndpoints(self)
         self.camera = CameraEndpoints(self)
+        self.devices = DevicesEndpoints(self)
         self.network = NetworkEndpoints(self)
         self.organization = OrganizationEndpoints(self)
         self.switch = SwitchEndpoints(self)
