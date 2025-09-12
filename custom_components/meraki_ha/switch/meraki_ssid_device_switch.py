@@ -96,10 +96,42 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
     def _update_internal_state(self) -> None:
         """Update the internal state of the switch based on coordinator data."""
         current_ssid_data = self._get_current_ssid_data()
-        if current_ssid_data:
-            self._attr_is_on = current_ssid_data.get(self._attribute_to_check, False)
-        else:
+        if not current_ssid_data:
             self._attr_is_on = False
+            return
+
+        # For the "enabled" switch, the state is determined by the absence of the
+        # ha-disabled tag on relevant APs, as this is the indirect control method.
+        if self._attribute_to_check == "enabled":
+            all_devices = self.coordinator.data.get("devices", [])
+            ssid_tags = current_ssid_data.get("tags", [])
+            aps_for_ssid = [
+                device
+                for device in all_devices
+                if device.get("networkId") == self._network_id
+                and device.get("model", "").startswith("MR")
+                and SsidStatusCalculator._does_device_match_ssid_tags(
+                    ssid_tags, device.get("tags", [])
+                )
+            ]
+
+            if not aps_for_ssid:
+                # If there are no APs for this SSID, we can consider it "off"
+                # as it cannot be broadcasting.
+                self._attr_is_on = False
+                return
+
+            # The SSID is considered "on" if *any* of its APs do NOT have the disabled tag.
+            # A simpler way to state this is: the SSID is "off" only if *all* of its
+            # broadcasting APs have the disabled tag.
+            is_off = all(
+                TAG_HA_DISABLED in ap.get("tags", []) for ap in aps_for_ssid
+            )
+            self._attr_is_on = not is_off
+        else:
+            # For other switches like "broadcast" (which checks the 'visible' attribute),
+            # the original, direct logic is correct.
+            self._attr_is_on = current_ssid_data.get(self._attribute_to_check, False)
 
     async def _update_ssid_setting(self, value: bool) -> None:
         """
