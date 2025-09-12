@@ -3,7 +3,7 @@
 import logging
 from typing import Any, Dict
 
-from ....utils.api_utils import handle_meraki_errors, validate_response
+from ...utils.api_utils import handle_meraki_errors, validate_response
 
 _LOGGER = logging.getLogger(__name__)
 

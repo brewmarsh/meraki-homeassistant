@@ -3,7 +3,7 @@
 import logging
 from typing import Any, Dict, List
 
-from ...utils.api_utils import handle_meraki_errors, validate_response
+from ..utils.api_utils import handle_meraki_errors, validate_response
 from ..cache import async_timed_cache
 
 _LOGGER = logging.getLogger(__name__)
