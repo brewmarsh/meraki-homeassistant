@@ -153,7 +153,8 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
                 number=self._ssid_number,
                 **payload,
             )
-            # After a successful API call, request the coordinator to refresh its data.
+            # After a successful API call, clear the cache and request a refresh.
+            self._meraki_client.clear_cache()
             await self.coordinator.async_request_refresh()
         except Exception as e:
             _LOGGER.error(
@@ -268,7 +269,8 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
         # the tag changes before refreshing the coordinator.
         _LOGGER.debug("Waiting 5 seconds for Meraki cloud to apply tag changes...")
         await asyncio.sleep(5)
-        _LOGGER.debug("Requesting coordinator refresh.")
+        _LOGGER.debug("Clearing cache and requesting coordinator refresh.")
+        self._meraki_client.clear_cache()
         await self.coordinator.async_request_refresh()
 
 

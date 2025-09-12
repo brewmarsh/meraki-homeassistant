@@ -374,6 +374,12 @@ class MerakiAPIClient:
         """Get the organization ID."""
         return self._org_id
 
+    def clear_cache(self) -> None:
+        """Clear the disk cache."""
+        if self._cache:
+            self._cache.clear()
+            _LOGGER.debug("Meraki data cache cleared.")
+
     async def register_webhook(self, webhook_url: str, secret: str) -> None:
         """Register a webhook with the Meraki API."""
         await self.network.register_webhook(webhook_url, secret)
