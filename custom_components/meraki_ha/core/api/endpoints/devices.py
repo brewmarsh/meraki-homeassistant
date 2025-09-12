@@ -3,7 +3,10 @@
 import logging
 from typing import Any, Dict
 
-from ...utils.api_utils import handle_meraki_errors, validate_response
+from custom_components.meraki_ha.core.utils.api_utils import (
+    handle_meraki_errors,
+    validate_response,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
