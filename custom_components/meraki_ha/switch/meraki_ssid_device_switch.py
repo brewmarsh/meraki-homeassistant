@@ -162,6 +162,17 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
             "enabled",
         )
 
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        # This switch controls the enabled state, so it should be available
+        # even when the SSID is disabled.
+        # We check that the coordinator is updating and has data.
+        if not self.coordinator.last_update_success or not self.coordinator.data:
+            return False
+        # And we check that we can find the data for this specific SSID.
+        return self._get_current_ssid_data() is not None
+
 
 class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
     """Switch to control the broadcast (visible/hidden) state of a Meraki SSID."""
