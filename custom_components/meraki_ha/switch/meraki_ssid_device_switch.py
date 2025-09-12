@@ -1,6 +1,7 @@
 # custom_components/meraki_ha/switch/meraki_ssid_device_switch.py
 """Switch entities for controlling Meraki SSID devices."""
 
+import asyncio
 import logging
 from typing import Any, Dict, Optional
 
@@ -196,7 +197,11 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
                 )
                 # We don't re-raise here to attempt to update other APs
 
-        # After all updates, refresh the coordinator
+        # After all updates, wait a few seconds for the Meraki cloud to process
+        # the tag changes before refreshing the coordinator.
+        _LOGGER.debug("Waiting 5 seconds for Meraki cloud to apply tag changes...")
+        await asyncio.sleep(5)
+        _LOGGER.debug("Requesting coordinator refresh.")
         await self.coordinator.async_request_refresh()
 
     async def async_turn_on(self, **kwargs: Any) -> None:
