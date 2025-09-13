@@ -51,7 +51,6 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
         self._attr_unique_id = (
             f"ssid-{self._network_id}-{self._ssid_number}-{switch_type}-switch"
         )
-        self._attr_name = f"{switch_type.capitalize()} Control"
 
         self._update_internal_state()
 
@@ -190,6 +189,7 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
             "enabled",
             "enabled",
         )
+        self._attr_name = "SSID Enable"
 
     @property
     def available(self) -> bool:
@@ -266,12 +266,38 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
                 # We don't re-raise here to attempt to update other APs
 
         # After all updates, wait a few seconds for the Meraki cloud to process
-        # the tag changes before refreshing the coordinator.
+        # the tag changes before performing a targeted refresh.
         _LOGGER.debug("Waiting 5 seconds for Meraki cloud to apply tag changes...")
         await asyncio.sleep(5)
-        _LOGGER.debug("Clearing cache and requesting coordinator refresh.")
-        self._meraki_client.clear_cache()
-        await self.coordinator.async_refresh()
+        _LOGGER.debug("Performing targeted refresh of device data.")
+
+        try:
+            # Fetch the updated list of all devices in the organization
+            fresh_devices = (
+                await self._meraki_client.organization.get_organization_devices()
+            )
+            if fresh_devices:
+                # Create a lookup for the fresh device data by serial
+                fresh_devices_by_serial = {d["serial"]: d for d in fresh_devices}
+                current_devices = self.coordinator.data.get("devices", [])
+
+                # Update the tags for each device in the coordinator's data
+                for i, device in enumerate(current_devices):
+                    if fresh_device := fresh_devices_by_serial.get(device["serial"]):
+                        self.coordinator.data["devices"][i]["tags"] = fresh_device.get(
+                            "tags", []
+                        )
+
+                # Manually trigger an update for all listeners
+                self.coordinator.async_update_listeners()
+            else:
+                _LOGGER.warning(
+                    "Targeted refresh failed to fetch updated device list. Falling back to full refresh."
+                )
+                await self.coordinator.async_refresh()
+        except Exception as e:
+            _LOGGER.error(f"Targeted refresh failed: {e}. Falling back to full refresh.")
+            await self.coordinator.async_refresh()
 
 
 class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
@@ -293,3 +319,4 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
             "broadcast",
             "visible",
         )
+        self._attr_name = "SSID Broadcast"
