@@ -273,9 +273,7 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
 
         try:
             # Fetch the updated list of all devices in the organization
-            fresh_devices = (
-                await self._meraki_client.organization.get_organization_devices()
-            )
+            fresh_devices = await self._meraki_client.async_get_organization_devices_safe()
             if fresh_devices:
                 # Create a lookup for the fresh device data by serial
                 fresh_devices_by_serial = {d["serial"]: d for d in fresh_devices}
