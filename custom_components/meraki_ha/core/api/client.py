@@ -395,12 +395,6 @@ class MerakiAPIClient:
         """Reboot a device."""
         return await self.appliance.reboot_device(serial)
 
-    async def async_get_organization_devices_safe(self) -> List[MerakiDevice]:
-        """Get the list of organization devices using the client's semaphore."""
-        return await self._run_with_semaphore(
-            self.organization.get_organization_devices()
-        )
-
     async def async_get_switch_port_statuses(self, serial: str) -> list[dict[str, Any]]:
         """Get statuses for all ports of a switch."""
         return await self.switch.get_device_switch_ports_statuses(serial)
