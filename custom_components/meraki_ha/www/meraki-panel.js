@@ -1,34 +1,37 @@
-class MerakiPanel extends HTMLElement {
+class MerakiLovelaceCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
     this._hass = null;
-    this._panel = null;
+    this._config = null;
     this._subscription = null;
   }
 
-  set hass(hass) {
-    this._hass = hass;
-    if (this._hass && this._panel && !this._subscription) {
+  setConfig(config) {
+    if (!config.config_entry_id) {
+      throw new Error("config_entry_id must be specified");
+    }
+    this._config = config;
+    if (this._hass) {
       this._subscribeToMerakiData();
     }
   }
 
-  set panel(panel) {
-    this._panel = panel;
-    if (this._hass && this._panel && !this._subscription) {
+  set hass(hass) {
+    this._hass = hass;
+    if (this._config) {
       this._subscribeToMerakiData();
     }
   }
 
   _subscribeToMerakiData() {
-    if (!this._hass || !this._panel) return;
+    if (!this._hass || !this._config || this._subscription) return;
 
     this._subscription = this._hass.connection.subscribeMessage(
       (data) => this._updateContent(data),
       {
         type: 'meraki_ha/subscribe_meraki_data',
-        config_entry_id: this._panel.config.config_entry_id,
+        config_entry_id: this._config.config_entry_id,
       }
     );
   }
@@ -137,4 +140,4 @@ class MerakiPanel extends HTMLElement {
   }
 }
 
-customElements.define('meraki-panel', MerakiPanel);
+customElements.define('meraki-lovelace-card', MerakiLovelaceCard);

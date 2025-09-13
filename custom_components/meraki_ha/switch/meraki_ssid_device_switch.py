@@ -101,38 +101,9 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
             self._attr_is_on = False
             return
 
-        # For the "enabled" switch, the state is determined by the absence of the
-        # ha-disabled tag on relevant APs, as this is the indirect control method.
-        if self._attribute_to_check == "enabled":
-            all_devices = self.coordinator.data.get("devices", [])
-            ssid_tags = current_ssid_data.get("tags", [])
-            aps_for_ssid = [
-                device
-                for device in all_devices
-                if device.get("networkId") == self._network_id
-                and device.get("model", "").startswith("MR")
-                and SsidStatusCalculator._does_device_match_ssid_tags(
-                    ssid_tags, device.get("tags", [])
-                )
-            ]
-
-            if not aps_for_ssid:
-                # If there are no APs for this SSID, we can consider it "off"
-                # as it cannot be broadcasting.
-                self._attr_is_on = False
-                return
-
-            # The SSID is considered "on" if *any* of its APs do NOT have the disabled tag.
-            # A simpler way to state this is: the SSID is "off" only if *all* of its
-            # broadcasting APs have the disabled tag.
-            is_off = all(
-                TAG_HA_DISABLED in ap.get("tags", []) for ap in aps_for_ssid
-            )
-            self._attr_is_on = not is_off
-        else:
-            # For other switches like "broadcast" (which checks the 'visible' attribute),
-            # the original, direct logic is correct.
-            self._attr_is_on = current_ssid_data.get(self._attribute_to_check, False)
+        # The state is determined by the value of the attribute we are checking
+        # (e.g., 'enabled', 'visible') in the SSID's data.
+        self._attr_is_on = current_ssid_data.get(self._attribute_to_check, False)
 
     async def _update_ssid_setting(self, value: bool) -> None:
         """Update the specific SSID setting (enabled or visible) via API."""
@@ -190,88 +161,6 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
             "enabled",
             "enabled",
         )
-
-    @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        # This switch controls the enabled state, so it should be available
-        # even when the SSID is disabled.
-        # We check that the coordinator is updating and has data.
-        if not self.coordinator.last_update_success or not self.coordinator.data:
-            return False
-        # And we check that we can find the data for this specific SSID.
-        return self._get_current_ssid_data() is not None
-
-    async def _update_ssid_setting(self, value: bool) -> None:
-        """
-        Update the SSID state by adding/removing tags on associated APs.
-        This is an indirect control method as described in the README.
-        """
-        # value is True to turn ON (enable), False to turn OFF (disable).
-        # Turning ON means REMOVING the ha-disabled tag.
-        # Turning OFF means ADDING the ha-disabled tag.
-        if not self._network_id or self._ssid_number is None:
-            _LOGGER.error(
-                f"Cannot update SSID {self.name}: Missing networkId or SSID number."
-            )
-            return
-
-        current_ssid_data = self._get_current_ssid_data()
-        if not current_ssid_data:
-            _LOGGER.warning(f"Could not find current data for SSID {self.name}")
-            return
-
-        all_devices = self.coordinator.data.get("devices", [])
-        ssid_tags = current_ssid_data.get("tags", [])
-
-        # Find all APs in the same network that should broadcast this SSID
-        aps_for_ssid = [
-            device
-            for device in all_devices
-            if device.get("networkId") == self._network_id
-            and device.get("model", "").startswith("MR")
-            and SsidStatusCalculator._does_device_match_ssid_tags(
-                ssid_tags, device.get("tags", [])
-            )
-        ]
-
-        if not aps_for_ssid:
-            _LOGGER.warning(
-                f"No matching Access Points found for SSID '{current_ssid_data.get('name')}'. Cannot toggle state."
-            )
-            return
-
-        # For each of these APs, update its tags
-        for ap in aps_for_ssid:
-            try:
-                current_tags = set(ap.get("tags", []))
-                new_tags = set(current_tags)
-
-                if value is True:  # Turn ON -> remove tag
-                    new_tags.discard(TAG_HA_DISABLED)
-                else:  # Turn OFF -> add tag
-                    new_tags.add(TAG_HA_DISABLED)
-
-                if current_tags != new_tags:
-                    _LOGGER.debug(
-                        f"Updating tags for AP {ap['serial']} from {current_tags} to {new_tags}"
-                    )
-                    await self._meraki_client.devices.update_device(
-                        serial=ap["serial"], tags=list(new_tags)
-                    )
-            except Exception as e:
-                _LOGGER.error(
-                    f"Failed to update tags for AP {ap.get('name', ap.get('serial'))}: {e}"
-                )
-                # We don't re-raise here to attempt to update other APs
-
-        # After all updates, wait a few seconds for the Meraki cloud to process
-        # the tag changes before refreshing the coordinator.
-        _LOGGER.debug("Waiting 5 seconds for Meraki cloud to apply tag changes...")
-        await asyncio.sleep(5)
-        _LOGGER.debug("Clearing cache and requesting coordinator refresh.")
-        self._meraki_client.clear_cache()
-        await self.coordinator.async_request_refresh()
 
 
 class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
