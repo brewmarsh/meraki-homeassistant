@@ -123,9 +123,9 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
                 number=self._ssid_number,
                 **payload,
             )
-            # After a successful API call, clear the cache and request a refresh.
+            # After a successful API call, clear the cache and immediately refresh.
             self._meraki_client.clear_cache()
-            await self.coordinator.async_request_refresh()
+            await self.coordinator.async_refresh()
         except Exception as e:
             _LOGGER.error(
                 f"Failed to update SSID {self.name} ({self._attribute_to_check} to {value}): {e}"
