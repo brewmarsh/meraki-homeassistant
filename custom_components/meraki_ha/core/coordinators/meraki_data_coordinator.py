@@ -48,6 +48,40 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
         self.ssids_by_network_and_number: dict = {}
         self.last_successful_update: datetime | None = None
         self.last_successful_data: dict = {}
+        self._pending_updates: dict[str, datetime] = {}
+
+    def register_pending_update(self, unique_id: str, expiry_seconds: int = 150) -> None:
+        """
+        Register that an entity has a pending update and should ignore coordinator data.
+
+        This is to prevent the coordinator from overwriting an optimistic state with
+        stale data from the Meraki API, which can have a significant provisioning delay.
+        """
+        expiry_time = datetime.now() + timedelta(seconds=expiry_seconds)
+        self._pending_updates[unique_id] = expiry_time
+        _LOGGER.debug(
+            "Registered pending update for %s, ignoring coordinator updates until %s",
+            unique_id,
+            expiry_time,
+        )
+
+    def is_pending(self, unique_id: str) -> bool:
+        """Check if an entity is in a pending (cooldown) state."""
+        if unique_id not in self._pending_updates:
+            return False
+
+        now = datetime.now()
+        expiry_time = self._pending_updates[unique_id]
+
+        if now > expiry_time:
+            # Cooldown has expired, remove it from the dictionary
+            del self._pending_updates[unique_id]
+            _LOGGER.debug("Pending update expired for %s", unique_id)
+            return False
+
+        # Cooldown is still active
+        _LOGGER.debug("Update for %s is still pending (on cooldown)", unique_id)
+        return True
 
     def _filter_ignored_networks(self, data: dict) -> None:
         """Filter out networks that the user has chosen to ignore."""

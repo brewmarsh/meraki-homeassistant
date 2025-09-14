@@ -98,6 +98,10 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the switch based on coordinator data."""
+        # If a pending update is registered, ignore coordinator data to avoid overwriting optimistic state
+        if self.coordinator.is_pending(self.unique_id):
+            return
+
         current_ssid_data = self._get_current_ssid_data()
         if not current_ssid_data:
             self._attr_is_on = False
@@ -114,17 +118,23 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
             )
             return
 
+        # Optimistically update the state so the UI responds immediately.
+        self._attr_is_on = value
+        self.async_write_ha_state()
+
         # The payload for the API call uses the `_attribute_to_check` (e.g., 'enabled' or 'visible')
         # as the key, and the new boolean `value` as its value.
         payload = {self._attribute_to_check: value}
 
-        # "Fire and forget" API call. The UI is handled optimistically by Home Assistant,
-        # and the real state will be updated by the next scheduled coordinator refresh.
+        # "Fire and forget" API call.
         await self._meraki_client.wireless.update_network_wireless_ssid(
             network_id=self._network_id,
             number=self._ssid_number,
             **payload,
         )
+
+        # Register a pending update to prevent stale data from overwriting the optimistic state
+        self.coordinator.register_pending_update(self.unique_id)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
