@@ -45,9 +45,9 @@ class MerakiAPIClient:
         self._api_key = api_key
         self._org_id = org_id
         self._cache = None
-        if hass:
-            cache_dir = hass.config.path("meraki_cache")
-            self._cache = dc.Cache(cache_dir)
+        # if hass:
+        #     cache_dir = hass.config.path("meraki_cache")
+        #     self._cache = dc.Cache(cache_dir)
         self._dashboard = meraki.DashboardAPI(
             api_key=api_key,
             base_url=base_url,
@@ -328,12 +328,12 @@ class MerakiAPIClient:
         if previous_data is None:
             previous_data = {}
 
-        if self._cache:
-            cache_key = f"meraki_data_{self._org_id}"
-            cached_data = self._cache.get(cache_key)
-            if cached_data:
-                _LOGGER.debug("Returning cached Meraki data")
-                return cached_data
+        # if self._cache:
+        #     cache_key = f"meraki_data_{self._org_id}"
+        #     cached_data = self._cache.get(cache_key)
+        #     if cached_data:
+        #         _LOGGER.debug("Returning cached Meraki data")
+        #         return cached_data
 
         _LOGGER.debug("Fetching fresh Meraki data from API")
         initial_results = await self._async_fetch_initial_data()
@@ -363,9 +363,9 @@ class MerakiAPIClient:
             ],
             **processed_detailed_data,
         }
-        if fresh_data and self._cache:
-            cache_key = f"meraki_data_{self._org_id}"
-            self._cache.set(cache_key, fresh_data, expire=120)  # Cache for 2 minutes
+        # if fresh_data and self._cache:
+        #     cache_key = f"meraki_data_{self._org_id}"
+        #     self._cache.set(cache_key, fresh_data, expire=120)  # Cache for 2 minutes
 
         return fresh_data
 
