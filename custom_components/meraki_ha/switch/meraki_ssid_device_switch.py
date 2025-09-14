@@ -51,6 +51,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
         self._attr_unique_id = (
             f"ssid-{self._network_id}-{self._ssid_number}-{switch_type}-switch"
         )
+        self._attr_optimistic = True
 
         self._update_internal_state()
 
@@ -112,6 +113,10 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
             )
             return
 
+        # Optimistically update the state
+        self._attr_is_on = value
+        self.async_write_ha_state()
+
         # The payload for the API call uses the `_attribute_to_check` (e.g., 'enabled' or 'visible')
         # as the key, and the new boolean `value` as its value.
         payload = {self._attribute_to_check: value}
@@ -123,13 +128,15 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
                 number=self._ssid_number,
                 **payload,
             )
-            # After a successful API call, clear the cache and immediately refresh.
-            self._meraki_client.clear_cache()
-            await self.coordinator.async_refresh()
+            # On success, schedule a refresh for the future to confirm the state
+            await self.coordinator.async_request_refresh()
         except Exception as e:
             _LOGGER.error(
                 f"Failed to update SSID {self.name} ({self._attribute_to_check} to {value}): {e}"
             )
+            # Revert the optimistic update on failure
+            self._attr_is_on = not value
+            self.async_write_ha_state()
             raise HomeAssistantError(f"Failed to update SSID {self.name}: {e}") from e
 
     async def async_turn_on(self, **kwargs: Any) -> None:
