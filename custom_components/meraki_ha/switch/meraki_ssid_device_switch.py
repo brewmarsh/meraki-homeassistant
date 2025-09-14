@@ -86,6 +86,8 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
         if not super().available or not self.coordinator.data:
             return False
         ssid_data = self._get_current_ssid_data()
+        # For the broadcast switch, it should only be available if the SSID is enabled.
+        # The enabled switch will override this.
         return ssid_data is not None and ssid_data.get("enabled", False)
 
     @callback
@@ -101,8 +103,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
             self._attr_is_on = False
             return
 
-        # The state is determined by the value of the attribute we are checking
-        # (e.g., 'enabled', 'visible') in the SSID's data.
+        # The state is determined by the direct value of the attribute we are checking.
         self._attr_is_on = current_ssid_data.get(self._attribute_to_check, False)
 
     async def _update_ssid_setting(self, value: bool) -> None:
@@ -113,31 +114,17 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
             )
             return
 
-        # Optimistically update the state
-        self._attr_is_on = value
-        self.async_write_ha_state()
-
         # The payload for the API call uses the `_attribute_to_check` (e.g., 'enabled' or 'visible')
         # as the key, and the new boolean `value` as its value.
         payload = {self._attribute_to_check: value}
 
-        try:
-            # Make the API call to update the specific SSID setting.
-            await self._meraki_client.wireless.update_network_wireless_ssid(
-                network_id=self._network_id,
-                number=self._ssid_number,
-                **payload,
-            )
-            # On success, schedule a refresh for the future to confirm the state
-            await self.coordinator.async_request_refresh()
-        except Exception as e:
-            _LOGGER.error(
-                f"Failed to update SSID {self.name} ({self._attribute_to_check} to {value}): {e}"
-            )
-            # Revert the optimistic update on failure
-            self._attr_is_on = not value
-            self.async_write_ha_state()
-            raise HomeAssistantError(f"Failed to update SSID {self.name}: {e}") from e
+        # "Fire and forget" API call. The UI is handled optimistically by Home Assistant,
+        # and the real state will be updated by the next scheduled coordinator refresh.
+        await self._meraki_client.wireless.update_network_wireless_ssid(
+            network_id=self._network_id,
+            number=self._ssid_number,
+            **payload,
+        )
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
