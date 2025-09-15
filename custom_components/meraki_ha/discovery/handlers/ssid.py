@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, List
 
 from ...text.meraki_ssid_name import MerakiSSIDNameText
 from .base import BaseHandler
+from ...switch.adult_content_filtering import MerakiAdultContentFilteringSwitch
 
 # Import the specific sensor classes
 from ...sensor.network.ssid_availability import MerakiSSIDAvailabilitySensor
@@ -184,4 +185,12 @@ class SSIDHandler(BaseHandler):
                     ),
                 ]
             )
+            if ssid.get("ipAssignmentMode") == "NAT mode":
+                entities.append(
+                    MerakiAdultContentFilteringSwitch(
+                        self._coordinator,
+                        self._config_entry,
+                        ssid,
+                    )
+                )
         return entities
