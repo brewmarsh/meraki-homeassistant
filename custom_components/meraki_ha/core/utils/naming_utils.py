@@ -39,6 +39,8 @@ def format_device_name(device: Dict[str, Any], config: Mapping[str, Any]) -> str
 
     if product_type == "network":
         product_type_str = "Network"
+    elif product_type == "ssid":
+        product_type_str = "SSID"
     else:
         product_type_str = product_type.capitalize()
 

@@ -85,7 +85,7 @@ async def test_ssid_device_creation_and_unification(
         assert ssid_device is not None
 
         # Assert that the device has the correct name (default prefix format)
-        assert ssid_device.name == "[Ssid] Test SSID"
+        assert ssid_device.name == "[SSID] Test SSID"
 
         # Find all entities associated with this device by querying the entity registry
         entities = [
