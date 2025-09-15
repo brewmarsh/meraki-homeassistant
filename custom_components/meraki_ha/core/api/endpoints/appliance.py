@@ -69,6 +69,42 @@ class ApplianceEndpoints:
         return validated
 
     @handle_meraki_errors
+    @async_timed_cache()
+    async def get_network_appliance_content_filtering(
+        self, network_id: str
+    ) -> Dict[str, Any]:
+        """Get content filtering settings for a network."""
+        result = await self._api_client._run_sync(
+            self._dashboard.appliance.getNetworkApplianceContentFiltering,
+            networkId=network_id,
+        )
+        validated = validate_response(result)
+        if not isinstance(validated, dict):
+            _LOGGER.warning(
+                "get_network_appliance_content_filtering did not return a dict."
+            )
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=3600)
+    async def get_network_appliance_content_filtering_categories(
+        self, network_id: str
+    ) -> Dict[str, Any]:
+        """Get content filtering categories for a network."""
+        result = await self._api_client._run_sync(
+            self._dashboard.appliance.getNetworkApplianceContentFilteringCategories,
+            network_id=network_id,
+        )
+        validated = validate_response(result)
+        if not isinstance(validated, dict):
+            _LOGGER.warning(
+                "get_network_appliance_content_filtering_categories did not return a dict."
+            )
+            return {}
+        return validated
+
+    @handle_meraki_errors
     async def reboot_device(self, serial: str) -> Dict[str, Any]:
         """Reboot a device."""
         result = await self._api_client._run_sync(

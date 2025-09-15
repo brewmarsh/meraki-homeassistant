@@ -191,6 +191,13 @@ class MerakiAPIClient:
                 detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
                     self.appliance.get_vlans(network["id"])
                 )
+                detail_tasks[
+                    f"content_filtering_{network['id']}"
+                ] = self._run_with_semaphore(
+                    self.appliance.get_network_appliance_content_filtering(
+                        network["id"]
+                    )
+                )
             if "wireless" in network.get("product_types", []):
                 detail_tasks[f"rf_profiles_{network['id']}"] = self._run_with_semaphore(
                     self.wireless.get_network_wireless_rf_profiles(network["id"])
@@ -243,6 +250,7 @@ class MerakiAPIClient:
         appliance_traffic: Dict[str, Any] = {}
         vlan_by_network: Dict[str, Any] = {}
         rf_profiles_by_network: Dict[str, Any] = {}
+        content_filtering_by_network: Dict[str, Any] = {}
 
         for network in networks:
             network_ssids_key = f"ssids_{network['id']}"
@@ -291,6 +299,15 @@ class MerakiAPIClient:
                     network_rf_profiles_key
                 ]
 
+            content_filtering_key = f"content_filtering_{network['id']}"
+            content_filtering = detail_data.get(content_filtering_key)
+            if isinstance(content_filtering, dict):
+                content_filtering_by_network[network["id"]] = content_filtering
+            elif previous_data and content_filtering_key in previous_data:
+                content_filtering_by_network[network["id"]] = previous_data[
+                    content_filtering_key
+                ]
+
         for device in devices:
             product_type = device.get("product_type")
             if product_type == "wireless":
@@ -321,6 +338,7 @@ class MerakiAPIClient:
             "appliance_traffic": appliance_traffic,
             "vlans": vlan_by_network,
             "rf_profiles": rf_profiles_by_network,
+            "content_filtering": content_filtering_by_network,
         }
 
     async def get_all_data(self, previous_data: Optional[dict] = None) -> dict:

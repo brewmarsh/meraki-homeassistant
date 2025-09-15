@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, List
 
 from .base import BaseHandler
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
+from ...switch.content_filtering import MerakiContentFilteringSwitch
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -77,5 +78,26 @@ class NetworkHandler(BaseHandler):
                     network_control_service=self._network_control_service,
                 )
             )
+            if "appliance" in network.get("productTypes", []):
+                try:
+                    categories = await self._coordinator.meraki_client.appliance.get_network_appliance_content_filtering_categories(
+                        network["id"]
+                    )
+                    for category in categories.get("categories", []):
+                        entities.append(
+                            MerakiContentFilteringSwitch(
+                                self._coordinator,
+                                self._config_entry,
+                                network,
+                                category,
+                            )
+                        )
+                except Exception as e:
+                    _LOGGER.warning(
+                        "Could not get content filtering categories for network %s: %s",
+                        network["id"],
+                        e,
+                    )
+
         _LOGGER.info("Discovered %d network-level entities", len(entities))
         return entities
