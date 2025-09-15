@@ -18,7 +18,7 @@ def mock_api_client():
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mock MerakiDataCoordinator."""
+    """Fixture for a mock MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
     coordinator.data = {
         "clients": [

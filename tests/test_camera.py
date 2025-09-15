@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from custom_components.meraki_ha.camera import MerakiCamera
-from custom_components.meraki_ha.const import CONF_USE_LAN_IP_FOR_RTSP
 from tests.const import MOCK_DEVICE
 
 # A mock camera device with all the data the entity expects
@@ -19,7 +18,7 @@ MOCK_CAMERA_DEVICE = {
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mocked MerakiDataCoordinator."""
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     # Set the coordinator's data attribute to contain our mock device
@@ -100,7 +99,6 @@ async def test_rtsp_url_logic(
 ):
     """Test the RTSP URL selection logic."""
     # Arrange
-    mock_config_entry.options = {CONF_USE_LAN_IP_FOR_RTSP: use_lan_ip_option}
     full_device_data = {**MOCK_CAMERA_DEVICE, **device_data}
     camera = MerakiCamera(
         mock_coordinator,

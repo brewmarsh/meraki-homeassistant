@@ -15,14 +15,14 @@ from homeassistant.helpers.device_registry import DeviceInfo
 
 
 from ..core.api.client import MerakiAPIClient
-from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ..coordinator import MerakiDataUpdateCoordinator
 from homeassistant.helpers.entity import EntityCategory
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDNameText(CoordinatorEntity[MerakiDataCoordinator], TextEntity):
+class MerakiSSIDNameText(CoordinatorEntity[MerakiDataUpdateCoordinator], TextEntity):
     """Representation of a Meraki SSID Name text entity."""
 
     _attr_mode = TextMode.TEXT  # Or TextMode.PASSWORD if it were a password
@@ -31,7 +31,7 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataCoordinator], TextEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,  # Added to match switch entities
         ssid_data: Dict[str, Any],
@@ -131,6 +131,7 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataCoordinator], TextEntity):
             )
             # Register a pending update to prevent stale data from overwriting the optimistic state
             self.coordinator.register_pending_update(self.unique_id)
+            await self.coordinator.async_request_refresh()
         except Exception as e:
             _LOGGER.error(
                 "Failed to set SSID name for network %s, SSID %s to '%s': %s",

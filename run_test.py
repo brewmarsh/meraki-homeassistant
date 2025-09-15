@@ -19,7 +19,7 @@ async def main():
     }
 
     with patch("custom_components.meraki_ha.MerakiAPIClient") as mock_api_client, patch(
-        "custom_components.meraki_ha.MerakiDataCoordinator.async_refresh",
+        "custom_components.meraki_ha.MerakiDataUpdateCoordinator.async_refresh",
         new_callable=AsyncMock,
     ), patch(
         "homeassistant.helpers.device_registry.async_get", MagicMock()

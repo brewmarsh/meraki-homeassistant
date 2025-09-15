@@ -14,7 +14,7 @@ from ...sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
 if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
     from ....types import MerakiDevice
-    from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from ....core.coordinators.meraki_data_coordinator import MerakiDataUpdateCoordinator
     from homeassistant.config_entries import ConfigEntry
     from ...services.device_control_service import DeviceControlService
     from ...services.network_control_service import NetworkControlService
@@ -32,7 +32,7 @@ class MXHandler(BaseDeviceHandler):
 
     def __init__(
         self,
-        coordinator: "MerakiDataCoordinator",
+        coordinator: "MerakiDataUpdateCoordinator",
         device: "MerakiDevice",
         config_entry: "ConfigEntry",
         control_service: "DeviceControlService",
@@ -46,7 +46,7 @@ class MXHandler(BaseDeviceHandler):
     @classmethod
     def create(
         cls,
-        coordinator: "MerakiDataCoordinator",
+        coordinator: "MerakiDataUpdateCoordinator",
         device: "MerakiDevice",
         config_entry: "ConfigEntry",
         camera_service: "CameraService",

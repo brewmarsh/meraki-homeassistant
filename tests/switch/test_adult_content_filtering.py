@@ -1,6 +1,6 @@
 """Tests for the Meraki adult content filtering switch."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 
 import pytest
 
@@ -12,15 +12,17 @@ from custom_components.meraki_ha.switch.adult_content_filtering import (
 @pytest.fixture
 def mock_coordinator():
     """Mock Meraki data coordinator."""
-    coordinator = AsyncMock()
+    coordinator = MagicMock()
     coordinator.get_ssid.return_value = {"adultContentFilteringEnabled": True}
+    coordinator.api.wireless.update_network_wireless_ssid = AsyncMock()
+    coordinator.async_request_refresh = AsyncMock()
     return coordinator
 
 
 @pytest.fixture
 def mock_config_entry():
     """Mock config entry."""
-    return AsyncMock()
+    return MagicMock()
 
 
 def test_switch_creation(mock_coordinator, mock_config_entry):
@@ -56,16 +58,13 @@ async def test_turn_on(mock_coordinator, mock_config_entry):
         mock_coordinator, mock_config_entry, ssid
     )
 
-    with patch.object(
-        switch._client.wireless, "update_network_wireless_ssid"
-    ) as mock_update:
-        await switch.async_turn_on()
-        mock_update.assert_called_once_with(
-            networkId="net_1",
-            number=0,
-            adultContentFilteringEnabled=True,
-        )
-        mock_coordinator.async_request_refresh.assert_called_once()
+    await switch.async_turn_on()
+    switch._client.wireless.update_network_wireless_ssid.assert_called_once_with(
+        networkId="net_1",
+        number=0,
+        adultContentFilteringEnabled=True,
+    )
+    mock_coordinator.async_request_refresh.assert_called_once()
 
 
 async def test_turn_off(mock_coordinator, mock_config_entry):
@@ -75,13 +74,10 @@ async def test_turn_off(mock_coordinator, mock_config_entry):
         mock_coordinator, mock_config_entry, ssid
     )
 
-    with patch.object(
-        switch._client.wireless, "update_network_wireless_ssid"
-    ) as mock_update:
-        await switch.async_turn_off()
-        mock_update.assert_called_once_with(
-            networkId="net_1",
-            number=0,
-            adultContentFilteringEnabled=False,
-        )
-        mock_coordinator.async_request_refresh.assert_called_once()
+    await switch.async_turn_off()
+    switch._client.wireless.update_network_wireless_ssid.assert_called_once_with(
+        networkId="net_1",
+        number=0,
+        adultContentFilteringEnabled=False,
+    )
+    mock_coordinator.async_request_refresh.assert_called_once()

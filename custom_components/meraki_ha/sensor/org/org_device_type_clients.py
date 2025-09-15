@@ -9,14 +9,14 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiOrganizationDeviceTypeClientsSensor(
-    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
     """Representation of a Meraki organization-level client counter by device type."""
 
@@ -25,7 +25,7 @@ class MerakiOrganizationDeviceTypeClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         device_type: str,
     ) -> None:

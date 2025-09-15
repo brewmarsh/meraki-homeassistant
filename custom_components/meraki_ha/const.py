@@ -12,6 +12,9 @@ DOMAIN: Final[str] = "meraki_ha"
 MANUFACTURER: Final[str] = "Cisco Meraki"
 """Manufacturer for all Meraki devices."""
 
+CONF_INTEGRATION_TITLE: Final[str] = "Meraki"
+"""Title for the integration."""
+
 CONF_MERAKI_API_KEY: Final[str] = "meraki_api_key"
 """Configuration key for the Meraki API key (str)."""
 
@@ -32,17 +35,8 @@ DATA_COORDINATORS: Final[str] = (
 )
 """Key for storing the dictionary of all coordinators (str)."""
 
-CONF_WEBHOOK_URL: Final[str] = "webhook_url"
-"""Configuration key for the external webhook URL (str)."""
-
-CONF_AUTO_ENABLE_RTSP: Final[str] = "auto_enable_rtsp"
-"""Configuration key for automatically enabling RTSP on cameras (str)."""
-
 CONF_RTSP_STREAM_ENABLED: Final[str] = "rtsp_stream_enabled"
 """Configuration key for enabling RTSP stream on a camera (str)."""
-
-CONF_USE_LAN_IP_FOR_RTSP: Final[str] = "use_lan_ip_for_rtsp"
-"""Configuration key for using LAN IP for RTSP stream (str)."""
 
 CONF_ENABLE_DEVICE_TRACKER: Final[str] = "enable_device_tracker"
 """Configuration key for enabling device tracker (str)."""
@@ -53,21 +47,8 @@ CONF_ENABLE_WEB_UI: Final[str] = "enable_web_ui"
 CONF_WEB_UI_PORT: Final[str] = "web_ui_port"
 """Configuration key for the web UI port (str)."""
 
-CONF_HIDE_UNCONFIGURED_SSIDS: Final[str] = "hide_unconfigured_ssids"
-"""Configuration key for hiding unconfigured SSIDs (str)."""
-
 CONF_IGNORED_NETWORKS: Final[str] = "ignored_networks"
 """Configuration key for a list of network names to ignore (str)."""
-
-CONF_USE_STALE_DATA: Final[str] = "use_stale_data"
-"""Configuration key for using stale data on API failure (bool)."""
-
-CONF_STALE_DATA_THRESHOLD: Final[str] = "stale_data_threshold"
-"""Configuration key for stale data threshold in minutes (int)."""
-
-
-DEFAULT_WEBHOOK_URL: Final[str] = ""
-"""Default webhook URL value (empty string)."""
 
 DEFAULT_ENABLE_WEB_UI: Final[bool] = True
 """Default value for enabling the web UI (bool)."""
@@ -75,12 +56,8 @@ DEFAULT_ENABLE_WEB_UI: Final[bool] = True
 DEFAULT_WEB_UI_PORT: Final[int] = 9988
 """Default value for the web UI port (int)."""
 
-DEFAULT_HIDE_UNCONFIGURED_SSIDS: Final[bool] = False
-"""Default value for hiding unconfigured SSIDs (bool)."""
-
 DEFAULT_IGNORED_NETWORKS: Final[str] = ""
 """Default value for the ignored networks list (str)."""
-
 
 DATA_SSID_DEVICES_COORDINATOR: Final[str] = (
     "ssid_devices"  # New constant for SSID coordinator key
@@ -113,7 +90,6 @@ PLATFORM_TEXT: Final[str] = "text"
 PLATFORM_CAMERA: Final[str] = "camera"
 """Represents the camera platform (str)."""
 
-
 PLATFORMS: Final[List[str]] = [
     PLATFORM_BINARY_SENSOR,
     PLATFORM_BUTTON,
@@ -142,30 +118,8 @@ ATTR_CONNECTED_CLIENTS: Final[str] = "connected_clients"
 ATTR_SSIDS: Final[str] = "ssids"
 """Device attribute for SSIDs (str)."""
 
-# Configuration options
-CONF_DEVICE_NAME_FORMAT: Final[str] = "device_name_format"
-"""Configuration key for the device name format (str)."""
-
-DEVICE_NAME_FORMAT_PREFIX: Final[str] = "prefix"
-"""Device name format option: prefix (str)."""
-DEVICE_NAME_FORMAT_SUFFIX: Final[str] = "suffix"
-"""Device name format option: suffix (str)."""
-DEVICE_NAME_FORMAT_OMIT: Final[str] = "omit"
-"""Device name format option: omit (str)."""
-
-DEVICE_NAME_FORMAT_OPTIONS: Final[List[str]] = [
-    DEVICE_NAME_FORMAT_PREFIX,
-    DEVICE_NAME_FORMAT_SUFFIX,
-    DEVICE_NAME_FORMAT_OMIT,
-]
-"""List of device name format options (List[str])."""
-
-DEFAULT_DEVICE_NAME_FORMAT: Final[str] = DEVICE_NAME_FORMAT_PREFIX
-"""Default device name format (str)."""
-
 TAG_HA_DISABLED: Final[str] = "ha-disabled"
 """Tag used to indirectly disable an SSID on an access point."""
-# CONF_RELAXED_TAG_MATCHING was removed as the feature was removed.
 
 ERASE_TAGS_WARNING: Final[str] = (
     "Tag erasing is enabled! This will ERASE ALL TAGS on your Meraki devices. "

@@ -6,14 +6,12 @@ from unittest.mock import MagicMock
 from custom_components.meraki_ha.sensor.device.radio_settings import (
     MerakiRadioSettingsSensor,
 )
-from custom_components.meraki_ha.const import DEVICE_NAME_FORMAT_PREFIX
 
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mocked MerakiDataCoordinator."""
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
-    coordinator.config_entry.options = {"device_name_format": DEVICE_NAME_FORMAT_PREFIX}
     coordinator.data = {
         "devices": [
             {

@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
     from ....types import MerakiDevice
-    from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from ...coordinator import MerakiDataUpdateCoordinator
     from ...core.coordinators.switch_port_status_coordinator import (
         SwitchPortStatusCoordinator,
     )
@@ -44,7 +44,7 @@ class MVHandler(BaseDeviceHandler):
 
     def __init__(
         self,
-        coordinator: "MerakiDataCoordinator",
+        coordinator: "MerakiDataUpdateCoordinator",
         device: "MerakiDevice",
         config_entry: "ConfigEntry",
         camera_service: "CameraService",
@@ -60,7 +60,7 @@ class MVHandler(BaseDeviceHandler):
     @classmethod
     def create(
         cls,
-        coordinator: "MerakiDataCoordinator",
+        coordinator: "MerakiDataUpdateCoordinator",
         device: "MerakiDevice",
         config_entry: "ConfigEntry",
         camera_service: "CameraService",

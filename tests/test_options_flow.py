@@ -7,14 +7,9 @@ from homeassistant.const import CONF_SCAN_INTERVAL
 
 from custom_components.meraki_ha.const import (
     DOMAIN,
-    CONF_DEVICE_NAME_FORMAT,
-    CONF_AUTO_ENABLE_RTSP,
-    CONF_WEBHOOK_URL,
-    CONF_USE_LAN_IP_FOR_RTSP,
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_ENABLE_WEB_UI,
     CONF_WEB_UI_PORT,
-    CONF_HIDE_UNCONFIGURED_SSIDS,
     CONF_IGNORED_NETWORKS,
 )
 
@@ -32,9 +27,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         },
         options={
             CONF_SCAN_INTERVAL: 60,
-            CONF_DEVICE_NAME_FORMAT: "prefix",
-            CONF_AUTO_ENABLE_RTSP: False,
-            CONF_WEBHOOK_URL: "",
+            CONF_ENABLE_DEVICE_TRACKER: True,
         },
     )
     config_entry.add_to_hass(hass)
@@ -44,47 +37,47 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     assert result["type"] == "form"
     assert result["step_id"] == "init"
 
-    # Step 1: init
-    init_input = {
-        CONF_SCAN_INTERVAL: 120,
-        CONF_DEVICE_NAME_FORMAT: "suffix",
-    }
+    # Select "general" from the menu
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input=init_input
+        result["flow_id"], user_input={"next_step": "general"}
     )
     assert result["type"] == "form"
-    assert result["step_id"] == "features"
+    assert result["step_id"] == "general"
 
-    # Step 2: features
-    features_input = {
-        CONF_AUTO_ENABLE_RTSP: True,
-        CONF_USE_LAN_IP_FOR_RTSP: False,
-        CONF_ENABLE_DEVICE_TRACKER: True,
-        CONF_ENABLE_WEB_UI: False,
-        CONF_WEB_UI_PORT: 8080,
-        CONF_HIDE_UNCONFIGURED_SSIDS: True,
+    # Submit general options
+    general_input = {
+        CONF_SCAN_INTERVAL: 120,
+        CONF_ENABLE_DEVICE_TRACKER: False,
     }
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input=features_input
+        result["flow_id"], user_input=general_input
+    )
+    await hass.async_block_till_done()
+
+    assert result["type"] == "create_entry"
+    assert config_entry.options == general_input
+
+    # Start the options flow again
+    result = await hass.config_entries.options.async_init(config_entry.entry_id)
+
+    # Select "advanced" from the menu
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], user_input={"next_step": "advanced"}
     )
     assert result["type"] == "form"
     assert result["step_id"] == "advanced"
 
-    # Step 3: advanced
+    # Submit advanced options
     advanced_input = {
-        CONF_WEBHOOK_URL: "http://example.com/webhook",
         CONF_IGNORED_NETWORKS: "Guest Network, Temp Network",
+        CONF_ENABLE_WEB_UI: False,
+        CONF_WEB_UI_PORT: 8080,
     }
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], user_input=advanced_input
     )
     await hass.async_block_till_done()
 
-    # Final assertions
     assert result["type"] == "create_entry"
-    # The expected options should be the original options updated with the user inputs
-    expected_options = config_entry.options.copy()
-    expected_options.update(init_input)
-    expected_options.update(features_input)
-    expected_options.update(advanced_input)
+    expected_options = {**general_input, **advanced_input}
     assert config_entry.options == expected_options

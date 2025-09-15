@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, List
 if TYPE_CHECKING:
     from ....types import MerakiDevice
     from homeassistant.helpers.entity import Entity
-    from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from ....core.coordinators.meraki_data_coordinator import MerakiDataUpdateCoordinator
     from homeassistant.config_entries import ConfigEntry
     from ....services.camera_service import CameraService
     from ....services.device_control_service import DeviceControlService
@@ -32,7 +32,7 @@ class BaseHandler(ABC):
 
     def __init__(
         self,
-        coordinator: "MerakiDataCoordinator",
+        coordinator: "MerakiDataUpdateCoordinator",
         config_entry: "ConfigEntry",
     ) -> None:
         """Initialize the BaseHandler."""
@@ -50,7 +50,7 @@ class BaseDeviceHandler(BaseHandler, ABC):
 
     def __init__(
         self,
-        coordinator: "MerakiDataCoordinator",
+        coordinator: "MerakiDataUpdateCoordinator",
         device: "MerakiDevice",
         config_entry: "ConfigEntry",
     ) -> None:
@@ -62,7 +62,7 @@ class BaseDeviceHandler(BaseHandler, ABC):
     @abstractmethod
     def create(
         cls,
-        coordinator: "MerakiDataCoordinator",
+        coordinator: "MerakiDataUpdateCoordinator",
         device: "MerakiDevice",
         config_entry: "ConfigEntry",
         camera_service: "CameraService",

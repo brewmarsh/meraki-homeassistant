@@ -6,7 +6,6 @@ from typing import Any, Dict, Optional
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import get_url
 
-from .const import CONF_WEBHOOK_URL
 from .core.api import MerakiAPIClient
 
 
@@ -79,7 +78,6 @@ async def async_register_webhook(
     """Register a webhook with the Meraki API."""
     try:
         webhook_url = get_webhook_url(
-            hass, webhook_id, entry.data.get(CONF_WEBHOOK_URL) if entry else None
         )
         webhook = await api_client.register_webhook(webhook_url, secret)
         return webhook

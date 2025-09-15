@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
     from ..core.api.client import MerakiAPIClient
-    from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from ..coordinator import MerakiDataUpdateCoordinator
     from ..core.coordinators.switch_port_status_coordinator import (
         SwitchPortStatusCoordinator,
     )
@@ -53,7 +53,7 @@ class DeviceDiscoveryService:
 
     def __init__(
         self,
-        coordinator: "MerakiDataCoordinator",
+        coordinator: "MerakiDataUpdateCoordinator",
         config_entry: "ConfigEntry",
         meraki_client: "MerakiAPIClient",
         switch_port_coordinator: "SwitchPortStatusCoordinator",

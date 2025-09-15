@@ -14,7 +14,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..const import TAG_HA_DISABLED
 from ..core.api.client import MerakiAPIClient
-from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.utils.icon_utils import get_device_type_icon
 from homeassistant.helpers.entity import EntityCategory
 from ..helpers.device_info_helpers import resolve_device_info
@@ -23,7 +23,7 @@ from ..helpers.ssid_status_calculator import SsidStatusCalculator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntity):
+class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataUpdateCoordinator], SwitchEntity):
     """Base class for Meraki SSID Switches."""
 
     entity_category = EntityCategory.CONFIG
@@ -31,7 +31,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_data: Dict[str, Any],
@@ -52,6 +52,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
             f"ssid-{self._network_id}-{self._ssid_number}-{switch_type}-switch"
         )
         self._attr_optimistic = True
+        self._attr_is_on = None
 
         self._update_internal_state()
 
@@ -128,7 +129,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntit
 
         # "Fire and forget" API call.
         await self._meraki_client.wireless.update_network_wireless_ssid(
-            network_id=self._network_id,
+            networkId=self._network_id,
             number=self._ssid_number,
             **payload,
         )
@@ -150,7 +151,7 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_data: Dict[str, Any],
@@ -164,7 +165,7 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
             "enabled",
             "enabled",
         )
-        self._attr_name = "SSID Enable"
+        self._attr_name = "Enabled Control"
 
     @property
     def available(self) -> bool:
@@ -183,7 +184,7 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_data: Dict[str, Any],
@@ -197,4 +198,4 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
             "broadcast",
             "visible",
         )
-        self._attr_name = "SSID Broadcast"
+        self._attr_name = "Broadcast Control"

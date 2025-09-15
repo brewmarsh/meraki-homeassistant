@@ -8,7 +8,7 @@ from tests.const import MOCK_DEVICE
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mocked MerakiDataCoordinator."""
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
     wireless_device = MOCK_DEVICE.copy()
     wireless_device["model"] = "MR36"

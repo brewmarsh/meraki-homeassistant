@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
 from ...helpers.entity_helpers import format_entity_name
 
@@ -20,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiNetworkClientsSensor(
-    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
     """Representation of a Meraki network-level client counter."""
 
@@ -29,7 +29,7 @@ class MerakiNetworkClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_data: dict,
         network_control_service: "NetworkControlService",

@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from ...core.repository import MerakiRepository
-from .meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class SwitchPortStatusCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self,
         hass: HomeAssistant,
         repository: MerakiRepository,
-        main_coordinator: MerakiDataCoordinator,
+        main_coordinator: MerakiDataUpdateCoordinator,
         config_entry,
     ) -> None:
         """Initialize the coordinator."""

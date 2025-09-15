@@ -6,7 +6,7 @@ from homeassistant.helpers.entity import DeviceInfo
 
 from homeassistant.config_entries import ConfigEntry
 from . import BaseMerakiEntity
-from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...types import MerakiVlan
 from ...core.utils.naming_utils import format_device_name
 
@@ -16,7 +16,7 @@ class MerakiVLANEntity(BaseMerakiEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -32,7 +32,7 @@ class MerakiVLANEntity(BaseMerakiEntity):
         vlan_device_data = {**vlan, "productType": "vlan"}
         formatted_name = format_device_name(
             device=vlan_device_data,
-            config=config_entry.options,
+            config=self._config_entry.options,
         )
 
         self._attr_device_info = DeviceInfo(

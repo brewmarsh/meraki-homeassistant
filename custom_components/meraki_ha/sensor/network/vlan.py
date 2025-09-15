@@ -9,7 +9,7 @@ from ...types import MerakiVlan
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 
-from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.entities.meraki_vlan_entity import MerakiVLANEntity
 from ...core.utils.entity_id_utils import get_vlan_entity_id
 
@@ -22,7 +22,7 @@ class MerakiVLANSubnetSensor(MerakiVLANEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -46,7 +46,7 @@ class MerakiVLANApplianceIpSensor(MerakiVLANEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,

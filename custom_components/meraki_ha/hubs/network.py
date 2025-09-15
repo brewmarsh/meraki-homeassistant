@@ -11,7 +11,7 @@ import logging
 from typing import TYPE_CHECKING, Any, Dict, List
 
 if TYPE_CHECKING:
-    from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from ..coordinator import MerakiDataUpdateCoordinator
     from ...types import MerakiNetwork, MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 class NetworkHub:
     """A hub for processing data for a specific network."""
 
-    def __init__(self, coordinator: MerakiDataCoordinator, network_id: str) -> None:
+    def __init__(self, coordinator: MerakiDataUpdateCoordinator, network_id: str) -> None:
         """Initialize the NetworkHub."""
         self._coordinator = coordinator
         self.network_id = network_id

@@ -10,45 +10,57 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from ...const import (
+from .const import (
     DOMAIN,
     CONF_IGNORED_NETWORKS,
     DEFAULT_IGNORED_NETWORKS,
-    CONF_HIDE_UNCONFIGURED_SSIDS,
-    DEFAULT_HIDE_UNCONFIGURED_SSIDS,
-    CONF_USE_STALE_DATA,
-    CONF_STALE_DATA_THRESHOLD,
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+    CONF_SCAN_INTERVAL,
+    DEFAULT_SCAN_INTERVAL,
 )
-from ...core.api.client import MerakiAPIClient as ApiClient
+from .core.api.client import MerakiAPIClient as ApiClient
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDataCoordinator(DataUpdateCoordinator):
+class MerakiDataUpdateCoordinator(DataUpdateCoordinator):
     """A centralized coordinator for Meraki API data."""
 
     def __init__(
         self,
         hass: HomeAssistant,
-        api_client: ApiClient,
-        scan_interval: int,
-        config_entry: ConfigEntry,
+        entry: ConfigEntry,
     ) -> None:
         """Initialize the coordinator."""
-        super().__init__(
-            hass,
-            _LOGGER,
-            name=DOMAIN,
-            update_interval=timedelta(seconds=scan_interval),
+        self.api = ApiClient(
+            hass=hass,
+            api_key=entry.data[CONF_MERAKI_API_KEY],
+            org_id=entry.data[CONF_MERAKI_ORG_ID],
         )
-        self.api = api_client
-        self.config_entry = config_entry
+        self.config_entry = entry
         self.devices_by_serial: dict = {}
         self.networks_by_id: dict = {}
         self.ssids_by_network_and_number: dict = {}
         self.last_successful_update: datetime | None = None
         self.last_successful_data: dict = {}
         self._pending_updates: dict[str, datetime] = {}
+
+        try:
+            scan_interval = int(
+                entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+            )
+            if scan_interval <= 0:
+                scan_interval = DEFAULT_SCAN_INTERVAL
+        except (ValueError, TypeError):
+            scan_interval = DEFAULT_SCAN_INTERVAL
+
+        super().__init__(
+            hass,
+            _LOGGER,
+            name=DOMAIN,
+            update_interval=timedelta(seconds=scan_interval),
+        )
 
     def register_pending_update(self, unique_id: str, expiry_seconds: int = 150) -> None:
         """
@@ -94,16 +106,6 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
                 n for n in data["networks"] if n.get("name") not in ignored_names
             ]
 
-    def _filter_unconfigured_ssids(self, data: dict) -> None:
-        """Filter out unconfigured SSIDs if the user has chosen to hide them."""
-        if (
-            self.config_entry.options.get(
-                CONF_HIDE_UNCONFIGURED_SSIDS, DEFAULT_HIDE_UNCONFIGURED_SSIDS
-            )
-            and "ssids" in data
-        ):
-            data["ssids"] = [s for s in data["ssids"] if s.get("enabled")]
-
     async def _async_update_data(self):
         """Fetch data from API endpoint and apply filters."""
         try:
@@ -113,7 +115,6 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
                 raise UpdateFailed("API call returned no data.")
 
             self._filter_ignored_networks(data)
-            self._filter_unconfigured_ssids(data)
 
             # Create lookup tables for efficient access in entities
             self.devices_by_serial = {
@@ -164,15 +165,10 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
             self.last_successful_data = data
             return data
         except Exception as err:
-            use_stale = self.config_entry.options.get(CONF_USE_STALE_DATA, True)
-            stale_threshold = self.config_entry.options.get(
-                CONF_STALE_DATA_THRESHOLD, 30
-            )
             if (
-                use_stale
-                and self.last_successful_update
+                self.last_successful_update
                 and (datetime.now() - self.last_successful_update)
-                < timedelta(minutes=stale_threshold)
+                < timedelta(minutes=30)
             ):
                 _LOGGER.warning(
                     "Failed to fetch new Meraki data, using stale data from %s ago. Error: %s",

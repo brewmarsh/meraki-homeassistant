@@ -8,20 +8,20 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-from ..helpers.entity_helpers import async_get_device_info
+from ..coordinator import MerakiDataUpdateCoordinator
+from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiContentFilteringSwitch(
-    CoordinatorEntity[MerakiDataCoordinator], SwitchEntity
+    CoordinatorEntity[MerakiDataUpdateCoordinator], SwitchEntity
 ):
     """Representation of a Meraki Content Filtering category switch."""
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network: dict[str, Any],
         category: dict[str, Any],
@@ -31,7 +31,7 @@ class MerakiContentFilteringSwitch(
         self._config_entry = config_entry
         self._network = network
         self._category = category
-        self._client = coordinator.meraki_client
+        self._client = coordinator.api
 
         self.entity_description = SwitchEntityDescription(
             key=f"content_filtering_{network['id']}_{category['id']}",
@@ -46,7 +46,7 @@ class MerakiContentFilteringSwitch(
     @property
     def device_info(self):
         """Return the device info."""
-        return async_get_device_info(self.coordinator, self._network["id"])
+        return resolve_device_info(self._network, self._config_entry)
 
     @property
     def is_on(self) -> bool:

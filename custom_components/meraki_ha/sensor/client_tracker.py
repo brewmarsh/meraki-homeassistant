@@ -10,7 +10,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..const import DOMAIN
-from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 CLIENT_TRACKER_DEVICE_ID = "client_tracker"
 
 
-class ClientTrackerDeviceSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
+class ClientTrackerDeviceSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
     """A sensor representing the Client Tracker device itself."""
 
     _attr_has_entity_name = True
@@ -28,7 +28,7 @@ class ClientTrackerDeviceSensor(CoordinatorEntity[MerakiDataCoordinator], Sensor
         icon="mdi:account-group",
     )
 
-    def __init__(self, coordinator: MerakiDataCoordinator) -> None:
+    def __init__(self, coordinator: MerakiDataUpdateCoordinator) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{DOMAIN}_{CLIENT_TRACKER_DEVICE_ID}"
@@ -64,7 +64,7 @@ class ClientTrackerDeviceSensor(CoordinatorEntity[MerakiDataCoordinator], Sensor
             self._attr_native_value = 0
 
 
-class MerakiClientSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
+class MerakiClientSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
     """Representation of a Meraki client as a sensor."""
 
     _attr_has_entity_name = True
@@ -72,7 +72,7 @@ class MerakiClientSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity)
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         client_data: Dict[str, Any],
     ) -> None:

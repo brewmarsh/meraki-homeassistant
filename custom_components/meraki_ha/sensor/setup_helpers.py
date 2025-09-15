@@ -8,7 +8,7 @@ from ..types import MerakiVlan
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import Entity
 
-from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ..coordinator import MerakiDataUpdateCoordinator
 from ..sensor_registry import (
     COMMON_SENSORS_COORD_DEV_CONF,
     get_sensors_for_device_type,
@@ -26,7 +26,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def _setup_device_sensors(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataCoordinator,
+    coordinator: MerakiDataUpdateCoordinator,
     added_entities: Set[str],
 ) -> List[Entity]:
     """Set up device-specific sensors."""
@@ -79,7 +79,7 @@ def _setup_device_sensors(
 
 def _setup_network_sensors(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataCoordinator,
+    coordinator: MerakiDataUpdateCoordinator,
     added_entities: Set[str],
 ) -> List[Entity]:
     """Set up network-specific sensors."""
@@ -110,7 +110,7 @@ def _setup_network_sensors(
 
 def _setup_client_tracker_sensors(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataCoordinator,
+    coordinator: MerakiDataUpdateCoordinator,
 ) -> List[Entity]:
     """Set up client tracker sensors."""
     if not config_entry.options.get(CONF_ENABLE_DEVICE_TRACKER, True):
@@ -132,7 +132,7 @@ def _setup_client_tracker_sensors(
 
 def _setup_vlan_sensors(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataCoordinator,
+    coordinator: MerakiDataUpdateCoordinator,
     added_entities: Set[str],
 ) -> List[Entity]:
     """Set up VLAN sensors."""
@@ -175,7 +175,7 @@ def _setup_vlan_sensors(
 
 def _setup_uplink_sensors(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataCoordinator,
+    coordinator: MerakiDataUpdateCoordinator,
     added_entities: Set[str],
 ) -> List[Entity]:
     """Set up appliance uplink sensors."""
@@ -209,7 +209,7 @@ def _setup_uplink_sensors(
 def async_setup_sensors(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    coordinator: MerakiDataCoordinator,
+    coordinator: MerakiDataUpdateCoordinator,
 ) -> List[Entity]:
     """Set up all sensor entities from the central coordinator."""
     entities: List[Entity] = []

@@ -14,7 +14,7 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
@@ -24,14 +24,14 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMotionSensor(CoordinatorEntity[MerakiDataCoordinator], BinarySensorEntity):
+class MerakiMotionSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], BinarySensorEntity):
     """Representation of a motion sensor."""
 
     _attr_device_class = BinarySensorDeviceClass.MOTION
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         device: Dict[str, Any],
         camera_service: CameraService,
     ) -> None:

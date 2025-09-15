@@ -13,11 +13,11 @@ from ...const import (
     DOMAIN,
     MANUFACTURER,
 )
-from ..coordinators import MerakiDataCoordinator
+from ..coordinators import MerakiDataUpdateCoordinator
 from ..utils.naming_utils import format_device_name
 
 
-class BaseMerakiEntity(CoordinatorEntity[MerakiDataCoordinator], Entity, ABC):
+class BaseMerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator], Entity, ABC):
     """Base entity class for Meraki entities.
 
     Provides common functionality for all Meraki entities including:
@@ -28,7 +28,7 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataCoordinator], Entity, ABC):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         serial: Optional[str] = None,
         network_id: Optional[str] = None,

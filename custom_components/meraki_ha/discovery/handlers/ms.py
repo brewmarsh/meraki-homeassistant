@@ -16,7 +16,7 @@ from ...binary_sensor.switch_port import SwitchPortSensor
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
-    from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from ....core.coordinators.meraki_data_coordinator import MerakiDataUpdateCoordinator
     from ....core.coordinators.switch_port_status_coordinator import (
         SwitchPortStatusCoordinator,
     )
@@ -34,7 +34,7 @@ class MSHandler(BaseDeviceHandler):
 
     def __init__(
         self,
-        coordinator: "MerakiDataCoordinator",
+        coordinator: "MerakiDataUpdateCoordinator",
         device: "MerakiDevice",
         config_entry: "ConfigEntry",
         switch_port_coordinator: "SwitchPortStatusCoordinator",
@@ -48,7 +48,7 @@ class MSHandler(BaseDeviceHandler):
     @classmethod
     def create(
         cls,
-        coordinator: "MerakiDataCoordinator",
+        coordinator: "MerakiDataUpdateCoordinator",
         device: "MerakiDevice",
         config_entry: "ConfigEntry",
         camera_service: "CameraService",

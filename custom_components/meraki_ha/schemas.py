@@ -2,10 +2,19 @@
 
 import voluptuous as vol
 from homeassistant.helpers import selector
+
 from .const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     DEFAULT_SCAN_INTERVAL,
+    CONF_SCAN_INTERVAL,
+    CONF_ENABLE_DEVICE_TRACKER,
+    CONF_IGNORED_NETWORKS,
+    DEFAULT_IGNORED_NETWORKS,
+    CONF_ENABLE_WEB_UI,
+    DEFAULT_ENABLE_WEB_UI,
+    CONF_WEB_UI_PORT,
+    DEFAULT_WEB_UI_PORT,
 )
 
 CONFIG_SCHEMA = vol.Schema(
@@ -17,23 +26,39 @@ CONFIG_SCHEMA = vol.Schema(
     }
 )
 
-RECONFIGURE_SCHEMA = vol.Schema(
+MENU_SCHEMA = vol.Schema(
+    {
+        vol.Optional("next_step"): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=["general", "advanced"],
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        )
+    }
+)
+
+GENERAL_SCHEMA = vol.Schema(
     {
         vol.Required(
-            "scan_interval",
-            default=DEFAULT_SCAN_INTERVAL,
-        ): int,
+            CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
+        ): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=30, max=86400, step=1, mode=selector.NumberSelectorMode.SLIDER
+            )
+        ),
+        vol.Required(CONF_ENABLE_DEVICE_TRACKER, default=True): selector.BooleanSelector(),
+    }
+)
+
+ADVANCED_SCHEMA = vol.Schema(
+    {
         vol.Optional(
-            "device_name_format",
-            default="omitted",
-        ): selector.SelectSelector(
-            selector.SelectSelectorConfig(
-                options=[
-                    {"value": "prefix", "label": "Prefix"},
-                    {"value": "suffix", "label": "Suffix"},
-                    {"value": "omitted", "label": "Omitted"},
-                ],
-                mode=selector.SelectSelectorMode.DROPDOWN,
+            CONF_IGNORED_NETWORKS, default=DEFAULT_IGNORED_NETWORKS
+        ): selector.TextSelector(),
+        vol.Required(CONF_ENABLE_WEB_UI, default=DEFAULT_ENABLE_WEB_UI): selector.BooleanSelector(),
+        vol.Required(CONF_WEB_UI_PORT, default=DEFAULT_WEB_UI_PORT): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=1024, max=65535, step=1, mode=selector.NumberSelectorMode.BOX
             )
         ),
     }

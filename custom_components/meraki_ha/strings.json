@@ -2,39 +2,22 @@
   "config": {
     "step": {
       "user": {
-        "title": "Step 1 of 4: Meraki Credentials",
+        "title": "Step 1 of 2: Meraki Credentials",
         "description": "Enter your Meraki API Key and Organization ID.",
         "data": {
           "meraki_api_key": "Meraki API Key",
           "meraki_org_id": "Meraki Organization ID"
         }
       },
-      "general": {
-        "title": "Step 2 of 4: General Settings",
-        "description": "Configure general settings for the Meraki integration.",
+      "init": {
+        "title": "Step 2 of 2: Initial Configuration",
+        "description": "Set the initial configuration for the integration. These can be changed later from the settings menu.",
         "data": {
-          "scan_interval": "Scan Interval (seconds)",
-          "device_name_format": "Device Name Format"
-        }
-      },
-      "features": {
-        "title": "Step 3 of 4: Feature Settings",
-        "description": "Enable or disable specific features of the integration.",
-        "data": {
-          "auto_enable_rtsp": "Auto-enable RTSP camera streams",
-          "use_lan_ip_for_rtsp": "Use LAN IP for RTSP stream",
+          "scan_interval": "Scan Interval",
           "enable_device_tracker": "Enable Client Tracker",
+          "ignored_networks": "Ignored Networks",
           "enable_web_ui": "Enable Web UI",
-          "web_ui_port": "Web UI Port",
-          "hide_unconfigured_ssids": "Hide Unconfigured SSIDs"
-        }
-      },
-      "advanced": {
-        "title": "Step 4 of 4: Advanced Settings",
-        "description": "Configure advanced settings for the Meraki integration.",
-        "data": {
-          "webhook_url": "Webhook URL (optional)",
-          "ignored_networks": "Ignored Networks (comma-separated)"
+          "web_ui_port": "Web UI Port"
         }
       }
     },
@@ -52,31 +35,33 @@
   "options": {
     "step": {
       "init": {
-        "title": "Meraki Options",
-        "description": "Your Config Entry ID for use in the Lovelace card is: {config_entry_id}\n\nStep 1 of 3: General Settings",
-        "data": {
-          "scan_interval": "Scan Interval (seconds)",
-          "device_name_format": "Device Name Format"
+        "title": "Meraki Settings",
+        "description": "Select a category to configure.",
+        "menu_options": {
+          "general": "General",
+          "advanced": "Advanced"
         }
       },
-      "features": {
-        "title": "Meraki Options",
-        "description": "Step 2 of 3: Feature Settings\n\n[Open Web UI]({web_ui_url})",
+      "general": {
+        "title": "General Settings",
+        "description": "Configure the main settings for the integration.",
         "data": {
-          "auto_enable_rtsp": "Auto-enable RTSP camera streams",
-          "use_lan_ip_for_rtsp": "Use LAN IP for RTSP stream",
+          "scan_interval": "Scan Interval",
+          "scan_interval_description": "The number of seconds between updates from the Meraki API.",
           "enable_device_tracker": "Enable Client Tracker",
-          "enable_web_ui": "Enable Web UI",
-          "web_ui_port": "Web UI Port",
-          "hide_unconfigured_ssids": "Hide Unconfigured SSIDs"
+          "enable_device_tracker_description": "Track devices connected to your Meraki networks."
         }
       },
       "advanced": {
-        "title": "Meraki Options",
-        "description": "Step 3 of 3: Advanced Settings",
+        "title": "Advanced Settings",
+        "description": "Configure advanced features and customizations.",
         "data": {
-          "webhook_url": "Webhook URL (optional)",
-          "ignored_networks": "Ignored Networks (comma-separated)"
+          "ignored_networks": "Ignored Networks",
+          "ignored_networks_description": "A comma-separated list of network names to exclude from the integration.",
+          "enable_web_ui": "Enable Web UI",
+          "enable_web_ui_description": "Enable the Meraki web UI for more detailed control and information.",
+          "web_ui_port": "Web UI Port",
+          "web_ui_port_description": "The port number for the Meraki web UI."
         }
       }
     }

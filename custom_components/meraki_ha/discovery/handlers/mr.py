@@ -14,7 +14,7 @@ from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
-    from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from ....core.coordinators.meraki_data_coordinator import MerakiDataUpdateCoordinator
     from homeassistant.config_entries import ConfigEntry
     from ....types import MerakiDevice
     from ...services.device_control_service import DeviceControlService
@@ -33,7 +33,7 @@ class MRHandler(BaseDeviceHandler):
 
     def __init__(
         self,
-        coordinator: "MerakiDataCoordinator",
+        coordinator: "MerakiDataUpdateCoordinator",
         device: "MerakiDevice",
         config_entry: "ConfigEntry",
         control_service: "DeviceControlService",
@@ -45,7 +45,7 @@ class MRHandler(BaseDeviceHandler):
     @classmethod
     def create(
         cls,
-        coordinator: "MerakiDataCoordinator",
+        coordinator: "MerakiDataUpdateCoordinator",
         device: "MerakiDevice",
         config_entry: "ConfigEntry",
         camera_service: "CameraService",

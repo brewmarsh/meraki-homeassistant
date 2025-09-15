@@ -6,13 +6,14 @@ import pytest
 from custom_components.meraki_ha.binary_sensor.device.camera_motion import (
     MerakiMotionSensor,
 )
+from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from tests.const import MOCK_DEVICE
 
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mocked MerakiDataCoordinator."""
-    return MagicMock()
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+    return MagicMock(spec=MerakiDataUpdateCoordinator)
 
 
 @pytest.fixture

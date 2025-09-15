@@ -40,15 +40,11 @@ async def setup_integration_fixture(hass: HomeAssistant, socket_enabled):
     # This patch is now for the backend, which the UI no longer directly uses in this test setup
     with (
         patch(
-            "custom_components.meraki_ha.MerakiDataCoordinator._async_update_data",
+            "custom_components.meraki_ha.MerakiDataUpdateCoordinator._async_update_data",
             return_value=MOCK_ALL_DATA,
         ),
         patch(
             "custom_components.meraki_ha.api.websocket.ws_subscribe_meraki_data",
-            return_value=None,
-        ),
-        patch(
-            "custom_components.meraki_ha.async_register_webhook",
             return_value=None,
         ),
     ):
