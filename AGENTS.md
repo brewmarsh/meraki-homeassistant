@@ -62,3 +62,50 @@ In addition to the primary `AttributeError`s, there are three other known bugs t
 4.  **Submit the Comprehensive Fix.**
     *   After all the above fixes are implemented, request a single code review and submit the complete patch.
 ---
+
+## Architectural Pattern for Configuration Entities
+
+**Author:** Jules, 2025-09-14
+
+**Problem:** The Meraki Cloud API has a significant **provisioning delay**. When a configuration change is sent (e.g., disabling an SSID), the API acknowledges the change immediately with a `200 OK` response. However, the change can take several minutes to be fully provisioned on the backend. During this time, `GET` requests to the same API endpoint will return the *old* (stale) data.
+
+**Consequences:** This delay caused a persistent bug where Home Assistant's UI would not correctly reflect the state of a switch. The flow was:
+1. User toggles a switch.
+2. The UI updates optimistically.
+3. A `PUT` request is sent to Meraki.
+4. The next scheduled data refresh in Home Assistant makes a `GET` request.
+5. The `GET` request receives stale data from the Meraki API.
+6. The Home Assistant coordinator updates the entity with this stale data, overwriting the correct optimistic state and making the UI revert to its previous, incorrect state.
+
+**Solution: Optimistic UI with Cooldown**
+
+To solve this, a specific architectural pattern **must** be used for all entities that modify configuration in Meraki (e.g., switches, text inputs, selects).
+
+The required logic is as follows:
+
+1.  **Optimistic State Update:** The entity's action method (e.g., `async_turn_on`, `async_set_value`) **must** immediately update its own state and tell Home Assistant to write this state to the UI.
+    ```python
+    # Example from a switch
+    self._attr_is_on = True
+    self.async_write_ha_state()
+    ```
+
+2.  **Fire-and-Forget API Call:** The method should then make the API call to Meraki without waiting for a response to be confirmed by a refresh.
+
+3.  **Register a Cooldown:** After making the API call, the entity **must** register a "pending update" with the central `MerakiDataCoordinator`. This acts as a cooldown period.
+    ```python
+    # Example
+    self.coordinator.register_pending_update(self.unique_id)
+    ```
+    The default cooldown is 150 seconds, which has been proven to be effective.
+
+4.  **Ignore Coordinator Updates During Cooldown:** The entity's state update method (`_update_internal_state`), which is called by the coordinator, **must** check if it is in a cooldown period before processing new data. If it is, it should do nothing.
+    ```python
+    # Example
+    def _update_internal_state(self) -> None:
+        if self.coordinator.is_pending(self.unique_id):
+            return # Ignore update
+        # ... rest of the update logic
+    ```
+
+This pattern ensures a responsive UI that is resilient to the backend API's provisioning delay. **Do not attempt to "fix" this by forcing an immediate refresh after an action.** This will not work and will re-introduce the original bug.
