@@ -40,15 +40,118 @@ class ApplianceEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache()
-    async def get_vlans(self, network_id: str) -> List[Dict[str, Any]]:
+    async def get_network_vlans(self, network_id: str) -> List[Dict[str, Any]]:
         """Get VLANs for a network."""
         vlans = await self._api_client._run_sync(
-            self._dashboard.appliance.getNetworkApplianceVlans, networkId=network_id
+            self._dashboard.appliance.get_network_appliance_vlans, networkId=network_id
         )
         validated = validate_response(vlans)
         if not isinstance(validated, list):
-            _LOGGER.warning("get_vlans did not return a list.")
+            _LOGGER.warning("get_network_vlans did not return a list.")
             return []
+        return validated
+
+    @handle_meraki_errors
+    async def update_network_vlan(
+        self, network_id: str, vlan_id: str, **kwargs
+    ) -> Dict[str, Any]:
+        """Update a VLAN."""
+        vlan = await self._api_client._run_sync(
+            self._dashboard.appliance.update_network_appliance_vlan,
+            networkId=network_id,
+            vlanId=vlan_id,
+            **kwargs,
+        )
+        validated = validate_response(vlan)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("update_network_vlan did not return a dict.")
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    @async_timed_cache()
+    async def get_l3_firewall_rules(self, network_id: str) -> Dict[str, Any]:
+        """Get L3 firewall rules for a network."""
+        rules = await self._api_client._run_sync(
+            self._dashboard.appliance.get_network_appliance_firewall_l3_firewall_rules,
+            networkId=network_id,
+        )
+        validated = validate_response(rules)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("get_l3_firewall_rules did not return a dict.")
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    async def update_l3_firewall_rules(
+        self, network_id: str, **kwargs
+    ) -> Dict[str, Any]:
+        """Update L3 firewall rules for a network."""
+        rules = await self._api_client._run_sync(
+            self._dashboard.appliance.update_network_appliance_firewall_l3_firewall_rules,
+            networkId=network_id,
+            **kwargs,
+        )
+        validated = validate_response(rules)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("update_l3_firewall_rules did not return a dict.")
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    @async_timed_cache()
+    async def get_traffic_shaping(self, network_id: str) -> Dict[str, Any]:
+        """Get traffic shaping settings for a network."""
+        settings = await self._api_client._run_sync(
+            self._dashboard.appliance.get_network_appliance_traffic_shaping,
+            networkId=network_id,
+        )
+        validated = validate_response(settings)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("get_traffic_shaping did not return a dict.")
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    async def update_traffic_shaping(self, network_id: str, **kwargs) -> Dict[str, Any]:
+        """Update traffic shaping settings for a network."""
+        settings = await self._api_client._run_sync(
+            self._dashboard.appliance.update_network_appliance_traffic_shaping,
+            networkId=network_id,
+            **kwargs,
+        )
+        validated = validate_response(settings)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("update_traffic_shaping did not return a dict.")
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    @async_timed_cache()
+    async def get_vpn_status(self, network_id: str) -> Dict[str, Any]:
+        """Get site-to-site VPN status for a network."""
+        status = await self._api_client._run_sync(
+            self._dashboard.appliance.get_network_appliance_vpn_site_to_site_vpn,
+            networkId=network_id,
+        )
+        validated = validate_response(status)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("get_vpn_status did not return a dict.")
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    async def update_vpn_status(self, network_id: str, **kwargs) -> Dict[str, Any]:
+        """Update site-to-site VPN status for a network."""
+        status = await self._api_client._run_sync(
+            self._dashboard.appliance.update_network_appliance_vpn_site_to_site_vpn,
+            networkId=network_id,
+            **kwargs,
+        )
+        validated = validate_response(status)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("update_vpn_status did not return a dict.")
+            return {}
         return validated
 
     @handle_meraki_errors

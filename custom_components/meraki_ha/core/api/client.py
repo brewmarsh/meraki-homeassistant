@@ -189,7 +189,20 @@ class MerakiAPIClient:
                     self.network.get_network_traffic(network["id"], "appliance")
                 )
                 detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
-                    self.appliance.get_vlans(network["id"])
+                    self.appliance.get_network_vlans(network["id"])
+                )
+                detail_tasks[
+                    f"l3_firewall_rules_{network['id']}"
+                ] = self._run_with_semaphore(
+                    self.appliance.get_l3_firewall_rules(network["id"])
+                )
+                detail_tasks[
+                    f"traffic_shaping_{network['id']}"
+                ] = self._run_with_semaphore(
+                    self.appliance.get_traffic_shaping(network["id"])
+                )
+                detail_tasks[f"vpn_status_{network['id']}"] = self._run_with_semaphore(
+                    self.appliance.get_vpn_status(network["id"])
                 )
                 detail_tasks[
                     f"content_filtering_{network['id']}"
@@ -249,6 +262,9 @@ class MerakiAPIClient:
         ssids: List[Dict[str, Any]] = []
         appliance_traffic: Dict[str, Any] = {}
         vlan_by_network: Dict[str, Any] = {}
+        l3_firewall_rules_by_network: Dict[str, Any] = {}
+        traffic_shaping_by_network: Dict[str, Any] = {}
+        vpn_status_by_network: Dict[str, Any] = {}
         rf_profiles_by_network: Dict[str, Any] = {}
         content_filtering_by_network: Dict[str, Any] = {}
 
@@ -289,6 +305,31 @@ class MerakiAPIClient:
                 vlan_by_network[network["id"]] = network_vlans
             elif previous_data and network_vlans_key in previous_data:
                 vlan_by_network[network["id"]] = previous_data[network_vlans_key]
+
+            l3_firewall_rules_key = f"l3_firewall_rules_{network['id']}"
+            l3_firewall_rules = detail_data.get(l3_firewall_rules_key)
+            if isinstance(l3_firewall_rules, dict):
+                l3_firewall_rules_by_network[network["id"]] = l3_firewall_rules
+            elif previous_data and l3_firewall_rules_key in previous_data:
+                l3_firewall_rules_by_network[network["id"]] = previous_data[
+                    l3_firewall_rules_key
+                ]
+
+            traffic_shaping_key = f"traffic_shaping_{network['id']}"
+            traffic_shaping = detail_data.get(traffic_shaping_key)
+            if isinstance(traffic_shaping, dict):
+                traffic_shaping_by_network[network["id"]] = traffic_shaping
+            elif previous_data and traffic_shaping_key in previous_data:
+                traffic_shaping_by_network[network["id"]] = previous_data[
+                    traffic_shaping_key
+                ]
+
+            vpn_status_key = f"vpn_status_{network['id']}"
+            vpn_status = detail_data.get(vpn_status_key)
+            if isinstance(vpn_status, dict):
+                vpn_status_by_network[network["id"]] = vpn_status
+            elif previous_data and vpn_status_key in previous_data:
+                vpn_status_by_network[network["id"]] = previous_data[vpn_status_key]
 
             network_rf_profiles_key = f"rf_profiles_{network['id']}"
             network_rf_profiles = detail_data.get(network_rf_profiles_key)
@@ -337,6 +378,9 @@ class MerakiAPIClient:
             "ssids": ssids,
             "appliance_traffic": appliance_traffic,
             "vlans": vlan_by_network,
+            "l3_firewall_rules": l3_firewall_rules_by_network,
+            "traffic_shaping": traffic_shaping_by_network,
+            "vpn_status": vpn_status_by_network,
             "rf_profiles": rf_profiles_by_network,
             "content_filtering": content_filtering_by_network,
         }

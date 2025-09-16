@@ -15,6 +15,14 @@ from .const import (
     DEFAULT_ENABLE_WEB_UI,
     CONF_WEB_UI_PORT,
     DEFAULT_WEB_UI_PORT,
+    CONF_ENABLE_VLAN_MANAGEMENT,
+    DEFAULT_ENABLE_VLAN_MANAGEMENT,
+    CONF_ENABLE_FIREWALL_RULES,
+    DEFAULT_ENABLE_FIREWALL_RULES,
+    CONF_ENABLE_TRAFFIC_SHAPING,
+    DEFAULT_ENABLE_TRAFFIC_SHAPING,
+    CONF_ENABLE_VPN,
+    DEFAULT_ENABLE_VPN,
 )
 
 CONFIG_SCHEMA = vol.Schema(
@@ -30,10 +38,25 @@ MENU_SCHEMA = vol.Schema(
     {
         vol.Optional("next_step"): selector.SelectSelector(
             selector.SelectSelectorConfig(
-                options=["general", "advanced"],
+                options=["general", "advanced", "features"],
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
         )
+    }
+)
+
+FEATURES_SCHEMA = vol.Schema(
+    {
+        vol.Required(
+            CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_FIREWALL_RULES, default=DEFAULT_ENABLE_FIREWALL_RULES
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_TRAFFIC_SHAPING, default=DEFAULT_ENABLE_TRAFFIC_SHAPING
+        ): selector.BooleanSelector(),
+        vol.Required(CONF_ENABLE_VPN, default=DEFAULT_ENABLE_VPN): selector.BooleanSelector(),
     }
 )
 

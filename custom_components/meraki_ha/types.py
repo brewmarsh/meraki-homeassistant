@@ -21,6 +21,34 @@ class MerakiNetwork(TypedDict):
     productTypes: List[str]
 
 
+class MerakiFirewallRule(TypedDict):
+    """Represents a Meraki L3 Firewall Rule."""
+
+    comment: str
+    policy: str
+    protocol: str
+    destPort: str
+    destCidr: str
+    srcPort: str
+    srcCidr: str
+    syslogEnabled: bool
+
+
+class MerakiTrafficShaping(TypedDict):
+    """Represents Meraki Traffic Shaping settings."""
+
+    enabled: bool
+    rules: list
+
+
+class MerakiVpn(TypedDict):
+    """Represents Meraki Site-to-Site VPN settings."""
+
+    mode: str
+    hubs: list
+    subnets: list
+
+
 class MerakiDevice(TypedDict, total=False):
     """Represents a Meraki Device. Not all keys are guaranteed."""
 
