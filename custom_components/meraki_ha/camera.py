@@ -1,5 +1,5 @@
 """
-A Meraki camera entity.
+Support for Meraki cameras.
 """
 
 from __future__ import annotations
@@ -31,11 +31,28 @@ except (ImportError, AttributeError):
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.entity_platform import AddEntitiesCallback
     from .coordinator import MerakiDataUpdateCoordinator
     from .services.camera_service import CameraService
 
 
 _LOGGER = logging.getLogger(__name__)
+
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up Meraki camera entities from a config entry."""
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    discovered_entities = entry_data.get("entities", [])
+
+    camera_entities = [e for e in discovered_entities if isinstance(e, MerakiCamera)]
+
+    if camera_entities:
+        async_add_entities(camera_entities)
 
 
 class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):

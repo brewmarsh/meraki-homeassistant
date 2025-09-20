@@ -7,8 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.button import ButtonEntity
 
-from ..const import DOMAIN, DATA_COORDINATOR
-from .reboot import MerakiRebootButton
+from ..const import DOMAIN
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -21,12 +20,11 @@ async def async_setup_entry(
 ) -> bool:
     """Set up Meraki button entities from a config entry."""
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
-    coordinator = entry_data[DATA_COORDINATOR]
 
-    button_entities = []
-    devices = coordinator.data.get("devices", [])
-    for device_info in devices:
-        button_entities.append(MerakiRebootButton(coordinator.api, device_info, config_entry))
+    # Add discovered entities
+    discovered_entities = entry_data.get("entities", [])
+
+    button_entities = [e for e in discovered_entities if isinstance(e, ButtonEntity)]
 
     if button_entities:
         async_add_entities(button_entities)

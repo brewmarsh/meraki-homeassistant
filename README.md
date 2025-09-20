@@ -230,21 +230,6 @@ For Meraki MX security appliances, the following sensors and controls are availa
 | `sensor` | `[Device Name] Data Usage` | Total data usage for the device in the last day. |
 | `sensor` | `[Device Name] Connected Clients` | The number of clients currently connected to the appliance. |
 
-### Meraki MX Sensors
-
-For Meraki MX security appliances, the following sensors and controls are available:
-
-| Entity Type | Name | Description |
-| :--- | :--- | :--- |
-| `button` | `[Device Name] Reboot` | A button to restart the MX appliance. |
-| `sensor` | `[Device Name] Uplink` | A sensor for each WAN uplink on the device, showing its status. |
-| `sensor` | `[Device Name] Status` | The current operational status of the device (e.g., "online", "offline"). |
-| `sensor` | `[Device Name] WAN 1 Connectivity` | The connectivity status of the primary WAN port. |
-| `sensor` | `[Device Name] WAN 2 Connectivity` | The connectivity status of the secondary WAN port. |
-| `sensor` | `[Device Name] Firmware Status` | Indicates if a firmware update is available. |
-| `sensor` | `[Device Name] Data Usage` | Total data usage for the device in the last day. |
-| `sensor` | `[Device Name] Connected Clients` | The number of clients currently connected to the appliance. |
-
 ### Network Sensors
 
 These sensors are linked to Meraki Network "devices" in Home Assistant.

@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from custom_components.meraki_ha.binary_sensor.device.camera_motion import (
-    MerakiCameraMotionSensor,
+    MerakiMotionSensor,
 )
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from tests.const import MOCK_DEVICE
@@ -31,7 +31,7 @@ async def test_motion_sensor_on(mock_coordinator, mock_camera_service):
     """Test the motion sensor when motion is detected."""
     # Arrange
     device = MOCK_DEVICE.copy()
-    sensor = MerakiCameraMotionSensor(mock_coordinator, device, mock_camera_service)
+    sensor = MerakiMotionSensor(mock_coordinator, device, mock_camera_service)
 
     # Act
     await sensor.async_update()
@@ -49,7 +49,7 @@ async def test_motion_sensor_off(mock_coordinator, mock_camera_service):
     # Arrange
     device = MOCK_DEVICE.copy()
     mock_camera_service.get_motion_history.return_value = []
-    sensor = MerakiCameraMotionSensor(mock_coordinator, device, mock_camera_service)
+    sensor = MerakiMotionSensor(mock_coordinator, device, mock_camera_service)
 
     # Act
     await sensor.async_update()
