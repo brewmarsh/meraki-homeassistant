@@ -26,8 +26,7 @@ class ApplianceEndpoints:
         self, network_id: str, timespan: int = 86400
     ) -> List[Dict[str, Any]]:
         """Get traffic data for a network appliance."""
-        traffic = await self._api_client._run_sync(
-            self._dashboard.networks.getNetworkTraffic,
+        traffic = await self._dashboard.networks.getNetworkTraffic(
             networkId=network_id,
             timespan=timespan,
             deviceType="appliance",
@@ -42,8 +41,8 @@ class ApplianceEndpoints:
     @async_timed_cache()
     async def get_network_vlans(self, network_id: str) -> List[Dict[str, Any]]:
         """Get VLANs for a network."""
-        vlans = await self._api_client._run_sync(
-            self._dashboard.appliance.get_network_appliance_vlans, networkId=network_id
+        vlans = await self._dashboard.appliance.get_network_appliance_vlans(
+            networkId=network_id
         )
         validated = validate_response(vlans)
         if not isinstance(validated, list):
@@ -56,8 +55,7 @@ class ApplianceEndpoints:
         self, network_id: str, vlan_id: str, **kwargs
     ) -> Dict[str, Any]:
         """Update a VLAN."""
-        vlan = await self._api_client._run_sync(
-            self._dashboard.appliance.update_network_appliance_vlan,
+        vlan = await self._dashboard.appliance.update_network_appliance_vlan(
             networkId=network_id,
             vlanId=vlan_id,
             **kwargs,
@@ -72,8 +70,7 @@ class ApplianceEndpoints:
     @async_timed_cache()
     async def get_l3_firewall_rules(self, network_id: str) -> Dict[str, Any]:
         """Get L3 firewall rules for a network."""
-        rules = await self._api_client._run_sync(
-            self._dashboard.appliance.get_network_appliance_firewall_l3_firewall_rules,
+        rules = await self._dashboard.appliance.get_network_appliance_firewall_l3_firewall_rules(
             networkId=network_id,
         )
         validated = validate_response(rules)
@@ -87,8 +84,7 @@ class ApplianceEndpoints:
         self, network_id: str, **kwargs
     ) -> Dict[str, Any]:
         """Update L3 firewall rules for a network."""
-        rules = await self._api_client._run_sync(
-            self._dashboard.appliance.update_network_appliance_firewall_l3_firewall_rules,
+        rules = await self._dashboard.appliance.update_network_appliance_firewall_l3_firewall_rules(
             networkId=network_id,
             **kwargs,
         )
@@ -102,8 +98,7 @@ class ApplianceEndpoints:
     @async_timed_cache()
     async def get_traffic_shaping(self, network_id: str) -> Dict[str, Any]:
         """Get traffic shaping settings for a network."""
-        settings = await self._api_client._run_sync(
-            self._dashboard.appliance.get_network_appliance_traffic_shaping,
+        settings = await self._dashboard.appliance.get_network_appliance_traffic_shaping(
             networkId=network_id,
         )
         validated = validate_response(settings)
@@ -115,10 +110,11 @@ class ApplianceEndpoints:
     @handle_meraki_errors
     async def update_traffic_shaping(self, network_id: str, **kwargs) -> Dict[str, Any]:
         """Update traffic shaping settings for a network."""
-        settings = await self._api_client._run_sync(
-            self._dashboard.appliance.update_network_appliance_traffic_shaping,
-            networkId=network_id,
-            **kwargs,
+        settings = (
+            await self._dashboard.appliance.update_network_appliance_traffic_shaping(
+                networkId=network_id,
+                **kwargs,
+            )
         )
         validated = validate_response(settings)
         if not isinstance(validated, dict):
@@ -130,9 +126,10 @@ class ApplianceEndpoints:
     @async_timed_cache()
     async def get_vpn_status(self, network_id: str) -> Dict[str, Any]:
         """Get site-to-site VPN status for a network."""
-        status = await self._api_client._run_sync(
-            self._dashboard.appliance.get_network_appliance_vpn_site_to_site_vpn,
-            networkId=network_id,
+        status = (
+            await self._dashboard.appliance.get_network_appliance_vpn_site_to_site_vpn(
+                networkId=network_id,
+            )
         )
         validated = validate_response(status)
         if not isinstance(validated, dict):
@@ -143,10 +140,11 @@ class ApplianceEndpoints:
     @handle_meraki_errors
     async def update_vpn_status(self, network_id: str, **kwargs) -> Dict[str, Any]:
         """Update site-to-site VPN status for a network."""
-        status = await self._api_client._run_sync(
-            self._dashboard.appliance.update_network_appliance_vpn_site_to_site_vpn,
-            networkId=network_id,
-            **kwargs,
+        status = (
+            await self._dashboard.appliance.update_network_appliance_vpn_site_to_site_vpn(
+                networkId=network_id,
+                **kwargs,
+            )
         )
         validated = validate_response(status)
         if not isinstance(validated, dict):
@@ -160,8 +158,8 @@ class ApplianceEndpoints:
         self, serial: str
     ) -> Dict[str, Any]:
         """Get uplinks settings for a device."""
-        uplinks = await self._api_client._run_sync(
-            self._dashboard.appliance.getDeviceApplianceUplinksSettings, serial=serial
+        uplinks = await self._dashboard.appliance.getDeviceApplianceUplinksSettings(
+            serial=serial
         )
         validated = validate_response(uplinks)
         if not isinstance(validated, dict):
@@ -177,8 +175,7 @@ class ApplianceEndpoints:
         self, network_id: str
     ) -> Dict[str, Any]:
         """Get content filtering settings for a network."""
-        result = await self._api_client._run_sync(
-            self._dashboard.appliance.getNetworkApplianceContentFiltering,
+        result = await self._dashboard.appliance.getNetworkApplianceContentFiltering(
             networkId=network_id,
         )
         validated = validate_response(result)
@@ -195,8 +192,7 @@ class ApplianceEndpoints:
         self, network_id: str
     ) -> Dict[str, Any]:
         """Get content filtering categories for a network."""
-        result = await self._api_client._run_sync(
-            self._dashboard.appliance.getNetworkApplianceContentFilteringCategories,
+        result = await self._dashboard.appliance.getNetworkApplianceContentFilteringCategories(
             network_id=network_id,
         )
         validated = validate_response(result)
@@ -210,9 +206,7 @@ class ApplianceEndpoints:
     @handle_meraki_errors
     async def reboot_device(self, serial: str) -> Dict[str, Any]:
         """Reboot a device."""
-        result = await self._api_client._run_sync(
-            self._dashboard.devices.rebootDevice, serial=serial
-        )
+        result = await self._dashboard.devices.rebootDevice(serial=serial)
         validated = validate_response(result)
         if not isinstance(validated, dict):
             _LOGGER.warning("reboot_device did not return a dict.")
@@ -223,8 +217,8 @@ class ApplianceEndpoints:
     @async_timed_cache()
     async def get_appliance_ports(self, network_id: str) -> List[Dict[str, Any]]:
         """Get all ports for an appliance."""
-        ports = await self._api_client._run_sync(
-            self._dashboard.appliance.getNetworkAppliancePorts, networkId=network_id
+        ports = await self._dashboard.appliance.getNetworkAppliancePorts(
+            networkId=network_id
         )
         validated = validate_response(ports)
         if not isinstance(validated, list):
@@ -236,8 +230,8 @@ class ApplianceEndpoints:
     @async_timed_cache(timeout=3600)
     async def get_network_appliance_settings(self, network_id: str) -> Dict[str, Any]:
         """Get settings for a network appliance."""
-        settings = await self._api_client._run_sync(
-            self._dashboard.appliance.getNetworkApplianceSettings, networkId=network_id
+        settings = await self._dashboard.appliance.getNetworkApplianceSettings(
+            networkId=network_id
         )
         validated = validate_response(settings)
         if not isinstance(validated, dict):
@@ -251,8 +245,7 @@ class ApplianceEndpoints:
         self, network_id: str
     ) -> Dict[str, Any]:
         """Get L7 firewall rules for a network."""
-        rules = await self._api_client._run_sync(
-            self._dashboard.networks.getNetworkApplianceL7FirewallRules,
+        rules = await self._dashboard.networks.getNetworkApplianceL7FirewallRules(
             networkId=network_id,
         )
         validated = validate_response(rules)
@@ -268,8 +261,7 @@ class ApplianceEndpoints:
         self, network_id: str, **kwargs
     ) -> Dict[str, Any]:
         """Update L7 firewall rules for a network."""
-        rules = await self._api_client._run_sync(
-            self._dashboard.networks.updateNetworkApplianceL7FirewallRules,
+        rules = await self._dashboard.networks.updateNetworkApplianceL7FirewallRules(
             networkId=network_id,
             **kwargs,
         )
@@ -286,10 +278,11 @@ class ApplianceEndpoints:
         self, network_id: str, **kwargs
     ) -> Dict[str, Any]:
         """Update content filtering for a network."""
-        result = await self._api_client._run_sync(
-            self._dashboard.appliance.updateNetworkApplianceContentFiltering,
-            networkId=network_id,
-            **kwargs,
+        result = (
+            await self._dashboard.appliance.updateNetworkApplianceContentFiltering(
+                networkId=network_id,
+                **kwargs,
+            )
         )
         validated = validate_response(result)
         if not isinstance(validated, dict):

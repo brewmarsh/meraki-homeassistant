@@ -5,9 +5,9 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers import device_registry as dr
 
 from ..const import DOMAIN
-from ..coordinator import MerakiDataUpdateCoordinator
 from .setup_helpers import async_setup_switches
 
 
@@ -20,7 +20,17 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki switch entities from a config entry."""
-    coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
+
+    device_registry = dr.async_get(hass)
+    for network in coordinator.data.get("networks", []):
+        device_registry.async_get_or_create(
+            config_entry_id=config_entry.entry_id,
+            identifiers={(DOMAIN, f"network_{network['id']}")},
+            name=network["name"],
+            manufacturer="Cisco Meraki",
+            model="Network",
+        )
 
     switch_entities = async_setup_switches(hass, config_entry, coordinator)
 

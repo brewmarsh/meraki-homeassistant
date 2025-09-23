@@ -52,7 +52,7 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator], Entity, A
         """Get device info for this entity."""
         # Handle network-based entities
         if self._network_id and not self._serial:
-            network = self.coordinator.get_network_by_id(self._network_id)
+            network = self.coordinator.networks_by_id.get(self._network_id)
             if network:
                 return DeviceInfo(
                     identifiers={(DOMAIN, f"network_{self._network_id}")},
@@ -64,7 +64,7 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator], Entity, A
 
         # Handle device-based entities
         if self._serial:
-            device = self.coordinator.get_device_by_serial(self._serial)
+            device = self.coordinator.devices_by_serial.get(self._serial)
             if device:
                 model = device.get("model", "unknown")
                 return DeviceInfo(
@@ -89,12 +89,12 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator], Entity, A
 
         # For device-based entities, check device status
         if self._serial:
-            device = self.coordinator.get_device_by_serial(self._serial)
+            device = self.coordinator.devices_by_serial.get(self._serial)
             return bool(device and device.get("status") == "online")
 
         # For network-based entities, check network status
         if self._network_id:
-            network = self.coordinator.get_network_by_id(self._network_id)
+            network = self.coordinator.networks_by_id.get(self._network_id)
             return bool(network)
 
         return True

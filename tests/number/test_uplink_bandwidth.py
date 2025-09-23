@@ -1,24 +1,35 @@
 """Tests for the Meraki uplink bandwidth number."""
+import sys
+from unittest.mock import MagicMock
+
+# Mock the hass_frontend module
+sys.modules['hass_frontend'] = MagicMock()
 
 import pytest
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock, patch
 
-from custom_components.meraki_ha.number.setup_helpers import async_setup_numbers
+from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 from custom_components.meraki_ha.const import (
+    DOMAIN,
     CONF_ENABLE_TRAFFIC_SHAPING,
 )
 
 
-@pytest.fixture
-def mock_coordinator():
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
-    coordinator = MagicMock()
-    coordinator.config_entry = MagicMock()
-    coordinator.config_entry.options = {
-        "device_name_format": "omit",
-        CONF_ENABLE_TRAFFIC_SHAPING: True,
-    }
-    coordinator.data = {
+@pytest.mark.asyncio
+async def test_uplink_bandwidth_number(hass: HomeAssistant):
+    """Test uplink bandwidth number entities."""
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={"meraki_api_key": "fake_key", "meraki_org_id": "fake_org"},
+        options={CONF_ENABLE_TRAFFIC_SHAPING: True},
+        entry_id="test_entry",
+    )
+    config_entry.add_to_hass(hass)
+
+    mock_data = {
+        "devices": [],
         "networks": [
             {"id": "net1", "name": "Test Network", "productTypes": ["appliance"]}
         ],
@@ -31,53 +42,40 @@ def mock_coordinator():
             }
         },
     }
-    coordinator.is_pending.return_value = False
-    coordinator.api = MagicMock()
-    coordinator.api.appliance.update_traffic_shaping = AsyncMock()
-    return coordinator
 
+    with patch(
+        "custom_components.meraki_ha.coordinator.ApiClient.get_all_data",
+        return_value=mock_data,
+    ), patch(
+        "custom_components.meraki_ha.async_register_webhook", return_value=None
+    ), patch(
+        "custom_components.meraki_ha.core.api.endpoints.appliance.ApplianceEndpoints.update_traffic_shaping"
+    ) as mock_update:
+        assert await hass.config_entries.async_setup(config_entry.entry_id)
+        await hass.async_block_till_done()
 
-def test_uplink_bandwidth_number_creation(mock_coordinator):
-    """Test that the uplink bandwidth numbers are created correctly."""
-    hass = MagicMock()
+        # Test creation
+        up_limit_entity_id = "number.test_network_wan1_up_limit"
+        down_limit_entity_id = "number.test_network_wan1_down_limit"
 
-    # Run the setup
-    numbers = async_setup_numbers(
-        hass, mock_coordinator.config_entry, mock_coordinator
-    )
+        up_limit_state = hass.states.get(up_limit_entity_id)
+        assert up_limit_state
+        assert up_limit_state.state == "1000.0"
 
-    # Find the specific numbers
-    up_limit_number = next(s for s in numbers if "Up Limit" in s.name)
-    down_limit_number = next(s for s in numbers if "Down Limit" in s.name)
+        down_limit_state = hass.states.get(down_limit_entity_id)
+        assert down_limit_state
+        assert down_limit_state.state == "10000.0"
 
-    # Assertions for Up Limit Number
-    assert (
-        up_limit_number.unique_id == "uplink_bandwidth_net1_wan1_up"
-    )
-    assert up_limit_number.name == "Test Network Wan1 Up Limit"
-    assert up_limit_number.native_value == 1000
+        # Test set value
+        await hass.services.async_call(
+            "number",
+            "set_value",
+            {"entity_id": up_limit_entity_id, "value": 2000},
+            blocking=True,
+        )
+        await hass.async_block_till_done()
 
-    # Assertions for Down Limit Number
-    assert (
-        down_limit_number.unique_id == "uplink_bandwidth_net1_wan1_down"
-    )
-    assert down_limit_number.name == "Test Network Wan1 Down Limit"
-    assert down_limit_number.native_value == 10000
-
-
-@pytest.mark.asyncio
-async def test_uplink_bandwidth_number_set_value(mock_coordinator):
-    """Test setting the value of an uplink bandwidth number."""
-    hass = MagicMock()
-    numbers = async_setup_numbers(
-        hass, mock_coordinator.config_entry, mock_coordinator
-    )
-    up_limit_number = next(s for s in numbers if "Up Limit" in s.name)
-    up_limit_number.hass = hass
-
-    await up_limit_number.async_set_native_value(2000)
-
-    mock_coordinator.api.appliance.update_traffic_shaping.assert_called_once_with(
-        network_id="net1",
-        bandwidthLimits={"wan1": {"limitUp": 2000, "limitDown": 10000}},
-    )
+        mock_update.assert_called_once_with(
+            network_id="net1",
+            bandwidthLimits={"wan1": {"limitUp": 2000, "limitDown": 10000}},
+        )

@@ -3,3 +3,4 @@ voluptuous
 flake8
 bandit
 pytest-homeassistant-custom-component
+pytest-mock

@@ -1,6 +1,9 @@
 """Tests for the Meraki config flow."""
+import sys
+from unittest.mock import patch, MagicMock
 
-from unittest.mock import patch
+# Mock the hass_frontend module
+sys.modules['hass_frontend'] = MagicMock()
 
 from homeassistant.core import HomeAssistant
 import pytest
@@ -19,7 +22,7 @@ from custom_components.meraki_ha.config_flow import MerakiAuthenticationError
 
 
 @pytest.mark.asyncio
-async def test_async_step_user_success(hass: HomeAssistant) -> None:
+async def test_async_step_user_success(hass: HomeAssistant, mocker) -> None:
     """Test the user step of the config flow with valid credentials."""
     with patch(
         "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
@@ -66,7 +69,7 @@ async def test_async_step_user_success(hass: HomeAssistant) -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_step_user_invalid_auth(hass: HomeAssistant) -> None:
+async def test_async_step_user_invalid_auth(hass: HomeAssistant, mocker) -> None:
     """Test the user step of the config flow with invalid credentials."""
     with patch(
         "custom_components.meraki_ha.config_flow.validate_meraki_credentials",

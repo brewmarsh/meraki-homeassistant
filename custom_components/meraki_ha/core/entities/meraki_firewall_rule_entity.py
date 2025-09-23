@@ -40,14 +40,14 @@ class MerakiFirewallRuleEntity(BaseMerakiEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={
                 (
-                    coordinator.domain,
+                    self._config_entry.domain,
                     f"firewall_rule_{network_id}_{rule_index}",
                 )
             },
             name=formatted_name,
             manufacturer="Cisco Meraki",
             model="L3 Firewall Rule",
-            via_device=(coordinator.domain, f"network_{network_id}"),
+            via_device=(self._config_entry.domain, f"network_{network_id}"),
         )
 
     @property

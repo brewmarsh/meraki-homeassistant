@@ -5,9 +5,9 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.components.text import TextEntity
 
 from ..const import DOMAIN
+from .meraki_ssid_name import MerakiSSIDNameText
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -19,20 +19,17 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki text entities from a config entry."""
-    entry_data = hass.data.get(DOMAIN, {}).get(config_entry.entry_id, {})
-    if not entry_data:
-        _LOGGER.warning("Meraki entry data not found for %s", config_entry.entry_id)
-        return False
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = entry_data["coordinator"]
+    meraki_client = coordinator.api
 
-    discovered_entities = entry_data.get("entities", [])
+    if coordinator.data:
+        text_entities = [
+            MerakiSSIDNameText(coordinator, meraki_client, config_entry, ssid)
+            for ssid in coordinator.data.get("ssids", [])
+        ]
 
-    # Filter for text entities
-    text_entities = [
-        entity for entity in discovered_entities if isinstance(entity, TextEntity)
-    ]
-
-    _LOGGER.debug("Found %d text entities", len(text_entities))
-    if text_entities:
-        async_add_entities(text_entities)
+        if text_entities:
+            async_add_entities(text_entities)
 
     return True

@@ -20,9 +20,9 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Meraki select entities."""
-    meraki_data = hass.data[DOMAIN][config_entry.entry_id]
-    coordinator = meraki_data["coordinator"]
-    meraki_client = meraki_data["client"]
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = entry_data["coordinator"]
+    meraki_client = coordinator.api
 
     if coordinator.data:
         select_entities = []

@@ -1,4 +1,9 @@
 """Tests for the Meraki options flow."""
+import sys
+from unittest.mock import MagicMock
+
+# Mock the hass_frontend module
+sys.modules['hass_frontend'] = MagicMock()
 
 from homeassistant.core import HomeAssistant
 import pytest
@@ -15,7 +20,7 @@ from custom_components.meraki_ha.const import (
 
 
 @pytest.mark.asyncio
-async def test_options_flow(hass: HomeAssistant) -> None:
+async def test_options_flow(hass: HomeAssistant, mocker) -> None:
     """Test the options flow."""
     config_entry = MockConfigEntry(
         domain=DOMAIN,

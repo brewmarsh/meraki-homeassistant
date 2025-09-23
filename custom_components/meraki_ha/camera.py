@@ -47,9 +47,14 @@ async def async_setup_entry(
 ) -> None:
     """Set up Meraki camera entities from a config entry."""
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
-    discovered_entities = entry_data.get("entities", [])
+    coordinator = entry_data["coordinator"]
+    camera_service = entry_data["camera_service"]
 
-    camera_entities = [e for e in discovered_entities if isinstance(e, MerakiCamera)]
+    camera_entities = [
+        MerakiCamera(coordinator, config_entry, device, camera_service)
+        for device in coordinator.data["devices"]
+        if "camera" in device.get("productType", "")
+    ]
 
     if camera_entities:
         async_add_entities(camera_entities)

@@ -1,4 +1,9 @@
 """Integration-level tests for the Meraki HA component."""
+import sys
+from unittest.mock import MagicMock
+
+# Mock the hass_frontend module
+sys.modules['hass_frontend'] = MagicMock()
 
 import pytest
 from unittest.mock import patch, AsyncMock
@@ -56,6 +61,7 @@ def mock_meraki_client():
     return client
 
 
+@pytest.mark.enable_socket
 async def test_ssid_device_creation_and_unification(
     hass: HomeAssistant, config_entry, mock_meraki_client
 ):
@@ -64,7 +70,7 @@ async def test_ssid_device_creation_and_unification(
 
     with (
         patch(
-            "custom_components.meraki_ha.MerakiAPIClient",
+            "custom_components.meraki_ha.coordinator.ApiClient",
             return_value=mock_meraki_client,
         ),
         patch("custom_components.meraki_ha.async_register_webhook", return_value=None),

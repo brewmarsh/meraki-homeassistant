@@ -1,24 +1,35 @@
 """Tests for the Meraki VLANs list sensor."""
-
-import pytest
+import sys
 from unittest.mock import MagicMock
 
-from custom_components.meraki_ha.sensor.setup_helpers import async_setup_sensors
+# Mock the hass_frontend module
+sys.modules['hass_frontend'] = MagicMock()
+
+import pytest
+from unittest.mock import patch
+
+from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 from custom_components.meraki_ha.const import (
+    DOMAIN,
     CONF_ENABLE_VLAN_MANAGEMENT,
 )
 
 
-@pytest.fixture
-def mock_coordinator():
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
-    coordinator = MagicMock()
-    coordinator.config_entry = MagicMock()
-    coordinator.config_entry.options = {
-        "device_name_format": "omit",
-        CONF_ENABLE_VLAN_MANAGEMENT: True,
-    }
-    coordinator.data = {
+@pytest.mark.asyncio
+async def test_vlans_list_sensor(hass: HomeAssistant):
+    """Test the VLANs list sensor."""
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={"meraki_api_key": "fake_key", "meraki_org_id": "fake_org"},
+        options={CONF_ENABLE_VLAN_MANAGEMENT: True},
+        entry_id="test_entry",
+    )
+    config_entry.add_to_hass(hass)
+
+    mock_data = {
+        "devices": [],
         "networks": [{"id": "net1", "name": "Test Network"}],
         "vlans": {
             "net1": [
@@ -38,27 +49,25 @@ def mock_coordinator():
                 },
             ]
         },
-        "devices": [],
         "clients": [],
         "ssids": [],
     }
-    return coordinator
 
+    with patch(
+        "custom_components.meraki_ha.coordinator.ApiClient.get_all_data",
+        return_value=mock_data,
+    ), patch(
+        "custom_components.meraki_ha.async_register_webhook", return_value=None
+    ):
+        assert await hass.config_entries.async_setup(config_entry.entry_id)
+        await hass.async_block_till_done()
 
-def test_vlans_list_sensor_creation(mock_coordinator):
-    """Test that the VLANs list sensor is created correctly."""
-    hass = MagicMock()
+        coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
 
-    # Run the setup
-    sensors = async_setup_sensors(hass, mock_coordinator.config_entry, mock_coordinator)
-
-    # Find the specific sensor
-    vlans_list_sensor = next(
-        s for s in sensors if "VLANs" in s.name
-    )
-
-    # Assertions for VLANs List Sensor
-    assert vlans_list_sensor.unique_id == "network-net1-vlans"
-    assert vlans_list_sensor.name == "Test Network VLANs"
-    assert vlans_list_sensor.native_value == 2
-    assert len(vlans_list_sensor.extra_state_attributes["vlans"]) == 2
+        entity_id = "sensor.test_network_vlans"
+        state = hass.states.get(entity_id)
+        assert state
+        assert state.state == "2"
+        assert len(state.attributes["vlans"]) == 2

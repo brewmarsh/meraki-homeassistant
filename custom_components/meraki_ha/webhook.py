@@ -78,6 +78,7 @@ async def async_register_webhook(
     """Register a webhook with the Meraki API."""
     try:
         webhook_url = get_webhook_url(
+            hass, webhook_id, entry.data.get("webhook_url")
         )
         webhook = await api_client.register_webhook(webhook_url, secret)
         return webhook

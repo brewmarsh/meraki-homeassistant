@@ -117,9 +117,9 @@ PLATFORM_NUMBER: Final[str] = "number"
 """Represents the number platform (str)."""
 
 PLATFORMS: Final[List[str]] = [
+    PLATFORM_SENSOR,
     PLATFORM_BINARY_SENSOR,
     PLATFORM_BUTTON,
-    PLATFORM_SENSOR,
     PLATFORM_SWITCH,
     PLATFORM_TEXT,
     PLATFORM_CAMERA,

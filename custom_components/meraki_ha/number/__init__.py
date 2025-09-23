@@ -7,7 +7,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN
-from ..coordinator import MerakiDataUpdateCoordinator
 from .setup_helpers import async_setup_numbers
 
 
@@ -20,7 +19,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki number entities from a config entry."""
-    coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
 
     number_entities = async_setup_numbers(hass, config_entry, coordinator)
 

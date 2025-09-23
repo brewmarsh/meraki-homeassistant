@@ -27,7 +27,7 @@ class MerakiNetworkEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
         self._network_id = network["id"]
 
         self._attr_device_info = DeviceInfo(
-            identifiers={(coordinator.domain, f"network_{network['id']}")},
+            identifiers={(self._config_entry.domain, f"network_{network['id']}")},
             name=network["name"],
             manufacturer="Cisco Meraki",
             model="Network",

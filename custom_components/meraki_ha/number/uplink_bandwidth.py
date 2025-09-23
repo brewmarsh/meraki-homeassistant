@@ -54,7 +54,8 @@ class MerakiUplinkBandwidthNumber(MerakiNetworkEntity, NumberEntity):
         if traffic_shaping:
             limits = traffic_shaping.get("bandwidthLimits", {})
             uplink_limits = limits.get(self._uplink, {})
-            self._attr_native_value = uplink_limits.get(f"limit{self._direction.capitalize()}")
+            value = uplink_limits.get(f"limit{self._direction.capitalize()}")
+            self._attr_native_value = float(value) if value is not None else None
 
     @callback
     def _handle_coordinator_update(self) -> None:
