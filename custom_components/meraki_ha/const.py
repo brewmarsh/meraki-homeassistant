@@ -62,7 +62,7 @@ CONF_ENABLE_TRAFFIC_SHAPING: Final[str] = "enable_traffic_shaping"
 CONF_ENABLE_VPN: Final[str] = "enable_vpn"
 """Configuration key for enabling vpn (str)."""
 
-DEFAULT_ENABLE_WEB_UI: Final[bool] = False
+DEFAULT_ENABLE_WEB_UI: Final[bool] = True
 """Default value for enabling the web UI (bool)."""
 
 DEFAULT_WEB_UI_PORT: Final[int] = 9988

@@ -3,40 +3,54 @@ import Dashboard from './components/Dashboard';
 import DeviceView from './components/DeviceView';
 import NetworkView from './components/NetworkView';
 
+// Define a simplified type for the Home Assistant object
+interface Hass {
+  connection: {
+    sendMessagePromise: (message: any) => Promise<any>;
+  };
+  // Add other properties of hass object if needed
+}
+
 // Define the types for our data
 interface MerakiData {
   [key: string]: any;
 }
 
-const App: React.FC = () => {
+interface AppProps {
+  hass: Hass;
+  config_entry_id: string;
+}
+
+const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<{ view: string; deviceId?: string; networkId?: string }>({ view: 'dashboard' });
 
   useEffect(() => {
+    if (!hass || !hass.connection) {
+      setError("Home Assistant connection object not found.");
+      setLoading(false);
+      return;
+    }
+
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/config');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const result = await response.json();
+        const result = await hass.connection.sendMessagePromise({
+          type: 'meraki_ha/get_config',
+          config_entry_id: config_entry_id,
+        });
         setData(result);
-      } catch (e) {
-        console.error('Error fetching Meraki data:', e);
-        if (e instanceof Error) {
-            setError(`Failed to fetch Meraki data: ${e.message}`);
-        } else {
-            setError('An unknown error occurred while fetching data.');
-        }
+      } catch (err: any) {
+        console.error('Error fetching Meraki data:', err);
+        setError(`Failed to fetch Meraki data: ${err.message || 'Unknown error'}`);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [hass, config_entry_id]);
 
   if (loading) {
     return <div className="p-4">Loading...</div>;

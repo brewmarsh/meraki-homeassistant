@@ -11,14 +11,10 @@ from .const import (
     PLATFORMS,
     WEBHOOK_ID_FORMAT,
     CONF_MERAKI_ORG_ID,
-    CONF_ENABLE_WEB_UI,
-    CONF_WEB_UI_PORT,
-    DEFAULT_ENABLE_WEB_UI,
-    DEFAULT_WEB_UI_PORT,
 )
 from .coordinator import MerakiDataUpdateCoordinator
 from .webhook import async_register_webhook
-from .web_server import WebServer
+from .web_api import async_setup_api
 from .core.api.client import MerakiAPIClient
 from .core.repositories.camera_repository import CameraRepository
 from .services.camera_service import CameraService
@@ -33,6 +29,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Meraki integration."""
     hass.data.setdefault(DOMAIN, {})
+    async_setup_api(hass)
     return True
 
 
@@ -56,13 +53,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "camera_service": camera_service,
         "switch_port_status_coordinator": switch_port_status_coordinator,
     }
-
-    # Start the web server if enabled
-    if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
-        port = entry.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
-        web_server = WebServer(hass, coordinator, port)
-        await web_server.start()
-        hass.data[DOMAIN][entry.entry_id]["web_server"] = web_server
 
     # Set up webhook
     webhook_id = WEBHOOK_ID_FORMAT.format(entry_id=entry.entry_id)
@@ -90,11 +80,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Meraki config entry."""
-    # Stop the web server if it's running
-    if "web_server" in hass.data[DOMAIN][entry.entry_id]:
-        web_server = hass.data[DOMAIN][entry.entry_id]["web_server"]
-        await web_server.stop()
-
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
