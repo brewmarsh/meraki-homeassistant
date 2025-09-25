@@ -3,78 +3,40 @@ import Dashboard from './components/Dashboard';
 import DeviceView from './components/DeviceView';
 import NetworkView from './components/NetworkView';
 
-// Define a simplified type for the Home Assistant object
-interface Hass {
-  connection: {
-    subscribeMessage: (callback: (message: any) => void, subscription: any) => Promise<() => void>;
-  };
-  // Add other properties of hass object if needed
-}
-
 // Define the types for our data
 interface MerakiData {
   [key: string]: any;
 }
 
-interface AppProps {
-  hass: Hass;
-  config_entry_id: string;
-}
-
-const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
+const App: React.FC = () => {
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<{ view: string; deviceId?: string; networkId?: string }>({ view: 'dashboard' });
 
   useEffect(() => {
-    if (!hass || !hass.connection) {
-      setError("Home Assistant connection object not found.");
-      setLoading(false);
-      return;
-    }
-
-    const subscribe = async () => {
+    const fetchData = async () => {
       try {
-        const unsub = await hass.connection.subscribeMessage(
-          (message) => {
-            if (message.type === 'result') {
-              if (message.success) {
-                setData(message.result);
-              } else {
-                setError(`Subscription failed: ${message.error.message}`);
-              }
-              setLoading(false);
-            } else if (message.type === 'event') {
-              setData(message.event);
-            } else {
-              setData(message);
-              setLoading(false);
-            }
-          },
-          {
-            type: 'meraki_ha/subscribe_meraki_data',
-            config_entry_id: config_entry_id,
-          }
-        );
-        return unsub;
-      } catch (err) {
-        console.error('Error subscribing to Meraki data:', err);
-        setError('Failed to subscribe to Meraki data. See console for details.');
+        const response = await fetch('/api/config');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const result = await response.json();
+        setData(result);
+      } catch (e) {
+        console.error('Error fetching Meraki data:', e);
+        if (e instanceof Error) {
+            setError(`Failed to fetch Meraki data: ${e.message}`);
+        } else {
+            setError('An unknown error occurred while fetching data.');
+        }
+      } finally {
         setLoading(false);
       }
     };
 
-    const unsubscribePromise = subscribe();
-
-    return () => {
-      unsubscribePromise.then(unsub => {
-        if (unsub) {
-          unsub();
-        }
-      });
-    };
-  }, [hass, config_entry_id]);
+    fetchData();
+  }, []);
 
   if (loading) {
     return <div className="p-4">Loading...</div>;

@@ -60,7 +60,6 @@ async def setup_integration_fixture(hass: HomeAssistant, socket_enabled):
         yield config_entry
 
 
-@pytest.mark.skip(reason="E2E test requires running frontend server")
 @pytest.mark.asyncio
 async def test_dashboard_loads_and_displays_data(
     hass: HomeAssistant, setup_integration
@@ -72,27 +71,6 @@ async def test_dashboard_loads_and_displays_data(
 
         # Serialize the mock data to be injected into the page
         mock_data_json = json.dumps(MOCK_ALL_DATA)
-
-        # This script runs before the page's scripts, creating a mock hass object
-        await page.add_init_script(
-            f"""
-              window.hass = {{
-                connection: {{
-                  subscribeMessage: async (callback, subscription) => {{
-                    console.log('Mock subscribeMessage called with:', subscription);
-                    const mockData = {mock_data_json};
-                    const message = {{
-                      type: 'result',
-                      success: true,
-                      result: mockData
-                    }};
-                    callback(message);
-                    return () => Promise.resolve(); // Return a dummy unsubscribe function
-                  }}
-                }}
-              }};
-            """
-        )
 
         await page.goto(f"http://localhost:{TEST_PORT}/")
 
