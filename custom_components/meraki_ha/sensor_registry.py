@@ -32,11 +32,11 @@ SENSORS_COORD_DEV: Dict[str, SensorClassList] = {
 # Sensors with __init__(coordinator, device_info, config_entry)
 SENSORS_COORD_DEV_CONF: Dict[str, SensorClassList] = {
     "appliance": [
+        MerakiDeviceConnectedClientsSensor,
         MerakiWAN1ConnectivitySensor,
         MerakiWAN2ConnectivitySensor,
         MerakiFirmwareStatusSensor,
         MerakiDataUsageSensor,
-        MerakiDeviceConnectedClientsSensor,
     ],
     "wireless": [
         MerakiDeviceConnectedClientsSensor,

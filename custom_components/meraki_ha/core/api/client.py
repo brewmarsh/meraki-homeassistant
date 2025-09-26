@@ -183,7 +183,8 @@ class MerakiAPIClient:
                 self.devices.get_device_clients(device["serial"])
             )
             for device in devices
-            if device.get("productType") in ["wireless", "appliance", "switch"]
+            if device.get("productType")
+            in ["wireless", "appliance", "switch", "cellularGateway"]
         }
         results = await asyncio.gather(*client_tasks.values(), return_exceptions=True)
         clients_by_serial: Dict[str, List[Dict[str, Any]]] = {}
