@@ -78,8 +78,7 @@ class CameraRepository:
         # MV2 cameras do not support historical viewing without cloud archive,
         # so we should not attempt to fetch a video link for them.
         try:
-            devices = await self._api_client.organization.get_organization_devices()
-            device = next((d for d in devices if d.get("serial") == serial), None)
+            device = await self._api_client.devices.get_device(serial)
             if device and device.get("model", "").startswith("MV2"):
                 _LOGGER.debug(
                     "Skipping video link fetch for unsupported MV2 model: %s", serial
@@ -87,7 +86,7 @@ class CameraRepository:
                 return None
         except Exception as e:
             _LOGGER.warning(
-                "Could not check camera model for %s due to an error fetching devices: %s",
+                "Could not check camera model for %s due to an error fetching device details: %s",
                 serial,
                 e,
             )

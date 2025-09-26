@@ -131,10 +131,11 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
             return None
 
         try:
-            session = async_get_clientsession(self.hass)
-            async with session.get(url) as response:
-                response.raise_for_status()
-                return await response.read()
+            # Use a clean session to avoid sending auth headers to the pre-signed URL
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    response.raise_for_status()
+                    return await response.read()
         except aiohttp.ClientError as e:
             msg = f"Error fetching snapshot for {self.name}: {e}"
             _LOGGER.error(msg)
