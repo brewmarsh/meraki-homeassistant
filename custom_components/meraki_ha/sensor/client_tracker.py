@@ -28,9 +28,10 @@ class ClientTrackerDeviceSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], 
         icon="mdi:account-group",
     )
 
-    def __init__(self, coordinator: MerakiDataUpdateCoordinator) -> None:
+    def __init__(self, coordinator: MerakiDataUpdateCoordinator, config_entry: ConfigEntry) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
+        self._config_entry = config_entry
         self._attr_unique_id = f"{DOMAIN}_{CLIENT_TRACKER_DEVICE_ID}"
 
         tracker_device_data = {
@@ -39,7 +40,7 @@ class ClientTrackerDeviceSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], 
         }
         formatted_name = format_device_name(
             device=tracker_device_data,
-            config=self.coordinator.config_entry.options,
+            config=self._config_entry.options,
         )
 
         self._attr_device_info = DeviceInfo(

@@ -170,7 +170,7 @@ def _setup_client_tracker_sensors(
     clients = coordinator.data.get("clients", [])
     if clients:
         # Add the main device sensor for the tracker
-        entities.append(ClientTrackerDeviceSensor(coordinator))
+        entities.append(ClientTrackerDeviceSensor(coordinator, config_entry))
         # Add a sensor for each client
         for client_data in clients:
             if "mac" in client_data:

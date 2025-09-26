@@ -4,6 +4,7 @@ from typing import Any, Dict
 import logging
 
 from homeassistant.components.switch import SwitchEntity
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..core.api.client import MerakiAPIClient
@@ -24,6 +25,7 @@ class MerakiCameraSettingSwitchBase(
         device_data: Dict[str, Any],
         key: str,
         api_field: str,
+        config_entry: ConfigEntry,
     ) -> None:
         """Initialize a camera setting switch."""
         super().__init__(coordinator)
@@ -31,6 +33,7 @@ class MerakiCameraSettingSwitchBase(
         self._device_data = device_data
         self._key = key
         self._api_field = api_field
+        self._config_entry = config_entry
         self._attr_unique_id = f"{self._device_data['serial']}_{self._key}"
         self._update_state()  # Set initial state
 

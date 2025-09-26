@@ -3,6 +3,7 @@
 import logging
 from typing import Any, Dict
 
+from homeassistant.config_entries import ConfigEntry
 from ..core.api.client import MerakiAPIClient
 from ..coordinator import MerakiDataUpdateCoordinator
 from .camera_settings import MerakiCameraSettingSwitchBase
@@ -20,6 +21,7 @@ class RTSPStreamSwitch(MerakiCameraSettingSwitchBase):
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         device_data: Dict[str, Any],
+        config_entry: ConfigEntry,
     ) -> None:
         """Initialize the RTSP switch."""
         super().__init__(
@@ -30,9 +32,10 @@ class RTSPStreamSwitch(MerakiCameraSettingSwitchBase):
             # The read property is rtspServerEnabled, but the write property is
             # externalRtspEnabled. We override _async_update_setting to handle this.
             "video_settings.rtspServerEnabled",
+            config_entry,
         )
         self._attr_name = format_entity_name(
-            format_device_name(device_data, coordinator.config_entry.options),
+            format_device_name(device_data, config_entry.options),
             "RTSP Stream",
         )
         self._attr_icon = "mdi:cctv"
@@ -40,7 +43,7 @@ class RTSPStreamSwitch(MerakiCameraSettingSwitchBase):
     async def _async_update_setting(self, is_on: bool) -> None:
         """Update the RTSP setting via the Meraki API."""
         try:
-            payload = {"videoSettings": {"externalRtspEnabled": is_on}}
+            payload = {"externalRtspEnabled": is_on}
             video_settings = await self.client.camera.update_camera_video_settings(
                 serial=self._device_data["serial"], **payload
             )
@@ -72,6 +75,7 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         device_data: Dict[str, Any],
+        config_entry: ConfigEntry,
     ) -> None:
         """Initialize the analytics switch."""
         super().__init__(
@@ -80,9 +84,10 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             device_data,
             "sense_enabled",
             "sense.analyticsEnabled",
+            config_entry,
         )
         self._attr_name = format_entity_name(
-            format_device_name(device_data, coordinator.config_entry.options),
+            format_device_name(device_data, config_entry.options),
             "Analytics",
         )
         self._attr_icon = "mdi:chart-bar"

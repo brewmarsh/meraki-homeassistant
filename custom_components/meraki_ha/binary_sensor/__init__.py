@@ -29,9 +29,9 @@ async def async_setup_entry(
 
     # Add motion sensors for cameras
     for device in coordinator.data.get("devices", []):
-        if "camera" in device.get("productType", ""):
+        if device.get("productType", "").startswith("camera"):
             binary_sensor_entities.append(
-                MerakiMotionSensor(coordinator, device, camera_service)
+                MerakiMotionSensor(coordinator, device, camera_service, config_entry)
             )
 
     # Add switch port sensors
