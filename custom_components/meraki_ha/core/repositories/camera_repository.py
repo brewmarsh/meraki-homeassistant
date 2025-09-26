@@ -75,6 +75,25 @@ class CameraRepository:
 
         This method validates that the URL is a valid RTSP stream URL.
         """
+        # MV2 cameras do not support historical viewing without cloud archive,
+        # so we should not attempt to fetch a video link for them.
+        try:
+            devices = await self._api_client.organization.get_organization_devices()
+            device = next((d for d in devices if d.get("serial") == serial), None)
+            if device and device.get("model", "").startswith("MV2"):
+                _LOGGER.debug(
+                    "Skipping video link fetch for unsupported MV2 model: %s", serial
+                )
+                return None
+        except Exception as e:
+            _LOGGER.warning(
+                "Could not check camera model for %s due to an error fetching devices: %s",
+                serial,
+                e,
+            )
+            # Continue execution, allowing the API call to proceed and potentially fail,
+            # which preserves the original behavior if the device check fails.
+
         try:
             video_link_data = (
                 await self._api_client.camera.get_device_camera_video_link(serial)
