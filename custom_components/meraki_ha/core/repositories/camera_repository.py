@@ -133,7 +133,7 @@ class CameraRepository:
         try:
             # The API expects the key to be 'externalRtspEnabled'
             payload = {"externalRtspEnabled": enabled}
-            await self._api_client.camera.update_device_camera_video_settings(
+            await self._api_client.camera.update_camera_video_settings(
                 serial, **payload
             )
         except Exception as e:
