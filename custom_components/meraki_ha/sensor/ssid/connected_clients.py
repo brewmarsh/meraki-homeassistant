@@ -39,19 +39,8 @@ class MerakiSsidConnectedClientsSensor(
         self._attr_unique_id = f"{self._network_id}_{self._ssid_number}_connected_clients"
         self._attr_name = f"{ssid_data['name']} Connected Clients"
 
-        # Find a wireless device in this network to attach the entity to
-        device_data = next(
-            (
-                device
-                for device in coordinator.data.get("devices", [])
-                if device.get("networkId") == self._network_id
-                and device.get("productType") == "wireless"
-            ),
-            None,
-        )
-
         self._attr_device_info = resolve_device_info(
-            entity_data=device_data or {"networkId": self._network_id},
+            entity_data=ssid_data,
             config_entry=self._config_entry,
         )
         self._update_state()
