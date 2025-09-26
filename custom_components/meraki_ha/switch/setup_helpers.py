@@ -13,6 +13,7 @@ from .vlan_dhcp import MerakiVLANDHCPSwitch
 from .firewall_rule import MerakiFirewallRuleSwitch
 from ..types import MerakiFirewallRule
 from .vpn import MerakiVPNSwitch
+from .camera_controls import RTSPStreamSwitch, AnalyticsSwitch
 from .meraki_ssid_device_switch import (
     MerakiSSIDEnabledSwitch,
     MerakiSSIDBroadcastSwitch,
@@ -169,6 +170,36 @@ def _setup_ssid_switches(
     return entities
 
 
+def _setup_camera_switches(
+    config_entry: ConfigEntry,
+    coordinator: MerakiDataUpdateCoordinator,
+    added_entities: Set[str],
+) -> List[Entity]:
+    """Set up camera-specific switches."""
+    entities: List[Entity] = []
+    devices = coordinator.data.get("devices", [])
+    for device_info in devices:
+        if device_info.get("productType", "").startswith("camera"):
+            serial = device_info["serial"]
+
+            # RTSP Stream Switch
+            unique_id = f"{serial}_rtsp_switch"
+            if unique_id not in added_entities:
+                entities.append(
+                    RTSPStreamSwitch(coordinator, coordinator.api, device_info)
+                )
+                added_entities.add(unique_id)
+
+            # Analytics Switch
+            unique_id = f"{serial}_analytics_switch"
+            if unique_id not in added_entities:
+                entities.append(
+                    AnalyticsSwitch(coordinator, coordinator.api, device_info)
+                )
+                added_entities.add(unique_id)
+    return entities
+
+
 def async_setup_switches(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -188,5 +219,6 @@ def async_setup_switches(
     )
     entities.extend(_setup_vpn_switches(config_entry, coordinator, added_entities))
     entities.extend(_setup_ssid_switches(config_entry, coordinator, added_entities))
+    entities.extend(_setup_camera_switches(config_entry, coordinator, added_entities))
 
     return entities

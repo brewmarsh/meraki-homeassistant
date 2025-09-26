@@ -1,7 +1,7 @@
 """Helper function for setting up all sensor entities."""
 
 import logging
-from typing import List, Set, cast
+from typing import List, Set, cast, TYPE_CHECKING
 
 from homeassistant.core import HomeAssistant
 from ..types import MerakiVlan
@@ -22,11 +22,17 @@ from .network.vlan import MerakiVLANSubnetSensor, MerakiVLANApplianceIpSensor
 from .device.appliance_uplink import MerakiApplianceUplinkSensor
 from .client_tracker import ClientTrackerDeviceSensor, MerakiClientSensor
 from .ssid.connected_clients import MerakiSsidConnectedClientsSensor
+from .device.rtsp_url import MerakiRtspUrlSensor
 from ..const import (
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_ENABLE_VLAN_MANAGEMENT,
     CONF_ENABLE_TRAFFIC_SHAPING,
 )
+
+
+if TYPE_CHECKING:
+    from ..services.camera_service import CameraService
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,6 +41,7 @@ def _setup_device_sensors(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
     added_entities: Set[str],
+    camera_service: "CameraService",
 ) -> List[Entity]:
     """Set up device-specific sensors."""
     entities: List[Entity] = []
@@ -55,6 +62,18 @@ def _setup_device_sensors(
                 added_entities.add(unique_id)
 
         product_type = device_info.get("productType")
+
+        # RTSP URL Sensor for cameras
+        if product_type and product_type.startswith("camera"):
+            unique_id = f"{serial}_rtsp_url"
+            if unique_id not in added_entities:
+                entities.append(
+                    MerakiRtspUrlSensor(
+                        device_info, config_entry, camera_service
+                    )
+                )
+                added_entities.add(unique_id)
+
         if product_type:
             # Sensors with (coordinator, device_info, config_entry)
             for sensor_class in get_sensors_for_device_type(product_type, True):
@@ -266,6 +285,7 @@ def async_setup_sensors(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
+    camera_service: "CameraService",
 ) -> List[Entity]:
     """Set up all sensor entities from the central coordinator."""
     entities: List[Entity] = []
@@ -275,7 +295,9 @@ def async_setup_sensors(
         _LOGGER.warning("Coordinator has no data; skipping sensor setup.")
         return entities
 
-    entities.extend(_setup_device_sensors(config_entry, coordinator, added_entities))
+    entities.extend(
+        _setup_device_sensors(config_entry, coordinator, added_entities, camera_service)
+    )
     entities.extend(_setup_network_sensors(config_entry, coordinator, added_entities))
     entities.extend(_setup_client_tracker_sensors(config_entry, coordinator))
     entities.extend(_setup_vlan_sensors(config_entry, coordinator, added_entities))

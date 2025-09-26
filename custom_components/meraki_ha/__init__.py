@@ -11,6 +11,8 @@ from .const import (
     PLATFORMS,
     WEBHOOK_ID_FORMAT,
     CONF_MERAKI_ORG_ID,
+    CONF_AUTO_RTSP,
+    DEFAULT_AUTO_RTSP,
 )
 from .coordinator import MerakiDataUpdateCoordinator
 from .webhook import async_register_webhook
@@ -70,6 +72,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await async_register_webhook(
         hass, webhook_id, secret, coordinator.api, entry=entry
     )
+
+    # Auto-enable RTSP streams if configured
+    if entry.options.get(CONF_AUTO_RTSP, DEFAULT_AUTO_RTSP):
+        _LOGGER.debug("Auto-RTSP is enabled, turning on streams for all cameras")
+        for device in coordinator.data.get("devices", []):
+            if device.get("productType", "").startswith("camera"):
+                try:
+                    await camera_service.async_set_rtsp_stream_enabled(
+                        device["serial"], True
+                    )
+                except Exception as e:
+                    _LOGGER.error(
+                        "Failed to auto-enable RTSP for camera %s: %s",
+                        device["serial"],
+                        e,
+                    )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

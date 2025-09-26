@@ -4,8 +4,10 @@ import logging
 from typing import Any, Dict
 
 from ..core.api.client import MerakiAPIClient
-from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+from ..coordinator import MerakiDataUpdateCoordinator
 from .camera_settings import MerakiCameraSettingSwitchBase
+from ..helpers.entity_helpers import format_entity_name
+from ..core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,9 +27,41 @@ class RTSPStreamSwitch(MerakiCameraSettingSwitchBase):
             meraki_client,
             device_data,
             "rtsp_stream_enabled",
-            "video_settings.externalRtspEnabled",
+            # The read property is rtspServerEnabled, but the write property is
+            # externalRtspEnabled. We override _async_update_setting to handle this.
+            "video_settings.rtspServerEnabled",
         )
-        self._attr_name = "RTSP Stream"
+        self._attr_name = format_entity_name(
+            format_device_name(device_data, coordinator.config_entry.options),
+            "RTSP Stream",
+        )
+        self._attr_icon = "mdi:cctv"
+
+    async def _async_update_setting(self, is_on: bool) -> None:
+        """Update the RTSP setting via the Meraki API."""
+        try:
+            payload = {"videoSettings": {"externalRtspEnabled": is_on}}
+            video_settings = await self.client.camera.update_camera_video_settings(
+                serial=self._device_data["serial"], **payload
+            )
+
+            if video_settings:
+                # Update coordinator data with the new video settings
+                for i, device in enumerate(self.coordinator.data.get("devices", [])):
+                    if device.get("serial") == self._device_data["serial"]:
+                        self.coordinator.data["devices"][i][
+                            "video_settings"
+                        ] = video_settings
+                        break
+                self.coordinator.async_update_listeners()
+
+            await self.coordinator.async_request_refresh()
+        except Exception as e:
+            _LOGGER.error(
+                "Failed to update RTSP setting for %s: %s",
+                self._device_data["serial"],
+                e,
+            )
 
 
 class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
@@ -47,4 +81,8 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             "sense_enabled",
             "sense.analyticsEnabled",
         )
-        self._attr_name = "Analytics"
+        self._attr_name = format_entity_name(
+            format_device_name(device_data, coordinator.config_entry.options),
+            "Analytics",
+        )
+        self._attr_icon = "mdi:chart-bar"

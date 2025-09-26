@@ -19,10 +19,12 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki sensor entities from a config entry."""
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = entry_data["coordinator"]
+    camera_service = entry_data["camera_service"]
 
     # Set up the sensors
-    sensor_entities = async_setup_sensors(hass, config_entry, coordinator)
+    sensor_entities = async_setup_sensors(hass, config_entry, coordinator, camera_service)
 
     if sensor_entities:
         async_add_entities(sensor_entities)

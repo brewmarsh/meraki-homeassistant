@@ -23,6 +23,8 @@ from .const import (
     DEFAULT_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VPN,
     DEFAULT_ENABLE_VPN,
+    CONF_AUTO_RTSP,
+    DEFAULT_AUTO_RTSP,
 )
 
 CONFIG_SCHEMA = vol.Schema(
@@ -57,6 +59,7 @@ FEATURES_SCHEMA = vol.Schema(
             CONF_ENABLE_TRAFFIC_SHAPING, default=DEFAULT_ENABLE_TRAFFIC_SHAPING
         ): selector.BooleanSelector(),
         vol.Required(CONF_ENABLE_VPN, default=DEFAULT_ENABLE_VPN): selector.BooleanSelector(),
+        vol.Required(CONF_AUTO_RTSP, default=DEFAULT_AUTO_RTSP): selector.BooleanSelector(),
     }
 )
 

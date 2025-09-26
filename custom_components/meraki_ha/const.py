@@ -62,6 +62,9 @@ CONF_ENABLE_TRAFFIC_SHAPING: Final[str] = "enable_traffic_shaping"
 CONF_ENABLE_VPN: Final[str] = "enable_vpn"
 """Configuration key for enabling vpn (str)."""
 
+CONF_AUTO_RTSP: Final[str] = "auto_rtsp"
+"""Configuration key for enabling RTSP when Home Assistant starts."""
+
 DEFAULT_ENABLE_WEB_UI: Final[bool] = True
 """Default value for enabling the web UI (bool)."""
 
@@ -82,6 +85,9 @@ DEFAULT_ENABLE_TRAFFIC_SHAPING: Final[bool] = False
 
 DEFAULT_ENABLE_VPN: Final[bool] = False
 """Default value for enabling vpn (bool)."""
+
+DEFAULT_AUTO_RTSP: Final[bool] = False
+"""Default value for enabling RTSP when Home Assistant starts."""
 
 DATA_SSID_DEVICES_COORDINATOR: Final[str] = (
     "ssid_devices"  # New constant for SSID coordinator key

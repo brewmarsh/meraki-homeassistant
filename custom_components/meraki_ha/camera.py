@@ -53,7 +53,7 @@ async def async_setup_entry(
     camera_entities = [
         MerakiCamera(coordinator, config_entry, device, camera_service)
         for device in coordinator.data["devices"]
-        if "camera" in device.get("productType", "")
+        if device.get("productType", "").startswith("camera")
     ]
 
     if camera_entities:
