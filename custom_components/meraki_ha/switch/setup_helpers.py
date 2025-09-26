@@ -22,6 +22,7 @@ from ..const import (
     CONF_ENABLE_FIREWALL_RULES,
     CONF_ENABLE_VPN,
 )
+from ..sensor.network.network_identity import MerakiNetworkIdentitySensor
 
 
 _LOGGER = logging.getLogger(__name__)

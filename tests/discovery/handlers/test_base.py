@@ -1,7 +1,7 @@
 """Tests for the BaseDeviceHandler."""
 
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import MagicMock, patch
 from custom_components.meraki_ha.discovery.handlers.base import BaseDeviceHandler
 from tests.const import MOCK_DEVICE
 
@@ -16,6 +16,9 @@ def mock_coordinator():
 def mock_config_entry():
     """Fixture for a mocked config entry."""
     return MagicMock()
+
+
+from unittest.mock import AsyncMock
 
 
 @pytest.fixture

@@ -6,11 +6,13 @@ import pytest
 from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.webhook import async_handle_webhook
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 
 
 @pytest.fixture
 def mock_hass_with_webhook_data(hass):
     """Fixture for a mocked Home Assistant object with webhook data."""
+    api_client = MagicMock(spec=MerakiAPIClient)
     config_entry = MagicMock()
     coordinator = MerakiDataUpdateCoordinator(
         hass,

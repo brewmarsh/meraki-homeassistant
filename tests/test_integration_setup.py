@@ -1,22 +1,20 @@
 """Integration-level tests for the Meraki HA component."""
 import sys
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import (
-    async_get as async_get_device_registry,
-)
-from homeassistant.helpers.entity_registry import (
-    async_get as async_get_entity_registry,
-)
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-from custom_components.meraki_ha.const import CONF_SCAN_INTERVAL, DOMAIN
-from tests.const import MOCK_DEVICE, MOCK_GX_DEVICE, MOCK_MX_DEVICE
+from unittest.mock import MagicMock
 
 # Mock the hass_frontend module
-sys.modules["hass_frontend"] = MagicMock()
+sys.modules['hass_frontend'] = MagicMock()
+
+import pytest
+from unittest.mock import patch, AsyncMock
+
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import async_get as async_get_device_registry
+from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.meraki_ha.const import DOMAIN
+from tests.const import MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE
 
 
 @pytest.fixture
@@ -25,7 +23,7 @@ def config_entry():
     return MockConfigEntry(
         domain=DOMAIN,
         data={"meraki_api_key": "fake_key", "meraki_org_id": "fake_org"},
-        options={CONF_SCAN_INTERVAL: 300},
+        options={},
         entry_id="test_entry",
     )
 
@@ -104,3 +102,31 @@ async def test_ssid_device_creation_and_unification(
 
         # Assert that multiple entities have been created for this one device
         assert len(entities) > 1
+
+
+@pytest.mark.enable_socket
+async def test_integration_reload(
+    hass: HomeAssistant, config_entry, mock_meraki_client
+):
+    """Test that the integration reloads successfully."""
+    config_entry.add_to_hass(hass)
+
+    with (
+        patch(
+            "custom_components.meraki_ha.coordinator.ApiClient",
+            return_value=mock_meraki_client,
+        ),
+        patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
+    ):
+        # Set up the component
+        assert await hass.config_entries.async_setup(config_entry.entry_id)
+        await hass.async_block_till_done()
+
+        # Reload the integration
+        assert await hass.config_entries.async_reload(config_entry.entry_id)
+        await hass.async_block_till_done()
+
+        # Check that the coordinator is still there, indicating a successful reload
+        assert DOMAIN in hass.data
+        assert config_entry.entry_id in hass.data[DOMAIN]
+        assert "coordinator" in hass.data[DOMAIN][config_entry.entry_id]

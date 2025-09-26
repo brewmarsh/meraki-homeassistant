@@ -4,9 +4,11 @@ This module implements the REST API for the Meraki Home Assistant integration's 
 import logging
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
-from voluptuous import Schema, All, Required, ALLOW_EXTRA
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from voluptuous import Schema, All, Length, Required, ALLOW_EXTRA
 
 from .const import DOMAIN
+from .coordinator import MerakiDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 

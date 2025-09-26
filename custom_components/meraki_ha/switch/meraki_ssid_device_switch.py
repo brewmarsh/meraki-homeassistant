@@ -1,20 +1,24 @@
 # custom_components/meraki_ha/switch/meraki_ssid_device_switch.py
 """Switch entities for controlling Meraki SSID devices."""
 
+import asyncio
 import logging
 from typing import Any, Dict, Optional
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
+from ..const import TAG_HA_DISABLED
 from ..core.api.client import MerakiAPIClient
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.utils.icon_utils import get_device_type_icon
 from homeassistant.helpers.entity import EntityCategory
 from ..helpers.device_info_helpers import resolve_device_info
+from ..helpers.ssid_status_calculator import SsidStatusCalculator
 
 _LOGGER = logging.getLogger(__name__)
 

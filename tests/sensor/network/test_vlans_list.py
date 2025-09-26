@@ -1,8 +1,13 @@
 """Tests for the Meraki VLANs list sensor."""
 import sys
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+
+# Mock the hass_frontend module
+sys.modules['hass_frontend'] = MagicMock()
 
 import pytest
+from unittest.mock import patch
+
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -10,9 +15,6 @@ from custom_components.meraki_ha.const import (
     DOMAIN,
     CONF_ENABLE_VLAN_MANAGEMENT,
 )
-
-# Mock the hass_frontend module
-sys.modules["hass_frontend"] = MagicMock()
 
 
 @pytest.mark.asyncio

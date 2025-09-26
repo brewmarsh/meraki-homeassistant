@@ -2,7 +2,7 @@
 Tests for the MXHandler.
 """
 
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -17,6 +17,9 @@ def mock_coordinator():
     coordinator = MagicMock()
     coordinator.data = {"devices": [MOCK_MX_DEVICE]}
     return coordinator
+
+
+from unittest.mock import AsyncMock
 
 
 @pytest.fixture

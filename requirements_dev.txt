@@ -4,6 +4,3 @@ flake8
 bandit
 pytest-homeassistant-custom-component
 pytest-mock
-aiohttp
-playwright
-hass-frontend==20231030.0

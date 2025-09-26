@@ -11,7 +11,6 @@ from .const import (
     PLATFORMS,
     WEBHOOK_ID_FORMAT,
     CONF_MERAKI_ORG_ID,
-    CONF_SCAN_INTERVAL,
 )
 from .coordinator import MerakiDataUpdateCoordinator
 from .webhook import async_register_webhook
@@ -21,7 +20,6 @@ from .services.camera_service import CameraService
 from .core.repository import MerakiRepository
 from .services.device_control_service import DeviceControlService
 from .core.coordinators.switch_port_status_coordinator import SwitchPortStatusCoordinator
-from .core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -48,29 +46,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     await switch_port_status_coordinator.async_config_entry_first_refresh()
 
-    ssid_firewall_coordinators = {}
-    if coordinator.data and coordinator.data.get("ssids"):
-        scan_interval = entry.options[CONF_SCAN_INTERVAL]
-        for ssid in coordinator.data["ssids"]:
-            if not ssid.get("enabled"):
-                continue
-            ssid_num = ssid["number"]
-            firewall_coordinator = SsidFirewallCoordinator(
-                hass,
-                coordinator.api,
-                scan_interval,
-                ssid["networkId"],
-                ssid_num,
-            )
-            await firewall_coordinator.async_config_entry_first_refresh()
-            ssid_firewall_coordinators[ssid_num] = firewall_coordinator
-
     hass.data[DOMAIN][entry.entry_id] = {
         "coordinator": coordinator,
         "device_control_service": device_control_service,
         "camera_service": camera_service,
         "switch_port_status_coordinator": switch_port_status_coordinator,
-        "ssid_firewall_coordinators": ssid_firewall_coordinators,
     }
 
     # Set up webhook
