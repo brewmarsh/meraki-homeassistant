@@ -51,7 +51,8 @@ The integration provides the following platforms:
 
 - **`sensor`**: The sensor platform provides sensors for monitoring the following:
   - The status of Meraki devices (e.g., online, offline).
-  - The number of clients connected to each device.
+  - The number of clients connected to each routing (MX/GX), wireless (MR/GR), and switch (MS) device.
+  - The number of clients connected to each SSID.
   - The status of the WAN connection for MX devices.
   - Data usage for MX appliances.
   - PoE usage for MS switches.

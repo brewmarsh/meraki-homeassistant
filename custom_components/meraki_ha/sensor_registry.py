@@ -41,6 +41,9 @@ SENSORS_COORD_DEV_CONF: Dict[str, SensorClassList] = {
     "wireless": [
         MerakiDeviceConnectedClientsSensor,
     ],
+    "switch": [
+        MerakiDeviceConnectedClientsSensor,
+    ],
     "camera": [
         MerakiCameraSenseStatusSensor,
         MerakiCameraAudioDetectionSensor,

@@ -37,76 +37,62 @@ def mock_data_coordinator():
                 "networkId": "net1",
             },
         ],
-        "clients": [
-            # Client 1: Wireless, on AP, on net1, Online
-            {
-                "networkId": "net1",
-                "recentDeviceSerial": "dev_wireless",
-                "status": "Online",
-                "recentDeviceConnection": "Wireless",
-            },
-            # Client 2: Wired, on net1, Online
-            {
-                "networkId": "net1",
-                "recentDeviceSerial": "dev_switch",  # This might be the switch, or something else
-                "status": "Online",
-                "recentDeviceConnection": "Wired",
-            },
-            # Client 3: Offline, on net1
-            {
-                "networkId": "net1",
-                "recentDeviceSerial": "dev_wireless",
-                "status": "Offline",
-                "recentDeviceConnection": "Wireless",
-            },
-            # Client 4: Online, but on another network
-            {
-                "networkId": "net2",
-                "status": "Online",
-            },
-        ],
+        "clients_by_serial": {
+            # Appliance gets 2 clients
+            "dev_appliance": [
+                {"id": "client1"},
+                {"id": "client2"},
+            ],
+            # Switch gets 1 client
+            "dev_switch": [
+                {"id": "client3"},
+            ],
+            # Wireless AP gets 3 clients
+            "dev_wireless": [
+                {"id": "client4"},
+                {"id": "client5"},
+                {"id": "client6"},
+            ],
+        },
         "networks": [
             {"id": "net1", "name": "Network 1"},
-            {"id": "net2", "name": "Network 2"},
         ],
     }
     return coordinator
 
 
 def test_connected_clients_sensor_appliance(mock_data_coordinator):
-    """Test the connected clients sensor for an appliance. Should count all online clients on its network."""
+    """Test the connected clients sensor for an appliance."""
     device = mock_data_coordinator.data["devices"][0]  # The appliance
     config_entry = mock_data_coordinator.config_entry
     mock_data_coordinator.config_entry.options = {"device_name_format": "prefix"}
     sensor = MerakiDeviceConnectedClientsSensor(
         mock_data_coordinator, device, config_entry
     )
-    # Expects 2: the online wireless client and the online wired client on net1
+    # The get_device_clients API returns a list of clients. The sensor just counts them.
     assert sensor.native_value == 2
     assert sensor.device_info["name"] == "[Appliance] Appliance"
 
 
 def test_connected_clients_sensor_switch(mock_data_coordinator):
-    """Test the connected clients sensor for a switch. Should count only wired online clients on its network."""
+    """Test the connected clients sensor for a switch."""
     device = mock_data_coordinator.data["devices"][1]  # The switch
     config_entry = mock_data_coordinator.config_entry
     mock_data_coordinator.config_entry.options = {"device_name_format": "prefix"}
     sensor = MerakiDeviceConnectedClientsSensor(
         mock_data_coordinator, device, config_entry
     )
-    # Expects 1: the online wired client on net1
     assert sensor.native_value == 1
     assert sensor.device_info["name"] == "[Switch] Switch"
 
 
 def test_connected_clients_sensor_wireless(mock_data_coordinator):
-    """Test the connected clients sensor for a wireless device. Should count only clients connected to it."""
+    """Test the connected clients sensor for a wireless device."""
     device = mock_data_coordinator.data["devices"][2]  # The wireless AP
     config_entry = mock_data_coordinator.config_entry
     mock_data_coordinator.config_entry.options = {"device_name_format": "prefix"}
     sensor = MerakiDeviceConnectedClientsSensor(
         mock_data_coordinator, device, config_entry
     )
-    # Expects 1: the online wireless client connected to this specific AP
-    assert sensor.native_value == 1
+    assert sensor.native_value == 3
     assert sensor.device_info["name"] == "[Wireless] Access Point"

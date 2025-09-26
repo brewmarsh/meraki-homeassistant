@@ -21,6 +21,7 @@ from .device.appliance_port import MerakiAppliancePortSensor
 from .network.vlan import MerakiVLANSubnetSensor, MerakiVLANApplianceIpSensor
 from .device.appliance_uplink import MerakiApplianceUplinkSensor
 from .client_tracker import ClientTrackerDeviceSensor, MerakiClientSensor
+from .ssid.connected_clients import MerakiSsidConnectedClientsSensor
 from ..const import (
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_ENABLE_VLAN_MANAGEMENT,
@@ -236,6 +237,31 @@ def _setup_uplink_sensors(
     return entities
 
 
+def _setup_ssid_sensors(
+    config_entry: ConfigEntry,
+    coordinator: MerakiDataUpdateCoordinator,
+    added_entities: Set[str],
+) -> List[Entity]:
+    """Set up SSID-specific sensors."""
+    entities: List[Entity] = []
+    ssids = coordinator.data.get("ssids", [])
+    for ssid_data in ssids:
+        network_id = ssid_data.get("networkId")
+        ssid_number = ssid_data.get("number")
+        if not network_id or ssid_number is None:
+            continue
+
+        unique_id = f"{network_id}_{ssid_number}_connected_clients"
+        if unique_id not in added_entities:
+            entities.append(
+                MerakiSsidConnectedClientsSensor(
+                    coordinator, network_id, ssid_data, config_entry
+                )
+            )
+            added_entities.add(unique_id)
+    return entities
+
+
 def async_setup_sensors(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -254,5 +280,6 @@ def async_setup_sensors(
     entities.extend(_setup_client_tracker_sensors(config_entry, coordinator))
     entities.extend(_setup_vlan_sensors(config_entry, coordinator, added_entities))
     entities.extend(_setup_uplink_sensors(config_entry, coordinator, added_entities))
+    entities.extend(_setup_ssid_sensors(config_entry, coordinator, added_entities))
 
     return entities

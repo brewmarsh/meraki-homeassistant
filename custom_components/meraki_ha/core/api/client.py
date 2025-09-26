@@ -156,10 +156,10 @@ class MerakiAPIClient:
             "appliance_uplink_statuses": appliance_uplink_statuses,
         }
 
-    async def _async_fetch_client_data(
+    async def _async_fetch_network_clients(
         self, networks: List[MerakiNetwork]
     ) -> List[Dict[str, Any]]:
-        """Fetch client data for all networks."""
+        """Fetch client data for all networks, used for SSID sensors."""
         client_tasks = [
             self._run_with_semaphore(self.network.get_network_clients(network["id"]))
             for network in networks
@@ -173,6 +173,25 @@ class MerakiAPIClient:
                     client["networkId"] = network["id"]
                 clients.extend(result)
         return clients
+
+    async def _async_fetch_device_clients(
+        self, devices: List[MerakiDevice]
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """Fetch client data for each device."""
+        client_tasks = {
+            device["serial"]: self._run_with_semaphore(
+                self.devices.get_device_clients(device["serial"])
+            )
+            for device in devices
+            if device.get("productType") in ["wireless", "appliance", "switch"]
+        }
+        results = await asyncio.gather(*client_tasks.values(), return_exceptions=True)
+        clients_by_serial: Dict[str, List[Dict[str, Any]]] = {}
+        for i, serial in enumerate(client_tasks.keys()):
+            result = results[i]
+            if isinstance(result, list):
+                clients_by_serial[serial] = result
+        return clients_by_serial
 
     def _build_detail_tasks(
         self, networks: List[MerakiNetwork], devices: List[MerakiDevice]
@@ -403,7 +422,11 @@ class MerakiAPIClient:
         networks = processed_initial_data["networks"]
         devices = processed_initial_data["devices"]
 
-        clients = await self._async_fetch_client_data(networks)
+        network_clients, device_clients = await asyncio.gather(
+            self._async_fetch_network_clients(networks),
+            self._async_fetch_device_clients(devices),
+            return_exceptions=True,
+        )
 
         detail_tasks = self._build_detail_tasks(networks, devices)
         detail_results = await asyncio.gather(
@@ -418,7 +441,8 @@ class MerakiAPIClient:
         fresh_data = {
             "networks": networks,
             "devices": devices,
-            "clients": clients,
+            "clients": network_clients if isinstance(network_clients, list) else [],
+            "clients_by_serial": device_clients if isinstance(device_clients, dict) else {},
             "appliance_uplink_statuses": processed_initial_data[
                 "appliance_uplink_statuses"
             ],
