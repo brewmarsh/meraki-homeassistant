@@ -62,15 +62,11 @@ def _setup_device_sensors(
                 added_entities.add(unique_id)
 
         product_type = device_info.get("productType")
-
-        # RTSP URL Sensor for cameras
         if product_type and product_type.startswith("camera"):
             unique_id = f"{serial}_rtsp_url"
             if unique_id not in added_entities:
                 entities.append(
-                    MerakiRtspUrlSensor(
-                        device_info, config_entry, camera_service
-                    )
+                    MerakiRtspUrlSensor(device_info, config_entry, camera_service)
                 )
                 added_entities.add(unique_id)
 

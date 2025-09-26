@@ -181,7 +181,6 @@ def _setup_camera_switches(
     for device_info in devices:
         if device_info.get("productType", "").startswith("camera"):
             serial = device_info["serial"]
-
             # RTSP Stream Switch
             unique_id = f"{serial}_rtsp_switch"
             if unique_id not in added_entities:
@@ -191,7 +190,6 @@ def _setup_camera_switches(
                     )
                 )
                 added_entities.add(unique_id)
-
             # Analytics Switch
             unique_id = f"{serial}_analytics_switch"
             if unique_id not in added_entities:

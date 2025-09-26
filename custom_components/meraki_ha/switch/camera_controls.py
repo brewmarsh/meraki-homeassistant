@@ -29,8 +29,6 @@ class RTSPStreamSwitch(MerakiCameraSettingSwitchBase):
             meraki_client,
             device_data,
             "rtsp_stream_enabled",
-            # The read property is rtspServerEnabled, but the write property is
-            # externalRtspEnabled. We override _async_update_setting to handle this.
             "video_settings.rtspServerEnabled",
             config_entry,
         )
@@ -48,21 +46,9 @@ class RTSPStreamSwitch(MerakiCameraSettingSwitchBase):
     async def _async_update_setting(self, is_on: bool) -> None:
         """Update the RTSP setting via the Meraki API."""
         try:
-            payload = {"externalRtspEnabled": is_on}
-            video_settings = await self.client.camera.update_camera_video_settings(
-                serial=self._device_data["serial"], **payload
+            await self.client.camera.update_camera_video_settings(
+                serial=self._device_data["serial"], externalRtspEnabled=is_on
             )
-
-            if video_settings:
-                # Update coordinator data with the new video settings
-                for i, device in enumerate(self.coordinator.data.get("devices", [])):
-                    if device.get("serial") == self._device_data["serial"]:
-                        self.coordinator.data["devices"][i][
-                            "video_settings"
-                        ] = video_settings
-                        break
-                self.coordinator.async_update_listeners()
-
             await self.coordinator.async_request_refresh()
         except Exception as e:
             _LOGGER.error(

@@ -24,7 +24,9 @@ async def async_setup_entry(
     camera_service = entry_data["camera_service"]
 
     # Set up the sensors
-    sensor_entities = async_setup_sensors(hass, config_entry, coordinator, camera_service)
+    sensor_entities = async_setup_sensors(
+        hass, config_entry, coordinator, camera_service
+    )
 
     if sensor_entities:
         async_add_entities(sensor_entities)

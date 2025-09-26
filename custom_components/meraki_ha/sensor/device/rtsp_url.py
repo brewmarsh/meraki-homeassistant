@@ -70,6 +70,5 @@ class MerakiRtspUrlSensor(SensorEntity):
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Return if the entity should be enabled by default."""
-        # Only enable if the camera supports RTSP and is not an unsupported model.
         model = self._device_info_data.get("model", "")
-        return "videoSettings" in self._device_info_data and not model.startswith("MV2")
+        return not model.startswith("MV2")

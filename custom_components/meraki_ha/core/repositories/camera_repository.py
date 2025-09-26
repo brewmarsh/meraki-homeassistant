@@ -121,7 +121,9 @@ class CameraRepository:
         """Generate a snapshot and return the URL."""
         try:
             snapshot_data = (
-                await self._api_client.camera.generate_device_camera_snapshot(serial)
+                await self._api_client.camera.generate_device_camera_snapshot(
+                    serial, fullframe=False
+                )
             )
             return snapshot_data.get("url")
         except Exception as e:
@@ -131,10 +133,8 @@ class CameraRepository:
     async def set_rtsp_stream_enabled(self, serial: str, enabled: bool) -> None:
         """Enable or disable RTSP stream for a camera."""
         try:
-            # The API expects the key to be 'externalRtspEnabled'
-            payload = {"externalRtspEnabled": enabled}
             await self._api_client.camera.update_camera_video_settings(
-                serial, **payload
+                serial, externalRtspEnabled=enabled
             )
         except Exception as e:
             _LOGGER.error("Error setting RTSP stream for %s: %s", serial, e)
