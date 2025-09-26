@@ -8,6 +8,7 @@ import logging
 from typing import TYPE_CHECKING, Any, Dict
 
 from homeassistant.components.button import ButtonEntity
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 
@@ -29,18 +30,20 @@ class MerakiSnapshotButton(CoordinatorEntity[MerakiDataUpdateCoordinator], Butto
         coordinator: MerakiDataUpdateCoordinator,
         device: Dict[str, Any],
         camera_service: CameraService,
+        config_entry: ConfigEntry,
     ) -> None:
         """Initialize the button."""
         super().__init__(coordinator)
         self._device = device
         self._camera_service = camera_service
+        self._config_entry = config_entry
         self._attr_unique_id = f"{self._device['serial']}-snapshot"
         self._attr_name = f"{self._device['name']} Snapshot"
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
-        return resolve_device_info(self._device, self.coordinator.config_entry)
+        return resolve_device_info(self._device, self._config_entry)
 
     async def async_press(self) -> None:
         """Handle the button press."""

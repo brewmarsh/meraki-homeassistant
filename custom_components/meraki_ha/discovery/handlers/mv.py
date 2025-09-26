@@ -144,6 +144,7 @@ class MVHandler(BaseDeviceHandler):
                 self._coordinator,
                 self.device,
                 self._camera_service,
+                self._config_entry,
             )
         )
 

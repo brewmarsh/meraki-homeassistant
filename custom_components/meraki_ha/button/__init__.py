@@ -36,7 +36,7 @@ async def async_setup_entry(
         # Add snapshot button for camera devices
         if "camera" in device.get("productType", ""):
             button_entities.append(
-                MerakiSnapshotButton(coordinator, device, camera_service)
+                MerakiSnapshotButton(coordinator, device, camera_service, config_entry)
             )
 
     if button_entities:
