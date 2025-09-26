@@ -55,18 +55,40 @@ def _setup_device_sensors(
                 added_entities.add(unique_id)
 
         product_type = device_info.get("product_type")
+        _LOGGER.debug(
+            "Setting up device sensors for %s (product type: %s)",
+            serial,
+            product_type,
+        )
         if product_type:
             # Sensors with (coordinator, device_info, config_entry)
-            for sensor_class in get_sensors_for_device_type(product_type, True):
+            sensors_to_create = get_sensors_for_device_type(product_type, True)
+            _LOGGER.debug(
+                "Found %d sensors with config entry for %s: %s",
+                len(sensors_to_create),
+                product_type,
+                [s.__name__ for s in sensors_to_create],
+            )
+            for sensor_class in sensors_to_create:
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
+                    _LOGGER.debug("Creating sensor: %s", sensor_class.__name__)
                     entities.append(
                         sensor_class(coordinator, device_info, config_entry)
                     )
                     added_entities.add(unique_id)
 
             # Sensors with (coordinator, device_info)
-            for sensor_class in get_sensors_for_device_type(product_type, False):
+            sensors_to_create_no_conf = get_sensors_for_device_type(
+                product_type, False
+            )
+            _LOGGER.debug(
+                "Found %d sensors without config entry for %s: %s",
+                len(sensors_to_create_no_conf),
+                product_type,
+                [s.__name__ for s in sensors_to_create_no_conf],
+            )
+            for sensor_class in sensors_to_create_no_conf:
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
                     entities.append(sensor_class(coordinator, device_info))
