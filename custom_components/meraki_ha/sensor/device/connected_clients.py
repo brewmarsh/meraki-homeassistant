@@ -54,28 +54,17 @@ class MerakiDeviceConnectedClientsSensor(
     @callback
     def _update_state(self) -> None:
         """Update the native value of the sensor based on coordinator data."""
-        _LOGGER.debug("Updating connected clients sensor for %s", self._device_serial)
         device = self._get_current_device_data()
         if not device:
-            _LOGGER.debug("No device data found for %s", self._device_serial)
             self._attr_native_value = 0
             return
 
         product_type = device.get("productType")
-        _LOGGER.debug(
-            "Device %s is product type: %s", self._device_serial, product_type
-        )
 
         # For routers (appliances), the client count is all online clients in the network.
         if product_type in ["appliance", "cellularGateway"]:
-            _LOGGER.debug(
-                "Using network-wide client count for router %s", self._device_serial
-            )
             network_id = device.get("networkId")
             all_clients = self.coordinator.data.get("clients", [])
-            _LOGGER.debug(
-                "Found %d total clients for network %s", len(all_clients), network_id
-            )
             if not all_clients:
                 self._attr_native_value = 0
                 return
@@ -86,31 +75,17 @@ class MerakiDeviceConnectedClientsSensor(
                 if c.get("networkId") == network_id and c.get("status") == "Online"
             ]
             self._attr_native_value = len(network_clients)
-            _LOGGER.debug(
-                "Found %d online clients for network %s",
-                self._attr_native_value,
-                network_id,
-            )
         # For other devices (switches, APs), use the direct per-device client list.
         else:
-            _LOGGER.debug("Using per-device client count for %s", self._device_serial)
             clients_by_serial = self.coordinator.data.get("clients_by_serial", {})
             device_clients = clients_by_serial.get(self._device_serial)
 
             if device_clients is None:
                 # Data for this specific device might not be available yet
-                _LOGGER.debug(
-                    "No per-device client data found for %s", self._device_serial
-                )
                 self._attr_native_value = None
                 return
 
             self._attr_native_value = len(device_clients)
-            _LOGGER.debug(
-                "Found %d clients for device %s",
-                self._attr_native_value,
-                self._device_serial,
-            )
 
     @callback
     def _handle_coordinator_update(self) -> None:
