@@ -9,12 +9,12 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from ....const import DOMAIN
-from ....core.utils.naming_utils import format_device_name
-from ....helpers.entity_helpers import format_entity_name
+from ...const import DOMAIN
+from ...core.utils.naming_utils import format_device_name
+from ...helpers.entity_helpers import format_entity_name
 
 if TYPE_CHECKING:
-    from ....services.camera_service import CameraService
+    from ...services.camera_service import CameraService
 
 
 _LOGGER = logging.getLogger(__name__)
