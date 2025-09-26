@@ -235,13 +235,13 @@ class MerakiAPIClient:
                     self.wireless.get_network_wireless_rf_profiles(network["id"])
                 )
         for device in devices:
-            if device.get("product_type") == "wireless":
+            if device.get("productType") == "wireless":
                 detail_tasks[f"wireless_settings_{device['serial']}"] = (
                     self._run_with_semaphore(
                         self.wireless.get_wireless_settings(device["serial"])
                     )
                 )
-            elif device.get("product_type") == "camera":
+            elif device.get("productType") == "camera":
                 detail_tasks[f"video_settings_{device['serial']}"] = (
                     self._run_with_semaphore(
                         self.camera.get_camera_video_settings(device["serial"])
@@ -252,7 +252,7 @@ class MerakiAPIClient:
                         self.camera.get_camera_sense_settings(device["serial"])
                     )
                 )
-            elif device.get("product_type") == "switch":
+            elif device.get("productType") == "switch":
                 detail_tasks[f"ports_statuses_{device['serial']}"] = (
                     self._run_with_semaphore(
                         self.switch.get_device_switch_ports_statuses(
@@ -260,7 +260,7 @@ class MerakiAPIClient:
                         )
                     )
                 )
-            elif device.get("product_type") == "appliance" and "network_id" in device:
+            elif device.get("productType") == "appliance" and "network_id" in device:
                 detail_tasks[f"appliance_settings_{device['serial']}"] = (
                     self._run_with_semaphore(
                         self.appliance.get_network_appliance_settings(
@@ -369,7 +369,7 @@ class MerakiAPIClient:
                 ]
 
         for device in devices:
-            product_type = device.get("product_type")
+            product_type = device.get("productType")
             if product_type == "wireless":
                 if settings := detail_data.get(f"wireless_settings_{device['serial']}"):
                     device["radio_settings"] = settings
