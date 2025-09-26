@@ -121,9 +121,7 @@ class CameraRepository:
         """Generate a snapshot and return the URL."""
         try:
             snapshot_data = (
-                await self._api_client.camera.generate_device_camera_snapshot(
-                    serial, fullframe=False
-                )
+                await self._api_client.camera.generate_device_camera_snapshot(serial)
             )
             return snapshot_data.get("url")
         except Exception as e:
