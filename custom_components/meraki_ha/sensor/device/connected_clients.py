@@ -54,16 +54,38 @@ class MerakiDeviceConnectedClientsSensor(
     @callback
     def _update_state(self) -> None:
         """Update the native value of the sensor based on coordinator data."""
-        clients_by_serial = self.coordinator.data.get("clients_by_serial", {})
-        device_clients = clients_by_serial.get(self._device_serial)
-
-        if device_clients is None:
-            # Data for this specific device might not be available yet
-            self._attr_native_value = None
+        device = self._get_current_device_data()
+        if not device:
+            self._attr_native_value = 0
             return
 
-        # The API returns a list of clients, so we just count them.
-        self._attr_native_value = len(device_clients)
+        product_type = device.get("productType")
+
+        # For routers (appliances), the client count is all online clients in the network.
+        if product_type in ["appliance", "cellularGateway"]:
+            network_id = device.get("networkId")
+            all_clients = self.coordinator.data.get("clients", [])
+            if not all_clients:
+                self._attr_native_value = 0
+                return
+
+            network_clients = [
+                c
+                for c in all_clients
+                if c.get("networkId") == network_id and c.get("status") == "Online"
+            ]
+            self._attr_native_value = len(network_clients)
+        # For other devices (switches, APs), use the direct per-device client list.
+        else:
+            clients_by_serial = self.coordinator.data.get("clients_by_serial", {})
+            device_clients = clients_by_serial.get(self._device_serial)
+
+            if device_clients is None:
+                # Data for this specific device might not be available yet
+                self._attr_native_value = None
+                return
+
+            self._attr_native_value = len(device_clients)
 
     @callback
     def _handle_coordinator_update(self) -> None:
