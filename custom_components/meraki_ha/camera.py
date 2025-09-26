@@ -131,10 +131,8 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
             return None
 
         try:
-            api_key = self._config_entry.data[CONF_MERAKI_API_KEY]
-            headers = {"X-Cisco-Meraki-API-Key": api_key}
             session = async_get_clientsession(self.hass)
-            async with session.get(url, headers=headers) as response:
+            async with session.get(url) as response:
                 response.raise_for_status()
                 return await response.read()
         except aiohttp.ClientError as e:
