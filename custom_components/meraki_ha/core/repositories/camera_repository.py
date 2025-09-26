@@ -90,8 +90,8 @@ class CameraRepository:
                 serial,
                 e,
             )
-            # Continue execution, allowing the API call to proceed and potentially fail,
-            # which preserves the original behavior if the device check fails.
+            # Do not proceed if the device check fails.
+            return None
 
         try:
             video_link_data = (
