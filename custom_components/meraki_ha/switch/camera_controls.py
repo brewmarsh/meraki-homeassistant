@@ -40,6 +40,11 @@ class RTSPStreamSwitch(MerakiCameraSettingSwitchBase):
         )
         self._attr_icon = "mdi:cctv"
 
+        # Set availability based on model
+        model = device_data.get("model", "")
+        if model.startswith("MV2"):
+            self._attr_available = False
+
     async def _async_update_setting(self, is_on: bool) -> None:
         """Update the RTSP setting via the Meraki API."""
         try:
