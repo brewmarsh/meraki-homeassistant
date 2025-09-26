@@ -92,8 +92,15 @@ class CameraRepository:
                     url,
                 )
             return None
-        except MerakiInformationalError:
-            raise  # Re-raise to be handled by the service/entity
+        except MerakiInformationalError as e:
+            # This can happen if the camera model doesn't support RTSP (e.g., MV2).
+            # Log it as a warning, not an error that will spam the user.
+            _LOGGER.warning(
+                "Could not retrieve RTSP URL for camera %s (this may be normal if the model does not support it): %s",
+                serial,
+                e,
+            )
+            return None
         except Exception as e:
             _LOGGER.error("Error fetching video link for %s: %s", serial, e)
             return None
@@ -124,8 +131,10 @@ class CameraRepository:
     async def set_rtsp_stream_enabled(self, serial: str, enabled: bool) -> None:
         """Enable or disable RTSP stream for a camera."""
         try:
-            await self._api_client.camera.update_camera_video_settings(
-                serial, rtsp_server_enabled=enabled
+            # The API expects the key to be 'externalRtspEnabled'
+            payload = {"externalRtspEnabled": enabled}
+            await self._api_client.camera.update_device_camera_video_settings(
+                serial, **payload
             )
         except Exception as e:
             _LOGGER.error("Error setting RTSP stream for %s: %s", serial, e)
