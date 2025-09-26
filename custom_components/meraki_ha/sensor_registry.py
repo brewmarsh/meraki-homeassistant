@@ -49,6 +49,9 @@ SENSORS_COORD_DEV_CONF: Dict[str, SensorClassList] = {
         MerakiCameraAudioDetectionSensor,
         MerakiFirmwareStatusSensor,
     ],
+    "cellularGateway": [
+        MerakiDeviceConnectedClientsSensor,
+    ],
 }
 
 # Common sensors for all devices
