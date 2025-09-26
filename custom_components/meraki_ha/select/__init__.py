@@ -22,17 +22,27 @@ async def async_setup_entry(
     """Set up the Meraki select entities."""
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
     coordinator = entry_data["coordinator"]
-    meraki_client = coordinator.api
+    ssid_firewall_coordinators = entry_data.get("ssid_firewall_coordinators", {})
 
-    if coordinator.data:
+    if coordinator.data and coordinator.data.get("ssids"):
         select_entities = []
-        for network in coordinator.data.get("networks", []):
+        for ssid in coordinator.data["ssids"]:
+            ssid_num = ssid.get("number")
+            if not ssid.get("enabled") or ssid_num is None:
+                continue
+
+            firewall_coordinator = ssid_firewall_coordinators.get(ssid_num)
+            if not firewall_coordinator:
+                _LOGGER.warning(
+                    "No firewall coordinator found for SSID %s", ssid_num
+                )
+                continue
+
             select_entities.append(
                 MerakiContentFilteringSelect(
-                    coordinator,
-                    meraki_client,
+                    firewall_coordinator,
                     config_entry,
-                    network,
+                    ssid,
                 )
             )
         async_add_entities(select_entities)

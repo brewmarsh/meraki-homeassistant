@@ -11,15 +11,23 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 
-from ..core.api.client import MerakiAPIClient
-from ..coordinator import MerakiDataUpdateCoordinator
+from ..core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
+# These are the options provided by the Meraki API
+FILTERING_OPTIONS = {
+    "Strict": {"id": "strict", "name": "Strict"},
+    "Normal": {"id": "normal", "name": "Normal"},
+    "Top Sites": {"id": "topSites", "name": "Top Sites"},
+    "Whitelist": {"id": "whitelist", "name": "Whitelist"},
+    "Disabled": {"id": "disabled", "name": "Disabled"},
+}
+
 
 class MerakiContentFilteringSelect(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SelectEntity
+    CoordinatorEntity[SsidFirewallCoordinator], SelectEntity
 ):
     """Representation of a Meraki Content Filtering select entity."""
 
@@ -28,32 +36,33 @@ class MerakiContentFilteringSelect(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
-        meraki_client: MerakiAPIClient,
+        firewall_coordinator: SsidFirewallCoordinator,
         config_entry: ConfigEntry,
-        network_data: Dict[str, Any],
+        ssid_data: Dict[str, Any],
     ) -> None:
         """Initialize the Meraki Content Filtering select entity."""
-        super().__init__(coordinator)
-        self._meraki_client = meraki_client
+        super().__init__(firewall_coordinator)
         self._config_entry = config_entry
-        self._network_data = network_data
-        self._network_id = network_data["id"]
+        self._ssid_data = ssid_data
+        self._ssid_number = ssid_data["number"]
 
         self.entity_description = SelectEntityDescription(
-            key=f"content_filtering_{self._network_id}",
-            name="Content Filtering Policy",
+            key=f"content_filtering_{self._ssid_number}",
+            name="Content Filtering",
             icon="mdi:web-filter",
+            options=[option["name"] for option in FILTERING_OPTIONS.values()],
         )
 
-        self._attr_unique_id = f"meraki-network-{self._network_id}-content-filtering"
+        self._attr_unique_id = (
+            f"meraki-ssid-{self._ssid_number}-content-filtering"
+        )
         self._update_internal_state()
 
     @property
     def device_info(self) -> DeviceInfo:
-        """Return device information to link this entity to the network device."""
+        """Return device information to link this entity to the SSID device."""
         return resolve_device_info(
-            entity_data=self._network_data,
+            entity_data=self._ssid_data,
             config_entry=self._config_entry,
         )
 
@@ -70,39 +79,48 @@ class MerakiContentFilteringSelect(
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the select entity."""
-        if self.coordinator.data and self.coordinator.data.get("content_filtering"):
-            content_filtering = self.coordinator.data["content_filtering"].get(
-                self._network_id
-            )
-            if content_filtering:
-                self._attr_current_option = content_filtering.get(
-                    "urlCategoryListSize", "topSites"
-                )
-                self._attr_options = [
-                    "topSites",
-                    "fullList",
-                ]  # This should be dynamic
-        else:
+        if not self.coordinator.data:
             self._attr_current_option = None
-            self._attr_options = []
+            return
+
+        settings = self.coordinator.data.get("settings", {})
+        policy = settings.get("blockedUrlCategories", [])
+
+        if not settings.get("enabled", False) or not policy:
+            self._attr_current_option = FILTERING_OPTIONS["Disabled"]["name"]
+        elif "Top Sites" in policy:
+            self._attr_current_option = FILTERING_OPTIONS["Top Sites"]["name"]
+        elif "Strict" in policy:
+            self._attr_current_option = FILTERING_OPTIONS["Strict"]["name"]
+        elif "Normal" in policy:
+            self._attr_current_option = FILTERING_OPTIONS["Normal"]["name"]
+        else:
+            self._attr_current_option = FILTERING_OPTIONS["Whitelist"]["name"]
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
+        api_option_id = next(
+            (
+                opt["id"]
+                for opt in FILTERING_OPTIONS.values()
+                if opt["name"] == option
+            ),
+            None,
+        )
+        if api_option_id is None:
+            raise HomeAssistantError(f"Invalid content filtering option: {option}")
+
         try:
-            await self._meraki_client.appliance.update_network_appliance_content_filtering(
-                networkId=self._network_id,
-                urlCategoryListSize=option,
-            )
+            await self.coordinator.async_update_content_filtering(api_option_id)
             self._attr_current_option = option
             self.async_write_ha_state()
-            await self.coordinator.async_request_refresh()
         except Exception as e:
             _LOGGER.error(
-                "Failed to set content filtering policy to '%s' for network %s: %s",
+                "Failed to set content filtering to '%s' for SSID %s: %s",
                 option,
-                self._network_id,
+                self._ssid_number,
                 e,
             )
             raise HomeAssistantError(
-                f"Failed to set content filtering policy to '{option}': {e}"
+                f"Failed to set content filtering to '{option}': {e}"
             ) from e

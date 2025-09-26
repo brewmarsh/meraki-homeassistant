@@ -10,7 +10,6 @@ from functools import partial
 import logging
 from typing import Any, Dict, List, Optional
 
-import diskcache as dc
 from homeassistant.core import HomeAssistant
 import meraki  # type: ignore[import-untyped]
 

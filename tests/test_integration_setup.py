@@ -1,20 +1,22 @@
 """Integration-level tests for the Meraki HA component."""
 import sys
-from unittest.mock import MagicMock
-
-# Mock the hass_frontend module
-sys.modules['hass_frontend'] = MagicMock()
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from unittest.mock import patch, AsyncMock
-
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import async_get as async_get_device_registry
-from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
+from homeassistant.helpers.device_registry import (
+    async_get as async_get_device_registry,
+)
+from homeassistant.helpers.entity_registry import (
+    async_get as async_get_entity_registry,
+)
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.meraki_ha.const import DOMAIN
-from tests.const import MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE
+from custom_components.meraki_ha.const import CONF_SCAN_INTERVAL, DOMAIN
+from tests.const import MOCK_DEVICE, MOCK_GX_DEVICE, MOCK_MX_DEVICE
+
+# Mock the hass_frontend module
+sys.modules["hass_frontend"] = MagicMock()
 
 
 @pytest.fixture
@@ -23,7 +25,7 @@ def config_entry():
     return MockConfigEntry(
         domain=DOMAIN,
         data={"meraki_api_key": "fake_key", "meraki_org_id": "fake_org"},
-        options={},
+        options={CONF_SCAN_INTERVAL: 300},
         entry_id="test_entry",
     )
 

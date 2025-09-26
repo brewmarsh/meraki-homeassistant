@@ -1,6 +1,6 @@
 """Tests for the Meraki adult content filtering switch."""
 
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import MagicMock, AsyncMock
 
 import pytest
 

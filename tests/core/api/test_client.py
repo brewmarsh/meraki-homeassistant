@@ -103,6 +103,7 @@ def test_build_detail_tasks_for_wireless_device(api_client):
     assert f"wireless_settings_{MOCK_DEVICE['serial']}" in tasks
     assert f"rf_profiles_{MOCK_NETWORK['id']}" in tasks
 
+
 @pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_switch_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a switch device."""
@@ -116,6 +117,7 @@ def test_build_detail_tasks_for_switch_device(api_client):
 
     # Assert
     assert f"ports_statuses_{switch_device['serial']}" in tasks
+
 
 @pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_camera_device(api_client):
@@ -131,6 +133,7 @@ def test_build_detail_tasks_for_camera_device(api_client):
     # Assert
     assert f"video_settings_{camera_device['serial']}" in tasks
     assert f"sense_settings_{camera_device['serial']}" in tasks
+
 
 @pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_appliance_device(api_client):
