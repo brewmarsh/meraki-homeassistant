@@ -204,6 +204,8 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
     @property
     def supported_features(self) -> int:
         """Return supported features."""
+        if self._attr_model and self._attr_model.startswith("MV2"):
+            return 0
         return SUPPORT_STREAM
 
     @property
