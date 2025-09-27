@@ -120,6 +120,29 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
             manufacturer="Cisco Meraki",
         )
 
+    async def async_camera_image(
+        self, width: int | None = None, height: int | None = None
+    ) -> bytes | None:
+        """Return a still image from the camera."""
+        snapshot_url = await self._camera_service.generate_snapshot(self._device_serial)
+
+        if not snapshot_url:
+            _LOGGER.error("Could not generate snapshot for camera %s", self.name)
+            return None
+
+        try:
+            session = async_get_clientsession(self.hass)
+            async with session.get(snapshot_url) as response:
+                if response.status != 200:
+                    _LOGGER.error(
+                        "Error fetching snapshot for %s: %s", self.name, response.status
+                    )
+                    return None
+                return await response.read()
+        except aiohttp.ClientError as err:
+            _LOGGER.error("Error fetching snapshot for %s: %s", self.name, err)
+            return None
+
     async def stream_source(self) -> Optional[str]:
         """Return the source of the stream, if enabled."""
         if not self.is_streaming:
