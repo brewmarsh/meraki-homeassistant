@@ -101,6 +101,9 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if self.coordinator.is_pending(self.unique_id):
+            return  # Ignore update during cooldown
+
         # Find the updated device data from the coordinator's payload
         for device in self.coordinator.data.get("devices", []):
             if device.get("serial") == self._device_serial:
@@ -221,15 +224,31 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
     async def async_turn_on(self) -> None:
         """Turn on the camera stream."""
         _LOGGER.debug("Turning on stream for camera %s", self._device_serial)
+
+        # Optimistically update the state
+        if "video_settings" not in self._device_data:
+            self._device_data["video_settings"] = {}
+        self._device_data["video_settings"]["rtspServerEnabled"] = True
+        self.async_write_ha_state()
+
+        # Make the API call and register a cooldown
         await self._camera_service.async_set_rtsp_stream_enabled(
             self._device_serial, True
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.register_pending_update(self.unique_id)
 
     async def async_turn_off(self) -> None:
         """Turn off the camera stream."""
         _LOGGER.debug("Turning off stream for camera %s", self._device_serial)
+
+        # Optimistically update the state
+        if "video_settings" not in self._device_data:
+            self._device_data["video_settings"] = {}
+        self._device_data["video_settings"]["rtspServerEnabled"] = False
+        self.async_write_ha_state()
+
+        # Make the API call and register a cooldown
         await self._camera_service.async_set_rtsp_stream_enabled(
             self._device_serial, False
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.register_pending_update(self.unique_id)
