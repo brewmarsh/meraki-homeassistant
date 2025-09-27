@@ -79,9 +79,8 @@ class MerakiCameraSettingSwitchBase(
         """Update the setting via the Meraki API."""
         try:
             if self._key == "sense_enabled":
-                param_name = self._api_field.split(".")[-1]
                 await self.client.camera.update_camera_sense_settings(
-                    serial=self._device_data["serial"], **{param_name: is_on}
+                    serial=self._device_data["serial"], sense_enabled=is_on
                 )
             elif self._key == "audio_detection":
                 parts = self._api_field.split(".")
