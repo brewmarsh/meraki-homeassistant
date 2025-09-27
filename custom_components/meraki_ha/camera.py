@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 import aiohttp
 from homeassistant.components.camera import Camera
@@ -169,11 +169,11 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
         return attrs
 
     @property
-    def supported_features(self) -> List[CameraEntityFeature]:
+    def supported_features(self) -> CameraEntityFeature:
         """Return supported features."""
         if self._attr_model and self._attr_model.startswith("MV2"):
-            return []
-        return [SUPPORT_STREAM]
+            return CameraEntityFeature(0)
+        return SUPPORT_STREAM
 
     @property
     def is_streaming(self) -> bool:
