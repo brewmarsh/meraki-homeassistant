@@ -125,12 +125,14 @@ class CameraEndpoints:
         return validated
 
     @handle_meraki_errors
-    async def generate_device_camera_snapshot(self, serial: str) -> Dict[str, Any]:
+    async def generate_device_camera_snapshot(
+        self, serial: str, **kwargs
+    ) -> Dict[str, Any]:
         """Generate a snapshot of what the camera sees."""
         snapshot = await self._api_client._run_sync(
             self._dashboard.camera.generateDeviceCameraSnapshot,
             serial=serial,
-            fullframe=False,
+            **kwargs,
         )
         validated = validate_response(snapshot)
         if not isinstance(validated, dict):

@@ -30,6 +30,19 @@ class DevicesEndpoints:
         return validate_response(clients)
 
     @handle_meraki_errors
+    async def get_device(self, serial: str) -> Dict[str, Any]:
+        """Get a single device."""
+        device = await self._api_client._run_sync(
+            self._dashboard.devices.getDevice,
+            serial=serial,
+        )
+        validated = validate_response(device)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("get_device did not return a dict.")
+            return {}
+        return validated
+
+    @handle_meraki_errors
     async def update_device(self, serial: str, **kwargs) -> Dict[str, Any]:
         """Update a device."""
         device = await self._api_client._run_sync(

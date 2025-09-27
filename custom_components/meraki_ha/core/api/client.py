@@ -35,9 +35,9 @@ class MerakiAPIClient:
 
     def __init__(
         self,
+        hass: HomeAssistant,
         api_key: str,
         org_id: str,
-        hass: Optional[HomeAssistant] = None,
         base_url: str = "https://api.meraki.com/api/v1",
     ) -> None:
         """Initialize the API client."""
