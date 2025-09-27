@@ -43,6 +43,7 @@ class MerakiAPIClient:
         """Initialize the API client."""
         self._api_key = api_key
         self._org_id = org_id
+        self._hass = hass
         self._cache = None
         # if hass:
         #     cache_dir = hass.config.path("meraki_cache")
@@ -59,7 +60,7 @@ class MerakiAPIClient:
         )
 
         # Initialize endpoint handlers
-        self.appliance = ApplianceEndpoints(self)
+        self.appliance = ApplianceEndpoints(self, self._hass)
         self.camera = CameraEndpoints(self)
         self.devices = DevicesEndpoints(self)
         self.network = NetworkEndpoints(self)

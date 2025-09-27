@@ -1,7 +1,9 @@
 """Meraki API endpoints for appliances."""
 
 import logging
+from functools import partial
 from typing import Any, Dict, List
+from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
@@ -15,10 +17,11 @@ _LOGGER = logging.getLogger(__name__)
 class ApplianceEndpoints:
     """Appliance-related endpoints."""
 
-    def __init__(self, api_client):
+    def __init__(self, api_client, hass: HomeAssistant):
         """Initialize the endpoint."""
         self._api_client = api_client
         self._dashboard = api_client._dashboard
+        self._hass = hass
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
@@ -206,7 +209,9 @@ class ApplianceEndpoints:
     @handle_meraki_errors
     async def reboot_device(self, serial: str) -> Dict[str, Any]:
         """Reboot a device."""
-        result = await self._dashboard.devices.rebootDevice(serial=serial)
+        result = await self._hass.async_add_executor_job(
+            partial(self._dashboard.devices.rebootDevice, serial=serial)
+        )
         validated = validate_response(result)
         if not isinstance(validated, dict):
             _LOGGER.warning("reboot_device did not return a dict.")
