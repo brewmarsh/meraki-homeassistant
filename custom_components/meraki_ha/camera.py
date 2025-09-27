@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 import aiohttp
 from homeassistant.components.camera import Camera
@@ -120,39 +120,6 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
             manufacturer="Cisco Meraki",
         )
 
-    async def async_camera_image(
-        self, width: Optional[int] = None, height: Optional[int] = None
-    ) -> Optional[bytes]:
-        """Return a still image from the camera."""
-        url = await self._camera_service.generate_snapshot(self._device_serial)
-        if not url:
-            msg = f"Failed to get snapshot URL for {self.name}"
-            _LOGGER.error(msg)
-            self.coordinator.add_status_message(self._device_serial, msg)
-            return None
-
-        last_exception = None
-        for attempt in range(3):
-            try:
-                # Use a clean session to avoid sending auth headers to the pre-signed URL
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(url) as response:
-                        response.raise_for_status()
-                        return await response.read()
-            except aiohttp.ClientError as e:
-                last_exception = e
-                _LOGGER.debug(
-                    "Snapshot fetch failed (attempt %d/3), retrying in 1 second: %s",
-                    attempt + 1,
-                    e,
-                )
-                await asyncio.sleep(1)
-
-        msg = f"Error fetching snapshot for {self.name} after 3 attempts: {last_exception}"
-        _LOGGER.error(msg)
-        self.coordinator.add_status_message(self._device_serial, msg)
-        return None
-
     async def stream_source(self) -> Optional[str]:
         """Return the source of the stream, if enabled."""
         if not self.is_streaming:
@@ -202,11 +169,11 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
         return attrs
 
     @property
-    def supported_features(self) -> int:
+    def supported_features(self) -> List[CameraEntityFeature]:
         """Return supported features."""
         if self._attr_model and self._attr_model.startswith("MV2"):
-            return 0
-        return SUPPORT_STREAM
+            return []
+        return [SUPPORT_STREAM]
 
     @property
     def is_streaming(self) -> bool:
