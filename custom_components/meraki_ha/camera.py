@@ -95,7 +95,8 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
         self._attr_entity_registry_enabled_default = True
         self._disabled_reason = None
 
-        if not self._device_data.get("rtspUrl") and not self._device_data.get("lanIp"):
+        video_settings = self._device_data.get("video_settings", {})
+        if not video_settings.get("rtspUrl") and not self._device_data.get("lanIp"):
             self._attr_entity_registry_enabled_default = False
             self._disabled_reason = "The camera did not provide a stream URL or a LAN IP address from the API."
 
@@ -152,7 +153,8 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
             return None
 
         lan_ip = self._device_data.get("lanIp")
-        api_url = self._device_data.get("rtspUrl")
+        video_settings = self._device_data.get("video_settings", {})
+        api_url = video_settings.get("rtspUrl")
 
         # Prioritize local LAN stream if an IP is available.
         if lan_ip:
@@ -179,7 +181,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
             self.coordinator.add_status_message(
                 self._device_serial, "RTSP stream is disabled in the Meraki dashboard."
             )
-        elif not self._device_data.get("rtspUrl") and not self._device_data.get("lanIp"):
+        elif not video_settings.get("rtspUrl") and not self._device_data.get("lanIp"):
             attrs["stream_status"] = (
                 "Stream URL not available. This may be because the camera does not support cloud archival or local streaming."
             )
@@ -212,7 +214,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
 
         # A stream is available if we have a LAN IP or a valid cloud-provided URL.
         has_lan_ip = self._device_data.get("lanIp") is not None
-        cloud_url = self._device_data.get("rtspUrl")
+        cloud_url = video_settings.get("rtspUrl")
         has_valid_cloud_url = (
             cloud_url is not None
             and isinstance(cloud_url, str)

@@ -73,24 +73,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass, webhook_id, secret, coordinator.api, entry=entry
     )
 
-    # Auto-enable RTSP streams if configured
-    if entry.options.get(CONF_AUTO_RTSP, DEFAULT_AUTO_RTSP):
-        _LOGGER.debug("Auto-RTSP is enabled, turning on streams for all cameras")
-        for device in coordinator.data.get("devices", []):
-            if device.get("productType", "").startswith(
-                "camera"
-            ) and not device.get("model", "").startswith("MV2"):
-                try:
-                    await camera_service.async_set_rtsp_stream_enabled(
-                        device["serial"], True
-                    )
-                except Exception as e:
-                    _LOGGER.error(
-                        "Failed to auto-enable RTSP for camera %s: %s",
-                        device["serial"],
-                        e,
-                    )
-
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
