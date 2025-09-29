@@ -170,16 +170,10 @@ def _setup_ssid_switches(
     return entities
 
 
-from typing import List, Set, cast, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from ..services.camera_service import CameraService
-
 def _setup_camera_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
     added_entities: Set[str],
-    camera_service: "CameraService",
 ) -> List[Entity]:
     """Set up camera-specific switches."""
     entities: List[Entity] = []
@@ -192,7 +186,7 @@ def _setup_camera_switches(
             if unique_id not in added_entities:
                 entities.append(
                     RTSPStreamSwitch(
-                        coordinator, camera_service, device_info, config_entry
+                        coordinator, coordinator.api, device_info, config_entry
                     )
                 )
                 added_entities.add(unique_id)
@@ -212,7 +206,6 @@ def async_setup_switches(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
-    camera_service: "CameraService",
 ) -> List[Entity]:
     """Set up all switch entities from the central coordinator."""
     entities: List[Entity] = []
@@ -228,6 +221,6 @@ def async_setup_switches(
     )
     entities.extend(_setup_vpn_switches(config_entry, coordinator, added_entities))
     entities.extend(_setup_ssid_switches(config_entry, coordinator, added_entities))
-    entities.extend(_setup_camera_switches(config_entry, coordinator, added_entities, camera_service))
+    entities.extend(_setup_camera_switches(config_entry, coordinator, added_entities))
 
     return entities

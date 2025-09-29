@@ -18,6 +18,7 @@ def mock_dashboard():
 
 from unittest.mock import MagicMock
 
+
 @pytest.fixture
 def api_client(mock_dashboard):
     """Fixture for a MerakiAPIClient instance."""

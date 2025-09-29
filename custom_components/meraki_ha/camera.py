@@ -92,7 +92,13 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
             "",
         )
         self._attr_model = self._device_data.get("model")
-        self._attr_entity_registry_enabled_default = not self._attr_model.startswith("MV2")
+        self._attr_entity_registry_enabled_default = True
+        self._disabled_reason = None
+
+        video_settings = self._device_data.get("video_settings", {})
+        if not video_settings.get("rtspUrl") and not self._device_data.get("lanIp"):
+            self._attr_entity_registry_enabled_default = False
+            self._disabled_reason = "The camera did not provide a stream URL or a LAN IP address from the API."
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -121,25 +127,44 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
-        """Return a still image from the camera."""
+        """
+        Return a still image from the camera.
+        This method includes a retry mechanism to handle the delay in snapshot
+        generation by the Meraki cloud.
+        """
         snapshot_url = await self._camera_service.generate_snapshot(self._device_serial)
 
         if not snapshot_url:
             _LOGGER.error("Could not generate snapshot for camera %s", self.name)
             return None
 
-        try:
-            session = async_get_clientsession(self.hass)
-            async with session.get(snapshot_url) as response:
-                if response.status != 200:
-                    _LOGGER.error(
-                        "Error fetching snapshot for %s: %s", self.name, response.status
+        for attempt in range(3):  # Retry up to 3 times
+            try:
+                session = async_get_clientsession(self.hass)
+                async with session.get(snapshot_url) as response:
+                    if response.status == 200:
+                        return await response.read()
+                    _LOGGER.debug(
+                        "Attempt %d to fetch snapshot for %s failed with status %s",
+                        attempt + 1,
+                        self.name,
+                        response.status,
                     )
-                    return None
-                return await response.read()
-        except aiohttp.ClientError as err:
-            _LOGGER.error("Error fetching snapshot for %s: %s", self.name, err)
-            return None
+            except aiohttp.ClientError as err:
+                _LOGGER.debug(
+                    "Attempt %d to fetch snapshot for %s failed with error: %s",
+                    attempt + 1,
+                    self.name,
+                    err,
+                )
+
+            if attempt < 2:  # Don't sleep on the last attempt
+                await asyncio.sleep(2)  # Wait 2 seconds before retrying
+
+        _LOGGER.error(
+            "Failed to fetch snapshot for %s after multiple attempts.", self.name
+        )
+        return None
 
     async def stream_source(self) -> Optional[str]:
         """Return the source of the stream, prioritizing LAN IP."""
@@ -165,9 +190,26 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
     def extra_state_attributes(self) -> Dict[str, Any]:
         """Return the state attributes."""
         attrs = {}
+        if self._disabled_reason:
+            attrs["disabled_reason"] = self._disabled_reason
+            return attrs
+
         video_settings = self._device_data.get("video_settings", {})
-        rtsp_enabled = video_settings.get("rtspServerEnabled", False)
-        attrs["stream_status"] = "Enabled" if rtsp_enabled else "Disabled"
+        if not video_settings.get("rtspServerEnabled", False):
+            attrs["stream_status"] = "Disabled in Meraki Dashboard"
+            self.coordinator.add_status_message(
+                self._device_serial, "RTSP stream is disabled in the Meraki dashboard."
+            )
+        elif not video_settings.get("rtspUrl") and not self._device_data.get("lanIp"):
+            attrs["stream_status"] = (
+                "Stream URL not available. This may be because the camera does not support cloud archival or local streaming."
+            )
+            self.coordinator.add_status_message(
+                self._device_serial,
+                "RTSP stream URL is not available. The camera might not support cloud archival or local streaming.",
+            )
+        else:
+            attrs["stream_status"] = "Enabled"
         return attrs
 
     @property
@@ -200,34 +242,39 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
 
         return has_lan_ip or has_valid_cloud_url
 
+    async def _async_set_stream_state(self, enabled: bool) -> None:
+        """Optimistically update the stream state and make the API call."""
+        # Optimistically update the coordinator's data
+        for device in self.coordinator.data.get("devices", []):
+            if device.get("serial") == self._device_serial:
+                if "video_settings" not in device:
+                    device["video_settings"] = {}
+                device["video_settings"]["rtspServerEnabled"] = enabled
+                break
+
+        # Notify listeners of the optimistic change
+        self.coordinator.async_update_listeners()
+
+        try:
+            # Make the API call
+            await self._camera_service.async_set_rtsp_stream_enabled(
+                self._device_serial, enabled
+            )
+        except Exception as e:
+            _LOGGER.error(
+                "Failed to update RTSP stream for %s: %s", self._device_serial, e
+            )
+            # Revert optimistic update on failure
+            for device in self.coordinator.data.get("devices", []):
+                if device.get("serial") == self._device_serial:
+                    device["video_settings"]["rtspServerEnabled"] = not enabled
+                    break
+            self.coordinator.async_update_listeners()
+
     async def async_turn_on(self) -> None:
         """Turn on the camera stream."""
-        _LOGGER.debug("Turning on stream for camera %s", self._device_serial)
-
-        # Optimistically update the state
-        if "video_settings" not in self._device_data:
-            self._device_data["video_settings"] = {}
-        self._device_data["video_settings"]["rtspServerEnabled"] = True
-        self.async_write_ha_state()
-
-        # Make the API call and register a cooldown
-        await self._camera_service.async_set_rtsp_stream_enabled(
-            self._device_serial, True
-        )
-        self.coordinator.register_pending_update(self.unique_id)
+        await self._async_set_stream_state(True)
 
     async def async_turn_off(self) -> None:
         """Turn off the camera stream."""
-        _LOGGER.debug("Turning off stream for camera %s", self._device_serial)
-
-        # Optimistically update the state
-        if "video_settings" not in self._device_data:
-            self._device_data["video_settings"] = {}
-        self._device_data["video_settings"]["rtspServerEnabled"] = False
-        self.async_write_ha_state()
-
-        # Make the API call and register a cooldown
-        await self._camera_service.async_set_rtsp_stream_enabled(
-            self._device_serial, False
-        )
-        self.coordinator.register_pending_update(self.unique_id)
+        await self._async_set_stream_state(False)

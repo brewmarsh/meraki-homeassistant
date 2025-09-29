@@ -54,7 +54,9 @@ async def test_motion_sensor_on(mock_coordinator, mock_camera_service, mock_conf
 
 
 @pytest.mark.asyncio
-async def test_motion_sensor_off(mock_coordinator, mock_camera_service, mock_config_entry):
+async def test_motion_sensor_off(
+    mock_coordinator, mock_camera_service, mock_config_entry
+):
     """Test the motion sensor when no motion is detected."""
     # Arrange
     device = MOCK_DEVICE.copy()
