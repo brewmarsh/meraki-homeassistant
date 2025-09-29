@@ -135,6 +135,7 @@ class MVHandler(BaseDeviceHandler):
                 self._coordinator,
                 self.device,
                 self._camera_service,
+                self._config_entry,
             )
         )
 
@@ -153,7 +154,7 @@ class MVHandler(BaseDeviceHandler):
             MerakiRtspUrlSensor(
                 self._coordinator,
                 self.device,
-                self._camera_service,
+                self._config_entry,
             )
         )
 
@@ -161,8 +162,9 @@ class MVHandler(BaseDeviceHandler):
         entities.append(
             RTSPStreamSwitch(
                 self._coordinator,
-                self._meraki_client,
+                self._camera_service,
                 self.device,
+                self._config_entry,
             )
         )
         entities.append(
@@ -170,6 +172,7 @@ class MVHandler(BaseDeviceHandler):
                 self._coordinator,
                 self._meraki_client,
                 self.device,
+                self._config_entry,
             )
         )
 

@@ -92,13 +92,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
             "",
         )
         self._attr_model = self._device_data.get("model")
-        self._attr_entity_registry_enabled_default = True
-        self._disabled_reason = None
-
-        video_settings = self._device_data.get("video_settings", {})
-        if not video_settings.get("rtspUrl") and not self._device_data.get("lanIp"):
-            self._attr_entity_registry_enabled_default = False
-            self._disabled_reason = "The camera did not provide a stream URL or a LAN IP address from the API."
+        self._attr_entity_registry_enabled_default = not self._attr_model.startswith("MV2")
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -171,26 +165,9 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
     def extra_state_attributes(self) -> Dict[str, Any]:
         """Return the state attributes."""
         attrs = {}
-        if self._disabled_reason:
-            attrs["disabled_reason"] = self._disabled_reason
-            return attrs
-
         video_settings = self._device_data.get("video_settings", {})
-        if not video_settings.get("rtspServerEnabled", False):
-            attrs["stream_status"] = "Disabled in Meraki Dashboard"
-            self.coordinator.add_status_message(
-                self._device_serial, "RTSP stream is disabled in the Meraki dashboard."
-            )
-        elif not video_settings.get("rtspUrl") and not self._device_data.get("lanIp"):
-            attrs["stream_status"] = (
-                "Stream URL not available. This may be because the camera does not support cloud archival or local streaming."
-            )
-            self.coordinator.add_status_message(
-                self._device_serial,
-                "RTSP stream URL is not available. The camera might not support cloud archival or local streaming.",
-            )
-        else:
-            attrs["stream_status"] = "Enabled"
+        rtsp_enabled = video_settings.get("rtspServerEnabled", False)
+        attrs["stream_status"] = "Enabled" if rtsp_enabled else "Disabled"
         return attrs
 
     @property

@@ -17,7 +17,8 @@ def mock_dashboard():
 @pytest.fixture
 def api_client(mock_dashboard):
     """Fixture for a MerakiAPIClient instance."""
-    return MerakiAPIClient(api_key="test-key", org_id="test-org")
+    hass = MagicMock()
+    return MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
 
 
 @pytest.mark.asyncio

@@ -26,12 +26,22 @@ def mock_camera_service():
     return service
 
 
+@pytest.fixture
+def mock_config_entry():
+    """Fixture for a mocked ConfigEntry."""
+    entry = MagicMock()
+    entry.options = {}
+    return entry
+
+
 @pytest.mark.asyncio
-async def test_motion_sensor_on(mock_coordinator, mock_camera_service):
+async def test_motion_sensor_on(mock_coordinator, mock_camera_service, mock_config_entry):
     """Test the motion sensor when motion is detected."""
     # Arrange
     device = MOCK_DEVICE.copy()
-    sensor = MerakiMotionSensor(mock_coordinator, device, mock_camera_service)
+    sensor = MerakiMotionSensor(
+        mock_coordinator, device, mock_camera_service, mock_config_entry
+    )
 
     # Act
     await sensor.async_update()
@@ -44,12 +54,14 @@ async def test_motion_sensor_on(mock_coordinator, mock_camera_service):
 
 
 @pytest.mark.asyncio
-async def test_motion_sensor_off(mock_coordinator, mock_camera_service):
+async def test_motion_sensor_off(mock_coordinator, mock_camera_service, mock_config_entry):
     """Test the motion sensor when no motion is detected."""
     # Arrange
     device = MOCK_DEVICE.copy()
     mock_camera_service.get_motion_history.return_value = []
-    sensor = MerakiMotionSensor(mock_coordinator, device, mock_camera_service)
+    sensor = MerakiMotionSensor(
+        mock_coordinator, device, mock_camera_service, mock_config_entry
+    )
 
     # Act
     await sensor.async_update()

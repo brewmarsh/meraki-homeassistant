@@ -42,9 +42,12 @@ def mock_coordinator():
 def test_vlan_sensor_creation(mock_coordinator):
     """Test that VLAN sensors are created correctly."""
     hass = MagicMock()
+    camera_service = MagicMock()
 
     # Run the setup
-    sensors = async_setup_sensors(hass, mock_coordinator.config_entry, mock_coordinator)
+    sensors = async_setup_sensors(
+        hass, mock_coordinator.config_entry, mock_coordinator, camera_service
+    )
 
     # We expect 2 sensors for the one enabled VLAN (subnet and IP)
     # and we also have the network sensors that are created by default

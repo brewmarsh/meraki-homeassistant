@@ -34,6 +34,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
+import asyncio
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Meraki from a config entry."""
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
@@ -54,6 +56,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "camera_service": camera_service,
         "switch_port_status_coordinator": switch_port_status_coordinator,
     }
+
+    if entry.options.get(CONF_AUTO_RTSP, DEFAULT_AUTO_RTSP):
+        _LOGGER.debug("Auto RTSP is enabled, enabling RTSP for all supported cameras")
+        tasks = []
+        for device in coordinator.data.get("devices", []):
+            if device.get("productType", "").startswith(
+                "camera"
+            ) and not device.get("model", "").startswith("MV2"):
+                serial = device["serial"]
+                tasks.append(camera_service.async_set_rtsp_stream_enabled(serial, True))
+        if tasks:
+            await asyncio.gather(*tasks)
 
     # Set up webhook
     webhook_id = WEBHOOK_ID_FORMAT.format(entry_id=entry.entry_id)

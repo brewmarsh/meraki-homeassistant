@@ -20,7 +20,9 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki switch entities from a config entry."""
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = entry_data["coordinator"]
+    camera_service = entry_data["camera_service"]
 
     device_registry = dr.async_get(hass)
     for network in coordinator.data.get("networks", []):
@@ -32,7 +34,7 @@ async def async_setup_entry(
             model="Network",
         )
 
-    switch_entities = async_setup_switches(hass, config_entry, coordinator)
+    switch_entities = async_setup_switches(hass, config_entry, coordinator, camera_service)
 
     _LOGGER.debug("Found %d switch entities", len(switch_entities))
     if switch_entities:

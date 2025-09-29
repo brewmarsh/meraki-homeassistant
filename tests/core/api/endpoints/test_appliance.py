@@ -16,16 +16,20 @@ def mock_dashboard():
         yield mock_dashboard_class.return_value
 
 
+from unittest.mock import MagicMock
+
 @pytest.fixture
 def api_client(mock_dashboard):
     """Fixture for a MerakiAPIClient instance."""
-    return MerakiAPIClient(api_key="test-key", org_id="test-org")
+    hass = MagicMock()
+    return MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
 
 
 @pytest.fixture
 def appliance_endpoints(api_client):
     """Fixture for an ApplianceEndpoints instance."""
-    return ApplianceEndpoints(api_client)
+    hass = MagicMock()
+    return ApplianceEndpoints(api_client, hass)
 
 
 @pytest.mark.asyncio

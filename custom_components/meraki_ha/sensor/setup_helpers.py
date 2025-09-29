@@ -66,7 +66,7 @@ def _setup_device_sensors(
             unique_id = f"{serial}_rtsp_url"
             if unique_id not in added_entities:
                 entities.append(
-                    MerakiRtspUrlSensor(device_info, config_entry, camera_service)
+                    MerakiRtspUrlSensor(coordinator, device_info, config_entry)
                 )
                 added_entities.add(unique_id)
 

@@ -36,11 +36,23 @@ def mock_api_client():
     return client
 
 
-async def test_camera_rtsp_switch(hass, mock_device_coordinator, mock_api_client):
+@pytest.fixture
+def mock_config_entry():
+    """Fixture for a mocked ConfigEntry."""
+    entry = MagicMock()
+    entry.options = {}
+    return entry
+
+
+async def test_camera_rtsp_switch(
+    hass, mock_device_coordinator, mock_api_client, mock_config_entry
+):
     """Test the camera RTSP switch."""
     device = mock_device_coordinator.get_device.return_value
 
-    switch = MerakiCameraRTSPSwitch(mock_device_coordinator, mock_api_client, device)
+    switch = MerakiCameraRTSPSwitch(
+        mock_device_coordinator, mock_api_client, device, mock_config_entry
+    )
     switch.hass = hass
     switch.entity_id = "switch.test"
     switch.async_write_ha_state = MagicMock()
