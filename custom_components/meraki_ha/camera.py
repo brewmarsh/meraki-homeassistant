@@ -92,14 +92,13 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
             "",
         )
         self._attr_model = self._device_data.get("model")
-        self._attr_entity_registry_enabled_default = not (
-            self._attr_model and self._attr_model.startswith("MV2")
-        )
-        self._disabled_reason = (
-            "MV2 cameras do not support RTSP"
-            if not self._attr_entity_registry_enabled_default
-            else None
-        )
+        self._attr_entity_registry_enabled_default = True
+        self._disabled_reason = None
+
+        video_settings = self._device_data.get("video_settings", {})
+        if not video_settings.get("rtspUrl") and not self._device_data.get("lanIp"):
+            self._attr_entity_registry_enabled_default = False
+            self._disabled_reason = "The camera did not provide a stream URL or a LAN IP address from the API."
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -293,10 +292,10 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
             device_in_coordinator["video_settings"]["rtspServerEnabled"] = not enabled
             self.coordinator.async_update_listeners()
 
-    async def async_turn_on(self) -> None:
+    async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the camera stream."""
         await self._async_set_stream_state(True)
 
-    async def async_turn_off(self) -> None:
+    async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the camera stream."""
         await self._async_set_stream_state(False)

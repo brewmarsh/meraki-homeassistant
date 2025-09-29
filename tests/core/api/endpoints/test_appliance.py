@@ -1,6 +1,6 @@
 """Tests for the appliance API endpoints."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, patch, MagicMock
 import pytest
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.core.api.endpoints.appliance import (
@@ -16,20 +16,21 @@ def mock_dashboard():
         yield mock_dashboard_class.return_value
 
 
-from unittest.mock import MagicMock
+@pytest.fixture
+def hass():
+    """Fixture for a mocked Home Assistant instance."""
+    return MagicMock()
 
 
 @pytest.fixture
-def api_client(mock_dashboard):
+def api_client(hass, mock_dashboard):
     """Fixture for a MerakiAPIClient instance."""
-    hass = MagicMock()
     return MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
 
 
 @pytest.fixture
-def appliance_endpoints(api_client):
+def appliance_endpoints(api_client, hass):
     """Fixture for an ApplianceEndpoints instance."""
-    hass = MagicMock()
     return ApplianceEndpoints(api_client, hass)
 
 

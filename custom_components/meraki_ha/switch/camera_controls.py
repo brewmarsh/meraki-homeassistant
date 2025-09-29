@@ -13,6 +13,9 @@ from ..core.utils.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
+from ..const import DOMAIN
+
+
 class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
     """Switch to control analytics on a Meraki camera."""
 
@@ -21,7 +24,6 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         device_data: Dict[str, Any],
-        config_entry: ConfigEntry,
     ) -> None:
         """Initialize the analytics switch."""
         super().__init__(
@@ -30,10 +32,9 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             device_data,
             "sense_enabled",
             "sense.analyticsEnabled",
-            config_entry,
         )
         self._attr_name = format_entity_name(
-            format_device_name(device_data, config_entry.options),
+            format_device_name(device_data, coordinator.config_entry.options),
             "Analytics",
         )
         self._attr_icon = "mdi:chart-bar"

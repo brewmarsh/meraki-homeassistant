@@ -17,6 +17,12 @@ def mock_coordinator():
 
 
 @pytest.fixture
+def mock_config_entry():
+    """Fixture for a mocked ConfigEntry."""
+    return MagicMock()
+
+
+@pytest.fixture
 def mock_camera_service():
     """Fixture for a mocked CameraService."""
     service = AsyncMock()
@@ -26,16 +32,10 @@ def mock_camera_service():
     return service
 
 
-@pytest.fixture
-def mock_config_entry():
-    """Fixture for a mocked ConfigEntry."""
-    entry = MagicMock()
-    entry.options = {}
-    return entry
-
-
 @pytest.mark.asyncio
-async def test_motion_sensor_on(mock_coordinator, mock_camera_service, mock_config_entry):
+async def test_motion_sensor_on(
+    mock_coordinator, mock_camera_service, mock_config_entry
+):
     """Test the motion sensor when motion is detected."""
     # Arrange
     device = MOCK_DEVICE.copy()

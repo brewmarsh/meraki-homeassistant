@@ -15,9 +15,14 @@ def mock_dashboard():
 
 
 @pytest.fixture
-def api_client(mock_dashboard):
+def hass():
+    """Fixture for a mocked Home Assistant instance."""
+    return MagicMock()
+
+
+@pytest.fixture
+def api_client(hass, mock_dashboard):
     """Fixture for a MerakiAPIClient instance."""
-    hass = MagicMock()
     return MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
 
 

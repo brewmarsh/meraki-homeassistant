@@ -164,7 +164,6 @@ class MVHandler(BaseDeviceHandler):
                 self._coordinator,
                 self._meraki_client,
                 self.device,
-                self._config_entry,
             )
         )
 

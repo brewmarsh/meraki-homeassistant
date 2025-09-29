@@ -36,22 +36,14 @@ def mock_api_client():
     return client
 
 
-@pytest.fixture
-def mock_config_entry():
-    """Fixture for a mocked ConfigEntry."""
-    entry = MagicMock()
-    entry.options = {}
-    return entry
-
-
 async def test_camera_sense_switch(
-    hass, mock_device_coordinator, mock_api_client, mock_config_entry
+    hass, mock_device_coordinator, mock_api_client
 ):
     """Test the camera sense switch."""
     device = mock_device_coordinator.data["devices"][0]
 
     switch = MerakiCameraSenseSwitch(
-        mock_device_coordinator, mock_api_client, device, mock_config_entry
+        mock_device_coordinator, mock_api_client, device
     )
     switch.hass = hass
     switch.entity_id = "switch.mv_sense"
@@ -83,13 +75,13 @@ async def test_camera_sense_switch(
 
 
 async def test_camera_audio_detection_switch(
-    hass, mock_device_coordinator, mock_api_client, mock_config_entry
+    hass, mock_device_coordinator, mock_api_client
 ):
     """Test the camera audio detection switch."""
     device = mock_device_coordinator.data["devices"][0]
 
     switch = MerakiCameraAudioDetectionSwitch(
-        mock_device_coordinator, mock_api_client, device, mock_config_entry
+        mock_device_coordinator, mock_api_client, device
     )
     switch.hass = hass
     switch.entity_id = "switch.audio_detection"
