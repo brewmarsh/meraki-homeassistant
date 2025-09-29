@@ -13,7 +13,7 @@ from .vlan_dhcp import MerakiVLANDHCPSwitch
 from .firewall_rule import MerakiFirewallRuleSwitch
 from ..types import MerakiFirewallRule
 from .vpn import MerakiVPNSwitch
-from .camera_controls import RTSPStreamSwitch, AnalyticsSwitch
+from .camera_controls import AnalyticsSwitch
 from .meraki_ssid_device_switch import (
     MerakiSSIDEnabledSwitch,
     MerakiSSIDBroadcastSwitch,
@@ -181,15 +181,6 @@ def _setup_camera_switches(
     for device_info in devices:
         if device_info.get("productType", "").startswith("camera"):
             serial = device_info["serial"]
-            # RTSP Stream Switch
-            unique_id = f"{serial}_rtsp_switch"
-            if unique_id not in added_entities:
-                entities.append(
-                    RTSPStreamSwitch(
-                        coordinator, coordinator.api, device_info, config_entry
-                    )
-                )
-                added_entities.add(unique_id)
             # Analytics Switch
             unique_id = f"{serial}_analytics_switch"
             if unique_id not in added_entities:

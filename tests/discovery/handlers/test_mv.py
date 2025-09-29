@@ -16,10 +16,7 @@ from custom_components.meraki_ha.button.device.camera_snapshot import (
     MerakiSnapshotButton,
 )
 from custom_components.meraki_ha.sensor.device.rtsp_url import MerakiRtspUrlSensor
-from custom_components.meraki_ha.switch.camera_controls import (
-    RTSPStreamSwitch,
-    AnalyticsSwitch,
-)
+from custom_components.meraki_ha.switch.camera_controls import AnalyticsSwitch
 from tests.const import MOCK_DEVICE
 
 
@@ -82,14 +79,13 @@ async def test_mv_handler_all_features(
     entities = await handler.discover_entities()
 
     # Assert
-    assert len(entities) == 8
+    assert len(entities) == 7
     assert any(isinstance(e, MerakiCamera) for e in entities)
     assert any(isinstance(e, MerakiPersonCountSensor) for e in entities)
     assert any(isinstance(e, MerakiVehicleCountSensor) for e in entities)
     assert any(isinstance(e, MerakiMotionSensor) for e in entities)
     assert any(isinstance(e, MerakiSnapshotButton) for e in entities)
     assert any(isinstance(e, MerakiRtspUrlSensor) for e in entities)
-    assert any(isinstance(e, RTSPStreamSwitch) for e in entities)
     assert any(isinstance(e, AnalyticsSwitch) for e in entities)
 
 
@@ -121,14 +117,13 @@ async def test_mv_handler_some_features(
     entities = await handler.discover_entities()
 
     # Assert
-    assert len(entities) == 7
+    assert len(entities) == 6
     assert any(isinstance(e, MerakiCamera) for e in entities)
     assert any(isinstance(e, MerakiPersonCountSensor) for e in entities)
     assert not any(isinstance(e, MerakiVehicleCountSensor) for e in entities)
     assert any(isinstance(e, MerakiMotionSensor) for e in entities)
     assert any(isinstance(e, MerakiSnapshotButton) for e in entities)
     assert any(isinstance(e, MerakiRtspUrlSensor) for e in entities)
-    assert any(isinstance(e, RTSPStreamSwitch) for e in entities)
     assert any(isinstance(e, AnalyticsSwitch) for e in entities)
 
 
@@ -158,12 +153,11 @@ async def test_mv_handler_no_extra_features(
     entities = await handler.discover_entities()
 
     # Assert
-    assert len(entities) == 6
+    assert len(entities) == 5
     assert any(isinstance(e, MerakiCamera) for e in entities)
     assert not any(isinstance(e, MerakiPersonCountSensor) for e in entities)
     assert not any(isinstance(e, MerakiVehicleCountSensor) for e in entities)
     assert any(isinstance(e, MerakiMotionSensor) for e in entities)
     assert any(isinstance(e, MerakiSnapshotButton) for e in entities)
     assert any(isinstance(e, MerakiRtspUrlSensor) for e in entities)
-    assert any(isinstance(e, RTSPStreamSwitch) for e in entities)
     assert any(isinstance(e, AnalyticsSwitch) for e in entities)

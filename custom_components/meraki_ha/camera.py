@@ -92,13 +92,14 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
             "",
         )
         self._attr_model = self._device_data.get("model")
-        self._attr_entity_registry_enabled_default = True
-        self._disabled_reason = None
-
-        video_settings = self._device_data.get("video_settings", {})
-        if not video_settings.get("rtspUrl") and not self._device_data.get("lanIp"):
-            self._attr_entity_registry_enabled_default = False
-            self._disabled_reason = "The camera did not provide a stream URL or a LAN IP address from the API."
+        self._attr_entity_registry_enabled_default = not (
+            self._attr_model and self._attr_model.startswith("MV2")
+        )
+        self._disabled_reason = (
+            "MV2 cameras do not support RTSP"
+            if not self._attr_entity_registry_enabled_default
+            else None
+        )
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -243,20 +244,44 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
         return has_lan_ip or has_valid_cloud_url
 
     async def _async_set_stream_state(self, enabled: bool) -> None:
-        """Optimistically update the stream state and make the API call."""
-        # Optimistically update the coordinator's data
+        """Optimistically update the stream state, notify listeners, and make the API call."""
+        # Find the actual device dict in the coordinator's data to update it
+        device_in_coordinator = None
         for device in self.coordinator.data.get("devices", []):
             if device.get("serial") == self._device_serial:
-                if "video_settings" not in device:
-                    device["video_settings"] = {}
-                device["video_settings"]["rtspServerEnabled"] = enabled
+                device_in_coordinator = device
                 break
 
-        # Notify listeners of the optimistic change
+        if not device_in_coordinator:
+            _LOGGER.error(
+                "Could not find device %s in coordinator data to update",
+                self._device_serial,
+            )
+            return
+
+        # Optimistically update the shared data
+        if "video_settings" not in device_in_coordinator:
+            device_in_coordinator["video_settings"] = {}
+        device_in_coordinator["video_settings"]["rtspServerEnabled"] = enabled
+
+        # Also optimistically update the URL if we can
+        if enabled and device_in_coordinator.get("lanIp"):
+            device_in_coordinator["video_settings"]["rtspUrl"] = construct_rtsp_url(
+                device_in_coordinator.get("lanIp")
+            )
+        elif not enabled:
+            # Clear the URL when disabled
+            if "video_settings" in device_in_coordinator:
+                device_in_coordinator["video_settings"]["rtspUrl"] = None
+
+        # Notify all listeners of the optimistic change
         self.coordinator.async_update_listeners()
 
+        # Register a cooldown to prevent the next refresh from overwriting our optimistic state
+        self.coordinator.register_pending_update(self.unique_id)
+
+        # Make the API call
         try:
-            # Make the API call
             await self._camera_service.async_set_rtsp_stream_enabled(
                 self._device_serial, enabled
             )
@@ -265,10 +290,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
                 "Failed to update RTSP stream for %s: %s", self._device_serial, e
             )
             # Revert optimistic update on failure
-            for device in self.coordinator.data.get("devices", []):
-                if device.get("serial") == self._device_serial:
-                    device["video_settings"]["rtspServerEnabled"] = not enabled
-                    break
+            device_in_coordinator["video_settings"]["rtspServerEnabled"] = not enabled
             self.coordinator.async_update_listeners()
 
     async def async_turn_on(self) -> None:

@@ -20,7 +20,7 @@ from ...sensor.device.camera_analytics import (
 from ...binary_sensor.device.camera_motion import MerakiMotionSensor
 from ...button.device.camera_snapshot import MerakiSnapshotButton
 from ...sensor.device.rtsp_url import MerakiRtspUrlSensor
-from ...switch.camera_controls import RTSPStreamSwitch, AnalyticsSwitch
+from ...switch.camera_controls import AnalyticsSwitch
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -154,20 +154,11 @@ class MVHandler(BaseDeviceHandler):
             MerakiRtspUrlSensor(
                 self._coordinator,
                 self.device,
-                self._camera_service,
                 self._config_entry,
             )
         )
 
         # Add control switches
-        entities.append(
-            RTSPStreamSwitch(
-                self._coordinator,
-                self._meraki_client,
-                self.device,
-                self._config_entry,
-            )
-        )
         entities.append(
             AnalyticsSwitch(
                 self._coordinator,
