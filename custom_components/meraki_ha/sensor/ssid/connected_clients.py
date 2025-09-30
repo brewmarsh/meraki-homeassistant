@@ -1,7 +1,7 @@
 """Sensor entity for monitoring connected clients on a Meraki SSID."""
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry

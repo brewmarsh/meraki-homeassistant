@@ -1,6 +1,7 @@
 """The Meraki Home Assistant integration."""
 
 import logging
+import asyncio
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -33,8 +34,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     async_setup_api(hass)
     return True
 
-
-import asyncio
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Meraki from a config entry."""

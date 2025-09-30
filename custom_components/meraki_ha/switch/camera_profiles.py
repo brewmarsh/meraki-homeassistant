@@ -3,7 +3,6 @@
 import logging
 from typing import Any, Dict
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import EntityDescription
 
 from ..core.api.client import MerakiAPIClient

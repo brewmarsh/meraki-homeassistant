@@ -17,7 +17,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from .helpers.entity_helpers import format_entity_name
 from .core.utils.naming_utils import format_device_name
 from .core.utils.network_utils import construct_rtsp_url
-from .const import DOMAIN, CONF_MERAKI_API_KEY
+from .const import DOMAIN
 
 # SUPPORT_STREAM was deprecated in 2024.2, and CameraEntityFeature was added.
 # This try/except block is for backward compatibility.

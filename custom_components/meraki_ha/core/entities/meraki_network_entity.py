@@ -8,7 +8,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.config_entries import ConfigEntry
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...types import MerakiNetwork
-from ...core.utils.naming_utils import format_device_name
 
 
 class MerakiNetworkEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):

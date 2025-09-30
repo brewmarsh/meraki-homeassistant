@@ -25,7 +25,7 @@ class NetworkEndpoints:
     async def get_network_clients(self, network_id: str) -> List[Dict[str, Any]]:
         """Get all clients in a network."""
         clients = await self._api_client._run_sync(
-            self._dashboard.networks.getNetworkClients, networkId=network_id
+            self._dashboard.networks.get_network_clients, networkId=network_id
         )
         validated = validate_response(clients)
         if not isinstance(validated, list):
@@ -40,7 +40,7 @@ class NetworkEndpoints:
     ) -> List[Dict[str, Any]]:
         """Get traffic data for a network, filtered by device type."""
         traffic = await self._api_client._run_sync(
-            self._dashboard.networks.getNetworkTraffic,
+            self._dashboard.networks.get_network_traffic,
             networkId=network_id,
             deviceType=device_type,
             timespan=86400,  # 24 hours
@@ -56,7 +56,7 @@ class NetworkEndpoints:
     async def get_webhooks(self, network_id: str) -> List[Dict[str, Any]]:
         """Get all webhooks for a network."""
         webhooks = await self._api_client._run_sync(
-            self._dashboard.networks.getNetworkWebhooksHttpServers,
+            self._dashboard.networks.get_network_webhooks_http_servers,
             networkId=network_id,
         )
         validated = validate_response(webhooks)
@@ -69,7 +69,7 @@ class NetworkEndpoints:
     async def delete_webhook(self, network_id: str, webhook_id: str) -> None:
         """Delete a webhook from a network."""
         await self._api_client._run_sync(
-            self._dashboard.networks.deleteNetworkWebhooksHttpServer,
+            self._dashboard.networks.delete_network_webhooks_http_server,
             networkId=network_id,
             httpServerId=webhook_id,
         )
@@ -79,13 +79,10 @@ class NetworkEndpoints:
         self, network_id: str, url: str
     ) -> Optional[Dict[str, Any]]:
         """Find a webhook by its URL."""
-        try:
-            webhooks = await self.get_webhooks(network_id)
-            for webhook in webhooks:
-                if webhook.get("url") == url:
-                    return webhook
-        except Exception:
-            pass
+        webhooks = await self.get_webhooks(network_id)
+        for webhook in webhooks:
+            if webhook.get("url") == url:
+                return webhook
         return None
 
     @handle_meraki_errors
@@ -99,7 +96,7 @@ class NetworkEndpoints:
                 await self.delete_webhook(network_id, existing_webhook["id"])
 
             await self._api_client._run_sync(
-                self._dashboard.networks.createNetworkWebhooksHttpServer,
+                self._dashboard.networks.create_network_webhooks_http_server,
                 networkId=network_id,
                 url=webhook_url,
                 sharedSecret=secret,
@@ -112,7 +109,7 @@ class NetworkEndpoints:
         networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
             await self._api_client._run_sync(
-                self._dashboard.networks.deleteNetworkWebhooksHttpServer,
+                self._dashboard.networks.delete_network_webhooks_http_server,
                 networkId=network["id"],
                 httpServerId=webhook_id,
             )
@@ -124,7 +121,7 @@ class NetworkEndpoints:
     ) -> List[Dict[str, Any]]:
         """Get analytics history for a network."""
         history = await self._api_client._run_sync(
-            self._dashboard.camera.getNetworkCameraAnalyticsRecent,
+            self._dashboard.camera.get_network_camera_analytics_recent,
             networkId=network_id,
             objectType=object_type,
         )

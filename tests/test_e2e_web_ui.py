@@ -1,14 +1,9 @@
 """End-to-end tests for the Meraki Web UI."""
 import sys
-from unittest.mock import MagicMock
-
-# Mock the hass_frontend module
-sys.modules['hass_frontend'] = MagicMock()
-
 import json
-import pytest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
+import pytest
 from playwright.async_api import async_playwright, expect
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -20,8 +15,10 @@ from custom_components.meraki_ha.const import (
     CONF_ENABLE_WEB_UI,
     CONF_WEB_UI_PORT,
 )
-
 from .const import MOCK_ALL_DATA
+
+# Mock the hass_frontend module
+sys.modules['hass_frontend'] = MagicMock()
 
 TEST_PORT = 9999
 MOCK_SETTINGS = {"scan_interval": 300}

@@ -6,6 +6,7 @@ import pytest
 from custom_components.meraki_ha.camera import MerakiCamera
 from tests.const import MOCK_DEVICE
 
+
 @pytest.fixture
 def mock_coordinator():
     """Fixture for a mocked MerakiDataUpdateCoordinator."""
@@ -27,6 +28,7 @@ def mock_coordinator():
     coordinator.register_pending_update = MagicMock()
     return coordinator
 
+
 @pytest.fixture
 def mock_config_entry():
     """Fixture for a mocked ConfigEntry."""
@@ -34,10 +36,12 @@ def mock_config_entry():
     entry.options = {}
     return entry
 
+
 @pytest.fixture
 def mock_camera_service():
     """Fixture for a mocked CameraService."""
     return AsyncMock()
+
 
 @pytest.mark.asyncio
 async def test_camera_turn_on_optimistic_update(
@@ -74,6 +78,7 @@ async def test_camera_turn_on_optimistic_update(
 
     # 4. Check that a cooldown was registered
     mock_coordinator.register_pending_update.assert_called_once_with(camera.unique_id)
+
 
 @pytest.mark.asyncio
 async def test_camera_turn_off_optimistic_update(

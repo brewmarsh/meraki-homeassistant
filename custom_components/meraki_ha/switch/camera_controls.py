@@ -3,7 +3,6 @@
 import logging
 from typing import Any, Dict
 
-from homeassistant.config_entries import ConfigEntry
 from ..core.api.client import MerakiAPIClient
 from ..coordinator import MerakiDataUpdateCoordinator
 from .camera_settings import MerakiCameraSettingSwitchBase
@@ -11,9 +10,6 @@ from ..helpers.entity_helpers import format_entity_name
 from ..core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
-
-
-from ..const import DOMAIN
 
 
 class AnalyticsSwitch(MerakiCameraSettingSwitchBase):

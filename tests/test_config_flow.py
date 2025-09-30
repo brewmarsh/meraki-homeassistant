@@ -2,11 +2,8 @@
 import sys
 from unittest.mock import patch, MagicMock
 
-# Mock the hass_frontend module
-sys.modules['hass_frontend'] = MagicMock()
-
-from homeassistant.core import HomeAssistant
 import pytest
+from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.const import (
     DOMAIN,
@@ -19,6 +16,9 @@ from custom_components.meraki_ha.const import (
     CONF_IGNORED_NETWORKS,
 )
 from custom_components.meraki_ha.config_flow import MerakiAuthenticationError
+
+# Mock the hass_frontend module
+sys.modules['hass_frontend'] = MagicMock()
 
 
 @pytest.mark.asyncio

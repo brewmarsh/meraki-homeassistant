@@ -104,7 +104,7 @@ class MerakiAuthentication:
 
         except MerakiAuthenticationError as e:
             _LOGGER.error("Authentication failed: %s", e.message)
-            raise
+            raise ConfigEntryAuthFailed(f"Authentication failed: {e.message}") from e
         except MerakiConnectionError as e:
             _LOGGER.error("Connection error: %s", e.message)
             raise

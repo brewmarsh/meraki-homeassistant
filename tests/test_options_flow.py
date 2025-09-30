@@ -2,11 +2,8 @@
 import sys
 from unittest.mock import MagicMock
 
-# Mock the hass_frontend module
-sys.modules['hass_frontend'] = MagicMock()
-
-from homeassistant.core import HomeAssistant
 import pytest
+from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL
 
@@ -17,6 +14,9 @@ from custom_components.meraki_ha.const import (
     CONF_WEB_UI_PORT,
     CONF_IGNORED_NETWORKS,
 )
+
+# Mock the hass_frontend module
+sys.modules['hass_frontend'] = MagicMock()
 
 
 @pytest.mark.asyncio

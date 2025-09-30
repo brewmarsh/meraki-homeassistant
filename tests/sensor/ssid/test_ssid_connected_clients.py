@@ -3,6 +3,7 @@
 import pytest
 from unittest.mock import MagicMock
 
+from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.sensor.ssid.connected_clients import (
     MerakiSsidConnectedClientsSensor,
 )
@@ -76,8 +77,6 @@ def mock_data_coordinator():
     }
     return coordinator
 
-
-from custom_components.meraki_ha.const import DOMAIN
 
 def test_ssid_connected_clients_sensor(mock_data_coordinator):
     """Test the connected clients sensor for an SSID."""
