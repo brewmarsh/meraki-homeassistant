@@ -186,7 +186,7 @@ def _setup_camera_switches(
             if unique_id not in added_entities:
                 entities.append(
                     AnalyticsSwitch(
-                        coordinator, coordinator.api, device_info, config_entry
+                        coordinator, coordinator.api, device_info
                     )
                 )
                 added_entities.add(unique_id)
