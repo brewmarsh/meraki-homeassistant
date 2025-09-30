@@ -23,7 +23,7 @@ class DevicesEndpoints:
     async def get_device_clients(self, serial: str) -> List[Dict[str, Any]]:
         """Get all clients for a device."""
         clients = await self._api_client._run_sync(
-            self._dashboard.devices.getDeviceClients,
+            self._dashboard.devices.get_device_clients,
             serial,
             timespan=300,  # 5 minutes to get current clients
         )
@@ -33,7 +33,7 @@ class DevicesEndpoints:
     async def get_device(self, serial: str) -> Dict[str, Any]:
         """Get a single device."""
         device = await self._api_client._run_sync(
-            self._dashboard.devices.getDevice,
+            self._dashboard.devices.get_device,
             serial=serial,
         )
         validated = validate_response(device)
@@ -46,7 +46,7 @@ class DevicesEndpoints:
     async def update_device(self, serial: str, **kwargs) -> Dict[str, Any]:
         """Update a device."""
         device = await self._api_client._run_sync(
-            self._dashboard.devices.updateDevice,
+            self._dashboard.devices.update_device,
             serial=serial,
             **kwargs,
         )
