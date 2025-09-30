@@ -100,6 +100,12 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
             self._attr_entity_registry_enabled_default = False
             self._disabled_reason = "The camera did not provide a stream URL or a LAN IP address from the API."
 
+        # Set supported features based on camera model
+        if self._attr_model and self._attr_model.startswith("MV2"):
+            self._attr_supported_features = CameraEntityFeature(0)
+        else:
+            self._attr_supported_features = SUPPORT_STREAM
+
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         if self.coordinator.is_pending(self.unique_id):
@@ -211,13 +217,6 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
         else:
             attrs["stream_status"] = "Enabled"
         return attrs
-
-    @property
-    def supported_features(self) -> CameraEntityFeature:
-        """Return supported features."""
-        if self._attr_model and self._attr_model.startswith("MV2"):
-            return CameraEntityFeature(0)
-        return SUPPORT_STREAM
 
     @property
     def is_streaming(self) -> bool:
