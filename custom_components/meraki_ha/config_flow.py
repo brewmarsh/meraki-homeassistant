@@ -41,6 +41,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         if user_input is not None:
             try:
                 validation_result = await validate_meraki_credentials(
+                    self.hass,
                     user_input[CONF_MERAKI_API_KEY],
                     user_input[CONF_MERAKI_ORG_ID],
                 )
