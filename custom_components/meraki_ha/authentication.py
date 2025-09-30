@@ -13,6 +13,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from meraki.exceptions import APIError as MerakiSDKAPIError  # type: ignore
 
+from .core.errors import MerakiAuthenticationError, MerakiConnectionError
+
 # Import the refactored client
 from .core.api.client import MerakiAPIClient
 
@@ -100,6 +102,12 @@ class MerakiAuthentication:
             )
             return {"valid": True, "org_name": fetched_org_name}
 
+        except MerakiAuthenticationError as e:
+            _LOGGER.error("Authentication failed: %s", e.message)
+            raise
+        except MerakiConnectionError as e:
+            _LOGGER.error("Connection error: %s", e.message)
+            raise
         except MerakiSDKAPIError as e:
             if e.status == 401:
                 _LOGGER.error(
