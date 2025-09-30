@@ -53,3 +53,24 @@ This plan will integrate switch port monitoring into the existing architecture b
     * Create tests for the `MSHandler` that verify it correctly creates a binary sensor for each port on a mock switch and sets the `device_class` and other properties correctly.
 2.  **Remove Old Code**:
     * Remove any old or incorrect methods for retrieving switch port status. All status checks must now be routed through the new `SwitchPortService`.
+
+---
+
+### SSID Switches
+
+The integration provides two switches for each SSID (Service Set Identifier) on a wireless network, allowing for fine-grained control over its availability and visibility.
+
+#### SSID Enable Switch
+
+*   **Name**: `SSID Enable`
+*   **Purpose**: This switch controls the operational state of the SSID.
+    *   **ON**: The SSID is enabled and active. Wireless clients can associate with it.
+    *   **OFF**: The SSID is disabled. No clients can connect.
+
+#### SSID Broadcast Switch
+
+*   **Name**: `SSID Broadcast`
+*   **Purpose**: This switch controls whether the SSID's name (its "broadcast") is visible to nearby devices. This is also known as a "hidden" network.
+    *   **ON**: The SSID is visible. Its name will appear in the list of available Wi-Fi networks on client devices.
+    *   **OFF**: The SSID is hidden. Its name will not appear in Wi-Fi scans, and users must manually enter the SSID name to connect.
+*   **Availability**: This switch is only available when the `SSID Enable` switch is in the **ON** state. If the SSID is disabled, it cannot broadcast, so this control becomes unavailable.

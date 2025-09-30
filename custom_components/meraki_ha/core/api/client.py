@@ -201,10 +201,12 @@ class MerakiAPIClient:
         """Build a dictionary of tasks to fetch detailed data."""
         detail_tasks = {}
         for network in networks:
-            detail_tasks[f"ssids_{network['id']}"] = self._run_with_semaphore(
-                self.wireless.get_network_ssids(network["id"])
-            )
-            if "appliance" in network.get("product_types", []):
+            product_types = network.get("productTypes", [])
+            if "wireless" in product_types:
+                detail_tasks[f"ssids_{network['id']}"] = self._run_with_semaphore(
+                    self.wireless.get_network_ssids(network["id"])
+                )
+            if "appliance" in product_types:
                 detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
                     self.network.get_network_traffic(network["id"], "appliance")
                 )
@@ -231,7 +233,7 @@ class MerakiAPIClient:
                         network["id"]
                     )
                 )
-            if "wireless" in network.get("product_types", []):
+            if "wireless" in product_types:
                 detail_tasks[f"rf_profiles_{network['id']}"] = self._run_with_semaphore(
                     self.wireless.get_network_wireless_rf_profiles(network["id"])
                 )
