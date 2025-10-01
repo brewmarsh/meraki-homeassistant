@@ -11,16 +11,6 @@ export default defineConfig({
       fileName: (format) => `meraki-panel.js`,
       formats: ['es'],
     },
-    rollupOptions: {
-      // Don't bundle react, it's provided by Home Assistant
-      external: ['react', 'react-dom'],
-      output: {
-        globals: {
-          react: 'React',
-          'react-dom': 'ReactDOM',
-        },
-      },
-    },
     outDir: '.',
     sourcemap: false,
     minify: true,
