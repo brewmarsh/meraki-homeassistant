@@ -4,6 +4,7 @@ import logging
 import asyncio
 import json
 from pathlib import Path
+import aiofiles
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
@@ -96,8 +97,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
         manifest_path = Path(__file__).parent / "manifest.json"
-        with manifest_path.open() as manifest_file:
-            manifest = json.load(manifest_file)
+        async with aiofiles.open(manifest_path, mode='r') as f:
+            manifest_data = await f.read()
+            manifest = json.loads(manifest_data)
         version = manifest.get("version", "0.0.0")
         module_url = f"/api/panel_custom/meraki_ha/meraki-panel.js?v={version}"
         frontend.async_register_built_in_panel(
