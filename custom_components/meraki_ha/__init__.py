@@ -2,8 +2,6 @@
 
 import logging
 import asyncio
-from pathlib import Path
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
@@ -104,7 +102,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             config={
                 "_panel_custom": {
                     "name": "meraki-panel",
-                    "module_url": f"/api/panel_custom/{DOMAIN}/meraki-panel.js",
+                    "module_url": f"/api/panel_custom/meraki_ha/meraki-panel.js",
                     "embed_iframe": True,
                     "trust_external_script": False,
                     "config": {

@@ -8,7 +8,6 @@
   "config_flow": true,
   "dependencies": [
     "frontend",
-    "http",
     "panel_custom"
   ],
   "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
