@@ -125,7 +125,7 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataUpdateCoordinator], TextEnt
 
         try:
             await self._meraki_client.wireless.update_network_wireless_ssid(
-                network_id=self._network_id,
+                networkId=self._network_id,
                 number=str(self._ssid_number),
                 name=value,
             )

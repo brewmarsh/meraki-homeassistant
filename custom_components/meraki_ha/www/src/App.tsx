@@ -69,13 +69,13 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
       case 'network':
         return <NetworkView activeView={activeView} setActiveView={setActiveView} data={data} />;
       default:
-        return <Dashboard setActiveView={setActiveView} data={data} />;
+        return <div>Unknown view</div>;
     }
   }
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Meraki HA Web UI</h1>
+      <h1 className="text-2xl font-bold mb-4">Meraki Control</h1>
       {renderView()}
     </div>
   );

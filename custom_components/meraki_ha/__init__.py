@@ -14,6 +14,8 @@ from .const import (
     CONF_MERAKI_ORG_ID,
     CONF_AUTO_RTSP,
     DEFAULT_AUTO_RTSP,
+    CONF_ENABLE_WEB_UI,
+    DEFAULT_ENABLE_WEB_UI,
 )
 from .coordinator import MerakiDataUpdateCoordinator
 from .webhook import async_register_webhook
@@ -37,6 +39,26 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Meraki from a config entry."""
+    if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
+        hass.components.frontend.async_register_built_in_panel(
+            component_name="custom",
+            sidebar_title=entry.title,
+            sidebar_icon="mdi:router-network",
+            frontend_url_path="meraki",
+            config={
+                "_panel_custom": {
+                    "name": "meraki-panel",
+                    "module_url": f"/api/panel_custom/meraki-panel.js",
+                    "embed_iframe": True,
+                    "trust_external_script": False,
+                    "config": {
+                        "config_entry_id": entry.entry_id,
+                    }
+                }
+            },
+            require_admin=True,
+        )
+
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
 
@@ -94,6 +116,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Meraki config entry."""
+    if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
+        hass.components.frontend.async_remove_panel("meraki")
+
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)

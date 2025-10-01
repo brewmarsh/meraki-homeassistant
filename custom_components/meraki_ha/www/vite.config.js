@@ -21,7 +21,7 @@ export default defineConfig({
         },
       },
     },
-    outDir: 'dist',
+    outDir: '.',
     sourcemap: false,
     minify: true,
   },
