@@ -37,6 +37,11 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Meraki integration."""
     hass.data.setdefault(DOMAIN, {})
     async_setup_api(hass)
+    hass.http.register_static_path(
+        f"/api/panel_custom/{DOMAIN}",
+        str(Path(__file__).parent / "www"),
+        cache_headers=False,
+    )
     return True
 
 
@@ -101,7 +106,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             manifest_data = await f.read()
             manifest = json.loads(manifest_data)
         version = manifest.get("version", "0.0.0")
-        module_url = f"/api/panel_custom/meraki_ha/meraki-panel.js?v={version}"
+        module_url = f"/api/panel_custom/{DOMAIN}/meraki-panel.js?v={version}"
         frontend.async_register_built_in_panel(
             hass,
             component_name="custom",
@@ -122,16 +127,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             require_admin=True,
         )
 
-        # Register a test iframe panel
-        frontend.async_register_built_in_panel(
-            hass,
-            "iframe",
-            "Meraki Test Panel",
-            "mdi:test-tube",
-            "meraki_test",
-            {"url": f"/api/panel_custom/meraki_ha/test.html"},
-            require_admin=True,
-        )
 
     return True
 
@@ -140,7 +135,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Meraki config entry."""
     if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
         frontend.async_remove_panel(hass, "meraki")
-        frontend.async_remove_panel(hass, "meraki_test")
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
