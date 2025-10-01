@@ -6374,7 +6374,7 @@ class Ad extends HTMLElement {
     this._hass = n, this._render();
   }
   set panel(n) {
-    this._panel = n, this._render();
+    console.log("Panel config:", n), this._panel = n, this._render();
   }
   _render() {
     !this._root || !this._hass || !this._panel || this._root.render(

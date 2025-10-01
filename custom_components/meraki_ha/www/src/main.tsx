@@ -40,6 +40,7 @@ class MerakiPanel extends HTMLElement {
   }
 
   set panel(panel: PanelInfo) {
+    console.log("Panel config:", panel);
     this._panel = panel;
     this._render();
   }
