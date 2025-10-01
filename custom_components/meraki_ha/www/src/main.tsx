@@ -51,7 +51,7 @@ class MerakiPanel extends HTMLElement {
 
     this._root.render(
       <React.StrictMode>
-        <App hass={this._hass} panel={this._panel} />
+        <App hass={this._hass} config_entry_id={this._panel.config.config_entry_id} />
       </React.StrictMode>
     );
   }
