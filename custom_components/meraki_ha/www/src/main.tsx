@@ -5,7 +5,9 @@ import './index.css';
 
 // Define the types for the properties Home Assistant will pass to the panel
 interface PanelInfo {
-  config_entry_id: string;
+  config: {
+    config_entry_id: string;
+  };
   // Add other panel properties if needed
 }
 
@@ -38,6 +40,7 @@ class MerakiPanel extends HTMLElement {
   }
 
   set panel(panel: PanelInfo) {
+    console.log("Panel config:", panel);
     this._panel = panel;
     this._render();
   }
@@ -49,7 +52,7 @@ class MerakiPanel extends HTMLElement {
 
     this._root.render(
       <React.StrictMode>
-        <App hass={this._hass} config_entry_id={this._panel.config_entry_id} />
+        <App hass={this._hass} config_entry_id={this._panel.config.config_entry_id} />
       </React.StrictMode>
     );
   }

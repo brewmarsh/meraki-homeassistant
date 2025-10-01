@@ -6374,11 +6374,11 @@ class Ad extends HTMLElement {
     this._hass = n, this._render();
   }
   set panel(n) {
-    this._panel = n, this._render();
+    console.log("Panel config:", n), this._panel = n, this._render();
   }
   _render() {
     !this._root || !this._hass || !this._panel || this._root.render(
-      /* @__PURE__ */ _.jsx(xc.StrictMode, { children: /* @__PURE__ */ _.jsx($d, { hass: this._hass, config_entry_id: this._panel.config_entry_id }) })
+      /* @__PURE__ */ _.jsx(xc.StrictMode, { children: /* @__PURE__ */ _.jsx($d, { hass: this._hass, config_entry_id: this._panel.config.config_entry_id }) })
     );
   }
 }
