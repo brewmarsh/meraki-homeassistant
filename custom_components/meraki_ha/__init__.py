@@ -36,8 +36,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Meraki integration."""
     hass.data.setdefault(DOMAIN, {})
     async_setup_api(hass)
-    await hass.http.async_register_static_path(
-        f"/{DOMAIN}/panel", Path(__file__).parent / "www", cache_headers=False
+    await hass.http.async_register_static_paths(
+        [{"path": f"/{DOMAIN}/panel", "target": Path(__file__).parent / "www"}]
     )
     return True
 
