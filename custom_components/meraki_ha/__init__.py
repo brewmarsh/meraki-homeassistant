@@ -102,7 +102,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             config={
                 "_panel_custom": {
                     "name": "meraki-panel",
-                    "module_url": f"/api/panel_custom/meraki_ha/meraki-panel.js",
+                    "module_url": f"/api/panel_custom/meraki_ha/dist/meraki-panel.js",
                     "embed_iframe": True,
                     "trust_external_script": False,
                     "config": {
