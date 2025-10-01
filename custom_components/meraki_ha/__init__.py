@@ -93,6 +93,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
+        _LOGGER.debug("Attempting to register Meraki HA custom panel.")
+        module_url = f"/api/panel_custom/meraki_ha/meraki-panel.js"
+        _LOGGER.debug(f"Using module_url: {module_url}")
         frontend.async_register_built_in_panel(
             hass,
             component_name="custom",
@@ -102,7 +105,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             config={
                 "_panel_custom": {
                     "name": "meraki-panel",
-                    "module_url": f"/api/panel_custom/meraki_ha/meraki-panel.js",
+                    "module_url": module_url,
                     "embed_iframe": True,
                     "trust_external_script": False,
                     "config": {
@@ -112,6 +115,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             },
             require_admin=True,
         )
+        _LOGGER.debug("Successfully registered Meraki HA custom panel.")
 
     return True
 
