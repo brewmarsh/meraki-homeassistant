@@ -6,6 +6,7 @@ import asyncio
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.components import frontend
 
 from .const import (
     DOMAIN,
@@ -39,26 +40,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Meraki from a config entry."""
-    if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
-        hass.components.frontend.async_register_built_in_panel(
-            component_name="custom",
-            sidebar_title=entry.title,
-            sidebar_icon="mdi:router-network",
-            frontend_url_path="meraki",
-            config={
-                "_panel_custom": {
-                    "name": "meraki-panel",
-                    "module_url": f"/api/panel_custom/meraki-panel.js",
-                    "embed_iframe": True,
-                    "trust_external_script": False,
-                    "config": {
-                        "config_entry_id": entry.entry_id,
-                    }
-                }
-            },
-            require_admin=True,
-        )
-
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
 
@@ -111,13 +92,35 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+
+    if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
+        frontend.async_register_built_in_panel(
+            hass,
+            component_name="custom",
+            sidebar_title=entry.title,
+            sidebar_icon="mdi:router-network",
+            frontend_url_path="meraki",
+            config={
+                "_panel_custom": {
+                    "name": "meraki-panel",
+                    "module_url": f"/api/panel_custom/meraki-panel.js",
+                    "embed_iframe": True,
+                    "trust_external_script": False,
+                    "config": {
+                        "config_entry_id": entry.entry_id,
+                    },
+                }
+            },
+            require_admin=True,
+        )
+
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Meraki config entry."""
     if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
-        hass.components.frontend.async_remove_panel("meraki")
+        frontend.async_remove_panel(hass, "meraki")
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
