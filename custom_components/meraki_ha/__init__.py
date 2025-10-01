@@ -8,7 +8,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.components import frontend
-from homeassistant.components.http.static import StaticPath
 
 from .const import (
     DOMAIN,
@@ -37,15 +36,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Meraki integration."""
     hass.data.setdefault(DOMAIN, {})
     async_setup_api(hass)
-    await hass.http.async_register_static_paths(
-        [
-            StaticPath(
-                f"/{DOMAIN}/panel",
-                str(Path(__file__).parent / "www"),
-                cache_headers=False,
-            )
-        ]
-    )
     return True
 
 
@@ -114,7 +104,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             config={
                 "_panel_custom": {
                     "name": "meraki-panel",
-                    "module_url": f"/{DOMAIN}/panel/meraki-panel.js",
+                    "module_url": f"/api/panel_custom/{DOMAIN}/meraki-panel.js",
                     "embed_iframe": True,
                     "trust_external_script": False,
                     "config": {
