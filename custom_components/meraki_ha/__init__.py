@@ -123,10 +123,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     "module_url": module_url,
                     "embed_iframe": False,
                     "trust_external_script": True,
-                    "config": {
-                        "config_entry_id": entry.entry_id,
-                    },
-                }
+                },
+                "config": {
+                    "config_entry_id": entry.entry_id,
+                },
             },
             require_admin=True,
         )
