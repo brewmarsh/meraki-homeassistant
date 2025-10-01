@@ -27,6 +27,7 @@ def async_setup_api(hass: HomeAssistant):
     )
 
 
+@websocket_api.async_response
 async def handle_get_config(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict):
     """Handle get_config command."""
     config_entry_id = msg["config_entry_id"]
