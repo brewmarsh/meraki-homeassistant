@@ -40,7 +40,6 @@ class MerakiPanel extends HTMLElement {
   }
 
   set panel(panel: PanelInfo) {
-    console.log("Panel config:", panel);
     this._panel = panel;
     this._render();
   }
@@ -52,7 +51,7 @@ class MerakiPanel extends HTMLElement {
 
     this._root.render(
       <React.StrictMode>
-        <App hass={this._hass} config_entry_id={this._panel.config.config_entry_id} />
+        <App hass={this._hass} panel={this._panel} />
       </React.StrictMode>
     );
   }
