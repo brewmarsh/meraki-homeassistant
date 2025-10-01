@@ -8,6 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.components import frontend
+from homeassistant.components.http.static import StaticPath
 
 from .const import (
     DOMAIN,
@@ -38,11 +39,11 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     async_setup_api(hass)
     await hass.http.async_register_static_paths(
         [
-            {
-                "url_path": f"/{DOMAIN}/panel",
-                "path": str(Path(__file__).parent / "www"),
-                "cache_headers": False,
-            }
+            StaticPath(
+                f"/{DOMAIN}/panel",
+                str(Path(__file__).parent / "www"),
+                cache_headers=False,
+            )
         ]
     )
     return True
