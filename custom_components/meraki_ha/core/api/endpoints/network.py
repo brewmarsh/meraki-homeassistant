@@ -25,7 +25,9 @@ class NetworkEndpoints:
     async def get_network_clients(self, network_id: str) -> List[Dict[str, Any]]:
         """Get all clients in a network."""
         clients = await self._api_client._run_sync(
-            self._dashboard.networks.getNetworkClients, networkId=network_id
+            self._dashboard.networks.getNetworkClients,
+            networkId=network_id,
+            total_pages="all",
         )
         validated = validate_response(clients)
         if not isinstance(validated, list):
