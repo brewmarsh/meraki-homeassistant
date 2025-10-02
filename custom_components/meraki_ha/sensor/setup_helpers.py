@@ -13,7 +13,6 @@ from ..sensor_registry import (
     COMMON_SENSORS_COORD_DEV_CONF,
     get_sensors_for_device_type,
 )
-from .network.network_identity import MerakiNetworkIdentitySensor
 from .network.meraki_network_info import MerakiNetworkInfoSensor
 from .network.vlans_list import MerakiNetworkVLANsSensor
 from .network.traffic_shaping import MerakiTrafficShapingSensor
@@ -111,14 +110,6 @@ def _setup_network_sensors(
         network_id = network_data.get("id")
         if not network_id:
             continue
-
-        # Network Identity Sensor
-        unique_id = f"meraki_network_identity_{network_id}"
-        if unique_id not in added_entities:
-            entities.append(
-                MerakiNetworkIdentitySensor(coordinator, network_data, config_entry)
-            )
-            added_entities.add(unique_id)
 
         # Network Info Sensor
         unique_id = f"{network_id}_network_info"

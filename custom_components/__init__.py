@@ -1,2 +1,2 @@
-# This file makes custom_components a package, allowing imports like
-# from custom_components.meraki_ha import ...
+# This file is intentionally left blank to ensure that the `custom_components`
+# directory is treated as a package.

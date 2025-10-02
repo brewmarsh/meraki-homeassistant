@@ -11,10 +11,6 @@ from .const import (
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_IGNORED_NETWORKS,
     DEFAULT_IGNORED_NETWORKS,
-    CONF_ENABLE_WEB_UI,
-    DEFAULT_ENABLE_WEB_UI,
-    CONF_WEB_UI_PORT,
-    DEFAULT_WEB_UI_PORT,
     CONF_ENABLE_VLAN_MANAGEMENT,
     DEFAULT_ENABLE_VLAN_MANAGEMENT,
     CONF_ENABLE_FIREWALL_RULES,
@@ -23,8 +19,6 @@ from .const import (
     DEFAULT_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VPN,
     DEFAULT_ENABLE_VPN,
-    CONF_AUTO_RTSP,
-    DEFAULT_AUTO_RTSP,
 )
 
 CONFIG_SCHEMA = vol.Schema(
@@ -59,7 +53,6 @@ FEATURES_SCHEMA = vol.Schema(
             CONF_ENABLE_TRAFFIC_SHAPING, default=DEFAULT_ENABLE_TRAFFIC_SHAPING
         ): selector.BooleanSelector(),
         vol.Required(CONF_ENABLE_VPN, default=DEFAULT_ENABLE_VPN): selector.BooleanSelector(),
-        vol.Required(CONF_AUTO_RTSP, default=DEFAULT_AUTO_RTSP): selector.BooleanSelector(),
     }
 )
 
@@ -81,11 +74,5 @@ ADVANCED_SCHEMA = vol.Schema(
         vol.Optional(
             CONF_IGNORED_NETWORKS, default=DEFAULT_IGNORED_NETWORKS
         ): selector.TextSelector(),
-        vol.Required(CONF_ENABLE_WEB_UI, default=DEFAULT_ENABLE_WEB_UI): selector.BooleanSelector(),
-        vol.Required(CONF_WEB_UI_PORT, default=DEFAULT_WEB_UI_PORT): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=1024, max=65535, step=1, mode=selector.NumberSelectorMode.BOX
-            )
-        ),
     }
 )

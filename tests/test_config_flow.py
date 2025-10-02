@@ -11,8 +11,6 @@ from custom_components.meraki_ha.const import (
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
     CONF_ENABLE_DEVICE_TRACKER,
-    CONF_ENABLE_WEB_UI,
-    CONF_WEB_UI_PORT,
     CONF_IGNORED_NETWORKS,
 )
 from custom_components.meraki_ha.config_flow import MerakiAuthenticationError
@@ -50,8 +48,6 @@ async def test_async_step_user_success(hass: HomeAssistant, mocker) -> None:
         options_input = {
             CONF_SCAN_INTERVAL: 120,
             CONF_ENABLE_DEVICE_TRACKER: True,
-            CONF_ENABLE_WEB_UI: False,
-            CONF_WEB_UI_PORT: 8080,
             CONF_IGNORED_NETWORKS: "Guest Network, Temp Network",
         }
         result = await hass.config_entries.flow.async_configure(

@@ -6,7 +6,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..const import DOMAIN
+from ..const import DOMAIN, PLATFORM_BUTTON
 from .reboot import MerakiRebootButton
 from .device.camera_snapshot import MerakiSnapshotButton
 
@@ -20,6 +20,9 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki button entities from a config entry."""
+    if config_entry.entry_id not in hass.data[DOMAIN]:
+        # This entry is not ready yet, we'll wait for the coordinator to be ready
+        return False
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
     coordinator = entry_data["coordinator"]
     device_control_service = entry_data["device_control_service"]
@@ -43,3 +46,8 @@ async def async_setup_entry(
         async_add_entities(button_entities)
 
     return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    return await hass.config_entries.async_unload_platforms(entry, [PLATFORM_BUTTON])

@@ -15,10 +15,6 @@ from .const import (
     PLATFORMS,
     WEBHOOK_ID_FORMAT,
     CONF_MERAKI_ORG_ID,
-    CONF_AUTO_RTSP,
-    DEFAULT_AUTO_RTSP,
-    CONF_ENABLE_WEB_UI,
-    DEFAULT_ENABLE_WEB_UI,
 )
 from .coordinator import MerakiDataUpdateCoordinator
 from .webhook import async_register_webhook
@@ -70,18 +66,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "switch_port_status_coordinator": switch_port_status_coordinator,
     }
 
-    if entry.options.get(CONF_AUTO_RTSP, DEFAULT_AUTO_RTSP):
-        _LOGGER.debug("Auto RTSP is enabled, enabling RTSP for all supported cameras")
-        tasks = []
-        for device in coordinator.data.get("devices", []):
-            if device.get("productType", "").startswith(
-                "camera"
-            ) and not device.get("model", "").startswith("MV2"):
-                serial = device["serial"]
-                tasks.append(camera_service.async_set_rtsp_stream_enabled(serial, True))
-        if tasks:
-            await asyncio.gather(*tasks)
-
     # Set up webhook
     webhook_id = WEBHOOK_ID_FORMAT.format(entry_id=entry.entry_id)
     hass.data[DOMAIN][entry.entry_id]["webhook_id"] = webhook_id
@@ -104,30 +88,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
-    if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
-        manifest_path = Path(__file__).parent / "manifest.json"
-        async with aiofiles.open(manifest_path, mode='r') as f:
-            manifest_data = await f.read()
-            manifest = json.loads(manifest_data)
-        version = manifest.get("version", "0.0.0")
-        module_url = f"/api/panel_custom/{DOMAIN}/meraki-panel.js?v={version}"
-        frontend.async_register_built_in_panel(
-            hass,
-            component_name="custom",
-            sidebar_title=entry.title,
-            sidebar_icon="mdi:router-network",
-            frontend_url_path="meraki",
-            config={
-                "_panel_custom": {
-                    "name": "meraki-panel",
-                    "module_url": module_url,
-                    "embed_iframe": False,
-                    "trust_external_script": True,
-                },
-                "config_entry_id": entry.entry_id,
+    manifest_path = Path(__file__).parent / "manifest.json"
+    async with aiofiles.open(manifest_path, mode='r') as f:
+        manifest_data = await f.read()
+        manifest = json.loads(manifest_data)
+    version = manifest.get("version", "0.0.0")
+    module_url = f"/api/panel_custom/{DOMAIN}/meraki-panel.js?v={version}"
+    frontend.async_register_built_in_panel(
+        hass,
+        component_name="custom",
+        sidebar_title=entry.title,
+        sidebar_icon="mdi:router-network",
+        frontend_url_path="meraki",
+        config={
+            "_panel_custom": {
+                "name": "meraki-panel",
+                "module_url": module_url,
+                "embed_iframe": False,
+                "trust_external_script": True,
             },
-            require_admin=True,
-        )
+            "config_entry_id": entry.entry_id,
+        },
+        require_admin=True,
+    )
 
 
     return True
@@ -135,8 +118,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Meraki config entry."""
-    if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
-        frontend.async_remove_panel(hass, "meraki")
+    frontend.async_remove_panel(hass, "meraki")
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:

@@ -7,7 +7,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers import device_registry as dr
 
-from ..const import DOMAIN
+from ..const import DOMAIN, PLATFORM_SWITCH
 from .setup_helpers import async_setup_switches
 
 
@@ -20,17 +20,10 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki switch entities from a config entry."""
+    if config_entry.entry_id not in hass.data[DOMAIN]:
+        # This entry is not ready yet, we'll wait for the coordinator to be ready
+        return False
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
-
-    device_registry = dr.async_get(hass)
-    for network in coordinator.data.get("networks", []):
-        device_registry.async_get_or_create(
-            config_entry_id=config_entry.entry_id,
-            identifiers={(DOMAIN, f"network_{network['id']}")},
-            name=network["name"],
-            manufacturer="Cisco Meraki",
-            model="Network",
-        )
 
     switch_entities = async_setup_switches(hass, config_entry, coordinator)
 
@@ -39,3 +32,8 @@ async def async_setup_entry(
         async_add_entities(switch_entities)
 
     return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    return await hass.config_entries.async_unload_platforms(entry, [PLATFORM_SWITCH])

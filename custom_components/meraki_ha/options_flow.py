@@ -85,8 +85,8 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
         new_schema = {}
         for key, value in schema.schema.items():
             if key.schema in defaults:
-                # Create a new key with the default value
-                new_key = vol.Required(key.schema, default=defaults[key.schema])
+                # Create a new key with the default value, preserving whether it's optional
+                new_key = type(key)(key.schema, default=defaults[key.schema])
                 new_schema[new_key] = value
             else:
                 new_schema[key] = value

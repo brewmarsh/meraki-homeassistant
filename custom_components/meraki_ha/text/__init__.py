@@ -6,7 +6,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..const import DOMAIN
+from ..const import DOMAIN, PLATFORM_TEXT
 from .meraki_ssid_name import MerakiSSIDNameText
 
 
@@ -19,6 +19,8 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki text entities from a config entry."""
+    if config_entry.entry_id not in hass.data[DOMAIN]:
+        return False
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
     coordinator = entry_data["coordinator"]
     meraki_client = coordinator.api
@@ -33,3 +35,8 @@ async def async_setup_entry(
             async_add_entities(text_entities)
 
     return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    return await hass.config_entries.async_unload_platforms(entry, [PLATFORM_TEXT])

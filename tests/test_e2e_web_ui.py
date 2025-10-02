@@ -12,15 +12,13 @@ from custom_components.meraki_ha.const import (
     DOMAIN,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
-    CONF_ENABLE_WEB_UI,
-    CONF_WEB_UI_PORT,
 )
 from .const import MOCK_ALL_DATA
 
 # Mock the hass_frontend module
 sys.modules['hass_frontend'] = MagicMock()
 
-TEST_PORT = 9999
+TEST_PORT = 9988
 MOCK_SETTINGS = {"scan_interval": 300}
 
 
@@ -33,8 +31,6 @@ async def setup_integration_fixture(hass: HomeAssistant, socket_enabled):
         entry_id="test_e2e_entry",
         data={CONF_MERAKI_API_KEY: "test-key", CONF_MERAKI_ORG_ID: "test-org"},
         options={
-            CONF_ENABLE_WEB_UI: True,
-            CONF_WEB_UI_PORT: TEST_PORT,
             **MOCK_SETTINGS,
         },
     )

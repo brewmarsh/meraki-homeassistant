@@ -1,5 +1,10 @@
+import sys
+import os
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
+
+# Add the project root to the Python path to allow for correct module imports
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 
 async def main():

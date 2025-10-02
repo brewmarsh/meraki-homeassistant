@@ -41,11 +41,6 @@ CONF_RTSP_STREAM_ENABLED: Final[str] = "rtsp_stream_enabled"
 CONF_ENABLE_DEVICE_TRACKER: Final[str] = "enable_device_tracker"
 """Configuration key for enabling device tracker (str)."""
 
-CONF_ENABLE_WEB_UI: Final[str] = "enable_web_ui"
-"""Configuration key for enabling the web UI (str)."""
-
-CONF_WEB_UI_PORT: Final[str] = "web_ui_port"
-"""Configuration key for the web UI port (str)."""
 
 CONF_IGNORED_NETWORKS: Final[str] = "ignored_networks"
 """Configuration key for a list of network names to ignore (str)."""
@@ -62,17 +57,6 @@ CONF_ENABLE_TRAFFIC_SHAPING: Final[str] = "enable_traffic_shaping"
 CONF_ENABLE_VPN: Final[str] = "enable_vpn"
 """Configuration key for enabling vpn (str)."""
 
-CONF_AUTO_RTSP: Final[str] = "auto_rtsp"
-"""Configuration key for enabling RTSP when Home Assistant starts."""
-
-DEFAULT_AUTO_RTSP: Final[bool] = False
-"""Default value for enabling RTSP when Home Assistant starts."""
-
-DEFAULT_ENABLE_WEB_UI: Final[bool] = True
-"""Default value for enabling the web UI (bool)."""
-
-DEFAULT_WEB_UI_PORT: Final[int] = 9988
-"""Default value for the web UI port (int)."""
 
 DEFAULT_IGNORED_NETWORKS: Final[str] = ""
 """Default value for the ignored networks list (str)."""

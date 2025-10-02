@@ -10,8 +10,6 @@ from homeassistant.const import CONF_SCAN_INTERVAL
 from custom_components.meraki_ha.const import (
     DOMAIN,
     CONF_ENABLE_DEVICE_TRACKER,
-    CONF_ENABLE_WEB_UI,
-    CONF_WEB_UI_PORT,
     CONF_IGNORED_NETWORKS,
 )
 
@@ -75,8 +73,6 @@ async def test_options_flow(hass: HomeAssistant, mocker) -> None:
     # Submit advanced options
     advanced_input = {
         CONF_IGNORED_NETWORKS: "Guest Network, Temp Network",
-        CONF_ENABLE_WEB_UI: False,
-        CONF_WEB_UI_PORT: 8080,
     }
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], user_input=advanced_input

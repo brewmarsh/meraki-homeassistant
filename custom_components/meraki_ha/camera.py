@@ -17,7 +17,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from .helpers.entity_helpers import format_entity_name
 from .core.utils.naming_utils import format_device_name
 from .core.utils.network_utils import construct_rtsp_url
-from .const import DOMAIN
+from .const import DOMAIN, PLATFORM_CAMERA
 
 # SUPPORT_STREAM was deprecated in 2024.2, and CameraEntityFeature was added.
 # This try/except block is for backward compatibility.
@@ -47,6 +47,8 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Meraki camera entities from a config entry."""
+    if config_entry.entry_id not in hass.data[DOMAIN]:
+        return
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
     coordinator = entry_data["coordinator"]
     camera_service = entry_data["camera_service"]
@@ -59,6 +61,11 @@ async def async_setup_entry(
 
     if camera_entities:
         async_add_entities(camera_entities)
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    return await hass.config_entries.async_unload_platforms(entry, [PLATFORM_CAMERA])
 
 
 class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
