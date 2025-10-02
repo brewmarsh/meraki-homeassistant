@@ -15,7 +15,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ title, value, icon }) => {
     <Card>
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ fontSize: '2rem', mr: 2 }}>{icon}</Box>
+          <Box sx={{ fontSize: '1.5rem', mr: 2 }}>{icon}</Box>
           <div>
             <Typography color="text.secondary">{title}</Typography>
             <Typography variant="h5" component="div">
