@@ -1,20 +1,30 @@
 import React from 'react';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 
 interface StatusCardProps {
   title: string;
   value: number | string;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 const StatusCard: React.FC<StatusCardProps> = ({ title, value, icon }) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex items-center">
-      <div className="text-3xl mr-4">{icon}</div>
-      <div>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
-        <p className="text-2xl font-semibold text-gray-900 dark:text-white">{value}</p>
-      </div>
-    </div>
+    <Card>
+      <CardContent>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ fontSize: '2rem', mr: 2 }}>{icon}</Box>
+          <div>
+            <Typography color="text.secondary">{title}</Typography>
+            <Typography variant="h5" component="div">
+              {value}
+            </Typography>
+          </div>
+        </Box>
+      </CardContent>
+    </Card>
   );
 };
 

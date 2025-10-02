@@ -1,15 +1,26 @@
 import React from 'react';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import Card from '@mui/material/Card';
+import CardActionArea from '@mui/material/CardActionArea';
+import CardContent from '@mui/material/CardContent';
+import DevicesIcon from '@mui/icons-material/Devices';
+import WifiIcon from '@mui/icons-material/Wifi';
+import RouterIcon from '@mui/icons-material/Router';
+import VideocamIcon from '@mui/icons-material/Videocam';
+import WifiTetheringIcon from '@mui/icons-material/WifiTethering';
+
 import StatusCard from './StatusCard';
 import DeviceTable from './DeviceTable';
 
 interface DashboardProps {
-  setActiveView: (view: { view:string; deviceId?: string, networkId?: string }) => void;
+  setActiveView: (view: { view: string; deviceId?: string; networkId?: string }) => void;
   data: any;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data }) => {
   if (!data) {
-    return <div>Loading dashboard...</div>;
+    return <Typography>Loading dashboard...</Typography>;
   }
 
   const { devices = [], ssids = [], networks = [] } = data;
@@ -23,32 +34,54 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data }) => {
   };
 
   return (
-    <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <StatusCard title="Total Devices" value={metrics.totalDevices} icon="📱" />
-        <StatusCard title="Wireless APs" value={metrics.wirelessAps} icon="📡" />
-        <StatusCard title="Switches" value={metrics.switches} icon="🔄" />
-        <StatusCard title="Cameras" value={metrics.cameras} icon="📹" />
-        <StatusCard title="Virtual SSIDs" value={metrics.ssids} icon="📶" />
-      </div>
+    <Grid container spacing={3}>
+      {/* Status Cards */}
+      <Grid item xs={12} sm={6} md={2.4}>
+        <StatusCard title="Total Devices" value={metrics.totalDevices} icon={<DevicesIcon />} />
+      </Grid>
+      <Grid item xs={12} sm={6} md={2.4}>
+        <StatusCard title="Wireless APs" value={metrics.wirelessAps} icon={<WifiIcon />} />
+      </Grid>
+      <Grid item xs={12} sm={6} md={2.4}>
+        <StatusCard title="Switches" value={metrics.switches} icon={<RouterIcon />} />
+      </Grid>
+      <Grid item xs={12} sm={6} md={2.4}>
+        <StatusCard title="Cameras" value={metrics.cameras} icon={<VideocamIcon />} />
+      </Grid>
+      <Grid item xs={12} sm={6} md={2.4}>
+        <StatusCard title="Virtual SSIDs" value={metrics.ssids} icon={<WifiTetheringIcon />} />
+      </Grid>
 
-      <h2 className="text-xl font-semibold mb-4">Networks</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {networks.map((network: any) => (
-          <button
-            key={network.id}
-            data-testid="network-card"
-            className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 cursor-pointer text-left"
-            onClick={() => setActiveView({ view: 'network', networkId: network.id })}
-          >
-            <p className="font-medium text-gray-900 dark:text-white">{network.name}</p>
-          </button>
-        ))}
-      </div>
+      {/* Networks */}
+      <Grid item xs={12}>
+        <Typography variant="h6" gutterBottom>
+          Networks
+        </Typography>
+        <Grid container spacing={2}>
+          {networks.map((network: any) => (
+            <Grid item xs={12} sm={6} md={4} key={network.id}>
+              <Card>
+                <CardActionArea onClick={() => setActiveView({ view: 'network', networkId: network.id })}>
+                  <CardContent>
+                    <Typography gutterBottom variant="h5" component="div">
+                      {network.name}
+                    </Typography>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Grid>
 
-      <h2 className="text-xl font-semibold mb-4 mt-8">All Devices</h2>
-      <DeviceTable devices={devices} setActiveView={setActiveView} />
-    </div>
+      {/* All Devices Table */}
+      <Grid item xs={12}>
+        <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
+          All Devices
+        </Typography>
+        <DeviceTable devices={devices} setActiveView={setActiveView} />
+      </Grid>
+    </Grid>
   );
 };
 

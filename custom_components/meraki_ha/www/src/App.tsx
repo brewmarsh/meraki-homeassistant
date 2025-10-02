@@ -1,14 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
+
 import Dashboard from './components/Dashboard';
 import DeviceView from './components/DeviceView';
 import NetworkView from './components/NetworkView';
+
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
 
 // Define a simplified type for the Home Assistant object
 interface Hass {
   connection: {
     sendMessagePromise: (message: any) => Promise<any>;
   };
-  // Add other properties of hass object if needed
 }
 
 // Define the types for our data
@@ -20,6 +32,12 @@ interface AppProps {
   hass: Hass;
   config_entry_id: string;
 }
+
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+  },
+});
 
 const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
   const [data, setData] = useState<MerakiData | null>(null);
@@ -52,14 +70,6 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
     fetchData();
   }, [hass, config_entry_id]);
 
-  if (loading) {
-    return <div className="p-4">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="p-4 text-red-500">Error: {error}</div>;
-  }
-
   const renderView = () => {
     switch (activeView.view) {
       case 'dashboard':
@@ -69,15 +79,30 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
       case 'network':
         return <NetworkView activeView={activeView} setActiveView={setActiveView} data={data} />;
       default:
-        return <div>Unknown view</div>;
+        return <Typography>Unknown view</Typography>;
     }
-  }
+  };
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Meraki Control</h1>
-      {renderView()}
-    </div>
+    <ThemeProvider theme={darkTheme}>
+      <CssBaseline />
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Meraki Control
+        </Typography>
+        {loading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <CircularProgress />
+          </Box>
+        )}
+        {error && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {error}
+          </Alert>
+        )}
+        {!loading && !error && renderView()}
+      </Container>
+    </ThemeProvider>
   );
 };
 
