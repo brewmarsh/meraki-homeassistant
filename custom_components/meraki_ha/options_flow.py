@@ -6,7 +6,7 @@ from homeassistant import config_entries
 import voluptuous as vol
 
 from .const import CONF_INTEGRATION_TITLE
-from .schemas import MENU_SCHEMA, GENERAL_SCHEMA, ADVANCED_SCHEMA, FEATURES_SCHEMA
+from .schemas import GENERAL_SCHEMA, ADVANCED_SCHEMA, FEATURES_SCHEMA
 
 
 class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
@@ -21,64 +21,24 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
     ) -> config_entries.FlowResult:
         """Manage the options flow."""
         if user_input is not None:
-            # User has selected a menu item, show the corresponding form
-            if user_input["next_step"] == "general":
-                return await self.async_step_general()
-            elif user_input["next_step"] == "advanced":
-                return await self.async_step_advanced()
-            elif user_input["next_step"] == "features":
-                return await self.async_step_features()
-
-        # Show the menu
-        return self.async_show_form(step_id="init", data_schema=MENU_SCHEMA)
-
-    async def async_step_general(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> config_entries.FlowResult:
-        """Handle the general settings step."""
-        if user_input is not None:
             self.options.update(user_input)
             return self.async_create_entry(title=CONF_INTEGRATION_TITLE, data=self.options)
 
-        # Populate the form with existing values
-        general_schema_with_defaults = self.add_defaults_to_schema(
-            GENERAL_SCHEMA, self.options
+        # Combine all schemas into a single view
+        combined_schema = vol.Schema(
+            {
+                **GENERAL_SCHEMA.schema,
+                **ADVANCED_SCHEMA.schema,
+                **FEATURES_SCHEMA.schema,
+            }
         )
-        return self.async_show_form(
-            step_id="general", data_schema=general_schema_with_defaults
-        )
-
-    async def async_step_advanced(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> config_entries.FlowResult:
-        """Handle the advanced settings step."""
-        if user_input is not None:
-            self.options.update(user_input)
-            return self.async_create_entry(title=CONF_INTEGRATION_TITLE, data=self.options)
 
         # Populate the form with existing values
-        advanced_schema_with_defaults = self.add_defaults_to_schema(
-            ADVANCED_SCHEMA, self.options
-        )
-        return self.async_show_form(
-            step_id="advanced", data_schema=advanced_schema_with_defaults
+        schema_with_defaults = self.add_defaults_to_schema(
+            combined_schema, self.options
         )
 
-    async def async_step_features(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> config_entries.FlowResult:
-        """Handle the features settings step."""
-        if user_input is not None:
-            self.options.update(user_input)
-            return self.async_create_entry(title=CONF_INTEGRATION_TITLE, data=self.options)
-
-        # Populate the form with existing values
-        features_schema_with_defaults = self.add_defaults_to_schema(
-            FEATURES_SCHEMA, self.options
-        )
-        return self.async_show_form(
-            step_id="features", data_schema=features_schema_with_defaults
-        )
+        return self.async_show_form(step_id="init", data_schema=schema_with_defaults)
 
     def add_defaults_to_schema(self, schema: vol.Schema, defaults: dict) -> vol.Schema:
         """Add default values to a schema."""

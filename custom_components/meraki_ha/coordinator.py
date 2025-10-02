@@ -97,8 +97,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator):
 
     def _filter_ignored_networks(self, data: dict) -> None:
         """Filter out networks that the user has chosen to ignore."""
-        if not self.config_entry:
-            _LOGGER.warning("Config entry not available, cannot filter ignored networks.")
+        if not self.config_entry or not hasattr(self.config_entry, "options"):
+            _LOGGER.debug("Config entry or options not available, cannot filter ignored networks.")
             return
         ignored_networks_str = self.config_entry.options.get(
             CONF_IGNORED_NETWORKS, DEFAULT_IGNORED_NETWORKS
