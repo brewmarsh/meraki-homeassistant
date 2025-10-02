@@ -67,12 +67,15 @@ class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], Senso
         if not ports_statuses or not isinstance(ports_statuses, list):
             return None
 
-        total_poe_usage = 0
+        total_poe_usage_wh = 0
         for port in ports_statuses:
-            if port.get("poe"):
-                total_poe_usage += port["poe"].get("usage", 0)
+            total_poe_usage_wh += port.get("powerUsageInWh", 0) or 0
 
-        return round(total_poe_usage, 2)
+        # The API returns power usage in Wh over the last day.
+        # We divide by 24 to get the average power in Watts.
+        if total_poe_usage_wh > 0:
+            return round(total_poe_usage_wh / 24, 2)
+        return 0.0
 
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:
@@ -83,9 +86,8 @@ class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], Senso
 
         attributes = {}
         for port in ports_statuses:
-            if port.get("poe"):
-                attributes[f"port_{port['portId']}_poe_usage"] = port["poe"].get(
-                    "usage"
-                )
+            attributes[f"port_{port['portId']}_power_usage_wh"] = port.get(
+                "powerUsageInWh"
+            )
 
         return attributes
