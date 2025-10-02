@@ -12,6 +12,10 @@ from custom_components.meraki_ha.const import (
     CONF_SCAN_INTERVAL,
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_IGNORED_NETWORKS,
+    CONF_ENABLE_FIREWALL_RULES,
+    CONF_ENABLE_TRAFFIC_SHAPING,
+    CONF_ENABLE_VLAN_MANAGEMENT,
+    CONF_ENABLE_VPN,
 )
 from custom_components.meraki_ha.config_flow import MerakiAuthenticationError
 
@@ -49,6 +53,10 @@ async def test_async_step_user_success(hass: HomeAssistant, mocker) -> None:
             CONF_SCAN_INTERVAL: 120,
             CONF_ENABLE_DEVICE_TRACKER: True,
             CONF_IGNORED_NETWORKS: "Guest Network, Temp Network",
+            CONF_ENABLE_FIREWALL_RULES: False,
+            CONF_ENABLE_TRAFFIC_SHAPING: False,
+            CONF_ENABLE_VLAN_MANAGEMENT: False,
+            CONF_ENABLE_VPN: False,
         }
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], options_input
