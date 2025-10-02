@@ -10,14 +10,16 @@
         }
       },
       "init": {
-        "title": "Step 2 of 2: Initial Configuration",
-        "description": "Set the initial configuration for the integration. These can be changed later from the settings menu.",
+        "title": "Step 2 of 2: Configuration",
+        "description": "Set the configuration for the integration. These can be changed later from the options menu.",
         "data": {
-          "scan_interval": "Scan Interval",
-          "enable_device_tracker": "Enable Client Tracker",
-          "ignored_networks": "Ignored Networks",
-          "enable_web_ui": "Enable Web UI",
-          "web_ui_port": "Web UI Port"
+          "scan_interval": "Update Interval",
+          "enable_device_tracker": "Enable Device Tracker",
+          "enable_vlan_management": "Enable VLAN Management",
+          "enable_firewall_rules": "Enable Firewall Rule Management",
+          "enable_traffic_shaping": "Enable Traffic Shaping Management",
+          "enable_vpn": "Enable VPN Management",
+          "ignored_networks": "Ignored Networks"
         }
       }
     },
@@ -36,32 +38,22 @@
     "step": {
       "init": {
         "title": "Meraki Settings",
-        "description": "Select a category to configure.",
-        "menu_options": {
-          "general": "General",
-          "advanced": "Advanced"
-        }
-      },
-      "general": {
-        "title": "General Settings",
-        "description": "Configure the main settings for the integration.",
+        "description": "Configure the settings for the Meraki integration.",
         "data": {
-          "scan_interval": "Scan Interval",
-          "scan_interval_description": "The number of seconds between updates from the Meraki API.",
-          "enable_device_tracker": "Enable Client Tracker",
-          "enable_device_tracker_description": "Track devices connected to your Meraki networks."
-        }
-      },
-      "advanced": {
-        "title": "Advanced Settings",
-        "description": "Configure advanced features and customizations.",
-        "data": {
+          "scan_interval": "Update Interval",
+          "scan_interval_description": "How often to poll the Meraki API for updates, in seconds.",
+          "enable_device_tracker": "Enable Device Tracker",
+          "enable_device_tracker_description": "Track devices connected to your Meraki networks as Home Assistant entities.",
+          "enable_vlan_management": "Enable VLAN Management",
+          "enable_vlan_management_description": "Expose controls for managing VLAN settings on your networks.",
+          "enable_firewall_rules": "Enable Firewall Rule Management",
+          "enable_firewall_rules_description": "Expose controls for managing firewall rules on your networks.",
+          "enable_traffic_shaping": "Enable Traffic Shaping Management",
+          "enable_traffic_shaping_description": "Expose controls for managing traffic shaping rules on your networks.",
+          "enable_vpn": "Enable VPN Management",
+          "enable_vpn_description": "Expose controls for managing site-to-site VPN settings.",
           "ignored_networks": "Ignored Networks",
-          "ignored_networks_description": "A comma-separated list of network names to exclude from the integration.",
-          "enable_web_ui": "Enable Web UI",
-          "enable_web_ui_description": "Enable the Meraki web UI for more detailed control and information.",
-          "web_ui_port": "Web UI Port",
-          "web_ui_port_description": "The port number for the Meraki web UI."
+          "ignored_networks_description": "A comma-separated list of network names to exclude from the integration."
         }
       }
     }

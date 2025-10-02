@@ -40,9 +40,6 @@ OPTIONS_SCHEMA = vol.Schema(
             )
         ),
         vol.Required(CONF_ENABLE_DEVICE_TRACKER, default=True): selector.BooleanSelector(),
-        vol.Optional(
-            CONF_IGNORED_NETWORKS, default=DEFAULT_IGNORED_NETWORKS
-        ): selector.TextSelector(),
         vol.Required(
             CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
         ): selector.BooleanSelector(),
@@ -53,5 +50,8 @@ OPTIONS_SCHEMA = vol.Schema(
             CONF_ENABLE_TRAFFIC_SHAPING, default=DEFAULT_ENABLE_TRAFFIC_SHAPING
         ): selector.BooleanSelector(),
         vol.Required(CONF_ENABLE_VPN, default=DEFAULT_ENABLE_VPN): selector.BooleanSelector(),
+        vol.Optional(
+            CONF_IGNORED_NETWORKS, default=DEFAULT_IGNORED_NETWORKS
+        ): selector.TextSelector(),
     }
 )

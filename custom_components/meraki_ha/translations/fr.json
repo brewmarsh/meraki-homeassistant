@@ -2,69 +2,50 @@
   "config": {
     "step": {
       "user": {
-        "description": "Configure Meraki API Credentials",
+        "title": "Étape 1 sur 2 : Informations d'identification Meraki",
+        "description": "Entrez votre clé API Meraki et votre ID d'organisation.",
         "data": {
-          "meraki_api_key": "Meraki API Key",
-          "meraki_org_id": "Meraki Organization ID",
-          "scan_interval": "Intervalle de balayage (secondes)",
-          "device_name_format": "Format du nom de l'appareil"
-        },
-        "data_description": {
-          "meraki_api_key": "Votre clé API du tableau de bord Meraki. Assurez-vous qu'elle dispose d'un accès en lecture à votre organisation.",
-          "meraki_org_id": "L'ID de votre organisation Meraki. Se trouve dans l'URL lorsque vous êtes connecté au tableau de bord Meraki (par ex., o=VOTRE_ID_ORG).",
-          "scan_interval": "Fréquence (en secondes) d'interrogation de l'API Meraki pour les mises à jour. Défaut : 60.",
-          "device_name_format": "Choisissez comment les noms d'appareils sont présentés. 'Préfixe' ajoute le nom de l'appareil Meraki avant le nom de l'entité, 'Suffixe' l'ajoute après, 'Omis' utilise uniquement le nom de l'entité."
+          "meraki_api_key": "Clé API Meraki",
+          "meraki_org_id": "ID d'organisation Meraki"
+        }
+      },
+      "init": {
+        "title": "Étape 2 sur 2 : Configuration",
+        "description": "Définissez la configuration de l'intégration. Celles-ci peuvent être modifiées ultérieurement à partir du menu des options.",
+        "data": {
+          "scan_interval": "Intervalle de mise à jour",
+          "enable_device_tracker": "Activer le suivi des appareils",
+          "enable_vlan_management": "Activer la gestion des VLAN",
+          "enable_firewall_rules": "Activer la gestion des règles de pare-feu",
+          "enable_traffic_shaping": "Activer la gestion de la mise en forme du trafic",
+          "enable_vpn": "Activer la gestion VPN",
+          "ignored_networks": "Réseaux ignorés"
         }
       }
-    },
-    "error": {
-      "invalid_auth": "Invalid API key.",
-      "invalid_org_id": "Invalid Organization ID.",
-      "cannot_connect": "Cannot connect to Meraki API.",
-      "unknown": "An unknown error occurred."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Meraki Options",
+        "title": "Paramètres Meraki",
+        "description": "Configurez les paramètres de l'intégration Meraki.",
         "data": {
-          "device_name_format": "Format du nom de l'appareil",
-          "scan_interval": "Scan Interval (seconds)"
-        },
-        "data_description": {
-          "scan_interval": "Fréquence (en secondes) à laquelle l'intégration doit interroger l'API Meraki Dashboard pour les mises à jour. Un intervalle plus court signifie des capteurs plus réactifs mais plus d'appels API.",
-          "device_name_format": "Choisissez comment les noms d'appareils sont présentés pour les entités. 'Préfixe' ajoute le nom de l'appareil Meraki avant le nom de l'entité, 'Suffixe' l'ajoute après, 'Omis' utilise uniquement le nom d'entité standard."
+          "scan_interval": "Intervalle de mise à jour",
+          "scan_interval_description": "Fréquence d'interrogation de l'API Meraki pour les mises à jour, en secondes.",
+          "enable_device_tracker": "Activer le suivi des appareils",
+          "enable_device_tracker_description": "Suivez les appareils connectés à vos réseaux Meraki en tant qu'entités Home Assistant.",
+          "enable_vlan_management": "Activer la gestion des VLAN",
+          "enable_vlan_management_description": "Exposez les contrôles pour gérer les paramètres VLAN sur vos réseaux.",
+          "enable_firewall_rules": "Activer la gestion des règles de pare-feu",
+          "enable_firewall_rules_description": "Exposez les contrôles pour gérer les règles de pare-feu sur vos réseaux.",
+          "enable_traffic_shaping": "Activer la gestion de la mise en forme du trafic",
+          "enable_traffic_shaping_description": "Exposez les contrôles pour gérer les règles de mise en forme du trafic sur vos réseaux.",
+          "enable_vpn": "Activer la gestion VPN",
+          "enable_vpn_description": "Exposez les contrôles pour gérer les paramètres VPN de site à site.",
+          "ignored_networks": "Réseaux ignorés",
+          "ignored_networks_description": "Une liste de noms de réseau séparés par des virgules à exclure de l'intégration."
         }
       }
-    }
-  },
-  "entity": {
-    "sensor": {
-      "meraki_wan1_connectivity": {
-        "name": "WAN 1 Connectivity"
-      },
-      "meraki_wan2_connectivity": {
-        "name": "WAN 2 Connectivity"
-      },
-      "meraki_network_info": {
-        "name": "Network Information"
-      },
-      "meraki_firmware_status": {
-        "name": "Firmware Status"
-      }
-    }
-  },
-  "state": {
-    "sensor__meraki_wan1_connectivity": {
-      "connected": "Connected",
-      "disconnected": "Disconnected",
-      "unknown": "Unknown"
-    },
-    "sensor__meraki_wan2_connectivity": {
-      "connected": "Connected",
-      "disconnected": "Disconnected",
-      "unknown": "Unknown"
     }
   }
 }
