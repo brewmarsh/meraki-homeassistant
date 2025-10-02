@@ -36,10 +36,7 @@ class SwitchPortSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], BinarySen
         self._device = device
         self._port = port
         self._attr_unique_id = f"{self._device['serial']}_{self._port['portId']}"
-        self._attr_name = format_entity_name(
-            self._device["name"],
-            f"Port {self._port['portId']}",
-        )
+        self._attr_name = f"Port {self._port['portId']}"
 
     @property
     def device_info(self) -> DeviceInfo:

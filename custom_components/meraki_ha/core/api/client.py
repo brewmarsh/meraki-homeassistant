@@ -258,16 +258,14 @@ class MerakiAPIClient:
             elif device.get("productType") == "switch":
                 detail_tasks[f"ports_statuses_{device['serial']}"] = (
                     self._run_with_semaphore(
-                        self.switch.get_device_switch_ports_statuses(
-                            device["serial"]
-                        )
+                        self.switch.get_device_switch_ports_statuses(device["serial"])
                     )
                 )
-            elif device.get("productType") == "appliance" and "network_id" in device:
+            elif device.get("productType") == "appliance" and "networkId" in device:
                 detail_tasks[f"appliance_settings_{device['serial']}"] = (
                     self._run_with_semaphore(
                         self.appliance.get_network_appliance_settings(
-                            device["network_id"]
+                            device["networkId"]
                         )
                     )
                 )
