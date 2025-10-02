@@ -70,7 +70,7 @@ class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], Senso
         total_poe_usage = 0
         for port in ports_statuses:
             if port.get("poe"):
-                total_poe_usage += port["poe"].get("power", 0)
+                total_poe_usage += port["poe"].get("usage", 0)
 
         return round(total_poe_usage, 2)
 
@@ -85,7 +85,7 @@ class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], Senso
         for port in ports_statuses:
             if port.get("poe"):
                 attributes[f"port_{port['portId']}_poe_usage"] = port["poe"].get(
-                    "power"
+                    "usage"
                 )
 
         return attributes
