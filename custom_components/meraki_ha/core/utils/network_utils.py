@@ -108,4 +108,4 @@ def construct_rtsp_url(ip_address: str) -> str:
     """Construct an RTSP URL from an IP address."""
     # The exact path can vary, but for many cameras, the root path is sufficient.
     # This can be expanded if specific models require a different path.
-    return f"rtsp://{ip_address}/"
+    return f"rtsp://{ip_address}:9000/live"
