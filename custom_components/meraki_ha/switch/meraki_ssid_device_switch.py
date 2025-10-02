@@ -124,10 +124,12 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataUpdateCoordinator], Switc
         payload = {self._attribute_to_check: value}
 
         # "Fire and forget" API call.
-        await self._meraki_client.wireless.update_network_wireless_ssid(
-            network_id=self._network_id,
-            number=self._ssid_number,
-            **payload,
+        self.hass.async_create_task(
+            self._meraki_client.wireless.update_network_wireless_ssid(
+                network_id=self._network_id,
+                number=self._ssid_number,
+                **payload,
+            )
         )
 
         # Register a pending update to prevent stale data from overwriting the optimistic state
