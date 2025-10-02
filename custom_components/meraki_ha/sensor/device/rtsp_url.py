@@ -55,9 +55,6 @@ class MerakiRtspUrlSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], Sensor
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        if self.coordinator.is_pending(self._device_data["serial"]):
-            return  # Ignore update during cooldown
-
         # Find the updated device data from the coordinator's payload
         for device in self.coordinator.data.get("devices", []):
             if device.get("serial") == self._device_data["serial"]:
@@ -69,12 +66,6 @@ class MerakiRtspUrlSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], Sensor
     def _update_state(self) -> None:
         """Update the sensor's state based on the latest device data."""
         video_settings = self._device_data.get("video_settings", {})
-        rtsp_enabled = video_settings.get("rtspServerEnabled", False)
-
-        if not rtsp_enabled:
-            self._attr_native_value = "Disabled"
-            return
-
         lan_ip = self._device_data.get("lanIp")
         if lan_ip:
             self._attr_native_value = construct_rtsp_url(lan_ip)

@@ -108,7 +108,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        if self.coordinator.is_pending(self._device_serial):
+        if self.coordinator.is_pending(self.unique_id):
             return  # Ignore update during cooldown
 
         # Find the updated device data from the coordinator's payload
@@ -276,7 +276,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
         self.coordinator.async_update_listeners()
 
         # Register a cooldown to prevent the next refresh from overwriting our optimistic state
-        self.coordinator.register_pending_update(self._device_serial)
+        self.coordinator.register_pending_update(self.unique_id)
 
         # Make the API call
         try:
