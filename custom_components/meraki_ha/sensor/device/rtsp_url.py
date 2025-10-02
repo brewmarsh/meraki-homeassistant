@@ -55,6 +55,9 @@ class MerakiRtspUrlSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], Sensor
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if self.coordinator.is_pending(self._device_data["serial"]):
+            return  # Ignore update during cooldown
+
         # Find the updated device data from the coordinator's payload
         for device in self.coordinator.data.get("devices", []):
             if device.get("serial") == self._device_data["serial"]:
