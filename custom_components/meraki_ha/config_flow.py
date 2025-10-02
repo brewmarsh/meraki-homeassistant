@@ -16,7 +16,7 @@ from .const import (
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .options_flow import MerakiOptionsFlowHandler
-from .schemas import CONFIG_SCHEMA, GENERAL_SCHEMA, ADVANCED_SCHEMA
+from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -83,12 +83,9 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
                 title=CONF_INTEGRATION_TITLE, data=self.data, options=self.options
             )
 
-        # Combine general and advanced schemas for a single configuration step
-        combined_schema = vol.Schema({**GENERAL_SCHEMA.schema, **ADVANCED_SCHEMA.schema})
-
         return self.async_show_form(
             step_id="init",
-            data_schema=combined_schema,
+            data_schema=OPTIONS_SCHEMA,
         )
 
     @staticmethod
@@ -98,3 +95,38 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
     ) -> config_entries.OptionsFlow:
         """Get the options flow for this handler."""
         return MerakiOptionsFlowHandler(config_entry)
+
+    async def async_step_reconfigure(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> data_entry_flow.FlowResult:
+        """Handle a reconfiguration flow."""
+        entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+        assert entry
+
+        if user_input is not None:
+            new_options = {**entry.options, **user_input}
+            self.hass.config_entries.async_update_entry(entry, options=new_options)
+            await self.hass.config_entries.async_reload(entry.entry_id)
+            return self.async_abort(reason="reconfigure_successful")
+
+        schema_with_defaults = self._populate_schema_defaults(
+            OPTIONS_SCHEMA, entry.options
+        )
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=schema_with_defaults,
+        )
+
+    def _populate_schema_defaults(
+        self, schema: vol.Schema, defaults: dict
+    ) -> vol.Schema:
+        """Populate a schema with default values."""
+        new_schema_keys = {}
+        for key, value in schema.schema.items():
+            if key.schema in defaults:
+                new_key = type(key)(key.schema, default=defaults[key.schema])
+                new_schema_keys[new_key] = value
+            else:
+                new_schema_keys[key] = value
+        return vol.Schema(new_schema_keys)

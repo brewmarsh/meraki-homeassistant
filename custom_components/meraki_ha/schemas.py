@@ -30,19 +30,19 @@ CONFIG_SCHEMA = vol.Schema(
     }
 )
 
-MENU_SCHEMA = vol.Schema(
+OPTIONS_SCHEMA = vol.Schema(
     {
-        vol.Optional("next_step"): selector.SelectSelector(
-            selector.SelectSelectorConfig(
-                options=["general", "advanced", "features"],
-                mode=selector.SelectSelectorMode.DROPDOWN,
+        vol.Required(
+            CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
+        ): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=30, max=86400, step=1, mode=selector.NumberSelectorMode.SLIDER
             )
-        )
-    }
-)
-
-FEATURES_SCHEMA = vol.Schema(
-    {
+        ),
+        vol.Required(CONF_ENABLE_DEVICE_TRACKER, default=True): selector.BooleanSelector(),
+        vol.Optional(
+            CONF_IGNORED_NETWORKS, default=DEFAULT_IGNORED_NETWORKS
+        ): selector.TextSelector(),
         vol.Required(
             CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
         ): selector.BooleanSelector(),
@@ -53,26 +53,5 @@ FEATURES_SCHEMA = vol.Schema(
             CONF_ENABLE_TRAFFIC_SHAPING, default=DEFAULT_ENABLE_TRAFFIC_SHAPING
         ): selector.BooleanSelector(),
         vol.Required(CONF_ENABLE_VPN, default=DEFAULT_ENABLE_VPN): selector.BooleanSelector(),
-    }
-)
-
-GENERAL_SCHEMA = vol.Schema(
-    {
-        vol.Required(
-            CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
-        ): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=30, max=86400, step=1, mode=selector.NumberSelectorMode.SLIDER
-            )
-        ),
-        vol.Required(CONF_ENABLE_DEVICE_TRACKER, default=True): selector.BooleanSelector(),
-    }
-)
-
-ADVANCED_SCHEMA = vol.Schema(
-    {
-        vol.Optional(
-            CONF_IGNORED_NETWORKS, default=DEFAULT_IGNORED_NETWORKS
-        ): selector.TextSelector(),
     }
 )

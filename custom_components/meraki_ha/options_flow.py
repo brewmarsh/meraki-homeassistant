@@ -6,7 +6,7 @@ from homeassistant import config_entries
 import voluptuous as vol
 
 from .const import CONF_INTEGRATION_TITLE
-from .schemas import GENERAL_SCHEMA, ADVANCED_SCHEMA, FEATURES_SCHEMA
+from .schemas import OPTIONS_SCHEMA
 
 
 class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
@@ -24,30 +24,30 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
             self.options.update(user_input)
             return self.async_create_entry(title=CONF_INTEGRATION_TITLE, data=self.options)
 
-        # Combine all schemas into a single view
-        combined_schema = vol.Schema(
-            {
-                **GENERAL_SCHEMA.schema,
-                **ADVANCED_SCHEMA.schema,
-                **FEATURES_SCHEMA.schema,
-            }
-        )
-
-        # Populate the form with existing values
-        schema_with_defaults = self.add_defaults_to_schema(
-            combined_schema, self.options
+        # Populate the form with existing values from the config entry.
+        schema_with_defaults = self._populate_schema_defaults(
+            OPTIONS_SCHEMA, self.options
         )
 
         return self.async_show_form(step_id="init", data_schema=schema_with_defaults)
 
-    def add_defaults_to_schema(self, schema: vol.Schema, defaults: dict) -> vol.Schema:
-        """Add default values to a schema."""
-        new_schema = {}
+    def _populate_schema_defaults(
+        self, schema: vol.Schema, defaults: dict
+    ) -> vol.Schema:
+        """
+        Populate a schema with default values.
+
+        This is used to ensure that the options form is pre-filled with the
+        existing values from the config entry.
+        """
+        new_schema_keys = {}
         for key, value in schema.schema.items():
+            # 'key.schema' is the name of the option (e.g., 'scan_interval')
             if key.schema in defaults:
-                # Create a new key with the default value, preserving whether it's optional
+                # Create a new voluptuous key (e.g., vol.Required) with the
+                # default value set to the existing option value.
                 new_key = type(key)(key.schema, default=defaults[key.schema])
-                new_schema[new_key] = value
+                new_schema_keys[new_key] = value
             else:
-                new_schema[key] = value
-        return vol.Schema(new_schema)
+                new_schema_keys[key] = value
+        return vol.Schema(new_schema_keys)
