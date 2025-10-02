@@ -74,6 +74,30 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data }) => {
         </Grid>
       </Grid>
 
+      {/* Cameras */}
+      <Grid item xs={12}>
+        <Typography variant="h6" gutterBottom>
+          Cameras
+        </Typography>
+        <Grid container spacing={2}>
+          {devices
+            .filter((d: any) => d.model?.startsWith('MV'))
+            .map((camera: any) => (
+              <Grid item xs={12} sm={6} md={4} key={camera.serial}>
+                <Card>
+                  <CardActionArea onClick={() => setActiveView({ view: 'camera', deviceId: camera.serial })}>
+                    <CardContent>
+                      <Typography gutterBottom variant="h5" component="div">
+                        {camera.name || camera.mac}
+                      </Typography>
+                    </CardContent>
+                  </CardActionArea>
+                </Card>
+              </Grid>
+            ))}
+        </Grid>
+      </Grid>
+
       {/* All Devices Table */}
       <Grid item xs={12}>
         <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>

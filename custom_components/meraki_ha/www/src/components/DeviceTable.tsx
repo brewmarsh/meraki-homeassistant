@@ -28,7 +28,10 @@ const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => 
           {devices.map((device) => (
             <TableRow
               key={device.serial}
-              onClick={() => setActiveView({ view: 'device', deviceId: device.serial })}
+              onClick={() => {
+                const view = device.model?.startsWith('MV') ? 'camera' : 'device';
+                setActiveView({ view, deviceId: device.serial });
+              }}
               sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
             >
               <TableCell component="th" scope="row">

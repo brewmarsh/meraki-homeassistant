@@ -25,6 +25,19 @@ def async_setup_api(hass: HomeAssistant):
             extra=ALLOW_EXTRA,
         ),
     )
+    websocket_api.async_register_command(
+        hass,
+        "meraki_ha/get_camera_stream_url",
+        handle_get_camera_stream_url,
+        Schema(
+            {
+                Required("type"): All(str, "meraki_ha/get_camera_stream_url"),
+                Required("config_entry_id"): str,
+                Required("serial"): str,
+            },
+            extra=ALLOW_EXTRA,
+        ),
+    )
 
 
 @websocket_api.async_response
@@ -39,3 +52,19 @@ async def handle_get_config(hass: HomeAssistant, connection: websocket_api.Activ
 
     coordinator = hass.data[DOMAIN][config_entry_id]["coordinator"]
     connection.send_result(msg["id"], coordinator.data)
+
+
+@websocket_api.async_response
+async def handle_get_camera_stream_url(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict
+):
+    """Handle get_camera_stream_url command."""
+    config_entry_id = msg["config_entry_id"]
+    serial = msg["serial"]
+    if config_entry_id not in hass.data[DOMAIN]:
+        connection.send_error(msg["id"], "not_found", "Config entry not found")
+        return
+
+    camera_service = hass.data[DOMAIN][config_entry_id]["camera_service"]
+    stream_url = await camera_service.get_video_stream_url(serial)
+    connection.send_result(msg["id"], {"url": stream_url})

@@ -10,6 +10,7 @@ import Box from '@mui/material/Box';
 import Dashboard from './components/Dashboard';
 import DeviceView from './components/DeviceView';
 import NetworkView from './components/NetworkView';
+import CameraView from './components/CameraView';
 
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
@@ -78,6 +79,8 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
         return <DeviceView activeView={activeView} setActiveView={setActiveView} data={data} />;
       case 'network':
         return <NetworkView activeView={activeView} setActiveView={setActiveView} data={data} />;
+      case 'camera':
+        return <CameraView hass={hass} config_entry_id={config_entry_id} activeView={activeView} setActiveView={setActiveView} data={data} />;
       default:
         return <Typography>Unknown view</Typography>;
     }
