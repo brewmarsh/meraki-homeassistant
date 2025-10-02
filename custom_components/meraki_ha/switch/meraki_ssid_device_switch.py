@@ -125,7 +125,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataUpdateCoordinator], Switc
 
         # "Fire and forget" API call.
         await self._meraki_client.wireless.update_network_wireless_ssid(
-            networkId=self._network_id,
+            network_id=self._network_id,
             number=self._ssid_number,
             **payload,
         )

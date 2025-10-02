@@ -65,7 +65,7 @@ class MerakiAdultContentFilteringSwitch(
     async def _async_update_adult_content_filtering(self, enabled: bool) -> None:
         """Update the adult content filtering setting."""
         await self._client.wireless.update_network_wireless_ssid(
-            networkId=self._ssid["networkId"],
+            network_id=self._ssid["networkId"],
             number=self._ssid["number"],
             adultContentFilteringEnabled=enabled,
         )
