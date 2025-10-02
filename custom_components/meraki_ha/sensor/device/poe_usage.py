@@ -63,12 +63,12 @@ class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], Senso
     @property
     def native_value(self) -> Union[float, None]:
         """Return the state of the sensor."""
-        port_statuses = self._device.get("port_statuses")
-        if not port_statuses or not isinstance(port_statuses, list):
+        ports_statuses = self._device.get("ports_statuses")
+        if not ports_statuses or not isinstance(ports_statuses, list):
             return None
 
         total_poe_usage = 0
-        for port in port_statuses:
+        for port in ports_statuses:
             if port.get("poe"):
                 total_poe_usage += port["poe"].get("power", 0)
 
@@ -77,12 +77,12 @@ class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], Senso
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:
         """Return the state attributes."""
-        port_statuses = self._device.get("port_statuses")
-        if not port_statuses or not isinstance(port_statuses, list):
+        ports_statuses = self._device.get("ports_statuses")
+        if not ports_statuses or not isinstance(ports_statuses, list):
             return {}
 
         attributes = {}
-        for port in port_statuses:
+        for port in ports_statuses:
             if port.get("poe"):
                 attributes[f"port_{port['portId']}_poe_usage"] = port["poe"].get(
                     "power"

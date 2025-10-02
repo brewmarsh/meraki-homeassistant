@@ -11,19 +11,15 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..core.coordinators.switch_port_status_coordinator import (
-    SwitchPortStatusCoordinator,
-)
-from ..helpers.entity_helpers import format_entity_name
+from ..coordinator import MerakiDataUpdateCoordinator
+from ..helpers.entity_helpers import format_entity_name, get_device_from_coordinator
 from ..helpers.device_info_helpers import resolve_device_info
 
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class SwitchPortSensor(
-    CoordinatorEntity[SwitchPortStatusCoordinator], BinarySensorEntity
-):
+class SwitchPortSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], BinarySensorEntity):
     """Representation of a Meraki switch port sensor."""
 
     _attr_state_color = True
@@ -31,7 +27,7 @@ class SwitchPortSensor(
 
     def __init__(
         self,
-        coordinator: SwitchPortStatusCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         device: Dict[str, Any],
         port: Dict[str, Any],
     ) -> None:
@@ -53,9 +49,10 @@ class SwitchPortSensor(
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        if self.coordinator.data and self._device["serial"] in self.coordinator.data:
-            port_statuses = self.coordinator.data[self._device["serial"]]
-            for port in port_statuses:
+        device = get_device_from_coordinator(self.coordinator, self._device["serial"])
+        if device:
+            self._device = device
+            for port in self._device.get("ports_statuses", []):
                 if port["portId"] == self._port["portId"]:
                     self._port = port
                     self.async_write_ha_state()

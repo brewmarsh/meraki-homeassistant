@@ -23,7 +23,6 @@ from .core.repositories.camera_repository import CameraRepository
 from .services.camera_service import CameraService
 from .core.repository import MerakiRepository
 from .services.device_control_service import DeviceControlService
-from .core.coordinators.switch_port_status_coordinator import SwitchPortStatusCoordinator
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -54,16 +53,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     device_control_service = DeviceControlService(repo)
     camera_repo = CameraRepository(coordinator.api, entry.data[CONF_MERAKI_ORG_ID])
     camera_service = CameraService(camera_repo)
-    switch_port_status_coordinator = SwitchPortStatusCoordinator(
-        hass, repo, coordinator, entry
-    )
-    await switch_port_status_coordinator.async_config_entry_first_refresh()
 
     hass.data[DOMAIN][entry.entry_id] = {
         "coordinator": coordinator,
         "device_control_service": device_control_service,
         "camera_service": camera_service,
-        "switch_port_status_coordinator": switch_port_status_coordinator,
     }
 
     # Set up webhook
