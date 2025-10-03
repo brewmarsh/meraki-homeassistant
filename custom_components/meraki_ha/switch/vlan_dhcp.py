@@ -35,7 +35,7 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
         self._attr_unique_id = get_vlan_entity_id(
             self._network_id, vlan_id, "dhcp_handling"
         )
-        self._attr_name = f"{self._vlan['name']} DHCP"
+        self._attr_name = "DHCP"
         self._update_internal_state()
 
     def _update_internal_state(self) -> None:
