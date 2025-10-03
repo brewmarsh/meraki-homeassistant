@@ -189,7 +189,7 @@ def _setup_vlan_sensors(
         if not isinstance(vlans, list):
             continue
         for vlan in vlans:
-            if isinstance(vlan, dict) and vlan.get("enabled", False):
+            if isinstance(vlan, dict):
                 vlan_id = vlan.get("id")
                 if not vlan_id:
                     continue

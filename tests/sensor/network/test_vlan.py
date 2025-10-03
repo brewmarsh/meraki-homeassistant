@@ -61,9 +61,9 @@ def test_vlan_sensor_creation(mock_coordinator):
         hass, mock_coordinator.config_entry, mock_coordinator, camera_service
     )
 
-    # We expect 7 sensors for the one enabled VLAN
+    # We expect 7 sensors for each of the two VLANs
     vlan_sensors = [s for s in sensors if "VLAN" in s.__class__.__name__]
-    assert len(vlan_sensors) == 7
+    assert len(vlan_sensors) == 14
 
     # Find the specific sensors
     id_sensor = next(s for s in vlan_sensors if "VLAN ID" in s.name)
