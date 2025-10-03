@@ -50,6 +50,9 @@ async def test_async_step_user_success(hass: HomeAssistant, mocker) -> None:
             CONF_ENABLE_DEVICE_TRACKER: True,
             CONF_IGNORED_NETWORKS: "Guest Network, Temp Network",
             "enable_vlan_management": False,
+            "enable_firewall_rules": False,
+            "enable_traffic_shaping": False,
+            "enable_vpn": False,
         }
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], options_input

@@ -14,6 +14,7 @@ from ..sensor_registry import (
     get_sensors_for_device_type,
 )
 from .network.vlans_list import MerakiNetworkVLANsSensor
+from .network.traffic_shaping import MerakiTrafficShapingSensor
 from .device.appliance_port import MerakiAppliancePortSensor
 from .network.vlan import (
     MerakiVLANIDSensor,
@@ -31,6 +32,7 @@ from .device.rtsp_url import MerakiRtspUrlSensor
 from ..const import (
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_ENABLE_VLAN_MANAGEMENT,
+    CONF_ENABLE_TRAFFIC_SHAPING,
 )
 
 
@@ -127,6 +129,18 @@ def _setup_network_sensors(
                 )
                 added_entities.add(unique_id)
 
+        # Traffic Shaping Sensor
+        if config_entry.options.get(
+            CONF_ENABLE_TRAFFIC_SHAPING
+        ) and coordinator.data.get("traffic_shaping", {}).get(network_id):
+            unique_id = f"{network_id}_traffic_shaping"
+            if unique_id not in added_entities:
+                entities.append(
+                    MerakiTrafficShapingSensor(
+                        coordinator, config_entry, network_data
+                    )
+                )
+                added_entities.add(unique_id)
     return entities
 
 

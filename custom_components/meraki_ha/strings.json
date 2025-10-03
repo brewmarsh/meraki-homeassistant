@@ -16,6 +16,9 @@
           "scan_interval": "Update Interval",
           "enable_device_tracker": "Enable Device Tracker",
           "enable_vlan_management": "Enable VLAN Management",
+          "enable_firewall_rules": "Enable Firewall Rule Management",
+          "enable_traffic_shaping": "Enable Traffic Shaping Management",
+          "enable_vpn": "Enable VPN Management",
           "ignored_networks": "Ignored Networks"
         }
       }
@@ -43,6 +46,12 @@
           "enable_device_tracker_description": "Track devices connected to your Meraki networks as Home Assistant entities.",
           "enable_vlan_management": "Enable VLAN Management",
           "enable_vlan_management_description": "Expose controls for managing VLAN settings on your networks.",
+          "enable_firewall_rules": "Enable Firewall Rule Management",
+          "enable_firewall_rules_description": "Expose controls for managing firewall rules on your networks.",
+          "enable_traffic_shaping": "Enable Traffic Shaping Management",
+          "enable_traffic_shaping_description": "Expose controls for managing traffic shaping rules on your networks.",
+          "enable_vpn": "Enable VPN Management",
+          "enable_vpn_description": "Expose controls for managing site-to-site VPN settings.",
           "ignored_networks": "Ignored Networks",
           "ignored_networks_description": "A comma-separated list of network names to exclude from the integration."
         }
@@ -77,6 +86,9 @@
           "dormant": "Dormant",
           "unknown": "Unknown"
         }
+      },
+      "radio_settings": {
+        "name": "Radio Settings"
       }
     },
     "switch": {

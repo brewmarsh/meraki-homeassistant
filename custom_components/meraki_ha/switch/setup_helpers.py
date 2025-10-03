@@ -10,6 +10,9 @@ from homeassistant.helpers.entity import Entity
 
 from ..coordinator import MerakiDataUpdateCoordinator
 from .vlan_dhcp import MerakiVLANDHCPSwitch
+from .firewall_rule import MerakiFirewallRuleSwitch
+from ..types import MerakiFirewallRule
+from .vpn import MerakiVPNSwitch
 from .camera_controls import AnalyticsSwitch
 from .meraki_ssid_device_switch import (
     MerakiSSIDEnabledSwitch,
@@ -17,6 +20,8 @@ from .meraki_ssid_device_switch import (
 )
 from ..const import (
     CONF_ENABLE_VLAN_MANAGEMENT,
+    CONF_ENABLE_FIREWALL_RULES,
+    CONF_ENABLE_VPN,
 )
 
 
@@ -53,6 +58,73 @@ def _setup_vlan_switches(
                         )
                     )
                     added_entities.add(unique_id)
+    return entities
+
+
+def _setup_firewall_rule_switches(
+    config_entry: ConfigEntry,
+    coordinator: MerakiDataUpdateCoordinator,
+    added_entities: Set[str],
+) -> List[Entity]:
+    """Set up firewall rule switches."""
+    if not config_entry.options.get(CONF_ENABLE_FIREWALL_RULES):
+        return []
+    entities: List[Entity] = []
+    rules_by_network = coordinator.data.get("l3_firewall_rules", {})
+    for network_id, rules_data in rules_by_network.items():
+        if not isinstance(rules_data, dict):
+            continue
+        rules = rules_data.get("rules", [])
+        if not isinstance(rules, list):
+            continue
+        for i, rule in enumerate(rules):
+            if isinstance(rule, dict):
+                unique_id = f"meraki_firewall_rule_{network_id}_{i}"
+                if unique_id not in added_entities:
+                    entities.append(
+                        MerakiFirewallRuleSwitch(
+                            coordinator,
+                            config_entry,
+                            network_id,
+                            cast(MerakiFirewallRule, rule),
+                            i,
+                        )
+                    )
+                    added_entities.add(unique_id)
+    return entities
+
+
+def _setup_vpn_switches(
+    config_entry: ConfigEntry,
+    coordinator: MerakiDataUpdateCoordinator,
+    added_entities: Set[str],
+) -> List[Entity]:
+    """Set up VPN switches."""
+    if not config_entry.options.get(CONF_ENABLE_VPN):
+        return []
+    entities: List[Entity] = []
+    networks = coordinator.data.get("networks", [])
+    for network in networks:
+        network_id = network.get("id")
+        if not network_id:
+            continue
+        if "appliance" not in network.get("productTypes", []):
+            continue
+
+        vpn_status = coordinator.data.get("vpn_status", {}).get(network_id)
+        if not vpn_status:
+            continue
+
+        unique_id = f"vpn_{network_id}"
+        if unique_id not in added_entities:
+            entities.append(
+                MerakiVPNSwitch(
+                    coordinator,
+                    config_entry,
+                    network,
+                )
+            )
+            added_entities.add(unique_id)
     return entities
 
 
@@ -134,6 +206,10 @@ def async_setup_switches(
         return entities
 
     entities.extend(_setup_vlan_switches(config_entry, coordinator, added_entities))
+    entities.extend(
+        _setup_firewall_rule_switches(config_entry, coordinator, added_entities)
+    )
+    entities.extend(_setup_vpn_switches(config_entry, coordinator, added_entities))
     entities.extend(_setup_ssid_switches(config_entry, coordinator, added_entities))
     entities.extend(_setup_camera_switches(config_entry, coordinator, added_entities))
 

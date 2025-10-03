@@ -259,6 +259,33 @@ async def test_camera_image(
         )
 
 
+@pytest.mark.asyncio
+async def test_camera_image_offline(
+    hass, mock_coordinator, mock_config_entry, mock_camera_service
+):
+    """Test that no snapshot is fetched when the camera is offline."""
+    # Arrange
+    # The entity is initialized with this data, so we pass it directly
+    offline_device_data = {
+        **MOCK_CAMERA_DEVICE,
+        "status": "offline",
+    }
+    camera = MerakiCamera(
+        mock_coordinator,
+        mock_config_entry,
+        offline_device_data,
+        mock_camera_service,
+    )
+    camera.hass = hass
+
+    # Act
+    image = await camera.async_camera_image()
+
+    # Assert
+    assert image is None
+    mock_camera_service.generate_snapshot.assert_not_called()
+
+
 @pytest.mark.skip(reason="TODO: Fix this test")
 def test_coordinator_update(mock_coordinator, mock_config_entry, mock_camera_service):
     """Test that the entity state updates when the coordinator data changes."""
