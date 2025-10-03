@@ -7,7 +7,6 @@ from homeassistant.helpers.entity import Entity
 # Import sensor classes
 from .sensor.device.device_status import MerakiDeviceStatusSensor
 from .sensor.device.connected_clients import MerakiDeviceConnectedClientsSensor
-from .sensor.device.radio_settings import MerakiRadioSettingsSensor
 from .sensor.device.meraki_wan1_connectivity import MerakiWAN1ConnectivitySensor
 from .sensor.device.meraki_wan2_connectivity import MerakiWAN2ConnectivitySensor
 from .sensor.device.meraki_firmware_status import MerakiFirmwareStatusSensor
@@ -21,9 +20,6 @@ SensorClassList = List[Type[Entity]]
 
 # Sensors with __init__(coordinator, device_info)
 SENSORS_COORD_DEV: Dict[str, SensorClassList] = {
-    "wireless": [
-        MerakiRadioSettingsSensor,
-    ],
     "switch": [
         MerakiPoeUsageSensor,
     ],
