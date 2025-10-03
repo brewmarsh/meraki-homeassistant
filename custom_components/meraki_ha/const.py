@@ -48,30 +48,12 @@ CONF_IGNORED_NETWORKS: Final[str] = "ignored_networks"
 CONF_ENABLE_VLAN_MANAGEMENT: Final[str] = "enable_vlan_management"
 """Configuration key for enabling vlan management (str)."""
 
-CONF_ENABLE_FIREWALL_RULES: Final[str] = "enable_firewall_rules"
-"""Configuration key for enabling firewall rules (str)."""
-
-CONF_ENABLE_TRAFFIC_SHAPING: Final[str] = "enable_traffic_shaping"
-"""Configuration key for enabling traffic shaping (str)."""
-
-CONF_ENABLE_VPN: Final[str] = "enable_vpn"
-"""Configuration key for enabling vpn (str)."""
-
 
 DEFAULT_IGNORED_NETWORKS: Final[str] = ""
 """Default value for the ignored networks list (str)."""
 
 DEFAULT_ENABLE_VLAN_MANAGEMENT: Final[bool] = False
 """Default value for enabling vlan management (bool)."""
-
-DEFAULT_ENABLE_FIREWALL_RULES: Final[bool] = False
-"""Default value for enabling firewall rules (bool)."""
-
-DEFAULT_ENABLE_TRAFFIC_SHAPING: Final[bool] = False
-"""Default value for enabling traffic shaping (bool)."""
-
-DEFAULT_ENABLE_VPN: Final[bool] = False
-"""Default value for enabling vpn (bool)."""
 
 DATA_SSID_DEVICES_COORDINATOR: Final[str] = (
     "ssid_devices"  # New constant for SSID coordinator key
@@ -103,8 +85,6 @@ PLATFORM_TEXT: Final[str] = "text"
 """Represents the text platform (str)."""
 PLATFORM_CAMERA: Final[str] = "camera"
 """Represents the camera platform (str)."""
-PLATFORM_NUMBER: Final[str] = "number"
-"""Represents the number platform (str)."""
 
 PLATFORMS: Final[List[str]] = [
     PLATFORM_SENSOR,
@@ -113,7 +93,6 @@ PLATFORMS: Final[List[str]] = [
     PLATFORM_SWITCH,
     PLATFORM_TEXT,
     PLATFORM_CAMERA,
-    PLATFORM_NUMBER,
 ]
 """List of platforms supported by the integration (List[str])."""
 

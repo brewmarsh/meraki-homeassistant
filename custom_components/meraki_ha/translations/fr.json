@@ -16,9 +16,6 @@
           "scan_interval": "Intervalle de mise à jour",
           "enable_device_tracker": "Activer le suivi des appareils",
           "enable_vlan_management": "Activer la gestion des VLAN",
-          "enable_firewall_rules": "Activer la gestion des règles de pare-feu",
-          "enable_traffic_shaping": "Activer la gestion de la mise en forme du trafic",
-          "enable_vpn": "Activer la gestion VPN",
           "ignored_networks": "Réseaux ignorés"
         }
       }
@@ -36,12 +33,6 @@
           "enable_device_tracker_description": "Suivez les appareils connectés à vos réseaux Meraki en tant qu'entités Home Assistant.",
           "enable_vlan_management": "Activer la gestion des VLAN",
           "enable_vlan_management_description": "Exposez les contrôles pour gérer les paramètres VLAN sur vos réseaux.",
-          "enable_firewall_rules": "Activer la gestion des règles de pare-feu",
-          "enable_firewall_rules_description": "Exposez les contrôles pour gérer les règles de pare-feu sur vos réseaux.",
-          "enable_traffic_shaping": "Activer la gestion de la mise en forme du trafic",
-          "enable_traffic_shaping_description": "Exposez les contrôles pour gérer les règles de mise en forme du trafic sur vos réseaux.",
-          "enable_vpn": "Activer la gestion VPN",
-          "enable_vpn_description": "Exposez les contrôles pour gérer les paramètres VPN de site à site.",
           "ignored_networks": "Réseaux ignorés",
           "ignored_networks_description": "Une liste de noms de réseau séparés par des virgules à exclure de l'intégration."
         }

@@ -16,9 +16,6 @@
           "scan_interval": "Intervalo de actualización",
           "enable_device_tracker": "Habilitar seguimiento de dispositivos",
           "enable_vlan_management": "Habilitar gestión de VLAN",
-          "enable_firewall_rules": "Habilitar gestión de reglas de firewall",
-          "enable_traffic_shaping": "Habilitar gestión de modelado de tráfico",
-          "enable_vpn": "Habilitar gestión de VPN",
           "ignored_networks": "Redes ignoradas"
         }
       }
@@ -36,12 +33,6 @@
           "enable_device_tracker_description": "Realice un seguimiento de los dispositivos conectados a sus redes Meraki como entidades de Home Assistant.",
           "enable_vlan_management": "Habilitar gestión de VLAN",
           "enable_vlan_management_description": "Exponga los controles para administrar la configuración de VLAN en sus redes.",
-          "enable_firewall_rules": "Habilitar gestión de reglas de firewall",
-          "enable_firewall_rules_description": "Exponga los controles para administrar las reglas de firewall en sus redes.",
-          "enable_traffic_shaping": "Habilitar gestión de modelado de tráfico",
-          "enable_traffic_shaping_description": "Exponga los controles para administrar las reglas de modelado de tráfico en sus redes.",
-          "enable_vpn": "Habilitar gestión de VPN",
-          "enable_vpn_description": "Exponga los controles para administrar la configuración de VPN de sitio a sitio.",
           "ignored_networks": "Redes ignoradas",
           "ignored_networks_description": "Una lista de nombres de red separados por comas para excluir de la integración."
         }
