@@ -32,9 +32,32 @@ interface AppProps {
   config_entry_id: string;
 }
 
-const darkTheme = createTheme({
+const modernDarkTheme = createTheme({
   palette: {
     mode: 'dark',
+    primary: {
+      main: '#4fd1c5', // A modern teal
+    },
+    background: {
+      default: '#1a202c', // A very dark slate blue
+      paper: '#2d3748',   // A dark slate blue
+    },
+    text: {
+      primary: '#edf2f7',   // A light gray
+      secondary: '#a0aec0', // A medium gray
+    },
+  },
+  typography: {
+    fontFamily: 'Roboto, sans-serif',
+    h4: {
+        fontWeight: 700,
+    },
+    h5: {
+        fontWeight: 600,
+    },
+    h6: {
+        fontWeight: 600,
+    }
   },
 });
 
@@ -69,7 +92,7 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
   }, [hass, config_entry_id]);
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={modernDarkTheme}>
       <CssBaseline />
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
