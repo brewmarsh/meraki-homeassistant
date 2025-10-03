@@ -28,7 +28,8 @@ class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
         """Initialize the switch."""
         super().__init__(coordinator, config_entry, network)
         self._attr_unique_id = f"vpn_{self._network_id}"
-        self._attr_name = f"{self._network['name']} Site-to-Site VPN"
+        self._attr_name = "Site-to-Site VPN"
+        self._attr_has_entity_name = True
         self._update_internal_state()
 
     def _update_internal_state(self) -> None:

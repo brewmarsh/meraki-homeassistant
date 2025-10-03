@@ -72,7 +72,20 @@ def resolve_device_info(
             config=config_entry.options,
         )
         return DeviceInfo(
-            identifiers={(DOMAIN, network_id)},
+            identifiers={(DOMAIN, f"network_{network_id}")},
+            name=formatted_name,
+            manufacturer="Cisco Meraki",
+            model="Network",
+        )
+
+    if is_network and network_id:
+        device_data_for_naming = {**entity_data, "productType": "network"}
+        formatted_name = format_device_name(
+            device=device_data_for_naming,
+            config=config_entry.options,
+        )
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"network_{network_id}")},
             name=formatted_name,
             manufacturer="Cisco Meraki",
             model="Network",

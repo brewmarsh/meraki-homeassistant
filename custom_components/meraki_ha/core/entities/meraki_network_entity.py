@@ -6,9 +6,10 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from homeassistant.config_entries import ConfigEntry
+
+from ..utils.naming_utils import format_device_name
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...types import MerakiNetwork
-from ...core.utils.naming_utils import format_device_name
 
 
 class MerakiNetworkEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
@@ -26,9 +27,14 @@ class MerakiNetworkEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
         self._network = network
         self._network_id = network["id"]
 
+        device_data_for_naming = {**network, "productType": "network"}
+        formatted_name = format_device_name(
+            device=device_data_for_naming,
+            config=config_entry.options,
+        )
         self._attr_device_info = DeviceInfo(
-            identifiers={(self._config_entry.domain, network["id"])},
-            name=format_device_name(network, config_entry.options),
+            identifiers={(self._config_entry.domain, f"network_{network['id']}")},
+            name=formatted_name,
             manufacturer="Cisco Meraki",
             model="Network",
         )

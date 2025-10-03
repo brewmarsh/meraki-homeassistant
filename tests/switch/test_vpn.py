@@ -46,7 +46,7 @@ async def test_vpn_switch(hass: HomeAssistant):
         await hass.async_block_till_done()
 
         # Test creation
-        entity_id = "switch.test_network_site_to_site_vpn"
+        entity_id = "switch.network_test_network_site_to_site_vpn"
         state = hass.states.get(entity_id)
         assert state
         assert state.state == "on"

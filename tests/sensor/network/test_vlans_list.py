@@ -28,7 +28,7 @@ async def test_vlans_list_sensor(hass: HomeAssistant):
 
     mock_data = {
         "devices": [],
-        "networks": [{"id": "net1", "name": "Test Network"}],
+        "networks": [{"id": "net1", "name": "Test Network", "productTypes": ["appliance"]}],
         "vlans": {
             "net1": [
                 {
@@ -64,7 +64,7 @@ async def test_vlans_list_sensor(hass: HomeAssistant):
         await coordinator.async_refresh()
         await hass.async_block_till_done()
 
-        entity_id = "sensor.test_network_vlans"
+        entity_id = "sensor.network_test_network_vlans"
         state = hass.states.get(entity_id)
         assert state
         assert state.state == "2"
