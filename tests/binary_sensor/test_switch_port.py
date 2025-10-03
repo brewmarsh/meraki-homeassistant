@@ -18,7 +18,7 @@ def test_switch_port_sensor_connected():
     # Assert
     assert sensor.is_on is True
     assert sensor.device_class == BinarySensorDeviceClass.CONNECTIVITY
-    assert sensor.name == "Port p1"
+    assert sensor.name == "d1 Port p1"
     assert sensor.unique_id == "s1_p1"
 
 

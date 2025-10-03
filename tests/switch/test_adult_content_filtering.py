@@ -60,7 +60,7 @@ async def test_turn_on(mock_coordinator, mock_config_entry):
 
     await switch.async_turn_on()
     switch._client.wireless.update_network_wireless_ssid.assert_called_once_with(
-        network_id="net_1",
+        networkId="net_1",
         number=0,
         adultContentFilteringEnabled=True,
     )
@@ -76,7 +76,7 @@ async def test_turn_off(mock_coordinator, mock_config_entry):
 
     await switch.async_turn_off()
     switch._client.wireless.update_network_wireless_ssid.assert_called_once_with(
-        network_id="net_1",
+        networkId="net_1",
         number=0,
         adultContentFilteringEnabled=False,
     )

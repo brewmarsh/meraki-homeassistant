@@ -17,10 +17,10 @@ def mock_device_coordinator():
                 "name": "Switch",
                 "model": "MS220-8P",
                 "productType": "switch",
-                "ports_statuses": [
-                    {"portId": 1, "powerUsageInWh": 252},
-                    {"portId": 2, "powerUsageInWh": 124.8},
-                    {"portId": 3, "powerUsageInWh": 0},
+                "port_statuses": [
+                    {"portId": 1, "poe": {"power": 10.5}},
+                    {"portId": 2, "poe": {"power": 5.2}},
+                    {"portId": 3, "poe": None},
                 ],
             }
         ]
@@ -35,6 +35,6 @@ def test_poe_usage_sensor(mock_device_coordinator):
     assert sensor.unique_id == "dev1_poe_usage"
     assert sensor.name == "Switch PoE Usage"
     assert sensor.native_value == 15.7
-    assert sensor.extra_state_attributes["port_1_power_usage_wh"] == 252
-    assert sensor.extra_state_attributes["port_2_power_usage_wh"] == 124.8
-    assert sensor.extra_state_attributes["port_3_power_usage_wh"] == 0
+    assert sensor.extra_state_attributes["port_1_poe_usage"] == 10.5
+    assert sensor.extra_state_attributes["port_2_poe_usage"] == 5.2
+    assert "port_3_poe_usage" not in sensor.extra_state_attributes

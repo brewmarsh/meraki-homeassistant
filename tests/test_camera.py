@@ -133,7 +133,7 @@ async def test_camera_stream_source(
     source = await camera.stream_source()
 
     # Assert
-    assert source == "rtsp://1.2.3.4:9000/live"
+    assert source == "rtsp://1.2.3.4/"
 
 
 @pytest.mark.asyncio

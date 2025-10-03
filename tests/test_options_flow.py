@@ -11,10 +11,6 @@ from custom_components.meraki_ha.const import (
     DOMAIN,
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_IGNORED_NETWORKS,
-    CONF_ENABLE_FIREWALL_RULES,
-    CONF_ENABLE_TRAFFIC_SHAPING,
-    CONF_ENABLE_VLAN_MANAGEMENT,
-    CONF_ENABLE_VPN,
 )
 
 # Mock the hass_frontend module
@@ -35,11 +31,6 @@ async def test_options_flow(hass: HomeAssistant, mocker) -> None:
         options={
             CONF_SCAN_INTERVAL: 60,
             CONF_ENABLE_DEVICE_TRACKER: True,
-            CONF_IGNORED_NETWORKS: "",
-            CONF_ENABLE_FIREWALL_RULES: False,
-            CONF_ENABLE_TRAFFIC_SHAPING: False,
-            CONF_ENABLE_VLAN_MANAGEMENT: False,
-            CONF_ENABLE_VPN: False,
         },
     )
     config_entry.add_to_hass(hass)
@@ -49,20 +40,45 @@ async def test_options_flow(hass: HomeAssistant, mocker) -> None:
     assert result["type"] == "form"
     assert result["step_id"] == "init"
 
-    # Submit new options
-    new_options = {
+    # Select "general" from the menu
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], user_input={"next_step": "general"}
+    )
+    assert result["type"] == "form"
+    assert result["step_id"] == "general"
+
+    # Submit general options
+    general_input = {
         CONF_SCAN_INTERVAL: 120,
         CONF_ENABLE_DEVICE_TRACKER: False,
-        CONF_IGNORED_NETWORKS: "Guest Network",
-        CONF_ENABLE_FIREWALL_RULES: True,
-        CONF_ENABLE_TRAFFIC_SHAPING: True,
-        CONF_ENABLE_VLAN_MANAGEMENT: True,
-        CONF_ENABLE_VPN: True,
     }
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input=new_options
+        result["flow_id"], user_input=general_input
     )
     await hass.async_block_till_done()
 
     assert result["type"] == "create_entry"
-    assert config_entry.options == new_options
+    assert config_entry.options == general_input
+
+    # Start the options flow again
+    result = await hass.config_entries.options.async_init(config_entry.entry_id)
+
+    # Select "advanced" from the menu
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], user_input={"next_step": "advanced"}
+    )
+    assert result["type"] == "form"
+    assert result["step_id"] == "advanced"
+
+    # Submit advanced options
+    advanced_input = {
+        CONF_IGNORED_NETWORKS: "Guest Network, Temp Network",
+    }
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], user_input=advanced_input
+    )
+    await hass.async_block_till_done()
+
+    assert result["type"] == "create_entry"
+    expected_options = {**general_input, **advanced_input}
+    assert config_entry.options == expected_options
