@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
@@ -9,16 +9,20 @@ import Box from '@mui/material/Box';
 
 import NetworkView from './components/NetworkView';
 import EventLog from './components/EventLog';
+import { createDynamicTheme } from './theme';
 
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 
-// Define a simplified type for the Home Assistant object
+// Define a more complete type for the Home Assistant object
 interface Hass {
   connection: {
     sendMessagePromise: (message: any) => Promise<any>;
+  };
+  themes: {
+    darkMode: boolean;
   };
 }
 
@@ -32,39 +36,13 @@ interface AppProps {
   config_entry_id: string;
 }
 
-const modernDarkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#4fd1c5', // A modern teal
-    },
-    background: {
-      default: '#1a202c', // A very dark slate blue
-      paper: '#2d3748',   // A dark slate blue
-    },
-    text: {
-      primary: '#edf2f7',   // A light gray
-      secondary: '#a0aec0', // A medium gray
-    },
-  },
-  typography: {
-    fontFamily: 'Roboto, sans-serif',
-    h4: {
-        fontWeight: 700,
-    },
-    h5: {
-        fontWeight: 600,
-    },
-    h6: {
-        fontWeight: 600,
-    }
-  },
-});
-
 const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Create the theme based on Home Assistant's dark mode setting
+  const theme = useMemo(() => createDynamicTheme(hass?.themes?.darkMode ?? true), [hass]);
 
   useEffect(() => {
     if (!hass || !hass.connection) {
@@ -92,9 +70,9 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
   }, [hass, config_entry_id]);
 
   return (
-    <ThemeProvider theme={modernDarkTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4, backgroundColor: theme.palette.background.default, color: theme.palette.text.primary }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Meraki Control
         </Typography>

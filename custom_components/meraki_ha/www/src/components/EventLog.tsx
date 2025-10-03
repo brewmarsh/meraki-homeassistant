@@ -15,7 +15,7 @@ const EventLog: React.FC = () => {
                 borderRadius: 2,
                 boxShadow: 'none',
                 border: '1px solid',
-                borderColor: 'rgba(255, 255, 255, 0.12)',
+                borderColor: 'divider',
             }}
         >
             <CardContent sx={{ p: 2.5 }}>
