@@ -52,7 +52,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
                             borderRadius: 2,
                             boxShadow: 'none',
                             border: '1px solid',
-                            borderColor: 'rgba(255, 255, 255, 0.12)',
+                            borderColor: 'divider',
                         }}
                     >
                         <Box
@@ -62,7 +62,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
                               cursor: 'pointer',
                               p: 2.5,
                               '&:hover': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                                backgroundColor: 'action.hover',
                               }
                           }}
                           onClick={() => handleExpandClick(network.id)}
@@ -79,7 +79,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
                             </ExpandMore>
                         </Box>
                         <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                            <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)' }} />
+                            <Divider />
                             <CardContent sx={{ p: 2.5 }}>
                                 <DeviceView devices={networkDevices} />
                             </CardContent>

@@ -15,6 +15,9 @@ interface HassObject {
   // Define a minimal hass object type
   connection: any;
   connected: boolean;
+  themes: {
+    darkMode: boolean;
+  };
 }
 
 class MerakiPanel extends HTMLElement {

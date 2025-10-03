@@ -31,9 +31,9 @@ const DeviceView: React.FC<DeviceViewProps> = ({ devices }) => {
                                 sx={{
                                     p: 2,
                                     borderRadius: 1.5,
-                                    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+                                    backgroundColor: 'action.hover',
                                     border: '1px solid',
-                                    borderColor: 'rgba(255, 255, 255, 0.08)',
+                                    borderColor: 'divider',
                                 }}
                             >
                                 <Grid container alignItems="center" spacing={2}>
