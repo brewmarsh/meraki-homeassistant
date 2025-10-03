@@ -37,6 +37,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator):
             hass=hass,
             api_key=entry.data[CONF_MERAKI_API_KEY],
             org_id=entry.data[CONF_MERAKI_ORG_ID],
+            coordinator=self,
         )
         self.config_entry = entry
         self.devices_by_serial: dict = {}
@@ -45,6 +46,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator):
         self.last_successful_update: datetime | None = None
         self.last_successful_data: dict = {}
         self._pending_updates: dict[str, datetime] = {}
+        self._vlan_check_timestamps: dict[str, datetime] = {}
+        self._traffic_check_timestamps: dict[str, datetime] = {}
 
         try:
             scan_interval = int(
@@ -208,3 +211,43 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator):
                     if message not in device["status_messages"]:
                         device["status_messages"].append(message)
                     break
+
+    def add_network_status_message(self, network_id: str, message: str) -> None:
+        """Add a status message for a network."""
+        if self.data and self.data.get("networks"):
+            for network in self.data["networks"]:
+                if network.get("id") == network_id:
+                    if "status_messages" not in network:
+                        network["status_messages"] = []
+                    # Avoid duplicate messages
+                    if message not in network["status_messages"]:
+                        network["status_messages"].append(message)
+                    break
+
+    def _is_check_due(
+        self,
+        check_timestamps: dict[str, datetime],
+        network_id: str,
+        interval_hours: int = 24,
+    ) -> bool:
+        """Determine if an availability check is due for a network feature."""
+        last_check = check_timestamps.get(network_id)
+        if not last_check:
+            return True
+        return (datetime.now() - last_check) > timedelta(hours=interval_hours)
+
+    def is_vlan_check_due(self, network_id: str) -> bool:
+        """Determine if a VLAN availability check is due."""
+        return self._is_check_due(self._vlan_check_timestamps, network_id)
+
+    def is_traffic_check_due(self, network_id: str) -> bool:
+        """Determine if a Traffic Analysis availability check is due."""
+        return self._is_check_due(self._traffic_check_timestamps, network_id)
+
+    def mark_vlan_check_done(self, network_id: str) -> None:
+        """Mark a VLAN availability check as done for the day."""
+        self._vlan_check_timestamps[network_id] = datetime.now()
+
+    def mark_traffic_check_done(self, network_id: str) -> None:
+        """Mark a Traffic Analysis availability check as done for the day."""
+        self._traffic_check_timestamps[network_id] = datetime.now()

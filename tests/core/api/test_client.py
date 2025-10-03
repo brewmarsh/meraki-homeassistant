@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.core.errors import MerakiInformationalError
+from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from tests.const import MOCK_DEVICE, MOCK_NETWORK
 
 
@@ -21,9 +22,20 @@ def hass():
 
 
 @pytest.fixture
-def api_client(hass, mock_dashboard):
+def coordinator():
+    """Fixture for a mocked coordinator."""
+    mock = MagicMock(spec=MerakiDataUpdateCoordinator)
+    mock.is_vlan_check_due.return_value = True
+    mock.is_traffic_check_due.return_value = True
+    return mock
+
+
+@pytest.fixture
+def api_client(hass, mock_dashboard, coordinator):
     """Fixture for a MerakiAPIClient instance."""
-    return MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
+    return MerakiAPIClient(
+        hass=hass, api_key="test-key", org_id="test-org", coordinator=coordinator
+    )
 
 
 @pytest.mark.asyncio
@@ -165,7 +177,7 @@ def test_build_detail_tasks_for_appliance_device(api_client):
     assert f"vlans_{network_with_appliance['id']}" in tasks
 
 
-def test_process_detailed_data_handles_errors(api_client, caplog):
+def test_process_detailed_data_handles_errors(api_client):
     """Test that _process_detailed_data handles disabled features."""
     # Arrange
     detail_data = {
@@ -178,15 +190,27 @@ def test_process_detailed_data_handles_errors(api_client, caplog):
     }
 
     # Act
-    processed_data = api_client._process_detailed_data(detail_data, [MOCK_NETWORK], [], previous_data={})
+    processed_data = api_client._process_detailed_data(
+        detail_data, [MOCK_NETWORK], [], previous_data={}
+    )
 
     # Assert
     assert (
         processed_data["appliance_traffic"][MOCK_NETWORK["id"]]["error"] == "disabled"
     )
     assert processed_data["vlans"][MOCK_NETWORK["id"]] == []
-    assert "Traffic Analysis is not enabled" in caplog.text
-    assert "VLANs are not enabled" in caplog.text
+    api_client.coordinator.add_network_status_message.assert_any_call(
+        MOCK_NETWORK["id"], "Traffic Analysis is not enabled for this network."
+    )
+    api_client.coordinator.mark_traffic_check_done.assert_called_once_with(
+        MOCK_NETWORK["id"]
+    )
+    api_client.coordinator.add_network_status_message.assert_any_call(
+        MOCK_NETWORK["id"], "VLANs are not enabled for this network."
+    )
+    api_client.coordinator.mark_vlan_check_done.assert_called_once_with(
+        MOCK_NETWORK["id"]
+    )
 
 
 @pytest.mark.skip(reason="TODO: Fix this test")
