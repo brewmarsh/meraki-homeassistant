@@ -7,10 +7,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 
-import Dashboard from './components/Dashboard';
-import DeviceView from './components/DeviceView';
 import NetworkView from './components/NetworkView';
-import CameraView from './components/CameraView';
+import EventLog from './components/EventLog';
 
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
@@ -44,7 +42,6 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState<{ view: string; deviceId?: string; networkId?: string }>({ view: 'dashboard' });
 
   useEffect(() => {
     if (!hass || !hass.connection) {
@@ -71,21 +68,6 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
     fetchData();
   }, [hass, config_entry_id]);
 
-  const renderView = () => {
-    switch (activeView.view) {
-      case 'dashboard':
-        return <Dashboard setActiveView={setActiveView} data={data} />;
-      case 'device':
-        return <DeviceView activeView={activeView} setActiveView={setActiveView} data={data} />;
-      case 'network':
-        return <NetworkView activeView={activeView} setActiveView={setActiveView} data={data} />;
-      case 'camera':
-        return <CameraView hass={hass} config_entry_id={config_entry_id} activeView={activeView} setActiveView={setActiveView} data={data} />;
-      default:
-        return <Typography>Unknown view</Typography>;
-    }
-  };
-
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
@@ -103,7 +85,12 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
             {error}
           </Alert>
         )}
-        {!loading && !error && renderView()}
+        {!loading && !error && data && (
+          <>
+            <NetworkView data={data} />
+            <EventLog />
+          </>
+        )}
       </Container>
     </ThemeProvider>
   );
