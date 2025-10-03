@@ -1,47 +1,39 @@
 import React from 'react';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 interface DeviceViewProps {
-  activeView: { view: string; deviceId?: string };
-  setActiveView: (view: { view: string; deviceId?: string }) => void;
-  data: any;
+    devices: any[];
 }
 
-const DeviceView: React.FC<DeviceViewProps> = ({ activeView, setActiveView, data }) => {
-  const device = data.devices.find((d: any) => d.serial === activeView.deviceId);
+const DeviceView: React.FC<DeviceViewProps> = ({ devices }) => {
+    const deviceTypes = {
+        'Switches': devices.filter(d => d.model?.startsWith('MS')),
+        'Wireless': devices.filter(d => d.model?.startsWith('MR')),
+        'Cameras': devices.filter(d => d.model?.startsWith('MV')),
+        'Routing': devices.filter(d => d.model?.startsWith('MX')),
+    };
 
-  if (!device) {
-    return <Typography>Device not found</Typography>;
-  }
-
-  return (
-    <Box>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => setActiveView({ view: 'dashboard' })}
-        sx={{ mb: 2 }}
-      >
-        Back to Dashboard
-      </Button>
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Device Details
-          </Typography>
-          <Typography>Name: {device.name || device.mac}</Typography>
-          <Typography>Status: {device.status}</Typography>
-          <Typography>Model: {device.model}</Typography>
-          <Typography>MAC Address: {device.mac}</Typography>
-          <Typography>Serial: {device.serial}</Typography>
-        </CardContent>
-      </Card>
-    </Box>
-  );
+    return (
+        <Box sx={{ pl: 4, pt: 2 }}>
+            {Object.entries(deviceTypes).map(([type, deviceList]) => (
+                deviceList.length > 0 && (
+                    <Box key={type} sx={{ mb: 2 }}>
+                        <Typography variant="h6">{type}</Typography>
+                        {deviceList.map((device: any) => (
+                            <Card key={device.serial} sx={{ mb: 1, backgroundColor: 'background.paper' }}>
+                                <CardContent>
+                                    <Typography>{device.name || device.mac}</Typography>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </Box>
+                )
+            ))}
+        </Box>
+    );
 };
 
 export default DeviceView;
