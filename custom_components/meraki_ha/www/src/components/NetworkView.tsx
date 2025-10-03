@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Typography from '@mui/material/Typography';
+import Alert from '@mui/material/Alert';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Collapse from '@mui/material/Collapse';
@@ -81,6 +82,11 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
                         <Collapse in={isExpanded} timeout="auto" unmountOnExit>
                             <Divider />
                             <CardContent sx={{ p: 2.5 }}>
+                                {network.status_messages && network.status_messages.length > 0 && (
+                                    <Alert severity="info" sx={{ mb: 2 }}>
+                                        {network.status_messages.join(' ')}
+                                    </Alert>
+                                )}
                                 <DeviceView devices={networkDevices} />
                             </CardContent>
                         </Collapse>

@@ -5,14 +5,18 @@ This module defines the main API client that acts as a facade for various
 Meraki API endpoint categories.
 """
 
+from __future__ import annotations
+
 import asyncio
 from functools import partial
 import logging
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from homeassistant.core import HomeAssistant
 import meraki  # type: ignore[import-untyped]
 
+if TYPE_CHECKING:
+    from ...coordinator import MerakiDataUpdateCoordinator
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
@@ -38,12 +42,14 @@ class MerakiAPIClient:
         hass: HomeAssistant,
         api_key: str,
         org_id: str,
+        coordinator: "MerakiDataUpdateCoordinator",
         base_url: str = "https://api.meraki.com/api/v1",
     ) -> None:
         """Initialize the API client."""
         self._api_key = api_key
         self._org_id = org_id
         self._hass = hass
+        self.coordinator = coordinator
         self._cache = None
         # if hass:
         #     cache_dir = hass.config.path("meraki_cache")
@@ -53,7 +59,7 @@ class MerakiAPIClient:
             base_url=base_url,
             output_log=False,
             print_console=False,
-            suppress_logging=False,
+            suppress_logging=True,
             maximum_retries=3,
             wait_on_rate_limit=True,
             nginx_429_retry_wait_time=2,
@@ -207,12 +213,16 @@ class MerakiAPIClient:
                     self.wireless.get_network_ssids(network["id"])
                 )
             if "appliance" in product_types:
-                detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
-                    self.network.get_network_traffic(network["id"], "appliance")
-                )
-                detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
-                    self.appliance.get_network_vlans(network["id"])
-                )
+                if self.coordinator.is_traffic_check_due(network["id"]):
+                    detail_tasks[
+                        f"traffic_{network['id']}"
+                    ] = self._run_with_semaphore(
+                        self.network.get_network_traffic(network["id"], "appliance")
+                    )
+                if self.coordinator.is_vlan_check_due(network["id"]):
+                    detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
+                        self.appliance.get_network_vlans(network["id"])
+                    )
                 detail_tasks[
                     f"l3_firewall_rules_{network['id']}"
                 ] = self._run_with_semaphore(
@@ -303,9 +313,11 @@ class MerakiAPIClient:
             network_traffic = detail_data.get(network_traffic_key)
             if isinstance(network_traffic, MerakiInformationalError):
                 if "traffic analysis" in str(network_traffic).lower():
-                    _LOGGER.info(
-                        "Traffic Analysis is not enabled for %s.", network["name"]
+                    self.coordinator.add_network_status_message(
+                        network["id"],
+                        "Traffic Analysis is not enabled for this network.",
                     )
+                    self.coordinator.mark_traffic_check_done(network["id"])
                 appliance_traffic[network["id"]] = {
                     "error": "disabled",
                     "reason": str(network_traffic),
@@ -319,7 +331,10 @@ class MerakiAPIClient:
             network_vlans = detail_data.get(network_vlans_key)
             if isinstance(network_vlans, MerakiInformationalError):
                 if "vlans are not enabled" in str(network_vlans).lower():
-                    _LOGGER.info("VLANs are not enabled for %s.", network["name"])
+                    self.coordinator.add_network_status_message(
+                        network["id"], "VLANs are not enabled for this network."
+                    )
+                    self.coordinator.mark_vlan_check_done(network["id"])
                 vlan_by_network[network["id"]] = []
             elif isinstance(network_vlans, list):
                 vlan_by_network[network["id"]] = network_vlans
