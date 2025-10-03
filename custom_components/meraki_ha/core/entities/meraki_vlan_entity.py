@@ -8,7 +8,6 @@ from homeassistant.config_entries import ConfigEntry
 from . import BaseMerakiEntity
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...types import MerakiVlan
-from ...core.utils.naming_utils import format_device_name
 
 
 class MerakiVLANEntity(BaseMerakiEntity):
@@ -29,15 +28,10 @@ class MerakiVLANEntity(BaseMerakiEntity):
         )
         self._vlan = vlan
         assert self._network_id is not None
-        vlan_device_data = {**vlan, "productType": "vlan"}
-        formatted_name = format_device_name(
-            device=vlan_device_data,
-            config=self._config_entry.options,
-        )
 
         self._attr_device_info = DeviceInfo(
             identifiers={(self._config_entry.domain, f"vlan_{network_id}_{vlan['id']}")},
-            name=formatted_name,
+            name=vlan["name"],
             manufacturer="Cisco Meraki",
             model="VLAN",
             via_device=(self._config_entry.domain, f"network_{network_id}"),

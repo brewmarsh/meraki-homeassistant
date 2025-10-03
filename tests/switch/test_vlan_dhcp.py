@@ -58,7 +58,7 @@ async def test_vlan_dhcp_switch(hass: HomeAssistant):
         await hass.async_block_till_done()
 
         # Test creation
-        entity_id = "switch.vlan_vlan_1_vlan_1_dhcp"
+        entity_id = "switch.vlan_1_vlan_1_dhcp"
         state = hass.states.get(entity_id)
         assert state
         assert state.state == "on"

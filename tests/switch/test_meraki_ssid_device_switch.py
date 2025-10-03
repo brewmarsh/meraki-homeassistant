@@ -83,7 +83,7 @@ async def test_meraki_ssid_enabled_switch(
     switch.entity_id = "switch.test"
     await switch.async_turn_off()
     mock_meraki_client.wireless.update_network_wireless_ssid.assert_called_with(
-        networkId="net-123", number=0, enabled=False
+        network_id="net-123", number=0, enabled=False
     )
 
 
@@ -121,5 +121,5 @@ async def test_meraki_ssid_broadcast_switch(
     switch.entity_id = "switch.test"
     await switch.async_turn_off()
     mock_meraki_client.wireless.update_network_wireless_ssid.assert_called_with(
-        networkId="net-123", number=0, visible=False
+        network_id="net-123", number=0, visible=False
     )

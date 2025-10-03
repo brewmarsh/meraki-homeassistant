@@ -13,6 +13,7 @@ async def test_async_setup_entry(
     hass: HomeAssistant,
 ) -> None:
     """Test the async_setup_entry function."""
+    hass.http = AsyncMock()
     await async_setup(hass, {})
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"

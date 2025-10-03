@@ -66,7 +66,9 @@ async def test_camera_turn_on_optimistic_update(
     # 1. Check that the coordinator's data was optimistically updated
     assert device_data["video_settings"]["rtspServerEnabled"] is True
     assert "rtspUrl" in device_data["video_settings"]
-    assert device_data["video_settings"]["rtspUrl"] == "rtsp://192.168.1.100/"
+    assert (
+        device_data["video_settings"]["rtspUrl"] == "rtsp://192.168.1.100:9000/live"
+    )
 
     # 2. Check that listeners were notified of the change
     mock_coordinator.async_update_listeners.assert_called_once()
@@ -89,7 +91,7 @@ async def test_camera_turn_off_optimistic_update(
     # Start with the camera on
     device_data = mock_coordinator.data["devices"][0]
     device_data["video_settings"]["rtspServerEnabled"] = True
-    device_data["video_settings"]["rtspUrl"] = "rtsp://192.168.1.100/"
+    device_data["video_settings"]["rtspUrl"] = "rtsp://192.168.1.100:9000/live"
 
     camera = MerakiCamera(
         mock_coordinator,

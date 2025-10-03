@@ -16,7 +16,15 @@ from ..sensor_registry import (
 from .network.vlans_list import MerakiNetworkVLANsSensor
 from .network.traffic_shaping import MerakiTrafficShapingSensor
 from .device.appliance_port import MerakiAppliancePortSensor
-from .network.vlan import MerakiVLANSubnetSensor, MerakiVLANApplianceIpSensor
+from .network.vlan import (
+    MerakiVLANIDSensor,
+    MerakiVLANIPv4EnabledSensor,
+    MerakiVLANIPv4InterfaceSensor,
+    MerakiVLANIPv4UplinkSensor,
+    MerakiVLANIPv6EnabledSensor,
+    MerakiVLANIPv6InterfaceSensor,
+    MerakiVLANIPv6UplinkSensor,
+)
 from .device.appliance_uplink import MerakiApplianceUplinkSensor
 from .client_tracker import ClientTrackerDeviceSensor, MerakiClientSensor
 from .ssid.connected_clients import MerakiSsidConnectedClientsSensor
@@ -166,6 +174,17 @@ def _setup_vlan_sensors(
     """Set up VLAN sensors."""
     entities: List[Entity] = []
     vlans_by_network = coordinator.data.get("vlans", {})
+
+    vlan_sensors = [
+        (MerakiVLANIDSensor, "vlan_id"),
+        (MerakiVLANIPv4EnabledSensor, "ipv4_enabled"),
+        (MerakiVLANIPv4InterfaceSensor, "ipv4_interface_ip"),
+        (MerakiVLANIPv4UplinkSensor, "ipv4_uplink"),
+        (MerakiVLANIPv6EnabledSensor, "ipv6_enabled"),
+        (MerakiVLANIPv6InterfaceSensor, "ipv6_interface_ip"),
+        (MerakiVLANIPv6UplinkSensor, "ipv6_uplink"),
+    ]
+
     for network_id, vlans in vlans_by_network.items():
         if not isinstance(vlans, list):
             continue
@@ -175,29 +194,18 @@ def _setup_vlan_sensors(
                 if not vlan_id:
                     continue
 
-                unique_id_subnet = f"meraki_vlan_{network_id}_{vlan_id}_subnet"
-                if unique_id_subnet not in added_entities:
-                    entities.append(
-                        MerakiVLANSubnetSensor(
-                            coordinator,
-                            config_entry,
-                            network_id,
-                            cast(MerakiVlan, vlan),
+                for sensor_class, suffix in vlan_sensors:
+                    unique_id = f"meraki_vlan_{network_id}_{vlan_id}_{suffix}"
+                    if unique_id not in added_entities:
+                        entities.append(
+                            sensor_class(
+                                coordinator,
+                                config_entry,
+                                network_id,
+                                cast(MerakiVlan, vlan),
+                            )
                         )
-                    )
-                    added_entities.add(unique_id_subnet)
-
-                unique_id_ip = f"meraki_vlan_{network_id}_{vlan_id}_appliance_ip"
-                if unique_id_ip not in added_entities:
-                    entities.append(
-                        MerakiVLANApplianceIpSensor(
-                            coordinator,
-                            config_entry,
-                            network_id,
-                            cast(MerakiVlan, vlan),
-                        )
-                    )
-                    added_entities.add(unique_id_ip)
+                        added_entities.add(unique_id)
     return entities
 
 

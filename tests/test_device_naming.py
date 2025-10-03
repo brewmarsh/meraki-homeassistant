@@ -10,7 +10,7 @@ from custom_components.meraki_ha.sensor.org.org_clients import (
 from custom_components.meraki_ha.sensor.network.network_clients import (
     MerakiNetworkClientsSensor,
 )
-from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANSubnetSensor
+from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANIDSensor
 
 
 @pytest.fixture
@@ -69,7 +69,7 @@ def test_vlan_device_naming(mock_coordinator):
     network_id = "net1"
     vlan_data = mock_coordinator.data["vlans"]["net1"][0]
 
-    sensor = MerakiVLANSubnetSensor(
+    sensor = MerakiVLANIDSensor(
         mock_coordinator, mock_coordinator.config_entry, network_id, vlan_data
     )
-    assert sensor.device_info["name"] == "[Vlan] Test VLAN"
+    assert sensor.device_info["name"] == "Test VLAN"
