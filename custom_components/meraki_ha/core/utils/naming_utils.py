@@ -43,7 +43,7 @@ def format_device_name(device: Dict[str, Any], config: dict) -> str:
     elif product_type == "ssid":
         product_type_str = "SSID"
     elif product_type == "vlan":
-        product_type_str = "Vlan"
+        product_type_str = "VLAN"
     else:
         product_type_str = product_type.capitalize()
 

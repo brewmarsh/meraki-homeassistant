@@ -78,7 +78,7 @@ def test_vlan_sensor_creation(mock_coordinator):
     assert id_sensor.unique_id == "meraki_vlan_net1_1_vlan_id"
     assert id_sensor.name == "VLAN 1 VLAN ID"
     assert id_sensor.native_value == 1
-    assert id_sensor.device_info["name"] == "[Vlan] VLAN 1"
+    assert id_sensor.device_info["name"] == "[VLAN] VLAN 1"
 
     # Assertions for IPv4 Enabled Sensor
     assert ipv4_enabled_sensor.unique_id == "meraki_vlan_net1_1_ipv4_enabled"

@@ -72,4 +72,4 @@ def test_vlan_device_naming(mock_coordinator):
     sensor = MerakiVLANIDSensor(
         mock_coordinator, mock_coordinator.config_entry, network_id, vlan_data
     )
-    assert sensor.device_info["name"] == "[Vlan] Test VLAN"
+    assert sensor.device_info["name"] == "[VLAN] Test VLAN"
