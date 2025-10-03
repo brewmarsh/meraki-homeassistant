@@ -145,6 +145,11 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
         This method includes a retry mechanism to handle the delay in snapshot
         generation by the Meraki cloud.
         """
+        if self._device_data.get("status") != "online":
+            _LOGGER.debug(
+                "Not fetching snapshot for camera %s because it is not online", self.name
+            )
+            return None
         snapshot_url = await self._camera_service.generate_snapshot(self._device_serial)
 
         if not snapshot_url:
