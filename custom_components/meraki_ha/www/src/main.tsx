@@ -23,7 +23,9 @@ class MerakiPanel extends HTMLElement {
   private _panel?: PanelInfo;
 
   connectedCallback() {
-    this._root = ReactDOM.createRoot(this);
+    if (!this._root) {
+        this._root = ReactDOM.createRoot(this);
+    }
     this._render();
   }
 

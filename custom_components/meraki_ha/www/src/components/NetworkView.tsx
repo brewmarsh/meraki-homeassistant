@@ -7,6 +7,7 @@ import IconButton, { IconButtonProps } from '@mui/material/IconButton';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
+import Divider from '@mui/material/Divider';
 import DeviceView from './DeviceView';
 
 interface ExpandMoreProps extends IconButtonProps {
@@ -19,6 +20,7 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 })(({ theme, expand }) => ({
   transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
   marginLeft: 'auto',
+  color: theme.palette.text.secondary,
   transition: theme.transitions.create('transform', {
     duration: theme.transitions.duration.shortest,
   }),
@@ -43,12 +45,31 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
                 const isExpanded = expanded === network.id;
 
                 return (
-                    <Card key={network.id} sx={{ mb: 2 }}>
+                    <Card
+                        key={network.id}
+                        sx={{
+                            mb: 2.5,
+                            borderRadius: 2,
+                            boxShadow: 'none',
+                            border: '1px solid',
+                            borderColor: 'rgba(255, 255, 255, 0.12)',
+                        }}
+                    >
                         <Box
-                          sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', p: 2 }}
+                          sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              cursor: 'pointer',
+                              p: 2.5,
+                              '&:hover': {
+                                backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                              }
+                          }}
                           onClick={() => handleExpandClick(network.id)}
                         >
-                            <Typography variant="h5">{network.name}</Typography>
+                            <Typography variant="h5" component="div" sx={{ flexGrow: 1 }}>
+                                {network.name}
+                            </Typography>
                             <ExpandMore
                                 expand={isExpanded}
                                 aria-expanded={isExpanded}
@@ -58,7 +79,8 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
                             </ExpandMore>
                         </Box>
                         <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                            <CardContent>
+                            <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)' }} />
+                            <CardContent sx={{ p: 2.5 }}>
                                 <DeviceView devices={networkDevices} />
                             </CardContent>
                         </Collapse>

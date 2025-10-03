@@ -1,8 +1,7 @@
 import React from 'react';
 import Typography from '@mui/material/Typography';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
 
 interface DeviceViewProps {
     devices: any[];
@@ -10,27 +9,49 @@ interface DeviceViewProps {
 
 const DeviceView: React.FC<DeviceViewProps> = ({ devices }) => {
     const deviceTypes = {
+        'Routing': devices.filter(d => d.model?.startsWith('MX')),
         'Switches': devices.filter(d => d.model?.startsWith('MS')),
         'Wireless': devices.filter(d => d.model?.startsWith('MR')),
         'Cameras': devices.filter(d => d.model?.startsWith('MV')),
-        'Routing': devices.filter(d => d.model?.startsWith('MX')),
     };
 
+    const filteredDeviceTypes = Object.entries(deviceTypes).filter(([, deviceList]) => deviceList.length > 0);
+
     return (
-        <Box sx={{ pl: 4, pt: 2 }}>
-            {Object.entries(deviceTypes).map(([type, deviceList]) => (
-                deviceList.length > 0 && (
-                    <Box key={type} sx={{ mb: 2 }}>
-                        <Typography variant="h6">{type}</Typography>
+        <Box>
+            {filteredDeviceTypes.map(([type, deviceList], index) => (
+                <Box key={type} sx={{ mb: index === filteredDeviceTypes.length - 1 ? 0 : 3 }}>
+                    <Typography variant="h6" sx={{ mb: 1.5, color: 'text.secondary' }}>
+                        {type}
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                         {deviceList.map((device: any) => (
-                            <Card key={device.serial} sx={{ mb: 1, backgroundColor: 'background.paper' }}>
-                                <CardContent>
-                                    <Typography>{device.name || device.mac}</Typography>
-                                </CardContent>
-                            </Card>
+                            <Box
+                                key={device.serial}
+                                sx={{
+                                    p: 2,
+                                    borderRadius: 1.5,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+                                    border: '1px solid',
+                                    borderColor: 'rgba(255, 255, 255, 0.08)',
+                                }}
+                            >
+                                <Grid container alignItems="center" spacing={2}>
+                                    <Grid item xs={12} sm={6}>
+                                        <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                            {device.name || 'Unnamed Device'}
+                                        </Typography>
+                                    </Grid>
+                                    <Grid item xs={12} sm={6} sx={{ textAlign: { sm: 'right' } }}>
+                                        <Typography variant="body2" color="text.secondary">
+                                            {device.model} ({device.mac})
+                                        </Typography>
+                                    </Grid>
+                                </Grid>
+                            </Box>
                         ))}
                     </Box>
-                )
+                </Box>
             ))}
         </Box>
     );
