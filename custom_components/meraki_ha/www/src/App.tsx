@@ -6,6 +6,7 @@ import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
 
 import NetworkView from './components/NetworkView';
 import EventLog from './components/EventLog';
@@ -72,27 +73,39 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4, backgroundColor: theme.palette.background.default, color: theme.palette.text.primary }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Meraki Control
-        </Typography>
-        {loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-            <CircularProgress />
-          </Box>
-        )}
-        {error && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {error}
-          </Alert>
-        )}
-        {!loading && !error && data && (
-          <>
-            <NetworkView data={data} />
-            <EventLog />
-          </>
-        )}
-      </Container>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <Paper
+          square
+          elevation={1}
+          sx={{
+            p: 2,
+            backgroundColor: 'var(--app-header-background-color, #18bcf2)',
+            color: 'var(--app-header-text-color, #fff)',
+          }}
+        >
+          <Typography variant="h4" component="h1">
+            Meraki Integration Control
+          </Typography>
+        </Paper>
+        <Container maxWidth="lg" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>
+          {loading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <CircularProgress />
+            </Box>
+          )}
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {error}
+            </Alert>
+          )}
+          {!loading && !error && data && (
+            <>
+              <NetworkView data={data} />
+              <EventLog />
+            </>
+          )}
+        </Container>
+      </Box>
     </ThemeProvider>
   );
 };
