@@ -42,7 +42,7 @@ class MerakiAPIClient:
         hass: HomeAssistant,
         api_key: str,
         org_id: str,
-        coordinator: "MerakiDataUpdateCoordinator",
+        coordinator: "MerakiDataUpdateCoordinator" | None = None,
         base_url: str = "https://api.meraki.com/api/v1",
     ) -> None:
         """Initialize the API client."""
@@ -213,13 +213,17 @@ class MerakiAPIClient:
                     self.wireless.get_network_ssids(network["id"])
                 )
             if "appliance" in product_types:
-                if self.coordinator.is_traffic_check_due(network["id"]):
+                if not self.coordinator or self.coordinator.is_traffic_check_due(
+                    network["id"]
+                ):
                     detail_tasks[
                         f"traffic_{network['id']}"
                     ] = self._run_with_semaphore(
                         self.network.get_network_traffic(network["id"], "appliance")
                     )
-                if self.coordinator.is_vlan_check_due(network["id"]):
+                if not self.coordinator or self.coordinator.is_vlan_check_due(
+                    network["id"]
+                ):
                     detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
                         self.appliance.get_network_vlans(network["id"])
                     )
@@ -313,11 +317,12 @@ class MerakiAPIClient:
             network_traffic = detail_data.get(network_traffic_key)
             if isinstance(network_traffic, MerakiInformationalError):
                 if "traffic analysis" in str(network_traffic).lower():
-                    self.coordinator.add_network_status_message(
-                        network["id"],
-                        "Traffic Analysis is not enabled for this network.",
-                    )
-                    self.coordinator.mark_traffic_check_done(network["id"])
+                    if self.coordinator:
+                        self.coordinator.add_network_status_message(
+                            network["id"],
+                            "Traffic Analysis is not enabled for this network.",
+                        )
+                        self.coordinator.mark_traffic_check_done(network["id"])
                 appliance_traffic[network["id"]] = {
                     "error": "disabled",
                     "reason": str(network_traffic),
@@ -331,10 +336,11 @@ class MerakiAPIClient:
             network_vlans = detail_data.get(network_vlans_key)
             if isinstance(network_vlans, MerakiInformationalError):
                 if "vlans are not enabled" in str(network_vlans).lower():
-                    self.coordinator.add_network_status_message(
-                        network["id"], "VLANs are not enabled for this network."
-                    )
-                    self.coordinator.mark_vlan_check_done(network["id"])
+                    if self.coordinator:
+                        self.coordinator.add_network_status_message(
+                            network["id"], "VLANs are not enabled for this network."
+                        )
+                        self.coordinator.mark_vlan_check_done(network["id"])
                 vlan_by_network[network["id"]] = []
             elif isinstance(network_vlans, list):
                 vlan_by_network[network["id"]] = network_vlans
