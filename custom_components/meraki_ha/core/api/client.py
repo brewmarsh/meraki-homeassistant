@@ -252,13 +252,7 @@ class MerakiAPIClient:
                     self.wireless.get_network_wireless_rf_profiles(network["id"])
                 )
         for device in devices:
-            if device.get("productType") == "wireless":
-                detail_tasks[f"wireless_settings_{device['serial']}"] = (
-                    self._run_with_semaphore(
-                        self.wireless.get_wireless_settings(device["serial"])
-                    )
-                )
-            elif device.get("productType") == "camera":
+            if device.get("productType") == "camera":
                 detail_tasks[f"video_settings_{device['serial']}"] = (
                     self._run_with_semaphore(
                         self.camera.get_camera_video_settings(device["serial"])
@@ -392,10 +386,7 @@ class MerakiAPIClient:
 
         for device in devices:
             product_type = device.get("productType")
-            if product_type == "wireless":
-                if settings := detail_data.get(f"wireless_settings_{device['serial']}"):
-                    device["radio_settings"] = settings
-            elif product_type == "camera":
+            if product_type == "camera":
                 if settings := detail_data.get(f"video_settings_{device['serial']}"):
                     device["video_settings"] = settings
                     # The video_settings endpoint also provides the RTSP URL
