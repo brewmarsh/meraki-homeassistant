@@ -77,9 +77,6 @@
           "dormant": "Dormant",
           "unknown": "Unknown"
         }
-      },
-      "radio_settings": {
-        "name": "Radio Settings"
       }
     },
     "switch": {
