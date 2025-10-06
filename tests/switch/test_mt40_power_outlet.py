@@ -49,17 +49,23 @@ def mock_meraki_client():
     return client
 
 
-def test_mt40_switch_state(mock_coordinator, mock_config_entry, mock_meraki_client):
-    """Test the initial state of the MT40 power outlet switch."""
+def test_mt40_switch_state(hass, mock_coordinator, mock_config_entry, mock_meraki_client):
+    """Test the initial state and update of the MT40 power outlet switch."""
     device_info = mock_coordinator.data["devices"][0]
     switch = MerakiMt40PowerOutlet(
         mock_coordinator, device_info, mock_config_entry, mock_meraki_client
     )
+    switch.hass = hass
+    switch.entity_id = "switch.mt40_power_controller_outlet"
 
     assert switch.unique_id == "mt40-1-outlet"
     assert switch.name == "MT40 Power Controller Outlet"
-    assert switch.is_on is True
+    assert switch.is_on is None  # Initial state is None
     assert switch.available is True
+
+    # Simulate coordinator update
+    switch._handle_coordinator_update()
+    assert switch.is_on is True
 
 
 @pytest.mark.asyncio

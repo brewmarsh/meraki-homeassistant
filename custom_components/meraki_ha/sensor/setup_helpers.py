@@ -13,6 +13,7 @@ from ..sensor_registry import (
     COMMON_SENSORS_COORD_DEV_CONF,
     get_sensors_for_device_type,
 )
+from .setup_mt_sensors import async_setup_mt_sensors
 from .network.vlans_list import MerakiNetworkVLANsSensor
 from .device.appliance_port import MerakiAppliancePortSensor
 from .network.vlan import (
@@ -41,7 +42,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-def _setup_device_sensors(
+async def _setup_device_sensors(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
     added_entities: Set[str],
@@ -100,10 +101,15 @@ def _setup_device_sensors(
                         MerakiAppliancePortSensor(coordinator, device_info, port)
                     )
                     added_entities.add(unique_id)
+
+        # MT sensor setup
+        if product_type == "sensor":
+            entities.extend(await async_setup_mt_sensors(coordinator, device_info))
+
     return entities
 
 
-def _setup_network_sensors(
+async def _setup_network_sensors(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
     added_entities: Set[str],
@@ -252,7 +258,7 @@ def _setup_ssid_sensors(
     return entities
 
 
-def async_setup_sensors(
+async def async_setup_sensors(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
@@ -266,10 +272,16 @@ def async_setup_sensors(
         _LOGGER.warning("Coordinator has no data; skipping sensor setup.")
         return entities
 
-    entities.extend(
-        _setup_device_sensors(config_entry, coordinator, added_entities, camera_service)
+    device_sensors = await _setup_device_sensors(
+        config_entry, coordinator, added_entities, camera_service
     )
-    entities.extend(_setup_network_sensors(config_entry, coordinator, added_entities))
+    entities.extend(device_sensors)
+
+    network_sensors = await _setup_network_sensors(
+        config_entry, coordinator, added_entities
+    )
+    entities.extend(network_sensors)
+
     entities.extend(_setup_client_tracker_sensors(config_entry, coordinator))
     entities.extend(_setup_vlan_sensors(config_entry, coordinator, added_entities))
     entities.extend(_setup_uplink_sensors(config_entry, coordinator, added_entities))

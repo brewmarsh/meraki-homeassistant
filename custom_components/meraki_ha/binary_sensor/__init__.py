@@ -28,12 +28,15 @@ async def async_setup_entry(
     binary_sensor_entities = []
     devices = coordinator.data.get("devices", [])
 
+    # Pre-check for camera service to avoid repeated checks in the loop
+    has_camera_service = camera_service is not None
+
     for device in devices:
         product_type = device.get("productType", "")
         model = device.get("model", "")
 
         # Add motion sensors for cameras
-        if product_type.startswith("camera") and camera_service:
+        if product_type.startswith("camera") and has_camera_service:
             binary_sensor_entities.append(
                 MerakiMotionSensor(coordinator, device, camera_service, config_entry)
             )
