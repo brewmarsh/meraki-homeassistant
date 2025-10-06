@@ -19,6 +19,7 @@ def mock_coordinator():
                 "productType": "sensor",
                 "readings": [
                     {"metric": "temperature", "value": 25.5},
+                    {"metric": "humidity", "value": 60.0},
                 ],
             },
             {
@@ -54,12 +55,25 @@ def test_async_setup_mt10_sensors(mock_coordinator):
     device_info = mock_coordinator.data["devices"][0]
     entities = async_setup_mt_sensors(mock_coordinator, device_info)
 
-    assert len(entities) == 1
-    temp_sensor = entities[0]
+    assert len(entities) == 2
+
+    sensors_by_key = {entity.entity_description.key: entity for entity in entities}
+
+    # Test Temperature Sensor
+    assert "temperature" in sensors_by_key
+    temp_sensor = sensors_by_key["temperature"]
     assert temp_sensor.unique_id == "mt10-1_temperature"
     assert temp_sensor.name == "MT10 Sensor Temperature"
     assert temp_sensor.native_value == 25.5
     assert temp_sensor.available is True
+
+    # Test Humidity Sensor
+    assert "humidity" in sensors_by_key
+    humidity_sensor = sensors_by_key["humidity"]
+    assert humidity_sensor.unique_id == "mt10-1_humidity"
+    assert humidity_sensor.name == "MT10 Sensor Humidity"
+    assert humidity_sensor.native_value == 60.0
+    assert humidity_sensor.available is True
 
 
 def test_async_setup_mt15_sensors(mock_coordinator):

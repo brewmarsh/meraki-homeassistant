@@ -25,6 +25,7 @@ from .endpoints.network import NetworkEndpoints
 from .endpoints.organization import OrganizationEndpoints
 from .endpoints.switch import SwitchEndpoints
 from .endpoints.wireless import WirelessEndpoints
+from .endpoints.sensor import SensorEndpoints
 from ...core.errors import MerakiInformationalError
 
 _LOGGER = logging.getLogger(__name__)
@@ -73,6 +74,7 @@ class MerakiAPIClient:
         self.organization = OrganizationEndpoints(self)
         self.switch = SwitchEndpoints(self)
         self.wireless = WirelessEndpoints(self)
+        self.sensor = SensorEndpoints(self)
 
         # Semaphore to limit concurrent API calls
         self._semaphore = asyncio.Semaphore(2)
