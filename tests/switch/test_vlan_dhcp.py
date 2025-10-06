@@ -37,10 +37,20 @@ def mock_config_entry():
     return entry
 
 
-def test_vlan_dhcp_switch_creation(mock_coordinator, mock_config_entry):
+@pytest.fixture
+def mock_meraki_client():
+    """Fixture for a mocked MerakiAPIClient."""
+    return MagicMock()
+
+
+def test_vlan_dhcp_switch_creation(
+    mock_coordinator, mock_config_entry, mock_meraki_client
+):
     """Test that the VLAN DHCP switch is created correctly."""
     hass = MagicMock()
-    entities = async_setup_switches(hass, mock_config_entry, mock_coordinator)
+    entities = async_setup_switches(
+        hass, mock_config_entry, mock_coordinator, mock_meraki_client
+    )
 
     assert len(entities) == 1
     switch = entities[0]
@@ -51,14 +61,18 @@ def test_vlan_dhcp_switch_creation(mock_coordinator, mock_config_entry):
     assert switch.is_on is True
 
 
-def test_vlan_dhcp_switch_off_state(mock_coordinator, mock_config_entry):
+def test_vlan_dhcp_switch_off_state(
+    mock_coordinator, mock_config_entry, mock_meraki_client
+):
     """Test the off state of the VLAN DHCP switch."""
     mock_coordinator.data["vlans"]["net1"][0][
         "dhcpHandling"
     ] = "Do not respond to DHCP requests"
 
     hass = MagicMock()
-    entities = async_setup_switches(hass, mock_config_entry, mock_coordinator)
+    entities = async_setup_switches(
+        hass, mock_config_entry, mock_coordinator, mock_meraki_client
+    )
 
     assert len(entities) == 1
     switch = entities[0]
@@ -66,9 +80,13 @@ def test_vlan_dhcp_switch_off_state(mock_coordinator, mock_config_entry):
     assert switch.is_on is False
 
 
-def test_vlan_dhcp_switch_creation_disabled(mock_coordinator, mock_config_entry):
+def test_vlan_dhcp_switch_creation_disabled(
+    mock_coordinator, mock_config_entry, mock_meraki_client
+):
     """Test that the VLAN DHCP switch is not created if the feature is disabled."""
     mock_config_entry.options = {CONF_ENABLE_VLAN_MANAGEMENT: False}
     hass = MagicMock()
-    entities = async_setup_switches(hass, mock_config_entry, mock_coordinator)
+    entities = async_setup_switches(
+        hass, mock_config_entry, mock_coordinator, mock_meraki_client
+    )
     assert len(entities) == 0

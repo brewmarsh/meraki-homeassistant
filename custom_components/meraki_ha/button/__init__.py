@@ -9,6 +9,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from ..const import DOMAIN, PLATFORM_BUTTON
 from .reboot import MerakiRebootButton
 from .device.camera_snapshot import MerakiSnapshotButton
+from .device.mt15_refresh_data import MerakiMt15RefreshDataButton
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -27,6 +28,10 @@ async def async_setup_entry(
     coordinator = entry_data["coordinator"]
     device_control_service = entry_data["device_control_service"]
     camera_service = entry_data["camera_service"]
+    meraki_client = entry_data.get("meraki_client")
+    if not meraki_client:
+        _LOGGER.warning("Meraki client not available; skipping button setup.")
+        return False
     button_entities = []
 
     for device in coordinator.data.get("devices", []):
@@ -39,6 +44,14 @@ async def async_setup_entry(
         if "camera" in device.get("productType", ""):
             button_entities.append(
                 MerakiSnapshotButton(coordinator, device, camera_service, config_entry)
+            )
+
+        # Add refresh data button for MT15 devices
+        if device.get("model", "").startswith("MT15"):
+            button_entities.append(
+                MerakiMt15RefreshDataButton(
+                    coordinator, device, config_entry, meraki_client
+                )
             )
 
     if button_entities:

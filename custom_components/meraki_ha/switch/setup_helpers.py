@@ -125,6 +125,7 @@ def _setup_mt40_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
     added_entities: Set[str],
+    meraki_client: "MerakiAPIClient",
 ) -> List[Entity]:
     """Set up MT40 power outlet switches."""
     entities: List[Entity] = []
@@ -136,7 +137,7 @@ def _setup_mt40_switches(
             if unique_id not in added_entities:
                 entities.append(
                     MerakiMt40PowerOutlet(
-                        coordinator, device_info, config_entry, coordinator.api
+                        coordinator, device_info, config_entry, meraki_client
                     )
                 )
                 added_entities.add(unique_id)
@@ -147,6 +148,7 @@ def async_setup_switches(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
+    meraki_client: "MerakiAPIClient",
 ) -> List[Entity]:
     """Set up all switch entities from the central coordinator."""
     entities: List[Entity] = []
@@ -159,6 +161,8 @@ def async_setup_switches(
     entities.extend(_setup_vlan_switches(config_entry, coordinator, added_entities))
     entities.extend(_setup_ssid_switches(config_entry, coordinator, added_entities))
     entities.extend(_setup_camera_switches(config_entry, coordinator, added_entities))
-    entities.extend(_setup_mt40_switches(config_entry, coordinator, added_entities))
+    entities.extend(
+        _setup_mt40_switches(config_entry, coordinator, added_entities, meraki_client)
+    )
 
     return entities
