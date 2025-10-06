@@ -18,6 +18,7 @@ from .meraki_ssid_device_switch import (
 from ..const import (
     CONF_ENABLE_VLAN_MANAGEMENT,
 )
+from .mt40_power_outlet import MerakiMt40PowerOutlet
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -120,6 +121,28 @@ def _setup_camera_switches(
     return entities
 
 
+def _setup_mt40_switches(
+    config_entry: ConfigEntry,
+    coordinator: MerakiDataUpdateCoordinator,
+    added_entities: Set[str],
+) -> List[Entity]:
+    """Set up MT40 power outlet switches."""
+    entities: List[Entity] = []
+    devices = coordinator.data.get("devices", [])
+    for device_info in devices:
+        if device_info.get("model", "").startswith("MT40"):
+            serial = device_info["serial"]
+            unique_id = f"{serial}_outlet_switch"
+            if unique_id not in added_entities:
+                entities.append(
+                    MerakiMt40PowerOutlet(
+                        coordinator, device_info, config_entry, coordinator.api
+                    )
+                )
+                added_entities.add(unique_id)
+    return entities
+
+
 def async_setup_switches(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -136,5 +159,6 @@ def async_setup_switches(
     entities.extend(_setup_vlan_switches(config_entry, coordinator, added_entities))
     entities.extend(_setup_ssid_switches(config_entry, coordinator, added_entities))
     entities.extend(_setup_camera_switches(config_entry, coordinator, added_entities))
+    entities.extend(_setup_mt40_switches(config_entry, coordinator, added_entities))
 
     return entities

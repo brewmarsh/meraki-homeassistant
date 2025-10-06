@@ -27,10 +27,9 @@ async def async_setup_entry(
     coordinator = entry_data["coordinator"]
     device_control_service = entry_data["device_control_service"]
     camera_service = entry_data["camera_service"]
-
     button_entities = []
 
-    for device in coordinator.data["devices"]:
+    for device in coordinator.data.get("devices", []):
         # Add reboot button for all devices
         button_entities.append(
             MerakiRebootButton(device_control_service, device, config_entry)

@@ -8,6 +8,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN
 from .device.camera_motion import MerakiMotionSensor
+from .device.mt20_open_close import MerakiMt20OpenCloseSensor
 from .switch_port import SwitchPortSensor
 
 
@@ -22,20 +23,29 @@ async def async_setup_entry(
     """Set up Meraki binary sensor entities from a config entry."""
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
     coordinator = entry_data["coordinator"]
-    camera_service = entry_data["camera_service"]
+    camera_service = entry_data.get("camera_service")
 
     binary_sensor_entities = []
+    devices = coordinator.data.get("devices", [])
 
-    # Add motion sensors for cameras
-    for device in coordinator.data.get("devices", []):
-        if device.get("productType", "").startswith("camera"):
+    for device in devices:
+        product_type = device.get("productType", "")
+        model = device.get("model", "")
+
+        # Add motion sensors for cameras
+        if product_type.startswith("camera") and camera_service:
             binary_sensor_entities.append(
                 MerakiMotionSensor(coordinator, device, camera_service, config_entry)
             )
 
-    # Add switch port sensors
-    for device in coordinator.data.get("devices", []):
-        if device.get("productType") == "switch":
+        # Add open/close sensors for MT20 devices
+        if model.startswith("MT20"):
+            binary_sensor_entities.append(
+                MerakiMt20OpenCloseSensor(coordinator, device, config_entry)
+            )
+
+        # Add switch port sensors
+        if product_type == "switch":
             for port in device.get("ports_statuses", []):
                 binary_sensor_entities.append(
                     SwitchPortSensor(coordinator, device, port)
