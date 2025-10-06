@@ -1,11 +1,13 @@
-"""Placeholder for MerakiRadioSettingsSensor."""
-
-from homeassistant.components.sensor import SensorEntity
+"""Placeholder for the Meraki Radio Settings Sensor."""
 
 
-class MerakiRadioSettingsSensor(SensorEntity):
-    """Placeholder class for the Meraki Radio Settings Sensor."""
+class MerakiRadioSettingsSensor:
+    """A placeholder class for a missing sensor entity.
 
-    def __init__(self, coordinator, device_info) -> None:
-        """Initialize the sensor."""
+    This class is intended to prevent a ModuleNotFoundError for a previously
+    deleted file that is still referenced in the sensor registry.
+    """
+
+    def __init__(self, *args, **kwargs):
+        """Initialize the placeholder."""
         pass
