@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-async def _setup_device_sensors(
+def _setup_device_sensors(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
     added_entities: Set[str],
@@ -104,12 +104,12 @@ async def _setup_device_sensors(
 
         # MT sensor setup
         if product_type == "sensor":
-            entities.extend(await async_setup_mt_sensors(coordinator, device_info))
+            entities.extend(async_setup_mt_sensors(coordinator, device_info))
 
     return entities
 
 
-async def _setup_network_sensors(
+def _setup_network_sensors(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
     added_entities: Set[str],
@@ -258,7 +258,7 @@ def _setup_ssid_sensors(
     return entities
 
 
-async def async_setup_sensors(
+def async_setup_sensors(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
@@ -272,16 +272,10 @@ async def async_setup_sensors(
         _LOGGER.warning("Coordinator has no data; skipping sensor setup.")
         return entities
 
-    device_sensors = await _setup_device_sensors(
-        config_entry, coordinator, added_entities, camera_service
+    entities.extend(
+        _setup_device_sensors(config_entry, coordinator, added_entities, camera_service)
     )
-    entities.extend(device_sensors)
-
-    network_sensors = await _setup_network_sensors(
-        config_entry, coordinator, added_entities
-    )
-    entities.extend(network_sensors)
-
+    entities.extend(_setup_network_sensors(config_entry, coordinator, added_entities))
     entities.extend(_setup_client_tracker_sensors(config_entry, coordinator))
     entities.extend(_setup_vlan_sensors(config_entry, coordinator, added_entities))
     entities.extend(_setup_uplink_sensors(config_entry, coordinator, added_entities))

@@ -27,7 +27,7 @@ async def async_setup_entry(
     camera_service = entry_data["camera_service"]
 
     # Set up the sensors
-    sensor_entities = await async_setup_sensors(
+    sensor_entities = async_setup_sensors(
         hass, config_entry, coordinator, camera_service
     )
 
