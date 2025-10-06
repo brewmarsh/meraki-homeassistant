@@ -51,14 +51,13 @@ def mock_coordinator():
     return coordinator
 
 
-@pytest.mark.asyncio
-async def test_vlan_sensor_creation(mock_coordinator):
+def test_vlan_sensor_creation(mock_coordinator):
     """Test that VLAN sensors are created correctly."""
     hass = MagicMock()
     camera_service = MagicMock()
 
     # Run the setup
-    sensors = await async_setup_sensors(
+    sensors = async_setup_sensors(
         hass, mock_coordinator.config_entry, mock_coordinator, camera_service
     )
 
