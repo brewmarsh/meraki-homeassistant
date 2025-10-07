@@ -31,7 +31,6 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Meraki integration."""
     hass.data.setdefault(DOMAIN, {})
-    async_setup_api(hass)
     await hass.http.async_register_static_paths(
         [
             http.StaticPathConfig(
@@ -46,6 +45,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Meraki from a config entry."""
+    async_setup_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
 
