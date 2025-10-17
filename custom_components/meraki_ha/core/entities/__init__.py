@@ -13,11 +13,11 @@ from ...const import (
     DOMAIN,
     MANUFACTURER,
 )
-from ..coordinators import MerakiDataCoordinator
+from ..coordinators import MerakiDataUpdateCoordinator
 from ..utils.naming_utils import format_device_name
 
 
-class BaseMerakiEntity(CoordinatorEntity[MerakiDataCoordinator], Entity, ABC):
+class BaseMerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator], Entity, ABC):
     """Base entity class for Meraki entities.
 
     Provides common functionality for all Meraki entities including:
@@ -28,7 +28,7 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataCoordinator], Entity, ABC):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         serial: Optional[str] = None,
         network_id: Optional[str] = None,
@@ -52,7 +52,7 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataCoordinator], Entity, ABC):
         """Get device info for this entity."""
         # Handle network-based entities
         if self._network_id and not self._serial:
-            network = self.coordinator.get_network_by_id(self._network_id)
+            network = self.coordinator.networks_by_id.get(self._network_id)
             if network:
                 return DeviceInfo(
                     identifiers={(DOMAIN, f"network_{self._network_id}")},
@@ -64,7 +64,7 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataCoordinator], Entity, ABC):
 
         # Handle device-based entities
         if self._serial:
-            device = self.coordinator.get_device_by_serial(self._serial)
+            device = self.coordinator.devices_by_serial.get(self._serial)
             if device:
                 model = device.get("model", "unknown")
                 return DeviceInfo(
@@ -89,12 +89,12 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataCoordinator], Entity, ABC):
 
         # For device-based entities, check device status
         if self._serial:
-            device = self.coordinator.get_device_by_serial(self._serial)
+            device = self.coordinator.devices_by_serial.get(self._serial)
             return bool(device and device.get("status") == "online")
 
         # For network-based entities, check network status
         if self._network_id:
-            network = self.coordinator.get_network_by_id(self._network_id)
+            network = self.coordinator.networks_by_id.get(self._network_id)
             return bool(network)
 
         return True

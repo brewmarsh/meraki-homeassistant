@@ -43,7 +43,7 @@ class SsidFirewallCoordinator(DataUpdateCoordinator):
         """Fetch SSID L7 firewall data from the API."""
         try:
             return await self.api.wireless.get_network_wireless_ssid_l7_firewall_rules(
-                network_id=self.network_id, number=self.ssid_number
+                network_id=self.network_id, number=str(self.ssid_number)
             )
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}") from err
@@ -62,7 +62,7 @@ class SsidFirewallCoordinator(DataUpdateCoordinator):
             rules.append(new_rule)
             await self.api.wireless.update_network_wireless_ssid_l7_firewall_rules(
                 network_id=self.network_id,
-                number=self.ssid_number,
+                number=str(self.ssid_number),
                 rules=rules,
             )
             await self.async_refresh()
@@ -81,7 +81,7 @@ class SsidFirewallCoordinator(DataUpdateCoordinator):
         if len(updated_rules) < len(rules):
             await self.api.wireless.update_network_wireless_ssid_l7_firewall_rules(
                 network_id=self.network_id,
-                number=self.ssid_number,
+                number=str(self.ssid_number),
                 rules=updated_rules,
             )
             await self.async_refresh()

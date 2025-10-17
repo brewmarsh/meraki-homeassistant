@@ -1,14 +1,6 @@
 """Utility functions for naming Meraki devices and entities."""
 
-from typing import Any, Dict, Mapping
-
-from ...const import (
-    CONF_DEVICE_NAME_FORMAT,
-    DEFAULT_DEVICE_NAME_FORMAT,
-    DEVICE_NAME_FORMAT_OMIT,
-    DEVICE_NAME_FORMAT_PREFIX,
-    DEVICE_NAME_FORMAT_SUFFIX,
-)
+from typing import Any, Dict
 
 
 import logging
@@ -16,7 +8,7 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 
-def format_device_name(device: Dict[str, Any], config: Mapping[str, Any]) -> str:
+def format_device_name(device: Dict[str, Any], config: dict) -> str:
     """Format the device name based on the user's preference."""
     name = device.get("name")
     if not name:
@@ -25,9 +17,10 @@ def format_device_name(device: Dict[str, Any], config: Mapping[str, Any]) -> str
         else:
             name = f"Meraki {device.get('model', 'Device')} {device.get('serial')}"
 
-    name_format = config.get(CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT)
+    # Default to prefix if not specified
+    name_format = config.get("device_name_format", "prefix")
 
-    if name_format == DEVICE_NAME_FORMAT_OMIT:
+    if name_format == "omit":
         return name
 
     product_type = device.get("productType")
@@ -39,11 +32,19 @@ def format_device_name(device: Dict[str, Any], config: Mapping[str, Any]) -> str
 
     if product_type == "network":
         product_type_str = "Network"
+    elif product_type == "organization":
+        product_type_str = "Organization"
+    elif product_type == "switch":
+        product_type_str = "Switch"
+    elif product_type == "appliance":
+        product_type_str = "Appliance"
+    elif product_type == "camera":
+        product_type_str = "Camera"
+    elif product_type == "ssid":
+        product_type_str = "SSID"
+    elif product_type == "vlan":
+        product_type_str = "VLAN"
     else:
         product_type_str = product_type.capitalize()
 
-    if name_format == DEVICE_NAME_FORMAT_PREFIX:
-        return f"[{product_type_str}] {name}"
-    if name_format == DEVICE_NAME_FORMAT_SUFFIX:
-        return f"{name} [{product_type_str}]"
-    return name
+    return f"[{product_type_str}] {name}"

@@ -6,13 +6,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.const import DOMAIN
-from custom_components.meraki_ha import async_setup_entry
+from custom_components.meraki_ha import async_setup_entry, async_setup
 
 
 async def test_async_setup_entry(
     hass: HomeAssistant,
 ) -> None:
     """Test the async_setup_entry function."""
+    hass.http = AsyncMock()
+    await async_setup(hass, {})
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
     config_entry.domain = DOMAIN
@@ -24,11 +26,12 @@ async def test_async_setup_entry(
         "scan_interval": 300,
         "device_name_format": "omitted",
     }
-    with patch(
-        "custom_components.meraki_ha.MerakiDataCoordinator"
-    ) as mock_coordinator, patch(
-        "custom_components.meraki_ha.async_register_webhook"
-    ) as mock_register_webhook:
+    with (
+        patch("custom_components.meraki_ha.MerakiDataUpdateCoordinator") as mock_coordinator,
+        patch(
+            "custom_components.meraki_ha.async_register_webhook"
+        ) as mock_register_webhook,
+    ):
         future: asyncio.Future = asyncio.Future()
         future.set_result(None)
         mock_coordinator.return_value.async_refresh = AsyncMock()

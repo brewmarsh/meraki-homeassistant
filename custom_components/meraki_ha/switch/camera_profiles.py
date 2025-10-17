@@ -6,7 +6,7 @@ from typing import Any, Dict
 from homeassistant.helpers.entity import EntityDescription
 
 from ..core.api.client import MerakiAPIClient
-from ..core.coordinators import MerakiDataCoordinator
+from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from .camera_settings import MerakiCameraSettingSwitchBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         device_data: Dict[str, Any],
     ) -> None:
@@ -27,7 +27,7 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
             meraki_client,
             device_data,
             "sense_enabled",
-            "sense.senseEnabled",
+            "sense_settings.sense_enabled",
         )
         self.entity_description = EntityDescription(
             key="sense_enabled", name="MV Sense"
@@ -44,7 +44,7 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         device_data: Dict[str, Any],
     ) -> None:
@@ -54,7 +54,7 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
             meraki_client,
             device_data,
             "audio_detection",
-            "audioDetection.enabled",
+            "video_settings.audio_detection.enabled",
         )
         self.entity_description = EntityDescription(
             key="audio_detection", name="Audio Detection"

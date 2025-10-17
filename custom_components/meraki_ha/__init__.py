@@ -1,30 +1,28 @@
 """The Meraki Home Assistant integration."""
 
 import logging
-import secrets
-
+import json
+from pathlib import Path
+import aiofiles
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.components import frontend, http
 
 from .const import (
-    CONF_MERAKI_API_KEY,
-    CONF_MERAKI_ORG_ID,
-    CONF_SCAN_INTERVAL,
-    CONF_ENABLE_WEB_UI,
-    CONF_WEB_UI_PORT,
-    DATA_CLIENT,
-    DEFAULT_SCAN_INTERVAL,
-    DEFAULT_ENABLE_WEB_UI,
-    DEFAULT_WEB_UI_PORT,
     DOMAIN,
     PLATFORMS,
+    WEBHOOK_ID_FORMAT,
+    CONF_MERAKI_ORG_ID,
 )
-from .core.api.client import MerakiAPIClient
-from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-from .core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
-from .web_server import MerakiWebServer
-from .webhook import async_register_webhook, async_unregister_webhook
+from .coordinator import MerakiDataUpdateCoordinator
+from .webhook import async_register_webhook
+from .web_api import async_setup_api
+from .core.repositories.camera_repository import CameraRepository
+from .services.camera_service import CameraService
+from .core.repository import MerakiRepository
+from .services.device_control_service import DeviceControlService
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -32,109 +30,96 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Meraki integration."""
     hass.data.setdefault(DOMAIN, {})
+    await hass.http.async_register_static_paths(
+        [
+            http.StaticPathConfig(
+                f"/api/panel_custom/{DOMAIN}",
+                str(Path(__file__).parent / "www"),
+                cache_headers=False,
+            )
+        ]
+    )
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Meraki from a config entry."""
-    _LOGGER.debug("Setting up Meraki entry: %s", entry.entry_id)
-    try:
-        api_client = MerakiAPIClient(
-            api_key=entry.data[CONF_MERAKI_API_KEY],
-            org_id=entry.data[CONF_MERAKI_ORG_ID],
-        )
-    except KeyError as err:
-        _LOGGER.error("Missing required configuration: %s", err)
-        return False
+    async_setup_api(hass)
+    coordinator = MerakiDataUpdateCoordinator(hass, entry)
+    await coordinator.async_config_entry_first_refresh()
 
-    try:
-        scan_interval = int(
-            entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
-        )
-        if scan_interval <= 0:
-            scan_interval = DEFAULT_SCAN_INTERVAL
-    except (ValueError, TypeError):
-        scan_interval = DEFAULT_SCAN_INTERVAL
+    repo = MerakiRepository(coordinator.api)
+    device_control_service = DeviceControlService(repo)
+    camera_repo = CameraRepository(coordinator.api, entry.data[CONF_MERAKI_ORG_ID])
+    camera_service = CameraService(camera_repo)
 
-    coordinator = MerakiDataCoordinator(
-        hass=hass,
-        api_client=api_client,
-        scan_interval=scan_interval,
-        config_entry=entry,
-    )
-
-    await coordinator.async_refresh()
-
-    hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
         "coordinator": coordinator,
-        DATA_CLIENT: api_client,
+        "meraki_client": coordinator.api,
+        "device_control_service": device_control_service,
+        "camera_service": camera_service,
     }
 
-    # Create content filtering and firewall coordinators
-    hass.data[DOMAIN][entry.entry_id]["ssid_firewall_coordinators"] = {}
-    if coordinator.data:
-        # Create per-SSID coordinators
-        for ssid in coordinator.data.get("ssids", []):
-            if "networkId" in ssid and "number" in ssid:
-                # L7 Firewall Coordinator
-                ssid_fw_coordinator = SsidFirewallCoordinator(
-                    hass=hass,
-                    api_client=api_client,
-                    scan_interval=scan_interval,
-                    network_id=ssid["networkId"],
-                    ssid_number=ssid["number"],
-                )
-                await ssid_fw_coordinator.async_refresh()
-                hass.data[DOMAIN][entry.entry_id]["ssid_firewall_coordinators"][
-                    f"{ssid['networkId']}_{ssid['number']}"
-                ] = ssid_fw_coordinator
+    # Set up webhook
+    webhook_id = WEBHOOK_ID_FORMAT.format(entry_id=entry.entry_id)
+    hass.data[DOMAIN][entry.entry_id]["webhook_id"] = webhook_id
+    if not entry.data.get("webhook_secret"):
+        secret = "".join(
+            __import__("random").choice(__import__("string").ascii_letters)
+            for _ in range(32)
+        )
+        hass.config_entries.async_update_entry(
+            entry, data={**entry.data, "webhook_secret": secret}
+        )
+    else:
+        secret = entry.data["webhook_secret"]
 
-    # Start the web server if enabled
-    if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
-        port = entry.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
-        server = MerakiWebServer(hass, coordinator, port)
-        await server.start()
-        hass.data[DOMAIN][entry.entry_id]["web_server"] = server
+    await async_register_webhook(
+        hass, webhook_id, secret, coordinator.api, entry=entry
+    )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    if "webhook_id" not in entry.data:
-        webhook_id = entry.entry_id
-        secret = secrets.token_hex(16)
-        await async_register_webhook(hass, webhook_id, secret, api_client, entry)
-        hass.config_entries.async_update_entry(
-            entry, data={**entry.data, "webhook_id": webhook_id, "secret": secret}
-        )
-
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+
+    manifest_path = Path(__file__).parent / "manifest.json"
+    async with aiofiles.open(manifest_path, mode='r') as f:
+        manifest_data = await f.read()
+        manifest = json.loads(manifest_data)
+    version = manifest.get("version", "0.0.0")
+    module_url = f"/api/panel_custom/{DOMAIN}/meraki-panel.js?v={version}"
+    frontend.async_register_built_in_panel(
+        hass,
+        component_name="custom",
+        sidebar_title=entry.title,
+        sidebar_icon="mdi:router-network",
+        frontend_url_path="meraki",
+        config={
+            "_panel_custom": {
+                "name": "meraki-panel",
+                "module_url": module_url,
+                "embed_iframe": False,
+                "trust_external_script": True,
+            },
+            "config_entry_id": entry.entry_id,
+        },
+        require_admin=True,
+    )
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Meraki config entry."""
-    if hass.data.get(DOMAIN) and entry.entry_id in hass.data[DOMAIN]:
-        if "webhook_id" in entry.data:
-            api_client = hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]
-            await async_unregister_webhook(hass, entry.data["webhook_id"], api_client)
-
-        if "web_server" in hass.data[DOMAIN][entry.entry_id]:
-            server = hass.data[DOMAIN][entry.entry_id]["web_server"]
-            await server.stop()
+    frontend.async_remove_panel(hass, "meraki")
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-
     if unload_ok:
-        if DOMAIN in hass.data:
-            hass.data[DOMAIN].pop(entry.entry_id, None)
-            if not hass.data[DOMAIN]:
-                hass.data.pop(DOMAIN)
+        hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload Meraki config entry."""
-    unload_ok = await async_unload_entry(hass, entry)
-    if unload_ok:
-        await async_setup_entry(hass, entry)
+    await async_unload_entry(hass, entry)
+    await async_setup_entry(hass, entry)

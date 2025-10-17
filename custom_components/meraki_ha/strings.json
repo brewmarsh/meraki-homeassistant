@@ -2,39 +2,21 @@
   "config": {
     "step": {
       "user": {
-        "title": "Step 1 of 4: Meraki Credentials",
+        "title": "Step 1 of 2: Meraki Credentials",
         "description": "Enter your Meraki API Key and Organization ID.",
         "data": {
           "meraki_api_key": "Meraki API Key",
           "meraki_org_id": "Meraki Organization ID"
         }
       },
-      "general": {
-        "title": "Step 2 of 4: General Settings",
-        "description": "Configure general settings for the Meraki integration.",
+      "init": {
+        "title": "Step 2 of 2: Configuration",
+        "description": "Set the configuration for the integration. These can be changed later from the options menu.",
         "data": {
-          "scan_interval": "Scan Interval (seconds)",
-          "device_name_format": "Device Name Format"
-        }
-      },
-      "features": {
-        "title": "Step 3 of 4: Feature Settings",
-        "description": "Enable or disable specific features of the integration.",
-        "data": {
-          "auto_enable_rtsp": "Auto-enable RTSP camera streams",
-          "use_lan_ip_for_rtsp": "Use LAN IP for RTSP stream",
-          "enable_device_tracker": "Enable Client Tracker",
-          "enable_web_ui": "Enable Web UI",
-          "web_ui_port": "Web UI Port",
-          "hide_unconfigured_ssids": "Hide Unconfigured SSIDs"
-        }
-      },
-      "advanced": {
-        "title": "Step 4 of 4: Advanced Settings",
-        "description": "Configure advanced settings for the Meraki integration.",
-        "data": {
-          "webhook_url": "Webhook URL (optional)",
-          "ignored_networks": "Ignored Networks (comma-separated)"
+          "scan_interval": "Update Interval",
+          "enable_device_tracker": "Enable Device Tracker",
+          "enable_vlan_management": "Enable VLAN Management",
+          "ignored_networks": "Ignored Networks"
         }
       }
     },
@@ -52,31 +34,17 @@
   "options": {
     "step": {
       "init": {
-        "title": "Meraki Options",
-        "description": "Step 1 of 3: General Settings",
+        "title": "Meraki Settings",
+        "description": "Configure the settings for the Meraki integration.",
         "data": {
-          "scan_interval": "Scan Interval (seconds)",
-          "device_name_format": "Device Name Format"
-        }
-      },
-      "features": {
-        "title": "Meraki Options",
-        "description": "Step 2 of 3: Feature Settings\n\n[Open Web UI]({web_ui_url})",
-        "data": {
-          "auto_enable_rtsp": "Auto-enable RTSP camera streams",
-          "use_lan_ip_for_rtsp": "Use LAN IP for RTSP stream",
-          "enable_device_tracker": "Enable Client Tracker",
-          "enable_web_ui": "Enable Web UI",
-          "web_ui_port": "Web UI Port",
-          "hide_unconfigured_ssids": "Hide Unconfigured SSIDs"
-        }
-      },
-      "advanced": {
-        "title": "Meraki Options",
-        "description": "Step 3 of 3: Advanced Settings",
-        "data": {
-          "webhook_url": "Webhook URL (optional)",
-          "ignored_networks": "Ignored Networks (comma-separated)"
+          "scan_interval": "Update Interval",
+          "scan_interval_description": "How often to poll the Meraki API for updates, in seconds.",
+          "enable_device_tracker": "Enable Device Tracker",
+          "enable_device_tracker_description": "Track devices connected to your Meraki networks as Home Assistant entities.",
+          "enable_vlan_management": "Enable VLAN Management",
+          "enable_vlan_management_description": "Expose controls for managing VLAN settings on your networks.",
+          "ignored_networks": "Ignored Networks",
+          "ignored_networks_description": "A comma-separated list of network names to exclude from the integration."
         }
       }
     }
@@ -109,9 +77,6 @@
           "dormant": "Dormant",
           "unknown": "Unknown"
         }
-      },
-      "radio_settings": {
-        "name": "Radio Settings"
       }
     },
     "switch": {

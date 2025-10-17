@@ -1,5 +1,10 @@
+import sys
+import os
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
+
+# Add the project root to the Python path to allow for correct module imports
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 
 async def main():
@@ -18,16 +23,32 @@ async def main():
         }
     }
 
-    with patch("custom_components.meraki_ha.MerakiAPIClient") as mock_api_client, patch(
-        "custom_components.meraki_ha.MerakiDataCoordinator.async_refresh",
+    with patch("custom_components.meraki_ha.coordinator.ApiClient") as mock_api_client, patch(
+        "custom_components.meraki_ha.MerakiDataUpdateCoordinator.async_refresh",
         new_callable=AsyncMock,
     ), patch(
         "homeassistant.helpers.device_registry.async_get", MagicMock()
     ), patch(
         "custom_components.meraki_ha.webhook.get_url",
         return_value="https://example.com",
+    ), patch(
+        "custom_components.meraki_ha.coordinator.er.async_entries_for_device",
+        return_value=[],
     ):
-        mock_api_client.return_value = AsyncMock()
+        api_mock = AsyncMock()
+        api_mock.get_all_data.return_value = {
+            "devices": [
+                {
+                    "serial": "Q2KX-ACU9-ZAVN",
+                    "name": "switch_garage_gs120_8p",
+                    "productType": "switch",
+                }
+            ],
+            "networks": [{"id": "L_3695766444210918206", "name": "Marshmallow Home"}],
+            "ssids": [],
+            "clients": [],
+        }
+        mock_api_client.return_value = api_mock
         from custom_components.meraki_ha import async_setup_entry
         from custom_components.meraki_ha.sensor import (
             async_setup_entry as sensor_async_setup_entry,

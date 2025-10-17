@@ -95,19 +95,51 @@ The following options can be configured when you first set up the integration, o
 *   **How many seconds between Meraki API refreshes:** How often (in seconds) to poll the Meraki API for updates. Default: 300.
 *   **Where would you like the Meraki device type in the name?:** Choose how device names are presented. 'Prefix' adds the Meraki device name before the entity name, 'Suffix' adds it after, 'Omitted' uses only the entity name.
 *   **Auto-enable RTSP camera streams:** If checked, the integration will automatically enable the RTSP stream for all cameras that support it.
-*   **Use LAN IP for RTSP stream:** If checked, the integration will use the camera's LAN IP address for the RTSP stream. This is more efficient but requires that Home Assistant is on the same network as the camera.
+*   **Use LAN IP for RTSP stream:** Controls how the RTSP stream URL is determined for cameras.
+    *   **When checked:** The integration will prioritize using a local IP address for the stream. It will first check if the URL from the Meraki API is already a local address. If not, it will try to construct a URL using the camera's detected LAN IP. This is the most efficient option if your Home Assistant instance is on the same local network as your cameras.
+    *   **When unchecked (default):** The integration will prioritize the URL provided by the Meraki API. If that URL is unavailable or invalid, it will fall back to using the camera's LAN IP as a last resort.
 *   **Webhook URL (optional):** A custom URL for Meraki webhooks. If left blank, the integration will use the default Home Assistant webhook URL.
 
-## Web UI 🌐
+## Lovelace Dashboard Card 🖼️
 
-This integration includes a dedicated web UI for advanced features that don't fit into the standard Home Assistant entity model.
+This integration provides a custom Lovelace card to display a dashboard of your Meraki network.
 
-**How to Access:**
-You can access the web UI at `http://<your-home-assistant-ip>:9988`.
+### How to Add the Card
 
-**Features:**
-- **Guest Wi-Fi Management:** Create and manage guest Wi-Fi access.
-- **Event Log Viewer:** A dedicated viewer for integration-specific events.
+**Step 1: Add the Javascript as a Lovelace Resource**
+
+You must first add the `meraki-panel.js` file as a frontend resource in Home Assistant.
+
+1.  Navigate to any of your dashboards.
+2.  Click the **"..."** menu in the top right and select **"Edit Dashboard"**.
+3.  Click the **"..."** menu again and select **"Manage resources"**.
+4.  Click **"ADD RESOURCE"**.
+5.  For the **URL**, enter `/hacsfiles/meraki-homeassistant/meraki-panel.js`.
+    *   *Note: This path assumes you installed the integration via HACS. If you installed it manually, the path will be `/local/meraki-panel.js` (if you placed the file in your `<config>/www` directory).*
+6.  For **Resource type**, select **"JavaScript Module"**.
+7.  Click **"CREATE"**.
+
+**Step 2: Find your Meraki Config Entry ID**
+
+The card needs to know which Meraki integration to display data from.
+
+1.  Go to **Settings > Devices & Services**.
+2.  Find the Meraki integration and click **"CONFIGURE"**.
+3.  The **Config Entry ID** will be shown in the description text at the top of the dialog (e.g., "Your Config Entry ID is: ..."). Copy this ID.
+
+**Step 3: Add the Card to your Dashboard**
+
+1.  Go back to your dashboard and click **"ADD CARD"**.
+2.  At the bottom of the list, choose the **"Manual"** card type.
+3.  In the YAML editor, paste the following code:
+
+    ```yaml
+    type: custom:meraki-lovelace-card
+    config_entry_id: YOUR_CONFIG_ENTRY_ID_HERE
+    ```
+
+4.  Replace `YOUR_CONFIG_ENTRY_ID_HERE` with the ID you copied in Step 2.
+5.  Click **"SAVE"**.
 
 ## Services & Controls 🎛️
 

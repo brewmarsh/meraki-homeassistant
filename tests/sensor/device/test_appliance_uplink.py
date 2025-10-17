@@ -8,19 +8,18 @@ from custom_components.meraki_ha.sensor.setup_helpers import async_setup_sensors
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mocked MerakiDataCoordinator."""
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
+    mock_device_data = {
+        "serial": "dev1",
+        "name": "Test Appliance",
+        "model": "MX64",
+        "product_type": "appliance",
+        "networkId": "net1",
+    }
     coordinator.data = {
-        "devices": [
-            {
-                "serial": "dev1",
-                "name": "Test Appliance",
-                "model": "MX64",
-                "productType": "appliance",
-                "networkId": "net1",
-            }
-        ],
+        "devices": [mock_device_data],
         "appliance_uplink_statuses": [
             {
                 "serial": "dev1",
@@ -48,6 +47,7 @@ def mock_coordinator():
         "ssids": [],
         "vlans": {},
     }
+    coordinator.get_device.return_value = mock_device_data
     return coordinator
 
 
@@ -55,9 +55,10 @@ def test_appliance_uplink_sensor_creation(mock_coordinator):
     """Test that appliance uplink sensors are created correctly."""
     hass = MagicMock()
     config_entry = MagicMock()
+    camera_service = MagicMock()
 
     # Run the setup
-    sensors = async_setup_sensors(hass, config_entry, mock_coordinator)
+    sensors = async_setup_sensors(hass, config_entry, mock_coordinator, camera_service)
 
     # Filter for just the uplink sensors
     uplink_sensors = [s for s in sensors if "Uplink" in s.__class__.__name__]

@@ -6,7 +6,6 @@ from typing import Any, Dict, Optional
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import get_url
 
-from .const import CONF_WEBHOOK_URL
 from .core.api import MerakiAPIClient
 
 
@@ -75,25 +74,14 @@ async def async_register_webhook(
     secret: str,
     api_client: "MerakiAPIClient",
     entry=None,
-) -> None:
-    """Register a webhook with the Meraki API.
-
-    Args:
-        hass: The Home Assistant instance
-        webhook_id: The ID of the webhook
-        secret: The webhook secret
-        api_client: The Meraki API client
-        entry: Optional config entry containing webhook URL configuration
-
-    Raises:
-        MerakiConnectionError: If the webhook cannot be registered due to URL requirements
-            or other API errors.
-    """
+) -> Dict[str, Any]:
+    """Register a webhook with the Meraki API."""
     try:
         webhook_url = get_webhook_url(
-            hass, webhook_id, entry.data.get(CONF_WEBHOOK_URL) if entry else None
+            hass, webhook_id, entry.data.get("webhook_url")
         )
-        await api_client.register_webhook(webhook_url, secret)
+        webhook = await api_client.register_webhook(webhook_url, secret)
+        return webhook
     except Exception as err:
         _LOGGER.error("Failed to register webhook: %s", err)
         raise
@@ -103,12 +91,63 @@ async def async_unregister_webhook(
     hass: HomeAssistant, webhook_id: str, api_client: "MerakiAPIClient"
 ) -> None:
     """Unregister a webhook with the Meraki API."""
+    # Note: The webhook_id passed here is the httpServerId from Meraki
     await api_client.unregister_webhook(webhook_id)
 
 
 async def async_handle_webhook(
     hass: HomeAssistant, webhook_id: str, request: Any
-) -> Dict[str, Any]:
+) -> None:
     """Handle a webhook from the Meraki API."""
-    # TODO: Implement webhook handling
-    return {}
+    from .const import DOMAIN
+
+    try:
+        data = await request.json()
+        _LOGGER.debug("Webhook %s received: %s", webhook_id, data)
+    except ValueError:
+        _LOGGER.warning("Received invalid JSON in webhook %s", webhook_id)
+        return
+
+    entry_data = hass.data.get(DOMAIN, {}).get(webhook_id)
+    if not entry_data:
+        _LOGGER.warning("Received webhook for unknown config entry: %s", webhook_id)
+        return
+
+    secret = entry_data.get("secret")
+    if not secret or data.get("sharedSecret") != secret:
+        _LOGGER.warning("Received webhook with invalid secret: %s", webhook_id)
+        return
+
+    coordinator = entry_data.get("coordinator")
+    if not coordinator:
+        _LOGGER.warning("Coordinator not found for webhook: %s", webhook_id)
+        return
+
+    alert_type = data.get("alertType")
+    if alert_type == "APs went down":
+        device_serial = data.get("deviceSerial")
+        if device_serial and coordinator.data:
+            for i, device in enumerate(coordinator.data.get("devices", [])):
+                if device.get("serial") == device_serial:
+                    _LOGGER.info(
+                        "Device %s reported as down via webhook", device_serial
+                    )
+                    coordinator.data["devices"][i]["status"] = "offline"
+                    coordinator.async_update_listeners()
+                    break
+    elif alert_type == "Client connectivity changed":
+        alert_data = data.get("alertData", {})
+        client_mac = alert_data.get("mac")
+        if client_mac and coordinator.data:
+            for i, client in enumerate(coordinator.data.get("clients", [])):
+                if client.get("mac") == client_mac:
+                    _LOGGER.info(
+                        "Client %s connectivity changed via webhook", client_mac
+                    )
+                    coordinator.data["clients"][i]["status"] = (
+                        "Online" if alert_data.get("connected") else "Offline"
+                    )
+                    coordinator.async_update_listeners()
+                    break
+    else:
+        _LOGGER.debug("Ignoring webhook alert type: %s", alert_type)

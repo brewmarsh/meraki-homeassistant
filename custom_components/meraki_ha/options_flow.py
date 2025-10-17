@@ -1,33 +1,12 @@
 """Options flow for the Meraki Home Assistant integration."""
 
-import logging
 from typing import Any, Dict, Optional
 
 from homeassistant import config_entries
-from homeassistant.const import CONF_SCAN_INTERVAL
 import voluptuous as vol
 
-from .const import (
-    CONF_AUTO_ENABLE_RTSP,
-    CONF_ENABLE_DEVICE_TRACKER,
-    CONF_USE_LAN_IP_FOR_RTSP,
-    CONF_DEVICE_NAME_FORMAT,
-    CONF_WEBHOOK_URL,
-    CONF_ENABLE_WEB_UI,
-    CONF_WEB_UI_PORT,
-    CONF_HIDE_UNCONFIGURED_SSIDS,
-    CONF_IGNORED_NETWORKS,
-    DEFAULT_DEVICE_NAME_FORMAT,
-    DEFAULT_SCAN_INTERVAL,
-    DEFAULT_WEBHOOK_URL,
-    DEFAULT_ENABLE_WEB_UI,
-    DEFAULT_WEB_UI_PORT,
-    DEFAULT_HIDE_UNCONFIGURED_SSIDS,
-    DEFAULT_IGNORED_NETWORKS,
-    DEVICE_NAME_FORMAT_OPTIONS,
-)
-
-_LOGGER = logging.getLogger(__name__)
+from .const import CONF_INTEGRATION_TITLE
+from .schemas import OPTIONS_SCHEMA
 
 
 class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
@@ -35,109 +14,40 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
-        self.config_entry = config_entry
         self.options = dict(config_entry.options)
 
     async def async_step_init(
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> config_entries.FlowResult:
-        """Manage the general settings step."""
+        """Manage the options flow."""
         if user_input is not None:
             self.options.update(user_input)
-            return await self.async_step_features()
+            return self.async_create_entry(title=CONF_INTEGRATION_TITLE, data=self.options)
 
-        return self.async_show_form(
-            step_id="init",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(
-                        CONF_SCAN_INTERVAL,
-                        default=self.options.get(
-                            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                        ),
-                    ): int,
-                    vol.Optional(
-                        CONF_DEVICE_NAME_FORMAT,
-                        default=self.options.get(
-                            CONF_DEVICE_NAME_FORMAT, DEFAULT_DEVICE_NAME_FORMAT
-                        ),
-                    ): vol.In(DEVICE_NAME_FORMAT_OPTIONS),
-                }
-            ),
+        # Populate the form with existing values from the config entry.
+        schema_with_defaults = self._populate_schema_defaults(
+            OPTIONS_SCHEMA, self.options
         )
 
-    async def async_step_features(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> config_entries.FlowResult:
-        """Handle the features settings step."""
-        if user_input is not None:
-            self.options.update(user_input)
-            return await self.async_step_advanced()
+        return self.async_show_form(step_id="init", data_schema=schema_with_defaults)
 
-        port = self.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
-        host = self.hass.config.api.host if self.hass.config.api else "localhost"
-        web_ui_url = f"http://{host}:{port}"
+    def _populate_schema_defaults(
+        self, schema: vol.Schema, defaults: dict
+    ) -> vol.Schema:
+        """
+        Populate a schema with default values.
 
-        return self.async_show_form(
-            step_id="features",
-            description_placeholders={"web_ui_url": web_ui_url},
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(
-                        CONF_AUTO_ENABLE_RTSP,
-                        default=self.options.get(CONF_AUTO_ENABLE_RTSP, False),
-                    ): bool,
-                    vol.Optional(
-                        CONF_USE_LAN_IP_FOR_RTSP,
-                        default=self.options.get(CONF_USE_LAN_IP_FOR_RTSP, False),
-                    ): bool,
-                    vol.Optional(
-                        CONF_ENABLE_DEVICE_TRACKER,
-                        default=self.options.get(CONF_ENABLE_DEVICE_TRACKER, True),
-                    ): bool,
-                    vol.Optional(
-                        CONF_ENABLE_WEB_UI,
-                        default=self.options.get(
-                            CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI
-                        ),
-                    ): bool,
-                    vol.Optional(
-                        CONF_WEB_UI_PORT,
-                        default=port,
-                    ): int,
-                    vol.Optional(
-                        CONF_HIDE_UNCONFIGURED_SSIDS,
-                        default=self.options.get(
-                            CONF_HIDE_UNCONFIGURED_SSIDS,
-                            DEFAULT_HIDE_UNCONFIGURED_SSIDS,
-                        ),
-                    ): bool,
-                }
-            ),
-        )
-
-    async def async_step_advanced(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> config_entries.FlowResult:
-        """Handle the advanced settings step."""
-        if user_input is not None:
-            self.options.update(user_input)
-            return self.async_create_entry(title="", data=self.options)
-
-        return self.async_show_form(
-            step_id="advanced",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(
-                        CONF_WEBHOOK_URL,
-                        default=self.options.get(CONF_WEBHOOK_URL, DEFAULT_WEBHOOK_URL),
-                    ): str,
-                    vol.Optional(
-                        CONF_IGNORED_NETWORKS,
-                        default=self.options.get(
-                            CONF_IGNORED_NETWORKS, DEFAULT_IGNORED_NETWORKS
-                        ),
-                    ): str,
-                }
-            ),
-        )
+        This is used to ensure that the options form is pre-filled with the
+        existing values from the config entry.
+        """
+        new_schema_keys = {}
+        for key, value in schema.schema.items():
+            # 'key.schema' is the name of the option (e.g., 'scan_interval')
+            if key.schema in defaults:
+                # Create a new voluptuous key (e.g., vol.Required) with the
+                # default value set to the existing option value.
+                new_key = type(key)(key.schema, default=defaults[key.schema])
+                new_schema_keys[new_key] = value
+            else:
+                new_schema_keys[key] = value
+        return vol.Schema(new_schema_keys)

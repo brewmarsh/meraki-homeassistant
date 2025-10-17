@@ -3,7 +3,10 @@
 import logging
 from typing import Any, Dict, List
 
-from ...utils.api_utils import handle_meraki_errors, validate_response
+from custom_components.meraki_ha.core.utils.api_utils import (
+    handle_meraki_errors,
+    validate_response,
+)
 from ..cache import async_timed_cache
 
 _LOGGER = logging.getLogger(__name__)
@@ -100,14 +103,14 @@ class WirelessEndpoints:
     ) -> Dict[str, Any]:
         """Get L7 firewall rules for an SSID."""
         rules = await self._api_client._run_sync(
-            self._dashboard.wireless.getNetworkWirelessSsidFirewallL7FirewallRules,
+            self._dashboard.wireless.getNetworkWirelessSsidL7FirewallRules,
             networkId=network_id,
             number=number,
         )
         validated = validate_response(rules)
         if not isinstance(validated, dict):
             _LOGGER.warning(
-                "get_network_wireless_ssid_l7_firewall_rules did not return a dict."
+                "getNetworkWirelessSsidFirewallL7FirewallRules did not return a dict."
             )
             return {}
         return validated
@@ -118,7 +121,7 @@ class WirelessEndpoints:
     ) -> Dict[str, Any]:
         """Update L7 firewall rules for an SSID."""
         rules = await self._api_client._run_sync(
-            self._dashboard.wireless.updateNetworkWirelessSsidFirewallL7FirewallRules,
+            self._dashboard.wireless.updateNetworkWirelessSsidL7FirewallRules,
             networkId=network_id,
             number=number,
             **kwargs,
@@ -126,7 +129,7 @@ class WirelessEndpoints:
         validated = validate_response(rules)
         if not isinstance(validated, dict):
             _LOGGER.warning(
-                "update_network_wireless_ssid_l7_firewall_rules did not return a dict."
+                "updateNetworkWirelessSsidFirewallL7FirewallRules did not return a dict."
             )
             return {}
         return validated

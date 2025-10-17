@@ -25,3 +25,87 @@ The self-hosted web interface is a React application located in `custom_componen
 - **Source vs. Build:** The human-readable source code is in the `src/` directory. The code that is actually served to the browser is the compiled and optimized output located in the `dist/` directory.
 - **Manual Build Simulation:** As an agent, you cannot run the `npm run build` command. If you make changes to any files in the `src/` directory, you **must** manually update the corresponding file in `dist/` to reflect your changes.
 - **For E2E tests:** The tests run against the `dist/` files. The most important file to keep updated is `dist/assets/index.js`. You may need to write a simplified, non-JSX version of the React logic in this file to ensure the tests pass. This process is for testing purposes only to validate the backend and overall flow.
+
+---
+### **Handoff Instructions for Next Agent (from Jules, 2025-09-02)**
+
+**Objective:** Fix a series of startup errors in the `meraki_ha` custom component that are preventing it from loading in Home Assistant.
+
+**Root Cause:**
+The primary issue is a breaking change in the underlying `meraki` Python library. The library has updated its method names from `camelCase` (e.g., `getOrganizationNetworks`) to Python's standard `snake_case` (e.g., `get_organization_networks`). The custom component's code has not been fully updated to reflect this change, causing a series of `AttributeError` exceptions.
+
+**Previous Agent's Mistake (Please Read Carefully):**
+The previous agent (me) made a critical error by misdiagnosing this problem. I flip-flopped between `camelCase` and `snake_case`, leading to a series of incorrect patches that did not solve the problem. **The ground truth is that all calls to the `meraki` library object (`self._dashboard.*`) must use `snake_case`.**
+
+**Other Known Issues to Fix:**
+In addition to the primary `AttributeError`s, there are three other known bugs that must be fixed:
+1.  **Blocking I/O Call:** In `custom_components/meraki_ha/core/api/client.py`, the `meraki.DashboardAPI` is initialized with `output_log=True`, which causes synchronous file I/O. This must be set to `False`.
+2.  **Incorrect Webhook Logic:** The logic to register webhooks is flawed. It attempts to register a webhook at the organization level, but the API only supports network-level webhooks. The fix is to make `client.py`'s `register_webhook` method call the network-level registration logic.
+3.  **`NameError`:** In `custom_components/meraki_ha/binary_sensor/device/camera_motion.py`, a `NameError` occurs because `TYPE_CHECKING` is used without being imported.
+
+**Comprehensive Plan to Fix All Issues:**
+
+1.  **Fix the `NameError` and Blocking I/O Call.**
+    *   Add `from typing import TYPE_CHECKING` to the top of `custom_components/meraki_ha/binary_sensor/device/camera_motion.py`.
+    *   In `custom_components/meraki_ha/core/api/client.py`, change `output_log=True` to `output_log=False`.
+
+2.  **Correct the Webhook Logic.**
+    *   In `custom_components/meraki_ha/core/api/client.py`, modify the `register_webhook` and `unregister_webhook` methods to call `self.network.register_webhook` and `self.network.unregister_webhook` respectively.
+    *   In `custom_components/meraki_ha/core/api/endpoints/organization.py`, delete the now unused `create_organization_webhook` and `delete_organization_webhook` methods.
+
+3.  **Perform a Comprehensive API Method Audit (The Main Fix).**
+    *   Systematically go through all API endpoint files in `custom_components/meraki_ha/core/api/endpoints/`.
+    *   In each file, find all calls to the `meraki` library (e.g., `self._dashboard.organizations.getOrganizationNetworks`).
+    *   Convert every one of these `camelCase` method names to the correct `snake_case` format (e.g., `self._dashboard.organizations.get_organization_networks`).
+    *   **Recommendation:** To maintain internal consistency, you should also rename the custom component's own methods from `camelCase` to `snake_case` (e.g., `def getOrganizationNetworks` should become `def get_organization_networks`). Then update the calls to these methods in `client.py`.
+
+4.  **Submit the Comprehensive Fix.**
+    *   After all the above fixes are implemented, request a single code review and submit the complete patch.
+---
+
+## Architectural Pattern for Configuration Entities
+
+**Author:** Jules, 2025-09-14
+
+**Problem:** The Meraki Cloud API has a significant **provisioning delay**. When a configuration change is sent (e.g., disabling an SSID), the API acknowledges the change immediately with a `200 OK` response. However, the change can take several minutes to be fully provisioned on the backend. During this time, `GET` requests to the same API endpoint will return the *old* (stale) data.
+
+**Consequences:** This delay caused a persistent bug where Home Assistant's UI would not correctly reflect the state of a switch. The flow was:
+1. User toggles a switch.
+2. The UI updates optimistically.
+3. A `PUT` request is sent to Meraki.
+4. The next scheduled data refresh in Home Assistant makes a `GET` request.
+5. The `GET` request receives stale data from the Meraki API.
+6. The Home Assistant coordinator updates the entity with this stale data, overwriting the correct optimistic state and making the UI revert to its previous, incorrect state.
+
+**Solution: Optimistic UI with Cooldown**
+
+To solve this, a specific architectural pattern **must** be used for all entities that modify configuration in Meraki (e.g., switches, text inputs, selects).
+
+The required logic is as follows:
+
+1.  **Optimistic State Update:** The entity's action method (e.g., `async_turn_on`, `async_set_value`) **must** immediately update its own state and tell Home Assistant to write this state to the UI.
+    ```python
+    # Example from a switch
+    self._attr_is_on = True
+    self.async_write_ha_state()
+    ```
+
+2.  **Fire-and-Forget API Call:** The method should then make the API call to Meraki without waiting for a response to be confirmed by a refresh.
+
+3.  **Register a Cooldown:** After making the API call, the entity **must** register a "pending update" with the central `MerakiDataCoordinator`. This acts as a cooldown period.
+    ```python
+    # Example
+    self.coordinator.register_pending_update(self.unique_id)
+    ```
+    The default cooldown is 150 seconds, which has been proven to be effective.
+
+4.  **Ignore Coordinator Updates During Cooldown:** The entity's state update method (`_update_internal_state`), which is called by the coordinator, **must** check if it is in a cooldown period before processing new data. If it is, it should do nothing.
+    ```python
+    # Example
+    def _update_internal_state(self) -> None:
+        if self.coordinator.is_pending(self.unique_id):
+            return # Ignore update
+        # ... rest of the update logic
+    ```
+
+This pattern ensures a responsive UI that is resilient to the backend API's provisioning delay. **Do not attempt to "fix" this by forcing an immediate refresh after an action.** This will not work and will re-introduce the original bug.

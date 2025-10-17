@@ -3,12 +3,6 @@
 import pytest
 from unittest.mock import MagicMock
 
-from custom_components.meraki_ha.const import (
-    DEVICE_NAME_FORMAT_PREFIX,
-    DEVICE_NAME_FORMAT_SUFFIX,
-    DEVICE_NAME_FORMAT_OMIT,
-)
-
 # Import the sensor classes to be tested
 from custom_components.meraki_ha.sensor.org.org_clients import (
     MerakiOrganizationSSIDClientsSensor,
@@ -16,12 +10,12 @@ from custom_components.meraki_ha.sensor.org.org_clients import (
 from custom_components.meraki_ha.sensor.network.network_clients import (
     MerakiNetworkClientsSensor,
 )
-from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANSubnetSensor
+from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANIDSensor
 
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mocked MerakiDataCoordinator."""
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     coordinator.data = {
@@ -46,26 +40,8 @@ def test_org_device_naming(mock_coordinator):
     org_id = "org1"
     org_name = "Test Organization"
 
-    # Test with prefix
-    mock_coordinator.config_entry.options = {
-        "device_name_format": DEVICE_NAME_FORMAT_PREFIX
-    }
     sensor = MerakiOrganizationSSIDClientsSensor(mock_coordinator, org_id, org_name)
     assert sensor.device_info["name"] == "[Organization] Test Organization"
-
-    # Test with suffix
-    mock_coordinator.config_entry.options = {
-        "device_name_format": DEVICE_NAME_FORMAT_SUFFIX
-    }
-    sensor = MerakiOrganizationSSIDClientsSensor(mock_coordinator, org_id, org_name)
-    assert sensor.device_info["name"] == "Test Organization [Organization]"
-
-    # Test with omit
-    mock_coordinator.config_entry.options = {
-        "device_name_format": DEVICE_NAME_FORMAT_OMIT
-    }
-    sensor = MerakiOrganizationSSIDClientsSensor(mock_coordinator, org_id, org_name)
-    assert sensor.device_info["name"] == "Test Organization"
 
 
 def test_network_device_naming(mock_coordinator):
@@ -79,32 +55,13 @@ def test_network_device_naming(mock_coordinator):
         "productTypes": ["wireless"],
     }
 
-    # Test with prefix
-    mock_coordinator.config_entry.options = {
-        "device_name_format": DEVICE_NAME_FORMAT_PREFIX
-    }
     sensor = MerakiNetworkClientsSensor(
-        mock_coordinator, mock_coordinator.config_entry, network_data
+        mock_coordinator,
+        mock_coordinator.config_entry,
+        network_data,
+        MagicMock(),
     )
     assert sensor.device_info["name"] == "[Network] Test Network"
-
-    # Test with suffix
-    mock_coordinator.config_entry.options = {
-        "device_name_format": DEVICE_NAME_FORMAT_SUFFIX
-    }
-    sensor = MerakiNetworkClientsSensor(
-        mock_coordinator, mock_coordinator.config_entry, network_data
-    )
-    assert sensor.device_info["name"] == "Test Network [Network]"
-
-    # Test with omit
-    mock_coordinator.config_entry.options = {
-        "device_name_format": DEVICE_NAME_FORMAT_OMIT
-    }
-    sensor = MerakiNetworkClientsSensor(
-        mock_coordinator, mock_coordinator.config_entry, network_data
-    )
-    assert sensor.device_info["name"] == "Test Network"
 
 
 def test_vlan_device_naming(mock_coordinator):
@@ -112,29 +69,7 @@ def test_vlan_device_naming(mock_coordinator):
     network_id = "net1"
     vlan_data = mock_coordinator.data["vlans"]["net1"][0]
 
-    # Test with prefix
-    mock_coordinator.config_entry.options = {
-        "device_name_format": DEVICE_NAME_FORMAT_PREFIX
-    }
-    sensor = MerakiVLANSubnetSensor(
+    sensor = MerakiVLANIDSensor(
         mock_coordinator, mock_coordinator.config_entry, network_id, vlan_data
     )
-    assert sensor.device_info["name"] == "[Vlan] Test VLAN"
-
-    # Test with suffix
-    mock_coordinator.config_entry.options = {
-        "device_name_format": DEVICE_NAME_FORMAT_SUFFIX
-    }
-    sensor = MerakiVLANSubnetSensor(
-        mock_coordinator, mock_coordinator.config_entry, network_id, vlan_data
-    )
-    assert sensor.device_info["name"] == "Test VLAN [Vlan]"
-
-    # Test with omit
-    mock_coordinator.config_entry.options = {
-        "device_name_format": DEVICE_NAME_FORMAT_OMIT
-    }
-    sensor = MerakiVLANSubnetSensor(
-        mock_coordinator, mock_coordinator.config_entry, network_id, vlan_data
-    )
-    assert sensor.device_info["name"] == "Test VLAN"
+    assert sensor.device_info["name"] == "[VLAN] Test VLAN"

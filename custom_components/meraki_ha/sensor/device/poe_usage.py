@@ -10,14 +10,14 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.entity_helpers import format_entity_name
 from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
+class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
     """Representation of a Meraki switch PoE usage sensor.
 
     This sensor displays the aggregated PoE usage for a Meraki MS switch
@@ -30,7 +30,7 @@ class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntit
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         device: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
@@ -63,29 +63,31 @@ class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntit
     @property
     def native_value(self) -> Union[float, None]:
         """Return the state of the sensor."""
-        port_statuses = self._device.get("port_statuses")
-        if not port_statuses or not isinstance(port_statuses, list):
+        ports_statuses = self._device.get("ports_statuses")
+        if not ports_statuses or not isinstance(ports_statuses, list):
             return None
 
-        total_poe_usage = 0
-        for port in port_statuses:
-            if port.get("poe"):
-                total_poe_usage += port["poe"].get("power", 0)
+        total_poe_usage_wh = 0
+        for port in ports_statuses:
+            total_poe_usage_wh += port.get("powerUsageInWh", 0) or 0
 
-        return round(total_poe_usage, 2)
+        # The API returns power usage in Wh over the last day.
+        # We divide by 24 to get the average power in Watts.
+        if total_poe_usage_wh > 0:
+            return round(total_poe_usage_wh / 24, 2)
+        return 0.0
 
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:
         """Return the state attributes."""
-        port_statuses = self._device.get("port_statuses")
-        if not port_statuses or not isinstance(port_statuses, list):
+        ports_statuses = self._device.get("ports_statuses")
+        if not ports_statuses or not isinstance(ports_statuses, list):
             return {}
 
         attributes = {}
-        for port in port_statuses:
-            if port.get("poe"):
-                attributes[f"port_{port['portId']}_poe_usage"] = port["poe"].get(
-                    "power"
-                )
+        for port in ports_statuses:
+            attributes[f"port_{port['portId']}_power_usage_wh"] = port.get(
+                "powerUsageInWh"
+            )
 
         return attributes

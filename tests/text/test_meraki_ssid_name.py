@@ -18,7 +18,7 @@ def mock_meraki_client():
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mocked MerakiDataCoordinator."""
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
     coordinator.async_request_refresh = AsyncMock()
     return coordinator
@@ -46,7 +46,7 @@ async def test_ssid_name_set_value(
 
     # Verify that the API was called with the correct parameters
     mock_meraki_client.wireless.update_network_wireless_ssid.assert_called_once_with(
-        networkId="net1",
+        network_id="net1",
         number="0",
         name=new_name,
     )

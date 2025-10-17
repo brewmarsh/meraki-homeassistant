@@ -2,69 +2,41 @@
   "config": {
     "step": {
       "user": {
-        "description": "TODO_TRANSLATE Configure Meraki API Credentials",
+        "title": "Paso 1 de 2: Credenciales de Meraki",
+        "description": "Introduzca su clave de API de Meraki y su ID de organización.",
         "data": {
-          "meraki_api_key": "TODO_TRANSLATE Meraki API Key",
-          "meraki_org_id": "TODO_TRANSLATE Meraki Organization ID",
-          "scan_interval": "Intervalo de escaneo (segundos)",
-          "device_name_format": "Formato del nombre del dispositivo"
-        },
-        "data_description": {
-          "meraki_api_key": "Su clave API del Dashboard de Meraki. Asegúrese de que tenga acceso de lectura a su organización.",
-          "meraki_org_id": "El ID de su Organización Meraki. Se encuentra en la URL al iniciar sesión en el Dashboard de Meraki (ej., o=SU_ID_ORG).",
-          "scan_interval": "Frecuencia (en segundos) para consultar la API de Meraki en busca de actualizaciones. Predeterminado: 60.",
-          "device_name_format": "Elija cómo se presentan los nombres de los dispositivos. 'Prefijo' añade el nombre del dispositivo Meraki antes del nombre de la entidad, 'Sufijo' lo añade después, 'Omitido' utiliza solo el nombre de la entidad."
+          "meraki_api_key": "Clave de API de Meraki",
+          "meraki_org_id": "ID de organización de Meraki"
+        }
+      },
+      "init": {
+        "title": "Paso 2 de 2: Configuración",
+        "description": "Establezca la configuración para la integración. Estos se pueden cambiar más tarde desde el menú de opciones.",
+        "data": {
+          "scan_interval": "Intervalo de actualización",
+          "enable_device_tracker": "Habilitar seguimiento de dispositivos",
+          "enable_vlan_management": "Habilitar gestión de VLAN",
+          "ignored_networks": "Redes ignoradas"
         }
       }
-    },
-    "error": {
-      "invalid_auth": "TODO_TRANSLATE Invalid API key.",
-      "invalid_org_id": "TODO_TRANSLATE Invalid Organization ID.",
-      "cannot_connect": "TODO_TRANSLATE Cannot connect to Meraki API.",
-      "unknown": "TODO_TRANSLATE An unknown error occurred."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "TODO_TRANSLATE Meraki Options",
+        "title": "Configuración de Meraki",
+        "description": "Configure los ajustes para la integración de Meraki.",
         "data": {
-          "device_name_format": "Formato del nombre del dispositivo",
-          "scan_interval": "TODO_TRANSLATE Scan Interval (seconds)"
-        },
-        "data_description": {
-          "scan_interval": "Con qué frecuencia (en segundos) la integración debe consultar la API del Dashboard de Meraki para obtener actualizaciones. Un interval más corto significa sensores más receptivos pero más llamadas API.",
-          "device_name_format": "Elija cómo se presentan los nombres de los dispositivos para las entidades. 'Prefijo' añade el nombre del dispositivo Meraki antes del nombre de la entidad, 'Sufijo' lo añade después, 'Omitido' utiliza solo el nombre de entidad estándar."
+          "scan_interval": "Intervalo de actualización",
+          "scan_interval_description": "La frecuencia con la que se sondea la API de Meraki en busca de actualizaciones, en segundos.",
+          "enable_device_tracker": "Habilitar seguimiento de dispositivos",
+          "enable_device_tracker_description": "Realice un seguimiento de los dispositivos conectados a sus redes Meraki como entidades de Home Assistant.",
+          "enable_vlan_management": "Habilitar gestión de VLAN",
+          "enable_vlan_management_description": "Exponga los controles para administrar la configuración de VLAN en sus redes.",
+          "ignored_networks": "Redes ignoradas",
+          "ignored_networks_description": "Una lista de nombres de red separados por comas para excluir de la integración."
         }
       }
-    }
-  },
-  "entity": {
-    "sensor": {
-      "meraki_wan1_connectivity": {
-        "name": "TODO_TRANSLATE WAN 1 Connectivity"
-      },
-      "meraki_wan2_connectivity": {
-        "name": "TODO_TRANSLATE WAN 2 Connectivity"
-      },
-      "meraki_network_info": {
-        "name": "TODO_TRANSLATE Network Information"
-      },
-      "meraki_firmware_status": {
-        "name": "TODO_TRANSLATE Firmware Status"
-      }
-    }
-  },
-  "state": {
-    "sensor__meraki_wan1_connectivity": {
-      "connected": "TODO_TRANSLATE Connected",
-      "disconnected": "TODO_TRANSLATE Disconnected",
-      "unknown": "TODO_TRANSLATE Unknown"
-    },
-    "sensor__meraki_wan2_connectivity": {
-      "connected": "TODO_TRANSLATE Connected",
-      "disconnected": "TODO_TRANSLATE Disconnected",
-      "unknown": "TODO_TRANSLATE Unknown"
     }
   }
 }

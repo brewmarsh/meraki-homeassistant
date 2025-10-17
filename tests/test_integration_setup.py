@@ -1,14 +1,18 @@
 """Integration-level tests for the Meraki HA component."""
+import sys
+from unittest.mock import MagicMock, patch, AsyncMock
 
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
-
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import async_get as async_get_device_registry
 from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
+from tests.const import MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE
+
+# Mock the hass_frontend module
+sys.modules['hass_frontend'] = MagicMock()
 
 
 @pytest.fixture
@@ -25,10 +29,10 @@ def config_entry():
 @pytest.fixture
 def mock_meraki_client():
     """Fixture for a mocked MerakiAPIClient."""
-    client = MagicMock()
+    client = AsyncMock()
     client.get_all_data = AsyncMock(
         return_value={
-            "devices": [],
+            "devices": [MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE],
             "networks": [
                 {
                     "id": "net1",
@@ -48,41 +52,27 @@ def mock_meraki_client():
             "vlans": {},
             "appliance_uplink_statuses": [],
             "rf_profiles": {},
+            "appliance_traffic": {},
         }
     )
     client.unregister_webhook = AsyncMock(return_value=None)
-
-    # Mock for SsidContentFilteringCoordinator
-    client.wireless = MagicMock()
-    client.wireless.get_network_wireless_ssid = AsyncMock(
-        return_value={"number": 0, "name": "Test SSID", "contentFiltering": {}}
-    )
-
-    # Mock for NetworkContentFilteringCoordinator and ClientFirewallCoordinator
-    client.appliance = MagicMock()
-    client.appliance.get_network_appliance_content_filtering = AsyncMock(
-        return_value={"allowedUrlPatterns": [], "blockedUrlPatterns": []}
-    )
-    client.appliance.get_network_appliance_firewall_l7_firewall_rules = AsyncMock(
-        return_value={"rules": []}
-    )
-
-    # Mock for ClientFirewallCoordinator
-    client.network = MagicMock()
-    client.network.get_network_clients = AsyncMock(return_value=[])
-
     return client
 
 
+@pytest.mark.enable_socket
 async def test_ssid_device_creation_and_unification(
     hass: HomeAssistant, config_entry, mock_meraki_client
 ):
     """Test that a single device is created for an SSID with all its entities."""
     config_entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.meraki_ha.MerakiAPIClient", return_value=mock_meraki_client
-    ), patch("custom_components.meraki_ha.async_register_webhook", return_value=None):
+    with (
+        patch(
+            "custom_components.meraki_ha.coordinator.ApiClient",
+            return_value=mock_meraki_client,
+        ),
+        patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
+    ):
         # Set up the component
         assert await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
@@ -99,7 +89,7 @@ async def test_ssid_device_creation_and_unification(
         assert ssid_device is not None
 
         # Assert that the device has the correct name (default prefix format)
-        assert ssid_device.name == "[Ssid] Test SSID"
+        assert ssid_device.name == "[SSID] Test SSID"
 
         # Find all entities associated with this device by querying the entity registry
         entities = [
@@ -110,3 +100,31 @@ async def test_ssid_device_creation_and_unification(
 
         # Assert that multiple entities have been created for this one device
         assert len(entities) > 1
+
+
+@pytest.mark.enable_socket
+async def test_integration_reload(
+    hass: HomeAssistant, config_entry, mock_meraki_client
+):
+    """Test that the integration reloads successfully."""
+    config_entry.add_to_hass(hass)
+
+    with (
+        patch(
+            "custom_components.meraki_ha.coordinator.ApiClient",
+            return_value=mock_meraki_client,
+        ),
+        patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
+    ):
+        # Set up the component
+        assert await hass.config_entries.async_setup(config_entry.entry_id)
+        await hass.async_block_till_done()
+
+        # Reload the integration
+        assert await hass.config_entries.async_reload(config_entry.entry_id)
+        await hass.async_block_till_done()
+
+        # Check that the coordinator is still there, indicating a successful reload
+        assert DOMAIN in hass.data
+        assert config_entry.entry_id in hass.data[DOMAIN]
+        assert "coordinator" in hass.data[DOMAIN][config_entry.entry_id]

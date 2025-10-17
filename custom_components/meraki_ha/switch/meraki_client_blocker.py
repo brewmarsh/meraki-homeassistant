@@ -1,7 +1,7 @@
 """Switch entity for blocking/unblocking Meraki clients."""
 
 import logging
-from typing import Any, Dict, Union
+from typing import Any, Dict
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry

@@ -9,6 +9,9 @@ from homeassistant.const import (
     CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
     CONCENTRATION_PARTS_PER_MILLION,
     PERCENTAGE,
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
+    UnitOfPower,
     UnitOfTemperature,
     UnitOfSoundPressure,
 )
@@ -69,9 +72,34 @@ MT_NOISE_DESCRIPTION = SensorEntityDescription(
 )
 
 
+MT_POWER_DESCRIPTION = SensorEntityDescription(
+    key="power",
+    name="Power",
+    device_class=SensorDeviceClass.POWER,
+    state_class=SensorStateClass.MEASUREMENT,
+    native_unit_of_measurement=UnitOfPower.WATT,
+)
+
+MT_VOLTAGE_DESCRIPTION = SensorEntityDescription(
+    key="voltage",
+    name="Voltage",
+    device_class=SensorDeviceClass.VOLTAGE,
+    state_class=SensorStateClass.MEASUREMENT,
+    native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+)
+
+MT_CURRENT_DESCRIPTION = SensorEntityDescription(
+    key="current",
+    name="Current",
+    device_class=SensorDeviceClass.CURRENT,
+    state_class=SensorStateClass.MEASUREMENT,
+    native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+)
+
+
 # Mapping of MT models to their supported sensor descriptions
 MT_SENSOR_MODELS = {
-    "MT10": [MT_TEMPERATURE_DESCRIPTION],
+    "MT10": [MT_TEMPERATURE_DESCRIPTION, MT_HUMIDITY_DESCRIPTION],
     "MT11": [MT_TEMPERATURE_DESCRIPTION],  # Assuming MT11 is a temperature sensor
     "MT12": [MT_WATER_DESCRIPTION],
     "MT14": [
@@ -88,6 +116,11 @@ MT_SENSOR_MODELS = {
         MT_HUMIDITY_DESCRIPTION,
         MT_NOISE_DESCRIPTION,
     ],
-    "MT20": [MT_TEMPERATURE_DESCRIPTION],  # Assuming MT20 is a temperature sensor
+    "MT20": [],  # MT20 is a binary sensor, no standard sensors
     "MT30": [],  # Smart Automation Button, no standard sensors
+    "MT40": [
+        MT_POWER_DESCRIPTION,
+        MT_VOLTAGE_DESCRIPTION,
+        MT_CURRENT_DESCRIPTION,
+    ],
 }

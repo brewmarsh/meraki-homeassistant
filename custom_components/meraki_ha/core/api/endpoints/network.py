@@ -3,7 +3,10 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from ...utils.api_utils import handle_meraki_errors, validate_response
+from custom_components.meraki_ha.core.utils.api_utils import (
+    handle_meraki_errors,
+    validate_response,
+)
 from ..cache import async_timed_cache
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,7 +25,9 @@ class NetworkEndpoints:
     async def get_network_clients(self, network_id: str) -> List[Dict[str, Any]]:
         """Get all clients in a network."""
         clients = await self._api_client._run_sync(
-            self._dashboard.networks.getNetworkClients, networkId=network_id
+            self._dashboard.networks.getNetworkClients,
+            networkId=network_id,
+            total_pages="all",
         )
         validated = validate_response(clients)
         if not isinstance(validated, list):
@@ -76,13 +81,10 @@ class NetworkEndpoints:
         self, network_id: str, url: str
     ) -> Optional[Dict[str, Any]]:
         """Find a webhook by its URL."""
-        try:
-            webhooks = await self.get_webhooks(network_id)
-            for webhook in webhooks:
-                if webhook.get("url") == url:
-                    return webhook
-        except Exception:
-            pass
+        webhooks = await self.get_webhooks(network_id)
+        for webhook in webhooks:
+            if webhook.get("url") == url:
+                return webhook
         return None
 
     @handle_meraki_errors
@@ -113,3 +115,22 @@ class NetworkEndpoints:
                 networkId=network["id"],
                 httpServerId=webhook_id,
             )
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=60)
+    async def get_network_camera_analytics_history(
+        self, network_id: str, object_type: str
+    ) -> List[Dict[str, Any]]:
+        """Get analytics history for a network."""
+        history = await self._api_client._run_sync(
+            self._dashboard.camera.getNetworkCameraAnalyticsRecent,
+            networkId=network_id,
+            objectType=object_type,
+        )
+        validated = validate_response(history)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_network_camera_analytics_history did not return a list."
+            )
+            return []
+        return validated

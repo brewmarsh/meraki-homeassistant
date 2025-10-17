@@ -6,20 +6,20 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDBaseSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
+class MerakiSSIDBaseSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
     """Base class for Meraki SSID sensors."""
 
     _attr_has_entity_name = True
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         ssid_data: Dict[str, Any],
         attribute: str,

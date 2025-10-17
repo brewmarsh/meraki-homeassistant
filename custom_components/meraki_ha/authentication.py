@@ -9,8 +9,11 @@ import logging
 # Keep List, Dict, Any if still used for type hints
 from typing import Any, Dict, List, Optional
 
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from meraki.exceptions import APIError as MerakiSDKAPIError  # type: ignore
+
+from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 
 # Import the refactored client
 from .core.api.client import MerakiAPIClient
@@ -25,13 +28,17 @@ class MerakiAuthentication:
     making a request to the Meraki API via the SDK.
     """
 
-    def __init__(self, api_key: str, organization_id: str) -> None:
+    def __init__(
+        self, hass: HomeAssistant, api_key: str, organization_id: str
+    ) -> None:
         """Initialize the Meraki Authentication class.
 
         Args:
+            hass: The Home Assistant instance.
             api_key: The Meraki API key.
             organization_id: The Meraki Organization ID.
         """
+        self.hass = hass
         self.api_key: str = api_key
         self.organization_id: str = organization_id
         # No MerakiAPIClient instance created here, will be done in
@@ -55,13 +62,13 @@ class MerakiAuthentication:
         # Corrected attribute names to self.api_key and self.organization_id as per
         # class __init__
         client: MerakiAPIClient = MerakiAPIClient(
-            api_key=self.api_key, org_id=self.organization_id
+            hass=self.hass, api_key=self.api_key, org_id=self.organization_id
         )
 
         try:
-            all_organizations: List[Dict[str, Any]] = (
-                await client.organization.get_organizations()
-            )
+            all_organizations: List[
+                Dict[str, Any]
+            ] = await client.organization.get_organizations()
 
             org_found = False
             fetched_org_name: Optional[str] = None
@@ -95,6 +102,12 @@ class MerakiAuthentication:
             )
             return {"valid": True, "org_name": fetched_org_name}
 
+        except MerakiAuthenticationError as e:
+            _LOGGER.error("Authentication failed: %s", e.message)
+            raise ConfigEntryAuthFailed(f"Authentication failed: {e.message}") from e
+        except MerakiConnectionError as e:
+            _LOGGER.error("Connection error: %s", e.message)
+            raise
         except MerakiSDKAPIError as e:
             if e.status == 401:
                 _LOGGER.error(
@@ -153,11 +166,12 @@ class MerakiAuthentication:
 
 
 async def validate_meraki_credentials(
-    api_key: str, organization_id: str
+    hass: HomeAssistant, api_key: str, organization_id: str
 ) -> Dict[str, Any]:
     """Validate Meraki API credentials via MerakiAuthentication class (SDK version).
 
     Args:
+        hass: The Home Assistant instance.
         api_key: The Meraki API key.
         organization_id: The Meraki Organization ID.
 
@@ -170,5 +184,5 @@ async def validate_meraki_credentials(
         MerakiSDKAPIError: For Meraki API errors from the SDK.
         Exception: For other unexpected errors.
     """
-    auth = MerakiAuthentication(api_key, organization_id)
+    auth = MerakiAuthentication(hass, api_key, organization_id)
     return await auth.validate_credentials()

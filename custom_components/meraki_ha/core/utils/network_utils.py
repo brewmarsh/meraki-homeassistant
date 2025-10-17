@@ -1,6 +1,7 @@
 """Network-related utility functions."""
 
 from typing import Any, Dict, List, Optional
+import ipaddress
 
 
 def calculate_network_health(data: Dict[str, Any]) -> float:
@@ -84,3 +85,27 @@ def get_ssid_status(network_data: Dict[str, Any], ssid_number: int) -> Optional[
                 return "enabled"
             return "disabled"
     return None
+
+
+def is_private_ip(url_or_ip: Optional[str]) -> bool:
+    """Check if the given string is a private IP address, extracting the hostname from a URL if necessary."""
+    if not url_or_ip:
+        return False
+    try:
+        from urllib.parse import urlparse
+
+        # Assume it's a full URL and parse it
+        hostname = urlparse(url_or_ip).hostname
+        # If parsing results in a hostname, use that. Otherwise, assume the original string was the IP.
+        ip_to_check = hostname if hostname else url_or_ip
+        return ipaddress.ip_address(ip_to_check).is_private
+    except ValueError:
+        # This can happen if the input is not a valid IP or URL, or if the hostname is not an IP.
+        return False
+
+
+def construct_rtsp_url(ip_address: str) -> str:
+    """Construct an RTSP URL from an IP address."""
+    # The exact path can vary, but for many cameras, the root path is sufficient.
+    # This can be expanded if specific models require a different path.
+    return f"rtsp://{ip_address}:9000/live"

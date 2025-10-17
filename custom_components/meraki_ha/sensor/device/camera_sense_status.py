@@ -9,7 +9,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...const import DOMAIN
 from ...core.utils.naming_utils import format_device_name
 
@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiCameraSenseStatusSensor(
-    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
     """Representation of a Meraki Camera Sense Status sensor."""
 
@@ -25,7 +25,7 @@ class MerakiCameraSenseStatusSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         device_data: Dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:

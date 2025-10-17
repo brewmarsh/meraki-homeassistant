@@ -8,14 +8,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiDeviceConnectedClientsSensor(
-    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
     """Representation of a Meraki Connected Clients sensor."""
 
@@ -26,7 +26,7 @@ class MerakiDeviceConnectedClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         device_data: Dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:
@@ -60,37 +60,32 @@ class MerakiDeviceConnectedClientsSensor(
             return
 
         product_type = device.get("productType")
-        network_id = device.get("networkId")
-        all_clients = self.coordinator.data.get("clients", [])
-        count = 0
 
-        if not all_clients:
-            self._attr_native_value = 0
-            return
+        # For routers (appliances), the client count is all online clients in the network.
+        if product_type in ["appliance", "cellularGateway"]:
+            network_id = device.get("networkId")
+            all_clients = self.coordinator.data.get("clients", [])
+            if not all_clients:
+                self._attr_native_value = 0
+                return
 
-        # Filter clients for the current device's network
-        network_clients = [
-            c
-            for c in all_clients
-            if c.get("networkId") == network_id and c.get("status") == "Online"
-        ]
+            network_clients = [
+                c
+                for c in all_clients
+                if c.get("networkId") == network_id and c.get("status") == "Online"
+            ]
+            self._attr_native_value = len(network_clients)
+        # For other devices (switches, APs), use the direct per-device client list.
+        else:
+            clients_by_serial = self.coordinator.data.get("clients_by_serial", {})
+            device_clients = clients_by_serial.get(self._device_serial)
 
-        if product_type == "wireless":
-            count = sum(
-                1
-                for client in network_clients
-                if client.get("recentDeviceSerial") == self._device_serial
-            )
-        elif product_type == "switch":
-            count = sum(
-                1
-                for client in network_clients
-                if client.get("recentDeviceConnection") == "Wired"
-            )
-        elif product_type == "appliance":
-            count = len(network_clients)
+            if device_clients is None:
+                # Data for this specific device might not be available yet
+                self._attr_native_value = None
+                return
 
-        self._attr_native_value = count
+            self._attr_native_value = len(device_clients)
 
     @callback
     def _handle_coordinator_update(self) -> None:

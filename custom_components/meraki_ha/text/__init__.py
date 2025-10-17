@@ -6,13 +6,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..const import (
-    DOMAIN,
-    DATA_CLIENT,
-)
-from ..core.api.client import MerakiAPIClient
-from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ..const import DOMAIN, PLATFORM_TEXT
 from .meraki_ssid_name import MerakiSSIDNameText
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,42 +19,24 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki text entities from a config entry."""
-    try:
-        entry_data = hass.data[DOMAIN][config_entry.entry_id]
-        meraki_client: MerakiAPIClient = entry_data[DATA_CLIENT]
-        coordinator: MerakiDataCoordinator = entry_data.get("coordinator")
-    except KeyError as e:
-        _LOGGER.error(
-            "Text platform: Essential data not found in hass.data for entry %s. Error: %s",
-            config_entry.entry_id,
-            e,
-        )
+    if config_entry.entry_id not in hass.data[DOMAIN]:
         return False
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = entry_data["coordinator"]
+    meraki_client = coordinator.api
 
-    new_entities: list = []
+    if coordinator.data:
+        text_entities = [
+            MerakiSSIDNameText(coordinator, meraki_client, config_entry, ssid)
+            for ssid in coordinator.data.get("ssids", [])
+        ]
 
-    if coordinator and coordinator.data and "ssids" in coordinator.data:
-        ssids = coordinator.data["ssids"]
-        for ssid_data in ssids:
-            if not isinstance(ssid_data, dict):
-                continue
-            network_id = ssid_data.get("networkId")
-            ssid_number = ssid_data.get("number")
-            if not network_id or ssid_number is None:
-                continue
-
-            new_entities.append(
-                MerakiSSIDNameText(
-                    coordinator,
-                    meraki_client,
-                    config_entry,
-                    ssid_data,
-                )
-            )
-    else:
-        _LOGGER.info("No SSIDs found for setting up text entities.")
-
-    if new_entities:
-        async_add_entities(new_entities)
+        if text_entities:
+            async_add_entities(text_entities)
 
     return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    return await hass.config_entries.async_unload_platforms(entry, [PLATFORM_TEXT])

@@ -12,14 +12,14 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 
 from ..core.api.client import MerakiAPIClient
-from ..core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from ..coordinator import MerakiDataUpdateCoordinator
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiContentFilteringSelect(
-    CoordinatorEntity[MerakiDataCoordinator], SelectEntity
+    CoordinatorEntity[MerakiDataUpdateCoordinator], SelectEntity
 ):
     """Representation of a Meraki Content Filtering select entity."""
 
@@ -28,7 +28,7 @@ class MerakiContentFilteringSelect(
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         network_data: Dict[str, Any],

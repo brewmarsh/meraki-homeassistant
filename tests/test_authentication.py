@@ -9,7 +9,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from custom_components.meraki_ha.authentication import (
     validate_meraki_credentials,
 )
-from custom_components.meraki_ha.core.errors import MerakiError
+from custom_components.meraki_ha.core.errors import MerakiAuthenticationError
 
 
 @pytest.mark.asyncio
@@ -21,7 +21,7 @@ async def test_validate_meraki_credentials(hass: HomeAssistant) -> None:
         mock_client.return_value.organization.get_organizations = AsyncMock(
             return_value=[{"id": "test-org-id", "name": "Test Org"}]
         )
-        result = await validate_meraki_credentials("test-api-key", "test-org-id")
+        result = await validate_meraki_credentials(hass, "test-api-key", "test-org-id")
         assert result == {"org_name": "Test Org", "valid": True}
 
 
@@ -35,7 +35,7 @@ async def test_validate_meraki_credentials_invalid_org(hass: HomeAssistant) -> N
             return_value=[{"id": "other-org-id", "name": "Other Org"}]
         )
         with pytest.raises(ValueError):
-            await validate_meraki_credentials("test-api-key", "test-org-id")
+            await validate_meraki_credentials(hass, "test-api-key", "test-org-id")
 
 
 @pytest.mark.asyncio
@@ -45,7 +45,7 @@ async def test_validate_meraki_credentials_auth_failed(hass: HomeAssistant) -> N
         "custom_components.meraki_ha.authentication.MerakiAPIClient"
     ) as mock_client:
         mock_client.return_value.organization.get_organizations = AsyncMock(
-            side_effect=MerakiError("test")
+            side_effect=MerakiAuthenticationError("test")
         )
         with pytest.raises(ConfigEntryAuthFailed):
-            await validate_meraki_credentials("test-api-key", "test-org-id")
+            await validate_meraki_credentials(hass, "test-api-key", "test-org-id")

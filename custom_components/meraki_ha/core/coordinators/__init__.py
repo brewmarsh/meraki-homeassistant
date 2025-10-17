@@ -13,7 +13,7 @@ from ..api import MerakiAPIClient
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDataCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
+class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
     """Main coordinator for all Meraki data."""
 
     def __init__(
