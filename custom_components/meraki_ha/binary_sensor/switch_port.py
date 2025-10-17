@@ -12,7 +12,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..coordinator import MerakiDataUpdateCoordinator
-from ..helpers.entity_helpers import format_entity_name, get_device_from_coordinator
+from ..helpers.entity_helpers import get_device_from_coordinator
 from ..helpers.device_info_helpers import resolve_device_info
 
 

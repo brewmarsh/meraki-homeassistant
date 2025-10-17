@@ -1,7 +1,6 @@
 """The Meraki Home Assistant integration."""
 
 import logging
-import asyncio
 import json
 from pathlib import Path
 import aiofiles
@@ -106,8 +105,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         },
         require_admin=True,
     )
-
-
     return True
 
 

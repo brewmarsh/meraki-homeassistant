@@ -30,7 +30,8 @@ class MerakiFirewallRuleSwitch(MerakiFirewallRuleEntity, SwitchEntity):
     ) -> None:
         """Initialize the switch."""
         super().__init__(coordinator, config_entry, network_id, rule, rule_index)
-        assert self._network_id, "Network ID cannot be None for a firewall rule entity"
+        if not self._network_id:
+            raise ValueError("Network ID cannot be None for a firewall rule entity")
         self._attr_unique_id = get_firewall_rule_entity_id(
             self._network_id, self._rule_index
         )

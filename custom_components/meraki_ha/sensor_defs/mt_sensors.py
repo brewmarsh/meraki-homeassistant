@@ -116,7 +116,7 @@ MT_SENSOR_MODELS = {
         MT_HUMIDITY_DESCRIPTION,
         MT_NOISE_DESCRIPTION,
     ],
-    "MT20": [], # MT20 is a binary sensor, no standard sensors
+    "MT20": [],  # MT20 is a binary sensor, no standard sensors
     "MT30": [],  # Smart Automation Button, no standard sensors
     "MT40": [
         MT_POWER_DESCRIPTION,

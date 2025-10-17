@@ -30,7 +30,8 @@ class MerakiFirewallRuleEntity(BaseMerakiEntity):
         )
         self._rule = rule
         self._rule_index = rule_index
-        assert self._network_id is not None
+        if self._network_id is None:
+            raise ValueError("Network ID cannot be None for a firewall rule entity")
         rule_device_data = {**rule, "productType": "firewall_rule"}
         formatted_name = format_device_name(
             device=rule_device_data,

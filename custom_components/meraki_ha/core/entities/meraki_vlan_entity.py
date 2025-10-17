@@ -28,7 +28,8 @@ class MerakiVLANEntity(BaseMerakiEntity):
             network_id=network_id,
         )
         self._vlan = vlan
-        assert self._network_id is not None
+        if self._network_id is None:
+            raise ValueError("Network ID cannot be None for a VLAN entity")
         vlan_device_data = {**vlan, "productType": "vlan"}
         formatted_name = format_device_name(
             device=vlan_device_data,

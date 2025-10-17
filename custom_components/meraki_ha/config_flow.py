@@ -101,7 +101,8 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
     ) -> data_entry_flow.FlowResult:
         """Handle a reconfiguration flow."""
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
-        assert entry
+        if not entry:
+            return self.async_abort(reason="unknown_entry")
 
         if user_input is not None:
             new_options = {**entry.options, **user_input}

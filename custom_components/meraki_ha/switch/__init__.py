@@ -5,7 +5,6 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers import device_registry as dr
 
 from ..const import DOMAIN, PLATFORM_SWITCH
 from .setup_helpers import async_setup_switches

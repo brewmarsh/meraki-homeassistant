@@ -8,6 +8,7 @@ from ..types import MerakiVlan
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import Entity
 
+from ..core.api.client import MerakiAPIClient
 from ..coordinator import MerakiDataUpdateCoordinator
 from .vlan_dhcp import MerakiVLANDHCPSwitch
 from .camera_controls import AnalyticsSwitch

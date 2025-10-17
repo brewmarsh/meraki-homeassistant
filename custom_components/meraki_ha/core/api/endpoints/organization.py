@@ -119,4 +119,3 @@ class OrganizationEndpoints:
             _LOGGER.warning("get_organizations did not return a list.")
             return []
         return validated
-

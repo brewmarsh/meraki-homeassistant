@@ -29,9 +29,11 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
     ) -> None:
         """Initialize the switch."""
         super().__init__(coordinator, config_entry, network_id, vlan)
-        assert self._network_id, "Network ID cannot be None for a VLAN entity"
+        if not self._network_id:
+            raise ValueError("Network ID cannot be None for a VLAN entity")
         vlan_id = self._vlan.get("id")
-        assert vlan_id, "VLAN ID should not be None here"
+        if not vlan_id:
+            raise ValueError("VLAN ID should not be None here")
         self._attr_unique_id = get_vlan_entity_id(
             self._network_id, vlan_id, "dhcp_handling"
         )
