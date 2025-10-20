@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# --- ADD THIS LINE FOR PERMISSION FIX ---
+# Recursively set ownership of the mounted volume to the container's 'runner' user (UID 1000)
+# This solves Permission Denied errors when copying to the host system.
+chown -R runner:runner /ha_config
+
 # Source the bash shell profile for the runner user
 # This ensures environment variables are properly set
 source ~/.bashrc
