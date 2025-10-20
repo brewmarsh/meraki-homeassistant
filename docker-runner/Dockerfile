@@ -7,8 +7,10 @@ ARG RUNNER_ARCH="x64"
 
 # Set non-interactive mode and install necessary dependencies for the .NET runtime
 # The libicu-dev package resolves all prior Dotnet Core/Libicu errors
+# Install ca-certificates to fix potential SSL verification failures (Exit Code 77)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+    ca-certificates \  
     curl \
     git \
     iputils-ping \
@@ -27,9 +29,8 @@ RUN useradd -m runner
 
 # Download and extract the official GitHub Actions Runner
 WORKDIR /home/runner/actions-runner
-ENV RUNNER_URL="https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-${RUNNER_ARCH}.tar.gz"
-
-RUN echo "Downloading runner from: ${RUNNER_URL}" && \
+RUN RUNNER_URL="https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-${RUNNER_ARCH}.tar.gz" && \
+    echo "Downloading runner from: ${RUNNER_URL}" && \
     curl -o actions-runner-linux-${RUNNER_ARCH}.tar.gz -L "$RUNNER_URL" && \
     tar xzf actions-runner-linux-${RUNNER_ARCH}.tar.gz && \
     rm actions-runner-linux-${RUNNER_ARCH}.tar.gz
