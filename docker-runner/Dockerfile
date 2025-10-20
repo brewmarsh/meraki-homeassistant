@@ -5,8 +5,7 @@ FROM ubuntu:22.04
 ARG RUNNER_VERSION="2.329.0"
 ARG RUNNER_ARCH="x64"
 
-# Set non-interactive mode and install all necessary dependencies
-# libicu-dev is crucial for the .NET runtime. ca-certificates fixes SSL errors.
+# Install all necessary dependencies, including sudo for the final execution step
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -24,7 +23,8 @@ RUN apt-get update && \
     # Clean up APT cache
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Create the dedicated, non-root user (although we run as root for permissions)
+# CRITICAL: Create the dedicated 'runner' user, as the GitHub Actions Runner software 
+# must NOT run as root for security reasons.
 RUN useradd -m runner
 
 # Set the working directory for the runner download and execution
@@ -34,26 +34,22 @@ WORKDIR /home/runner/actions-runner
 RUN FILENAME="actions-runner-linux-${RUNNER_ARCH}-${RUNNER_VERSION}.tar.gz" && \
     RUNNER_URL="https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${FILENAME}" && \
     echo "Downloading runner from: ${RUNNER_URL}" && \
-    # Download the correct artifact and extract it into the WORKDIR
     curl -o "$FILENAME" -L "$RUNNER_URL" && \
     tar xzf "$FILENAME" && \
     rm "$FILENAME"
 
-# Set ownership of the runner directory to the runner user
+# Set ownership of the runner directory to the non-root user
 RUN chown -R runner:runner /home/runner/actions-runner
 
-# Create the mount point directory, ensuring it exists before volume mounting
+# Create the /ha_config mount point and copy the entrypoint script
 RUN mkdir -p /ha_config
-
-# Copy the entrypoint script and ensure it is executable
-# We rename the script to avoid caching issues seen earlier
 COPY entrypoint.sh /usr/local/bin/runner-entrypoint.sh
 RUN chmod +x /usr/local/bin/runner-entrypoint.sh
 
-# FINAL PERMISSIONS FIX: Do NOT set the USER to 'runner'.
-# Running as 'root' (the default) is necessary for the 'cp -rf' command 
-# in the workflow to avoid 'Permission denied' errors on the mounted Host OS volume.
-# # USER runner <--- COMMENTED OUT FOR PERMISSION FIX
+# FINAL PERMISSION FIX: The container runs as 'root' (default user) to allow 
+# write access to the Host OS volume. The entrypoint script uses 'sudo' to switch 
+# to the non-root 'runner' user for the final runner commands.
+# Do NOT set USER here.
 
 # Set the entrypoint to run the registration and loop
 ENTRYPOINT ["/usr/local/bin/runner-entrypoint.sh"]
