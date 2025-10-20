@@ -28,7 +28,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./docker-runner # Context is the new directory
+          context: ./docker-runner
           push: true
           tags: 80m1/meraki-runner:latest
-          # This automatically builds the image and pushes it to Docker Hub
+          no-cache: true 
+          # ----------------------------------
