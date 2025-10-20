@@ -2,7 +2,7 @@
 FROM ubuntu:22.04
 
 # Define the official runner version (Check GitHub releases for latest)
-ARG RUNNER_VERSION="2.320.0"
+ARG RUNNER_VERSION="2.329.0"
 ARG RUNNER_ARCH="x64"
 
 # Set non-interactive mode and install necessary dependencies for the .NET runtime
