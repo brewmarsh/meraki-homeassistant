@@ -27,6 +27,10 @@ RUN apt-get update && \
 # Create the dedicated, non-root user for security
 RUN useradd -m runner
 
+# Copy the entrypoint script
+COPY entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Download and extract the official GitHub Actions Runner
 WORKDIR /home/runner/actions-runner
 # Construct the full filename with version number as per GitHub's documentation
