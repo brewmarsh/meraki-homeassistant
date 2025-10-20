@@ -28,8 +28,8 @@ RUN apt-get update && \
 RUN useradd -m runner
 
 # Copy the entrypoint script
-COPY entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY entrypoint.sh /usr/local/bin/runner-entrypoint.sh
+RUN chmod +x /usr/local/bin/runner-entrypoint.sh
 
 # Download and extract the official GitHub Actions Runner
 WORKDIR /home/runner/actions-runner
@@ -56,4 +56,4 @@ USER runner
 WORKDIR /home/runner/actions-runner
 
 # Use the entrypoint script to run the runner
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/runner-entrypoint.sh"]
