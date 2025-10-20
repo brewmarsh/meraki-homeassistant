@@ -1,0 +1,35 @@
+name: Build and Publish Runner Image
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docker-runner/Dockerfile'
+      - 'docker-runner/entrypoint.sh'
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./docker-runner
+          push: true
+          tags: 80m1/meraki-runner:latest
+          no-cache: true 
+          # ----------------------------------

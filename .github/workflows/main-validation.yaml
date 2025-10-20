@@ -1,0 +1,19 @@
+# This workflow requires a 'production' environment with a protection rule.
+# The protection rule should require a reviewer to approve the deployment.
+name: Main Branch Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Deploy to production
+        run: echo "Deploying to production"
