@@ -28,9 +28,7 @@ class MerakiAuthentication:
     making a request to the Meraki API via the SDK.
     """
 
-    def __init__(
-        self, hass: HomeAssistant, api_key: str, organization_id: str
-    ) -> None:
+    def __init__(self, hass: HomeAssistant, api_key: str, organization_id: str) -> None:
         """Initialize the Meraki Authentication class.
 
         Args:
@@ -66,9 +64,9 @@ class MerakiAuthentication:
         )
 
         try:
-            all_organizations: List[
-                Dict[str, Any]
-            ] = await client.organization.get_organizations()
+            all_organizations: List[Dict[str, Any]] = (
+                await client.organization.get_organizations()
+            )
 
             org_found = False
             fetched_org_name: Optional[str] = None

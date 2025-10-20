@@ -66,9 +66,7 @@ async def test_camera_turn_on_optimistic_update(
     # 1. Check that the coordinator's data was optimistically updated
     assert device_data["video_settings"]["rtspServerEnabled"] is True
     assert "rtspUrl" in device_data["video_settings"]
-    assert (
-        device_data["video_settings"]["rtspUrl"] == "rtsp://192.168.1.100:9000/live"
-    )
+    assert device_data["video_settings"]["rtspUrl"] == "rtsp://192.168.1.100:9000/live"
 
     # 2. Check that listeners were notified of the change
     mock_coordinator.async_update_listeners.assert_called_once()

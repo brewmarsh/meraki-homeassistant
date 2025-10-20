@@ -36,7 +36,9 @@ class MerakiSsidConnectedClientsSensor(
         self._network_id = network_id
         self._ssid_number = ssid_data["number"]
         self._config_entry = config_entry
-        self._attr_unique_id = f"{self._network_id}_{self._ssid_number}_connected_clients"
+        self._attr_unique_id = (
+            f"{self._network_id}_{self._ssid_number}_connected_clients"
+        )
         self._attr_name = f"{ssid_data['name']} Connected Clients"
 
         self._attr_device_info = resolve_device_info(

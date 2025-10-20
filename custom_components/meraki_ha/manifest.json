@@ -1,7 +1,9 @@
 {
   "domain": "meraki_ha",
   "name": "Meraki for Home Assistant",
-  "after_dependencies": [],
+  "after_dependencies": [
+    "http"
+  ],
   "codeowners": [
     "@brewmarsh"
   ],

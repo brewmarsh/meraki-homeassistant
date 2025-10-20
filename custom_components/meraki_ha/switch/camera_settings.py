@@ -100,9 +100,9 @@ class MerakiCameraSettingSwitchBase(
                         self.coordinator.data.get("devices", [])
                     ):
                         if device.get("serial") == self._device_data["serial"]:
-                            self.coordinator.data["devices"][i]["video_settings"] = (
-                                video_settings
-                            )
+                            self.coordinator.data["devices"][i][
+                                "video_settings"
+                            ] = video_settings
                             break
                     self.coordinator.async_update_listeners()
 
