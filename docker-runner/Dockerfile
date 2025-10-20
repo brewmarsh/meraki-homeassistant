@@ -27,7 +27,10 @@ RUN useradd -m runner
 
 # Download and extract the official GitHub Actions Runner
 WORKDIR /home/runner/actions-runner
-RUN curl -o actions-runner-linux-${RUNNER_ARCH}.tar.gz -L "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-${RUNNER_ARCH}.tar.gz" && \
+ENV RUNNER_URL="https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-${RUNNER_ARCH}.tar.gz"
+
+RUN echo "Downloading runner from: ${RUNNER_URL}" && \
+    curl -o actions-runner-linux-${RUNNER_ARCH}.tar.gz -L "$RUNNER_URL" && \
     tar xzf actions-runner-linux-${RUNNER_ARCH}.tar.gz && \
     rm actions-runner-linux-${RUNNER_ARCH}.tar.gz
 
