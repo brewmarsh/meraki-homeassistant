@@ -35,11 +35,9 @@ CONFIG_ARGS+=(--unattended) # Skips confirmation prompts
 CONFIG_ARGS+=(--replace)    # Replaces any existing runner with the same name
 
 echo "--- Configuring Runner ---"
-# EXECUTION USES THE ABSOLUTE PATH TO THE RUNNER FILES
-# The container is running as root (UID 0) to ensure the subsequent workflow copy succeeds.
-/home/runner/actions-runner/config.sh "${CONFIG_ARGS[@]}"
+# FIX: Execute config.sh using sudo to switch to the non-root 'runner' user
+sudo -u runner /home/runner/actions-runner/config.sh "${CONFIG_ARGS[@]}"
 
 echo "--- Starting Runner ---"
-# EXECUTION USES THE ABSOLUTE PATH TO THE RUNNER FILES
-# 'exec' replaces the current shell process with the run.sh process.
-exec /home/runner/actions-runner/run.sh
+# FIX: Execute run.sh using sudo to switch to the non-root 'runner' user
+exec sudo -u runner /home/runner/actions-runner/run.sh
