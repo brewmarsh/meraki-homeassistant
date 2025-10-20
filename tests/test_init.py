@@ -27,7 +27,9 @@ async def test_async_setup_entry(
         "device_name_format": "omitted",
     }
     with (
-        patch("custom_components.meraki_ha.MerakiDataUpdateCoordinator") as mock_coordinator,
+        patch(
+            "custom_components.meraki_ha.MerakiDataUpdateCoordinator"
+        ) as mock_coordinator,
         patch(
             "custom_components.meraki_ha.async_register_webhook"
         ) as mock_register_webhook,

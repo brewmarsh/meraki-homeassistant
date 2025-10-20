@@ -29,7 +29,9 @@ async def async_setup_entry(
         _LOGGER.warning("Meraki client not available; skipping switch setup.")
         return False
 
-    switch_entities = async_setup_switches(hass, config_entry, coordinator, meraki_client)
+    switch_entities = async_setup_switches(
+        hass, config_entry, coordinator, meraki_client
+    )
 
     _LOGGER.debug("Found %d switch entities", len(switch_entities))
     if switch_entities:

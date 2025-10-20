@@ -77,9 +77,7 @@ async def async_register_webhook(
 ) -> Dict[str, Any]:
     """Register a webhook with the Meraki API."""
     try:
-        webhook_url = get_webhook_url(
-            hass, webhook_id, entry.data.get("webhook_url")
-        )
+        webhook_url = get_webhook_url(hass, webhook_id, entry.data.get("webhook_url"))
         webhook = await api_client.register_webhook(webhook_url, secret)
         return webhook
     except Exception as err:

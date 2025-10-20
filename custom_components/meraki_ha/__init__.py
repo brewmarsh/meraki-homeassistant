@@ -8,6 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.components import frontend, http
+from homeassistant.helpers import config_validation as cv
 
 from .const import (
     DOMAIN,
@@ -25,6 +26,8 @@ from .services.device_control_service import DeviceControlService
 
 
 _LOGGER = logging.getLogger(__name__)
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -74,16 +77,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     else:
         secret = entry.data["webhook_secret"]
 
-    await async_register_webhook(
-        hass, webhook_id, secret, coordinator.api, entry=entry
-    )
+    await async_register_webhook(hass, webhook_id, secret, coordinator.api, entry=entry)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     manifest_path = Path(__file__).parent / "manifest.json"
-    async with aiofiles.open(manifest_path, mode='r') as f:
+    async with aiofiles.open(manifest_path, mode="r") as f:
         manifest_data = await f.read()
         manifest = json.loads(manifest_data)
     version = manifest.get("version", "0.0.0")
