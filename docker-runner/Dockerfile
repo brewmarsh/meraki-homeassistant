@@ -49,7 +49,11 @@ RUN chown -R runner:runner /home/runner/actions-runner
 COPY entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Switch to the non-root user
+# Fix permissions on the mount point that will contain /ha_config
+# We must ensure the 'runner' user owns the target location.
+RUN mkdir -p /ha_config && chown runner:runner /ha_config
+
+# Set the primary user for the running container
 USER runner
 
 # Set the working directory to the runner path
