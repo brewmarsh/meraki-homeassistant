@@ -1,16 +1,15 @@
-# Use a stable, minimal Debian/Ubuntu base
+# Use a stable, minimal Ubuntu base
 FROM ubuntu:22.04
 
 # Define the official runner version (Check GitHub releases for latest)
 ARG RUNNER_VERSION="2.329.0"
 ARG RUNNER_ARCH="x64"
 
-# Set non-interactive mode and install necessary dependencies for the .NET runtime
-# The libicu-dev package resolves all prior Dotnet Core/Libicu errors
-# Install ca-certificates to fix potential SSL verification failures (Exit Code 77)
+# Set non-interactive mode and install all necessary dependencies
+# libicu-dev is crucial for the .NET runtime. ca-certificates fixes SSL errors.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    ca-certificates \  
+    ca-certificates \
     curl \
     git \
     iputils-ping \
@@ -19,45 +18,42 @@ RUN apt-get update && \
     libssl-dev \
     procps \
     sudo \
+    tar \
     unzip \
     wget \
     # Clean up APT cache
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Create the dedicated, non-root user for security
+# Create the dedicated, non-root user (although we run as root for permissions)
 RUN useradd -m runner
 
-# Copy the entrypoint script
-COPY entrypoint.sh /usr/local/bin/runner-entrypoint.sh
-RUN chmod +x /usr/local/bin/runner-entrypoint.sh
+# Set the working directory for the runner download and execution
+WORKDIR /home/runner/actions-runner
 
 # Download and extract the official GitHub Actions Runner
-WORKDIR /home/runner/actions-runner
-# Construct the full filename with version number as per GitHub's documentation
 RUN FILENAME="actions-runner-linux-${RUNNER_ARCH}-${RUNNER_VERSION}.tar.gz" && \
     RUNNER_URL="https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${FILENAME}" && \
     echo "Downloading runner from: ${RUNNER_URL}" && \
-    # Using curl with the correct, full URL/filename as shown by GitHub
+    # Download the correct artifact and extract it into the WORKDIR
     curl -o "$FILENAME" -L "$RUNNER_URL" && \
     tar xzf "$FILENAME" && \
     rm "$FILENAME"
 
-# Set permissions and ownership
+# Set ownership of the runner directory to the runner user
 RUN chown -R runner:runner /home/runner/actions-runner
 
-# Copy the entrypoint script and set permissions
-COPY entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh
+# Create the mount point directory, ensuring it exists before volume mounting
+RUN mkdir -p /ha_config
 
-# Fix permissions on the mount point that will contain /ha_config
-# We must ensure the 'runner' user owns the target location.
-RUN mkdir -p /ha_config && chown runner:runner /ha_config
+# Copy the entrypoint script and ensure it is executable
+# We rename the script to avoid caching issues seen earlier
+COPY entrypoint.sh /usr/local/bin/runner-entrypoint.sh
+RUN chmod +x /usr/local/bin/runner-entrypoint.sh
 
-# Set the primary user for the running container
-USER runner
+# FINAL PERMISSIONS FIX: Do NOT set the USER to 'runner'.
+# Running as 'root' (the default) is necessary for the 'cp -rf' command 
+# in the workflow to avoid 'Permission denied' errors on the mounted Host OS volume.
+# # USER runner <--- COMMENTED OUT FOR PERMISSION FIX
 
-# Set the working directory to the runner path
-WORKDIR /home/runner/actions-runner
-
-# Use the entrypoint script to run the runner
+# Set the entrypoint to run the registration and loop
 ENTRYPOINT ["/usr/local/bin/runner-entrypoint.sh"]
