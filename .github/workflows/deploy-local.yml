@@ -1,68 +1,60 @@
-name: Deploy Latest Code to Local Folder on Windows
+name: Deploy Latest Code to Local Folder on Linux Runner
 
 # This workflow will run on 'push' events to the specified branch.
-# A 'push' event occurs when someone updates the branch remotely.
 on:
   push:
     branches:
-      - main # IMPORTANT: Change 'main' to the name of your primary branch (e.g., master, develop)
-      # You can add more branches to monitor, e.g.:
-      # - develop
-      # - feature/* # To trigger on any branch starting with 'feature/'
+      - main 
 
 jobs:
-  deploy-to-windows-folder:
-    # Specifies that this job should run on a self-hosted runner.
-    # Ensure your Windows self-hosted runner is online and configured.
+  deploy-to-linux-folder: # Updated job name for clarity
+    # Specifies that this job should run on your custom Linux self-hosted runner.
+    # The 'self-hosted' label is sufficient.
     runs-on: self-hosted
 
     # Define environment variables that will be available to the steps in this job.
     env:
-      # DESTINATION_PATH: This is the absolute path on your Windows machine
-      # where you want the latest code to be copied.
-      # IMPORTANT: Replace 'D:\Deployment\my-app' with your actual desired path.
-      DESTINATION_PATH: 'D:\Deployment\my-app'
+      # IMPORTANT: This path MUST be the Linux path inside your Docker runner container.
+      # Based on your setup, the volume mount is likely to:
+      # /mnt/data/supervisor/homeassistant:/ha_config:rw
+      # So, the target path is inside /ha_config.
+      DESTINATION_PATH: '/ha_config/custom_components/meraki'
 
     steps:
       - name: Checkout repository
-        # The 'actions/checkout' action checks out your repository code
-        # into the runner's workspace directory (e.g., C:\actions-runner\_work\<repo-name>\<repo-name>).
+        # This action checks out code into $GITHUB_WORKSPACE (e.g., /home/runner/_work/repo/repo).
         uses: actions/checkout@v5
 
-      - name: Copy files to destination folder
-        # 'shell: pwsh' specifies that the following 'run' commands should be executed using PowerShell Core.
-        # If you only have Windows PowerShell, you can use 'shell: powershell'.
-        shell: pwsh
+      - name: Copy files to destination folder (Linux Commands)
+        # We change the shell to 'bash' and use standard Linux commands.
+        shell: bash
+        env:
+          # Define the destination path here to access it easily
+          DEPLOY_PATH: ${{ env.DESTINATION_PATH }}
         run: |
-          # GITHUB_WORKSPACE is an environment variable automatically provided by GitHub Actions.
-          # It points to the root directory where your repository's code has been checked out.
-          $SourcePath = $env:GITHUB_WORKSPACE
+          # GITHUB_WORKSPACE is the source path where the repo was checked out.
+          SourcePath="${GITHUB_WORKSPACE}"
+          
+          echo "Starting deployment..."
+          echo "Source path: ${SourcePath}"
+          echo "Destination path: ${DEPLOY_PATH}"
 
-          # Retrieve the destination path from the environment variable defined above.
-          $DestinationPath = $env:DESTINATION_PATH
+          # 1. Create the destination directory if it doesn't exist
+          # 'mkdir -p' creates directories and intermediate parent directories if needed.
+          if [ ! -d "${DEPLOY_PATH}" ]; then
+              echo "Destination directory does not exist. Creating: ${DEPLOY_PATH}"
+              mkdir -p "${DEPLOY_PATH}"
+          else
+              echo "Destination directory already exists: ${DEPLOY_PATH}"
+              # OPTIONAL: Uncomment the following lines if you want to clear the destination folder first.
+              # echo "Clearing existing content in ${DEPLOY_PATH}..."
+              # find "${DEPLOY_PATH}/" -mindepth 1 -delete 
+              # echo "Existing content cleared."
+          fi
 
-          Write-Host "Starting deployment..."
-          Write-Host "Source path: $SourcePath"
-          Write-Host "Destination path: $DestinationPath"
-
-          # Check if the destination directory exists. If not, create it.
-          if (-not (Test-Path -Path $DestinationPath)) {
-              Write-Host "Destination directory does not exist. Creating: $DestinationPath"
-              New-Item -Path $DestinationPath -ItemType Directory -Force
-          } else {
-              Write-Host "Destination directory already exists: $DestinationPath"
-              # OPTIONAL: Uncomment the following lines if you want to clear
-              # the destination folder before copying new files.
-              # This ensures a clean deployment and removes old files.
-              # Write-Host "Clearing existing content in $DestinationPath..."
-              # Remove-Item -Path (Join-Path -Path $DestinationPath -ChildPath "*") -Recurse -Force -ErrorAction SilentlyContinue
-              # Write-Host "Existing content cleared."
-          }
-
-          # Copy all files and subdirectories from the source to the destination.
-          # -Recurse ensures subdirectories and their contents are copied.
-          # -Force overwrites existing files without prompting.
-          Copy-Item -Path (Join-Path -Path $SourcePath -ChildPath "*") -Destination $DestinationPath -Recurse -Force
-
-          Write-Host "Successfully copied latest code to $DestinationPath."
-          Write-Host "Deployment complete."
+          # 2. Copy all files and subdirectories from source to destination
+          # 'cp -rf' copies recursively (-r) and forces overwrite (-f) without prompting.
+          cp -rf "${SourcePath}/"* "${DEPLOY_PATH}"
+          
+          echo "Successfully copied latest code to ${DEPLOY_PATH}."
+          echo "Deployment complete."
