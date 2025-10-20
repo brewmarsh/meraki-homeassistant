@@ -18,7 +18,7 @@ jobs:
       # Based on your setup, the volume mount is likely to:
       # /mnt/data/supervisor/homeassistant:/ha_config:rw
       # So, the target path is inside /ha_config.
-      DESTINATION_PATH: '/ha_config/custom_components/meraki'
+      DESTINATION_PATH: '/ha_config/custom_components/meraki_ha'
 
     steps:
       - name: Checkout repository
