@@ -25,9 +25,9 @@ CONFIG_ARGS+=(--unattended) # Skips confirmation prompts
 CONFIG_ARGS+=(--replace)    # Replaces any existing runner with the same name
 
 echo "--- Configuring Runner ---"
-# Execute the configuration script
-./config.sh "${CONFIG_ARGS[@]}"
+# Execute the configuration script using its ABSOLUTE PATH
+/home/runner/actions-runner/config.sh "${CONFIG_ARGS[@]}"
 
 echo "--- Starting Runner ---"
 # Execute the runner (will not exit until stopped by GitHub or signal)
-exec ./run.sh
+exec /home/runner/actions-runner/run.sh
