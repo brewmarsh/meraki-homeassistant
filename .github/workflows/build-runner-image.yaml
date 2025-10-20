@@ -30,5 +30,5 @@ jobs:
         with:
           context: ./docker-runner # Context is the new directory
           push: true
-          tags: brewmarsh/meraki-runner:latest
+          tags: 80m1/meraki-runner:latest
           # This automatically builds the image and pushes it to Docker Hub
