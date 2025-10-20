@@ -29,11 +29,14 @@ RUN useradd -m runner
 
 # Download and extract the official GitHub Actions Runner
 WORKDIR /home/runner/actions-runner
-RUN RUNNER_URL="https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-${RUNNER_ARCH}.tar.gz" && \
+# Construct the full filename with version number as per GitHub's documentation
+RUN FILENAME="actions-runner-linux-${RUNNER_ARCH}-${RUNNER_VERSION}.tar.gz" && \
+    RUNNER_URL="https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${FILENAME}" && \
     echo "Downloading runner from: ${RUNNER_URL}" && \
-    curl -o actions-runner-linux-${RUNNER_ARCH}.tar.gz -L "$RUNNER_URL" && \
-    tar xzf actions-runner-linux-${RUNNER_ARCH}.tar.gz && \
-    rm actions-runner-linux-${RUNNER_ARCH}.tar.gz
+    # Using curl with the correct, full URL/filename as shown by GitHub
+    curl -o "$FILENAME" -L "$RUNNER_URL" && \
+    tar xzf "$FILENAME" && \
+    rm "$FILENAME"
 
 # Set permissions and ownership
 RUN chown -R runner:runner /home/runner/actions-runner
