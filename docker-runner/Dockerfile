@@ -27,6 +27,10 @@ RUN apt-get update && \
 # must NOT run as root for security reasons.
 RUN useradd -m runner
 
+# Grant the 'runner' user passwordless sudo access for deployment
+RUN echo "runner ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/runner && \
+    chmod 0440 /etc/sudoers.d/runner
+
 # Set the working directory for the runner download and execution
 WORKDIR /home/runner/actions-runner
 
