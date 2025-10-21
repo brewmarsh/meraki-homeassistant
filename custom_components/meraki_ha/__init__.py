@@ -4,11 +4,11 @@ import logging
 import json
 from pathlib import Path
 import aiofiles
+import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.components import frontend, http
-from homeassistant.helpers import config_validation as cv
 
 from .const import (
     DOMAIN,
@@ -24,10 +24,10 @@ from .services.camera_service import CameraService
 from .core.repository import MerakiRepository
 from .services.device_control_service import DeviceControlService
 
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
 
 _LOGGER = logging.getLogger(__name__)
-
-CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
