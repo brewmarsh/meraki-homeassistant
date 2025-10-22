@@ -11,6 +11,7 @@ class MerakiVlan(TypedDict):
     name: str
     subnet: Optional[str]
     applianceIp: Optional[str]
+    ipv6: Optional[dict]
 
 
 class MerakiNetwork(TypedDict):
@@ -19,6 +20,9 @@ class MerakiNetwork(TypedDict):
     id: str
     name: str
     productTypes: List[str]
+    organizationId: str
+    tags: Optional[str]
+    clientCount: Optional[int]
 
 
 class MerakiFirewallRule(TypedDict):

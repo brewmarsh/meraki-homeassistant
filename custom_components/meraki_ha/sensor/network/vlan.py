@@ -153,7 +153,10 @@ class MerakiVLANIPv6EnabledSensor(MerakiVLANEntity, SensorEntity):
     @property
     def native_value(self) -> bool:
         """Return the state of the sensor."""
-        return self._vlan.get("ipv6", {}).get("enabled", False)
+        ipv6_data = self._vlan.get("ipv6")
+        if ipv6_data is None:
+            return False
+        return ipv6_data.get("enabled", False)
 
 
 class MerakiVLANIPv6InterfaceSensor(MerakiVLANEntity, SensorEntity):
@@ -181,7 +184,10 @@ class MerakiVLANIPv6InterfaceSensor(MerakiVLANEntity, SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Return the state of the sensor."""
-        return self._vlan.get("ipv6", {}).get("prefix")
+        ipv6_data = self._vlan.get("ipv6")
+        if ipv6_data is None:
+            return None
+        return ipv6_data.get("prefix")
 
 
 class MerakiVLANIPv6UplinkSensor(MerakiVLANEntity, SensorEntity):
@@ -209,10 +215,10 @@ class MerakiVLANIPv6UplinkSensor(MerakiVLANEntity, SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Return the state of the sensor."""
-        ipv6_data = self._vlan.get("ipv6", {})
-        if not ipv6_data.get("enabled"):
+        ipv6_data = self._vlan.get("ipv6")
+        if ipv6_data is None or not ipv6_data.get("enabled"):
             return None
-        assignments = ipv6_data.get("prefixAssignments", [])
+        assignments = ipv6_data.get("prefixAssignments")
         if not assignments:
             return None
         interfaces = assignments[0].get("origin", {}).get("interfaces", [])

@@ -39,7 +39,7 @@ class MerakiMt40PowerOutlet(
         self._meraki_client = meraki_client
         self._attr_unique_id = f"{self._device_info['serial']}-outlet"
         self._attr_name = f"{self._device_info['name']} Outlet"
-        self._attr_is_on = None
+        self._attr_is_on: bool | None = None
 
     @property
     def device_info(self) -> DeviceInfo:

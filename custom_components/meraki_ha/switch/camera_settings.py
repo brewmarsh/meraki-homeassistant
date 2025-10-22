@@ -1,6 +1,6 @@
 """Base classes for Meraki camera switch entities."""
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 import logging
 
 from homeassistant.components.switch import SwitchEntity
@@ -36,12 +36,12 @@ class MerakiCameraSettingSwitchBase(
         self._attr_is_on = False
         self._update_state()  # Set initial state
 
-    def _get_value_from_device(self, device: MerakiDevice | None) -> bool:
+    def _get_value_from_device(self, device: Optional[MerakiDevice]) -> bool:
         """Drill down into the device dictionary to get the state value."""
         if device is None:
             return False
         keys = self._api_field.split(".")
-        value = device
+        value: Any = device
         for key in keys:
             if isinstance(value, dict):
                 value = value.get(key)
