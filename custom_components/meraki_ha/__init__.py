@@ -7,6 +7,7 @@ import aiofiles  # type: ignore[import-untyped]
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.helpers.config_validation import config_entry_only_config_schema
 from homeassistant.components import frontend, http
 
 from .const import (
@@ -25,6 +26,8 @@ from .services.device_control_service import DeviceControlService
 
 
 _LOGGER = logging.getLogger(__name__)
+
+CONFIG_SCHEMA = config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
