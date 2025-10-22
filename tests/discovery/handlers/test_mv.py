@@ -72,7 +72,6 @@ async def test_mv_handler_all_features(
             mock_config_entry,
             mock_camera_service,
             mock_control_service,
-            mock_meraki_client,
         )
 
     # Act
@@ -110,7 +109,6 @@ async def test_mv_handler_some_features(
             mock_config_entry,
             mock_camera_service,
             mock_control_service,
-            mock_meraki_client,
         )
 
     # Act
@@ -146,7 +144,6 @@ async def test_mv_handler_no_extra_features(
             mock_config_entry,
             mock_camera_service,
             mock_control_service,
-            mock_meraki_client,
         )
 
     # Act

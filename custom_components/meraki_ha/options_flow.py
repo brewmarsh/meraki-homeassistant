@@ -22,9 +22,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
         """Manage the options flow."""
         if user_input is not None:
             self.options.update(user_input)
-            return self.async_create_entry(
-                title=CONF_INTEGRATION_TITLE, data=self.options
-            )
+            return self.async_create_entry(title=CONF_INTEGRATION_TITLE, data=self.options)
 
         # Populate the form with existing values from the config entry.
         schema_with_defaults = self._populate_schema_defaults(

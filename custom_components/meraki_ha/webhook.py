@@ -1,7 +1,7 @@
 """Webhook handling for the Meraki integration."""
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import get_url
@@ -74,15 +74,15 @@ async def async_register_webhook(
     secret: str,
     api_client: "MerakiAPIClient",
     entry=None,
-) -> Dict[str, Any]:
+) -> None:
     """Register a webhook with the Meraki API."""
     try:
-        webhook_url = get_webhook_url(hass, webhook_id, entry.data.get("webhook_url"))
-        webhook = await api_client.register_webhook(webhook_url, secret)
-        return webhook
+        webhook_url = get_webhook_url(
+            hass, webhook_id, entry.data.get("webhook_url")
+        )
+        await api_client.register_webhook(webhook_url, secret)
     except Exception as err:
         _LOGGER.error("Failed to register webhook: %s", err)
-        raise
 
 
 async def async_unregister_webhook(

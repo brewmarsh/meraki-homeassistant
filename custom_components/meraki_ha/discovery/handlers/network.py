@@ -63,7 +63,7 @@ class NetworkHandler(BaseHandler):
 
     async def discover_entities(self) -> List["Entity"]:
         """Discover network-level entities."""
-        entities = []
+        entities: list[Entity] = []
         networks = self._coordinator.data.get("networks", [])
         if not networks:
             _LOGGER.debug("No networks found to create network-level entities.")

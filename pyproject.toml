@@ -4,3 +4,10 @@ pythonpath = [
   "custom_components"
 ]
 asyncio_mode = "auto"
+
+[tool.mypy]
+follow_imports = "silent"
+
+[[tool.mypy.overrides]]
+module = "aiofiles"
+ignore_missing_imports = true

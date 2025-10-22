@@ -1,7 +1,6 @@
 """
 Button entity for Meraki MT15 refresh data button.
 """
-
 from __future__ import annotations
 
 import logging
@@ -59,6 +58,4 @@ class MerakiMt15RefreshDataButton(
     @property
     def available(self) -> bool:
         """Return if the entity is available."""
-        return (
-            self._device_info.get("model", "").startswith("MT15") and super().available
-        )
+        return self._device_info.get("model", "").startswith("MT15") and super().available

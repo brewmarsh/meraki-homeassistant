@@ -21,9 +21,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAnalyticsSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
-):
+class MerakiAnalyticsSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
     """Base class for Meraki analytics sensors."""
 
     def __init__(
@@ -50,26 +48,26 @@ class MerakiAnalyticsSensor(
     @property
     def native_value(self) -> Optional[int]:
         """Return the state of the sensor."""
-        if not self._analytics_data:
-            return None
-        # Assuming a single zone for simplicity. In a real scenario, this might
-        # need to aggregate data from multiple zones.
-        return self._analytics_data[0].get(self._object_type)
+        return self._analytics_data.get(self._object_type)
 
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:
         """Return the state attributes."""
         if not self._analytics_data:
             return {}
-        return {"raw_data": self._analytics_data}
+        return {"raw_data": [self._analytics_data]}
 
     async def async_update(self) -> None:
         """Update the sensor."""
         serial = self._device["serial"]
         try:
-            self._analytics_data = await self._camera_service.get_analytics_data(
+            analytics_data = await self._camera_service.get_analytics_data(
                 serial, self._object_type
             )
+            if isinstance(analytics_data, list) and analytics_data:
+                self._analytics_data = analytics_data[0]
+            else:
+                self._analytics_data = {}
         except Exception as e:
             _LOGGER.error("Error updating analytics sensor for %s: %s", serial, e)
             self._analytics_data = {}

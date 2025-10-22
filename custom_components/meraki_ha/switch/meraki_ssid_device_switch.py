@@ -19,9 +19,7 @@ from ..helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDBaseSwitch(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SwitchEntity
-):
+class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataUpdateCoordinator], SwitchEntity):
     """Base class for Meraki SSID Switches."""
 
     entity_category = EntityCategory.CONFIG
@@ -50,7 +48,7 @@ class MerakiSSIDBaseSwitch(
             f"ssid-{self._network_id}-{self._ssid_number}-{switch_type}-switch"
         )
         self._attr_optimistic = True
-        self._attr_is_on = None
+        self._attr_is_on = False
 
         self._update_internal_state()
 
