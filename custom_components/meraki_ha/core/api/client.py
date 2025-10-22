@@ -218,9 +218,7 @@ class MerakiAPIClient:
                 if not self.coordinator or self.coordinator.is_traffic_check_due(
                     network["id"]
                 ):
-                    detail_tasks[
-                        f"traffic_{network['id']}"
-                    ] = self._run_with_semaphore(
+                    detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
                         self.network.get_network_traffic(network["id"], "appliance")
                     )
                 if not self.coordinator or self.coordinator.is_vlan_check_due(
@@ -229,24 +227,24 @@ class MerakiAPIClient:
                     detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
                         self.appliance.get_network_vlans(network["id"])
                     )
-                detail_tasks[
-                    f"l3_firewall_rules_{network['id']}"
-                ] = self._run_with_semaphore(
-                    self.appliance.get_l3_firewall_rules(network["id"])
+                detail_tasks[f"l3_firewall_rules_{network['id']}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_l3_firewall_rules(network["id"])
+                    )
                 )
-                detail_tasks[
-                    f"traffic_shaping_{network['id']}"
-                ] = self._run_with_semaphore(
-                    self.appliance.get_traffic_shaping(network["id"])
+                detail_tasks[f"traffic_shaping_{network['id']}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_traffic_shaping(network["id"])
+                    )
                 )
                 detail_tasks[f"vpn_status_{network['id']}"] = self._run_with_semaphore(
                     self.appliance.get_vpn_status(network["id"])
                 )
-                detail_tasks[
-                    f"content_filtering_{network['id']}"
-                ] = self._run_with_semaphore(
-                    self.appliance.get_network_appliance_content_filtering(
-                        network["id"]
+                detail_tasks[f"content_filtering_{network['id']}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_network_appliance_content_filtering(
+                            network["id"]
+                        )
                     )
                 )
             if "wireless" in product_types:
@@ -458,7 +456,9 @@ class MerakiAPIClient:
             "networks": networks,
             "devices": devices,
             "clients": network_clients if isinstance(network_clients, list) else [],
-            "clients_by_serial": device_clients if isinstance(device_clients, dict) else {},
+            "clients_by_serial": (
+                device_clients if isinstance(device_clients, dict) else {}
+            ),
             "appliance_uplink_statuses": processed_initial_data[
                 "appliance_uplink_statuses"
             ],

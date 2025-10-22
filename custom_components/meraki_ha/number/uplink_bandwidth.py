@@ -30,7 +30,9 @@ class MerakiUplinkBandwidthNumber(MerakiNetworkEntity, NumberEntity):
         super().__init__(coordinator, config_entry, network)
         self._uplink = uplink
         self._direction = direction
-        self._attr_unique_id = f"uplink_bandwidth_{self._network_id}_{self._uplink}_{self._direction}"
+        self._attr_unique_id = (
+            f"uplink_bandwidth_{self._network_id}_{self._uplink}_{self._direction}"
+        )
         self._attr_name = f"{self._network['name']} {self._uplink.capitalize()} {self._direction.capitalize()} Limit"
         self._attr_native_unit_of_measurement = "kbps"
         self._attr_native_min_value = 0
@@ -46,9 +48,8 @@ class MerakiUplinkBandwidthNumber(MerakiNetworkEntity, NumberEntity):
                 self.unique_id,
             )
             return
-        traffic_shaping = (
-            self.coordinator.data.get("traffic_shaping", {})
-            .get(self._network_id, {})
+        traffic_shaping = self.coordinator.data.get("traffic_shaping", {}).get(
+            self._network_id, {}
         )
         if traffic_shaping:
             limits = traffic_shaping.get("bandwidthLimits", {})
@@ -67,9 +68,8 @@ class MerakiUplinkBandwidthNumber(MerakiNetworkEntity, NumberEntity):
         self._attr_native_value = value
         self.async_write_ha_state()
         self.coordinator.register_pending_update(self.unique_id)
-        traffic_shaping = (
-            self.coordinator.data.get("traffic_shaping", {})
-            .get(self._network_id, {})
+        traffic_shaping = self.coordinator.data.get("traffic_shaping", {}).get(
+            self._network_id, {}
         )
         if traffic_shaping:
             limits = traffic_shaping.get("bandwidthLimits", {})

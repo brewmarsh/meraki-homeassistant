@@ -1,4 +1,5 @@
 """Tests for the Meraki VLANs list sensor."""
+
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -12,7 +13,7 @@ from custom_components.meraki_ha.const import (
 )
 
 # Mock the hass_frontend module
-sys.modules['hass_frontend'] = MagicMock()
+sys.modules["hass_frontend"] = MagicMock()
 
 
 @pytest.mark.asyncio
@@ -28,7 +29,9 @@ async def test_vlans_list_sensor(hass: HomeAssistant):
 
     mock_data = {
         "devices": [],
-        "networks": [{"id": "net1", "name": "Test Network", "productTypes": ["appliance"]}],
+        "networks": [
+            {"id": "net1", "name": "Test Network", "productTypes": ["appliance"]}
+        ],
         "vlans": {
             "net1": [
                 {
@@ -54,9 +57,7 @@ async def test_vlans_list_sensor(hass: HomeAssistant):
     with patch(
         "custom_components.meraki_ha.coordinator.ApiClient.get_all_data",
         return_value=mock_data,
-    ), patch(
-        "custom_components.meraki_ha.async_register_webhook", return_value=None
-    ):
+    ), patch("custom_components.meraki_ha.async_register_webhook", return_value=None):
         assert await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
 

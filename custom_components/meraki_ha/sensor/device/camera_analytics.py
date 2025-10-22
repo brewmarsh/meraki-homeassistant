@@ -21,7 +21,9 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAnalyticsSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
+class MerakiAnalyticsSensor(
+    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+):
     """Base class for Meraki analytics sensors."""
 
     def __init__(

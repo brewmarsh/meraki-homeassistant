@@ -33,9 +33,8 @@ class MerakiTrafficShapingSensor(MerakiNetworkEntity, SensorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        traffic_shaping = (
-            self.coordinator.data.get("traffic_shaping", {})
-            .get(self._network_id, {})
+        traffic_shaping = self.coordinator.data.get("traffic_shaping", {}).get(
+            self._network_id, {}
         )
         if traffic_shaping:
             self._attr_native_value = (

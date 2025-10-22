@@ -17,7 +17,9 @@ from ...core.utils.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiPoeUsageSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
+class MerakiPoeUsageSensor(
+    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+):
     """Representation of a Meraki switch PoE usage sensor.
 
     This sensor displays the aggregated PoE usage for a Meraki MS switch
