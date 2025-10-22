@@ -19,9 +19,7 @@ from ..helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class SwitchPortSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], BinarySensorEntity
-):
+class SwitchPortSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], BinarySensorEntity):
     """Representation of a Meraki switch port sensor."""
 
     _attr_state_color = True

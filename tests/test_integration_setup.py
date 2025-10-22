@@ -1,5 +1,4 @@
 """Integration-level tests for the Meraki HA component."""
-
 import sys
 from unittest.mock import MagicMock, patch, AsyncMock
 
@@ -13,7 +12,7 @@ from custom_components.meraki_ha.const import DOMAIN
 from tests.const import MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE
 
 # Mock the hass_frontend module
-sys.modules["hass_frontend"] = MagicMock()
+sys.modules['hass_frontend'] = MagicMock()
 
 
 @pytest.fixture

@@ -82,7 +82,7 @@ class MerakiDeviceConnectedClientsSensor(
 
             if device_clients is None:
                 # Data for this specific device might not be available yet
-                self._attr_native_value = None
+                self._attr_native_value = 0
                 return
 
             self._attr_native_value = len(device_clients)

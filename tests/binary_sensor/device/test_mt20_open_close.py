@@ -54,7 +54,9 @@ def mock_config_entry():
 def test_mt20_open_sensor(mock_coordinator, mock_config_entry):
     """Test the MT20 open/close sensor when the door is open."""
     device_info = mock_coordinator.data["devices"][0]
-    sensor = MerakiMt20OpenCloseSensor(mock_coordinator, device_info, mock_config_entry)
+    sensor = MerakiMt20OpenCloseSensor(
+        mock_coordinator, device_info, mock_config_entry
+    )
 
     assert sensor.unique_id == "mt20-1-door"
     assert sensor.name == "MT20 Sensor Door"
@@ -65,7 +67,9 @@ def test_mt20_open_sensor(mock_coordinator, mock_config_entry):
 def test_mt20_closed_sensor(mock_coordinator, mock_config_entry):
     """Test the MT20 open/close sensor when the door is closed."""
     device_info = mock_coordinator.data["devices"][1]
-    sensor = MerakiMt20OpenCloseSensor(mock_coordinator, device_info, mock_config_entry)
+    sensor = MerakiMt20OpenCloseSensor(
+        mock_coordinator, device_info, mock_config_entry
+    )
 
     assert sensor.unique_id == "mt20-2-door"
     assert sensor.name == "MT20 Sensor Closed Door"
@@ -76,7 +80,9 @@ def test_mt20_closed_sensor(mock_coordinator, mock_config_entry):
 def test_mt20_availability(mock_coordinator, mock_config_entry):
     """Test sensor availability for the MT20 sensor."""
     device_info = mock_coordinator.data["devices"][0]
-    sensor = MerakiMt20OpenCloseSensor(mock_coordinator, device_info, mock_config_entry)
+    sensor = MerakiMt20OpenCloseSensor(
+        mock_coordinator, device_info, mock_config_entry
+    )
 
     # Sensor should be available initially
     assert sensor.available is True

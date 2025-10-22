@@ -18,9 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 CLIENT_TRACKER_DEVICE_ID = "client_tracker"
 
 
-class ClientTrackerDeviceSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
-):
+class ClientTrackerDeviceSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
     """A sensor representing the Client Tracker device itself."""
 
     _attr_has_entity_name = True
@@ -30,9 +28,7 @@ class ClientTrackerDeviceSensor(
         icon="mdi:account-group",
     )
 
-    def __init__(
-        self, coordinator: MerakiDataUpdateCoordinator, config_entry: ConfigEntry
-    ) -> None:
+    def __init__(self, coordinator: MerakiDataUpdateCoordinator, config_entry: ConfigEntry) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._config_entry = config_entry

@@ -1,5 +1,4 @@
 """Tests for the Meraki options flow."""
-
 import sys
 from unittest.mock import MagicMock
 
@@ -16,7 +15,7 @@ from custom_components.meraki_ha.const import (
 )
 
 # Mock the hass_frontend module
-sys.modules["hass_frontend"] = MagicMock()
+sys.modules['hass_frontend'] = MagicMock()
 
 
 @pytest.mark.asyncio

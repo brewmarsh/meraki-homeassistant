@@ -33,9 +33,7 @@ OPTIONS_SCHEMA = vol.Schema(
                 min=30, max=86400, step=1, mode=selector.NumberSelectorMode.SLIDER
             )
         ),
-        vol.Required(
-            CONF_ENABLE_DEVICE_TRACKER, default=True
-        ): selector.BooleanSelector(),
+        vol.Required(CONF_ENABLE_DEVICE_TRACKER, default=True): selector.BooleanSelector(),
         vol.Required(
             CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
         ): selector.BooleanSelector(),

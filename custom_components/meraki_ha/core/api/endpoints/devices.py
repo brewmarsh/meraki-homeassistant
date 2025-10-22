@@ -27,7 +27,10 @@ class DevicesEndpoints:
             serial,
             timespan=300,  # 5 minutes to get current clients
         )
-        return validate_response(clients)
+        validated = validate_response(clients)
+        if isinstance(validated, list):
+            return validated
+        return []
 
     @handle_meraki_errors
     async def get_device(self, serial: str) -> Dict[str, Any]:

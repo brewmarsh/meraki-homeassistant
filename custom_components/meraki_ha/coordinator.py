@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 import logging
+from typing import Any, Dict, Optional
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -20,11 +21,12 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
 )
 from .core.api.client import MerakiAPIClient as ApiClient
+from .types import MerakiDevice, MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDataUpdateCoordinator(DataUpdateCoordinator):
+class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
     """A centralized coordinator for Meraki API data."""
 
     def __init__(
@@ -40,8 +42,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator):
             coordinator=self,
         )
         self.config_entry = entry
-        self.devices_by_serial: dict = {}
-        self.networks_by_id: dict = {}
+        self.devices_by_serial: Dict[str, MerakiDevice] = {}
+        self.networks_by_id: Dict[str, MerakiNetwork] = {}
         self.ssids_by_network_and_number: dict = {}
         self.last_successful_update: datetime | None = None
         self.last_successful_data: dict = {}
@@ -65,9 +67,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=scan_interval),
         )
 
-    def register_pending_update(
-        self, unique_id: str, expiry_seconds: int = 150
-    ) -> None:
+    def register_pending_update(self, unique_id: str, expiry_seconds: int = 150) -> None:
         """
         Register that an entity has a pending update and should ignore coordinator data.
 
@@ -103,9 +103,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator):
     def _filter_ignored_networks(self, data: dict) -> None:
         """Filter out networks that the user has chosen to ignore."""
         if not self.config_entry or not hasattr(self.config_entry, "options"):
-            _LOGGER.debug(
-                "Config entry or options not available, cannot filter ignored networks."
-            )
+            _LOGGER.debug("Config entry or options not available, cannot filter ignored networks.")
             return
         ignored_networks_str = self.config_entry.options.get(
             CONF_IGNORED_NETWORKS, DEFAULT_IGNORED_NETWORKS
@@ -152,7 +150,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator):
                     data["devices"][0]["status_messages"].append(
                         "This is a test message to verify the UI."
                     )
-                    # END TEST CODE
+                # END TEST CODE
                     ha_device = dev_reg.async_get_device(
                         identifiers={(DOMAIN, device["serial"])}
                     )
@@ -175,9 +173,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator):
             self.last_successful_data = data
             return data
         except Exception as err:
-            if self.last_successful_update and (
-                datetime.now() - self.last_successful_update
-            ) < timedelta(minutes=30):
+            if (
+                self.last_successful_update
+                and (datetime.now() - self.last_successful_update)
+                < timedelta(minutes=30)
+            ):
                 _LOGGER.warning(
                     "Failed to fetch new Meraki data, using stale data from %s ago. Error: %s",
                     (datetime.now() - self.last_successful_update),
@@ -190,11 +190,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator):
             )
             raise UpdateFailed(f"Error communicating with API: {err}") from err
 
-    def get_device(self, serial: str):
+    def get_device(self, serial: str) -> Optional[MerakiDevice]:
         """Get device data by serial number."""
         return self.devices_by_serial.get(serial)
 
-    def get_network(self, network_id: str):
+    def get_network(self, network_id: str) -> Optional[MerakiNetwork]:
         """Get network data by ID."""
         return self.networks_by_id.get(network_id)
 

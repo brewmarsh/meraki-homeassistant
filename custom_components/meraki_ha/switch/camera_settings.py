@@ -4,6 +4,7 @@ from typing import Any, Dict
 import logging
 
 from homeassistant.components.switch import SwitchEntity
+from ..types import MerakiDevice
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..core.api.client import MerakiAPIClient
@@ -32,10 +33,13 @@ class MerakiCameraSettingSwitchBase(
         self._key = key
         self._api_field = api_field
         self._attr_unique_id = f"{self._device_data['serial']}_{self._key}"
+        self._attr_is_on = False
         self._update_state()  # Set initial state
 
-    def _get_value_from_device(self, device: Dict[str, Any]) -> bool:
+    def _get_value_from_device(self, device: MerakiDevice | None) -> bool:
         """Drill down into the device dictionary to get the state value."""
+        if device is None:
+            return False
         keys = self._api_field.split(".")
         value = device
         for key in keys:
@@ -94,15 +98,15 @@ class MerakiCameraSettingSwitchBase(
                 video_settings = await self.client.camera.update_camera_video_settings(
                     serial=self._device_data["serial"], **{field_name: is_on}
                 )
-                if video_settings:
+                if video_settings is not None:
                     # Update coordinator data with the new video settings
                     for i, device in enumerate(
                         self.coordinator.data.get("devices", [])
                     ):
                         if device.get("serial") == self._device_data["serial"]:
-                            self.coordinator.data["devices"][i][
-                                "video_settings"
-                            ] = video_settings
+                            self.coordinator.data["devices"][i]["video_settings"] = (
+                                video_settings
+                            )
                             break
                     self.coordinator.async_update_listeners()
 

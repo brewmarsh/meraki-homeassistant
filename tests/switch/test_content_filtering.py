@@ -36,10 +36,7 @@ def test_switch_creation(mock_coordinator, mock_config_entry):
     switch = MerakiContentFilteringSwitch(
         mock_coordinator, mock_config_entry, network, category
     )
-    assert (
-        switch.unique_id
-        == "meraki-content-filtering-net_1-meraki:contentFiltering/category/1"
-    )
+    assert switch.unique_id == "meraki-content-filtering-net_1-meraki:contentFiltering/category/1"
     assert switch.name == "Block Social Media"
 
 

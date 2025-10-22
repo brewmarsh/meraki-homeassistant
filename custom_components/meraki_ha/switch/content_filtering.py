@@ -54,7 +54,9 @@ class MerakiContentFilteringSwitch(
         content_filtering = self.coordinator.data.get("content_filtering", {}).get(
             self._network["id"], {}
         )
-        return self._category["id"] in content_filtering.get("blockedUrlCategories", [])
+        return self._category["id"] in content_filtering.get(
+            "blockedUrlCategories", []
+        )
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""

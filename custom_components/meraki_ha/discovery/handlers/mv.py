@@ -33,7 +33,6 @@ if TYPE_CHECKING:
     from ...services.camera_service import CameraService
     from ...services.device_control_service import DeviceControlService
     from ...services.network_control_service import NetworkControlService
-    from ...core.api.client import MerakiAPIClient
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,13 +48,12 @@ class MVHandler(BaseDeviceHandler):
         config_entry: "ConfigEntry",
         camera_service: "CameraService",
         control_service: "DeviceControlService",
-        meraki_client: "MerakiAPIClient",
     ) -> None:
         """Initialize the MVHandler."""
         super().__init__(coordinator, device, config_entry)
         self._camera_service = camera_service
         self._control_service = control_service
-        self._meraki_client = meraki_client
+        self._meraki_client = coordinator.api
 
     @classmethod
     def create(
@@ -67,7 +65,6 @@ class MVHandler(BaseDeviceHandler):
         control_service: "DeviceControlService",
         network_control_service: "NetworkControlService",
         switch_port_coordinator: "SwitchPortStatusCoordinator",
-        meraki_client: "MerakiAPIClient",
     ) -> "MVHandler":
         """Create an instance of the handler."""
         return cls(
@@ -76,7 +73,6 @@ class MVHandler(BaseDeviceHandler):
             config_entry,
             camera_service,
             control_service,
-            meraki_client,
         )
 
     async def discover_entities(self) -> List[Entity]:

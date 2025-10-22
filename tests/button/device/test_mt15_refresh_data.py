@@ -48,7 +48,9 @@ def mock_meraki_client():
     return client
 
 
-def test_mt15_button_creation(mock_coordinator, mock_config_entry, mock_meraki_client):
+def test_mt15_button_creation(
+    mock_coordinator, mock_config_entry, mock_meraki_client
+):
     """Test the creation of the MT15 refresh data button."""
     device_info = mock_coordinator.data["devices"][0]
     button = MerakiMt15RefreshDataButton(

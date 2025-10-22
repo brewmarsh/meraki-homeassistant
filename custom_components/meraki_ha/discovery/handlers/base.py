@@ -14,9 +14,7 @@ from typing import TYPE_CHECKING, List
 if TYPE_CHECKING:
     from ....types import MerakiDevice
     from homeassistant.helpers.entity import Entity
-    from ....core.coordinators.meraki_data_coordinator import (
-        MerakiDataUpdateCoordinator,
-    )
+    from ....core.coordinators.meraki_data_coordinator import MerakiDataUpdateCoordinator
     from homeassistant.config_entries import ConfigEntry
     from ....services.camera_service import CameraService
     from ....services.device_control_service import DeviceControlService

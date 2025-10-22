@@ -14,9 +14,7 @@ from ...sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
 if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
     from ....types import MerakiDevice
-    from ....core.coordinators.meraki_data_coordinator import (
-        MerakiDataUpdateCoordinator,
-    )
+    from ....core.coordinators.meraki_data_coordinator import MerakiDataUpdateCoordinator
     from homeassistant.config_entries import ConfigEntry
     from ...services.device_control_service import DeviceControlService
     from ...services.network_control_service import NetworkControlService
