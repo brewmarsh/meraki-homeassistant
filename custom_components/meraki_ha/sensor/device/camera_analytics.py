@@ -1,6 +1,4 @@
-"""
-Sensor entities for camera analytics.
-"""
+"""Sensor for camera analytics."""
 
 from __future__ import annotations
 

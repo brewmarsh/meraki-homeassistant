@@ -1,5 +1,5 @@
 """
-Meraki SSID Handler
+Meraki SSID Handler.
 
 This module defines the SSIDHandler class, which is responsible for discovering
 virtual devices and entities for each Meraki SSID.

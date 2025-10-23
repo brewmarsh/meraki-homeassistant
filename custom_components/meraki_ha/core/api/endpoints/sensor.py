@@ -1,6 +1,4 @@
-"""
-Meraki API sensor endpoints.
-"""
+"""Meraki API sensor endpoints."""
 
 from __future__ import annotations
 

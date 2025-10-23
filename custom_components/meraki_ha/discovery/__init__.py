@@ -1,1 +1,1 @@
-# This file makes the 'discovery' directory a Python package.
+"""Discovery service for the Meraki integration."""

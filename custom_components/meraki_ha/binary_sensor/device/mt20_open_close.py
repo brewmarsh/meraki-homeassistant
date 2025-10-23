@@ -1,6 +1,4 @@
-"""
-Binary sensor for Meraki MT20 open/close sensor.
-"""
+"""Binary sensor for Meraki MT20 open/close sensor."""
 
 from __future__ import annotations
 

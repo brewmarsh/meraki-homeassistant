@@ -1,5 +1,5 @@
 """
-Network Hub
+Network Hub.
 
 This module defines the NetworkHub class, which is responsible for
 processing and managing data for a specific Meraki network.

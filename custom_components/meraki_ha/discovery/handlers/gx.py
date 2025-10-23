@@ -1,6 +1,4 @@
-"""
-Device handler for Meraki GX appliances.
-"""
+"""Discovery handler for GX devices."""
 
 from __future__ import annotations
 

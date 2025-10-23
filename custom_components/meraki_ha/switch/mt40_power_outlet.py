@@ -1,6 +1,4 @@
-"""
-Switch entity for Meraki MT40 power outlet.
-"""
+"""Switch entity for Meraki MT40 power outlet."""
 
 from __future__ import annotations
 

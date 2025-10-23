@@ -1,6 +1,4 @@
-"""
-Support for Meraki cameras.
-"""
+"""Support for Meraki cameras."""
 
 from __future__ import annotations
 
@@ -132,6 +130,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
     ) -> bytes | None:
         """
         Return a still image from the camera.
+
         This method includes a retry mechanism to handle the delay in snapshot
         generation by the Meraki cloud.
         """

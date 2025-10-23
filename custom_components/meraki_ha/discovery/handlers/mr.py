@@ -1,5 +1,5 @@
 """
-MR (Wireless) Device Handler
+MR (Wireless) Device Handler.
 
 This module defines the MRHandler class, which is responsible for discovering
 entities for Meraki MR series (wireless) devices.

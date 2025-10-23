@@ -1,5 +1,5 @@
 """
-MV (Camera) Device Handler
+MV (Camera) Device Handler.
 
 This module defines the MVHandler class, which is responsible for discovering
 entities for Meraki MV series (camera) devices.

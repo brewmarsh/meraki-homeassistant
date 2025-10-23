@@ -1,6 +1,4 @@
-"""
-Device handler for Meraki MT sensors.
-"""
+"""Discovery handler for MT devices."""
 
 from __future__ import annotations
 

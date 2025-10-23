@@ -26,9 +26,7 @@ class CameraService:
         self._repository = repository
 
     async def get_supported_analytics(self, serial: str) -> List[str]:
-        """
-        Get the list of supported analytics features for a camera.
-        """
+        """Get the list of supported analytics features for a camera."""
         features = await self._repository.get_camera_features(serial)
         analytics = [
             feature

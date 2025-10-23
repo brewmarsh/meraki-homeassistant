@@ -1,6 +1,4 @@
-"""
-Binary sensor for camera motion.
-"""
+"""Binary sensor for Meraki camera motion detection."""
 
 from __future__ import annotations
 

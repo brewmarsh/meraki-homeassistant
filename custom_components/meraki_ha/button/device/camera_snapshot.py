@@ -1,6 +1,4 @@
-"""
-Button entity for taking a camera snapshot.
-"""
+"""Button entity for taking a camera snapshot."""
 
 from __future__ import annotations
 

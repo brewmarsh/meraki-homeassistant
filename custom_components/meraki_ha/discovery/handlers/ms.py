@@ -1,5 +1,5 @@
 """
-Meraki MS Switch Handler
+Meraki MS Switch Handler.
 
 This module defines the MSHandler class, which is responsible for discovering
 entities for Meraki MS switches.

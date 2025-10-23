@@ -1,6 +1,4 @@
-"""
-Button entity for Meraki MT15 refresh data button.
-"""
+"""Button entity for refreshing MT15 sensor data."""
 
 from __future__ import annotations
 

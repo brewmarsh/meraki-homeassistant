@@ -1,5 +1,5 @@
 """
-Base Device Handler
+Base Device Handler.
 
 This module defines the BaseDeviceHandler class, which provides a common
 interface for all device-specific handlers.

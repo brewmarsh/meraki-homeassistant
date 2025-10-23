@@ -1,5 +1,5 @@
 """
-Device Control Service
+Device Control Service.
 
 This module defines the DeviceControlService class, which is responsible for
 handling device-specific control actions.

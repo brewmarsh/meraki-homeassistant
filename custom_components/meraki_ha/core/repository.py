@@ -1,5 +1,5 @@
 """
-Meraki Repository
+Meraki Repository.
 
 This module defines the MerakiRepository class, which is responsible for
 interacting with the Meraki API client and handling data processing.
