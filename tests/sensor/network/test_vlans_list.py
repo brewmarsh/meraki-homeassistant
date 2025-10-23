@@ -1,9 +1,10 @@
 """Tests for the Meraki VLANs list sensor."""
+
 import sys
 from unittest.mock import MagicMock
 
 # Mock the hass_frontend module
-sys.modules['hass_frontend'] = MagicMock()
+sys.modules["hass_frontend"] = MagicMock()
 
 
 # @pytest.mark.asyncio

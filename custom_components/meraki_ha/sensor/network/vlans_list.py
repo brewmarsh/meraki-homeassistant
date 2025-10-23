@@ -1,4 +1,5 @@
 """Platform for Meraki VLAN list sensors."""
+
 from __future__ import annotations
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -10,7 +11,12 @@ from ...core.entities.meraki_network_entity import MerakiNetworkEntity
 class VlansListSensor(MerakiNetworkEntity, SensorEntity):
     """Representation of a sensor that lists all VLANs in a network."""
 
-    def __init__(self, coordinator: MerakiDataUpdateCoordinator, config_entry: ConfigEntry, network_data: dict) -> None:
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        network_data: dict,
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, config_entry, network_data)
         self._attr_unique_id = f"{network_data['id']}_vlans"
@@ -31,5 +37,7 @@ class VlansListSensor(MerakiNetworkEntity, SensorEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         vlans = self.coordinator.data.get("vlans", {}).get(self._network["id"], [])
-        self._attr_native_value = [vlan.get("name") for vlan in vlans if vlan.get("name")]
+        self._attr_native_value = [
+            vlan.get("name") for vlan in vlans if vlan.get("name")
+        ]
         self.async_write_ha_state()
