@@ -11,6 +11,6 @@ echo "Running flake8..."
 flake8 .
 
 echo "Running bandit..."
-bandit -c .bandit.yaml -r .
+bandit -r .
 
 echo "All checks passed!"
