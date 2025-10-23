@@ -6,6 +6,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.entities.meraki_network_entity import MerakiNetworkEntity
+from ...types import MerakiNetwork
 
 
 class VlansListSensor(MerakiNetworkEntity, SensorEntity):
@@ -15,13 +16,13 @@ class VlansListSensor(MerakiNetworkEntity, SensorEntity):
         self,
         coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
-        network_data: dict,
+        network_data: MerakiNetwork,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, config_entry, network_data)
         self._attr_unique_id = f"{network_data['id']}_vlans"
         self._attr_name = "VLANs"
-        self._attr_native_value = []
+        self._attr_native_value: list[str] = []
 
     @property
     def native_value(self) -> int:
