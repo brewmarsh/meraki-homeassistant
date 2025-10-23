@@ -1,4 +1,4 @@
-homeassistant
+homeassistant==2025.1.4
 voluptuous
 flake8
 bandit
