@@ -1,0 +1,110 @@
+PYTHONPATH: :.
+Running tests...
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-8.3.4, pluggy-1.6.0
+rootdir: /app
+configfile: pytest.ini
+plugins: github-actions-annotate-failures-0.2.0, homeassistant-custom-component-0.13.205, unordered-0.6.1, anyio-4.11.0, pytest_freezer-0.4.8, requests-mock-1.12.1, syrupy-4.8.0, asyncio-0.24.0, picked-0.5.0, timeout-2.3.1, cov-6.0.0, socket-0.7.0, respx-0.21.1, aiohttp-1.0.5, xdist-3.6.1, mock-3.15.1, sugar-1.0.0
+asyncio: mode=Mode.AUTO, default_loop_scope=None
+collected 160 items
+
+tests/binary_sensor/device/test_camera_motion.py ..                      [  1%]
+tests/binary_sensor/device/test_mt20_open_close.py ...                   [  3%]
+tests/binary_sensor/test_switch_port.py ...                              [  5%]
+tests/button/device/test_mt15_refresh_data.py ..                         [  6%]
+tests/core/api/endpoints/test_appliance.py ........                      [ 11%]
+tests/core/api/test_client.py ...ssss.s                                  [ 16%]
+tests/core/utils/test_api_utils.py ...                                   [ 18%]
+tests/core/utils/test_naming_utils.py ....                               [ 21%]
+tests/core/utils/test_validation_utils.py ....                           [ 23%]
+tests/discovery/handlers/test_base.py ..                                 [ 25%]
+tests/discovery/handlers/test_gx.py .                                    [ 25%]
+tests/discovery/handlers/test_mr.py .                                    [ 26%]
+tests/discovery/handlers/test_ms.py .                                    [ 26%]
+tests/discovery/handlers/test_mv.py ...                                  [ 28%]
+tests/discovery/handlers/test_mx.py .                                    [ 29%]
+tests/discovery/handlers/test_network.py .                               [ 30%]
+tests/discovery/test_service.py ..                                       [ 31%]
+tests/helpers/test_device_info_helpers.py ..                             [ 32%]
+tests/helpers/test_entity_helpers.py .                                   [ 33%]
+tests/helpers/test_ssid_status_calculator.py .                           [ 33%]
+tests/helpers/test_ssid_status_calculator_extended.py ....               [ 36%]
+tests/hubs/test_network.py .....                                         [ 39%]
+tests/hubs/test_organization.py ....                                     [ 41%]
+tests/sensor/device/test_appliance_port.py .                             [ 42%]
+tests/sensor/device/test_appliance_uplink.py .                           [ 43%]
+tests/sensor/device/test_camera_analytics.py ..                          [ 44%]
+tests/sensor/device/test_connected_clients.py ....                       [ 46%]
+tests/sensor/device/test_data_usage.py ..                                [ 48%]
+tests/sensor/device/test_meraki_firmware_status.py .                     [ 48%]
+tests/sensor/device/test_poe_usage.py .                                  [ 49%]
+tests/sensor/network/test_vlan.py .                                      [ 50%]
+tests/sensor/ssid/test_ssid_connected_clients.py .                       [ 50%]
+tests/sensor/test_device_status.py ..                                    [ 51%]
+tests/sensor/test_meraki_wan1_connectivity.py .                          [ 52%]
+tests/sensor/test_meraki_wan2_connectivity.py .                          [ 53%]
+tests/sensor/test_network_clients.py .                                   [ 53%]
+tests/sensor/test_org_clients.py ...                                     [ 55%]
+tests/sensor/test_org_device_type_clients.py .                           [ 56%]
+tests/sensor/test_setup_mt_sensors.py .....                              [ 59%]
+tests/services/test_device_control_service.py .                          [ 60%]
+tests/services/test_network_control_service.py ..                        [ 61%]
+tests/services/test_switch_port_service.py ...                           [ 63%]
+tests/switch/test_adult_content_filtering.py ....                        [ 65%]
+tests/switch/test_camera_profiles.py ..                                  [ 66%]
+tests/switch/test_content_filtering.py ....                              [ 69%]
+tests/switch/test_meraki_ssid_device_switch.py ..                        [ 70%]
+tests/switch/test_mt40_power_outlet.py ....                              [ 73%]
+tests/switch/test_vlan_dhcp.py ...                                       [ 75%]
+tests/test_authentication.py ...                                         [ 76%]
+tests/test_camera.py ssssssss.........s.                                 [ 88%]
+tests/test_camera_control.py ..                                          [ 90%]
+tests/test_config_flow.py ..                                             [ 91%]
+tests/test_device_naming.py ...                                          [ 93%]
+tests/test_e2e_web_ui.py s                                               [ 93%]
+tests/test_init.py .                                                     [ 94%]
+tests/test_integration_setup.py ..                                       [ 95%]
+tests/test_options_flow.py .                                             [ 96%]
+tests/test_simple.py .                                                   [ 96%]
+tests/test_ssid_device_representation.py .                               [ 97%]
+tests/test_webhook.py ...                                                [ 99%]
+tests/text/test_meraki_ssid_name.py .                                    [100%]
+
+======================= 145 passed, 15 skipped in 12.95s =======================
+Running flake8...
+Running bandit...
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: B105,B110,B607,B104,B101,B311,B322,B106,B112,B107,B404,B603
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[extension_loader]	WARNING	Unknown test found in profile: B322
+[main]	INFO	using config: .bandit.yaml
+[main]	INFO	running on Python 3.12.12
+Working... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:01
+Run started:2025-10-23 15:30:26.621297
+
+Test results:
+	No issues identified.
+
+Code scanned:
+	Total lines of code: 9534
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+Files skipped (0):
+All checks passed!
