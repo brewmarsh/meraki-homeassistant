@@ -5,3 +5,4 @@ bandit
 pytest-homeassistant-custom-component
 pytest-mock
 types-aiofiles
+playwright==1.39.0
