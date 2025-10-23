@@ -14,7 +14,7 @@ from ..sensor_registry import (
     get_sensors_for_device_type,
 )
 from .setup_mt_sensors import async_setup_mt_sensors
-from .network.vlans_list import MerakiNetworkVLANsSensor
+from .network.vlans_list import VlansListSensor
 from .device.appliance_port import MerakiAppliancePortSensor
 from .network.vlan import (
     MerakiVLANIDSensor,
@@ -129,7 +129,7 @@ def _setup_network_sensors(
             unique_id = f"{network_id}_vlans_list"
             if unique_id not in added_entities:
                 entities.append(
-                    MerakiNetworkVLANsSensor(coordinator, config_entry, network_data)
+                    VlansListSensor(coordinator, config_entry, network_data)
                 )
                 added_entities.add(unique_id)
     return entities

@@ -1,5 +1,5 @@
 """
-Organization Hub
+Organization Hub.
 
 This module defines the OrganizationHub class, which is responsible for
 processing and managing organization-level data from the MerakiDataUpdateCoordinator.

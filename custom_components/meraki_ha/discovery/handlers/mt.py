@@ -1,6 +1,4 @@
-"""
-Device handler for Meraki MT sensors.
-"""
+"""Discovery handler for MT devices."""
 
 from __future__ import annotations
 
@@ -12,7 +10,9 @@ from .base import BaseDeviceHandler
 if TYPE_CHECKING:
     from ....types import MerakiDevice
     from homeassistant.helpers.entity import Entity
-    from ....core.coordinators.meraki_data_coordinator import MerakiDataUpdateCoordinator
+    from ....core.coordinators.meraki_data_coordinator import (
+        MerakiDataUpdateCoordinator,
+    )
     from homeassistant.config_entries import ConfigEntry
     from ...services.device_control_service import DeviceControlService
     from ....services.camera_service import CameraService

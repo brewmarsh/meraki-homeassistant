@@ -1,5 +1,5 @@
 """
-Network Handler
+Network Handler.
 
 This module defines the NetworkHandler class, which is responsible for
 discovering and creating network-level entities.

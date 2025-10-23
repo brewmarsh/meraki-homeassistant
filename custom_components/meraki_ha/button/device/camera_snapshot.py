@@ -1,6 +1,4 @@
-"""
-Button entity for taking a camera snapshot.
-"""
+"""Button entity for taking a camera snapshot."""
 
 from __future__ import annotations
 
@@ -22,7 +20,9 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSnapshotButton(CoordinatorEntity[MerakiDataUpdateCoordinator], ButtonEntity):
+class MerakiSnapshotButton(
+    CoordinatorEntity[MerakiDataUpdateCoordinator], ButtonEntity
+):
     """Representation of a snapshot button."""
 
     def __init__(

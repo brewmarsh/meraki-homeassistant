@@ -1,6 +1,4 @@
-"""
-Support for Meraki cameras.
-"""
+"""Support for Meraki cameras."""
 
 from __future__ import annotations
 
@@ -87,9 +85,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
         self._device_data = device  # Store initial data
         self._attr_unique_id = f"{self._device_serial}-camera"
         self._attr_name = format_entity_name(
-            format_device_name(
-                self._device_data, self._config_entry.options
-            ),
+            format_device_name(self._device_data, self._config_entry.options),
             "",
         )
         self._attr_model = self._device_data.get("model")
@@ -124,9 +120,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
         """Return device information."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
-            name=format_device_name(
-                self._device_data, self._config_entry.options
-            ),
+            name=format_device_name(self._device_data, self._config_entry.options),
             model=self._device_data.get("model"),
             manufacturer="Cisco Meraki",
         )
@@ -136,12 +130,14 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
     ) -> bytes | None:
         """
         Return a still image from the camera.
+
         This method includes a retry mechanism to handle the delay in snapshot
         generation by the Meraki cloud.
         """
         if self._device_data.get("status") != "online":
             _LOGGER.debug(
-                "Not fetching snapshot for camera %s because it is not online", self.name
+                "Not fetching snapshot for camera %s because it is not online",
+                self.name,
             )
             return None
         snapshot_url = await self._camera_service.generate_snapshot(self._device_serial)

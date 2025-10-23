@@ -1,4 +1,5 @@
 """Helper functions for entities."""
+
 from typing import Any, Dict, Optional
 
 from ..coordinator import MerakiDataUpdateCoordinator

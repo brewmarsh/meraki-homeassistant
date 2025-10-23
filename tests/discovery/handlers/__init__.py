@@ -1,1 +1,1 @@
-# This file makes the 'handlers' directory a Python package.
+"""Tests for the discovery handlers of the Meraki integration."""

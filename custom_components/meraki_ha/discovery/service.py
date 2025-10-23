@@ -1,5 +1,5 @@
 """
-Device Discovery Service
+Device Discovery Service.
 
 This module defines the DeviceDiscoveryService, which is responsible for
 discovering devices from the Meraki data and delegating entity creation

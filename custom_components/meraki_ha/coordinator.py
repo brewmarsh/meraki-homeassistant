@@ -67,7 +67,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             update_interval=timedelta(seconds=scan_interval),
         )
 
-    def register_pending_update(self, unique_id: str, expiry_seconds: int = 150) -> None:
+    def register_pending_update(
+        self, unique_id: str, expiry_seconds: int = 150
+    ) -> None:
         """
         Register that an entity has a pending update and should ignore coordinator data.
 
@@ -103,7 +105,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
     def _filter_ignored_networks(self, data: dict) -> None:
         """Filter out networks that the user has chosen to ignore."""
         if not self.config_entry or not hasattr(self.config_entry, "options"):
-            _LOGGER.debug("Config entry or options not available, cannot filter ignored networks.")
+            _LOGGER.debug(
+                "Config entry or options not available, cannot filter ignored networks."
+            )
             return
         ignored_networks_str = self.config_entry.options.get(
             CONF_IGNORED_NETWORKS, DEFAULT_IGNORED_NETWORKS
@@ -150,7 +154,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                     data["devices"][0]["status_messages"].append(
                         "This is a test message to verify the UI."
                     )
-                # END TEST CODE
+                    # END TEST CODE
                     ha_device = dev_reg.async_get_device(
                         identifiers={(DOMAIN, device["serial"])}
                     )
@@ -173,11 +177,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             self.last_successful_data = data
             return data
         except Exception as err:
-            if (
-                self.last_successful_update
-                and (datetime.now() - self.last_successful_update)
-                < timedelta(minutes=30)
-            ):
+            if self.last_successful_update and (
+                datetime.now() - self.last_successful_update
+            ) < timedelta(minutes=30):
                 _LOGGER.warning(
                     "Failed to fetch new Meraki data, using stale data from %s ago. Error: %s",
                     (datetime.now() - self.last_successful_update),

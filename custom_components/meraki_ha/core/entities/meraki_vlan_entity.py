@@ -37,7 +37,9 @@ class MerakiVLANEntity(BaseMerakiEntity):
         )
 
         self._attr_device_info = DeviceInfo(
-            identifiers={(self._config_entry.domain, f"vlan_{network_id}_{vlan['id']}")},
+            identifiers={
+                (self._config_entry.domain, f"vlan_{network_id}_{vlan['id']}")
+            },
             name=formatted_name,
             manufacturer="Cisco Meraki",
             model="VLAN",

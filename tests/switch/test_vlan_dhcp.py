@@ -1,4 +1,5 @@
 """Tests for the Meraki VLAN DHCP switch."""
+
 from unittest.mock import MagicMock
 
 import pytest

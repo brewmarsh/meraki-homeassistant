@@ -1,4 +1,5 @@
 """End-to-end tests for the Meraki Web UI."""
+
 import sys
 import json
 from unittest.mock import MagicMock, patch
@@ -16,7 +17,7 @@ from custom_components.meraki_ha.const import (
 from .const import MOCK_ALL_DATA
 
 # Mock the hass_frontend module
-sys.modules['hass_frontend'] = MagicMock()
+sys.modules["hass_frontend"] = MagicMock()
 
 TEST_PORT = 9988
 MOCK_SETTINGS = {"scan_interval": 300}
