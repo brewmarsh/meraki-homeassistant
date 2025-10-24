@@ -8,3 +8,7 @@ node_modules/
 .cache/
 *.cache/
 .prettier-cache/
+
+# Coverage
+.coverage
+coverage.xml
