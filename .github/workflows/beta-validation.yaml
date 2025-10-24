@@ -36,9 +36,10 @@ jobs:
         run: bandit -r custom_components/meraki_ha/ -c .bandit.yaml
       - name: Run tests with coverage
         continue-on-error: true
-        run: pytest --cov=custom_components.meraki_ha tests/
+        run: pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: brewmarsh/meraki-homeassistant
+          files: ./coverage.xml
