@@ -1,6 +1,7 @@
 homeassistant
 voluptuous
-flake8
+ruff
+pip-audit
 bandit
 pytest-homeassistant-custom-component
 pytest-mock

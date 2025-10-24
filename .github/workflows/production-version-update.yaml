@@ -1,11 +1,10 @@
-name: Version and Release
+name: Production Version Update
 
 on:
   pull_request:
     types: [closed]
     branches:
       - main
-      - beta
 
 jobs:
   version:
@@ -21,7 +20,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          ref: ${{ github.base_ref }}
+          ref: 'main'
 
       - name: Set up Python and Node.js
         uses: actions/setup-python@v6
@@ -41,13 +40,10 @@ jobs:
         id: increment
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
-          BASE_BRANCH: ${{ github.base_ref }}
         run: |
           increment_type="patch" # Default increment type
 
-          if [[ "$BASE_BRANCH" == "beta" ]]; then
-            increment_type="beta"
-          elif [[ "$PR_TITLE" == *"[major]"* ]]; then
+          if [[ "$PR_TITLE" == *"[major]"* ]]; then
             increment_type="major"
           elif [[ "$PR_TITLE" == *"[minor]"* ]]; then
             increment_type="minor"
@@ -79,7 +75,7 @@ jobs:
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
           commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
-          branch: ${{ github.base_ref }}
+          branch: 'main'
 
       - name: Upload Release Notes
         if: steps.increment.outputs.new_version != ''
@@ -109,4 +105,4 @@ jobs:
           release_name: 'Release v${{ needs.version.outputs.new_version }}'
           body_path: 'RELEASE_NOTES.md'
           draft: false
-          prerelease: ${{ github.base_ref == 'beta' }}
+          prerelease: false
