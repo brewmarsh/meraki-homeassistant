@@ -39,16 +39,17 @@ jobs:
 
       - name: Increment Version
         id: increment
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          BASE_BRANCH: ${{ github.base_ref }}
         run: |
           increment_type="patch" # Default increment type
-          pr_title="${{ github.event.pull_request.title }}"
-          base_branch="${{ github.base_ref }}"
 
-          if [[ "$base_branch" == "beta" ]]; then
+          if [[ "$BASE_BRANCH" == "beta" ]]; then
             increment_type="beta"
-          elif [[ "$pr_title" == *"[major]"* ]]; then
+          elif [[ "$PR_TITLE" == *"[major]"* ]]; then
             increment_type="major"
-          elif [[ "$pr_title" == *"[minor]"* ]]; then
+          elif [[ "$PR_TITLE" == *"[minor]"* ]]; then
             increment_type="minor"
           fi
 
