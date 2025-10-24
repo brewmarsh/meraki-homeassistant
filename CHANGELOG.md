@@ -1,3 +1,13 @@
+## [1.5.4-beta.3](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.2...v1.5.4-beta.3) (2025-10-24)
+
+
+### Bug Fixes
+
+* **ci:** correct quoting in versioning workflow ([9b2d5b4](https://github.com/brewmarsh/meraki-homeassistant/commit/9b2d5b44cdd4e5fc39aeecda3d12c40f6849f7e8))
+* **ci:** resolve code coverage failures ([2291715](https://github.com/brewmarsh/meraki-homeassistant/commit/22917153ab5ae06e1f6b95e00a5ad5a9782dc629))
+
+
+
 ## [1.5.4-beta.2](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.3...v1.5.4-beta.2) (2025-10-24)
 
 
