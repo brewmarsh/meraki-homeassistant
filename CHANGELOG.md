@@ -1,3 +1,21 @@
+## [1.5.4-beta.2](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.3...v1.5.4-beta.2) (2025-10-24)
+
+
+### Bug Fixes
+
+* **ci:** Resolve CI test failures and dependency issues ([655e05f](https://github.com/brewmarsh/meraki-homeassistant/commit/655e05f6b29a876a50d5492192b7f5e030644a5e))
+* **deps:** Resolve test suite failures and dependency issues ([e3482c9](https://github.com/brewmarsh/meraki-homeassistant/commit/e3482c960526f491a09a77330a04f4d3071fc05a))
+* **deps:** Resolve test suite failures and dependency issues ([49a2d05](https://github.com/brewmarsh/meraki-homeassistant/commit/49a2d05e24e2ff0f4dde48974d5e473ff8de92a3))
+* **deps:** Resolve test suite failures and dependency issues ([15ea82d](https://github.com/brewmarsh/meraki-homeassistant/commit/15ea82d2eab214c320b8539134212d1181bded7c))
+* **testing:** Resolve test suite errors and improve check script ([7535220](https://github.com/brewmarsh/meraki-homeassistant/commit/75352200658f8c21044a7d1c8f98e1c5a6da50a1))
+
+
+### Features
+
+* **release:** Implement automated beta versioning and pre-releases ([f13c170](https://github.com/brewmarsh/meraki-homeassistant/commit/f13c170f0d1ebcb86d8f2695a25f2c0f97f30d75))
+
+
+
 ## [1.5.4](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.3...v1.5.4) (2025-10-20)
 
 
