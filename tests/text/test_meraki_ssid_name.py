@@ -1,8 +1,8 @@
 """Tests for the Meraki SSID Name text entity."""
 
-import pytest
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
+import pytest
 from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.text.meraki_ssid_name import MerakiSSIDNameText

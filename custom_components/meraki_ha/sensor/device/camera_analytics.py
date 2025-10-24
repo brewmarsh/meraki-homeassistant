@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
@@ -27,7 +27,7 @@ class MerakiAnalyticsSensor(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: Dict[str, Any],
+        device: dict[str, Any],
         camera_service: CameraService,
         object_type: str,
     ) -> None:
@@ -38,7 +38,7 @@ class MerakiAnalyticsSensor(
         self._object_type = object_type
         self._attr_unique_id = f"{self._device['serial']}-{object_type}-count"
         self._attr_name = f"{self._device['name']} {object_type.capitalize()} Count"
-        self._analytics_data: Dict[str, Any] = {}
+        self._analytics_data: dict[str, Any] = {}
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -46,12 +46,12 @@ class MerakiAnalyticsSensor(
         return resolve_device_info(self._device, self.coordinator.config_entry)
 
     @property
-    def native_value(self) -> Optional[int]:
+    def native_value(self) -> int | None:
         """Return the state of the sensor."""
         return self._analytics_data.get(self._object_type)
 
     @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         if not self._analytics_data:
             return {}
@@ -79,7 +79,7 @@ class MerakiPersonCountSensor(MerakiAnalyticsSensor):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: Dict[str, Any],
+        device: dict[str, Any],
         camera_service: CameraService,
     ) -> None:
         """Initialize the sensor."""
@@ -93,7 +93,7 @@ class MerakiVehicleCountSensor(MerakiAnalyticsSensor):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: Dict[str, Any],
+        device: dict[str, Any],
         camera_service: CameraService,
     ) -> None:
         """Initialize the sensor."""

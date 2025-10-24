@@ -1,5 +1,4 @@
-"""
-Meraki API client wrapper.
+"""Meraki API client wrapper.
 
 This module defines the main API client that acts as a facade for various
 Meraki API endpoint categories.
@@ -8,25 +7,25 @@ Meraki API endpoint categories.
 from __future__ import annotations
 
 import asyncio
-from functools import partial
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from functools import partial
+from typing import TYPE_CHECKING, Any
 
-from homeassistant.core import HomeAssistant
 import meraki  # type: ignore[import-untyped]
+from homeassistant.core import HomeAssistant
 
 if TYPE_CHECKING:
     from ...coordinator import MerakiDataUpdateCoordinator
+from ...core.errors import MerakiInformationalError
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
 from .endpoints.devices import DevicesEndpoints
 from .endpoints.network import NetworkEndpoints
 from .endpoints.organization import OrganizationEndpoints
+from .endpoints.sensor import SensorEndpoints
 from .endpoints.switch import SwitchEndpoints
 from .endpoints.wireless import WirelessEndpoints
-from .endpoints.sensor import SensorEndpoints
-from ...core.errors import MerakiInformationalError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,7 +42,7 @@ class MerakiAPIClient:
         hass: HomeAssistant,
         api_key: str,
         org_id: str,
-        coordinator: "MerakiDataUpdateCoordinator" | None = None,
+        coordinator: MerakiDataUpdateCoordinator | None = None,
         base_url: str = "https://api.meraki.com/api/v1",
     ) -> None:
         """Initialize the API client."""
@@ -106,7 +105,7 @@ class MerakiAPIClient:
             ),
         }
         results = await asyncio.gather(*tasks.values(), return_exceptions=True)
-        return dict(zip(tasks.keys(), results))
+        return dict(zip(tasks.keys(), results, strict=True))
 
     def _process_initial_data(self, results: dict) -> dict:
         """Process the initial data, handling errors and merging."""
@@ -115,19 +114,19 @@ class MerakiAPIClient:
         devices_availabilities_res = results.get("devices_availabilities")
         appliance_uplink_statuses_res = results.get("appliance_uplink_statuses")
 
-        networks: List[MerakiNetwork] = (
+        networks: list[MerakiNetwork] = (
             networks_res if isinstance(networks_res, list) else []
         )
         if not isinstance(networks_res, list):
             _LOGGER.warning("Could not fetch Meraki networks: %s", networks_res)
 
-        devices: List[MerakiDevice] = (
+        devices: list[MerakiDevice] = (
             devices_res if isinstance(devices_res, list) else []
         )
         if not isinstance(devices_res, list):
             _LOGGER.warning("Could not fetch Meraki devices: %s", devices_res)
 
-        devices_availabilities: List[Dict[str, Any]] = (
+        devices_availabilities: list[dict[str, Any]] = (
             devices_availabilities_res
             if isinstance(devices_availabilities_res, list)
             else []
@@ -138,7 +137,7 @@ class MerakiAPIClient:
                 devices_availabilities_res,
             )
 
-        appliance_uplink_statuses: List[Dict[str, Any]] = (
+        appliance_uplink_statuses: list[dict[str, Any]] = (
             appliance_uplink_statuses_res
             if isinstance(appliance_uplink_statuses_res, list)
             else []
@@ -166,15 +165,15 @@ class MerakiAPIClient:
         }
 
     async def _async_fetch_network_clients(
-        self, networks: List[MerakiNetwork]
-    ) -> List[Dict[str, Any]]:
+        self, networks: list[MerakiNetwork]
+    ) -> list[dict[str, Any]]:
         """Fetch client data for all networks, used for SSID sensors."""
         client_tasks = [
             self._run_with_semaphore(self.network.get_network_clients(network["id"]))
             for network in networks
         ]
         clients_results = await asyncio.gather(*client_tasks, return_exceptions=True)
-        clients: List[Dict[str, Any]] = []
+        clients: list[dict[str, Any]] = []
         for i, network in enumerate(networks):
             result = clients_results[i]
             if isinstance(result, list):
@@ -184,8 +183,8 @@ class MerakiAPIClient:
         return clients
 
     async def _async_fetch_device_clients(
-        self, devices: List[MerakiDevice]
-    ) -> Dict[str, List[Dict[str, Any]]]:
+        self, devices: list[MerakiDevice]
+    ) -> dict[str, list[dict[str, Any]]]:
         """Fetch client data for each device."""
         client_tasks = {
             device["serial"]: self._run_with_semaphore(
@@ -196,7 +195,7 @@ class MerakiAPIClient:
             in ["wireless", "appliance", "switch", "cellularGateway"]
         }
         results = await asyncio.gather(*client_tasks.values(), return_exceptions=True)
-        clients_by_serial: Dict[str, List[Dict[str, Any]]] = {}
+        clients_by_serial: dict[str, list[dict[str, Any]]] = {}
         for i, serial in enumerate(client_tasks.keys()):
             result = results[i]
             if isinstance(result, list):
@@ -204,7 +203,7 @@ class MerakiAPIClient:
         return clients_by_serial
 
     def _build_detail_tasks(
-        self, networks: List[MerakiNetwork], devices: List[MerakiDevice]
+        self, networks: list[MerakiNetwork], devices: list[MerakiDevice]
     ) -> dict:
         """Build a dictionary of tasks to fetch detailed data."""
         detail_tasks = {}
@@ -282,19 +281,19 @@ class MerakiAPIClient:
     def _process_detailed_data(
         self,
         detail_data: dict,
-        networks: List[MerakiNetwork],
-        devices: List[MerakiDevice],
+        networks: list[MerakiNetwork],
+        devices: list[MerakiDevice],
         previous_data: dict,
     ) -> dict:
         """Process the detailed data and merge it into the main data structure."""
-        ssids: List[Dict[str, Any]] = []
-        appliance_traffic: Dict[str, Any] = {}
-        vlan_by_network: Dict[str, Any] = {}
-        l3_firewall_rules_by_network: Dict[str, Any] = {}
-        traffic_shaping_by_network: Dict[str, Any] = {}
-        vpn_status_by_network: Dict[str, Any] = {}
-        rf_profiles_by_network: Dict[str, Any] = {}
-        content_filtering_by_network: Dict[str, Any] = {}
+        ssids: list[dict[str, Any]] = []
+        appliance_traffic: dict[str, Any] = {}
+        vlan_by_network: dict[str, Any] = {}
+        l3_firewall_rules_by_network: dict[str, Any] = {}
+        traffic_shaping_by_network: dict[str, Any] = {}
+        vpn_status_by_network: dict[str, Any] = {}
+        rf_profiles_by_network: dict[str, Any] = {}
+        content_filtering_by_network: dict[str, Any] = {}
 
         for network in networks:
             network_ssids_key = f"ssids_{network['id']}"
@@ -417,7 +416,7 @@ class MerakiAPIClient:
             "content_filtering": content_filtering_by_network,
         }
 
-    async def get_all_data(self, previous_data: Optional[dict] = None) -> dict:
+    async def get_all_data(self, previous_data: dict | None = None) -> dict:
         """Fetch all data from the Meraki API concurrently, with caching."""
         if previous_data is None:
             previous_data = {}
@@ -446,7 +445,7 @@ class MerakiAPIClient:
         detail_results = await asyncio.gather(
             *detail_tasks.values(), return_exceptions=True
         )
-        detail_data = dict(zip(detail_tasks.keys(), detail_results))
+        detail_data = dict(zip(detail_tasks.keys(), detail_results, strict=True))
 
         processed_detailed_data = self._process_detailed_data(
             detail_data, networks, devices, previous_data

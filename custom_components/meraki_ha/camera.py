@@ -4,20 +4,18 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any
 
 import aiohttp
-from homeassistant.components.camera import Camera
+from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .helpers.entity_helpers import format_entity_name
+from .const import DOMAIN, PLATFORM_CAMERA
 from .core.utils.naming_utils import format_device_name
 from .core.utils.network_utils import construct_rtsp_url
-from .const import DOMAIN, PLATFORM_CAMERA
-
-from homeassistant.components.camera import CameraEntityFeature
+from .helpers.entity_helpers import format_entity_name
 
 SUPPORT_STREAM = CameraEntityFeature.STREAM
 
@@ -26,6 +24,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
     from .coordinator import MerakiDataUpdateCoordinator
     from .services.camera_service import CameraService
 
@@ -61,8 +60,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
-    """
-    Representation of a Meraki camera.
+    """Representation of a Meraki camera.
 
     This entity is state-driven by the central MerakiDataUpdateCoordinator.
     """
@@ -71,10 +69,10 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
 
     def __init__(
         self,
-        coordinator: "MerakiDataUpdateCoordinator",
-        config_entry: "ConfigEntry",
-        device: Dict[str, Any],
-        camera_service: "CameraService",
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        device: dict[str, Any],
+        camera_service: CameraService,
     ) -> None:
         """Initialize the camera."""
         super().__init__(coordinator)
@@ -95,7 +93,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
         video_settings = self._device_data.get("video_settings", {})
         if not video_settings.get("rtspUrl") and not self._device_data.get("lanIp"):
             self._attr_entity_registry_enabled_default = False
-            self._disabled_reason = "The camera did not provide a stream URL or a LAN IP address from the API."
+            self._disabled_reason = "No stream URL or LAN IP address from the API."
 
         # Set supported features based on camera model
         if self._attr_model and self._attr_model.startswith("MV2"):
@@ -128,8 +126,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
-        """
-        Return a still image from the camera.
+        """Return a still image from the camera.
 
         This method includes a retry mechanism to handle the delay in snapshot
         generation by the Meraki cloud.
@@ -174,7 +171,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
         )
         return None
 
-    async def stream_source(self) -> Optional[str]:
+    async def stream_source(self) -> str | None:
         """Return the source of the stream, prioritizing LAN IP."""
         if not self.is_streaming:
             return None
@@ -195,7 +192,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
         return None
 
     @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         attrs = {}
         if self._disabled_reason:
@@ -209,12 +206,10 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
                 self._device_serial, "RTSP stream is disabled in the Meraki dashboard."
             )
         elif not video_settings.get("rtspUrl") and not self._device_data.get("lanIp"):
-            attrs["stream_status"] = (
-                "Stream URL not available. This may be because the camera does not support cloud archival or local streaming."
-            )
+            attrs["stream_status"] = "Stream URL not available."
             self.coordinator.add_status_message(
                 self._device_serial,
-                "RTSP stream URL is not available. The camera might not support cloud archival or local streaming.",
+                "RTSP stream URL is not available.",
             )
         else:
             attrs["stream_status"] = "Enabled"
@@ -222,8 +217,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
 
     @property
     def is_streaming(self) -> bool:
-        """
-        Return true if the camera is streaming.
+        """Return true if the camera is streaming.
 
         This requires the rtspServerEnabled setting to be true and for either a
         valid rtsp:// URL or a LAN IP to be available.
@@ -244,8 +238,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
         return has_lan_ip or has_valid_cloud_url
 
     async def _async_set_stream_state(self, enabled: bool) -> None:
-        """Optimistically update the stream state, notify listeners, and make the API call."""
-        # Find the actual device dict in the coordinator's data to update it
+        """Optimistically update the stream state and make the API call."""
         device_in_coordinator = None
         for device in self.coordinator.data.get("devices", []):
             if device.get("serial") == self._device_serial:
@@ -277,7 +270,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataUpdateCoordinator"], Camera):
         # Notify all listeners of the optimistic change
         self.coordinator.async_update_listeners()
 
-        # Register a cooldown to prevent the next refresh from overwriting our optimistic state
+        # Register a cooldown to prevent overwriting the optimistic state
         self.coordinator.register_pending_update(self.unique_id)
 
         # Make the API call

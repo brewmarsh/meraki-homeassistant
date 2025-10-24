@@ -1,10 +1,12 @@
-homeassistant
-voluptuous
+homeassistant==2025.10.3
 ruff
 pip-audit
 bandit
 pytest-homeassistant-custom-component
 pytest-mock
 types-aiofiles
-playwright==1.39.0
+playwright
 pytest-cov
+aiofiles
+meraki
+PyTurboJPEG

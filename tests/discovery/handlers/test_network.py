@@ -1,14 +1,14 @@
-"""
-Tests for the NetworkHandler.
-"""
+"""Tests for the NetworkHandler."""
 
 from unittest.mock import MagicMock
+
 import pytest
 
 from custom_components.meraki_ha.discovery.handlers.network import NetworkHandler
 from custom_components.meraki_ha.sensor.network.network_clients import (
     MerakiNetworkClientsSensor,
 )
+
 from ...const import MOCK_CONFIG_ENTRY
 
 MOCK_NETWORK_1 = {"id": "N_1234", "name": "Network 1"}
@@ -34,7 +34,7 @@ def mock_network_control_service():
 async def test_discover_entities_creates_network_sensors(
     mock_coordinator, mock_network_control_service
 ):
-    """Test that discover_entities creates a MerakiNetworkClientsSensor for each network."""
+    """Test that discover_entities creates a client sensor for each network."""
     handler = NetworkHandler(
         mock_coordinator, MOCK_CONFIG_ENTRY, mock_network_control_service
     )

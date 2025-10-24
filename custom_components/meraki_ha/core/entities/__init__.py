@@ -1,7 +1,6 @@
 """Base entity classes for the Meraki integration."""
 
 from abc import ABC
-from typing import Optional
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
@@ -30,8 +29,8 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator], Entity, A
         self,
         coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
-        serial: Optional[str] = None,
-        network_id: Optional[str] = None,
+        serial: str | None = None,
+        network_id: str | None = None,
     ) -> None:
         """Initialize the entity.
 
@@ -40,6 +39,7 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator], Entity, A
             config_entry: The config entry
             serial: Device serial number (if this is a device-based entity)
             network_id: Network ID (if this is a network-based entity)
+
         """
         super().__init__(coordinator)
         self._config_entry = config_entry
@@ -48,7 +48,7 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator], Entity, A
         self._attr_has_entity_name = True
 
     @property
-    def device_info(self) -> Optional[DeviceInfo]:
+    def device_info(self) -> DeviceInfo | None:
         """Get device info for this entity."""
         # Handle network-based entities
         if self._network_id and not self._serial:
@@ -100,6 +100,6 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator], Entity, A
         return True
 
     @property
-    def entity_category(self) -> Optional[EntityCategory]:
+    def entity_category(self) -> EntityCategory | None:
         """Return the entity category."""
         return None  # Override in child classes if needed

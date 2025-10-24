@@ -1,29 +1,30 @@
 """The Meraki Home Assistant integration."""
 
-import logging
 import json
+import logging
 from pathlib import Path
+
 import aiofiles  # type: ignore[import-untyped]
+from homeassistant.components import frontend
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers import config_validation as cv
-from homeassistant.components import frontend
+from homeassistant.helpers.typing import ConfigType
 
 from .const import (
+    CONF_MERAKI_ORG_ID,
     DOMAIN,
     PLATFORMS,
     WEBHOOK_ID_FORMAT,
-    CONF_MERAKI_ORG_ID,
 )
 from .coordinator import MerakiDataUpdateCoordinator
-from .webhook import async_register_webhook
-from .web_api import async_setup_api
 from .core.repositories.camera_repository import CameraRepository
-from .services.camera_service import CameraService
 from .core.repository import MerakiRepository
+from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
-
+from .web_api import async_setup_api
+from .webhook import async_register_webhook
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,10 +34,14 @@ CONFIG_SCHEMA = cv.deprecated(cv.empty_config_schema(DOMAIN))
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Meraki integration."""
     hass.data.setdefault(DOMAIN, {})
-    hass.http.register_static_path(
-        f"/api/panel_custom/{DOMAIN}",
-        str(Path(__file__).parent / "www"),
-        cache_headers=False,
+    await hass.http.async_register_static_paths(
+        [
+            StaticPathConfig(
+                url_path=f"/api/panel_custom/{DOMAIN}",
+                path=str(Path(__file__).parent / "www"),
+                cache_headers=False,
+            )
+        ]
     )
     return True
 
@@ -80,7 +85,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     manifest_path = Path(__file__).parent / "manifest.json"
-    async with aiofiles.open(manifest_path, mode="r") as f:
+    async with aiofiles.open(manifest_path) as f:
         manifest_data = await f.read()
         manifest = json.loads(manifest_data)
     version = manifest.get("version", "0.0.0")

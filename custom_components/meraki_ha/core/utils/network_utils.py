@@ -1,10 +1,10 @@
 """Network-related utility functions."""
 
-from typing import Any, Dict, List, Optional
 import ipaddress
+from typing import Any
 
 
-def calculate_network_health(data: Dict[str, Any]) -> float:
+def calculate_network_health(data: dict[str, Any]) -> float:
     """Calculate the overall health score for a network.
 
     This calculates a health score from 0-100 based on:
@@ -18,6 +18,7 @@ def calculate_network_health(data: Dict[str, Any]) -> float:
 
     Returns:
         A float between 0-100 representing network health
+
     """
     score = 100.0
 
@@ -45,7 +46,7 @@ def calculate_network_health(data: Dict[str, Any]) -> float:
     return max(0.0, min(100.0, score))
 
 
-def get_active_vlans(network_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+def get_active_vlans(network_data: dict[str, Any]) -> list[dict[str, Any]]:
     """Get list of active VLANs in the network.
 
     Args:
@@ -53,6 +54,7 @@ def get_active_vlans(network_data: Dict[str, Any]) -> List[Dict[str, Any]]:
 
     Returns:
         List of active VLAN dictionaries with id and subnet info
+
     """
     vlans = []
     for vlan in network_data.get("vlans", []):
@@ -68,7 +70,7 @@ def get_active_vlans(network_data: Dict[str, Any]) -> List[Dict[str, Any]]:
     return vlans
 
 
-def get_ssid_status(network_data: Dict[str, Any], ssid_number: int) -> Optional[str]:
+def get_ssid_status(network_data: dict[str, Any], ssid_number: int) -> str | None:
     """Get the status of a specific SSID.
 
     Args:
@@ -77,6 +79,7 @@ def get_ssid_status(network_data: Dict[str, Any], ssid_number: int) -> Optional[
 
     Returns:
         Status string or None if SSID not found
+
     """
     ssids = network_data.get("wireless", {}).get("ssids", [])
     for ssid in ssids:
@@ -87,8 +90,12 @@ def get_ssid_status(network_data: Dict[str, Any], ssid_number: int) -> Optional[
     return None
 
 
-def is_private_ip(url_or_ip: Optional[str]) -> bool:
-    """Check if the given string is a private IP address, extracting the hostname from a URL if necessary."""
+def is_private_ip(url_or_ip: str | None) -> bool:
+    """
+    Check if the given string is a private IP address.
+
+    Extracts the hostname from a URL if necessary.
+    """
     if not url_or_ip:
         return False
     try:
@@ -96,11 +103,13 @@ def is_private_ip(url_or_ip: Optional[str]) -> bool:
 
         # Assume it's a full URL and parse it
         hostname = urlparse(url_or_ip).hostname
-        # If parsing results in a hostname, use that. Otherwise, assume the original string was the IP.
+        # If parsing results in a hostname, use that.
+        # Otherwise, assume the original string was the IP.
         ip_to_check = hostname if hostname else url_or_ip
         return ipaddress.ip_address(ip_to_check).is_private
     except ValueError:
-        # This can happen if the input is not a valid IP or URL, or if the hostname is not an IP.
+        # This can happen if the input is not a valid IP or URL,
+        # or if the hostname is not an IP.
         return False
 
 

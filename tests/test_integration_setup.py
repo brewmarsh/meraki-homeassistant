@@ -1,7 +1,7 @@
 """Integration-level tests for the Meraki HA component."""
 
 import sys
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -10,7 +10,7 @@ from homeassistant.helpers.entity_registry import async_get as async_get_entity_
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
-from tests.const import MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE
+from tests.const import MOCK_DEVICE, MOCK_GX_DEVICE, MOCK_MX_DEVICE
 
 # Mock the hass_frontend module
 sys.modules["hass_frontend"] = MagicMock()

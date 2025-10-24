@@ -1,7 +1,7 @@
 """Sensor for Meraki appliance data usage."""
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
@@ -26,12 +26,12 @@ class MerakiDataUsageSensor(
     _attr_native_unit_of_measurement = UnitOfInformation.MEGABYTES
     _attr_icon = "mdi:chart-bar"
     _attr_has_entity_name = True
-    _attr_extra_state_attributes: Dict[str, Any] = {}
+    _attr_extra_state_attributes: dict[str, Any] = {}
 
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: Dict[str, Any],
+        device_data: dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
@@ -51,7 +51,7 @@ class MerakiDataUsageSensor(
         )
         self._update_state()
 
-    def _get_current_device_data(self) -> Optional[Dict[str, Any]]:
+    def _get_current_device_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
         if self.coordinator.data and self.coordinator.data.get("devices"):
             for device in self.coordinator.data["devices"]:

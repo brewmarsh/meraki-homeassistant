@@ -1,9 +1,10 @@
-"""This module implements the REST API for the Meraki Home Assistant integration's Web UI."""
+"""REST API for the Meraki Home Assistant integration's Web UI."""
 
 import logging
+
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
-from voluptuous import Schema, All, Required, ALLOW_EXTRA
+from voluptuous import ALLOW_EXTRA, All, Required, Schema
 
 from .const import DOMAIN
 

@@ -1,11 +1,12 @@
 """Tests for the Meraki camera profile switches."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
+
 from custom_components.meraki_ha.switch.camera_profiles import (
-    MerakiCameraSenseSwitch,
     MerakiCameraAudioDetectionSwitch,
+    MerakiCameraSenseSwitch,
 )
 
 

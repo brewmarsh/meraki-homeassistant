@@ -1,7 +1,8 @@
 """Tests for the Meraki MT sensor setup."""
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from custom_components.meraki_ha.sensor.setup_mt_sensors import async_setup_mt_sensors
 

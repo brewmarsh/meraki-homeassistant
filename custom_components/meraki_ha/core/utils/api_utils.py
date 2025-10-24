@@ -4,8 +4,9 @@ import asyncio
 import functools
 import inspect
 import logging
+from collections.abc import Awaitable, Callable
 from json import JSONDecodeError
-from typing import Any, Awaitable, Callable, Dict, List, TypeVar, Union, cast
+from typing import Any, TypeVar, cast
 
 from aiohttp import ClientError
 from meraki.exceptions import APIError  # type: ignore
@@ -27,8 +28,7 @@ _LOGGER = logging.getLogger(__name__)
 def handle_meraki_errors(
     func: Callable[..., Awaitable[T]],
 ) -> Callable[..., Awaitable[T]]:
-    """
-    Decorate to handle Meraki API errors consistently.
+    """Decorate to handle Meraki API errors consistently.
 
     This decorator:
     1. Converts Meraki exceptions to our custom exceptions
@@ -53,34 +53,36 @@ def handle_meraki_errors(
             return_type = sig.return_annotation
             if return_type is list or getattr(return_type, "__origin__", None) in (
                 list,
-                List,
+                list,
             ):
                 return cast(T, [])
             return cast(T, {})
         except APIError as err:
             if _is_informational_error(err):
-                raise MerakiInformationalError(f"Informational error: {err}")
+                raise MerakiInformationalError(f"Informational error: {err}") from err
 
             _LOGGER.error("Meraki API error: %s", err)
             if _is_auth_error(err):
-                raise MerakiAuthenticationError(f"Authentication failed: {err}")
+                raise MerakiAuthenticationError(
+                    f"Authentication failed: {err}"
+                ) from err
             elif _is_device_error(err):
-                raise MerakiDeviceError(f"Device error: {err}")
+                raise MerakiDeviceError(f"Device error: {err}") from err
             elif _is_network_error(err):
-                raise MerakiNetworkError(f"Network error: {err}")
+                raise MerakiNetworkError(f"Network error: {err}") from err
             elif _is_rate_limit_error(err):
                 # Wait and retry for rate limit errors
                 _LOGGER.warning("Rate limit exceeded, retrying in 2 seconds...")
                 await asyncio.sleep(2)
                 return await wrapper(*args, **kwargs)
             else:
-                raise MerakiConnectionError(f"API error: {err}")
+                raise MerakiConnectionError(f"API error: {err}") from err
         except ClientError as err:
             _LOGGER.error("Connection error: %s", err)
-            raise MerakiConnectionError(f"Connection error: {err}")
+            raise MerakiConnectionError(f"Connection error: {err}") from err
         except Exception as err:
             _LOGGER.error("Unexpected error: %s", err)
-            raise MerakiConnectionError(f"Unexpected error: {err}")
+            raise MerakiConnectionError(f"Unexpected error: {err}") from err
 
     return cast(Callable[..., Awaitable[T]], wrapper)
 
@@ -139,7 +141,7 @@ def _is_informational_error(err: APIError) -> bool:
     )
 
 
-def validate_response(response: Any) -> Union[Dict[str, Any], List[Any]]:
+def validate_response(response: Any) -> dict[str, Any] | list[Any]:
     """Validate and normalize an API response.
 
     Args:
@@ -150,6 +152,7 @@ def validate_response(response: Any) -> Union[Dict[str, Any], List[Any]]:
 
     Raises:
         MerakiConnectionError: If response is invalid or empty
+
     """
     if response is None:
         raise MerakiConnectionError("Empty response from API")

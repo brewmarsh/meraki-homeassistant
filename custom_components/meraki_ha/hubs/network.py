@@ -1,5 +1,4 @@
-"""
-Network Hub.
+"""Network Hub.
 
 This module defines the NetworkHub class, which is responsible for
 processing and managing data for a specific Meraki network.
@@ -8,11 +7,11 @@ processing and managing data for a specific Meraki network.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from ...types import MerakiDevice, MerakiNetwork
     from ..coordinator import MerakiDataUpdateCoordinator
-    from ...types import MerakiNetwork, MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,7 +32,7 @@ class NetworkHub:
         return self._coordinator.get_network(self.network_id)
 
     @property
-    def devices(self) -> List[MerakiDevice]:
+    def devices(self) -> list[MerakiDevice]:
         """Return a list of devices in this network."""
         if self._coordinator.data and self._coordinator.data.get("devices"):
             return [
@@ -44,7 +43,7 @@ class NetworkHub:
         return []
 
     @property
-    def ssids(self) -> List[Dict[str, Any]]:
+    def ssids(self) -> list[dict[str, Any]]:
         """Return a list of SSIDs in this network."""
         if self._coordinator.data and self._coordinator.data.get("ssids"):
             return [
@@ -55,8 +54,7 @@ class NetworkHub:
         return []
 
     async def async_update_data(self) -> None:
-        """
-        Update network-specific data.
+        """Update network-specific data.
 
         This method is a placeholder. The hub's properties directly
         access the latest data from the coordinator, so a separate

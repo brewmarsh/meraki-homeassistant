@@ -1,10 +1,10 @@
 """Validation utilities for Meraki configuration."""
 
 import re
-import voluptuous as vol
 
-from homeassistant.const import CONF_API_KEY, CONF_NAME
 import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
+from homeassistant.const import CONF_API_KEY, CONF_NAME
 
 from ...const import (
     CONF_MERAKI_ORG_ID,
@@ -27,6 +27,7 @@ def validate_api_key(value: str) -> str:
 
     Raises:
         vol.Invalid: If API key format is invalid
+
     """
     if not VALID_MERAKI_API_KEY.match(value):
         raise vol.Invalid("Invalid Meraki API key format")
@@ -44,6 +45,7 @@ def validate_org_id(value: str) -> str:
 
     Raises:
         vol.Invalid: If org ID format is invalid
+
     """
     if not VALID_MERAKI_ORG_ID.match(value):
         raise vol.Invalid("Invalid Meraki organization ID format")

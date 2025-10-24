@@ -9,7 +9,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from ..const import DOMAIN, PLATFORM_SWITCH
 from .setup_helpers import async_setup_switches
 
-
 _LOGGER = logging.getLogger(__name__)
 
 

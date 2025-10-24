@@ -1,7 +1,7 @@
 """Sensor for Meraki appliance port status."""
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import callback
@@ -10,8 +10,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...helpers.entity_helpers import format_entity_name
 from ...core.utils.naming_utils import format_device_name
+from ...helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,8 +24,8 @@ class MerakiAppliancePortSensor(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: Dict[str, Any],
-        port: Dict[str, Any],
+        device: dict[str, Any],
+        port: dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -71,7 +71,7 @@ class MerakiAppliancePortSensor(
         return "disconnected"
 
     @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         return {
             "port_number": self._port.get("number"),

@@ -1,12 +1,11 @@
 """Utility functions for mapping and validating Meraki device types."""
 
-from typing import Optional
 
-from ._const import DeviceType, VALID_DEVICE_TYPES
+from ._const import VALID_DEVICE_TYPES, DeviceType
 from ._data import DEVICE_PREFIX_MAPPINGS, DEVICE_TYPE_DESCRIPTIONS, MODEL_PATTERN
 
 
-def map_meraki_model_to_device_type(model: Optional[str]) -> str:
+def map_meraki_model_to_device_type(model: str | None) -> str:
     """Map a Meraki device model string to a generic device type category."""
     if not model or not validate_model_string(model):
         return DeviceType.UNKNOWN

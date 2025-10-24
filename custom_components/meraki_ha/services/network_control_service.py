@@ -1,17 +1,16 @@
-"""
-Network Control Service.
+"""Network Control Service.
 
 This service is responsible for handling all network-level actions and data.
 """
 
 from __future__ import annotations
+
 import logging
 from typing import TYPE_CHECKING
 
-
 if TYPE_CHECKING:
-    from ..core.api.client import MerakiAPIClient
     from ..coordinator import MerakiDataUpdateCoordinator
+    from ..core.api.client import MerakiAPIClient
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,8 +21,8 @@ class NetworkControlService:
 
     def __init__(
         self,
-        api_client: "MerakiAPIClient",
-        coordinator: "MerakiDataUpdateCoordinator",
+        api_client: MerakiAPIClient,
+        coordinator: MerakiDataUpdateCoordinator,
     ) -> None:
         """Initialize the network control service."""
         self._api_client = api_client

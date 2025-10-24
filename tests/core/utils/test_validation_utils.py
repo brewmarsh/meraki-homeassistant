@@ -4,10 +4,10 @@ import pytest
 import voluptuous as vol
 
 from custom_components.meraki_ha.core.utils.validation_utils import (
-    validate_api_key,
-    validate_org_id,
     CONFIG_SCHEMA,
     OPTIONS_SCHEMA,
+    validate_api_key,
+    validate_org_id,
 )
 
 

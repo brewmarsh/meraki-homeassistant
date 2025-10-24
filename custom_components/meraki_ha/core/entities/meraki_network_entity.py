@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from homeassistant.config_entries import ConfigEntry
-
-from ..utils.naming_utils import format_device_name
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...types import MerakiNetwork
+from ..utils.naming_utils import format_device_name
 
 
 class MerakiNetworkEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):

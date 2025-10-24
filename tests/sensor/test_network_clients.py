@@ -1,8 +1,8 @@
 """Tests for the Meraki network clients sensor."""
 
 from unittest.mock import MagicMock
-import pytest
 
+import pytest
 from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.sensor.network.network_clients import (

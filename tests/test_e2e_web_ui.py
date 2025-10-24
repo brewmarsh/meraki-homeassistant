@@ -1,19 +1,20 @@
 """End-to-end tests for the Meraki Web UI."""
 
-import sys
 import json
+import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
-from playwright.async_api import async_playwright, expect
 from homeassistant.core import HomeAssistant
+from playwright.async_api import async_playwright, expect
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import (
-    DOMAIN,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
+    DOMAIN,
 )
+
 from .const import MOCK_ALL_DATA
 
 # Mock the hass_frontend module
@@ -37,7 +38,6 @@ async def setup_integration_fixture(hass: HomeAssistant, socket_enabled):
     )
     config_entry.add_to_hass(hass)
 
-    # This patch is now for the backend, which the UI no longer directly uses in this test setup
     with (
         patch(
             "custom_components.meraki_ha.MerakiDataUpdateCoordinator._async_update_data",
@@ -73,7 +73,6 @@ async def test_dashboard_loads_and_displays_data(
               window.hass = {{
                 connection: {{
                   subscribeMessage: async (callback, subscription) => {{
-                    console.log('Mock subscribeMessage called with:', subscription);
                     const mockData = {mock_data_json};
                     const message = {{
                       type: 'result',
@@ -81,7 +80,7 @@ async def test_dashboard_loads_and_displays_data(
                       result: mockData
                     }};
                     callback(message);
-                    return () => Promise.resolve(); // Return a dummy unsubscribe function
+                    return () => Promise.resolve();
                   }}
                 }}
               }};
@@ -96,44 +95,3 @@ async def test_dashboard_loads_and_displays_data(
         await expect(network_card.locator("p")).to_have_text("Test Network")
 
         await browser.close()
-
-
-# @pytest.mark.asyncio
-# async def test_navigation_to_network_detail(hass: HomeAssistant, setup_integration):
-#     """Test navigation to a network detail page."""
-#     async with async_playwright() as p:
-#         browser = await p.chromium.launch()
-#         page = await browser.new_page()
-
-#         mock_data_json = json.dumps(MOCK_ALL_DATA)
-#         await page.add_init_script(
-#             f"""
-#               window.hass = {{
-#                 connection: {{
-#                   subscribeMessage: async (callback, subscription) => {{
-#                     const mockData = {mock_data_json};
-#                     const message = {{ type: 'result', success: true, result: mockData }};
-#                     callback(message);
-#                     return () => Promise.resolve();
-#                   }}
-#                 }}
-#               }};
-#             """
-#         )
-
-#         await page.goto(f"http://localhost:{TEST_PORT}/")
-
-#         network_card = page.locator("[data-testid=network-card]")
-#         await expect(network_card).to_be_visible()
-
-#         await network_card.click()
-
-#         # Add a small delay to allow React to re-render
-#         await page.wait_for_timeout(500)
-
-#         await page.screenshot(path="e2e-network-detail-failure.png")
-
-#         # Use a more specific locator for the header
-#         await expect(page.locator("h2:has-text('Network Information')")).to_be_visible()
-
-#         await browser.close()

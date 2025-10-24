@@ -1,7 +1,8 @@
 """Tests for the Meraki SSID connected clients sensor."""
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.sensor.ssid.connected_clients import (

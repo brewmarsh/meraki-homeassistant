@@ -1,5 +1,4 @@
-"""
-Meraki-HA button platform.
+"""Meraki-HA button platform.
 
 This module defines the MerakiRebootButton class, a generic button entity
 for rebooting Meraki devices.
@@ -11,8 +10,8 @@ import logging
 from typing import TYPE_CHECKING, cast
 
 from homeassistant.components.button import ButtonEntity
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.entity import DeviceInfo
 
 from ..helpers.device_info_helpers import resolve_device_info
 

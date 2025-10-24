@@ -2,15 +2,14 @@
 
 import logging
 
-from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN
 from .device.camera_motion import MerakiMotionSensor
 from .device.mt20_open_close import MerakiMt20OpenCloseSensor
 from .switch_port import SwitchPortSensor
-
 
 _LOGGER = logging.getLogger(__name__)
 

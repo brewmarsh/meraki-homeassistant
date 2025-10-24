@@ -1,18 +1,18 @@
 """Config flow for the Meraki Home Assistant integration."""
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
+import voluptuous as vol
 from homeassistant import config_entries, data_entry_flow
 from homeassistant.core import callback
-import voluptuous as vol
 
 from .authentication import validate_meraki_credentials
 from .const import (
-    DOMAIN,
+    CONF_INTEGRATION_TITLE,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
-    CONF_INTEGRATION_TITLE,
+    DOMAIN,
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .options_flow import MerakiOptionsFlowHandler
@@ -30,14 +30,14 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
 
     def __init__(self):
         """Initialize the config flow."""
-        self.data: Dict[str, Any] = {}
-        self.options: Dict[str, Any] = {}
+        self.data: dict[str, Any] = {}
+        self.options: dict[str, Any] = {}
 
     async def async_step_user(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, user_input: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Handle the initial step."""
-        errors: Dict[str, str] = {}
+        errors: dict[str, str] = {}
         if user_input is not None:
             try:
                 validation_result = await validate_meraki_credentials(
@@ -74,8 +74,8 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         )
 
     async def async_step_init(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, user_input: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Handle the general settings step."""
         if user_input is not None:
             self.options.update(user_input)
@@ -97,7 +97,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         return MerakiOptionsFlowHandler(config_entry)
 
     async def async_step_reconfigure(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> data_entry_flow.FlowResult:
         """Handle a reconfiguration flow."""
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])

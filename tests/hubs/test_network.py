@@ -1,9 +1,11 @@
 """Tests for the NetworkHub."""
 
 from unittest.mock import MagicMock
+
 import pytest
+
 from custom_components.meraki_ha.hubs.network import NetworkHub
-from tests.const import MOCK_NETWORK, MOCK_DEVICE
+from tests.const import MOCK_DEVICE, MOCK_NETWORK
 
 
 @pytest.fixture

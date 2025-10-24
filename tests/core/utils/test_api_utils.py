@@ -1,19 +1,19 @@
 """Tests for the API utils."""
 
+
 import pytest
 from aiohttp import ClientError
 from meraki.exceptions import APIError
-from typing import Dict, List
 
-from custom_components.meraki_ha.core.utils.api_utils import (
-    handle_meraki_errors,
-    validate_response,
-)
 from custom_components.meraki_ha.core.errors import (
     MerakiAuthenticationError,
     MerakiConnectionError,
     MerakiDeviceError,
     MerakiNetworkError,
+)
+from custom_components.meraki_ha.core.utils.api_utils import (
+    handle_meraki_errors,
+    validate_response,
 )
 
 
@@ -98,13 +98,13 @@ async def test_handle_meraki_errors():
 
 
 @handle_meraki_errors
-async def dummy_api_call_empty_dict() -> Dict[str, str]:
+async def dummy_api_call_empty_dict() -> dict[str, str]:
     """A dummy API call that raises an error and expects a dict."""
     raise MerakiConnectionError("test")
 
 
 @handle_meraki_errors
-async def dummy_api_call_empty_list() -> List[str]:
+async def dummy_api_call_empty_list() -> list[str]:
     """A dummy API call that raises an error and expects a list."""
     raise MerakiConnectionError("test")
 

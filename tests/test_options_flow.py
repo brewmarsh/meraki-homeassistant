@@ -4,15 +4,15 @@ import sys
 from unittest.mock import MagicMock
 
 import pytest
+from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-from homeassistant.const import CONF_SCAN_INTERVAL
 
 from custom_components.meraki_ha.const import (
-    DOMAIN,
     CONF_ENABLE_DEVICE_TRACKER,
-    CONF_IGNORED_NETWORKS,
     CONF_ENABLE_VLAN_MANAGEMENT,
+    CONF_IGNORED_NETWORKS,
+    DOMAIN,
 )
 
 # Mock the hass_frontend module
