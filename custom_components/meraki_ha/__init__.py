@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers import config_validation as cv
-from homeassistant.components import frontend, http
+from homeassistant.components import frontend
 
 from .const import (
     DOMAIN,
@@ -33,14 +33,10 @@ CONFIG_SCHEMA = cv.deprecated(cv.empty_config_schema(DOMAIN))
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Meraki integration."""
     hass.data.setdefault(DOMAIN, {})
-    await hass.http.async_register_static_paths(
-        [
-            http.StaticPathConfig(
-                f"/api/panel_custom/{DOMAIN}",
-                str(Path(__file__).parent / "www"),
-                cache_headers=False,
-            )
-        ]
+    hass.http.register_static_path(
+        f"/api/panel_custom/{DOMAIN}",
+        str(Path(__file__).parent / "www"),
+        cache_headers=False,
     )
     return True
 
