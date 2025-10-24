@@ -1,0 +1,52 @@
+name: Main CI
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.9'
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements_dev.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_dev.txt
+      - name: Run checks
+        run: |
+          pip-audit
+          ruff check .
+          ruff format --check .
+          mypy custom_components/meraki_ha/ tests/
+          bandit -r custom_components/meraki_ha/ -c .bandit.yaml
+      - name: Run tests with coverage
+        run: pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: brewmarsh/meraki-homeassistant
+          files: ./coverage.xml
+
+  validate-hacs:
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: actions/checkout@v5
+      - name: HACS validation
+        uses: 'hacs/action@main'
+        with:
+          category: 'integration'
