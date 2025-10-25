@@ -19,23 +19,27 @@ from custom_components.meraki_ha.core.utils.api_utils import (
 
 @handle_meraki_errors
 async def dummy_api_call():
-    """A dummy API call that can be used to test the decorator."""
+    """Dummy API call that can be used to test the decorator."""
     return {"status": "ok"}
 
 
 class MockResponse:
+    """Mock response for APIError."""
+
     def __init__(self, status_code, reason, json_data):
+        """Initialize the mock response."""
         self.status_code = status_code
         self.reason = reason
         self._json_data = json_data
 
     def json(self):
+        """Return the json data."""
         return self._json_data
 
 
 @handle_meraki_errors
 async def dummy_api_call_auth_error():
-    """A dummy API call that raises an auth error."""
+    """Dummy API call that raises an auth error."""
     raise APIError(
         {"tags": ["test"], "operation": "test"},
         MockResponse(401, "Unauthorized", {"errors": ["invalid api key"]}),
@@ -44,7 +48,7 @@ async def dummy_api_call_auth_error():
 
 @handle_meraki_errors
 async def dummy_api_call_device_error():
-    """A dummy API call that raises a device error."""
+    """Dummy API call that raises a device error."""
     raise APIError(
         {"tags": ["test"], "operation": "test"},
         MockResponse(500, "Internal Server Error", {"errors": ["device not found"]}),
@@ -53,7 +57,7 @@ async def dummy_api_call_device_error():
 
 @handle_meraki_errors
 async def dummy_api_call_network_error():
-    """A dummy API call that raises a network error."""
+    """Dummy API call that raises a network error."""
     raise APIError(
         {"tags": ["test"], "operation": "test"},
         MockResponse(500, "Internal Server Error", {"errors": ["network not found"]}),
@@ -62,7 +66,7 @@ async def dummy_api_call_network_error():
 
 @handle_meraki_errors
 async def dummy_api_call_rate_limit_error():
-    """A dummy API call that raises a rate limit error."""
+    """Dummy API call that raises a rate limit error."""
     raise APIError(
         {"tags": ["test"], "operation": "test"},
         MockResponse(429, "Too Many Requests", {"errors": ["rate limit exceeded"]}),
@@ -71,13 +75,13 @@ async def dummy_api_call_rate_limit_error():
 
 @handle_meraki_errors
 async def dummy_api_call_client_error():
-    """A dummy API call that raises a client error."""
+    """Dummy API call that raises a client error."""
     raise ClientError("test")
 
 
 @handle_meraki_errors
 async def dummy_api_call_generic_error():
-    """A dummy API call that raises a generic error."""
+    """Dummy API call that raises a generic error."""
     raise Exception("test")
 
 
@@ -99,13 +103,13 @@ async def test_handle_meraki_errors():
 
 @handle_meraki_errors
 async def dummy_api_call_empty_dict() -> dict[str, str]:
-    """A dummy API call that raises an error and expects a dict."""
+    """Dummy API call that raises an error and expects a dict."""
     raise MerakiConnectionError("test")
 
 
 @handle_meraki_errors
 async def dummy_api_call_empty_list() -> list[str]:
-    """A dummy API call that raises an error and expects a list."""
+    """Dummy API call that raises an error and expects a list."""
     raise MerakiConnectionError("test")
 
 

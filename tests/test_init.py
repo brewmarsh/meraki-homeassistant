@@ -54,7 +54,9 @@
 #             hass.config_entries.async_update_entry = MagicMock(return_value=True)
 #             hass.config_entries._entries = {config_entry.entry_id: config_entry}
 #             config_entry.title = "test_title"
-#             with patch("custom_components.meraki_ha.async_unload_entry") as mock_unload:
+#             with patch(
+#                 "custom_components.meraki_ha.async_unload_entry"
+#             ) as mock_unload:
 #                 future2: asyncio.Future = asyncio.Future()
 #                 future2.set_result(True)
 #                 mock_unload.return_value = future2

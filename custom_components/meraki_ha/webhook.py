@@ -20,6 +20,7 @@ def get_webhook_url(
     Raises MerakiConnectionError if the URL doesn't meet Meraki's requirements.
 
     Args:
+    ----
         hass: The Home Assistant instance
         webhook_id: The ID of the webhook
         entry_webhook_url: Optional base webhook URL from config entry

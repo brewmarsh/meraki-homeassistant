@@ -24,6 +24,7 @@ class SensorEndpoints:
         """Send a command to a sensor.
 
         Args:
+        ----
             serial: The serial number of the device.
             operation: The operation to perform on the sensor.
 

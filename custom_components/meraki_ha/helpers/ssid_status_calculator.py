@@ -44,13 +44,16 @@ class SsidStatusCalculator:
         - 'unknown_device_data_missing': If `devices` is None.
 
         Args:
+        ----
             ssids: A list of SSID dictionaries.
             devices: A list of Meraki device dictionaries.
 
         Returns:
+        -------
             A list of SSID dictionaries, each updated with new keys:
             'matching_devices_online' (count), 'matching_devices_total' (count),
             and 'status' (string). Returns an empty list if `ssids` is None.
+
         """
         if not ssids:  # Handles None or empty list for ssids.
             return []
@@ -140,11 +143,14 @@ class SsidStatusCalculator:
           `device_actual_tags`, it's not a match.
 
         Args:
+        ----
             ssid_tags: A list of tags from the SSID's configuration.
             device_actual_tags: A list of tags on the device.
 
         Returns:
+        -------
             True if the device's tags meet the SSID's tag requirements.
+
         """
         # If an SSID has no tags, it should be broadcast by all APs.
         # Any device is a match from a tag perspective.

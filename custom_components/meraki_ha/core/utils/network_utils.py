@@ -14,9 +14,11 @@ def calculate_network_health(data: dict[str, Any]) -> float:
     - Network usage
 
     Args:
+    ----
         data: Network data dictionary containing status metrics
 
     Returns:
+    -------
         A float between 0-100 representing network health
 
     """
@@ -50,9 +52,11 @@ def get_active_vlans(network_data: dict[str, Any]) -> list[dict[str, Any]]:
     """Get list of active VLANs in the network.
 
     Args:
+    ----
         network_data: Network data dictionary
 
     Returns:
+    -------
         List of active VLAN dictionaries with id and subnet info
 
     """
@@ -74,10 +78,12 @@ def get_ssid_status(network_data: dict[str, Any], ssid_number: int) -> str | Non
     """Get the status of a specific SSID.
 
     Args:
+    ----
         network_data: Network data dictionary
         ssid_number: The SSID number to check
 
     Returns:
+    -------
         Status string or None if SSID not found
 
     """
@@ -91,8 +97,7 @@ def get_ssid_status(network_data: dict[str, Any], ssid_number: int) -> str | Non
 
 
 def is_private_ip(url_or_ip: str | None) -> bool:
-    """
-    Check if the given string is a private IP address.
+    """Check if the given string is a private IP address.
 
     Extracts the hostname from a URL if necessary.
     """

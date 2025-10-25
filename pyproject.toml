@@ -14,6 +14,9 @@ ignore_missing_imports = true
 
 [tool.ruff]
 exclude = [".pyenv"]
+line-length = 88
+
+[tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
@@ -24,5 +27,4 @@ select = [
     "C4", # flake8-comprehensions
     "UP", # pyupgrade
 ]
-ignore = ["D100", "D104", "D107"]
-line-length = 88
+ignore = ["D100", "D104", "D107", "D211", "D212"]

@@ -6,25 +6,19 @@ of a specific Meraki device.
 """
 
 import logging
-from typing import Any  # Added Optional
+from typing import Any
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
-)  # Updated import
+)
 from homeassistant.config_entries import ConfigEntry
-
-# Added callback for coordinator updates
 from homeassistant.core import callback
-
-# from homeassistant.helpers.entity import EntityDescription # No longer needed
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-
-# Assuming MerakiDataUpdateCoordinator is the specific coordinator type
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
 
@@ -61,9 +55,11 @@ class MerakiDeviceStatusSensor(
         """Initialize the Meraki Device Status sensor.
 
         Args:
+        ----
           coordinator: The data update coordinator.
           device_data: A dictionary containing initial information about the Meraki device.
           config_entry: The config entry.
+
         """
         super().__init__(coordinator)
         self._device_serial: str = device_data["serial"]  # Serial is mandatory

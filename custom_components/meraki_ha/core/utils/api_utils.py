@@ -145,12 +145,15 @@ def validate_response(response: Any) -> dict[str, Any] | list[Any]:
     """Validate and normalize an API response.
 
     Args:
+    ----
         response: The API response to validate
 
     Returns:
+    -------
         Normalized response dictionary
 
     Raises:
+    ------
         MerakiConnectionError: If response is invalid or empty
 
     """

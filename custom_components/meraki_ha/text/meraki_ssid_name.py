@@ -4,9 +4,7 @@ import logging
 from typing import Any
 
 from homeassistant.components.text import TextEntity, TextEntityDescription, TextMode
-from homeassistant.config_entries import (
-    ConfigEntry,
-)  # Required for type hinting in __init__
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo

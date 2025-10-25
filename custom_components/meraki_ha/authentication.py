@@ -31,6 +31,7 @@ class MerakiAuthentication:
         """Initialize the Meraki Authentication class.
 
         Args:
+        ----
             hass: The Home Assistant instance.
             api_key: The Meraki API key.
             organization_id: The Meraki Organization ID.
@@ -49,9 +50,11 @@ class MerakiAuthentication:
         if the provided organization ID is present in the response.
 
         Returns:
+        -------
             A dictionary with "valid": True and "org_name": "Org Name".
 
         Raises:
+        ------
             ConfigEntryAuthFailed: If authentication fails.
             ValueError: If the organization ID is not found.
             MerakiSDKAPIError: For other Meraki API errors.
@@ -101,15 +104,21 @@ class MerakiAuthentication:
             raise
         except MerakiSDKAPIError as e:
             if e.status == 401:
-                _LOGGER.error("Auth failed (HTTP 401) for org %s.", self.organization_id)
+                _LOGGER.error(
+                    "Auth failed (HTTP 401) for org %s.", self.organization_id
+                )
                 raise ConfigEntryAuthFailed("Invalid API Key (HTTP 401)") from e
             elif e.status == 403:
-                _LOGGER.error("Auth failed (HTTP 403) for org %s.", self.organization_id)
+                _LOGGER.error(
+                    "Auth failed (HTTP 403) for org %s.", self.organization_id
+                )
                 raise ConfigEntryAuthFailed(
                     f"API key lacks permissions for org {self.organization_id}."
                 ) from e
             elif e.status == 404:
-                _LOGGER.error("Query failed (HTTP 404) for org %s.", self.organization_id)
+                _LOGGER.error(
+                    "Query failed (HTTP 404) for org %s.", self.organization_id
+                )
                 raise ConfigEntryAuthFailed(
                     f"Organization ID {self.organization_id} not found."
                 ) from e
@@ -135,7 +144,9 @@ class MerakiAuthentication:
                 self.organization_id,
                 e,
             )
-            raise ConfigEntryAuthFailed(f"Unexpected error for org {self.organization_id}: {e}") from e
+            raise ConfigEntryAuthFailed(
+                f"Unexpected error for org {self.organization_id}: {e}"
+            ) from e
 
 
 async def validate_meraki_credentials(
@@ -144,14 +155,17 @@ async def validate_meraki_credentials(
     """Validate Meraki API credentials via MerakiAuthentication class (SDK version).
 
     Args:
+    ----
         hass: The Home Assistant instance.
         api_key: The Meraki API key.
         organization_id: The Meraki Organization ID.
 
     Returns:
+    -------
         A dictionary with "valid": True and "org_name": "Organization Name".
 
     Raises:
+    ------
         ConfigEntryAuthFailed: If authentication fails.
         ValueError: If the organization ID is invalid.
         MerakiSDKAPIError: For Meraki API errors from the SDK.
