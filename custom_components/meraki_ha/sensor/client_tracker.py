@@ -1,7 +1,7 @@
 """Sensor entities for tracking Meraki clients."""
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
@@ -79,7 +79,7 @@ class MerakiClientSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorE
         self,
         coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
-        client_data: Dict[str, Any],
+        client_data: dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)

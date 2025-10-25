@@ -20,7 +20,9 @@ sys.modules["hass_frontend"] = MagicMock()
 #
 #     mock_data = {
 #         "devices": [],
-#         "networks": [{"id": "net1", "name": "Test Network", "productTypes": ["appliance"]}],
+#         "networks": [
+#             {"id": "net1", "name": "Test Network", "productTypes": ["appliance"]}
+#         ],
 #         "vlans": {
 #             "net1": [
 #                 {

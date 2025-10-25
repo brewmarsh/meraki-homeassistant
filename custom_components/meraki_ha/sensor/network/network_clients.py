@@ -1,7 +1,7 @@
 """Sensor for tracking clients on a specific network."""
 
 import logging
-from typing import TYPE_CHECKING, Dict, Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
@@ -28,7 +28,7 @@ class MerakiNetworkClientsSensor(MerakiNetworkEntity, SensorEntity):
         self,
         coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
-        network_data: Dict[str, Any],
+        network_data: dict[str, Any],
         network_control_service: "NetworkControlService",
     ) -> None:
         """Initialize the sensor."""

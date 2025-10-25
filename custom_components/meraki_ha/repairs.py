@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
-
 
 from .const import DOMAIN
 

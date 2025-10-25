@@ -1,8 +1,9 @@
 """Sensors for detailed Meraki SSID properties."""
 
 from __future__ import annotations
+
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -25,8 +26,8 @@ class MerakiSSIDDetailSensor(SensorEntity):
         self,
         coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
-        ssid_data: Dict[str, Any],
-        rf_profile: Dict[str, Any] | None,
+        ssid_data: dict[str, Any],
+        rf_profile: dict[str, Any] | None,
     ):
         """Initialize the sensor."""
         self.coordinator = coordinator

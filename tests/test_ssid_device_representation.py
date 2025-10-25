@@ -1,7 +1,8 @@
 """Tests for consistent SSID device representation across all entity types."""
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 # Import all the different types of SSID entities
 from custom_components.meraki_ha.sensor.network.ssid_availability import (

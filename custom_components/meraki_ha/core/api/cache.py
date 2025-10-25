@@ -1,8 +1,8 @@
 """A custom caching decorator for async methods."""
 
-from functools import wraps
 import time
-from typing import Any, Dict
+from functools import wraps
+from typing import Any
 
 
 def async_timed_cache(timeout: int = 300):
@@ -15,9 +15,9 @@ def async_timed_cache(timeout: int = 300):
         @wraps(func)
         async def wrapper(self, *args, **kwargs):
             if not hasattr(self, "_cache_storage"):
-                self._cache_storage: Dict[str, Any] = {}
+                self._cache_storage: dict[str, Any] = {}
             if not hasattr(self, "_cache_last_update"):
-                self._cache_last_update: Dict[str, float] = {}
+                self._cache_last_update: dict[str, float] = {}
 
             # Create a unique key for the function call
             key_parts = [func.__name__]

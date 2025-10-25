@@ -1,7 +1,7 @@
 """Sensor for Meraki network information."""
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from ....core.entities.network import MerakiNetworkEntity
 
@@ -32,7 +32,7 @@ class MerakiNetworkInfoSensor(MerakiNetworkEntity):
         return self.network_data.get("name", self.network_id)
 
     @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         return {
             "hostname": self.network_data.get("name"),

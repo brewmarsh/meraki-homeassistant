@@ -1,6 +1,7 @@
 """Tests for the Meraki camera entity's stream control."""
 
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from custom_components.meraki_ha.camera import MerakiCamera

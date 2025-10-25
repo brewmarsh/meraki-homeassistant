@@ -1,7 +1,7 @@
 """Sensor for Meraki switch PoE usage."""
 
 import logging
-from typing import Any, Dict, Union
+from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.const import UnitOfPower
@@ -11,8 +11,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...helpers.entity_helpers import format_entity_name
 from ...core.utils.naming_utils import format_device_name
+from ...helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class MerakiPoeUsageSensor(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: Dict[str, Any],
+        device: dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -63,7 +63,7 @@ class MerakiPoeUsageSensor(
                 return
 
     @property
-    def native_value(self) -> Union[float, None]:
+    def native_value(self) -> float | None:
         """Return the state of the sensor."""
         ports_statuses = self._device.get("ports_statuses")
         if not ports_statuses or not isinstance(ports_statuses, list):
@@ -80,7 +80,7 @@ class MerakiPoeUsageSensor(
         return 0.0
 
     @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         ports_statuses = self._device.get("ports_statuses")
         if not ports_statuses or not isinstance(ports_statuses, list):

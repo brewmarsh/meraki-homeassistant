@@ -1,12 +1,13 @@
 """Tests for the Meraki SSID device switch."""
 
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock
 from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.switch.meraki_ssid_device_switch import (
-    MerakiSSIDEnabledSwitch,
     MerakiSSIDBroadcastSwitch,
+    MerakiSSIDEnabledSwitch,
 )
 
 

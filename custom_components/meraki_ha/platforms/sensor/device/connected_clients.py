@@ -1,7 +1,7 @@
 """Sensor for tracking connected clients on a Meraki wireless device."""
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from ....core.entities.device import MerakiDeviceEntity
 
@@ -33,7 +33,7 @@ class MerakiConnectedClientsSensor(MerakiDeviceEntity):
         return self.device_data.get("clients", 0)
 
     @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         return {
             "network_id": self.device_data.get("networkId"),

@@ -1,14 +1,15 @@
 """Base classes for Meraki camera switch entities."""
 
-from typing import Any, Dict, Optional
 import logging
+from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
-from ..types import MerakiDevice
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+
+from ..core.api.client import MerakiAPIClient
+from ..types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class MerakiCameraSettingSwitchBase(
         self,
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: Dict[str, Any],
+        device_data: dict[str, Any],
         key: str,
         api_field: str,
     ) -> None:
@@ -36,7 +37,7 @@ class MerakiCameraSettingSwitchBase(
         self._attr_is_on = False
         self._update_state()  # Set initial state
 
-    def _get_value_from_device(self, device: Optional[MerakiDevice]) -> bool:
+    def _get_value_from_device(self, device: MerakiDevice | None) -> bool:
         """Drill down into the device dictionary to get the state value."""
         if device is None:
             return False
@@ -120,7 +121,7 @@ class MerakiCameraSettingSwitchBase(
             )
 
     @property
-    def device_info(self) -> Dict[str, Any]:
+    def device_info(self) -> dict[str, Any]:
         """Return device information."""
         return {
             "identifiers": {("meraki_ha", self._device_data["serial"])},

@@ -1,12 +1,13 @@
 """Meraki API endpoints for wireless devices."""
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
     validate_response,
 )
+
 from ..cache import async_timed_cache
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ class WirelessEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache()
-    async def get_network_ssids(self, network_id: str) -> List[Dict[str, Any]]:
+    async def get_network_ssids(self, network_id: str) -> list[dict[str, Any]]:
         """Get all SSIDs for a network."""
         ssids = await self._api_client._run_sync(
             self._dashboard.wireless.getNetworkWirelessSsids, networkId=network_id
@@ -35,7 +36,7 @@ class WirelessEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache()
-    async def get_wireless_settings(self, serial: str) -> Dict[str, Any]:
+    async def get_wireless_settings(self, serial: str) -> dict[str, Any]:
         """Get wireless radio settings for an access point."""
         settings = await self._api_client._run_sync(
             self._dashboard.wireless.getDeviceWirelessRadioSettings, serial=serial
@@ -50,7 +51,7 @@ class WirelessEndpoints:
     @async_timed_cache()
     async def get_network_wireless_ssid(
         self, network_id: str, number: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get a single SSID."""
         ssid = await self._api_client._run_sync(
             self._dashboard.wireless.getNetworkWirelessSsid,
@@ -66,7 +67,7 @@ class WirelessEndpoints:
     @handle_meraki_errors
     async def update_network_wireless_ssid(
         self, network_id: str, number: str, **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Update an SSID."""
         ssid = await self._api_client._run_sync(
             self._dashboard.wireless.updateNetworkWirelessSsid,
@@ -84,7 +85,7 @@ class WirelessEndpoints:
     @async_timed_cache(timeout=3600)
     async def get_network_wireless_rf_profiles(
         self, network_id: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get all RF profiles for a network."""
         profiles = await self._api_client._run_sync(
             self._dashboard.wireless.getNetworkWirelessRfProfiles,
@@ -100,7 +101,7 @@ class WirelessEndpoints:
     @async_timed_cache()
     async def get_network_wireless_ssid_l7_firewall_rules(
         self, network_id: str, number: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get L7 firewall rules for an SSID."""
         rules = await self._api_client._run_sync(
             self._dashboard.wireless.getNetworkWirelessSsidL7FirewallRules,
@@ -118,7 +119,7 @@ class WirelessEndpoints:
     @handle_meraki_errors
     async def update_network_wireless_ssid_l7_firewall_rules(
         self, network_id: str, number: str, **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Update L7 firewall rules for an SSID."""
         rules = await self._api_client._run_sync(
             self._dashboard.wireless.updateNetworkWirelessSsidL7FirewallRules,
@@ -129,7 +130,8 @@ class WirelessEndpoints:
         validated = validate_response(rules)
         if not isinstance(validated, dict):
             _LOGGER.warning(
-                "updateNetworkWirelessSsidFirewallL7FirewallRules did not return a dict."
+                "updateNetworkWirelessSsidFirewallL7FirewallRules "
+                "did not return a dict."
             )
             return {}
         return validated

@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.binary_sensor import (
-    BinarySensorEntity,
     BinarySensorDeviceClass,
+    BinarySensorEntity,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
@@ -33,7 +33,7 @@ class MerakiMotionSensor(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: Dict[str, Any],
+        device: dict[str, Any],
         camera_service: CameraService,
         config_entry: ConfigEntry,
     ) -> None:
@@ -44,7 +44,7 @@ class MerakiMotionSensor(
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device['serial']}-motion"
         self._attr_name = f"{self._device['name']} Motion"
-        self._motion_events: List[Dict[str, Any]] = []
+        self._motion_events: list[dict[str, Any]] = []
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -57,7 +57,7 @@ class MerakiMotionSensor(
         return len(self._motion_events) > 0
 
     @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         return {"motion_events": self._motion_events}
 

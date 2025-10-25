@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -30,7 +30,7 @@ class MerakiMt20OpenCloseSensor(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_info: Dict[str, Any],
+        device_info: dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""

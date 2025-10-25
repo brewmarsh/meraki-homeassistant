@@ -1,11 +1,12 @@
 """Tests for the Meraki webhook handling."""
 
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from custom_components.meraki_ha.const import DOMAIN
-from custom_components.meraki_ha.webhook import async_handle_webhook
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+from custom_components.meraki_ha.webhook import async_handle_webhook
 
 
 @pytest.fixture

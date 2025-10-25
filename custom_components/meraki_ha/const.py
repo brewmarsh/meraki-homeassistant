@@ -4,7 +4,7 @@ This module defines constants used throughout the Meraki integration,
 including domain names, configuration keys, default values, and platform types.
 """
 
-from typing import Final, List
+from typing import Final
 
 DOMAIN: Final[str] = "meraki_ha"
 """Domain for the component."""
@@ -55,10 +55,8 @@ DEFAULT_IGNORED_NETWORKS: Final[str] = ""
 DEFAULT_ENABLE_VLAN_MANAGEMENT: Final[bool] = False
 """Default value for enabling vlan management (bool)."""
 
-DATA_SSID_DEVICES_COORDINATOR: Final[str] = (
-    "ssid_devices"  # New constant for SSID coordinator key
-)
-"""Key for storing the SSID devices coordinator within the coordinators dictionary (str)."""
+DATA_SSID_DEVICES_COORDINATOR: Final[str] = "ssid_devices"
+"""Key for the SSID devices coordinator."""
 
 MERAKI_API_CLIENT: Final[str] = "meraki_api_client"
 """Key for storing the MerakiAPIClient instance in hass.data (str)."""
@@ -88,7 +86,7 @@ PLATFORM_CAMERA: Final[str] = "camera"
 PLATFORM_NUMBER: Final[str] = "number"
 """Represents the number platform (str)."""
 
-PLATFORMS: Final[List[str]] = [
+PLATFORMS: Final[list[str]] = [
     PLATFORM_SENSOR,
     PLATFORM_BINARY_SENSOR,
     PLATFORM_BUTTON,
@@ -128,7 +126,7 @@ ERASE_TAGS_WARNING: Final[str] = (
 
 WEBHOOK_ID_FORMAT: Final[str] = "meraki_ha_{entry_id}"
 
-MERAKI_CONTENT_FILTERING_CATEGORIES: Final[List[dict]] = [
+MERAKI_CONTENT_FILTERING_CATEGORIES: Final[list[dict]] = [
     {
         "id": "meraki:contentFiltering/category/1",
         "name": "Adult and Pornography",
@@ -137,17 +135,17 @@ MERAKI_CONTENT_FILTERING_CATEGORIES: Final[List[dict]] = [
     {
         "id": "meraki:contentFiltering/category/2",
         "name": "Illegal",
-        "description": "Sites promoting illegal activities, such as drug-making or hacking.",
+        "description": "Sites promoting illegal activities.",
     },
     {
         "id": "meraki:contentFiltering/category/3",
         "name": "Gambling",
-        "description": "Online gambling sites, including casinos, sports betting, and lotteries.",
+        "description": "Online gambling sites.",
     },
     {
         "id": "meraki:contentFiltering/category/4",
         "name": "Hate and Racism",
-        "description": "Sites promoting hatred, discrimination, or violence against individuals or groups.",
+        "description": "Sites promoting hatred or discrimination.",
     },
     {
         "id": "meraki:contentFiltering/category/5",
@@ -167,17 +165,17 @@ MERAKI_CONTENT_FILTERING_CATEGORIES: Final[List[dict]] = [
     {
         "id": "meraki:contentFiltering/category/8",
         "name": "Malware sites",
-        "description": "Sites known to host or distribute malware, viruses, or other malicious software.",
+        "description": "Sites known to host or distribute malware.",
     },
     {
         "id": "meraki:contentFiltering/category/9",
         "name": "Phishing and other frauds",
-        "description": "Sites engaged in phishing, scams, or other fraudulent activities.",
+        "description": "Sites engaged in phishing, scams, or other frauds.",
     },
     {
         "id": "meraki:contentFiltering/category/10",
         "name": "Key loggers and monitoring",
-        "description": "Sites for keyloggers, spyware, and other monitoring tools.",
+        "description": "Sites for keyloggers, spyware, and monitoring tools.",
     },
     {
         "id": "meraki:contentFiltering/category/11",

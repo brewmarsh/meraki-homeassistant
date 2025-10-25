@@ -1,19 +1,18 @@
 """Webhook handling for the Meraki integration."""
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import get_url
 
 from .core.api import MerakiAPIClient
 
-
 _LOGGER = logging.getLogger(__name__)
 
 
 def get_webhook_url(
-    hass: HomeAssistant, webhook_id: str, entry_webhook_url: Optional[str] = None
+    hass: HomeAssistant, webhook_id: str, entry_webhook_url: str | None = None
 ) -> str:
     """Get the URL for a webhook.
 
@@ -24,8 +23,10 @@ def get_webhook_url(
         hass: The Home Assistant instance
         webhook_id: The ID of the webhook
         entry_webhook_url: Optional base webhook URL from config entry
+
     """
     from urllib.parse import urlparse
+
     from .core.errors import MerakiConnectionError
 
     # Use configured webhook URL if provided, otherwise fall back to HA's external URL
@@ -58,8 +59,8 @@ def get_webhook_url(
         or hostname.endswith(".local")
     ):
         raise MerakiConnectionError(
-            "Meraki webhooks require a public URL. Your current URL appears to be a local address. "
-            "Please configure a public HTTPS URL."
+            "Meraki webhooks require a public URL, but the current URL "
+            "appears to be a local address. Please configure a public HTTPS URL."
         )
 
     # Remove trailing slash if present

@@ -1,7 +1,7 @@
 """Reauthentication flow for the Meraki Home Assistant integration."""
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 import aiohttp
 from homeassistant.exceptions import ConfigEntryAuthFailed
@@ -14,10 +14,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_step_reauth(
-    self, user_input: Optional[Dict[str, Any]] = None
-) -> Dict[str, Any]:
+    self, user_input: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """Handle reauthentication for the Meraki integration."""
-    errors: Dict[str, str] = {}
+    errors: dict[str, str] = {}
 
     if user_input is not None:
         try:
@@ -33,7 +33,7 @@ async def async_step_reauth(
             if not existing_entry:
                 return self.async_abort(reason="unknown_entry")
 
-            updated_data: Dict[str, Any] = {
+            updated_data: dict[str, Any] = {
                 CONF_MERAKI_API_KEY: user_input[CONF_MERAKI_API_KEY],
                 CONF_MERAKI_ORG_ID: user_input[CONF_MERAKI_ORG_ID],
             }

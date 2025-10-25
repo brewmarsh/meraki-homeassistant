@@ -18,7 +18,6 @@ def mock_config_entry():
 
 def test_resolve_device_info_ssid_naming(mock_config_entry):
     """Test that SSID device names are formatted correctly."""
-    # This data represents the dictionary for a single SSID, which includes its networkId
     ssid_data = {"number": 1, "name": "My Test SSID", "networkId": "net1"}
 
     device_info = resolve_device_info(

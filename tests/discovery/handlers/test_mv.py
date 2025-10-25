@@ -1,19 +1,20 @@
 """Tests for the MVHandler."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
-from custom_components.meraki_ha.camera import MerakiCamera
-from custom_components.meraki_ha.discovery.handlers.mv import MVHandler
-from custom_components.meraki_ha.sensor.device.camera_analytics import (
-    MerakiPersonCountSensor,
-    MerakiVehicleCountSensor,
-)
 from custom_components.meraki_ha.binary_sensor.device.camera_motion import (
     MerakiMotionSensor,
 )
 from custom_components.meraki_ha.button.device.camera_snapshot import (
     MerakiSnapshotButton,
+)
+from custom_components.meraki_ha.camera import MerakiCamera
+from custom_components.meraki_ha.discovery.handlers.mv import MVHandler
+from custom_components.meraki_ha.sensor.device.camera_analytics import (
+    MerakiPersonCountSensor,
+    MerakiVehicleCountSensor,
 )
 from custom_components.meraki_ha.sensor.device.rtsp_url import MerakiRtspUrlSensor
 from custom_components.meraki_ha.switch.camera_controls import AnalyticsSwitch

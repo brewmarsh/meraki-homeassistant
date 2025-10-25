@@ -1,9 +1,10 @@
 """Module for asynchronous logging utilities."""
 
-import logging
-from typing import Any, Callable
 import asyncio
+import logging
+from collections.abc import Callable
 from functools import wraps
+from typing import Any
 
 
 def async_log_time(

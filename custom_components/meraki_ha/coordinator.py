@@ -2,23 +2,24 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
 import logging
-from typing import Any, Dict, Optional
+from datetime import datetime, timedelta
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr, entity_registry as er
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
-    DOMAIN,
     CONF_IGNORED_NETWORKS,
-    DEFAULT_IGNORED_NETWORKS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
+    DEFAULT_IGNORED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
 )
 from .core.api.client import MerakiAPIClient as ApiClient
 from .types import MerakiDevice, MerakiNetwork
@@ -26,7 +27,7 @@ from .types import MerakiDevice, MerakiNetwork
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
+class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """A centralized coordinator for Meraki API data."""
 
     def __init__(
@@ -42,8 +43,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             coordinator=self,
         )
         self.config_entry = entry
-        self.devices_by_serial: Dict[str, MerakiDevice] = {}
-        self.networks_by_id: Dict[str, MerakiNetwork] = {}
+        self.devices_by_serial: dict[str, MerakiDevice] = {}
+        self.networks_by_id: dict[str, MerakiNetwork] = {}
         self.ssids_by_network_and_number: dict = {}
         self.last_successful_update: datetime | None = None
         self.last_successful_data: dict = {}
@@ -70,11 +71,10 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
     def register_pending_update(
         self, unique_id: str, expiry_seconds: int = 150
     ) -> None:
-        """
-        Register that an entity has a pending update and should ignore coordinator data.
+        """Register a pending update to ignore coordinator data.
 
-        This is to prevent the coordinator from overwriting an optimistic state with
-        stale data from the Meraki API, which can have a significant provisioning delay.
+        This prevents overwriting an optimistic state with stale data from the
+        Meraki API, which can have a significant provisioning delay.
         """
         expiry_time = datetime.now() + timedelta(seconds=expiry_seconds)
         self._pending_updates[unique_id] = expiry_time
@@ -181,9 +181,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 datetime.now() - self.last_successful_update
             ) < timedelta(minutes=30):
                 _LOGGER.warning(
-                    "Failed to fetch new Meraki data, using stale data from %s ago. Error: %s",
-                    (datetime.now() - self.last_successful_update),
-                    err,
+                    "Failed to fetch new data, using stale data. Error: %s", err
                 )
                 return self.data
 
@@ -192,11 +190,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             )
             raise UpdateFailed(f"Error communicating with API: {err}") from err
 
-    def get_device(self, serial: str) -> Optional[MerakiDevice]:
+    def get_device(self, serial: str) -> MerakiDevice | None:
         """Get device data by serial number."""
         return self.devices_by_serial.get(serial)
 
-    def get_network(self, network_id: str) -> Optional[MerakiNetwork]:
+    def get_network(self, network_id: str) -> MerakiNetwork | None:
         """Get network data by ID."""
         return self.networks_by_id.get(network_id)
 

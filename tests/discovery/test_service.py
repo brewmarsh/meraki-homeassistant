@@ -1,7 +1,9 @@
 """Tests for the DeviceDiscoveryService."""
 
-from unittest.mock import AsyncMock, MagicMock, patch, ANY
+from unittest.mock import ANY, AsyncMock, MagicMock, patch
+
 import pytest
+
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from tests.const import MOCK_DEVICE
 

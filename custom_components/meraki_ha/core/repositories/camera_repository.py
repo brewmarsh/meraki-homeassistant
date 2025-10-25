@@ -1,5 +1,4 @@
-"""
-Repository for camera-related data.
+"""Repository for camera-related data.
 
 This module defines the CameraRepository class, which is responsible for
 fetching and processing camera-related data from the Meraki API.
@@ -8,10 +7,9 @@ fetching and processing camera-related data from the Meraki API.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 from ..errors import MerakiInformationalError
-
 
 if TYPE_CHECKING:
     from ..api.client import MerakiAPIClient
@@ -28,9 +26,8 @@ class CameraRepository:
         self._api_client = api_client
         self._organization_id = organization_id
 
-    async def get_camera_features(self, serial: str) -> List[str]:
-        """
-        Retrieve a camera's model-specific capabilities.
+    async def get_camera_features(self, serial: str) -> list[str]:
+        """Retrieve a camera's model-specific capabilities.
 
         This method should determine the features of a camera based on its model
         and other properties. For now, we'll assume all cameras support basic
@@ -58,7 +55,7 @@ class CameraRepository:
 
     async def get_analytics_data(
         self, serial: str, object_type: str
-    ) -> Optional[List[Dict[str, Any]]]:
+    ) -> list[dict[str, Any]] | None:
         """Fetch object detection and motion data."""
         try:
             recent = await self._api_client.camera.get_device_camera_analytics_recent(
@@ -69,9 +66,8 @@ class CameraRepository:
             _LOGGER.error("Error fetching analytics data for %s: %s", serial, e)
             return None
 
-    async def async_get_rtsp_stream_url(self, serial: str) -> Optional[str]:
-        """
-        Get the RTSP video stream URL for a camera.
+    async def async_get_rtsp_stream_url(self, serial: str) -> str | None:
+        """Get the RTSP video stream URL for a camera.
 
         This method validates that the URL is a valid RTSP stream URL.
         """
@@ -86,7 +82,8 @@ class CameraRepository:
                 return None
         except Exception as e:
             _LOGGER.warning(
-                "Could not check camera model for %s due to an error fetching device details: %s",
+                "Could not check camera model for %s due to an error "
+                "fetching device details: %s",
                 serial,
                 e,
             )
@@ -114,7 +111,8 @@ class CameraRepository:
             # This can happen if the camera model doesn't support RTSP (e.g., MV2).
             # Log it as a warning, not an error that will spam the user.
             _LOGGER.warning(
-                "Could not retrieve RTSP URL for camera %s (this may be normal if the model does not support it): %s",
+                "Could not retrieve RTSP URL for camera %s "
+                "(this may be normal if the model does not support it): %s",
                 serial,
                 e,
             )
@@ -125,7 +123,7 @@ class CameraRepository:
 
     async def get_analytics_history(
         self, network_id: str, object_type: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get analytics history for a network."""
         try:
             return await self._api_client.network.get_network_camera_analytics_history(
@@ -135,7 +133,7 @@ class CameraRepository:
             _LOGGER.error("Error fetching analytics history: %s", e)
             return []
 
-    async def generate_snapshot(self, serial: str) -> Optional[str]:
+    async def generate_snapshot(self, serial: str) -> str | None:
         """Generate a snapshot and return the URL."""
         try:
             snapshot_data = (

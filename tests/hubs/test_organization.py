@@ -1,7 +1,9 @@
 """Tests for the OrganizationHub."""
 
 from unittest.mock import MagicMock
+
 import pytest
+
 from custom_components.meraki_ha.hubs.organization import OrganizationHub
 from tests.const import MOCK_NETWORK
 

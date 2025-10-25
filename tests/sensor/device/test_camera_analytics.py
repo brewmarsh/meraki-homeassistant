@@ -1,6 +1,7 @@
 """Tests for the Meraki camera analytics sensors."""
 
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from custom_components.meraki_ha.sensor.device.camera_analytics import (

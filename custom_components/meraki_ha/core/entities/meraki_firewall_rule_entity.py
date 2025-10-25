@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
-from homeassistant.config_entries import ConfigEntry
-from . import BaseMerakiEntity
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...types import MerakiFirewallRule
 from ...core.utils.naming_utils import format_device_name
+from ...types import MerakiFirewallRule
+from . import BaseMerakiEntity
 
 
 class MerakiFirewallRuleEntity(BaseMerakiEntity):

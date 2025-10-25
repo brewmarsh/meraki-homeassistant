@@ -1,9 +1,9 @@
 """Options flow for the Meraki Home Assistant integration."""
 
-from typing import Any, Dict, Optional
+from typing import Any
 
-from homeassistant import config_entries
 import voluptuous as vol
+from homeassistant import config_entries
 
 from .const import CONF_INTEGRATION_TITLE
 from .schemas import OPTIONS_SCHEMA
@@ -17,7 +17,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
         self.options = dict(config_entry.options)
 
     async def async_step_init(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
         """Manage the options flow."""
         if user_input is not None:
@@ -36,8 +36,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
     def _populate_schema_defaults(
         self, schema: vol.Schema, defaults: dict
     ) -> vol.Schema:
-        """
-        Populate a schema with default values.
+        """Populate a schema with default values.
 
         This is used to ensure that the options form is pre-filled with the
         existing values from the config entry.

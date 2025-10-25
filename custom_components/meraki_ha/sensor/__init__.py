@@ -2,13 +2,12 @@
 
 import logging
 
-from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN, PLATFORM_SENSOR
 from .setup_helpers import async_setup_sensors
-
 
 _LOGGER = logging.getLogger(__name__)
 

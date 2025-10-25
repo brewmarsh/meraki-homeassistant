@@ -6,7 +6,7 @@ MX security appliance.
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from ....core.entities.device import MerakiDeviceEntity
 
@@ -46,7 +46,7 @@ class MerakiUplinkStatusSensor(MerakiDeviceEntity):
         return status.capitalize()
 
     @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         return {
             "wan1_ip": self.device_data.get("wan1Ip"),

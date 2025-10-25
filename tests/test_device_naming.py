@@ -1,16 +1,18 @@
 """Tests for consistent device name formatting across various entity types."""
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
+
+from custom_components.meraki_ha.sensor.network.network_clients import (
+    MerakiNetworkClientsSensor,
+)
+from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANIDSensor
 
 # Import the sensor classes to be tested
 from custom_components.meraki_ha.sensor.org.org_clients import (
     MerakiOrganizationSSIDClientsSensor,
 )
-from custom_components.meraki_ha.sensor.network.network_clients import (
-    MerakiNetworkClientsSensor,
-)
-from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANIDSensor
 
 
 @pytest.fixture
