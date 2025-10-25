@@ -1,6 +1,5 @@
 """Tests for the API utils."""
 
-
 import pytest
 from aiohttp import ClientError
 from meraki.exceptions import APIError

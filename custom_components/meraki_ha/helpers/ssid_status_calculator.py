@@ -59,9 +59,7 @@ class SsidStatusCalculator:
             return []
 
         if devices is None:
-            _LOGGER.warning(
-                "Device data is None; SSID statuses cannot be determined."
-            )
+            _LOGGER.warning("Device data is None; SSID statuses cannot be determined.")
             for ssid in ssids:
                 ssid["status"] = "unknown_device_data_missing"
             return ssids

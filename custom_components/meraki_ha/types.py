@@ -1,6 +1,5 @@
 """Type definitions for Meraki API data structures."""
 
-
 from typing_extensions import TypedDict
 
 
