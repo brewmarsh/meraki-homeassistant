@@ -1,7 +1,6 @@
 # custom_components/meraki_ha/sensor_registry.py
 """Sensor registry for Meraki Home Assistant integration."""
 
-
 from homeassistant.helpers.entity import Entity
 
 from .sensor.device.camera_audio_detection import MerakiCameraAudioDetectionSensor

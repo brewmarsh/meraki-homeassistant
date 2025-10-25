@@ -28,9 +28,11 @@ class SwitchPortService:
         """Get statuses for all ports of a switch.
 
         Args:
+        ----
             serial: The serial number of the switch.
 
         Returns:
+        -------
             A list of port statuses, or None if an error occurred.
 
         """
@@ -40,12 +42,15 @@ class SwitchPortService:
         """Get the status for a specific port.
 
         Args:
+        ----
             serial: The serial number of the switch.
             port_id: The ID of the port.
 
         Returns:
+        -------
             The status of the port ('Connected' or 'Disconnected'), or None if
             not found.
+
         """
         statuses = await self.async_get_ports_statuses(serial)
         if statuses:
@@ -58,10 +63,12 @@ class SwitchPortService:
         """Get the speed for a specific port.
 
         Args:
+        ----
             serial: The serial number of the switch.
             port_id: The ID of the port.
 
         Returns:
+        -------
             The speed of the port, or None if not found.
 
         """

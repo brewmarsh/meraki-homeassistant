@@ -1,6 +1,5 @@
 """Utility functions for mapping and validating Meraki device types."""
 
-
 from ._const import VALID_DEVICE_TYPES, DeviceType
 from ._data import DEVICE_PREFIX_MAPPINGS, DEVICE_TYPE_DESCRIPTIONS, MODEL_PATTERN
 

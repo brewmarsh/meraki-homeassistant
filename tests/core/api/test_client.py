@@ -159,7 +159,7 @@ def test_build_detail_tasks_for_camera_device(api_client):
 
 @pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_appliance_device(api_client):
-    """Test that _build_detail_tasks creates the correct tasks for an appliance device."""
+    """Test that _build_detail_tasks creates tasks for an appliance device."""
     # Arrange
     appliance_device = {
         "serial": "a123",

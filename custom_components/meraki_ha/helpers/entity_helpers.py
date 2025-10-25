@@ -9,8 +9,7 @@ def format_entity_name(
     device_name: str,
     entity_specific_name: str,
 ) -> str:
-    """
-    Format the entity name.
+    """Format the entity name.
 
     Combines the device name and the entity specific name.
     """

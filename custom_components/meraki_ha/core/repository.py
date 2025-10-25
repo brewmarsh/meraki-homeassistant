@@ -26,9 +26,11 @@ class MerakiRepository:
         """Reboot a device.
 
         Args:
+        ----
             serial: The serial number of the device to reboot.
 
         Returns:
+        -------
             A dictionary containing the API response, or None if an error occurred.
 
         """
@@ -45,9 +47,11 @@ class MerakiRepository:
         """Get statuses for all ports of a switch.
 
         Args:
+        ----
             serial: The serial number of the switch.
 
         Returns:
+        -------
             A list of port statuses, or None if an error occurred.
 
         """

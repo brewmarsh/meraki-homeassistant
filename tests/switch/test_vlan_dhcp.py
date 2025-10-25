@@ -66,9 +66,9 @@ def test_vlan_dhcp_switch_off_state(
     mock_coordinator, mock_config_entry, mock_meraki_client
 ):
     """Test the off state of the VLAN DHCP switch."""
-    mock_coordinator.data["vlans"]["net1"][0][
-        "dhcpHandling"
-    ] = "Do not respond to DHCP requests"
+    mock_coordinator.data["vlans"]["net1"][0]["dhcpHandling"] = (
+        "Do not respond to DHCP requests"
+    )
 
     hass = MagicMock()
     entities = async_setup_switches(

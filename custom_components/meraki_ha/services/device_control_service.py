@@ -26,9 +26,11 @@ class DeviceControlService:
         """Reboot a device.
 
         Args:
+        ----
             serial: The serial number of the device to reboot.
 
         Returns:
+        -------
             A dictionary containing the API response, or None if an error occurred.
 
         """

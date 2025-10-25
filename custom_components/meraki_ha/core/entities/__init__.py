@@ -35,6 +35,7 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator], Entity, A
         """Initialize the entity.
 
         Args:
+        ----
             coordinator: The data coordinator
             config_entry: The config entry
             serial: Device serial number (if this is a device-based entity)
