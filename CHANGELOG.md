@@ -1,3 +1,13 @@
+## [1.5.4-beta.8](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.7...v1.5.4-beta.8) (2025-10-27)
+
+
+### Bug Fixes
+
+* Resolve remaining ruff linting errors ([15066c5](https://github.com/brewmarsh/meraki-homeassistant/commit/15066c5469a29e881025ef1785b2868a012aa1c2))
+* Resolve ruff linting and formatting errors ([84273cb](https://github.com/brewmarsh/meraki-homeassistant/commit/84273cbdeb0668c7d69a6d44aa2ee36a74b7fe7e))
+
+
+
 ## [1.5.4-beta.7](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.6...v1.5.4-beta.7) (2025-10-27)
 
 
