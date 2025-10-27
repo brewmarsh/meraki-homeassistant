@@ -40,7 +40,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MVHandler(BaseDeviceHandler):
-
     """Handler for Meraki MV (camera) devices."""
 
     def __init__(

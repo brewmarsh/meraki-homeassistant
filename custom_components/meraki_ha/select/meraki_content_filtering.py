@@ -21,7 +21,6 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiContentFilteringSelect(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SelectEntity
 ):
-
     """Representation of a Meraki Content Filtering select entity."""
 
     entity_category = EntityCategory.CONFIG

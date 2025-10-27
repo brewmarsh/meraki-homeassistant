@@ -20,7 +20,6 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiMt15RefreshDataButton(
     CoordinatorEntity[MerakiDataUpdateCoordinator], ButtonEntity
 ):
-
     """Representation of a Meraki MT15 refresh data button."""
 
     def __init__(

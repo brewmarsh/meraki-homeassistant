@@ -22,7 +22,6 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiSSIDBaseSwitch(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SwitchEntity
 ):
-
     """Base class for Meraki SSID Switches."""
 
     entity_category = EntityCategory.CONFIG
@@ -148,7 +147,6 @@ class MerakiSSIDBaseSwitch(
 
 
 class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
-
     """Switch to control the enabled/disabled state of a Meraki SSID."""
 
     def __init__(
@@ -182,7 +180,6 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
 
 
 class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
-
     """Switch to control the broadcast (visible/hidden) state of a Meraki SSID."""
 
     def __init__(

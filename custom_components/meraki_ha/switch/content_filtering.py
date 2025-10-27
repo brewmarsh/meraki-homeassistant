@@ -19,7 +19,6 @@ class MerakiContentFilteringSwitch(
     CoordinatorEntity[MerakiDataUpdateCoordinator],
     SwitchEntity,
 ):
-
     """Representation of a Meraki Content Filtering category switch."""
 
     def __init__(

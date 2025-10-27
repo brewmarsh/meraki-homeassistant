@@ -52,7 +52,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class SSIDHandler(BaseHandler):
-
     """Handler for Meraki SSIDs."""
 
     def __init__(

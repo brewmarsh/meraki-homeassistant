@@ -10,7 +10,6 @@ from .base import MerakiSSIDBaseSensor
 
 
 class MerakiSSIDBandSelectionSensor(MerakiSSIDBaseSensor):
-
     """Representation of a Meraki SSID Band Selection sensor."""
 
     entity_description = SensorEntityDescription(

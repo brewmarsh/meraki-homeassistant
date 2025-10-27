@@ -12,7 +12,6 @@ from . import BaseMerakiEntity
 
 
 class MerakiFirewallRuleEntity(BaseMerakiEntity):
-
     """Representation of a Meraki Firewall Rule."""
 
     def __init__(

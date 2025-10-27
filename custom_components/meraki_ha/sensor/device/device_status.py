@@ -29,7 +29,6 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiDeviceStatusSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
-
     """
     Representation of a Meraki Device Status sensor.
 

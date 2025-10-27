@@ -17,7 +17,6 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiDeviceConnectedClientsSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
-
     """Representation of a Meraki Connected Clients sensor."""
 
     _attr_icon = "mdi:account-network"

@@ -23,7 +23,6 @@ async def dummy_api_call():
 
 
 class MockResponse:
-
     """Mock response for APIError."""
 
     def __init__(self, status_code, reason, json_data):

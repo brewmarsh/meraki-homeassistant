@@ -19,7 +19,6 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiFirmwareStatusSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
-
     """Representation of a Meraki Device Firmware Status Sensor."""
 
     _attr_icon = "mdi:package-up"

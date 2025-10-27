@@ -23,7 +23,6 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiMt20OpenCloseSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], BinarySensorEntity
 ):
-
     """Representation of a Meraki MT20 open/close sensor."""
 
     _attr_device_class = BinarySensorDeviceClass.DOOR

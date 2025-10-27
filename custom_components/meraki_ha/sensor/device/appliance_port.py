@@ -19,7 +19,6 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiAppliancePortSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
-
     """Representation of a Meraki appliance port sensor."""
 
     def __init__(

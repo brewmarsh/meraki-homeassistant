@@ -1,4 +1,5 @@
 """Schema definitions for the Meraki Home Assistant integration."""
+
 from __future__ import annotations
 
 import voluptuous as vol

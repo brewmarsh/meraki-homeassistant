@@ -10,7 +10,6 @@ from .base import MerakiSSIDBaseSensor
 
 
 class MerakiSSIDClientCountSensor(MerakiSSIDBaseSensor):
-
     """Representation of a Meraki SSID Client Count sensor."""
 
     entity_description = SensorEntityDescription(

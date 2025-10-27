@@ -19,7 +19,6 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiCameraAudioDetectionSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
-
     """Representation of a Meraki Camera Audio Detection Status sensor."""
 
     _attr_has_entity_name = True

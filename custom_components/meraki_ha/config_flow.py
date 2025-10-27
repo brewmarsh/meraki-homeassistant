@@ -1,4 +1,5 @@
 """Config flow for the Meraki Home Assistant integration."""
+
 from __future__ import annotations
 
 import logging
@@ -24,7 +25,6 @@ _LOGGER = logging.getLogger(__name__)
 
 @config_entries.HANDLERS.register(DOMAIN)
 class ConfigFlowHandler(config_entries.ConfigFlow):
-
     """Handle a config flow for Meraki."""
 
     VERSION = 1

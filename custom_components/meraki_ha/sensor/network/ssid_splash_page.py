@@ -10,7 +10,6 @@ from .base import MerakiSSIDBaseSensor
 
 
 class MerakiSSIDSplashPageSensor(MerakiSSIDBaseSensor):
-
     """Representation of a Meraki SSID Splash Page sensor."""
 
     entity_description = SensorEntityDescription(
