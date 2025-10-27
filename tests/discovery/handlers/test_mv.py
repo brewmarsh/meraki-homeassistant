@@ -18,7 +18,6 @@ from custom_components.meraki_ha.sensor.device.camera_analytics import (
 )
 from custom_components.meraki_ha.sensor.device.rtsp_url import MerakiRtspUrlSensor
 from custom_components.meraki_ha.switch.camera_controls import AnalyticsSwitch
-from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from tests.const import MOCK_DEVICE
 
 

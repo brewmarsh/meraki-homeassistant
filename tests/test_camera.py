@@ -8,7 +8,6 @@ import pytest
 from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.camera import MerakiCamera
-from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from tests.const import MOCK_DEVICE
 
 # A mock camera device with all the data the entity expects

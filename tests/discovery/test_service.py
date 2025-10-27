@@ -5,7 +5,6 @@ from unittest.mock import ANY, AsyncMock, MagicMock, patch
 import pytest
 
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
-from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from tests.const import MOCK_DEVICE
 
 
