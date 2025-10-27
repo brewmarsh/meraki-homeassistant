@@ -18,6 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiFirewallRuleSwitch(MerakiFirewallRuleEntity, SwitchEntity):
+
     """Representation of a Meraki L3 Firewall Rule switch."""
 
     def __init__(
@@ -28,12 +29,24 @@ class MerakiFirewallRuleSwitch(MerakiFirewallRuleEntity, SwitchEntity):
         rule: MerakiFirewallRule,
         rule_index: int,
     ) -> None:
-        """Initialize the switch."""
+        """
+        Initialize the switch.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            config_entry: The config entry.
+            network_id: The ID of the network.
+            rule: The firewall rule.
+            rule_index: The index of the rule.
+
+        """
         super().__init__(coordinator, config_entry, network_id, rule, rule_index)
         if not self._network_id:
             raise ValueError("Network ID cannot be None for a firewall rule entity")
         self._attr_unique_id = get_firewall_rule_entity_id(
-            self._network_id, self._rule_index
+            self._network_id,
+            self._rule_index,
         )
         self._attr_name = self._rule.get("comment", f"Rule {self._rule_index + 1}")
         self._update_internal_state()
@@ -51,42 +64,60 @@ class MerakiFirewallRuleSwitch(MerakiFirewallRuleEntity, SwitchEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        rules = (
-            self.coordinator.data.get("l3_firewall_rules", {})
-            .get(self._network_id, {})
-            .get("rules", [])
-        )
-        if len(rules) > self._rule_index:
-            self._rule = cast(MerakiFirewallRule, rules[self._rule_index])
-            self._update_internal_state()
-            self.async_write_ha_state()
+        if self._network_id in self.coordinator.data.get("l3_firewall_rules", {}):
+            rules = self.coordinator.data["l3_firewall_rules"][self._network_id].get(
+                "rules",
+                [],
+            )
+            if len(rules) > self._rule_index:
+                self._rule = cast(MerakiFirewallRule, rules[self._rule_index])
+                self._update_internal_state()
+                self.async_write_ha_state()
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn the switch on."""
+        """
+        Turn the switch on.
+
+        Args:
+        ----
+            **kwargs: Additional arguments.
+
+        """
         self._attr_is_on = True
         self.async_write_ha_state()
         self.coordinator.register_pending_update(self.unique_id)
-        rules = (
-            self.coordinator.data.get("l3_firewall_rules", {})
-            .get(self._network_id, {})
-            .get("rules", [])
-        )
-        rules[self._rule_index]["policy"] = "allow"
-        await self.coordinator.api.appliance.update_l3_firewall_rules(
-            network_id=self._network_id, rules=rules
-        )
+        if self._network_id in self.coordinator.data.get("l3_firewall_rules", {}):
+            rules = self.coordinator.data["l3_firewall_rules"][self._network_id].get(
+                "rules",
+                [],
+            )
+            if len(rules) > self._rule_index:
+                rules[self._rule_index]["policy"] = "allow"
+                await self.coordinator.api.appliance.update_l3_firewall_rules(
+                    network_id=self._network_id,
+                    rules=rules,
+                )
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the switch off."""
+        """
+        Turn the switch off.
+
+        Args:
+        ----
+            **kwargs: Additional arguments.
+
+        """
         self._attr_is_on = False
         self.async_write_ha_state()
         self.coordinator.register_pending_update(self.unique_id)
-        rules = (
-            self.coordinator.data.get("l3_firewall_rules", {})
-            .get(self._network_id, {})
-            .get("rules", [])
-        )
-        rules[self._rule_index]["policy"] = "deny"
-        await self.coordinator.api.appliance.update_l3_firewall_rules(
-            network_id=self._network_id, rules=rules
-        )
+        if self._network_id in self.coordinator.data.get("l3_firewall_rules", {}):
+            rules = self.coordinator.data["l3_firewall_rules"][self._network_id].get(
+                "rules",
+                [],
+            )
+            if len(rules) > self._rule_index:
+                rules[self._rule_index]["policy"] = "deny"
+                await self.coordinator.api.appliance.update_l3_firewall_rules(
+                    network_id=self._network_id,
+                    rules=rules,
+                )

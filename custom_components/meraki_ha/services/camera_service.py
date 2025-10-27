@@ -1,4 +1,5 @@
-"""Service for camera-related logic.
+"""
+Service for camera-related logic.
 
 This module defines the CameraService class, which encapsulates the business
 logic for handling Meraki cameras. It uses the CameraRepository to interact
@@ -18,6 +19,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class CameraService:
+
     """Service for camera-related business logic."""
 
     def __init__(self, repository: CameraRepository) -> None:
@@ -45,7 +47,8 @@ class CameraService:
         return await self._repository.async_get_rtsp_stream_url(serial)
 
     async def get_motion_history(self, serial: str) -> list[dict[str, Any]]:
-        """Get the motion history for a camera.
+        """
+        Get the motion history for a camera.
 
         This method fetches both person and vehicle detection history and
         combines them to represent general motion.

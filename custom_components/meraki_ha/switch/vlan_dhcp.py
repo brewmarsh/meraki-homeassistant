@@ -18,6 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
+
     """Representation of a Meraki VLAN's DHCP handling switch."""
 
     def __init__(

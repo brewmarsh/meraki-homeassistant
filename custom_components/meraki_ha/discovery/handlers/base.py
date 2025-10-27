@@ -1,4 +1,5 @@
-"""Base Device Handler.
+"""
+Base Device Handler.
 
 This module defines the BaseDeviceHandler class, which provides a common
 interface for all device-specific handlers.
@@ -30,6 +31,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class BaseHandler(ABC):
+
     """Base class for entity handlers."""
 
     def __init__(
@@ -48,6 +50,7 @@ class BaseHandler(ABC):
 
 
 class BaseDeviceHandler(BaseHandler, ABC):
+
     """Base class for device-specific entity handlers."""
 
     def __init__(

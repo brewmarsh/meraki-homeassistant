@@ -1,4 +1,5 @@
-"""Meraki MS Switch Handler.
+"""
+Meraki MS Switch Handler.
 
 This module defines the MSHandler class, which is responsible for discovering
 entities for Meraki MS switches.
@@ -32,6 +33,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MSHandler(BaseDeviceHandler):
+
     """Handler for Meraki MS switches."""
 
     def __init__(

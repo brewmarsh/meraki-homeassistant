@@ -1,4 +1,5 @@
-"""Meraki-HA button platform.
+"""
+Meraki-HA button platform.
 
 This module defines the MerakiRebootButton class, a generic button entity
 for rebooting Meraki devices.
@@ -23,6 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiRebootButton(ButtonEntity):
+
     """A button to reboot a Meraki device."""
 
     def __init__(

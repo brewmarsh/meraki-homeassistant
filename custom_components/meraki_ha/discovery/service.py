@@ -1,4 +1,5 @@
-"""Device Discovery Service.
+"""
+Device Discovery Service.
 
 This module defines the DeviceDiscoveryService, which is responsible for
 discovering devices from the Meraki data and delegating entity creation
@@ -49,6 +50,7 @@ HANDLER_MAPPING = {
 
 
 class DeviceDiscoveryService:
+
     """Service for discovering Meraki devices and creating corresponding entities."""
 
     def __init__(
@@ -72,7 +74,8 @@ class DeviceDiscoveryService:
         self._devices: list[MerakiDevice] = self._coordinator.data.get("devices", [])
 
     async def discover_entities(self) -> list[Entity]:
-        """Discover all entities for all devices and networks.
+        """
+        Discover all entities for all devices and networks.
 
         This method iterates through all devices in the organization and uses
         the HANDLER_MAPPING to delegate entity creation to the appropriate

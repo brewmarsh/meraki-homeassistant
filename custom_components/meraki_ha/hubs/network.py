@@ -1,4 +1,5 @@
-"""Network Hub.
+"""
+Network Hub.
 
 This module defines the NetworkHub class, which is responsible for
 processing and managing data for a specific Meraki network.
@@ -17,6 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class NetworkHub:
+
     """A hub for processing data for a specific network."""
 
     def __init__(
@@ -54,7 +56,8 @@ class NetworkHub:
         return []
 
     async def async_update_data(self) -> None:
-        """Update network-specific data.
+        """
+        Update network-specific data.
 
         This method is a placeholder. The hub's properties directly
         access the latest data from the coordinator, so a separate

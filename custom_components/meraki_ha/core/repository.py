@@ -1,4 +1,5 @@
-"""Meraki Repository.
+"""
+Meraki Repository.
 
 This module defines the MerakiRepository class, which is responsible for
 interacting with the Meraki API client and handling data processing.
@@ -16,6 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiRepository:
+
     """A repository for accessing Meraki data."""
 
     def __init__(self, api_client: MerakiAPIClient) -> None:
@@ -23,7 +25,8 @@ class MerakiRepository:
         self._api_client = api_client
 
     async def async_reboot_device(self, serial: str) -> dict[str, Any] | None:
-        """Reboot a device.
+        """
+        Reboot a device.
 
         Args:
         ----
@@ -44,7 +47,8 @@ class MerakiRepository:
     async def async_get_switch_port_statuses(
         self, serial: str
     ) -> list[dict[str, Any]] | None:
-        """Get statuses for all ports of a switch.
+        """
+        Get statuses for all ports of a switch.
 
         Args:
         ----

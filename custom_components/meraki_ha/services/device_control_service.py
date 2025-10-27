@@ -1,4 +1,5 @@
-"""Device Control Service.
+"""
+Device Control Service.
 
 This module defines the DeviceControlService class, which is responsible for
 handling device-specific control actions.
@@ -16,6 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class DeviceControlService:
+
     """A service for controlling Meraki devices."""
 
     def __init__(self, repository: MerakiRepository) -> None:
@@ -23,7 +25,8 @@ class DeviceControlService:
         self._repository = repository
 
     async def async_reboot(self, serial: str) -> dict[str, Any] | None:
-        """Reboot a device.
+        """
+        Reboot a device.
 
         Args:
         ----

@@ -1,4 +1,5 @@
-"""Meraki SSID Handler.
+"""
+Meraki SSID Handler.
 
 This module defines the SSIDHandler class, which is responsible for discovering
 virtual devices and entities for each Meraki SSID.
@@ -51,6 +52,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class SSIDHandler(BaseHandler):
+
     """Handler for Meraki SSIDs."""
 
     def __init__(

@@ -1,4 +1,5 @@
-"""Sensor entity for representing the uplink status of a Meraki MX appliance.
+"""
+Sensor entity for representing the uplink status of a Meraki MX appliance.
 
 This module defines the `MerakiUplinkStatusSensor` class, a Home Assistant
 sensor entity that displays the status of the primary uplink for a Meraki
@@ -18,6 +19,7 @@ STATE_UNKNOWN_UPLINK = "Unknown"
 
 
 class MerakiUplinkStatusSensor(MerakiDeviceEntity):
+
     """Representation of a Meraki MX Appliance Uplink Status sensor."""
 
     _attr_icon = "mdi:upload-network-outline"

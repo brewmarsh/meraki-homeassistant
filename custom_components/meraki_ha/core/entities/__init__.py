@@ -17,7 +17,9 @@ from ..utils.naming_utils import format_device_name
 
 
 class BaseMerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator], Entity, ABC):
-    """Base entity class for Meraki entities.
+
+    """
+    Base entity class for Meraki entities.
 
     Provides common functionality for all Meraki entities including:
     - Device info management
@@ -32,7 +34,8 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator], Entity, A
         serial: str | None = None,
         network_id: str | None = None,
     ) -> None:
-        """Initialize the entity.
+        """
+        Initialize the entity.
 
         Args:
         ----

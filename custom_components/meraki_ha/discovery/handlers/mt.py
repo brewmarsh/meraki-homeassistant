@@ -27,6 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MTHandler(BaseDeviceHandler):
+
     """Handler for MT series sensors."""
 
     def __init__(

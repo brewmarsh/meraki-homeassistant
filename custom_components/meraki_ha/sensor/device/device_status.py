@@ -1,4 +1,5 @@
-"""Sensor entity for representing the status of a Meraki device.
+"""
+Sensor entity for representing the status of a Meraki device.
 
 This module defines the `MerakiDeviceStatusSensor` class, which
 is a Home Assistant sensor entity that displays the status (product type)
@@ -28,7 +29,9 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiDeviceStatusSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
-    """Representation of a Meraki Device Status sensor.
+
+    """
+    Representation of a Meraki Device Status sensor.
 
     This sensor displays the actual reported status of a Meraki device
     (e.g., "online", "offline", "alerting"). It uses SensorEntityDescription
@@ -52,13 +55,15 @@ class MerakiDeviceStatusSensor(
         device_data: dict[str, Any],  # Initial device_data snapshot
         config_entry: ConfigEntry,
     ) -> None:
-        """Initialize the Meraki Device Status sensor.
+        """
+        Initialize the Meraki Device Status sensor.
 
         Args:
         ----
-          coordinator: The data update coordinator.
-          device_data: A dictionary containing initial information about the Meraki device.
-          config_entry: The config entry.
+            coordinator: The data update coordinator.
+            device_data: A dictionary containing initial information about the
+                Meraki device.
+            config_entry: The config entry.
 
         """
         super().__init__(coordinator)
