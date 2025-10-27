@@ -1,21 +1,26 @@
 """Helper function for setting up all sensor entities."""
 
 import logging
-from typing import List, Set, cast, TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
-from homeassistant.core import HomeAssistant
-from ..types import MerakiVlan
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
 
+from ..const import (
+    CONF_ENABLE_DEVICE_TRACKER,
+    CONF_ENABLE_VLAN_MANAGEMENT,
+)
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..sensor_registry import (
     COMMON_SENSORS_COORD_DEV_CONF,
     get_sensors_for_device_type,
 )
-from .setup_mt_sensors import async_setup_mt_sensors
-from .network.vlans_list import VlansListSensor
+from ..types import MerakiVlan
+from .client_tracker import ClientTrackerDeviceSensor, MerakiClientSensor
 from .device.appliance_port import MerakiAppliancePortSensor
+from .device.appliance_uplink import MerakiApplianceUplinkSensor
+from .device.rtsp_url import MerakiRtspUrlSensor
 from .network.vlan import (
     MerakiVLANIDSensor,
     MerakiVLANIPv4EnabledSensor,
@@ -25,15 +30,9 @@ from .network.vlan import (
     MerakiVLANIPv6InterfaceSensor,
     MerakiVLANIPv6UplinkSensor,
 )
-from .device.appliance_uplink import MerakiApplianceUplinkSensor
-from .client_tracker import ClientTrackerDeviceSensor, MerakiClientSensor
+from .network.vlans_list import VlansListSensor
+from .setup_mt_sensors import async_setup_mt_sensors
 from .ssid.connected_clients import MerakiSsidConnectedClientsSensor
-from .device.rtsp_url import MerakiRtspUrlSensor
-from ..const import (
-    CONF_ENABLE_DEVICE_TRACKER,
-    CONF_ENABLE_VLAN_MANAGEMENT,
-)
-
 
 if TYPE_CHECKING:
     from ..services.camera_service import CameraService
@@ -45,11 +44,11 @@ _LOGGER = logging.getLogger(__name__)
 def _setup_device_sensors(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
-    added_entities: Set[str],
+    added_entities: set[str],
     camera_service: "CameraService",
-) -> List[Entity]:
+) -> list[Entity]:
     """Set up device-specific sensors."""
-    entities: List[Entity] = []
+    entities: list[Entity] = []
     devices = coordinator.data.get("devices", [])
     for device_info in devices:
         serial = device_info.get("serial")
@@ -98,7 +97,11 @@ def _setup_device_sensors(
                 unique_id = f"{serial}_port_{port['number']}"
                 if unique_id not in added_entities:
                     entities.append(
-                        MerakiAppliancePortSensor(coordinator, device_info, port)
+                        MerakiAppliancePortSensor(
+                            coordinator,
+                            device_info,
+                            port,
+                        )
                     )
                     added_entities.add(unique_id)
 
@@ -112,10 +115,10 @@ def _setup_device_sensors(
 def _setup_network_sensors(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
-    added_entities: Set[str],
-) -> List[Entity]:
+    added_entities: set[str],
+) -> list[Entity]:
     """Set up network-specific sensors."""
-    entities: List[Entity] = []
+    entities: list[Entity] = []
     networks = coordinator.data.get("networks", [])
     for network_data in networks:
         network_id = network_data.get("id")
@@ -138,12 +141,12 @@ def _setup_network_sensors(
 def _setup_client_tracker_sensors(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
-) -> List[Entity]:
+) -> list[Entity]:
     """Set up client tracker sensors."""
     if not config_entry.options.get(CONF_ENABLE_DEVICE_TRACKER, True):
         return []
 
-    entities: List[Entity] = []
+    entities: list[Entity] = []
     clients = coordinator.data.get("clients", [])
     if clients:
         # Add the main device sensor for the tracker
@@ -160,10 +163,10 @@ def _setup_client_tracker_sensors(
 def _setup_vlan_sensors(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
-    added_entities: Set[str],
-) -> List[Entity]:
+    added_entities: set[str],
+) -> list[Entity]:
     """Set up VLAN sensors."""
-    entities: List[Entity] = []
+    entities: list[Entity] = []
     vlans_by_network = coordinator.data.get("vlans", {})
 
     vlan_sensors = [
@@ -203,10 +206,10 @@ def _setup_vlan_sensors(
 def _setup_uplink_sensors(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
-    added_entities: Set[str],
-) -> List[Entity]:
+    added_entities: set[str],
+) -> list[Entity]:
     """Set up appliance uplink sensors."""
-    entities: List[Entity] = []
+    entities: list[Entity] = []
     appliance_uplinks = coordinator.data.get("appliance_uplink_statuses", [])
     for uplink_status in appliance_uplinks:
         serial = uplink_status.get("serial")
@@ -236,10 +239,10 @@ def _setup_uplink_sensors(
 def _setup_ssid_sensors(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
-    added_entities: Set[str],
-) -> List[Entity]:
+    added_entities: set[str],
+) -> list[Entity]:
     """Set up SSID-specific sensors."""
-    entities: List[Entity] = []
+    entities: list[Entity] = []
     ssids = coordinator.data.get("ssids", [])
     for ssid_data in ssids:
         network_id = ssid_data.get("networkId")
@@ -263,10 +266,10 @@ def async_setup_sensors(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
     camera_service: "CameraService",
-) -> List[Entity]:
+) -> list[Entity]:
     """Set up all sensor entities from the central coordinator."""
-    entities: List[Entity] = []
-    added_entities: Set[str] = set()
+    entities: list[Entity] = []
+    added_entities: set[str] = set()
 
     if not coordinator.data:
         _LOGGER.warning("Coordinator has no data; skipping sensor setup.")

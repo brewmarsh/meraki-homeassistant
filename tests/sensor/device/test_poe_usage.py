@@ -1,7 +1,8 @@
 """Tests for the Meraki PoE usage sensor."""
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from custom_components.meraki_ha.sensor.device.poe_usage import MerakiPoeUsageSensor
 

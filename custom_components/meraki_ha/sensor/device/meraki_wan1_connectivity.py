@@ -1,7 +1,8 @@
 """Sensor for Meraki WAN1 Connectivity."""
+from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -20,8 +21,10 @@ STATE_DISCONNECTED = "Disconnected"
 
 
 class MerakiWAN1ConnectivitySensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataUpdateCoordinator],
+    SensorEntity,
 ):
+
     """Representation of a Meraki WAN1 Connectivity Sensor."""
 
     _attr_icon = "mdi:wan"
@@ -31,10 +34,19 @@ class MerakiWAN1ConnectivitySensor(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: Dict[str, Any],
+        device_data: dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:
-        """Initialize the sensor."""
+        """
+        Initialize the sensor.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            device_data: The device data.
+            config_entry: The config entry.
+
+        """
         super().__init__(coordinator)
         self._device_serial: str = device_data["serial"]
         self._config_entry = config_entry
@@ -49,12 +61,17 @@ class MerakiWAN1ConnectivitySensor(
         )
         self._update_state()
 
-    def _get_current_device_data(self) -> Optional[Dict[str, Any]]:
+    def _get_current_device_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
         if self.coordinator.data and self.coordinator.data.get("devices"):
-            for device in self.coordinator.data["devices"]:
-                if device.get("serial") == self._device_serial:
-                    return device
+            return next(
+                (
+                    device
+                    for device in self.coordinator.data["devices"]
+                    if device.get("serial") == self._device_serial
+                ),
+                None,
+            )
         return None
 
     @callback
@@ -76,7 +93,7 @@ class MerakiWAN1ConnectivitySensor(
             self._attr_native_value = STATE_DISCONNECTED
 
         self._attr_extra_state_attributes = {
-            "wan1_ip_address": wan1_ip if wan1_ip else "N/A"
+            "wan1_ip_address": wan1_ip or "N/A",
         }
 
     @callback

@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
-from homeassistant.config_entries import ConfigEntry
-from . import BaseMerakiEntity
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...types import MerakiFirewallRule
 from ...core.utils.naming_utils import format_device_name
+from ...types import MerakiFirewallRule
+from . import BaseMerakiEntity
 
 
 class MerakiFirewallRuleEntity(BaseMerakiEntity):
+
     """Representation of a Meraki Firewall Rule."""
 
     def __init__(
@@ -22,7 +23,18 @@ class MerakiFirewallRuleEntity(BaseMerakiEntity):
         rule: MerakiFirewallRule,
         rule_index: int,
     ) -> None:
-        """Initialize the firewall rule entity."""
+        """
+        Initialize the firewall rule entity.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            config_entry: The config entry.
+            network_id: The ID of the network.
+            rule: The firewall rule.
+            rule_index: The index of the rule.
+
+        """
         super().__init__(
             coordinator=coordinator,
             config_entry=config_entry,
@@ -43,7 +55,7 @@ class MerakiFirewallRuleEntity(BaseMerakiEntity):
                 (
                     self._config_entry.domain,
                     f"firewall_rule_{network_id}_{rule_index}",
-                )
+                ),
             },
             name=formatted_name,
             manufacturer="Cisco Meraki",

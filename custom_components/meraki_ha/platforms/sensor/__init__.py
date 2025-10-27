@@ -8,13 +8,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from ...const import DOMAIN
+from ...core.coordinators.device import MerakiDeviceDataUpdateCoordinator
 from ...core.utils.device_types import (
-    DEVICE_TYPE_WIRELESS,
     DEVICE_TYPE_APPLIANCE,
     DEVICE_TYPE_CAMERA,
+    DEVICE_TYPE_WIRELESS,
 )
-from ...core.coordinators.device import MerakiDeviceDataUpdateCoordinator
-from ...const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -69,7 +69,7 @@ async def async_setup_entry(
     if coordinator.data:
         from .network.info import MerakiNetworkInfoSensor
 
-        for network_id, network_data in coordinator.data.items():
+        for network_id, _ in coordinator.data.items():
             entities.append(MerakiNetworkInfoSensor(coordinator, network_id))
 
     if entities:

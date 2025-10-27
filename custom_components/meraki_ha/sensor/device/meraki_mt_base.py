@@ -1,7 +1,7 @@
 """Base class for Meraki MT sensor entities."""
 
 import logging
-from typing import Any, Dict, Union
+from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import callback
@@ -17,12 +17,13 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiMtSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
+
     """Representation of a Meraki MT sensor."""
 
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: Dict[str, Any],
+        device: dict[str, Any],
         entity_description: EntityDescription,
     ) -> None:
         """Initialize the sensor."""
@@ -54,7 +55,7 @@ class MerakiMtSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntit
                 return
 
     @property
-    def native_value(self) -> Union[float, bool, None]:
+    def native_value(self) -> float | bool | None:
         """Return the state of the sensor."""
         readings = self._device.get("readings")
         if not readings or not isinstance(readings, list):

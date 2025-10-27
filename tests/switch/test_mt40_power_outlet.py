@@ -1,6 +1,6 @@
 """Tests for the Meraki MT40 power outlet switch."""
 
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 

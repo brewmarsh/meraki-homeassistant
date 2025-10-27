@@ -1,15 +1,18 @@
 """Platform for Meraki traffic shaping sensors."""
 
 from __future__ import annotations
+
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
+
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.entities.meraki_network_entity import MerakiNetworkEntity
 from ...types import MerakiNetwork
 
 
 class TrafficShapingSensor(MerakiNetworkEntity, SensorEntity):
+
     """Representation of a sensor that shows traffic shaping settings."""
 
     def __init__(

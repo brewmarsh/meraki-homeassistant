@@ -1,7 +1,9 @@
 """Tests for the MRHandler."""
 
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock
+
 from custom_components.meraki_ha.discovery.handlers.mr import MRHandler
 from tests.const import MOCK_DEVICE
 

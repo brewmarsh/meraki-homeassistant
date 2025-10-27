@@ -1,8 +1,7 @@
-"""
-Tests for the DeviceControlService.
-"""
+"""Tests for the DeviceControlService."""
 
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from custom_components.meraki_ha.services.device_control_service import (

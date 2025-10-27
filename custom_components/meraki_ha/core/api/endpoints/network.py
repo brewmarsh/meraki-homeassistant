@@ -1,18 +1,20 @@
 """Meraki API endpoints for networks."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
     validate_response,
 )
+
 from ..cache import async_timed_cache
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class NetworkEndpoints:
+
     """Network-related endpoints."""
 
     def __init__(self, api_client):
@@ -22,7 +24,7 @@ class NetworkEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
-    async def get_network_clients(self, network_id: str) -> List[Dict[str, Any]]:
+    async def get_network_clients(self, network_id: str) -> list[dict[str, Any]]:
         """Get all clients in a network."""
         clients = await self._api_client._run_sync(
             self._dashboard.networks.getNetworkClients,
@@ -39,7 +41,7 @@ class NetworkEndpoints:
     @async_timed_cache(timeout=60)
     async def get_network_traffic(
         self, network_id: str, device_type: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get traffic data for a network, filtered by device type."""
         traffic = await self._api_client._run_sync(
             self._dashboard.networks.getNetworkTraffic,
@@ -55,7 +57,7 @@ class NetworkEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=10)
-    async def get_webhooks(self, network_id: str) -> List[Dict[str, Any]]:
+    async def get_webhooks(self, network_id: str) -> list[dict[str, Any]]:
         """Get all webhooks for a network."""
         webhooks = await self._api_client._run_sync(
             self._dashboard.networks.getNetworkWebhooksHttpServers,
@@ -79,7 +81,7 @@ class NetworkEndpoints:
     @handle_meraki_errors
     async def find_webhook_by_url(
         self, network_id: str, url: str
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Find a webhook by its URL."""
         webhooks = await self.get_webhooks(network_id)
         for webhook in webhooks:
@@ -120,7 +122,7 @@ class NetworkEndpoints:
     @async_timed_cache(timeout=60)
     async def get_network_camera_analytics_history(
         self, network_id: str, object_type: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get analytics history for a network."""
         history = await self._api_client._run_sync(
             self._dashboard.camera.getNetworkCameraAnalyticsRecent,

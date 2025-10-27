@@ -4,20 +4,19 @@ from __future__ import annotations
 
 import logging
 
-from ...types import MerakiVlan
-
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.entities.meraki_vlan_entity import MerakiVLANEntity
 from ...core.utils.entity_id_utils import get_vlan_entity_id
-
+from ...types import MerakiVlan
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiVLANIDSensor(MerakiVLANEntity, SensorEntity):
+
     """Representation of a Meraki VLAN ID sensor."""
 
     def __init__(
@@ -44,6 +43,7 @@ class MerakiVLANIDSensor(MerakiVLANEntity, SensorEntity):
 
 
 class MerakiVLANIPv4EnabledSensor(MerakiVLANEntity, SensorEntity):
+
     """Representation of a Meraki VLAN IPv4 Enabled sensor."""
 
     def __init__(
@@ -72,6 +72,7 @@ class MerakiVLANIPv4EnabledSensor(MerakiVLANEntity, SensorEntity):
 
 
 class MerakiVLANIPv4InterfaceSensor(MerakiVLANEntity, SensorEntity):
+
     """Representation of a Meraki VLAN IPv4 Interface IP sensor."""
 
     def __init__(
@@ -100,6 +101,7 @@ class MerakiVLANIPv4InterfaceSensor(MerakiVLANEntity, SensorEntity):
 
 
 class MerakiVLANIPv4UplinkSensor(MerakiVLANEntity, SensorEntity):
+
     """Representation of a Meraki VLAN IPv4 Uplink sensor."""
 
     def __init__(
@@ -129,6 +131,7 @@ class MerakiVLANIPv4UplinkSensor(MerakiVLANEntity, SensorEntity):
 
 
 class MerakiVLANIPv6EnabledSensor(MerakiVLANEntity, SensorEntity):
+
     """Representation of a Meraki VLAN IPv6 Enabled sensor."""
 
     def __init__(
@@ -160,6 +163,7 @@ class MerakiVLANIPv6EnabledSensor(MerakiVLANEntity, SensorEntity):
 
 
 class MerakiVLANIPv6InterfaceSensor(MerakiVLANEntity, SensorEntity):
+
     """Representation of a Meraki VLAN IPv6 Interface IP sensor."""
 
     def __init__(
@@ -191,6 +195,7 @@ class MerakiVLANIPv6InterfaceSensor(MerakiVLANEntity, SensorEntity):
 
 
 class MerakiVLANIPv6UplinkSensor(MerakiVLANEntity, SensorEntity):
+
     """Representation of a Meraki VLAN IPv6 Uplink sensor."""
 
     def __init__(

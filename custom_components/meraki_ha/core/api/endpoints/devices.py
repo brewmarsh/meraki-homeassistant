@@ -1,7 +1,7 @@
 """Meraki API endpoints for devices."""
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
@@ -12,6 +12,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class DevicesEndpoints:
+
     """Device-related endpoints."""
 
     def __init__(self, api_client):
@@ -20,7 +21,7 @@ class DevicesEndpoints:
         self._dashboard = api_client._dashboard
 
     @handle_meraki_errors
-    async def get_device_clients(self, serial: str) -> List[Dict[str, Any]]:
+    async def get_device_clients(self, serial: str) -> list[dict[str, Any]]:
         """Get all clients for a device."""
         clients = await self._api_client._run_sync(
             self._dashboard.devices.getDeviceClients,
@@ -33,7 +34,7 @@ class DevicesEndpoints:
         return []
 
     @handle_meraki_errors
-    async def get_device(self, serial: str) -> Dict[str, Any]:
+    async def get_device(self, serial: str) -> dict[str, Any]:
         """Get a single device."""
         device = await self._api_client._run_sync(
             self._dashboard.devices.getDevice,
@@ -46,7 +47,7 @@ class DevicesEndpoints:
         return validated
 
     @handle_meraki_errors
-    async def update_device(self, serial: str, **kwargs) -> Dict[str, Any]:
+    async def update_device(self, serial: str, **kwargs) -> dict[str, Any]:
         """Update a device."""
         device = await self._api_client._run_sync(
             self._dashboard.devices.updateDevice,

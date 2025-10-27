@@ -2,6 +2,32 @@
 
 This file contains instructions for AI agents working with this codebase.
 
+## Development Workflow
+
+To ensure a clean and understandable project history, all agents must follow these branching and commit message conventions.
+
+### Branch Naming
+
+- **Features:** For new functionality, use `feature/<short-description>`.
+- **Fixes:** For bug fixes, use `fix/<short-description>`.
+- **Chores:** For maintenance tasks (e.g., refactoring, dependency updates), use `chore/<short-description>`.
+
+Example: `feature/add-ruff-linter`, `fix/resolve-api-timeout`
+
+### Commit Messages
+
+Follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification. This creates a more readable and navigable commit history.
+
+- **Format:** `<type>(<scope>): <subject>`
+- **Types:** `feat`, `fix`, `chore`, `docs`, `style`, `refactor`, `test`.
+- **Scope (Optional):** The part of the codebase affected (e.g., `ci`, `api`, `ui`).
+- **Subject:** A concise description of the change.
+
+**Examples:**
+- `feat(api): add support for webhook validation`
+- `fix(ci): correct caching key for pip dependencies`
+- `chore(deps): upgrade ruff to version 0.1.5`
+
 ## Best Practices
 
 - When writing tests, ensure that all mocks are as accurate as possible to the real APIs they are replacing. This will help to prevent bugs from being introduced into the codebase.

@@ -1,13 +1,16 @@
 """Sensor entity representing the per-SSID bandwidth limit of a Meraki SSID."""
 
-from typing import Any, Dict
+from typing import Any
+
 from homeassistant.components.sensor import SensorEntityDescription, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
+
 from ...coordinator import MerakiDataUpdateCoordinator
 from .base import MerakiSSIDBaseSensor
 
 
 class MerakiSSIDPerSsidBandwidthLimitSensor(MerakiSSIDBaseSensor):
+
     """Representation of a Meraki SSID Per-SSID Bandwidth Limit sensor."""
 
     entity_description = SensorEntityDescription(
@@ -21,7 +24,7 @@ class MerakiSSIDPerSsidBandwidthLimitSensor(MerakiSSIDBaseSensor):
         self,
         coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
-        ssid_data: Dict[str, Any],
+        ssid_data: dict[str, Any],
         direction: str,
     ) -> None:
         """Initialize the sensor."""
@@ -29,4 +32,7 @@ class MerakiSSIDPerSsidBandwidthLimitSensor(MerakiSSIDBaseSensor):
         super().__init__(coordinator, config_entry, ssid_data, attribute)
         self._attr_name = f"Per-SSID Bandwidth Limit {direction.capitalize()}"
         self._attr_native_value = self._ssid_data_at_init.get(attribute)
-        self._attr_unique_id = f"ssid-{self._network_id}-{self._ssid_number}-per-ssid-bandwidth-limit-{direction}"
+        self._attr_unique_id = (
+            f"ssid-{self._network_id}-{self._ssid_number}-"
+            f"per-ssid-bandwidth-limit-{direction}"
+        )

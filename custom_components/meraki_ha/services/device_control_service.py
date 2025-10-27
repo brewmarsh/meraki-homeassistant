@@ -6,6 +6,7 @@ handling device-specific control actions.
 """
 
 from __future__ import annotations
+
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -16,6 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class DeviceControlService:
+
     """A service for controlling Meraki devices."""
 
     def __init__(self, repository: MerakiRepository) -> None:
@@ -27,10 +29,13 @@ class DeviceControlService:
         Reboot a device.
 
         Args:
+        ----
             serial: The serial number of the device to reboot.
 
         Returns:
+        -------
             A dictionary containing the API response, or None if an error occurred.
+
         """
         _LOGGER.info("Requesting reboot for device %s", serial)
         return await self._repository.async_reboot_device(serial)

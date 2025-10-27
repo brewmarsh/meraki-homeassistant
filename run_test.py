@@ -1,6 +1,6 @@
-import sys
-import os
 import asyncio
+import os
+import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
 # Add the project root to the Python path to allow for correct module imports
@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 
 async def main():
+    """Run the test."""
     hass = AsyncMock()
     config_entry = MagicMock()
     config_entry.entry_id = "test"
@@ -23,12 +24,12 @@ async def main():
         }
     }
 
-    with patch("custom_components.meraki_ha.coordinator.ApiClient") as mock_api_client, patch(
+    with patch(
+        "custom_components.meraki_ha.coordinator.ApiClient"
+    ) as mock_api_client, patch(
         "custom_components.meraki_ha.MerakiDataUpdateCoordinator.async_refresh",
         new_callable=AsyncMock,
-    ), patch(
-        "homeassistant.helpers.device_registry.async_get", MagicMock()
-    ), patch(
+    ), patch("homeassistant.helpers.device_registry.async_get", MagicMock()), patch(
         "custom_components.meraki_ha.webhook.get_url",
         return_value="https://example.com",
     ), patch(

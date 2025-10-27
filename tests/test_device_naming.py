@@ -1,20 +1,22 @@
 """Tests for consistent device name formatting across various entity types."""
 
-import pytest
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
-# Import the sensor classes to be tested
-from custom_components.meraki_ha.sensor.org.org_clients import (
-    MerakiOrganizationSSIDClientsSensor,
-)
+import pytest
+
 from custom_components.meraki_ha.sensor.network.network_clients import (
     MerakiNetworkClientsSensor,
 )
 from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANIDSensor
+from custom_components.meraki_ha.sensor.org.org_clients import (
+    MerakiOrganizationSSIDClientsSensor,
+)
 
 
 @pytest.fixture
-def mock_coordinator():
+def mock_coordinator() -> MagicMock:
     """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
@@ -29,14 +31,21 @@ def mock_coordinator():
         "vlans": {
             "net1": [
                 {"id": 1, "name": "Test VLAN", "enabled": True},
-            ]
+            ],
         },
     }
     return coordinator
 
 
-def test_org_device_naming(mock_coordinator):
-    """Test name formatting for an organization-level device."""
+def test_org_device_naming(mock_coordinator: MagicMock) -> None:
+    """
+    Test name formatting for an organization-level device.
+
+    Args:
+    ----
+        mock_coordinator: The mocked coordinator.
+
+    """
     org_id = "org1"
     org_name = "Test Organization"
 
@@ -44,8 +53,15 @@ def test_org_device_naming(mock_coordinator):
     assert sensor.device_info["name"] == "[Organization] Test Organization"
 
 
-def test_network_device_naming(mock_coordinator):
-    """Test name formatting for a network-level device."""
+def test_network_device_naming(mock_coordinator: MagicMock) -> None:
+    """
+    Test name formatting for a network-level device.
+
+    Args:
+    ----
+        mock_coordinator: The mocked coordinator.
+
+    """
     network_id = "net1"
     network_name = "Test Network"
 
@@ -64,12 +80,22 @@ def test_network_device_naming(mock_coordinator):
     assert sensor.device_info["name"] == "[Network] Test Network"
 
 
-def test_vlan_device_naming(mock_coordinator):
-    """Test name formatting for a VLAN-level device."""
+def test_vlan_device_naming(mock_coordinator: MagicMock) -> None:
+    """
+    Test name formatting for a VLAN-level device.
+
+    Args:
+    ----
+        mock_coordinator: The mocked coordinator.
+
+    """
     network_id = "net1"
     vlan_data = mock_coordinator.data["vlans"]["net1"][0]
 
     sensor = MerakiVLANIDSensor(
-        mock_coordinator, mock_coordinator.config_entry, network_id, vlan_data
+        mock_coordinator,
+        mock_coordinator.config_entry,
+        network_id,
+        vlan_data,
     )
     assert sensor.device_info["name"] == "[VLAN] Test VLAN"

@@ -9,7 +9,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from ..const import DOMAIN, PLATFORM_TEXT
 from .meraki_ssid_name import MerakiSSIDNameText
 
-
 _LOGGER = logging.getLogger(__name__)
 
 

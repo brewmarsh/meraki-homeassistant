@@ -1,6 +1,9 @@
 """Constants for Meraki tests."""
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
+
 from custom_components.meraki_ha.types import MerakiDevice, MerakiNetwork
 
 MOCK_CONFIG_ENTRY_ID = "test_entry"

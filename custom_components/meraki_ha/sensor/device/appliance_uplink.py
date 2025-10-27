@@ -1,7 +1,7 @@
 """Sensor for Meraki appliance uplink status."""
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -19,14 +19,15 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiApplianceUplinkSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
+
     """Representation of a Meraki appliance uplink sensor."""
 
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: Dict[str, Any],
+        device_data: dict[str, Any],
         config_entry: ConfigEntry,
-        uplink_data: Dict[str, Any],
+        uplink_data: dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -45,7 +46,7 @@ class MerakiApplianceUplinkSensor(
         )
         self._update_state()
 
-    def _get_current_uplink_data(self) -> Optional[Dict[str, Any]]:
+    def _get_current_uplink_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this sensor's uplink from the coordinator."""
         if self.coordinator.data and self.coordinator.data.get(
             "appliance_uplink_statuses"

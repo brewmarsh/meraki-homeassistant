@@ -1,18 +1,20 @@
 """Meraki API endpoints for switches."""
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
     validate_response,
 )
+
 from ..cache import async_timed_cache
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class SwitchEndpoints:
+
     """Switch-related endpoints."""
 
     def __init__(self, api_client):
@@ -24,7 +26,7 @@ class SwitchEndpoints:
     @async_timed_cache(timeout=60)
     async def get_device_switch_ports_statuses(
         self, serial: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get statuses for all ports of a switch."""
         statuses = await self._api_client._run_sync(
             self._dashboard.switch.getDeviceSwitchPortsStatuses, serial=serial
@@ -37,7 +39,7 @@ class SwitchEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache()
-    async def get_switch_ports(self, serial: str) -> List[Dict[str, Any]]:
+    async def get_switch_ports(self, serial: str) -> list[dict[str, Any]]:
         """Get ports for a switch."""
         ports = await self._api_client._run_sync(
             self._dashboard.switch.getDeviceSwitchPorts, serial=serial

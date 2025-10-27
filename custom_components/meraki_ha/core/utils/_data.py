@@ -1,18 +1,18 @@
 """Data structures for Meraki device types."""
 
-from typing import Final
 import re
+from typing import Final
 
 from ._const import (
-    DeviceType,
-    DEVICE_TYPE_WIRELESS,
-    DEVICE_TYPE_SWITCH,
     DEVICE_TYPE_APPLIANCE,
     DEVICE_TYPE_CAMERA,
-    DEVICE_TYPE_SENSOR,
     DEVICE_TYPE_CELLULAR,
     DEVICE_TYPE_NETWORK,
+    DEVICE_TYPE_SENSOR,
+    DEVICE_TYPE_SWITCH,
     DEVICE_TYPE_UNKNOWN,
+    DEVICE_TYPE_WIRELESS,
+    DeviceType,
 )
 
 # Compiled regex pattern for model validation

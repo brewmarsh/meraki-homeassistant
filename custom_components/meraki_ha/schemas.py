@@ -1,18 +1,19 @@
 """Schema definitions for the Meraki Home Assistant integration."""
+from __future__ import annotations
 
 import voluptuous as vol
 from homeassistant.helpers import selector
 
 from .const import (
+    CONF_ENABLE_DEVICE_TRACKER,
+    CONF_ENABLE_VLAN_MANAGEMENT,
+    CONF_IGNORED_NETWORKS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
-    DEFAULT_SCAN_INTERVAL,
     CONF_SCAN_INTERVAL,
-    CONF_ENABLE_DEVICE_TRACKER,
-    CONF_IGNORED_NETWORKS,
-    DEFAULT_IGNORED_NETWORKS,
-    CONF_ENABLE_VLAN_MANAGEMENT,
     DEFAULT_ENABLE_VLAN_MANAGEMENT,
+    DEFAULT_IGNORED_NETWORKS,
+    DEFAULT_SCAN_INTERVAL,
 )
 
 CONFIG_SCHEMA = vol.Schema(

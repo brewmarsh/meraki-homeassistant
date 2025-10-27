@@ -1,7 +1,8 @@
 """Tests for the Meraki appliance port sensor."""
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from custom_components.meraki_ha.sensor.device.appliance_port import (
     MerakiAppliancePortSensor,

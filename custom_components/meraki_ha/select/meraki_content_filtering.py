@@ -1,18 +1,18 @@
 """Select entity for controlling Meraki Content Filtering."""
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.core import callback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..core.api.client import MerakiAPIClient
 from ..coordinator import MerakiDataUpdateCoordinator
+from ..core.api.client import MerakiAPIClient
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
@@ -21,6 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiContentFilteringSelect(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SelectEntity
 ):
+
     """Representation of a Meraki Content Filtering select entity."""
 
     entity_category = EntityCategory.CONFIG
@@ -31,7 +32,7 @@ class MerakiContentFilteringSelect(
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
-        network_data: Dict[str, Any],
+        network_data: dict[str, Any],
     ) -> None:
         """Initialize the Meraki Content Filtering select entity."""
         super().__init__(coordinator)
@@ -89,7 +90,7 @@ class MerakiContentFilteringSelect(
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
         try:
-            await self._meraki_client.appliance.update_network_appliance_content_filtering(
+            await self._meraki_client.appliance.update_network_appliance_content_filtering(  # noqa: E501
                 networkId=self._network_id,
                 urlCategoryListSize=option,
             )

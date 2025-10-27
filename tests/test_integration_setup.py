@@ -1,7 +1,8 @@
 """Integration-level tests for the Meraki HA component."""
 
-import sys
-from unittest.mock import MagicMock, patch, AsyncMock
+from __future__ import annotations
+
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -10,14 +11,11 @@ from homeassistant.helpers.entity_registry import async_get as async_get_entity_
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
-from tests.const import MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE
-
-# Mock the hass_frontend module
-sys.modules["hass_frontend"] = MagicMock()
+from tests.const import MOCK_DEVICE, MOCK_GX_DEVICE, MOCK_MX_DEVICE
 
 
 @pytest.fixture
-def config_entry():
+def config_entry() -> MockConfigEntry:
     """Fixture for a mocked config entry."""
     return MockConfigEntry(
         domain=DOMAIN,
@@ -28,7 +26,7 @@ def config_entry():
 
 
 @pytest.fixture
-def mock_meraki_client():
+def mock_meraki_client() -> AsyncMock:
     """Fixture for a mocked MerakiAPIClient."""
     client = AsyncMock()
     client.get_all_data = AsyncMock(
@@ -39,7 +37,7 @@ def mock_meraki_client():
                     "id": "net1",
                     "name": "Test Network",
                     "productTypes": ["wireless", "appliance"],
-                }
+                },
             ],
             "ssids": [
                 {
@@ -47,14 +45,14 @@ def mock_meraki_client():
                     "name": "Test SSID",
                     "enabled": True,
                     "networkId": "net1",
-                }
+                },
             ],
             "clients": [],
             "vlans": {},
             "appliance_uplink_statuses": [],
             "rf_profiles": {},
             "appliance_traffic": {},
-        }
+        },
     )
     client.unregister_webhook = AsyncMock(return_value=None)
     return client
@@ -62,9 +60,20 @@ def mock_meraki_client():
 
 @pytest.mark.enable_socket
 async def test_ssid_device_creation_and_unification(
-    hass: HomeAssistant, config_entry, mock_meraki_client
-):
-    """Test that a single device is created for an SSID with all its entities."""
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    mock_meraki_client: AsyncMock,
+) -> None:
+    """
+    Test that a single device is created for an SSID with all its entities.
+
+    Args:
+    ----
+        hass: The Home Assistant instance.
+        config_entry: The config entry.
+        mock_meraki_client: The mocked Meraki API client.
+
+    """
     config_entry.add_to_hass(hass)
 
     with (
@@ -105,9 +114,20 @@ async def test_ssid_device_creation_and_unification(
 
 @pytest.mark.enable_socket
 async def test_integration_reload(
-    hass: HomeAssistant, config_entry, mock_meraki_client
-):
-    """Test that the integration reloads successfully."""
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    mock_meraki_client: AsyncMock,
+) -> None:
+    """
+    Test that the integration reloads successfully.
+
+    Args:
+    ----
+        hass: The Home Assistant instance.
+        config_entry: The config entry.
+        mock_meraki_client: The mocked Meraki API client.
+
+    """
     config_entry.add_to_hass(hass)
 
     with (

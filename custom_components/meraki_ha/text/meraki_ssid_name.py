@@ -1,28 +1,25 @@
 """Text entity for controlling Meraki SSID Name."""
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
-from homeassistant.components.text import TextEntity, TextMode
-from homeassistant.config_entries import (
-    ConfigEntry,
-)  # Required for type hinting in __init__
-from homeassistant.components.text import TextEntityDescription
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.components.text import TextEntity, TextEntityDescription, TextMode
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
-
-
-from ..core.api.client import MerakiAPIClient
-from ..coordinator import MerakiDataUpdateCoordinator
 from homeassistant.helpers.entity import EntityCategory
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
+from ..coordinator import MerakiDataUpdateCoordinator
+from ..core.api.client import MerakiAPIClient
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiSSIDNameText(CoordinatorEntity[MerakiDataUpdateCoordinator], TextEntity):
+
     """Representation of a Meraki SSID Name text entity."""
 
     _attr_mode = TextMode.TEXT  # Or TextMode.PASSWORD if it were a password
@@ -34,7 +31,7 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataUpdateCoordinator], TextEnt
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,  # Added to match switch entities
-        ssid_data: Dict[str, Any],
+        ssid_data: dict[str, Any],
     ) -> None:
         """Initialize the Meraki SSID Name text entity."""
         super().__init__(coordinator)
@@ -43,8 +40,8 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataUpdateCoordinator], TextEnt
         self._ssid_data = ssid_data
 
         # These are crucial for API calls to update the SSID name
-        self._network_id: Optional[str] = ssid_data.get("networkId")
-        self._ssid_number: Optional[Any] = ssid_data.get(
+        self._network_id: str | None = ssid_data.get("networkId")
+        self._ssid_number: Any | None = ssid_data.get(
             "number"
         )  # Can be int or str depending on source
 
@@ -81,7 +78,7 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataUpdateCoordinator], TextEnt
         # regardless of whether the SSID is enabled or not.
         return ssid_data is not None
 
-    def _get_current_ssid_data(self) -> Optional[Dict[str, Any]]:
+    def _get_current_ssid_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
         if not self.coordinator.data or "ssids" not in self.coordinator.data:
             return None
@@ -100,7 +97,7 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataUpdateCoordinator], TextEnt
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the text entity based on coordinator data."""
-        # If a pending update is registered, ignore coordinator data to avoid overwriting optimistic state
+        # Ignore coordinator data to avoid overwriting optimistic state
         if self.coordinator.is_pending(self.unique_id):
             return
 
@@ -129,7 +126,7 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataUpdateCoordinator], TextEnt
                 number=str(self._ssid_number),
                 name=value,
             )
-            # Register a pending update to prevent stale data from overwriting the optimistic state
+            # Register a pending update to prevent overwriting the optimistic state
             self.coordinator.register_pending_update(self.unique_id)
             await self.coordinator.async_request_refresh()
         except Exception as e:
@@ -143,15 +140,3 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataUpdateCoordinator], TextEnt
             raise HomeAssistantError(
                 f"Failed to set SSID name to '{value}': {e}"
             ) from e
-            # Optionally, force a refresh to revert optimistic update if API call failed
-            # await self.coordinator.async_request_refresh()
-
-    # @property
-    # def native_min_length(self) -> int:
-    #   """Return the minimum number of characters."""
-    #   return 1
-
-    # @property
-    # def native_max_length(self) -> int:
-    #   """Return the maximum number of characters."""
-    #   return 32

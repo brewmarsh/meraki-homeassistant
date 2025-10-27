@@ -9,29 +9,30 @@ to the appropriate handlers.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
-from .handlers.mr import MRHandler
-from .handlers.mv import MVHandler
-from .handlers.mx import MXHandler
 from .handlers.gx import GXHandler
+from .handlers.mr import MRHandler
 from .handlers.ms import MSHandler
 from .handlers.mt import MTHandler
+from .handlers.mv import MVHandler
+from .handlers.mx import MXHandler
 from .handlers.network import NetworkHandler
 from .handlers.ssid import SSIDHandler
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
-    from ..core.api.client import MerakiAPIClient
+
+    from ...types import MerakiDevice
     from ..coordinator import MerakiDataUpdateCoordinator
+    from ..core.api.client import MerakiAPIClient
     from ..core.coordinators.switch_port_status_coordinator import (
         SwitchPortStatusCoordinator,
     )
     from ..services.camera_service import CameraService
     from ..services.device_control_service import DeviceControlService
     from ..services.network_control_service import NetworkControlService
-    from ...types import MerakiDevice
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,17 +50,18 @@ HANDLER_MAPPING = {
 
 
 class DeviceDiscoveryService:
+
     """Service for discovering Meraki devices and creating corresponding entities."""
 
     def __init__(
         self,
-        coordinator: "MerakiDataUpdateCoordinator",
-        config_entry: "ConfigEntry",
-        meraki_client: "MerakiAPIClient",
-        switch_port_coordinator: "SwitchPortStatusCoordinator",
-        camera_service: "CameraService",
-        control_service: "DeviceControlService",
-        network_control_service: "NetworkControlService",
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        meraki_client: MerakiAPIClient,
+        switch_port_coordinator: SwitchPortStatusCoordinator,
+        camera_service: CameraService,
+        control_service: DeviceControlService,
+        network_control_service: NetworkControlService,
     ) -> None:
         """Initialize the DeviceDiscoveryService."""
         self._coordinator = coordinator
@@ -69,9 +71,9 @@ class DeviceDiscoveryService:
         self._camera_service = camera_service
         self._control_service = control_service
         self._network_control_service = network_control_service
-        self._devices: List[MerakiDevice] = self._coordinator.data.get("devices", [])
+        self._devices: list[MerakiDevice] = self._coordinator.data.get("devices", [])
 
-    async def discover_entities(self) -> List["Entity"]:
+    async def discover_entities(self) -> list[Entity]:
         """
         Discover all entities for all devices and networks.
 
@@ -80,7 +82,7 @@ class DeviceDiscoveryService:
         handler based on the device's model type. It also discovers
         network-level and virtual SSID entities.
         """
-        all_entities: List["Entity"] = []
+        all_entities: list[Entity] = []
 
         # Discover network-level entities
         network_handler = NetworkHandler.create(

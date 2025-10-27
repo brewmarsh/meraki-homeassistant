@@ -1,6 +1,6 @@
 """Tests for the Meraki MT15 refresh data button."""
 
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 

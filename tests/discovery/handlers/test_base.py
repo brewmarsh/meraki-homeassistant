@@ -1,7 +1,9 @@
 """Tests for the BaseDeviceHandler."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
+
 from custom_components.meraki_ha.discovery.handlers.base import BaseDeviceHandler
 from tests.const import MOCK_DEVICE
 

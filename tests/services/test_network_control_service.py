@@ -1,8 +1,7 @@
-"""
-Tests for the NetworkControlService.
-"""
+"""Tests for the NetworkControlService."""
 
 from unittest.mock import MagicMock
+
 import pytest
 
 from custom_components.meraki_ha.services.network_control_service import (

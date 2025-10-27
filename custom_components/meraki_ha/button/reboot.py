@@ -11,8 +11,8 @@ import logging
 from typing import TYPE_CHECKING, cast
 
 from homeassistant.components.button import ButtonEntity
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.entity import DeviceInfo
 
 from ..helpers.device_info_helpers import resolve_device_info
 
@@ -24,6 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiRebootButton(ButtonEntity):
+
     """A button to reboot a Meraki device."""
 
     def __init__(

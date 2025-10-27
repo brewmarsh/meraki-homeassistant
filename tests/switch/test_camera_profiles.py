@@ -1,11 +1,12 @@
 """Tests for the Meraki camera profile switches."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
+
 from custom_components.meraki_ha.switch.camera_profiles import (
-    MerakiCameraSenseSwitch,
     MerakiCameraAudioDetectionSwitch,
+    MerakiCameraSenseSwitch,
 )
 
 
@@ -59,9 +60,9 @@ async def test_camera_sense_switch(hass, mock_device_coordinator, mock_api_clien
     mock_device_coordinator.async_request_refresh.reset_mock()
 
     # Simulate the coordinator updating the state
-    mock_device_coordinator.data["devices"][0]["sense_settings"][
-        "sense_enabled"
-    ] = False
+    mock_device_coordinator.data["devices"][0]["sense_settings"]["sense_enabled"] = (
+        False
+    )
     switch._handle_coordinator_update()
     assert switch.is_on is False
 

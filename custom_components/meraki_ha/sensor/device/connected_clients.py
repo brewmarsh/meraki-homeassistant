@@ -1,7 +1,7 @@
 """Sensor entity for monitoring connected clients on a Meraki device."""
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
@@ -17,6 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiDeviceConnectedClientsSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
+
     """Representation of a Meraki Connected Clients sensor."""
 
     _attr_icon = "mdi:account-network"
@@ -27,7 +28,7 @@ class MerakiDeviceConnectedClientsSensor(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: Dict[str, Any],
+        device_data: dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
@@ -43,7 +44,7 @@ class MerakiDeviceConnectedClientsSensor(
         )
         self._update_state()
 
-    def _get_current_device_data(self) -> Optional[Dict[str, Any]]:
+    def _get_current_device_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
         if self.coordinator.data and self.coordinator.data.get("devices"):
             for device in self.coordinator.data["devices"]:
@@ -61,7 +62,8 @@ class MerakiDeviceConnectedClientsSensor(
 
         product_type = device.get("productType")
 
-        # For routers (appliances), the client count is all online clients in the network.
+        # For routers (appliances), the client count is all online clients
+        # in the network.
         if product_type in ["appliance", "cellularGateway"]:
             network_id = device.get("networkId")
             all_clients = self.coordinator.data.get("clients", [])

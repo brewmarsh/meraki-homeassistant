@@ -1,11 +1,13 @@
 """Base class for Meraki SSID sensors."""
 
 import logging
-from typing import Any, Dict, Optional
-from homeassistant.config_entries import ConfigEntry
+from typing import Any
+
 from homeassistant.components.sensor import SensorEntity
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
 
@@ -15,6 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiSSIDBaseSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
+
     """Base class for Meraki SSID sensors."""
 
     _attr_has_entity_name = True
@@ -23,7 +26,7 @@ class MerakiSSIDBaseSensor(
         self,
         coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
-        ssid_data: Dict[str, Any],
+        ssid_data: dict[str, Any],
         attribute: str,
     ) -> None:
         """Initialize the sensor."""
@@ -42,7 +45,7 @@ class MerakiSSIDBaseSensor(
             config_entry=self._config_entry,
         )
 
-    def _get_current_ssid_data(self) -> Optional[Dict[str, Any]]:
+    def _get_current_ssid_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this SSID from the coordinator."""
         if not self.coordinator.data or "ssids" not in self.coordinator.data:
             return None

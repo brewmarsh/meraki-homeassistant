@@ -1,13 +1,12 @@
-"""
-Tests for the GXHandler.
-"""
+"""Tests for the GXHandler."""
 
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from custom_components.meraki_ha.button.reboot import MerakiRebootButton
 from custom_components.meraki_ha.discovery.handlers.gx import GXHandler
+
 from ...const import MOCK_CONFIG_ENTRY, MOCK_GX_DEVICE
 
 

@@ -9,7 +9,7 @@ with the API and provides a clean interface for other parts of the integration.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ..core.repositories.camera_repository import CameraRepository
@@ -19,13 +19,14 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class CameraService:
+
     """Service for camera-related business logic."""
 
     def __init__(self, repository: CameraRepository) -> None:
         """Initialize the camera service."""
         self._repository = repository
 
-    async def get_supported_analytics(self, serial: str) -> List[str]:
+    async def get_supported_analytics(self, serial: str) -> list[str]:
         """Get the list of supported analytics features for a camera."""
         features = await self._repository.get_camera_features(serial)
         analytics = [
@@ -37,15 +38,15 @@ class CameraService:
 
     async def get_analytics_data(
         self, serial: str, object_type: str
-    ) -> Optional[List[Dict[str, Any]]]:
+    ) -> list[dict[str, Any]] | None:
         """Get the latest analytics data for a camera."""
         return await self._repository.get_analytics_data(serial, object_type)
 
-    async def get_video_stream_url(self, serial: str) -> Optional[str]:
+    async def get_video_stream_url(self, serial: str) -> str | None:
         """Get the video stream URL for a camera."""
         return await self._repository.async_get_rtsp_stream_url(serial)
 
-    async def get_motion_history(self, serial: str) -> List[Dict[str, Any]]:
+    async def get_motion_history(self, serial: str) -> list[dict[str, Any]]:
         """
         Get the motion history for a camera.
 
@@ -63,7 +64,7 @@ class CameraService:
 
         return motion_events
 
-    async def generate_snapshot(self, serial: str) -> Optional[str]:
+    async def generate_snapshot(self, serial: str) -> str | None:
         """Generate a snapshot and return the URL."""
         return await self._repository.generate_snapshot(serial)
 
