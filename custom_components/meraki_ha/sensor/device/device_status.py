@@ -29,6 +29,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiDeviceStatusSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
+
     """
     Representation of a Meraki Device Status sensor.
 
@@ -155,20 +156,23 @@ class MerakiDeviceStatusSensor(
         # If the device is an appliance, add uplink information as attributes
         if current_device_data.get("productType") == "appliance":
             for uplink in current_device_data.get("uplinks", []):
-                interface = uplink.get("interface", "unknown_interface")
-                self._attr_extra_state_attributes[f"{interface}_status"] = uplink.get(
-                    "status"
-                )
-                self._attr_extra_state_attributes[f"{interface}_ip"] = uplink.get("ip")
-                self._attr_extra_state_attributes[f"{interface}_gateway"] = uplink.get(
-                    "gateway"
-                )
-                self._attr_extra_state_attributes[f"{interface}_public_ip"] = (
-                    uplink.get("publicIp")
-                )
-                self._attr_extra_state_attributes[f"{interface}_dns_servers"] = (
-                    uplink.get("dns")
-                )
+                interface = uplink.get("interface")
+                if interface is not None:
+                    self._attr_extra_state_attributes[f"{interface}_status"] = (
+                        uplink.get("status")
+                    )
+                    self._attr_extra_state_attributes[f"{interface}_ip"] = uplink.get(
+                        "ip"
+                    )
+                    self._attr_extra_state_attributes[f"{interface}_gateway"] = (
+                        uplink.get("gateway")
+                    )
+                    self._attr_extra_state_attributes[f"{interface}_public_ip"] = (
+                        uplink.get("publicIp")
+                    )
+                    self._attr_extra_state_attributes[f"{interface}_dns_servers"] = (
+                        uplink.get("dns")
+                    )
 
     @callback
     def _handle_coordinator_update(self) -> None:

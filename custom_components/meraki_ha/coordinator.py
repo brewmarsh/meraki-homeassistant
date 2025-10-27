@@ -1,5 +1,4 @@
 """Data update coordinator for the Meraki HA integration."""
-
 import logging
 from datetime import datetime, timedelta
 from typing import Any
@@ -26,6 +25,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
+
     """A centralized coordinator for Meraki API data."""
 
     def __init__(

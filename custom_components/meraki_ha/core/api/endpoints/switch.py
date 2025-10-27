@@ -14,6 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class SwitchEndpoints:
+
     """Switch-related endpoints."""
 
     def __init__(self, api_client):

@@ -1,5 +1,4 @@
 """Sensor for Meraki network information."""
-
 from __future__ import annotations
 
 import logging
@@ -12,6 +11,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiNetworkInfoSensor(MerakiNetworkEntity):
+
     """Representation of a Meraki Network Information Sensor."""
 
     _attr_icon = "mdi:information-outline"

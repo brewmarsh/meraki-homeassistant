@@ -32,6 +32,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class NetworkHandler(BaseHandler):
+
     """Handler for network-level entities."""
 
     def __init__(

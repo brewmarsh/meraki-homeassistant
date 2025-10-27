@@ -22,6 +22,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiAnalyticsSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
+
     """Base class for Meraki analytics sensors."""
 
     def __init__(
@@ -74,6 +75,7 @@ class MerakiAnalyticsSensor(
 
 
 class MerakiPersonCountSensor(MerakiAnalyticsSensor):
+
     """Representation of a person count sensor."""
 
     def __init__(
@@ -88,6 +90,7 @@ class MerakiPersonCountSensor(MerakiAnalyticsSensor):
 
 
 class MerakiVehicleCountSensor(MerakiAnalyticsSensor):
+
     """Representation of a vehicle count sensor."""
 
     def __init__(

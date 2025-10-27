@@ -1,5 +1,4 @@
 """Support for Meraki cameras."""
-
 from __future__ import annotations
 
 import asyncio
@@ -40,11 +39,9 @@ async def async_setup_entry(
     Set up Meraki camera entities from a config entry.
 
     Args:
-    ----
         hass: The Home Assistant instance.
         config_entry: The config entry.
         async_add_entities: Callback to add entities.
-
     """
     if config_entry.entry_id not in hass.data[DOMAIN]:
         return
@@ -67,14 +64,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     Unload a config entry.
 
     Args:
-    ----
         hass: The Home Assistant instance.
         entry: The config entry.
 
     Returns:
-    -------
         Whether the unload was successful.
-
     """
     return await hass.config_entries.async_unload_platforms(entry, [PLATFORM_CAMERA])
 
@@ -99,12 +93,10 @@ class MerakiCamera(CoordinatorEntity[MerakiDataUpdateCoordinator], Camera):
         Initialize the camera.
 
         Args:
-        ----
             coordinator: The data update coordinator.
             config_entry: The config entry.
             device: The device data.
             camera_service: The camera service.
-
         """
         super().__init__(coordinator)
         # We need to call Camera's __init__ as well due to multiple inheritance
@@ -171,14 +163,11 @@ class MerakiCamera(CoordinatorEntity[MerakiDataUpdateCoordinator], Camera):
         generation by the Meraki cloud.
 
         Args:
-        ----
             width: The desired width of the image.
             height: The desired height of the image.
 
         Returns:
-        -------
             The image bytes or None if an error occurred.
-
         """
         if self._device_data.get("status") != "online":
             _LOGGER.debug(
@@ -294,9 +283,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDataUpdateCoordinator], Camera):
         Optimistically update the stream state and make the API call.
 
         Args:
-        ----
             enabled: Whether to enable or disable the stream.
-
         """
         device_in_coordinator = next(
             (

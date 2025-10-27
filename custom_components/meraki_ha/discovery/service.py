@@ -50,6 +50,7 @@ HANDLER_MAPPING = {
 
 
 class DeviceDiscoveryService:
+
     """Service for discovering Meraki devices and creating corresponding entities."""
 
     def __init__(

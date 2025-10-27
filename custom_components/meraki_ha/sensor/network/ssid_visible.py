@@ -10,6 +10,7 @@ from .base import MerakiSSIDBaseSensor
 
 
 class MerakiSSIDVisibleSensor(MerakiSSIDBaseSensor):
+
     """Representation of a Meraki SSID Visibility sensor."""
 
     entity_description = SensorEntityDescription(

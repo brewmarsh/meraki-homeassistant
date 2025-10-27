@@ -1,5 +1,4 @@
 """Base classes for Meraki camera switch entities."""
-
 import logging
 from typing import Any
 
@@ -18,6 +17,7 @@ class MerakiCameraSettingSwitchBase(
     CoordinatorEntity[MerakiDataUpdateCoordinator],
     SwitchEntity,
 ):
+
     """Base class for a Meraki Camera Setting Switch."""
 
     def __init__(

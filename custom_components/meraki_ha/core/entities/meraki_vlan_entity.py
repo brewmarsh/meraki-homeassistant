@@ -12,6 +12,7 @@ from . import BaseMerakiEntity
 
 
 class MerakiVLANEntity(BaseMerakiEntity):
+
     """Representation of a Meraki VLAN."""
 
     def __init__(

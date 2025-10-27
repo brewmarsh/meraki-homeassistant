@@ -1,11 +1,11 @@
 """Type definitions for Meraki API data structures."""
-
 from __future__ import annotations
 
 from typing import TypedDict
 
 
 class MerakiVlan(TypedDict):
+
     """Represents a Meraki VLAN."""
 
     id: str
@@ -16,6 +16,7 @@ class MerakiVlan(TypedDict):
 
 
 class MerakiNetwork(TypedDict):
+
     """Represents a Meraki Network."""
 
     id: str
@@ -27,6 +28,7 @@ class MerakiNetwork(TypedDict):
 
 
 class MerakiFirewallRule(TypedDict):
+
     """Represents a Meraki L3 Firewall Rule."""
 
     comment: str
@@ -40,6 +42,7 @@ class MerakiFirewallRule(TypedDict):
 
 
 class MerakiTrafficShaping(TypedDict):
+
     """Represents Meraki Traffic Shaping settings."""
 
     enabled: bool
@@ -47,6 +50,7 @@ class MerakiTrafficShaping(TypedDict):
 
 
 class MerakiVpn(TypedDict):
+
     """Represents Meraki Site-to-Site VPN settings."""
 
     mode: str
@@ -55,6 +59,7 @@ class MerakiVpn(TypedDict):
 
 
 class MerakiDevice(TypedDict, total=False):
+
     """Represents a Meraki Device. Not all keys are guaranteed."""
 
     serial: str

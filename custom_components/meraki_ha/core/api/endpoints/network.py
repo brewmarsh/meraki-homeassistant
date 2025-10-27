@@ -14,6 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class NetworkEndpoints:
+
     """Network-related endpoints."""
 
     def __init__(self, api_client):

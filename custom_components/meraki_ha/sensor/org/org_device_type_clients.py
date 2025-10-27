@@ -18,6 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiOrganizationDeviceTypeClientsSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
+
     """Representation of a Meraki organization-level client counter by device type."""
 
     _attr_state_class = SensorStateClass.MEASUREMENT

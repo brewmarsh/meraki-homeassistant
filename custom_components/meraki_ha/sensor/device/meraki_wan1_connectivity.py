@@ -1,5 +1,4 @@
 """Sensor for Meraki WAN1 Connectivity."""
-
 from __future__ import annotations
 
 import logging
@@ -25,6 +24,7 @@ class MerakiWAN1ConnectivitySensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator],
     SensorEntity,
 ):
+
     """Representation of a Meraki WAN1 Connectivity Sensor."""
 
     _attr_icon = "mdi:wan"

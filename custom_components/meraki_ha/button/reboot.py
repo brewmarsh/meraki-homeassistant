@@ -24,6 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiRebootButton(ButtonEntity):
+
     """A button to reboot a Meraki device."""
 
     def __init__(

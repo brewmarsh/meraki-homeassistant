@@ -1,5 +1,4 @@
 """The Meraki Home Assistant integration."""
-
 import json
 import logging
 import random
@@ -38,14 +37,11 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     Set up the Meraki integration.
 
     Args:
-    ----
         hass: The Home Assistant instance.
         config: The configuration.
 
     Returns:
-    -------
         Whether the setup was successful.
-
     """
     hass.data.setdefault(DOMAIN, {})
     await hass.http.async_register_static_paths(
@@ -65,14 +61,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     Set up Meraki from a config entry.
 
     Args:
-    ----
         hass: The Home Assistant instance.
         entry: The config entry.
 
     Returns:
-    -------
         Whether the setup was successful.
-
     """
     async_setup_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
@@ -139,14 +132,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     Unload a Meraki config entry.
 
     Args:
-    ----
         hass: The Home Assistant instance.
         entry: The config entry.
 
     Returns:
-    -------
         Whether the unload was successful.
-
     """
     frontend.async_remove_panel(hass, "meraki")
 
@@ -162,10 +152,8 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     Reload Meraki config entry.
 
     Args:
-    ----
         hass: The Home Assistant instance.
         entry: The config entry.
-
     """
     await async_unload_entry(hass, entry)
     await async_setup_entry(hass, entry)

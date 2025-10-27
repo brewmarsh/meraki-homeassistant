@@ -1,5 +1,4 @@
 """Sensor for tracking connected clients on a Meraki wireless device."""
-
 from __future__ import annotations
 
 import logging
@@ -12,6 +11,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiConnectedClientsSensor(MerakiDeviceEntity):
+
     """Representation of a Meraki Connected Clients Sensor."""
 
     _attr_icon = "mdi:wifi"

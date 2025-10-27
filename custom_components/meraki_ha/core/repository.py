@@ -17,6 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiRepository:
+
     """A repository for accessing Meraki data."""
 
     def __init__(self, api_client: MerakiAPIClient) -> None:

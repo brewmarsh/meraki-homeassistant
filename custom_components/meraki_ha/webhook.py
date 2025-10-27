@@ -1,5 +1,4 @@
 """Webhook handling for the Meraki integration."""
-
 from __future__ import annotations
 
 import logging

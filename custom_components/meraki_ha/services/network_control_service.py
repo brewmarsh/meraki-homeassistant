@@ -18,6 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class NetworkControlService:
+
     """Service to control network-level settings."""
 
     def __init__(

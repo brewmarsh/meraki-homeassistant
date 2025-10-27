@@ -1,12 +1,12 @@
 """Config flow for the Meraki Home Assistant integration."""
-
 from __future__ import annotations
 
 import logging
 from typing import Any
 
 import voluptuous as vol
-from homeassistant import config_entries, data_entry_flow
+from homeassistant import config_entries
+from homeassistant.data_entry_flow import AbortFlow, FlowResult
 from homeassistant.core import callback
 
 from .authentication import validate_meraki_credentials
@@ -25,6 +25,7 @@ _LOGGER = logging.getLogger(__name__)
 
 @config_entries.HANDLERS.register(DOMAIN)
 class ConfigFlowHandler(config_entries.ConfigFlow):
+
     """Handle a config flow for Meraki."""
 
     VERSION = 1
@@ -38,7 +39,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
     async def async_step_user(
         self,
         user_input: dict[str, Any] | None = None,
-    ) -> data_entry_flow.FlowResult:
+    ) -> FlowResult:
         """
         Handle the initial step.
 
@@ -76,7 +77,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
                 errors["base"] = "invalid_auth"
             except MerakiConnectionError:
                 errors["base"] = "cannot_connect"
-            except data_entry_flow.AbortFlow as e:
+            except AbortFlow as e:
                 raise e
             except Exception:
                 _LOGGER.exception("Unexpected exception")
@@ -91,7 +92,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
     async def async_step_init(
         self,
         user_input: dict[str, Any] | None = None,
-    ) -> data_entry_flow.FlowResult:
+    ) -> FlowResult:
         """
         Handle the general settings step.
 
@@ -139,7 +140,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
     async def async_step_reconfigure(
         self,
         user_input: dict[str, Any] | None = None,
-    ) -> data_entry_flow.FlowResult:
+    ) -> FlowResult:
         """
         Handle a reconfiguration flow.
 

@@ -1,5 +1,4 @@
 """Tests for the Meraki webhook handling."""
-
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock

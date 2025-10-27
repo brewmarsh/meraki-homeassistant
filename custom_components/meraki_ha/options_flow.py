@@ -1,5 +1,4 @@
 """Options flow for the Meraki Home Assistant integration."""
-
 from __future__ import annotations
 
 from typing import Any
@@ -12,6 +11,7 @@ from .schemas import OPTIONS_SCHEMA
 
 
 class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
+
     """Handle an options flow for the Meraki integration."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:

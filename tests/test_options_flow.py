@@ -1,5 +1,4 @@
 """Tests for the Meraki options flow."""
-
 from __future__ import annotations
 
 import pytest

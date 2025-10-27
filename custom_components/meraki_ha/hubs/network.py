@@ -18,6 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class NetworkHub:
+
     """A hub for processing data for a specific network."""
 
     def __init__(

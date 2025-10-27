@@ -20,6 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class CameraRepository:
+
     """Repository for camera-related data."""
 
     def __init__(self, api_client: MerakiAPIClient, organization_id: str) -> None:

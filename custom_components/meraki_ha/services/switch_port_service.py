@@ -17,6 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class SwitchPortService:
+
     """A service for handling switch port logic."""
 
     def __init__(self, repository: MerakiRepository) -> None:

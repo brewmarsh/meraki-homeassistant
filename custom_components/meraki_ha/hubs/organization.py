@@ -17,6 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class OrganizationHub:
+
     """A hub for processing organization-level data."""
 
     def __init__(self, coordinator: MerakiDataUpdateCoordinator) -> None:
