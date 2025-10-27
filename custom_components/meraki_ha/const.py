@@ -1,92 +1,90 @@
-"""Constants for the Meraki Home Assistant integration.
+"""
+Constants for the Meraki Home Assistant integration.
 
 This module defines constants used throughout the Meraki integration,
 including domain names, configuration keys, default values, and platform types.
 """
+from __future__ import annotations
 
 from typing import Final
 
-DOMAIN: Final[str] = "meraki_ha"
+DOMAIN: Final = "meraki_ha"
 """Domain for the component."""
 
-MANUFACTURER: Final[str] = "Cisco Meraki"
+MANUFACTURER: Final = "Cisco Meraki"
 """Manufacturer for all Meraki devices."""
 
-CONF_INTEGRATION_TITLE: Final[str] = "Meraki"
+CONF_INTEGRATION_TITLE: Final = "Meraki"
 """Title for the integration."""
 
-CONF_MERAKI_API_KEY: Final[str] = "meraki_api_key"
-"""Configuration key for the Meraki API key (str)."""
+CONF_MERAKI_API_KEY: Final = "meraki_api_key"
+"""Configuration key for the Meraki API key."""
 
-CONF_MERAKI_ORG_ID: Final[str] = "meraki_org_id"
-"""Configuration key for the Meraki organization ID (str)."""
+CONF_MERAKI_ORG_ID: Final = "meraki_org_id"
+"""Configuration key for the Meraki organization ID."""
 
-CONF_SCAN_INTERVAL: Final[str] = "scan_interval"
-"""Configuration key for the scan interval in seconds (str)."""
+CONF_SCAN_INTERVAL: Final = "scan_interval"
+"""Configuration key for the scan interval in seconds."""
 
-DATA_CLIENT: Final[str] = "client"
-"""Key for storing the Meraki API client in Home Assistant's data (str)."""
+DATA_CLIENT: Final = "client"
+"""Key for storing the Meraki API client in Home Assistant's data."""
 
-DATA_COORDINATOR: Final[str] = "coordinator"
-"""Key for storing the Meraki data coordinator in Home Assistant's data (str)."""
+DATA_COORDINATOR: Final = "coordinator"
+"""Key for storing the Meraki data coordinator in Home Assistant's data."""
 
-DATA_COORDINATORS: Final[str] = (
-    "coordinators"  # New constant for the coordinators dictionary
-)
-"""Key for storing the dictionary of all coordinators (str)."""
+DATA_COORDINATORS: Final = "coordinators"
+"""Key for storing the dictionary of all coordinators."""
 
-CONF_RTSP_STREAM_ENABLED: Final[str] = "rtsp_stream_enabled"
-"""Configuration key for enabling RTSP stream on a camera (str)."""
+CONF_RTSP_STREAM_ENABLED: Final = "rtsp_stream_enabled"
+"""Configuration key for enabling RTSP stream on a camera."""
 
-CONF_ENABLE_DEVICE_TRACKER: Final[str] = "enable_device_tracker"
-"""Configuration key for enabling device tracker (str)."""
+CONF_ENABLE_DEVICE_TRACKER: Final = "enable_device_tracker"
+"""Configuration key for enabling device tracker."""
 
 
-CONF_IGNORED_NETWORKS: Final[str] = "ignored_networks"
-"""Configuration key for a list of network names to ignore (str)."""
+CONF_IGNORED_NETWORKS: Final = "ignored_networks"
+"""Configuration key for a list of network names to ignore."""
 
-CONF_ENABLE_VLAN_MANAGEMENT: Final[str] = "enable_vlan_management"
-"""Configuration key for enabling vlan management (str)."""
+CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
+"""Configuration key for enabling vlan management."""
 
 
-DEFAULT_IGNORED_NETWORKS: Final[str] = ""
-"""Default value for the ignored networks list (str)."""
+DEFAULT_IGNORED_NETWORKS: Final = ""
+"""Default value for the ignored networks list."""
 
-DEFAULT_ENABLE_VLAN_MANAGEMENT: Final[bool] = False
-"""Default value for enabling vlan management (bool)."""
+DEFAULT_ENABLE_VLAN_MANAGEMENT: Final = False
+"""Default value for enabling vlan management."""
 
-DATA_SSID_DEVICES_COORDINATOR: Final[str] = "ssid_devices"
+DATA_SSID_DEVICES_COORDINATOR: Final = "ssid_devices"
 """Key for the SSID devices coordinator."""
 
-MERAKI_API_CLIENT: Final[str] = "meraki_api_client"
-"""Key for storing the MerakiAPIClient instance in hass.data (str)."""
+MERAKI_API_CLIENT: Final = "meraki_api_client"
+"""Key for storing the MerakiAPIClient instance in hass.data."""
 
-DEFAULT_SCAN_INTERVAL: Final[int] = 300
-"""Default scan interval in seconds for the Meraki API data (int)."""
+DEFAULT_SCAN_INTERVAL: Final = 300
+"""Default scan interval in seconds for the Meraki API data."""
 
 # Platform types
-PLATFORM_BINARY_SENSOR: Final[str] = "binary_sensor"
-"""Represents the binary_sensor platform (str)."""
-PLATFORM_BUTTON: Final[str] = "button"
-"""Represents the button platform (str)."""
-PLATFORM_SENSOR: Final[str] = "sensor"
-"""Represents the sensor platform (str)."""
-PLATFORM_DEVICE_TRACKER: Final[str] = "device_tracker"
-"""Represents the device_tracker platform (str)."""
-PLATFORM_DEVICE: Final[str] = (
-    "device"  # Assuming this is a custom platform or future use
-)
-"""Represents a generic device platform (str)."""
-PLATFORM_SWITCH: Final[str] = "switch"
-"""Represents the switch platform (str)."""
-PLATFORM_TEXT: Final[str] = "text"
-"""Represents the text platform (str)."""
-PLATFORM_CAMERA: Final[str] = "camera"
-"""Represents the camera platform (str)."""
-PLATFORM_NUMBER: Final[str] = "number"
-"""Represents the number platform (str)."""
+PLATFORM_BINARY_SENSOR: Final = "binary_sensor"
+"""Represents the binary_sensor platform."""
+PLATFORM_BUTTON: Final = "button"
+"""Represents the button platform."""
+PLATFORM_SENSOR: Final = "sensor"
+"""Represents the sensor platform."""
+PLATFORM_DEVICE_TRACKER: Final = "device_tracker"
+"""Represents the device_tracker platform."""
+PLATFORM_DEVICE: Final = "device"
+"""Represents a generic device platform."""
+PLATFORM_SWITCH: Final = "switch"
+"""Represents the switch platform."""
+PLATFORM_TEXT: Final = "text"
+"""Represents the text platform."""
+PLATFORM_CAMERA: Final = "camera"
+"""Represents the camera platform."""
+PLATFORM_NUMBER: Final = "number"
+"""Represents the number platform."""
 
-PLATFORMS: Final[list[str]] = [
+PLATFORMS: Final = [
     PLATFORM_SENSOR,
     PLATFORM_BINARY_SENSOR,
     PLATFORM_BUTTON,
@@ -95,38 +93,38 @@ PLATFORMS: Final[list[str]] = [
     PLATFORM_CAMERA,
     PLATFORM_NUMBER,
 ]
-"""List of platforms supported by the integration (List[str])."""
+"""List of platforms supported by the integration."""
 
 # Sensor types (examples, expand as needed)
-SENSOR_CLIENT_COUNT: Final[str] = "client_count"
-"""Sensor type for client count (str)."""
-SENSOR_SIGNAL_STRENGTH: Final[str] = "signal_strength"
-"""Sensor type for signal strength (str)."""
-SENSOR_DATA_USAGE: Final[str] = "data_usage"
-"""Sensor type for data usage (str)."""
-SENSOR_SSID_AVAILABILITY: Final[str] = "ssid_availability"
-"""Sensor type for SSID availability (str)."""
-SENSOR_SSID_CHANNEL: Final[str] = "ssid_channel"
-"""Sensor type for SSID channel (str)."""
+SENSOR_CLIENT_COUNT: Final = "client_count"
+"""Sensor type for client count."""
+SENSOR_SIGNAL_STRENGTH: Final = "signal_strength"
+"""Sensor type for signal strength."""
+SENSOR_DATA_USAGE: Final = "data_usage"
+"""Sensor type for data usage."""
+SENSOR_SSID_AVAILABILITY: Final = "ssid_availability"
+"""Sensor type for SSID availability."""
+SENSOR_SSID_CHANNEL: Final = "ssid_channel"
+"""Sensor type for SSID channel."""
 
 # Device Attributes (examples, expand as needed)
-ATTR_CONNECTED_CLIENTS: Final[str] = "connected_clients"
-"""Device attribute for connected clients (str)."""
-ATTR_SSIDS: Final[str] = "ssids"
-"""Device attribute for SSIDs (str)."""
+ATTR_CONNECTED_CLIENTS: Final = "connected_clients"
+"""Device attribute for connected clients."""
+ATTR_SSIDS: Final = "ssids"
+"""Device attribute for SSIDs."""
 
-TAG_HA_DISABLED: Final[str] = "ha-disabled"
+TAG_HA_DISABLED: Final = "ha-disabled"
 """Tag used to indirectly disable an SSID on an access point."""
 
-ERASE_TAGS_WARNING: Final[str] = (
+ERASE_TAGS_WARNING: Final = (
     "Tag erasing is enabled! This will ERASE ALL TAGS on your Meraki devices. "
     "Proceed with extreme caution!"
 )
-"""Warning message for the tag erasing feature (str)."""
+"""Warning message for the tag erasing feature."""
 
-WEBHOOK_ID_FORMAT: Final[str] = "meraki_ha_{entry_id}"
+WEBHOOK_ID_FORMAT: Final = "meraki_ha_{entry_id}"
 
-MERAKI_CONTENT_FILTERING_CATEGORIES: Final[list[dict]] = [
+MERAKI_CONTENT_FILTERING_CATEGORIES: Final[list[dict[str, str]]] = [
     {
         "id": "meraki:contentFiltering/category/1",
         "name": "Adult and Pornography",

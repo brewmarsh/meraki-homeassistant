@@ -21,6 +21,7 @@ class MerakiClientBlockerSwitch(
     CoordinatorEntity[SsidFirewallCoordinator],
     SwitchEntity,
 ):
+
     """Representation of a Meraki Client Blocker switch entity."""
 
     entity_category = EntityCategory.CONFIG

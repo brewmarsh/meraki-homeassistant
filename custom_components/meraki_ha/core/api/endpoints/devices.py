@@ -12,6 +12,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class DevicesEndpoints:
+
     """Device-related endpoints."""
 
     def __init__(self, api_client):

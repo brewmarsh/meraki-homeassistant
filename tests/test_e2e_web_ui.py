@@ -1,8 +1,8 @@
 """End-to-end tests for the Meraki Web UI."""
+from __future__ import annotations
 
 import json
-import sys
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -17,16 +17,28 @@ from custom_components.meraki_ha.const import (
 
 from .const import MOCK_ALL_DATA
 
-# Mock the hass_frontend module
-sys.modules["hass_frontend"] = MagicMock()
-
 TEST_PORT = 9988
 MOCK_SETTINGS = {"scan_interval": 300}
 
 
 @pytest.fixture(name="setup_integration")
-async def setup_integration_fixture(hass: HomeAssistant, socket_enabled):
-    """Set up the Meraki integration with the web UI enabled."""
+async def setup_integration_fixture(
+    hass: HomeAssistant,
+    socket_enabled: None,
+) -> MockConfigEntry:
+    """
+    Set up the Meraki integration with the web UI enabled.
+
+    Args:
+    ----
+        hass: The Home Assistant instance.
+        socket_enabled: The socket_enabled fixture.
+
+    Returns:
+    -------
+        The mock config entry.
+
+    """
     hass.config.external_url = "https://example.com"
     config_entry = MockConfigEntry(
         domain=DOMAIN,
@@ -54,12 +66,20 @@ async def setup_integration_fixture(hass: HomeAssistant, socket_enabled):
         yield config_entry
 
 
-@pytest.mark.skip(reason="E2E test requires running frontend server")
 @pytest.mark.asyncio
 async def test_dashboard_loads_and_displays_data(
-    hass: HomeAssistant, setup_integration
-):
-    """Test that the dashboard loads and displays network data."""
+    hass: HomeAssistant,
+    setup_integration: MockConfigEntry,
+) -> None:
+    """
+    Test that the dashboard loads and displays network data.
+
+    Args:
+    ----
+        hass: The Home Assistant instance.
+        setup_integration: The setup_integration fixture.
+
+    """
     async with async_playwright() as p:
         browser = await p.chromium.launch()
         page = await browser.new_page()
@@ -84,7 +104,7 @@ async def test_dashboard_loads_and_displays_data(
                   }}
                 }}
               }};
-            """
+            """,
         )
 
         await page.goto(f"http://localhost:{TEST_PORT}/")

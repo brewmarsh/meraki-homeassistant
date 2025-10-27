@@ -14,6 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
+
     """Switch to control the MV Sense (Computer Vision) state of a Meraki Camera."""
 
     def __init__(
@@ -41,6 +42,7 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
 
 
 class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
+
     """Switch to control the Audio Detection state of a Meraki Camera."""
 
     def __init__(

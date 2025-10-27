@@ -4,9 +4,7 @@ import logging
 from typing import Any
 
 from homeassistant.components.text import TextEntity, TextEntityDescription, TextMode
-from homeassistant.config_entries import (
-    ConfigEntry,
-)  # Required for type hinting in __init__
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -21,6 +19,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiSSIDNameText(CoordinatorEntity[MerakiDataUpdateCoordinator], TextEntity):
+
     """Representation of a Meraki SSID Name text entity."""
 
     _attr_mode = TextMode.TEXT  # Or TextMode.PASSWORD if it were a password

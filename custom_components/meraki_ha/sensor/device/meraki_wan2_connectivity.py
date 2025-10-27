@@ -1,4 +1,5 @@
 """Sensor for Meraki WAN2 Connectivity."""
+from __future__ import annotations
 
 import logging
 from typing import Any
@@ -20,8 +21,10 @@ STATE_DISCONNECTED = "Disconnected"
 
 
 class MerakiWAN2ConnectivitySensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MerakiDataUpdateCoordinator],
+    SensorEntity,
 ):
+
     """Representation of a Meraki WAN2 Connectivity Sensor."""
 
     _attr_icon = "mdi:wan"
@@ -34,7 +37,16 @@ class MerakiWAN2ConnectivitySensor(
         device_data: dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:
-        """Initialize the sensor."""
+        """
+        Initialize the sensor.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            device_data: The device data.
+            config_entry: The config entry.
+
+        """
         super().__init__(coordinator)
         self._device_serial: str = device_data["serial"]
         self._config_entry = config_entry
@@ -52,9 +64,14 @@ class MerakiWAN2ConnectivitySensor(
     def _get_current_device_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
         if self.coordinator.data and self.coordinator.data.get("devices"):
-            for device in self.coordinator.data["devices"]:
-                if device.get("serial") == self._device_serial:
-                    return device
+            return next(
+                (
+                    device
+                    for device in self.coordinator.data["devices"]
+                    if device.get("serial") == self._device_serial
+                ),
+                None,
+            )
         return None
 
     @callback
@@ -76,7 +93,7 @@ class MerakiWAN2ConnectivitySensor(
             self._attr_native_value = STATE_DISCONNECTED
 
         self._attr_extra_state_attributes = {
-            "wan2_ip_address": wan2_ip if wan2_ip else "N/A"
+            "wan2_ip_address": wan2_ip or "N/A",
         }
 
     @callback

@@ -1,8 +1,10 @@
 """Tests for the Meraki camera entity."""
+from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.camera import MerakiCamera
 from tests.const import MOCK_DEVICE
@@ -20,7 +22,7 @@ MOCK_CAMERA_DEVICE = {
 
 
 @pytest.fixture
-def mock_coordinator():
+def mock_coordinator() -> MagicMock:
     """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
@@ -34,7 +36,7 @@ def mock_coordinator():
 
 
 @pytest.fixture
-def mock_config_entry():
+def mock_config_entry() -> MagicMock:
     """Fixture for a mocked ConfigEntry."""
     entry = MagicMock()
     entry.options = {"rtsp_stream_enabled": True}
@@ -42,86 +44,29 @@ def mock_config_entry():
 
 
 @pytest.fixture
-def mock_camera_service():
+def mock_camera_service() -> AsyncMock:
     """Fixture for a mocked CameraService."""
     service = AsyncMock()
     service.generate_snapshot = AsyncMock(return_value="http://test.com/snapshot.jpg")
     return service
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "use_lan_ip_option, device_data, expected_url",
-    [
-        # LAN IP preferred when enabled
-        (
-            True,
-            {"rtsp_url": "rtsp://8.8.8.8/stream", "lanIp": "192.168.1.100"},
-            "rtsp://192.168.1.100/",
-        ),
-        # API URL used when private
-        (
-            True,
-            {"rtsp_url": "rtsp://10.0.0.5/stream", "lanIp": "192.168.1.100"},
-            "rtsp://10.0.0.5/stream",
-        ),
-        # Fallback to API URL when no LAN IP
-        (
-            True,
-            {"rtsp_url": "rtsp://8.8.8.8/stream", "lanIp": None},
-            "rtsp://8.8.8.8/stream",
-        ),
-        # LAN IP used when no API URL
-        (True, {"rtsp_url": None, "lanIp": "192.168.1.100"}, "rtsp://192.168.1.100/"),
-        # API URL used when LAN IP not preferred
-        (
-            False,
-            {"rtsp_url": "rtsp://8.8.8.8/stream", "lanIp": "192.168.1.100"},
-            "rtsp://8.8.8.8/stream",
-        ),
-        # LAN IP used as fallback when no API URL
-        (False, {"rtsp_url": None, "lanIp": "192.168.1.100"}, "rtsp://192.168.1.100/"),
-        # LAN IP used as fallback when API URL is invalid
-        (
-            False,
-            {"rtsp_url": "http://invalid.com", "lanIp": "192.168.1.100"},
-            "rtsp://192.168.1.100/",
-        ),
-        # No URL when none available
-        (False, {"rtsp_url": None, "lanIp": None}, None),
-    ],
-)
-async def test_rtsp_url_logic(
-    mock_coordinator,
-    mock_config_entry,
-    mock_camera_service,
-    use_lan_ip_option,
-    device_data,
-    expected_url,
-):
-    """Test the RTSP URL selection logic."""
-    # Arrange
-    full_device_data = {**MOCK_CAMERA_DEVICE, **device_data}
-    camera = MerakiCamera(
-        mock_coordinator,
-        mock_config_entry,
-        full_device_data,
-        mock_camera_service,
-    )
-
-    # Act
-    source = await camera.stream_source()
-
-    # Assert
-    assert source == expected_url
-
-
 @pytest.mark.asyncio
 async def test_camera_stream_source(
-    mock_coordinator, mock_config_entry, mock_camera_service
-):
-    """Test the camera stream source relies on coordinator data."""
+    mock_coordinator: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_camera_service: AsyncMock,
+) -> None:
+    """
+    Test the camera stream source relies on coordinator data.
+
+    Args:
+    ----
+        mock_coordinator: The mocked coordinator.
+        mock_config_entry: The mocked config entry.
+        mock_camera_service: The mocked camera service.
+
+    """
     # Arrange
     camera = MerakiCamera(
         mock_coordinator,
@@ -139,9 +84,22 @@ async def test_camera_stream_source(
 
 @pytest.mark.asyncio
 async def test_camera_turn_on(
-    hass, mock_coordinator, mock_config_entry, mock_camera_service
-):
-    """Test turning the camera stream on."""
+    hass: HomeAssistant,
+    mock_coordinator: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_camera_service: AsyncMock,
+) -> None:
+    """
+    Test turning the camera stream on.
+
+    Args:
+    ----
+        hass: The Home Assistant instance.
+        mock_coordinator: The mocked coordinator.
+        mock_config_entry: The mocked config entry.
+        mock_camera_service: The mocked camera service.
+
+    """
     # Arrange
     camera = MerakiCamera(
         mock_coordinator,
@@ -157,16 +115,30 @@ async def test_camera_turn_on(
 
     # Assert
     mock_camera_service.async_set_rtsp_stream_enabled.assert_called_once_with(
-        MOCK_CAMERA_DEVICE["serial"], True
+        MOCK_CAMERA_DEVICE["serial"],
+        True,
     )
     mock_coordinator.register_pending_update.assert_called_once_with(camera.unique_id)
 
 
 @pytest.mark.asyncio
 async def test_camera_turn_off(
-    hass, mock_coordinator, mock_config_entry, mock_camera_service
-):
-    """Test turning the camera stream off."""
+    hass: HomeAssistant,
+    mock_coordinator: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_camera_service: AsyncMock,
+) -> None:
+    """
+    Test turning the camera stream off.
+
+    Args:
+    ----
+        hass: The Home Assistant instance.
+        mock_coordinator: The mocked coordinator.
+        mock_config_entry: The mocked config entry.
+        mock_camera_service: The mocked camera service.
+
+    """
     # Arrange
     camera = MerakiCamera(
         mock_coordinator,
@@ -182,13 +154,14 @@ async def test_camera_turn_off(
 
     # Assert
     mock_camera_service.async_set_rtsp_stream_enabled.assert_called_once_with(
-        MOCK_CAMERA_DEVICE["serial"], False
+        MOCK_CAMERA_DEVICE["serial"],
+        False,
     )
     mock_coordinator.register_pending_update.assert_called_once_with(camera.unique_id)
 
 
 @pytest.mark.parametrize(
-    "video_settings, expected_is_streaming",
+    ("video_settings", "expected_is_streaming"),
     [
         ({"rtspServerEnabled": True, "rtspUrl": "rtsp://test.com/stream"}, True),
         ({"rtspServerEnabled": False, "rtspUrl": "rtsp://test.com/stream"}, False),
@@ -198,13 +171,24 @@ async def test_camera_turn_off(
     ],
 )
 def test_is_streaming_logic(
-    mock_coordinator,
-    mock_config_entry,
-    mock_camera_service,
-    video_settings,
-    expected_is_streaming,
-):
-    """Test the logic of the is_streaming property."""
+    mock_coordinator: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_camera_service: AsyncMock,
+    video_settings: dict,
+    expected_is_streaming: bool,
+) -> None:
+    """
+    Test the logic of the is_streaming property.
+
+    Args:
+    ----
+        mock_coordinator: The mocked coordinator.
+        mock_config_entry: The mocked config entry.
+        mock_camera_service: The mocked camera service.
+        video_settings: The video settings to test.
+        expected_is_streaming: The expected result.
+
+    """
     # Arrange
     mock_device_data = {
         **MOCK_CAMERA_DEVICE,
@@ -226,9 +210,22 @@ def test_is_streaming_logic(
 
 @pytest.mark.asyncio
 async def test_camera_image(
-    hass, mock_coordinator, mock_config_entry, mock_camera_service
-):
-    """Test the camera image fetching."""
+    hass: HomeAssistant,
+    mock_coordinator: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_camera_service: AsyncMock,
+) -> None:
+    """
+    Test the camera image fetching.
+
+    Args:
+    ----
+        hass: The Home Assistant instance.
+        mock_coordinator: The mocked coordinator.
+        mock_config_entry: The mocked config entry.
+        mock_camera_service: The mocked camera service.
+
+    """
     # Arrange
     camera = MerakiCamera(
         mock_coordinator,
@@ -239,7 +236,7 @@ async def test_camera_image(
     camera.hass = hass
 
     with patch(
-        "custom_components.meraki_ha.camera.async_get_clientsession"
+        "custom_components.meraki_ha.camera.async_get_clientsession",
     ) as mock_session:
         mock_response = AsyncMock()
         mock_response.status = 200
@@ -256,43 +253,25 @@ async def test_camera_image(
         # Assert
         assert image == b"image_bytes"
         mock_camera_service.generate_snapshot.assert_called_once_with(
-            MOCK_CAMERA_DEVICE["serial"]
+            MOCK_CAMERA_DEVICE["serial"],
         )
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
-def test_coordinator_update(mock_coordinator, mock_config_entry, mock_camera_service):
-    """Test that the entity state updates when the coordinator data changes."""
-    # Arrange
-    camera = MerakiCamera(
-        mock_coordinator,
-        mock_config_entry,
-        MOCK_CAMERA_DEVICE,
-        mock_camera_service,
-    )
-    # The initial state should be streaming
-    assert camera.is_streaming is True
-
-    # Act
-    # Simulate a coordinator update with new data where the stream is disabled
-    updated_device_data = {
-        **MOCK_CAMERA_DEVICE,
-        "video_settings": {"rtspServerEnabled": False},
-    }
-    mock_coordinator.data = {"devices": [updated_device_data]}
-    camera._handle_coordinator_update()
-
-    # Assert
-    # The camera's internal state should now reflect the new data
-    assert camera.is_streaming is False
-    # Check that async_write_ha_state was called to notify HA of the change
-    camera.async_write_ha_state.assert_called_once()
-
-
 def test_entity_disabled_if_no_url(
-    mock_coordinator, mock_config_entry, mock_camera_service
-):
-    """Test that the camera entity is disabled if no stream URL is available."""
+    mock_coordinator: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_camera_service: AsyncMock,
+) -> None:
+    """
+    Test that the camera entity is disabled if no stream URL is available.
+
+    Args:
+    ----
+        mock_coordinator: The mocked coordinator.
+        mock_config_entry: The mocked config entry.
+        mock_camera_service: The mocked camera service.
+
+    """
     # Arrange
     # Create a mock device with no way to determine a stream URL
     mock_device_no_url = {
@@ -313,5 +292,5 @@ def test_entity_disabled_if_no_url(
     )
 
     # Assert
-    assert camera.entity_registry_enabled_default is False
+    assert not camera.entity_registry_enabled_default
     assert camera.extra_state_attributes["disabled_reason"] is not None

@@ -1,5 +1,4 @@
-"""Tests for the GXHandler.
-"""
+"""Tests for the GXHandler."""
 
 from unittest.mock import AsyncMock, MagicMock
 

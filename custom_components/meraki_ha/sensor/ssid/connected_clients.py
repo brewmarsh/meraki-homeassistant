@@ -17,6 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiSsidConnectedClientsSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
+
     """Representation of a Meraki SSID Connected Clients sensor."""
 
     _attr_icon = "mdi:wifi-strength-4"

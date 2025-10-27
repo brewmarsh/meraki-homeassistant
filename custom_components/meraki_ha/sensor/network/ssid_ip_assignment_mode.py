@@ -10,6 +10,7 @@ from .base import MerakiSSIDBaseSensor
 
 
 class MerakiSSIDIPAssignmentModeSensor(MerakiSSIDBaseSensor):
+
     """Representation of a Meraki SSID IP Assignment Mode sensor."""
 
     entity_description = SensorEntityDescription(

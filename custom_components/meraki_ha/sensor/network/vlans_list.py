@@ -12,6 +12,7 @@ from ...types import MerakiNetwork
 
 
 class VlansListSensor(MerakiNetworkEntity, SensorEntity):
+
     """Representation of a sensor that lists all VLANs in a network."""
 
     def __init__(

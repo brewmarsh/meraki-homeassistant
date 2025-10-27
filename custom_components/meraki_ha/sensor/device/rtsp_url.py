@@ -20,7 +20,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiRtspUrlSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
-    """Representation of an RTSP URL sensor.
+
+    """
+    Representation of an RTSP URL sensor.
 
     This sensor is driven by the central MerakiDataUpdateCoordinator, which
     ensures that the state is always in sync with the latest data from the

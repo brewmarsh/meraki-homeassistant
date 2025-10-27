@@ -1,4 +1,5 @@
-"""Switch Port Service.
+"""
+Switch Port Service.
 
 This module defines the SwitchPortService class, which is responsible for
 handling business logic related to switch ports.
@@ -16,6 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class SwitchPortService:
+
     """A service for handling switch port logic."""
 
     def __init__(self, repository: MerakiRepository) -> None:
@@ -25,27 +27,34 @@ class SwitchPortService:
     async def async_get_ports_statuses(
         self, serial: str
     ) -> list[dict[str, Any]] | None:
-        """Get statuses for all ports of a switch.
+        """
+        Get statuses for all ports of a switch.
 
         Args:
+        ----
             serial: The serial number of the switch.
 
         Returns:
+        -------
             A list of port statuses, or None if an error occurred.
 
         """
         return await self._repository.async_get_switch_port_statuses(serial)
 
     async def async_get_port_status(self, serial: str, port_id: str) -> str | None:
-        """Get the status for a specific port.
+        """
+        Get the status for a specific port.
 
         Args:
+        ----
             serial: The serial number of the switch.
             port_id: The ID of the port.
 
         Returns:
+        -------
             The status of the port ('Connected' or 'Disconnected'), or None if
             not found.
+
         """
         statuses = await self.async_get_ports_statuses(serial)
         if statuses:
@@ -55,13 +64,16 @@ class SwitchPortService:
         return None
 
     async def async_get_port_speed(self, serial: str, port_id: str) -> str | None:
-        """Get the speed for a specific port.
+        """
+        Get the speed for a specific port.
 
         Args:
+        ----
             serial: The serial number of the switch.
             port_id: The ID of the port.
 
         Returns:
+        -------
             The speed of the port, or None if not found.
 
         """

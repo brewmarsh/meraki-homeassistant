@@ -1,4 +1,5 @@
-"""Network Control Service.
+"""
+Network Control Service.
 
 This service is responsible for handling all network-level actions and data.
 """
@@ -17,6 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class NetworkControlService:
+
     """Service to control network-level settings."""
 
     def __init__(

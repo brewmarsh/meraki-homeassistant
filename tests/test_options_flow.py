@@ -1,7 +1,5 @@
 """Tests for the Meraki options flow."""
-
-import sys
-from unittest.mock import MagicMock
+from __future__ import annotations
 
 import pytest
 from homeassistant.const import CONF_SCAN_INTERVAL
@@ -15,13 +13,17 @@ from custom_components.meraki_ha.const import (
     DOMAIN,
 )
 
-# Mock the hass_frontend module
-sys.modules["hass_frontend"] = MagicMock()
-
 
 @pytest.mark.asyncio
-async def test_options_flow(hass: HomeAssistant, mocker) -> None:
-    """Test the options flow."""
+async def test_options_flow(hass: HomeAssistant) -> None:
+    """
+    Test the options flow.
+
+    Args:
+    ----
+        hass: The Home Assistant instance.
+
+    """
     config_entry = MockConfigEntry(
         domain=DOMAIN,
         entry_id="test_entry_id",
@@ -50,7 +52,8 @@ async def test_options_flow(hass: HomeAssistant, mocker) -> None:
         CONF_ENABLE_VLAN_MANAGEMENT: True,
     }
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input=options_input
+        result["flow_id"],
+        user_input=options_input,
     )
     await hass.async_block_till_done()
 

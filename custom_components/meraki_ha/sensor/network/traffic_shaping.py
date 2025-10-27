@@ -12,6 +12,7 @@ from ...types import MerakiNetwork
 
 
 class TrafficShapingSensor(MerakiNetworkEntity, SensorEntity):
+
     """Representation of a sensor that shows traffic shaping settings."""
 
     def __init__(

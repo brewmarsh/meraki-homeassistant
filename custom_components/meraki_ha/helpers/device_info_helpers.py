@@ -17,7 +17,8 @@ def resolve_device_info(
     config_entry: ConfigEntry,
     ssid_data: dict[str, Any] | None = None,
 ) -> DeviceInfo | None:
-    """Resolve the DeviceInfo for a Meraki entity.
+    """
+    Resolve the DeviceInfo for a Meraki entity.
 
     This function contains the logic to determine whether an entity should be
     linked to a physical device or a logical SSID "device" in the Home

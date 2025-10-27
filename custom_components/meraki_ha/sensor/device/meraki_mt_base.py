@@ -17,6 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiMtSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
+
     """Representation of a Meraki MT sensor."""
 
     def __init__(

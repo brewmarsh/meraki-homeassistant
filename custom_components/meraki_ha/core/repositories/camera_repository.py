@@ -1,4 +1,5 @@
-"""Repository for camera-related data.
+"""
+Repository for camera-related data.
 
 This module defines the CameraRepository class, which is responsible for
 fetching and processing camera-related data from the Meraki API.
@@ -19,6 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class CameraRepository:
+
     """Repository for camera-related data."""
 
     def __init__(self, api_client: MerakiAPIClient, organization_id: str) -> None:
@@ -27,7 +29,8 @@ class CameraRepository:
         self._organization_id = organization_id
 
     async def get_camera_features(self, serial: str) -> list[str]:
-        """Retrieve a camera's model-specific capabilities.
+        """
+        Retrieve a camera's model-specific capabilities.
 
         This method should determine the features of a camera based on its model
         and other properties. For now, we'll assume all cameras support basic
@@ -67,7 +70,8 @@ class CameraRepository:
             return None
 
     async def async_get_rtsp_stream_url(self, serial: str) -> str | None:
-        """Get the RTSP video stream URL for a camera.
+        """
+        Get the RTSP video stream URL for a camera.
 
         This method validates that the URL is a valid RTSP stream URL.
         """

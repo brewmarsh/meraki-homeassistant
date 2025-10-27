@@ -1,4 +1,5 @@
-"""Helper module to calculate the operational status of Meraki SSIDs.
+"""
+Helper module to calculate the operational status of Meraki SSIDs.
 
 This module provides the `SsidStatusCalculator` class, containing static
 methods to determine an SSID's operational status (e.g., online, offline,
@@ -13,7 +14,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class SsidStatusCalculator:
-    """Calculates the operational status of Meraki SSIDs.
+
+    """
+    Calculates the operational status of Meraki SSIDs.
 
     This class uses static methods to evaluate SSID status by correlating
     SSID configurations (especially tags) with the current state and tags
@@ -28,7 +31,8 @@ class SsidStatusCalculator:
         # The `device_tags` parameter (previously a separate dict) has been
         # removed.
     ) -> list[dict[str, Any]]:
-        """Calculate the operational status of each SSID provided.
+        """
+        Calculate the operational status of each SSID provided.
 
         The status of an SSID is determined by the state of the wireless access
         points (APs) that are tagged to broadcast it. The logic is permissive:
@@ -44,21 +48,22 @@ class SsidStatusCalculator:
         - 'unknown_device_data_missing': If `devices` is None.
 
         Args:
+        ----
             ssids: A list of SSID dictionaries.
             devices: A list of Meraki device dictionaries.
 
         Returns:
+        -------
             A list of SSID dictionaries, each updated with new keys:
             'matching_devices_online' (count), 'matching_devices_total' (count),
             and 'status' (string). Returns an empty list if `ssids` is None.
+
         """
         if not ssids:  # Handles None or empty list for ssids.
             return []
 
         if devices is None:
-            _LOGGER.warning(
-                "Device data is None; SSID statuses cannot be determined."
-            )
+            _LOGGER.warning("Device data is None; SSID statuses cannot be determined.")
             for ssid in ssids:
                 ssid["status"] = "unknown_device_data_missing"
             return ssids
@@ -130,7 +135,8 @@ class SsidStatusCalculator:
         ssid_tags: list[str],  # Tags defined on the SSID configuration.
         device_actual_tags: list[str],  # Tags physically on the device.
     ) -> bool:
-        """Determine if a device's tags match an SSID's tags.
+        """
+        Determine if a device's tags match an SSID's tags.
 
         The logic is permissive (relaxed):
         - If an SSID has no `ssid_tags`, any device is a match.
@@ -140,11 +146,14 @@ class SsidStatusCalculator:
           `device_actual_tags`, it's not a match.
 
         Args:
+        ----
             ssid_tags: A list of tags from the SSID's configuration.
             device_actual_tags: A list of tags on the device.
 
         Returns:
+        -------
             True if the device's tags meet the SSID's tag requirements.
+
         """
         # If an SSID has no tags, it should be broadcast by all APs.
         # Any device is a match from a tag perspective.

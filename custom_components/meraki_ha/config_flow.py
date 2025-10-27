@@ -1,4 +1,5 @@
 """Config flow for the Meraki Home Assistant integration."""
+from __future__ import annotations
 
 import logging
 from typing import Any
@@ -23,20 +24,33 @@ _LOGGER = logging.getLogger(__name__)
 
 @config_entries.HANDLERS.register(DOMAIN)
 class ConfigFlowHandler(config_entries.ConfigFlow):
+
     """Handle a config flow for Meraki."""
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the config flow."""
         self.data: dict[str, Any] = {}
         self.options: dict[str, Any] = {}
 
     async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
-        """Handle the initial step."""
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> data_entry_flow.FlowResult:
+        """
+        Handle the initial step.
+
+        Args:
+        ----
+            user_input: The user input.
+
+        Returns:
+        -------
+            The flow result.
+
+        """
         errors: dict[str, str] = {}
         if user_input is not None:
             try:
@@ -48,7 +62,8 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
                 self.data[CONF_MERAKI_API_KEY] = user_input[CONF_MERAKI_API_KEY]
                 self.data[CONF_MERAKI_ORG_ID] = user_input[CONF_MERAKI_ORG_ID]
                 self.data["org_name"] = validation_result.get(
-                    "org_name", user_input[CONF_MERAKI_ORG_ID]
+                    "org_name",
+                    user_input[CONF_MERAKI_ORG_ID],
                 )
 
                 await self.async_set_unique_id(user_input[CONF_MERAKI_ORG_ID])
@@ -63,7 +78,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
                 errors["base"] = "cannot_connect"
             except data_entry_flow.AbortFlow as e:
                 raise e
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
 
@@ -74,13 +89,27 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         )
 
     async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
-        """Handle the general settings step."""
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> data_entry_flow.FlowResult:
+        """
+        Handle the general settings step.
+
+        Args:
+        ----
+            user_input: The user input.
+
+        Returns:
+        -------
+            The flow result.
+
+        """
         if user_input is not None:
             self.options.update(user_input)
             return self.async_create_entry(
-                title=CONF_INTEGRATION_TITLE, data=self.data, options=self.options
+                title=self.data.get("org_name", CONF_INTEGRATION_TITLE),
+                data=self.data,
+                options=self.options,
             )
 
         return self.async_show_form(
@@ -93,13 +122,36 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
     def async_get_options_flow(
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
-        """Get the options flow for this handler."""
+        """
+        Get the options flow for this handler.
+
+        Args:
+        ----
+            config_entry: The config entry.
+
+        Returns:
+        -------
+            The options flow handler.
+
+        """
         return MerakiOptionsFlowHandler(config_entry)
 
     async def async_step_reconfigure(
-        self, user_input: dict[str, Any] | None = None
+        self,
+        user_input: dict[str, Any] | None = None,
     ) -> data_entry_flow.FlowResult:
-        """Handle a reconfiguration flow."""
+        """
+        Handle a reconfiguration flow.
+
+        Args:
+        ----
+            user_input: The user input.
+
+        Returns:
+        -------
+            The flow result.
+
+        """
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         if not entry:
             return self.async_abort(reason="unknown_entry")
@@ -111,7 +163,8 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             return self.async_abort(reason="reconfigure_successful")
 
         schema_with_defaults = self._populate_schema_defaults(
-            OPTIONS_SCHEMA, entry.options
+            OPTIONS_SCHEMA,
+            entry.options,
         )
 
         return self.async_show_form(
@@ -120,9 +173,23 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         )
 
     def _populate_schema_defaults(
-        self, schema: vol.Schema, defaults: dict
+        self,
+        schema: vol.Schema,
+        defaults: dict[str, Any],
     ) -> vol.Schema:
-        """Populate a schema with default values."""
+        """
+        Populate a schema with default values from a dictionary.
+
+        Args:
+        ----
+            schema: The schema to populate.
+            defaults: The default values.
+
+        Returns:
+        -------
+            The populated schema.
+
+        """
         new_schema_keys = {}
         for key, value in schema.schema.items():
             if key.schema in defaults:

@@ -19,6 +19,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiApplianceUplinkSensor(
     CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
 ):
+
     """Representation of a Meraki appliance uplink sensor."""
 
     def __init__(

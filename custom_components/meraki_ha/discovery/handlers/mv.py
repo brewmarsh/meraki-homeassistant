@@ -1,4 +1,5 @@
-"""MV (Camera) Device Handler.
+"""
+MV (Camera) Device Handler.
 
 This module defines the MVHandler class, which is responsible for discovering
 entities for Meraki MV series (camera) devices.
@@ -39,6 +40,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MVHandler(BaseDeviceHandler):
+
     """Handler for Meraki MV (camera) devices."""
 
     def __init__(

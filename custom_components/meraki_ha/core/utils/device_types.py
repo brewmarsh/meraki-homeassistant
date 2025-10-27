@@ -1,4 +1,5 @@
-"""Utility functions for classifying Meraki device models.
+"""
+Utility functions for classifying Meraki device models.
 
 This module re-exports the constants, data structures, and functions
 from the internal _const, _data, and _mappers modules.
