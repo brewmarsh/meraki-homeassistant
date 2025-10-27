@@ -1,4 +1,5 @@
 """Constants for Meraki tests."""
+from __future__ import annotations
 
 from __future__ import annotations
 

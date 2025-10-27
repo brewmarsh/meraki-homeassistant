@@ -1,5 +1,4 @@
 """A custom caching decorator for async methods."""
-
 import time
 from collections.abc import Awaitable, Callable
 from functools import wraps
@@ -8,6 +7,8 @@ from typing import Any, Concatenate, ParamSpec, TypeVar
 P = ParamSpec("P")
 T = TypeVar("T")
 
+P = ParamSpec("P")
+T = TypeVar("T")
 
 def async_timed_cache(
     timeout: int = 300,
@@ -21,17 +22,14 @@ def async_timed_cache(
     The cache is stored on the instance itself and has a timeout.
 
     Args:
-    ----
         timeout: The cache timeout in seconds.
 
     Returns:
-    -------
         The decorator.
-
     """
 
     def decorator(
-        func: Callable[Concatenate[Any, P], Awaitable[T]],
+        func: Callable[Concatenate[Any, P], Awaitable[T]]
     ) -> Callable[Concatenate[Any, P], Awaitable[T]]:
         """Return the decorator."""
 

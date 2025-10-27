@@ -1,5 +1,4 @@
 """Tests for consistent SSID device representation across all entity types."""
-
 from __future__ import annotations
 
 from typing import Any

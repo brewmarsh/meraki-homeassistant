@@ -1,4 +1,5 @@
 """Tests for the Meraki camera entity's stream control."""
+from __future__ import annotations
 
 from __future__ import annotations
 

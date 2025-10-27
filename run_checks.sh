@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-# echo "Installing dependencies..."
-# pip install -r requirements_test.txt
+echo "Installing dependencies..."
+pip install -r requirements_test.txt
 
 export PYTHONPATH=$PYTHONPATH:.
 echo "PYTHONPATH: $PYTHONPATH"

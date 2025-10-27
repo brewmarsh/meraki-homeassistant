@@ -1,4 +1,5 @@
 """Global fixtures for meraki_ha integration."""
+from collections.abc import Generator
 
 from collections.abc import Generator
 
@@ -13,8 +14,6 @@ def auto_enable_custom_integrations(
     Enable custom integrations defined in the test dir.
 
     Args:
-    ----
         enable_custom_integrations: The fixture to enable custom integrations.
-
     """
     yield

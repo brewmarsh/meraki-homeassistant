@@ -1,5 +1,4 @@
 """Tests for consistent device name formatting across various entity types."""
-
 from __future__ import annotations
 
 from unittest.mock import MagicMock
