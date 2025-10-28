@@ -1,6 +1,8 @@
 """Meraki API endpoints for appliances."""
 from __future__ import annotations
 
+from __future__ import annotations
+
 import logging
 from typing import TYPE_CHECKING, Any
 

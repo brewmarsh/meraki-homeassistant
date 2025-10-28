@@ -7,6 +7,8 @@ from typing import Any, Concatenate, ParamSpec, TypeVar
 P = ParamSpec("P")
 T = TypeVar("T")
 
+P = ParamSpec("P")
+T = TypeVar("T")
 
 def async_timed_cache(
     timeout: int = 300,
