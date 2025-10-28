@@ -23,10 +23,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMotionSensor(
-    CoordinatorEntity, BinarySensorEntity
-):
-
+class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
     """Representation of a motion sensor."""
 
     _attr_device_class = BinarySensorDeviceClass.MOTION

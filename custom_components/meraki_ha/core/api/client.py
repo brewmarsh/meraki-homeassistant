@@ -4,6 +4,7 @@ Meraki API client wrapper.
 This module defines the main API client that acts as a facade for various
 Meraki API endpoint categories.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -34,7 +35,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiAPIClient:
-
     """
     Facade for the Meraki Dashboard API client.
 
@@ -317,57 +317,55 @@ class MerakiAPIClient:
                     detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
                         self.appliance.get_network_vlans(network["id"]),
                     )
-                detail_tasks[
-                    f"l3_firewall_rules_{network['id']}"
-                ] = self._run_with_semaphore(
-                    self.appliance.get_l3_firewall_rules(network["id"]),
+                detail_tasks[f"l3_firewall_rules_{network['id']}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_l3_firewall_rules(network["id"]),
+                    )
                 )
-                detail_tasks[
-                    f"traffic_shaping_{network['id']}"
-                ] = self._run_with_semaphore(
-                    self.appliance.get_traffic_shaping(network["id"]),
+                detail_tasks[f"traffic_shaping_{network['id']}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_traffic_shaping(network["id"]),
+                    )
                 )
                 detail_tasks[f"vpn_status_{network['id']}"] = self._run_with_semaphore(
                     self.appliance.get_vpn_status(network["id"]),
                 )
-                detail_tasks[
-                    f"content_filtering_{network['id']}"
-                ] = self._run_with_semaphore(
-                    self.appliance.get_network_appliance_content_filtering(
-                        network["id"],
-                    ),
+                detail_tasks[f"content_filtering_{network['id']}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_network_appliance_content_filtering(
+                            network["id"],
+                        ),
+                    )
                 )
             if "wireless" in product_types:
-                detail_tasks[
-                    f"rf_profiles_{network['id']}"
-                ] = self._run_with_semaphore(
+                detail_tasks[f"rf_profiles_{network['id']}"] = self._run_with_semaphore(
                     self.wireless.get_network_wireless_rf_profiles(network["id"]),
                 )
         for device in devices:
             if device.get("productType") == "camera":
-                detail_tasks[
-                    f"video_settings_{device['serial']}"
-                ] = self._run_with_semaphore(
-                    self.camera.get_camera_video_settings(device["serial"]),
+                detail_tasks[f"video_settings_{device['serial']}"] = (
+                    self._run_with_semaphore(
+                        self.camera.get_camera_video_settings(device["serial"]),
+                    )
                 )
-                detail_tasks[
-                    f"sense_settings_{device['serial']}"
-                ] = self._run_with_semaphore(
-                    self.camera.get_camera_sense_settings(device["serial"]),
+                detail_tasks[f"sense_settings_{device['serial']}"] = (
+                    self._run_with_semaphore(
+                        self.camera.get_camera_sense_settings(device["serial"]),
+                    )
                 )
             elif device.get("productType") == "switch":
-                detail_tasks[
-                    f"ports_statuses_{device['serial']}"
-                ] = self._run_with_semaphore(
-                    self.switch.get_device_switch_ports_statuses(device["serial"]),
+                detail_tasks[f"ports_statuses_{device['serial']}"] = (
+                    self._run_with_semaphore(
+                        self.switch.get_device_switch_ports_statuses(device["serial"]),
+                    )
                 )
             elif device.get("productType") == "appliance" and "networkId" in device:
-                detail_tasks[
-                    f"appliance_settings_{device['serial']}"
-                ] = self._run_with_semaphore(
-                    self.appliance.get_network_appliance_settings(
-                        device["networkId"],
-                    ),
+                detail_tasks[f"appliance_settings_{device['serial']}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_network_appliance_settings(
+                            device["networkId"],
+                        ),
+                    )
                 )
         return detail_tasks
 

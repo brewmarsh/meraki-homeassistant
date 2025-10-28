@@ -10,7 +10,6 @@ from .base import MerakiSSIDBaseSensor
 
 
 class MerakiSSIDPerSsidBandwidthLimitSensor(MerakiSSIDBaseSensor):
-
     """Representation of a Meraki SSID Per-SSID Bandwidth Limit sensor."""
 
     entity_description = SensorEntityDescription(

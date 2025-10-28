@@ -17,10 +17,7 @@ from ...helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMt15RefreshDataButton(
-    CoordinatorEntity, ButtonEntity
-):
-
+class MerakiMt15RefreshDataButton(CoordinatorEntity, ButtonEntity):
     """Representation of a Meraki MT15 refresh data button."""
 
     def __init__(

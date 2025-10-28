@@ -20,7 +20,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
-
     """
     Representation of an RTSP URL sensor.
 

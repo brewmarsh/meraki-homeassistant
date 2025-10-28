@@ -4,6 +4,7 @@ Constants for the Meraki Home Assistant integration.
 This module defines constants used throughout the Meraki integration,
 including domain names, configuration keys, default values, and platform types.
 """
+
 from __future__ import annotations
 
 from typing import Final

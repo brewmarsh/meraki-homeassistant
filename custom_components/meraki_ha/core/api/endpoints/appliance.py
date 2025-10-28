@@ -1,4 +1,5 @@
 """Meraki API endpoints for appliances."""
+
 from __future__ import annotations
 
 import logging
@@ -21,7 +22,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ApplianceEndpoints:
-
     """Appliance-related endpoints."""
 
     def __init__(self, api_client: MerakiAPIClient, hass: HomeAssistant) -> None:

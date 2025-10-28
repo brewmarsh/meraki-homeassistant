@@ -12,7 +12,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class SensorEndpoints:
-
     """Sensor endpoints for the Meraki API."""
 
     def __init__(self, client: MerakiAPIClient) -> None:

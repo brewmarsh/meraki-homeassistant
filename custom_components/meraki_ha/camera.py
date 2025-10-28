@@ -1,4 +1,5 @@
 """Support for Meraki cameras."""
+
 from __future__ import annotations
 
 import asyncio
@@ -77,7 +78,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 class MerakiCamera(CoordinatorEntity, Camera):
-
     """
     Representation of a Meraki camera.
 

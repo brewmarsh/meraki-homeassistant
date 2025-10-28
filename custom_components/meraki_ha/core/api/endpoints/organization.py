@@ -1,4 +1,5 @@
 """Meraki API endpoints for organizations."""
+
 from __future__ import annotations
 
 import logging
@@ -19,7 +20,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class OrganizationEndpoints:
-
     """Organization-related endpoints."""
 
     def __init__(self, api_client: MerakiAPIClient) -> None:

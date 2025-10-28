@@ -19,7 +19,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class CameraService:
-
     """Service for camera-related business logic."""
 
     def __init__(self, repository: CameraRepository) -> None:

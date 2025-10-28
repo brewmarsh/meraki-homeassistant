@@ -20,10 +20,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSnapshotButton(
-    CoordinatorEntity, ButtonEntity
-):
-
+class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
     """Representation of a snapshot button."""
 
     def __init__(

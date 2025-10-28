@@ -14,10 +14,7 @@ from ...helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDBaseSensor(
-    CoordinatorEntity, SensorEntity
-):
-
+class MerakiSSIDBaseSensor(CoordinatorEntity, SensorEntity):
     """Base class for Meraki SSID sensors."""
 
     _attr_has_entity_name = True

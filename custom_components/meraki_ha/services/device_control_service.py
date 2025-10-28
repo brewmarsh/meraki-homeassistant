@@ -17,7 +17,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class DeviceControlService:
-
     """A service for controlling Meraki devices."""
 
     def __init__(self, repository: MerakiRepository) -> None:

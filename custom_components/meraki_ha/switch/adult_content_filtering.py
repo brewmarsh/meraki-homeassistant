@@ -14,10 +14,7 @@ from ..helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAdultContentFilteringSwitch(
-    CoordinatorEntity, SwitchEntity
-):
-
+class MerakiAdultContentFilteringSwitch(CoordinatorEntity, SwitchEntity):
     """Representation of a Meraki Adult Content Filtering switch."""
 
     def __init__(

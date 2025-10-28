@@ -26,10 +26,7 @@ from ...core.utils.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDeviceStatusSensor(
-    CoordinatorEntity, SensorEntity
-):
-
+class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
     """
     Representation of a Meraki Device Status sensor.
 

@@ -19,7 +19,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiNetworkClientsSensor(MerakiNetworkEntity, SensorEntity):
-
     """Representation of a Meraki network-level client counter."""
 
     _attr_state_class = SensorStateClass.MEASUREMENT

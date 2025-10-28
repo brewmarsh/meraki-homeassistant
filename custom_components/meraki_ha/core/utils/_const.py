@@ -29,7 +29,6 @@ VALID_DEVICE_TYPES: Final[list[str]] = [
 
 
 class DeviceType(str, Enum):
-
     """Enum for Meraki device types."""
 
     WIRELESS = DEVICE_TYPE_WIRELESS

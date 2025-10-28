@@ -14,10 +14,7 @@ from ...helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSsidConnectedClientsSensor(
-    CoordinatorEntity, SensorEntity
-):
-
+class MerakiSsidConnectedClientsSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki SSID Connected Clients sensor."""
 
     _attr_icon = "mdi:wifi-strength-4"

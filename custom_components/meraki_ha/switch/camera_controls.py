@@ -1,4 +1,5 @@
 """Switch entities for controlling Meraki camera settings."""
+
 from __future__ import annotations
 
 import logging
@@ -14,7 +15,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
-
     """Switch to control analytics on a Meraki camera."""
 
     def __init__(

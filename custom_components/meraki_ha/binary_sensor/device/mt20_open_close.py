@@ -20,10 +20,7 @@ from ...helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMt20OpenCloseSensor(
-    CoordinatorEntity, BinarySensorEntity
-):
-
+class MerakiMt20OpenCloseSensor(CoordinatorEntity, BinarySensorEntity):
     """Representation of a Meraki MT20 open/close sensor."""
 
     _attr_device_class = BinarySensorDeviceClass.DOOR

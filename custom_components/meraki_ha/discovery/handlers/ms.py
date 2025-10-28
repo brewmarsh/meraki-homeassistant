@@ -33,7 +33,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MSHandler(BaseDeviceHandler):
-
     """Handler for Meraki MS switches."""
 
     def __init__(

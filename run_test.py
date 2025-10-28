@@ -24,17 +24,21 @@ async def main():
         }
     }
 
-    with patch(
-        "custom_components.meraki_ha.coordinator.ApiClient"
-    ) as mock_api_client, patch(
-        "custom_components.meraki_ha.MerakiDataUpdateCoordinator.async_refresh",
-        new_callable=AsyncMock,
-    ), patch("homeassistant.helpers.device_registry.async_get", MagicMock()), patch(
-        "custom_components.meraki_ha.webhook.get_url",
-        return_value="https://example.com",
-    ), patch(
-        "custom_components.meraki_ha.coordinator.er.async_entries_for_device",
-        return_value=[],
+    with (
+        patch("custom_components.meraki_ha.coordinator.ApiClient") as mock_api_client,
+        patch(
+            "custom_components.meraki_ha.MerakiDataUpdateCoordinator.async_refresh",
+            new_callable=AsyncMock,
+        ),
+        patch("homeassistant.helpers.device_registry.async_get", MagicMock()),
+        patch(
+            "custom_components.meraki_ha.webhook.get_url",
+            return_value="https://example.com",
+        ),
+        patch(
+            "custom_components.meraki_ha.coordinator.er.async_entries_for_device",
+            return_value=[],
+        ),
     ):
         api_mock = AsyncMock()
         api_mock.get_all_data.return_value = {

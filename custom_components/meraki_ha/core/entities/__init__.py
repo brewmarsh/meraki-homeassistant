@@ -17,7 +17,6 @@ from ..utils.naming_utils import format_device_name
 
 
 class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
-
     """
     Base entity class for Meraki entities.
 

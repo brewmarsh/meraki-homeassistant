@@ -1,4 +1,5 @@
 """End-to-end tests for the Meraki Web UI."""
+
 from __future__ import annotations
 
 import json
