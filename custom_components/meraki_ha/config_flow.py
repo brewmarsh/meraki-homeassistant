@@ -1,6 +1,8 @@
 """Config flow for the Meraki Home Assistant integration."""
 from __future__ import annotations
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

@@ -26,6 +26,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MRHandler(BaseDeviceHandler):
+
     """Handler for Meraki MR (wireless) devices."""
 
     def __init__(
