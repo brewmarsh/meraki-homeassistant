@@ -8,8 +8,9 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.data_entry_flow import AbortFlow, FlowResult
+from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
+from homeassistant.data_entry_flow import AbortFlow
 
 from .authentication import validate_meraki_credentials
 from .const import (
@@ -41,7 +42,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
     async def async_step_user(
         self,
         user_input: dict[str, Any] | None = None,
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """
         Handle the initial step.
 
@@ -49,7 +50,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         ----
             user_input: The user input.
 
-        Returns:
+        Returns
         -------
             The flow result.
 
@@ -94,7 +95,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
     async def async_step_init(
         self,
         user_input: dict[str, Any] | None = None,
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """
         Handle the general settings step.
 
@@ -102,7 +103,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         ----
             user_input: The user input.
 
-        Returns:
+        Returns
         -------
             The flow result.
 
@@ -132,7 +133,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         ----
             config_entry: The config entry.
 
-        Returns:
+        Returns
         -------
             The options flow handler.
 
@@ -142,7 +143,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
     async def async_step_reconfigure(
         self,
         user_input: dict[str, Any] | None = None,
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """
         Handle a reconfiguration flow.
 
@@ -150,7 +151,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         ----
             user_input: The user input.
 
-        Returns:
+        Returns
         -------
             The flow result.
 
@@ -188,7 +189,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             schema: The schema to populate.
             defaults: The default values.
 
-        Returns:
+        Returns
         -------
             The populated schema.
 

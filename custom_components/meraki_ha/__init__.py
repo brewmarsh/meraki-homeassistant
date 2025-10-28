@@ -29,7 +29,7 @@ from .webhook import async_register_webhook
 
 _LOGGER = logging.getLogger(__name__)
 
-CONFIG_SCHEMA = cv.deprecated(cv.empty_config_schema(DOMAIN))
+CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -40,8 +40,10 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         hass: The Home Assistant instance.
         config: The configuration.
 
-    Returns:
+    Returns
+    -------
         Whether the setup was successful.
+
     """
     hass.data.setdefault(DOMAIN, {})
     await hass.http.async_register_static_paths(
@@ -64,8 +66,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass: The Home Assistant instance.
         entry: The config entry.
 
-    Returns:
+    Returns
+    -------
         Whether the setup was successful.
+
     """
     async_setup_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
@@ -135,8 +139,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass: The Home Assistant instance.
         entry: The config entry.
 
-    Returns:
+    Returns
+    -------
         Whether the unload was successful.
+
     """
     frontend.async_remove_panel(hass, "meraki")
 
@@ -154,6 +160,7 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     Args:
         hass: The Home Assistant instance.
         entry: The config entry.
+
     """
     await async_unload_entry(hass, entry)
     await async_setup_entry(hass, entry)

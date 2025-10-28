@@ -16,7 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiContentFilteringSwitch(
-    CoordinatorEntity[MerakiDataUpdateCoordinator],
+    CoordinatorEntity,
     SwitchEntity,
 ):
 
@@ -57,7 +57,7 @@ class MerakiContentFilteringSwitch(
         return f"meraki-content-filtering-{self._network['id']}-{self._category['id']}"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return resolve_device_info(self._network, self._config_entry)
 

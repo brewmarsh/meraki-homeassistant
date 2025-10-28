@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiClientBlockerSwitch(
-    CoordinatorEntity[SsidFirewallCoordinator],
+    CoordinatorEntity,
     SwitchEntity,
 ):
 
@@ -50,7 +50,7 @@ class MerakiClientBlockerSwitch(
         self._update_internal_state()
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information to link this entity to the client device."""
         return resolve_device_info(
             entity_data=self._client_data,

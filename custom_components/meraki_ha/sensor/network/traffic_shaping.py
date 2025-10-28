@@ -33,11 +33,6 @@ class TrafficShapingSensor(MerakiNetworkEntity, SensorEntity):
         self._attr_name = "Traffic Shaping"
         self._attr_native_value = "Unknown"
 
-    @property
-    def native_value(self) -> str:
-        """Return the state of the sensor."""
-        return self._attr_native_value
-
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""

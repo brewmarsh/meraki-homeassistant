@@ -24,7 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiMotionSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], BinarySensorEntity
+    CoordinatorEntity, BinarySensorEntity
 ):
 
     """Representation of a motion sensor."""
@@ -48,7 +48,7 @@ class MerakiMotionSensor(
         self._motion_events: list[dict[str, Any]] = []
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
         return resolve_device_info(self._device, self._config_entry)
 

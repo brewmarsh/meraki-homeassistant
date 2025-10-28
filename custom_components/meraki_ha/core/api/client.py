@@ -34,6 +34,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiAPIClient:
+
     """
     Facade for the Meraki Dashboard API client.
 
@@ -58,6 +59,7 @@ class MerakiAPIClient:
             org_id: The organization ID.
             coordinator: The data update coordinator.
             base_url: The base URL for the Meraki API.
+
         """
         self._api_key = api_key
         self._org_id = org_id
@@ -102,8 +104,10 @@ class MerakiAPIClient:
             *args: Positional arguments to pass to the function.
             **kwargs: Keyword arguments to pass to the function.
 
-        Returns:
+        Returns
+        -------
             The result of the function.
+
         """
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, partial(func, *args, **kwargs))
@@ -115,8 +119,10 @@ class MerakiAPIClient:
         Args:
             coro: The awaitable to run.
 
-        Returns:
+        Returns
+        -------
             The result of the awaitable.
+
         """
         async with self._semaphore:
             return await coro
@@ -125,8 +131,10 @@ class MerakiAPIClient:
         """
         Fetch the initial batch of data from the Meraki API.
 
-        Returns:
+        Returns
+        -------
             A dictionary of initial data.
+
         """
         tasks = {
             "networks": self._run_with_semaphore(
@@ -152,8 +160,10 @@ class MerakiAPIClient:
         Args:
             results: The raw initial data from the API.
 
-        Returns:
+        Returns
+        -------
             The processed initial data.
+
         """
         networks_res = results.get("networks")
         devices_res = results.get("devices")
@@ -220,8 +230,10 @@ class MerakiAPIClient:
         Args:
             networks: A list of networks to fetch clients for.
 
-        Returns:
+        Returns
+        -------
             A list of clients.
+
         """
         client_tasks = [
             self._run_with_semaphore(self.network.get_network_clients(network["id"]))
@@ -247,8 +259,10 @@ class MerakiAPIClient:
         Args:
             devices: A list of devices to fetch clients for.
 
-        Returns:
+        Returns
+        -------
             A dictionary of clients by device serial.
+
         """
         client_tasks = {
             device["serial"]: self._run_with_semaphore(
@@ -278,8 +292,10 @@ class MerakiAPIClient:
             networks: A list of networks.
             devices: A list of devices.
 
-        Returns:
+        Returns
+        -------
             A dictionary of tasks.
+
         """
         detail_tasks: dict[str, Awaitable[Any]] = {}
         for network in networks:
@@ -371,8 +387,10 @@ class MerakiAPIClient:
             devices: A list of devices.
             previous_data: The previous data from the coordinator.
 
-        Returns:
+        Returns
+        -------
             The processed detailed data.
+
         """
         ssids: list[dict[str, Any]] = []
         appliance_traffic: dict[str, Any] = {}
@@ -515,8 +533,10 @@ class MerakiAPIClient:
         Args:
             previous_data: The previous data from the coordinator.
 
-        Returns:
+        Returns
+        -------
             A dictionary of all data.
+
         """
         if previous_data is None:
             previous_data = {}
@@ -573,6 +593,7 @@ class MerakiAPIClient:
         Args:
             webhook_url: The URL of the webhook.
             secret: The secret for the webhook.
+
         """
         await self.network.register_webhook(webhook_url, secret)
 
@@ -582,6 +603,7 @@ class MerakiAPIClient:
 
         Args:
             webhook_id: The ID of the webhook to unregister.
+
         """
         await self.network.unregister_webhook(webhook_id)
 
@@ -592,8 +614,10 @@ class MerakiAPIClient:
         Args:
             serial: The serial number of the device to reboot.
 
-        Returns:
+        Returns
+        -------
             The API response.
+
         """
         return await self.appliance.reboot_device(serial)
 
@@ -607,7 +631,9 @@ class MerakiAPIClient:
         Args:
             serial: The serial number of the switch.
 
-        Returns:
+        Returns
+        -------
             A list of port statuses.
+
         """
         return await self.switch.get_device_switch_ports_statuses(serial)

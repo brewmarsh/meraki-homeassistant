@@ -21,7 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiMt20OpenCloseSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], BinarySensorEntity
+    CoordinatorEntity, BinarySensorEntity
 ):
 
     """Representation of a Meraki MT20 open/close sensor."""
@@ -42,7 +42,7 @@ class MerakiMt20OpenCloseSensor(
         self._attr_name = f"{self._device_info['name']} Door"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
         return resolve_device_info(self._device_info, self._config_entry)
 

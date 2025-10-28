@@ -15,5 +15,6 @@ def auto_enable_custom_integrations(
 
     Args:
         enable_custom_integrations: The fixture to enable custom integrations.
+
     """
     yield

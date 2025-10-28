@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiApplianceUplinkSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity, SensorEntity
 ):
 
     """Representation of a Meraki appliance uplink sensor."""

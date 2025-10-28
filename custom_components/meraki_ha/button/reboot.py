@@ -41,7 +41,7 @@ class MerakiRebootButton(ButtonEntity):
         self._attr_unique_id = f"{device['serial']}-reboot"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return resolve_device_info(cast(dict, self._device), self._config_entry)
 

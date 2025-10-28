@@ -18,7 +18,7 @@ from ..helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDNameText(CoordinatorEntity[MerakiDataUpdateCoordinator], TextEntity):
+class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
 
     """Representation of a Meraki SSID Name text entity."""
 
@@ -60,7 +60,7 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataUpdateCoordinator], TextEnt
         self._update_internal_state()
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information to link this entity to the SSID device."""
         return resolve_device_info(
             entity_data={"networkId": self._network_id},

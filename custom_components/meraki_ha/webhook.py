@@ -37,11 +37,11 @@ def get_webhook_url(
         webhook_id: The ID of the webhook.
         entry_webhook_url: Optional base webhook URL from config entry.
 
-    Returns:
+    Returns
     -------
         The full webhook URL.
 
-    Raises:
+    Raises
     ------
         MerakiConnectionError: If the URL doesn't meet Meraki's requirements.
 

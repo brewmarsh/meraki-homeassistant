@@ -27,7 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiDeviceStatusSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity, SensorEntity
 ):
 
     """
@@ -106,7 +106,9 @@ class MerakiDeviceStatusSensor(
             "alerting": "mdi:access-point-network-off",
             "dormant": "mdi:access-point-network-off",
         }
-        return status_icon_map.get(self.native_value, "mdi:help-network-outline")
+        if isinstance(self.native_value, str):
+            return status_icon_map.get(self.native_value, "mdi:help-network-outline")
+        return "mdi:help-network-outline"
 
     def _get_current_device_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""

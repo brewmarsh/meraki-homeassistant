@@ -107,7 +107,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ----
             unique_id: The unique ID of the entity.
 
-        Returns:
+        Returns
         -------
             True if the entity is in a pending state, False otherwise.
 
@@ -245,7 +245,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ----
             serial: The serial number of the device.
 
-        Returns:
+        Returns
         -------
             The device data or None if not found.
 
@@ -260,7 +260,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ----
             network_id: The ID of the network.
 
-        Returns:
+        Returns
         -------
             The network data or None if not found.
 
@@ -276,7 +276,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             network_id: The ID of the network.
             ssid_number: The number of the SSID.
 
-        Returns:
+        Returns
         -------
             The SSID data or None if not found.
 
@@ -336,7 +336,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             network_id: The ID of the network.
             interval_hours: The interval in hours.
 
-        Returns:
+        Returns
         -------
             True if the check is due, False otherwise.
 
@@ -354,7 +354,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ----
             network_id: The ID of the network.
 
-        Returns:
+        Returns
         -------
             True if the check is due, False otherwise.
 
@@ -369,7 +369,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ----
             network_id: The ID of the network.
 
-        Returns:
+        Returns
         -------
             True if the check is due, False otherwise.
 

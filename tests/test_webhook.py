@@ -22,7 +22,7 @@ def mock_hass_with_webhook_data(hass: HomeAssistant) -> HomeAssistant:
     ----
         hass: The Home Assistant instance.
 
-    Returns:
+    Returns
     -------
         The mocked Home Assistant instance.
 

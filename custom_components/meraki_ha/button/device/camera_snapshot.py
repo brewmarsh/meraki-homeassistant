@@ -21,7 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiSnapshotButton(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], ButtonEntity
+    CoordinatorEntity, ButtonEntity
 ):
 
     """Representation of a snapshot button."""
@@ -42,7 +42,7 @@ class MerakiSnapshotButton(
         self._attr_name = f"{self._device['name']} Snapshot"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
         return resolve_device_info(self._device, self._config_entry)
 

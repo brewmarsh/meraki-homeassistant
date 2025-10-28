@@ -20,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiAnalyticsSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity, SensorEntity
 ):
 
     """Base class for Meraki analytics sensors."""
@@ -42,7 +42,7 @@ class MerakiAnalyticsSensor(
         self._analytics_data: dict[str, Any] = {}
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
         return resolve_device_info(self._device, self.coordinator.config_entry)
 

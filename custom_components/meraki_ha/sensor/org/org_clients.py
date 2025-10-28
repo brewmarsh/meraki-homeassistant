@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiOrganizationSSIDClientsSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator],
+    CoordinatorEntity,
     SensorEntity,
 ):
 
@@ -81,7 +81,7 @@ class MerakiOrganizationSSIDClientsSensor(
 
 
 class MerakiOrganizationWirelessClientsSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator],
+    CoordinatorEntity,
     SensorEntity,
 ):
 
@@ -144,7 +144,7 @@ class MerakiOrganizationWirelessClientsSensor(
 
 
 class MerakiOrganizationApplianceClientsSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator],
+    CoordinatorEntity,
     SensorEntity,
 ):
 

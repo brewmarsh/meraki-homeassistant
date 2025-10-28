@@ -35,7 +35,7 @@ class WirelessEndpoints:
         ----
             network_id: The ID of the network.
 
-        Returns:
+        Returns
         -------
             A list of SSIDs.
 
@@ -60,7 +60,7 @@ class WirelessEndpoints:
         ----
             serial: The serial number of the device.
 
-        Returns:
+        Returns
         -------
             The wireless settings.
 
@@ -90,7 +90,7 @@ class WirelessEndpoints:
             network_id: The ID of the network.
             number: The SSID number.
 
-        Returns:
+        Returns
         -------
             The SSID details.
 
@@ -122,7 +122,7 @@ class WirelessEndpoints:
             number: The SSID number.
             **kwargs: The SSID settings to update.
 
-        Returns:
+        Returns
         -------
             The updated SSID.
 
@@ -152,7 +152,7 @@ class WirelessEndpoints:
         ----
             network_id: The ID of the network.
 
-        Returns:
+        Returns
         -------
             A list of RF profiles.
 
@@ -182,7 +182,7 @@ class WirelessEndpoints:
             network_id: The ID of the network.
             number: The SSID number.
 
-        Returns:
+        Returns
         -------
             The L7 firewall rules.
 
@@ -216,7 +216,7 @@ class WirelessEndpoints:
             number: The SSID number.
             **kwargs: The L7 firewall rules to update.
 
-        Returns:
+        Returns
         -------
             The updated L7 firewall rules.
 

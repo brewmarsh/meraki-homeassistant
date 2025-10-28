@@ -34,7 +34,7 @@ async def setup_integration_fixture(
         hass: The Home Assistant instance.
         socket_enabled: The socket_enabled fixture.
 
-    Returns:
+    Returns
     -------
         The mock config entry.
 
