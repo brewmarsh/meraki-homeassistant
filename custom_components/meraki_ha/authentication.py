@@ -168,11 +168,11 @@ async def validate_meraki_credentials(
         api_key: The Meraki API key.
         organization_id: The Meraki Organization ID.
 
-    Returns:
+    Returns
     -------
         A dictionary with "valid": True and "org_name": "Organization Name".
 
-    Raises:
+    Raises
     ------
         ConfigEntryAuthFailed: If authentication fails.
         ValueError: If the organization ID is invalid.

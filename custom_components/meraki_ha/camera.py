@@ -68,7 +68,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass: The Home Assistant instance.
         entry: The config entry.
 
-    Returns:
+    Returns
     -------
         Whether the unload was successful.
 
@@ -171,7 +171,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
             width: The desired width of the image.
             height: The desired height of the image.
 
-        Returns:
+        Returns
         -------
             The image bytes or None if an error occurred.
 

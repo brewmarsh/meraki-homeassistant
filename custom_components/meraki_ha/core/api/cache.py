@@ -22,7 +22,7 @@ def async_timed_cache(
     Args:
         timeout: The cache timeout in seconds.
 
-    Returns:
+    Returns
     -------
         The decorator.
 

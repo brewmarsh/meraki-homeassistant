@@ -104,7 +104,7 @@ class MerakiAPIClient:
             *args: Positional arguments to pass to the function.
             **kwargs: Keyword arguments to pass to the function.
 
-        Returns:
+        Returns
         -------
             The result of the function.
 
@@ -119,7 +119,7 @@ class MerakiAPIClient:
         Args:
             coro: The awaitable to run.
 
-        Returns:
+        Returns
         -------
             The result of the awaitable.
 
@@ -160,7 +160,7 @@ class MerakiAPIClient:
         Args:
             results: The raw initial data from the API.
 
-        Returns:
+        Returns
         -------
             The processed initial data.
 
@@ -230,7 +230,7 @@ class MerakiAPIClient:
         Args:
             networks: A list of networks to fetch clients for.
 
-        Returns:
+        Returns
         -------
             A list of clients.
 
@@ -259,7 +259,7 @@ class MerakiAPIClient:
         Args:
             devices: A list of devices to fetch clients for.
 
-        Returns:
+        Returns
         -------
             A dictionary of clients by device serial.
 
@@ -292,7 +292,7 @@ class MerakiAPIClient:
             networks: A list of networks.
             devices: A list of devices.
 
-        Returns:
+        Returns
         -------
             A dictionary of tasks.
 
@@ -387,7 +387,7 @@ class MerakiAPIClient:
             devices: A list of devices.
             previous_data: The previous data from the coordinator.
 
-        Returns:
+        Returns
         -------
             The processed detailed data.
 
@@ -533,7 +533,7 @@ class MerakiAPIClient:
         Args:
             previous_data: The previous data from the coordinator.
 
-        Returns:
+        Returns
         -------
             A dictionary of all data.
 
@@ -614,7 +614,7 @@ class MerakiAPIClient:
         Args:
             serial: The serial number of the device to reboot.
 
-        Returns:
+        Returns
         -------
             The API response.
 
@@ -631,7 +631,7 @@ class MerakiAPIClient:
         Args:
             serial: The serial number of the switch.
 
-        Returns:
+        Returns
         -------
             A list of port statuses.
 

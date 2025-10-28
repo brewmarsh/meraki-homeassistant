@@ -40,7 +40,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         hass: The Home Assistant instance.
         config: The configuration.
 
-    Returns:
+    Returns
     -------
         Whether the setup was successful.
 
@@ -66,7 +66,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass: The Home Assistant instance.
         entry: The config entry.
 
-    Returns:
+    Returns
     -------
         Whether the setup was successful.
 
@@ -139,7 +139,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass: The Home Assistant instance.
         entry: The config entry.
 
-    Returns:
+    Returns
     -------
         Whether the unload was successful.
 

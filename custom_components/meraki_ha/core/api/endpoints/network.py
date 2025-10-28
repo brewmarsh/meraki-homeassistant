@@ -44,7 +44,7 @@ class NetworkEndpoints:
         ----
             network_id: The ID of the network.
 
-        Returns:
+        Returns
         -------
             A list of clients.
 
@@ -73,7 +73,7 @@ class NetworkEndpoints:
             network_id: The ID of the network.
             device_type: The type of device to filter by.
 
-        Returns:
+        Returns
         -------
             A list of traffic data.
 
@@ -100,7 +100,7 @@ class NetworkEndpoints:
         ----
             network_id: The ID of the network.
 
-        Returns:
+        Returns
         -------
             A list of webhooks.
 
@@ -144,7 +144,7 @@ class NetworkEndpoints:
             network_id: The ID of the network.
             url: The URL of the webhook.
 
-        Returns:
+        Returns
         -------
             The webhook details, or None if not found.
 
@@ -212,7 +212,7 @@ class NetworkEndpoints:
             network_id: The ID of the network.
             object_type: The type of object to get analytics for.
 
-        Returns:
+        Returns
         -------
             A list of analytics history.
 

@@ -21,7 +21,7 @@ def async_log_time(
         logger: The logger to use for logging.
         level: The logging level to use.
 
-    Returns:
+    Returns
     -------
         The decorator.
 
