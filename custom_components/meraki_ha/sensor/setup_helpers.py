@@ -62,7 +62,7 @@ def _setup_device_sensors(
         for sensor_class in COMMON_SENSORS_COORD_DEV_CONF:
             unique_id = f"{serial}_{sensor_class.__name__}"
             if unique_id not in added_entities:
-                entities.append(sensor_class(coordinator, device_info, config_entry))
+                entities.append(sensor_class(coordinator, device_info, config_entry))  # type: ignore[call-arg]
                 added_entities.add(unique_id)
 
         product_type = device_info.get("productType")
@@ -80,7 +80,7 @@ def _setup_device_sensors(
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
                     entities.append(
-                        sensor_class(coordinator, device_info, config_entry)
+                        sensor_class(coordinator, device_info, config_entry)  # type: ignore[call-arg]
                     )
                     added_entities.add(unique_id)
 

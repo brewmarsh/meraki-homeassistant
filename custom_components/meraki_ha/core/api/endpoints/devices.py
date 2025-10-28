@@ -46,7 +46,7 @@ class DevicesEndpoints:
             A list of clients.
 
         """
-        clients = await self._api_client._run_sync(
+        clients = await self._api_client.run_sync(
             self._dashboard.devices.getDeviceClients,
             serial,
             timespan=300,  # 5 minutes to get current clients
@@ -70,7 +70,7 @@ class DevicesEndpoints:
             The device details.
 
         """
-        device = await self._api_client._run_sync(
+        device = await self._api_client.run_sync(
             self._dashboard.devices.getDevice,
             serial=serial,
         )
@@ -95,7 +95,7 @@ class DevicesEndpoints:
             The updated device.
 
         """
-        device = await self._api_client._run_sync(
+        device = await self._api_client.run_sync(
             self._dashboard.devices.updateDevice,
             serial=serial,
             **kwargs,

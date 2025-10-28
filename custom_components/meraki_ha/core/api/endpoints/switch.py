@@ -51,7 +51,7 @@ class SwitchEndpoints:
             A list of port statuses.
 
         """
-        statuses = await self._api_client._run_sync(
+        statuses = await self._api_client.run_sync(
             self._dashboard.switch.getDeviceSwitchPortsStatuses, serial=serial
         )
         validated = validate_response(statuses)
@@ -75,7 +75,7 @@ class SwitchEndpoints:
             A list of ports.
 
         """
-        ports = await self._api_client._run_sync(
+        ports = await self._api_client.run_sync(
             self._dashboard.switch.getDeviceSwitchPorts, serial=serial
         )
         validated = validate_response(ports)

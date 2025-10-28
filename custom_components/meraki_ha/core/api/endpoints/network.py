@@ -49,7 +49,7 @@ class NetworkEndpoints:
             A list of clients.
 
         """
-        clients = await self._api_client._run_sync(
+        clients = await self._api_client.run_sync(
             self._dashboard.networks.getNetworkClients,
             networkId=network_id,
             total_pages="all",
@@ -78,7 +78,7 @@ class NetworkEndpoints:
             A list of traffic data.
 
         """
-        traffic = await self._api_client._run_sync(
+        traffic = await self._api_client.run_sync(
             self._dashboard.networks.getNetworkTraffic,
             networkId=network_id,
             deviceType=device_type,
@@ -105,7 +105,7 @@ class NetworkEndpoints:
             A list of webhooks.
 
         """
-        webhooks = await self._api_client._run_sync(
+        webhooks = await self._api_client.run_sync(
             self._dashboard.networks.getNetworkWebhooksHttpServers,
             networkId=network_id,
         )
@@ -126,7 +126,7 @@ class NetworkEndpoints:
             webhook_id: The ID of the webhook.
 
         """
-        await self._api_client._run_sync(
+        await self._api_client.run_sync(
             self._dashboard.networks.deleteNetworkWebhooksHttpServer,
             networkId=network_id,
             httpServerId=webhook_id,
@@ -173,7 +173,7 @@ class NetworkEndpoints:
             if existing_webhook:
                 await self.delete_webhook(network_id, existing_webhook["id"])
 
-            await self._api_client._run_sync(
+            await self._api_client.run_sync(
                 self._dashboard.networks.createNetworkWebhooksHttpServer,
                 networkId=network_id,
                 url=webhook_url,
@@ -193,7 +193,7 @@ class NetworkEndpoints:
         """
         networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
-            await self._api_client._run_sync(
+            await self._api_client.run_sync(
                 self._dashboard.networks.deleteNetworkWebhooksHttpServer,
                 networkId=network["id"],
                 httpServerId=webhook_id,
@@ -217,7 +217,7 @@ class NetworkEndpoints:
             A list of analytics history.
 
         """
-        history = await self._api_client._run_sync(
+        history = await self._api_client.run_sync(
             self._dashboard.camera.getNetworkCameraAnalyticsRecent,
             networkId=network_id,
             objectType=object_type,
