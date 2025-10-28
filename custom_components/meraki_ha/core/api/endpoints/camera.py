@@ -1,7 +1,8 @@
 """Meraki API endpoints for cameras."""
+from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
@@ -10,6 +11,10 @@ from custom_components.meraki_ha.core.utils.api_utils import (
 
 from ..cache import async_timed_cache
 
+if TYPE_CHECKING:
+    from ..client import MerakiAPIClient
+
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -17,10 +22,17 @@ class CameraEndpoints:
 
     """Camera-related endpoints."""
 
-    def __init__(self, api_client):
-        """Initialize the endpoint."""
+    def __init__(self, api_client: MerakiAPIClient) -> None:
+        """
+        Initialize the endpoint.
+
+        Args:
+        ----
+            api_client: The Meraki API client.
+
+        """
         self._api_client = api_client
-        self._dashboard = api_client._dashboard
+        self._dashboard = api_client.dashboard
 
     @handle_meraki_errors
     @async_timed_cache()

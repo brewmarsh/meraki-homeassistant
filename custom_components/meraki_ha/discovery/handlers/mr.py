@@ -26,6 +26,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MRHandler(BaseDeviceHandler):
+
     """Handler for Meraki MR (wireless) devices."""
 
     def __init__(
@@ -43,6 +44,7 @@ class MRHandler(BaseDeviceHandler):
             device: The device data.
             config_entry: The config entry.
             control_service: The device control service.
+
         """
         super().__init__(coordinator, device, config_entry)
         self._control_service = control_service
@@ -69,6 +71,7 @@ class MRHandler(BaseDeviceHandler):
             control_service: The device control service.
             network_control_service: The network control service.
             switch_port_coordinator: The switch port coordinator.
+
         """
         return cls(
             coordinator,
@@ -84,6 +87,7 @@ class MRHandler(BaseDeviceHandler):
         Returns
         -------
             A list of entities.
+
         """
         entities: list[Entity] = []
 

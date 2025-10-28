@@ -5,7 +5,7 @@ import logging
 from typing import Any
 
 import voluptuous as vol
-from homeassistant import config_entries, data_entry_flow
+from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
@@ -48,7 +48,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         ----
             user_input: The user input.
 
-        Returns:
+        Returns
         -------
             The flow result.
 
@@ -101,7 +101,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         ----
             user_input: The user input.
 
-        Returns:
+        Returns
         -------
             The flow result.
 
@@ -131,7 +131,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         ----
             config_entry: The config entry.
 
-        Returns:
+        Returns
         -------
             The options flow handler.
 
@@ -149,7 +149,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         ----
             user_input: The user input.
 
-        Returns:
+        Returns
         -------
             The flow result.
 
@@ -187,7 +187,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             schema: The schema to populate.
             defaults: The default values.
 
-        Returns:
+        Returns
         -------
             The populated schema.
 

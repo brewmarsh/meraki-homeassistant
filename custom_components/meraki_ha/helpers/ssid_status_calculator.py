@@ -52,7 +52,7 @@ class SsidStatusCalculator:
             ssids: A list of SSID dictionaries.
             devices: A list of Meraki device dictionaries.
 
-        Returns:
+        Returns
         -------
             A list of SSID dictionaries, each updated with new keys:
             'matching_devices_online' (count), 'matching_devices_total' (count),
@@ -150,7 +150,7 @@ class SsidStatusCalculator:
             ssid_tags: A list of tags from the SSID's configuration.
             device_actual_tags: A list of tags on the device.
 
-        Returns:
+        Returns
         -------
             True if the device's tags meet the SSID's tag requirements.
 

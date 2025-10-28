@@ -23,7 +23,7 @@ async def async_get_config_entry_diagnostics(
         hass: The Home Assistant instance.
         entry: The config entry.
 
-    Returns:
+    Returns
     -------
         A dictionary of diagnostics.
 

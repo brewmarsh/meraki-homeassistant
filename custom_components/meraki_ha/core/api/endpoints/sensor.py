@@ -39,7 +39,7 @@ class SensorEndpoints:
             serial: The serial number of the device.
             operation: The operation to perform on the sensor.
 
-        Returns:
+        Returns
         -------
             The response from the API.
 

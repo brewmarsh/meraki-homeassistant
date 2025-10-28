@@ -1,7 +1,8 @@
 """Utility functions for naming Meraki devices and entities."""
 
 import logging
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 _LOGGER = logging.getLogger(__name__)
 

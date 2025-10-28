@@ -58,7 +58,7 @@ class MerakiCameraSettingSwitchBase(
         ----
             device: The device data.
 
-        Returns:
+        Returns
         -------
             The state value.
 
