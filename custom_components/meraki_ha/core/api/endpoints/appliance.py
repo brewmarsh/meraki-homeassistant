@@ -1,8 +1,6 @@
 """Meraki API endpoints for appliances."""
 from __future__ import annotations
 
-from __future__ import annotations
-
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -53,7 +51,7 @@ class ApplianceEndpoints:
             network_id: The ID of the network.
             timespan: The timespan for the traffic data.
 
-        Returns
+        Returns:
         -------
             A list of traffic data.
 
@@ -78,7 +76,7 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns
+        Returns:
         -------
             A list of VLANs.
 
@@ -108,7 +106,7 @@ class ApplianceEndpoints:
             vlan_id: The ID of the VLAN.
             **kwargs: Additional arguments.
 
-        Returns
+        Returns:
         -------
             The updated VLAN.
 
@@ -134,7 +132,7 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns
+        Returns:
         -------
             The L3 firewall rules.
 
@@ -162,7 +160,7 @@ class ApplianceEndpoints:
             network_id: The ID of the network.
             **kwargs: Additional arguments.
 
-        Returns
+        Returns:
         -------
             The updated L3 firewall rules.
 
@@ -187,7 +185,7 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns
+        Returns:
         -------
             The traffic shaping settings.
 
@@ -215,7 +213,7 @@ class ApplianceEndpoints:
             network_id: The ID of the network.
             **kwargs: Additional arguments.
 
-        Returns
+        Returns:
         -------
             The updated traffic shaping settings.
 
@@ -240,7 +238,7 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns
+        Returns:
         -------
             The VPN status.
 
@@ -264,7 +262,7 @@ class ApplianceEndpoints:
             network_id: The ID of the network.
             **kwargs: Additional arguments.
 
-        Returns
+        Returns:
         -------
             The updated VPN status.
 
@@ -292,7 +290,7 @@ class ApplianceEndpoints:
         Args:
             serial: The serial number of the device.
 
-        Returns
+        Returns:
         -------
             The uplinks settings.
 
@@ -321,7 +319,7 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns
+        Returns:
         -------
             The content filtering settings.
 
@@ -350,7 +348,7 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns
+        Returns:
         -------
             The content filtering categories.
 
@@ -376,7 +374,7 @@ class ApplianceEndpoints:
         Args:
             serial: The serial number of the device.
 
-        Returns
+        Returns:
         -------
             The response from the API.
 
@@ -400,7 +398,7 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns
+        Returns:
         -------
             A list of ports.
 
@@ -424,7 +422,7 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns
+        Returns:
         -------
             The settings for the network appliance.
 
@@ -451,7 +449,7 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns
+        Returns:
         -------
             The L7 firewall rules.
 
@@ -481,7 +479,7 @@ class ApplianceEndpoints:
             network_id: The ID of the network.
             **kwargs: Additional arguments.
 
-        Returns
+        Returns:
         -------
             The updated L7 firewall rules.
 
@@ -512,7 +510,7 @@ class ApplianceEndpoints:
             network_id: The ID of the network.
             **kwargs: Additional arguments.
 
-        Returns
+        Returns:
         -------
             The updated content filtering settings.
 

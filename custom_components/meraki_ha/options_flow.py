@@ -36,7 +36,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
         ----
             user_input: The user input.
 
-        Returns
+        Returns:
         -------
             The flow result.
 
@@ -72,7 +72,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
             schema: The schema to populate.
             defaults: The default values.
 
-        Returns
+        Returns:
         -------
             The populated schema.
 

@@ -25,11 +25,11 @@ def validate_api_key(value: str) -> str:
     ----
         value: The API key to validate.
 
-    Returns
+    Returns:
     -------
         The validated API key.
 
-    Raises
+    Raises:
     ------
         vol.Invalid: If API key format is invalid.
 
@@ -47,11 +47,11 @@ def validate_org_id(value: str) -> str:
     ----
         value: The org ID to validate.
 
-    Returns
+    Returns:
     -------
         The validated org ID.
 
-    Raises
+    Raises:
     ------
         vol.Invalid: If org ID format is invalid.
 

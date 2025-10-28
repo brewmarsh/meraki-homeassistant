@@ -32,7 +32,7 @@ class DeviceControlService:
         ----
             serial: The serial number of the device to reboot.
 
-        Returns
+        Returns:
         -------
             A dictionary containing the API response, or None if an error occurred.
 

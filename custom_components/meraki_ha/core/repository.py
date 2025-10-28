@@ -32,7 +32,7 @@ class MerakiRepository:
         ----
             serial: The serial number of the device to reboot.
 
-        Returns
+        Returns:
         -------
             A dictionary containing the API response, or None if an error occurred.
 
@@ -54,7 +54,7 @@ class MerakiRepository:
         ----
             serial: The serial number of the switch.
 
-        Returns
+        Returns:
         -------
             A list of port statuses, or None if an error occurred.
 

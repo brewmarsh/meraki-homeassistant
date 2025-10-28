@@ -1,8 +1,6 @@
 """Config flow for the Meraki Home Assistant integration."""
 from __future__ import annotations
 
-from __future__ import annotations
-
 import logging
 from typing import Any
 
@@ -50,7 +48,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         ----
             user_input: The user input.
 
-        Returns
+        Returns:
         -------
             The flow result.
 
@@ -103,7 +101,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         ----
             user_input: The user input.
 
-        Returns
+        Returns:
         -------
             The flow result.
 
@@ -133,7 +131,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         ----
             config_entry: The config entry.
 
-        Returns
+        Returns:
         -------
             The options flow handler.
 
@@ -151,7 +149,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         ----
             user_input: The user input.
 
-        Returns
+        Returns:
         -------
             The flow result.
 
@@ -189,7 +187,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             schema: The schema to populate.
             defaults: The default values.
 
-        Returns
+        Returns:
         -------
             The populated schema.
 

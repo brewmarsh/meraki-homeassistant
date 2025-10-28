@@ -20,7 +20,7 @@ def format_entity_name(
         device_name: The name of the device.
         entity_specific_name: The name of the entity.
 
-    Returns
+    Returns:
     -------
         The formatted entity name.
 
@@ -42,7 +42,7 @@ def get_device_from_coordinator(
         coordinator: The data update coordinator.
         serial: The serial number of the device.
 
-    Returns
+    Returns:
     -------
         The device data, or None if not found.
 

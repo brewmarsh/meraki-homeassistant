@@ -1,8 +1,6 @@
 """Global fixtures for meraki_ha integration."""
 from collections.abc import Generator
 
-from collections.abc import Generator
-
 import pytest
 
 

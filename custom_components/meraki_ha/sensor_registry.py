@@ -65,7 +65,7 @@ def get_sensors_for_device_type(
         product_type: The product type of the device.
         with_config_entry: Whether to include sensors that require a config entry.
 
-    Returns
+    Returns:
     -------
         A list of sensor classes.
 

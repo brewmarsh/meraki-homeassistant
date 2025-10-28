@@ -68,18 +68,13 @@ async def test_turn_on(mock_coordinator, mock_config_entry):
         mock_coordinator, mock_config_entry, network, category
     )
 
-    with (
-        patch.object(
-            switch._client.appliance,
-            "get_network_appliance_content_filtering",
-            return_value={
-                "blockedUrlCategories": ["meraki:contentFiltering/category/2"]
-            },
-        ) as mock_get,
-        patch.object(
-            switch._client.appliance, "update_network_appliance_content_filtering"
-        ) as mock_update,
-    ):
+    with patch.object(
+        switch._client.appliance,
+        "get_network_appliance_content_filtering",
+        return_value={"blockedUrlCategories": ["meraki:contentFiltering/category/2"]},
+    ) as mock_get, patch.object(
+        switch._client.appliance, "update_network_appliance_content_filtering"
+    ) as mock_update:
         await switch.async_turn_on()
         mock_get.assert_called_once_with("net_1")
         mock_update.assert_called_once_with(
@@ -100,18 +95,13 @@ async def test_turn_off(mock_coordinator, mock_config_entry):
         mock_coordinator, mock_config_entry, network, category
     )
 
-    with (
-        patch.object(
-            switch._client.appliance,
-            "get_network_appliance_content_filtering",
-            return_value={
-                "blockedUrlCategories": ["meraki:contentFiltering/category/2"]
-            },
-        ) as mock_get,
-        patch.object(
-            switch._client.appliance, "update_network_appliance_content_filtering"
-        ) as mock_update,
-    ):
+    with patch.object(
+        switch._client.appliance,
+        "get_network_appliance_content_filtering",
+        return_value={"blockedUrlCategories": ["meraki:contentFiltering/category/2"]},
+    ) as mock_get, patch.object(
+        switch._client.appliance, "update_network_appliance_content_filtering"
+    ) as mock_update:
         await switch.async_turn_off()
         mock_get.assert_called_once_with("net_1")
         mock_update.assert_called_once_with(

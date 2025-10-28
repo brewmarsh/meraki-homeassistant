@@ -1,8 +1,6 @@
 """Tests for the Meraki webhook handling."""
 from __future__ import annotations
 
-from __future__ import annotations
-
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -22,7 +20,7 @@ def mock_hass_with_webhook_data(hass: HomeAssistant) -> HomeAssistant:
     ----
         hass: The Home Assistant instance.
 
-    Returns
+    Returns:
     -------
         The mocked Home Assistant instance.
 

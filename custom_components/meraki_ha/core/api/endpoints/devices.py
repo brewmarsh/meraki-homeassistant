@@ -41,7 +41,7 @@ class DevicesEndpoints:
         ----
             serial: The serial number of the device.
 
-        Returns
+        Returns:
         -------
             A list of clients.
 
@@ -65,7 +65,7 @@ class DevicesEndpoints:
         ----
             serial: The serial number of the device.
 
-        Returns
+        Returns:
         -------
             The device details.
 
@@ -90,7 +90,7 @@ class DevicesEndpoints:
             serial: The serial number of the device.
             **kwargs: The device settings to update.
 
-        Returns
+        Returns:
         -------
             The updated device.
 

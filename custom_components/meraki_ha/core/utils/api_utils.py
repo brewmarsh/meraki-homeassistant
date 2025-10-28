@@ -150,11 +150,11 @@ def validate_response(response: Any) -> dict[str, Any] | list[Any]:
     ----
         response: The API response to validate
 
-    Returns
+    Returns:
     -------
         Normalized response dictionary
 
-    Raises
+    Raises:
     ------
         MerakiConnectionError: If response is invalid or empty
 

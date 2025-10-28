@@ -46,7 +46,7 @@ class SwitchEndpoints:
         ----
             serial: The serial number of the switch.
 
-        Returns
+        Returns:
         -------
             A list of port statuses.
 
@@ -70,7 +70,7 @@ class SwitchEndpoints:
         ----
             serial: The serial number of the switch.
 
-        Returns
+        Returns:
         -------
             A list of ports.
 
