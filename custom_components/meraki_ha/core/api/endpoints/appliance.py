@@ -399,7 +399,7 @@ class ApplianceEndpoints:
             self._dashboard.appliance.getNetworkApplianceSettings,
             networkId=network_id,
         )
-        validated = validate_response(_settings)
+        validated = validate_response(settings)
         if not isinstance(validated, dict):
             _LOGGER.warning("get_network_appliance_settings did not return a dict")
             return {}

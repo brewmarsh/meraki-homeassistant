@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiAppliancePortSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity, SensorEntity
 ):
 
     """Representation of a Meraki appliance port sensor."""
@@ -63,7 +63,7 @@ class MerakiAppliancePortSensor(
                         return
 
     @property
-    def state(self) -> str:
+    def native_value(self) -> str:
         """Return the state of the sensor."""
         if not self._port.get("enabled"):
             return "disabled"

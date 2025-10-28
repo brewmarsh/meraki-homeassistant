@@ -29,7 +29,7 @@ from .webhook import async_register_webhook
 
 _LOGGER = logging.getLogger(__name__)
 
-CONFIG_SCHEMA = cv.deprecated(cv.empty_config_schema(DOMAIN))
+CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:

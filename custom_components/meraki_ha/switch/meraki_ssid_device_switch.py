@@ -20,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiSSIDBaseSwitch(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SwitchEntity
+    CoordinatorEntity, SwitchEntity
 ):
 
     """Base class for Meraki SSID Switches."""
@@ -67,7 +67,7 @@ class MerakiSSIDBaseSwitch(
         return None
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information to link this entity to the SSID device."""
         return resolve_device_info(
             entity_data={"networkId": self._network_id},

@@ -15,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiSsidConnectedClientsSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity, SensorEntity
 ):
 
     """Representation of a Meraki SSID Connected Clients sensor."""

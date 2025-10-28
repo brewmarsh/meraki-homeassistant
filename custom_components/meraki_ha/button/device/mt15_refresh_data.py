@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiMt15RefreshDataButton(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], ButtonEntity
+    CoordinatorEntity, ButtonEntity
 ):
 
     """Representation of a Meraki MT15 refresh data button."""
@@ -39,7 +39,7 @@ class MerakiMt15RefreshDataButton(
         self._attr_name = f"{self._device_info['name']} Refresh Data"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
         return resolve_device_info(self._device_info, self._config_entry)
 

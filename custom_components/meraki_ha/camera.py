@@ -73,7 +73,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return await hass.config_entries.async_unload_platforms(entry, [PLATFORM_CAMERA])
 
 
-class MerakiCamera(CoordinatorEntity[MerakiDataUpdateCoordinator], Camera):
+class MerakiCamera(CoordinatorEntity, Camera):
     """
     Representation of a Meraki camera.
 

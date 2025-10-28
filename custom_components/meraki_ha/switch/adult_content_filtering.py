@@ -15,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiAdultContentFilteringSwitch(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SwitchEntity
+    CoordinatorEntity, SwitchEntity
 ):
 
     """Representation of a Meraki Adult Content Filtering switch."""

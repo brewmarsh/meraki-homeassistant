@@ -3,7 +3,8 @@
 import logging
 from typing import Any
 
-from homeassistant.helpers.entity import EntityDescription
+from homeassistant.components.switch import SwitchEntityDescription
+from homeassistant.helpers.typing import UNDEFINED
 
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 
@@ -31,14 +32,16 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
             "sense_enabled",
             "sense_settings.sense_enabled",
         )
-        self.entity_description = EntityDescription(
+        self.entity_description = SwitchEntityDescription(
             key="sense_enabled", name="MV Sense"
         )
 
     @property
     def name(self) -> str:
         """Return the explicit name of the switch."""
-        return self.entity_description.name
+        if self.entity_description.name is UNDEFINED:
+            return ""
+        return self.entity_description.name or ""
 
 
 class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
@@ -59,11 +62,13 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
             "audio_detection",
             "video_settings.audio_detection.enabled",
         )
-        self.entity_description = EntityDescription(
+        self.entity_description = SwitchEntityDescription(
             key="audio_detection", name="Audio Detection"
         )
 
     @property
     def name(self) -> str:
         """Return the explicit name of the switch."""
-        return self.entity_description.name
+        if self.entity_description.name is UNDEFINED:
+            return ""
+        return self.entity_description.name or ""

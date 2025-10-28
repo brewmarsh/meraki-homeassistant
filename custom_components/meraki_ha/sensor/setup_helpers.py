@@ -80,7 +80,7 @@ def _setup_device_sensors(
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
                     entities.append(
-                        sensor_class(coordinator, device_info, config_entry)
+                        sensor_class(coordinator, device_info)  # type: ignore[call-arg]
                     )
                     added_entities.add(unique_id)
 
@@ -88,7 +88,7 @@ def _setup_device_sensors(
             for sensor_class in get_sensors_for_device_type(product_type, False):
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
-                    entities.append(sensor_class(coordinator, device_info))
+                    entities.append(sensor_class(coordinator, device_info))  # type: ignore[call-arg]
                     added_entities.add(unique_id)
 
         # Appliance port sensors

@@ -64,6 +64,6 @@ class MerakiFirewallRuleEntity(BaseMerakiEntity):
         )
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return self._attr_device_info

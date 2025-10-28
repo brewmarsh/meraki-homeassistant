@@ -40,8 +40,11 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             "sense_enabled",
             "sense.analyticsEnabled",
         )
+        config_options = (
+            coordinator.config_entry.options if coordinator.config_entry else {}
+        )
         self._attr_name = format_entity_name(
-            format_device_name(device_data, coordinator.config_entry.options),
+            format_device_name(device_data, config_options),
             "Analytics",
         )
         self._attr_icon = "mdi:chart-bar"

@@ -19,7 +19,7 @@ CLIENT_TRACKER_DEVICE_ID = "client_tracker"
 
 
 class ClientTrackerDeviceSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity, SensorEntity
 ):
 
     """A sensor representing the Client Tracker device itself."""
@@ -70,7 +70,7 @@ class ClientTrackerDeviceSensor(
             self._attr_native_value = 0
 
 
-class MerakiClientSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
+class MerakiClientSensor(CoordinatorEntity, SensorEntity):
 
     """Representation of a Meraki client as a sensor."""
 

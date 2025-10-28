@@ -27,7 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiDeviceStatusSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity, SensorEntity
 ):
 
     """
@@ -106,7 +106,9 @@ class MerakiDeviceStatusSensor(
             "alerting": "mdi:access-point-network-off",
             "dormant": "mdi:access-point-network-off",
         }
-        return status_icon_map.get(self.native_value, "mdi:help-network-outline")
+        if isinstance(self.native_value, str):
+            return status_icon_map.get(self.native_value, "mdi:help-network-outline")
+        return "mdi:help-network-outline"
 
     def _get_current_device_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
@@ -156,20 +158,23 @@ class MerakiDeviceStatusSensor(
         # If the device is an appliance, add uplink information as attributes
         if current_device_data.get("productType") == "appliance":
             for uplink in current_device_data.get("uplinks", []):
-                interface = uplink.get("interface", "unknown_interface")
-                self._attr_extra_state_attributes[f"{interface}_status"] = uplink.get(
-                    "status"
-                )
-                self._attr_extra_state_attributes[f"{interface}_ip"] = uplink.get("ip")
-                self._attr_extra_state_attributes[f"{interface}_gateway"] = uplink.get(
-                    "gateway"
-                )
-                self._attr_extra_state_attributes[f"{interface}_public_ip"] = (
-                    uplink.get("publicIp")
-                )
-                self._attr_extra_state_attributes[f"{interface}_dns_servers"] = (
-                    uplink.get("dns")
-                )
+                interface = uplink.get("interface")
+                if interface is not None:
+                    self._attr_extra_state_attributes[f"{interface}_status"] = (
+                        uplink.get("status")
+                    )
+                    self._attr_extra_state_attributes[f"{interface}_ip"] = uplink.get(
+                        "ip"
+                    )
+                    self._attr_extra_state_attributes[f"{interface}_gateway"] = (
+                        uplink.get("gateway")
+                    )
+                    self._attr_extra_state_attributes[f"{interface}_public_ip"] = (
+                        uplink.get("publicIp")
+                    )
+                    self._attr_extra_state_attributes[f"{interface}_dns_servers"] = (
+                        uplink.get("dns")
+                    )
 
     @callback
     def _handle_coordinator_update(self) -> None:

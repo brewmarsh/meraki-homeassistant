@@ -19,7 +19,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiPoeUsageSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator],
+    CoordinatorEntity,
     SensorEntity,
 ):
 

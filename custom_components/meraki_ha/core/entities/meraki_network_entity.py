@@ -11,7 +11,7 @@ from ...types import MerakiNetwork
 from ..utils.naming_utils import format_device_name
 
 
-class MerakiNetworkEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
+class MerakiNetworkEntity(CoordinatorEntity):
 
     """Representation of a Meraki Network."""
 
@@ -40,6 +40,6 @@ class MerakiNetworkEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
         )
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return self._attr_device_info

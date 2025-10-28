@@ -3,10 +3,9 @@
 import logging
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
@@ -16,7 +15,7 @@ from ...core.utils.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMtSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
+class MerakiMtSensor(CoordinatorEntity, SensorEntity):
 
     """Representation of a Meraki MT sensor."""
 
@@ -24,7 +23,7 @@ class MerakiMtSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntit
         self,
         coordinator: MerakiDataUpdateCoordinator,
         device: dict[str, Any],
-        entity_description: EntityDescription,
+        entity_description: SensorEntityDescription,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
