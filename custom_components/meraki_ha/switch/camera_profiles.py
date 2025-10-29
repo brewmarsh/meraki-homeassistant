@@ -42,6 +42,17 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
             return ""
         return self.entity_description.name or ""
 
+    async def _async_update_setting(self, is_on: bool) -> None:
+        """
+        Update the setting via the Meraki API.
+        Args:
+        ----
+            is_on: Whether the setting is on or off.
+        """
+        await self.client.camera.updateDeviceCameraSense(
+            serial=self._device_data["serial"], senseEnabled=is_on
+        )
+
 
 class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
     """Switch to control the Audio Detection state of a Meraki Camera."""
@@ -70,3 +81,15 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
         if self.entity_description.name is UNDEFINED:
             return ""
         return self.entity_description.name or ""
+
+    async def _async_update_setting(self, is_on: bool) -> None:
+        """
+        Update the setting via the Meraki API.
+        Args:
+        ----
+            is_on: Whether the setting is on or off.
+        """
+        await self.client.camera.updateDeviceCameraSense(
+            serial=self._device_data["serial"],
+            audioDetection={"enabled": is_on},
+        )
