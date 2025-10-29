@@ -1,3 +1,22 @@
+## [1.5.4-beta.8](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.10...v1.5.4-beta.8) (2025-10-29)
+
+
+### Bug Fixes
+
+* **ci:** resolve all mypy and ruff errors ([f856026](https://github.com/brewmarsh/meraki-homeassistant/commit/f85602640f9263cc642de1a63ac5f5bba765c735))
+* **lint:** Fix docstring and import errors ([5b8da0d](https://github.com/brewmarsh/meraki-homeassistant/commit/5b8da0d0b5bbe484737f1b86ec760082aa78aba9))
+* **mypy:** Attempt to fix mypy errors in sensor setup ([a58b063](https://github.com/brewmarsh/meraki-homeassistant/commit/a58b063519881b000f1e74bd4643d3b28ddf2216))
+* **mypy:** Final attempt to fix mypy errors in sensor setup ([d70508d](https://github.com/brewmarsh/meraki-homeassistant/commit/d70508d9dd2f99aa97890513e1fe856e824439f7))
+* **mypy:** Fix mypy errors and skip failing tests ([7ee6ce9](https://github.com/brewmarsh/meraki-homeassistant/commit/7ee6ce9019785e92292a69893c700ec53d7d6fb0))
+* **python:** Clean up Python errors and fix failing tests ([ffd422a](https://github.com/brewmarsh/meraki-homeassistant/commit/ffd422af0d11c6d4447424639fcd7ff1b1e24c85))
+* **ruff:** Fix docstring error in sensor_registry.py ([aee0235](https://github.com/brewmarsh/meraki-homeassistant/commit/aee023512120578236116fdc5a9505717f5dfe21))
+* **ruff:** Fix docstring errors in sensor_registry.py ([1e32490](https://github.com/brewmarsh/meraki-homeassistant/commit/1e324907699521d4584800898e074c48623de0c2))
+* **ruff:** Format sensor_registry.py ([c434acd](https://github.com/brewmarsh/meraki-homeassistant/commit/c434acdaa96b1db7b776901499e25abdef8f1697))
+* **ruff:** Format sensor_registry.py ([b61c7ec](https://github.com/brewmarsh/meraki-homeassistant/commit/b61c7ecdd44fc5bc2e51cb1c3676abf0a3dcc898))
+* **ruff:** resolve all D407 and other docstring errors ([3f621ab](https://github.com/brewmarsh/meraki-homeassistant/commit/3f621ab8a1d635cd245e086a2c6ac19f93dbee88))
+
+
+
 ## [1.5.4-beta.7](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.6...v1.5.4-beta.7) (2025-10-27)
 
 
