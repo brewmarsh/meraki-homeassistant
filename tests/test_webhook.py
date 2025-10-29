@@ -1,5 +1,4 @@
 """Tests for the Meraki webhook handling."""
-from __future__ import annotations
 
 from __future__ import annotations
 

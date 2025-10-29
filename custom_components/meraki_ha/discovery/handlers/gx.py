@@ -29,7 +29,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class GXHandler(BaseDeviceHandler):
-
     """Handler for GX series security appliances."""
 
     def __init__(

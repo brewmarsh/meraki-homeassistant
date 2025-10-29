@@ -1,4 +1,5 @@
 """Module for asynchronous logging utilities."""
+
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable

@@ -1,4 +1,5 @@
 """Meraki API endpoints for organizations."""
+
 from __future__ import annotations
 
 import logging
@@ -19,7 +20,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class OrganizationEndpoints:
-
     """Organization-related endpoints."""
 
     def __init__(self, api_client: MerakiAPIClient) -> None:
@@ -45,7 +45,7 @@ class OrganizationEndpoints:
             The organization details.
 
         """
-        org = await self._api_client._run_sync(
+        org = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganization,
             organizationId=self._api_client.organization_id,
         )
@@ -66,7 +66,7 @@ class OrganizationEndpoints:
             A list of networks.
 
         """
-        networks = await self._api_client._run_sync(
+        networks = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizationNetworks,
             organizationId=self._api_client.organization_id,
         )
@@ -87,7 +87,7 @@ class OrganizationEndpoints:
             A list of firmware upgrades.
 
         """
-        upgrades = await self._api_client._run_sync(
+        upgrades = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizationFirmwareUpgrades,
             organizationId=self._api_client.organization_id,
         )
@@ -108,7 +108,7 @@ class OrganizationEndpoints:
             A list of device statuses.
 
         """
-        statuses = await self._api_client._run_sync(
+        statuses = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizationDeviceStatuses,
             organizationId=self._api_client.organization_id,
         )
@@ -129,7 +129,7 @@ class OrganizationEndpoints:
             A list of device availabilities.
 
         """
-        availabilities = await self._api_client._run_sync(
+        availabilities = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizationDevicesAvailabilities,
             organizationId=self._api_client.organization_id,
             total_pages="all",
@@ -153,7 +153,7 @@ class OrganizationEndpoints:
             A list of devices.
 
         """
-        devices = await self._api_client._run_sync(
+        devices = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizationDevices,
             organizationId=self._api_client.organization_id,
         )
@@ -174,7 +174,7 @@ class OrganizationEndpoints:
             A list of organizations.
 
         """
-        orgs = await self._api_client._run_sync(
+        orgs = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizations
         )
         validated = validate_response(orgs)

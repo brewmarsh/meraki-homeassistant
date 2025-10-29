@@ -1,4 +1,5 @@
 """Sensor entities for Meraki organization-level client counts."""
+
 from __future__ import annotations
 
 import logging
@@ -20,7 +21,6 @@ class MerakiOrganizationSSIDClientsSensor(
     CoordinatorEntity,
     SensorEntity,
 ):
-
     """Representation of a Meraki Organization SSID Clients sensor."""
 
     _attr_state_class = SensorStateClass.MEASUREMENT
@@ -84,7 +84,6 @@ class MerakiOrganizationWirelessClientsSensor(
     CoordinatorEntity,
     SensorEntity,
 ):
-
     """Representation of a Meraki Organization Wireless Clients sensor."""
 
     _attr_state_class = SensorStateClass.MEASUREMENT
@@ -147,7 +146,6 @@ class MerakiOrganizationApplianceClientsSensor(
     CoordinatorEntity,
     SensorEntity,
 ):
-
     """Representation of a Meraki Organization Appliance Clients sensor."""
 
     _attr_state_class = SensorStateClass.MEASUREMENT

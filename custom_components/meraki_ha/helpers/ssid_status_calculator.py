@@ -14,7 +14,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class SsidStatusCalculator:
-
     """
     Calculates the operational status of Meraki SSIDs.
 

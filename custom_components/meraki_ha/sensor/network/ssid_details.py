@@ -17,7 +17,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiSSIDDetailSensor(SensorEntity):
-
     """Base class for a Meraki SSID detail sensor."""
 
     _attr_has_entity_name = True
@@ -43,7 +42,6 @@ class MerakiSSIDDetailSensor(SensorEntity):
 
 
 class MerakiSSIDWalledGardenSensor(MerakiSSIDDetailSensor):
-
     """Representation of an SSID Walled Garden sensor."""
 
     _attr_icon = "mdi:wall"
@@ -64,7 +62,6 @@ class MerakiSSIDWalledGardenSensor(MerakiSSIDDetailSensor):
 
 
 class MerakiSSIDTotalUploadLimitSensor(MerakiSSIDDetailSensor):
-
     """Representation of an SSID Total Upload Limit sensor."""
 
     _attr_icon = "mdi:upload-network"
@@ -81,7 +78,6 @@ class MerakiSSIDTotalUploadLimitSensor(MerakiSSIDDetailSensor):
 
 
 class MerakiSSIDTotalDownloadLimitSensor(MerakiSSIDDetailSensor):
-
     """Representation of an SSID Total Download Limit sensor."""
 
     _attr_icon = "mdi:download-network"
@@ -98,7 +94,6 @@ class MerakiSSIDTotalDownloadLimitSensor(MerakiSSIDDetailSensor):
 
 
 class MerakiSSIDMandatoryDhcpSensor(MerakiSSIDDetailSensor):
-
     """Representation of an SSID Mandatory DHCP sensor."""
 
     _attr_icon = "mdi:ip-network"
@@ -116,7 +111,6 @@ class MerakiSSIDMandatoryDhcpSensor(MerakiSSIDDetailSensor):
 
 
 class MerakiSSIDMinBitrate24GhzSensor(MerakiSSIDDetailSensor):
-
     """Representation of an SSID 2.4GHz Minimum Bitrate sensor."""
 
     _attr_icon = "mdi:speedometer-slow"
@@ -138,7 +132,6 @@ class MerakiSSIDMinBitrate24GhzSensor(MerakiSSIDDetailSensor):
 
 
 class MerakiSSIDMinBitrate5GhzSensor(MerakiSSIDDetailSensor):
-
     """Representation of an SSID 5GHz Minimum Bitrate sensor."""
 
     _attr_icon = "mdi:speedometer"

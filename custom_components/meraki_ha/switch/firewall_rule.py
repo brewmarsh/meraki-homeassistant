@@ -18,7 +18,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiFirewallRuleSwitch(MerakiFirewallRuleEntity, SwitchEntity):
-
     """Representation of a Meraki L3 Firewall Rule switch."""
 
     def __init__(

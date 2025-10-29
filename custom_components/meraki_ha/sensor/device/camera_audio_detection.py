@@ -16,10 +16,7 @@ from ...core.utils.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiCameraAudioDetectionSensor(
-    CoordinatorEntity, SensorEntity
-):
-
+class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki Camera Audio Detection Status sensor."""
 
     _attr_has_entity_name = True

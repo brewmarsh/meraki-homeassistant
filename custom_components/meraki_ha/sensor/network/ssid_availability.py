@@ -1,4 +1,5 @@
 """Sensor entity representing the availability of a Meraki SSID."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -11,7 +12,6 @@ from .base import MerakiSSIDBaseSensor
 
 
 class MerakiSSIDAvailabilitySensor(MerakiSSIDBaseSensor):
-
     """Representation of a Meraki SSID Availability sensor."""
 
     entity_description = SensorEntityDescription(

@@ -17,10 +17,7 @@ from ...core.utils.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDataUsageSensor(
-    CoordinatorEntity, SensorEntity
-):
-
+class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki appliance data usage sensor."""
 
     _attr_state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT

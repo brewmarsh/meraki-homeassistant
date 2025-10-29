@@ -4,6 +4,7 @@ Handles Meraki API authentication for the Meraki Home Assistant integration.
 This module provides mechanisms to validate API keys and organization IDs
 against the Meraki Dashboard API using the Meraki SDK.
 """
+
 from __future__ import annotations
 
 import logging
@@ -20,7 +21,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiAuthentication:
-
     """
     Class to handle Meraki API authentication using the Meraki SDK.
 

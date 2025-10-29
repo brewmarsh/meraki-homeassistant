@@ -1,4 +1,5 @@
 """Meraki API endpoints for switches."""
+
 from __future__ import annotations
 
 import logging
@@ -19,7 +20,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class SwitchEndpoints:
-
     """Switch-related endpoints."""
 
     def __init__(self, api_client: MerakiAPIClient) -> None:
@@ -51,7 +51,7 @@ class SwitchEndpoints:
             A list of port statuses.
 
         """
-        statuses = await self._api_client._run_sync(
+        statuses = await self._api_client.run_sync(
             self._dashboard.switch.getDeviceSwitchPortsStatuses, serial=serial
         )
         validated = validate_response(statuses)
@@ -75,7 +75,7 @@ class SwitchEndpoints:
             A list of ports.
 
         """
-        ports = await self._api_client._run_sync(
+        ports = await self._api_client.run_sync(
             self._dashboard.switch.getDeviceSwitchPorts, serial=serial
         )
         validated = validate_response(ports)

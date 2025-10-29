@@ -1,4 +1,5 @@
 """REST API for the Meraki Home Assistant integration's Web UI."""
+
 from __future__ import annotations
 
 import logging

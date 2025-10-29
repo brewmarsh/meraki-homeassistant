@@ -1,4 +1,5 @@
 """The Meraki Home Assistant integration."""
+
 import json
 import logging
 import random

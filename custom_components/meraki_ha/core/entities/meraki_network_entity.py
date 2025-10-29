@@ -12,7 +12,6 @@ from ..utils.naming_utils import format_device_name
 
 
 class MerakiNetworkEntity(CoordinatorEntity):
-
     """Representation of a Meraki Network."""
 
     def __init__(

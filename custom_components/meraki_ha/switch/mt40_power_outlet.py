@@ -22,7 +22,6 @@ class MerakiMt40PowerOutlet(
     CoordinatorEntity,
     SwitchEntity,
 ):
-
     """Representation of a Meraki MT40 power outlet."""
 
     def __init__(

@@ -16,10 +16,7 @@ from ...helpers.entity_helpers import format_entity_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAppliancePortSensor(
-    CoordinatorEntity, SensorEntity
-):
-
+class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki appliance port sensor."""
 
     def __init__(

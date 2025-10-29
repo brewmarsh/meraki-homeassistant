@@ -10,7 +10,6 @@ from .base import MerakiSSIDBaseSensor
 
 
 class MerakiSSIDAuthModeSensor(MerakiSSIDBaseSensor):
-
     """Representation of a Meraki SSID Auth Mode sensor."""
 
     entity_description = SensorEntityDescription(

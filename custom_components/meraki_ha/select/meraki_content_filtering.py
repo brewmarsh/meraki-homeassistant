@@ -18,10 +18,7 @@ from ..helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiContentFilteringSelect(
-    CoordinatorEntity, SelectEntity
-):
-
+class MerakiContentFilteringSelect(CoordinatorEntity, SelectEntity):
     """Representation of a Meraki Content Filtering select entity."""
 
     entity_category = EntityCategory.CONFIG

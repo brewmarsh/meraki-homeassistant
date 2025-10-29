@@ -47,6 +47,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
                 return (
                     <Card
                         key={network.id}
+                        data-testid="network-card"
                         sx={{
                             mb: 2.5,
                             borderRadius: 2,
