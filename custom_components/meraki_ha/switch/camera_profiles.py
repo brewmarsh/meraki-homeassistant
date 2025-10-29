@@ -43,8 +43,8 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
         return self.entity_description.name or ""
 
     async def _async_update_setting(self, is_on: bool) -> None:
-        """
-        Update the setting via the Meraki API.
+        """Update the setting via the Meraki API.
+
         Args:
         ----
             is_on: Whether the setting is on or off.
@@ -83,8 +83,8 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
         return self.entity_description.name or ""
 
     async def _async_update_setting(self, is_on: bool) -> None:
-        """
-        Update the setting via the Meraki API.
+        """Update the setting via the Meraki API.
+
         Args:
         ----
             is_on: Whether the setting is on or off.

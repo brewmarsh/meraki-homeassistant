@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import http.server
 import json
+import os
+import socketserver
+import threading
 from unittest.mock import patch
 
 import pytest
@@ -27,12 +31,13 @@ async def setup_integration_fixture(
     hass: HomeAssistant,
     socket_enabled: None,
 ) -> MockConfigEntry:
-    """
-    Set up the Meraki integration with the web UI enabled.
+    """Set up the Meraki integration with the web UI enabled.
+
     Args:
     ----
         hass: The Home Assistant instance.
         socket_enabled: The socket_enabled fixture.
+
     Returns
     -------
         The mock config entry.
@@ -70,8 +75,8 @@ async def test_dashboard_loads_and_displays_data(
     hass: HomeAssistant,
     setup_integration: MockConfigEntry,
 ) -> None:
-    """
-    Test that the dashboard loads and displays network data.
+    """Test that the dashboard loads and displays network data.
+
     Args:
     ----
         hass: The Home Assistant instance.
@@ -79,13 +84,9 @@ async def test_dashboard_loads_and_displays_data(
     """
     # Use a simple python http server to serve the www directory
     # This is to avoid issues with the HA server not serving the files
-    import http.server
-    import socketserver
-    import threading
-    import os
 
     # Change to the www directory to serve files from there
-    os.chdir('custom_components/meraki_ha/www')
+    os.chdir("custom_components/meraki_ha/www")
 
     Handler = http.server.SimpleHTTPRequestHandler
     httpd = None
@@ -153,4 +154,4 @@ async def test_dashboard_loads_and_displays_data(
         if httpd_thread:
             httpd_thread.join()
         # Change back to the original directory
-        os.chdir('../../../..')
+        os.chdir("../../../..")
