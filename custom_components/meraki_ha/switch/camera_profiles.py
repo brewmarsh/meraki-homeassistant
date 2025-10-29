@@ -49,7 +49,7 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
         ----
             is_on: Whether the setting is on or off.
         """
-        await self.client.camera.updateDeviceCameraSense(
+        await self.client.camera.update_camera_sense_settings(
             serial=self._device_data["serial"], senseEnabled=is_on
         )
 
@@ -89,7 +89,7 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
         ----
             is_on: Whether the setting is on or off.
         """
-        await self.client.camera.updateDeviceCameraSense(
+        await self.client.camera.update_camera_sense_settings(
             serial=self._device_data["serial"],
             audioDetection={"enabled": is_on},
         )
