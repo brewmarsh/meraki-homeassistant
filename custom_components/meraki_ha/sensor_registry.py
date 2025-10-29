@@ -1,6 +1,7 @@
 """Sensor registry for Meraki Home Assistant integration."""
-
 from __future__ import annotations
+
+from typing import Type
 
 from homeassistant.helpers.entity import Entity
 
@@ -14,7 +15,7 @@ from .sensor.device.meraki_wan1_connectivity import MerakiWAN1ConnectivitySensor
 from .sensor.device.meraki_wan2_connectivity import MerakiWAN2ConnectivitySensor
 from .sensor.device.poe_usage import MerakiPoeUsageSensor
 
-SensorClassList = list[type[Entity]]
+SensorClassList = list[Type[Entity]]
 
 # Sensors with __init__(coordinator, device_info)
 SENSORS_COORD_DEV: dict[str, SensorClassList] = {
@@ -66,7 +67,7 @@ def get_sensors_for_device_type(
         product_type: The product type of the device.
         with_config_entry: Whether to include sensors that require a config entry.
 
-    Returns
+    Returns:
     -------
         A list of sensor classes.
 
