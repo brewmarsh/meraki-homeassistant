@@ -80,8 +80,8 @@ def _setup_device_sensors(
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
                     entities.append(
-                        sensor_class(coordinator, device_info, config_entry)  # type: ignore[call-arg]
-                    )
+                        sensor_class(coordinator, device_info, config_entry)
+                    )  # type: ignore[call-arg]
                     added_entities.add(unique_id)
 
             # Sensors with (coordinator, device_info)
