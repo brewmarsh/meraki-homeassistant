@@ -1,7 +1,7 @@
 [![Beta Python Linting](https://github.com/brewmarsh/meraki-homeassistant/actions/workflows/beta-validation.yaml/badge.svg)](https://github.com/brewmarsh/meraki-homeassistant/actions/workflows/beta-validation.yaml)
 [![codecov](https://codecov.io/gh/brewmarsh/meraki-homeassistant/branch/main/graph/badge.svg)](https://codecov.io/gh/brewmarsh/meraki-homeassistant)
 [![Python Version](https://img.shields.io/badge/python-3.9-blue.svg)]()
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
 # Meraki Home Assistant Integration 🤖
 
@@ -28,8 +28,7 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
   - [Environmental Sensors (MT Series)](#environmental-sensors-mt-series)
 - [Automation Examples](#automation-examples-)
 - [Troubleshooting](#troubleshooting-)
-- [Versioning and Releases](#versioning-and-releases)
-- [Dependencies](#dependencies-)
+- [How to Contribute](#how-to-contribute-)
 - [Known Issues & Limitations](#known-issues--limitations-️)
 - [Disclaimer](#disclaimer-)
 
@@ -72,18 +71,18 @@ To use this integration, you will need a Meraki API key and your Organization ID
 
 1.  **Log in to the Meraki Dashboard:** Go to [https://dashboard.meraki.com/](https://dashboard.meraki.com/).
 2.  **Enable API Access:**
-    *   Navigate to **Organization** > **Settings**.
-    *   Under the **Dashboard API access** section, ensure API access is enabled.
+    * Navigate to **Organization** > **Settings**.
+    * Under the **Dashboard API access** section, ensure API access is enabled.
 3.  **Generate API Key:**
-    *   Go to your **Profile** (click your name/email in the top right) > **My profile**.
-    *   Scroll down to the **API access** section.
-    *   Click **Generate new API key**.
-    *   **Important:** Copy the generated API key and store it securely. You will not be able to see it again after navigating away from this page.
+    * Go to your **Profile** (click your name/email in the top right) > **My profile**.
+    * Scroll down to the **API access** section.
+    * Click **Generate new API key**.
+    * **Important:** Copy the generated API key and store it securely. You will not be able to see it again after navigating away from this page.
 4.  **Find Organization ID:**
-    *   **Easiest Method:** The Organization ID is displayed at the bottom of every page in the Meraki dashboard.
-    *   **Alternative Method (API):** You can find it by making a simple API call to the `/organizations` endpoint with your API key.
+    * **Easiest Method:** The Organization ID is displayed at the bottom of every page in the Meraki dashboard.
+    * **Alternative Method (API):** You can find it by making a simple API call to the `/organizations` endpoint with your API key.
     ```bash
-    curl -L -H 'X-Cisco-Meraki-API-Key: <your_api_key>' -H 'Content-Type: application/json' 'https://api.meraki.com/api/v1/organizations'
+    curl -L -H 'X-Cisco-Meraki-API-Key: <your_api_key>' -H 'Content-Type: application/json' '[https://api.meraki.com/api/v1/organizations](https://api.meraki.com/api/v1/organizations)'
     ```
 
 ### Setting up the Integration
@@ -97,13 +96,13 @@ To use this integration, you will need a Meraki API key and your Organization ID
 
 The following options can be configured when you first set up the integration, or at any time by navigating to the integration's card in **Settings -> Devices & Services** and clicking **Configure**.
 
-*   **How many seconds between Meraki API refreshes:** How often (in seconds) to poll the Meraki API for updates. Default: 300.
-*   **Where would you like the Meraki device type in the name?:** Choose how device names are presented. 'Prefix' adds the Meraki device name before the entity name, 'Suffix' adds it after, 'Omitted' uses only the entity name.
-*   **Auto-enable RTSP camera streams:** If checked, the integration will automatically enable the RTSP stream for all cameras that support it.
-*   **Use LAN IP for RTSP stream:** Controls how the RTSP stream URL is determined for cameras.
-    *   **When checked:** The integration will prioritize using a local IP address for the stream. It will first check if the URL from the Meraki API is already a local address. If not, it will try to construct a URL using the camera's detected LAN IP. This is the most efficient option if your Home Assistant instance is on the same local network as your cameras.
-    *   **When unchecked (default):** The integration will prioritize the URL provided by the Meraki API. If that URL is unavailable or invalid, it will fall back to using the camera's LAN IP as a last resort.
-*   **Webhook URL (optional):** A custom URL for Meraki webhooks. If left blank, the integration will use the default Home Assistant webhook URL.
+* **How many seconds between Meraki API refreshes:** How often (in seconds) to poll the Meraki API for updates. Default: 300.
+* **Where would you like the Meraki device type in the name?:** Choose how device names are presented. 'Prefix' adds the Meraki device name before the entity name, 'Suffix' adds it after, 'Omitted' uses only the entity name.
+* **Auto-enable RTSP camera streams:** If checked, the integration will automatically enable the RTSP stream for all cameras that support it.
+* **Use LAN IP for RTSP stream:** Controls how the RTSP stream URL is determined for cameras.
+    * **When checked:** The integration will prioritize using a local IP address for the stream. It will first check if the URL from the Meraki API is already a local address. If not, it will try to construct a URL using the camera's detected LAN IP. This is the most efficient option if your Home Assistant instance is on the same local network as your cameras.
+    * **When unchecked (default):** The integration will prioritize the URL provided by the Meraki API. If that URL is unavailable or invalid, it will fall back to using the camera's LAN IP as a last resort.
+* **Webhook URL (optional):** A custom URL for Meraki webhooks. If left blank, the integration will use the default Home Assistant webhook URL.
 
 ## Lovelace Dashboard Card 🖼️
 
@@ -120,7 +119,7 @@ You must first add the `meraki-panel.js` file as a frontend resource in Home Ass
 3.  Click the **"..."** menu again and select **"Manage resources"**.
 4.  Click **"ADD RESOURCE"**.
 5.  For the **URL**, enter `/hacsfiles/meraki-homeassistant/meraki-panel.js`.
-    *   *Note: This path assumes you installed the integration via HACS. If you installed it manually, the path will be `/local/meraki-panel.js` (if you placed the file in your `<config>/www` directory).*
+    * *Note: This path assumes you installed the integration via HACS. If you installed it manually, the path will be `/local/meraki-panel.js` (if you placed the file in your `<config>/www` directory).*
 6.  For **Resource type**, select **"JavaScript Module"**.
 7.  Click **"CREATE"**.
 
@@ -248,26 +247,26 @@ For each port on a Meraki MX security appliance, a sensor is created to monitor 
 
 ### SSID Sensors
 
-| Entity Type | Name              | Description                                                                                                                                                                                           |
-| :---------- | :---------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `sensor`    | `[SSID Name] Splash Page` | The type of splash page for the SSID. |
-| `sensor`    | `[SSID Name] Auth Mode` | The association control method for the SSID. |
-| `sensor`    | `[SSID Name] Encryption Mode` | The psk encryption mode for the SSID. |
-| `sensor`    | `[SSID Name] WPA Encryption Mode` | The types of WPA encryption. |
-| `sensor`    | `[SSID Name] IP Assignment Mode` | The client IP assignment mode. |
-| `sensor`    | `[SSID Name] Band Selection` | The client-serving radio frequencies of this SSID. |
-| `sensor`    | `[SSID Name] Per-Client Bandwidth Limit Up` | The upload bandwidth limit in Kbps. |
-| `sensor`    | `[SSID Name] Per-Client Bandwidth Limit Down` | The download bandwidth limit in Kbps. |
-| `sensor`    | `[SSID Name] Per-SSID Bandwidth Limit Up` | The total upload bandwidth limit in Kbps. |
-| `sensor`    | `[SSID Name] Per-SSID Bandwidth Limit Down` | The total download bandwidth limit in Kbps. |
-| `sensor`    | `[SSID Name] Visible` | Whether the SSID is advertised or hidden. |
-| `sensor`    | `[SSID Name] Availability` | Whether the SSID is enabled or disabled. |
-| `sensor`    | `[SSID Name] Channel` | The current operational channel of the SSID. |
-| `sensor`    | `[SSID Name] Client Count` | The number of clients connected to the SSID. |
-| `sensor`    | `[SSID Name] Walled Garden` | Whether the walled garden is enabled or disabled. |
-| `sensor`    | `[SSID Name] Mandatory DHCP` | Whether mandatory DHCP is enabled or disabled. |
-| `sensor`    | `[SSID Name] Minimum Bitrate 2.4GHz` | The minimum bitrate for the 2.4GHz band. |
-| `sensor`    | `[SSID Name] Minimum Bitrate 5GHz` | The minimum bitrate for the 5GHz band. |
+| Entity Type | Name | Description |
+| :--- | :--- | :--- |
+| `sensor` | `[SSID Name] Splash Page` | The type of splash page for the SSID. |
+| `sensor` | `[SSID Name] Auth Mode` | The association control method for the SSID. |
+| `sensor` | `[SSID Name] Encryption Mode` | The psk encryption mode for the SSID. |
+| `sensor` | `[SSID Name] WPA Encryption Mode` | The types of WPA encryption. |
+| `sensor` | `[SSID Name] IP Assignment Mode` | The client IP assignment mode. |
+| `sensor` | `[SSID Name] Band Selection` | The client-serving radio frequencies of this SSID. |
+| `sensor` | `[SSID Name] Per-Client Bandwidth Limit Up` | The upload bandwidth limit in Kbps. |
+| `sensor` | `[SSID Name] Per-Client Bandwidth Limit Down` | The download bandwidth limit in Kbps. |
+| `sensor` | `[SSID Name] Per-SSID Bandwidth Limit Up` | The total upload bandwidth limit in Kbps. |
+| `sensor` | `[SSID Name] Per-SSID Bandwidth Limit Down` | The total download bandwidth limit in Kbps. |
+| `sensor` | `[SSID Name] Visible` | Whether the SSID is advertised or hidden. |
+| `sensor` | `[SSID Name] Availability` | Whether the SSID is enabled or disabled. |
+| `sensor` | `[SSID Name] Channel` | The current operational channel of the SSID. |
+| `sensor` | `[SSID Name] Client Count` | The number of clients connected to the SSID. |
+| `sensor` | `[SSID Name] Walled Garden` | Whether the walled garden is enabled or disabled. |
+| `sensor` | `[SSID Name] Mandatory DHCP` | Whether mandatory DHCP is enabled or disabled. |
+| `sensor` | `[SSID Name] Minimum Bitrate 2.4GHz` | The minimum bitrate for the 2.4GHz band. |
+| `sensor` | `[SSID Name] Minimum Bitrate 5GHz` | The minimum bitrate for the 5GHz band. |
 
 ### Environmental Sensors (MT Series)
 
@@ -295,51 +294,3 @@ automation:
       - service: notify.mobile_app_my_phone
         data:
           message: "{{ trigger.to_state.name }} has gone offline."
-```
-
-### Block a Device at Bedtime
-
-```yaml
-automation:
-  - alias: "Block Kid's Tablet at Bedtime"
-    trigger:
-      - platform: time
-        at: "21:00:00"
-    action:
-      - service: switch.turn_on
-        target:
-          entity_id: switch.kids_tablet_blocked
-```
-
-## Troubleshooting 🆘
-
-- **Invalid Authentication:** Your API key or Organization ID is incorrect. Please double-check your credentials.
-- **Cannot Connect:** Home Assistant is unable to connect to the Meraki API. Check your internet connection and firewalls.
-- **Feature Disabled Messages:** Some sensors (like VLANs and Traffic Analysis) require specific features to be enabled in your Meraki dashboard. If a feature is disabled, an `INFO` message will be logged, and the corresponding sensors will not be created. To resolve this, enable the required feature in your Meraki dashboard.
-
-## Versioning and Releases
-
-This project uses an automated versioning and release process triggered by merging Pull Requests (PRs) into the `main` branch.
-
-- **Automatic Version Increment:** When a PR is merged, the version number in `custom_components/meraki_ha/manifest.json` and `package.json` is automatically incremented.
-- **Determining Increment Type:** The type of version increment is determined by the PR title:
-- `[major]` in the PR title will trigger a major version update (e.g., `1.2.3` -> `2.0.0`).
-- `[minor]` in the PR title will trigger a minor version update (e.g., `1.2.3` -> `1.3.0`).
-- `[patch]` in the PR title or if no prefix is found, will trigger a patch version update (e.g., `1.2.3` -> `1.2.4`).
-- **Changelog Generation:** A `CHANGELOG.md` file is automatically updated with commit messages from the PR.
-- **GitHub Release:** A new GitHub Release is automatically created, tagged with the new version number.
-
-## Dependencies 📦
-
-- `meraki`: The official Meraki SDK for Python, used for all API interactions.
-- `aiohttp`: Used by the Meraki SDK for asynchronous HTTP requests.
-
-## Known Issues & Limitations ⚠️
-
-- **API Rate Limits:** Frequent polling on large networks can lead to exceeding Meraki API rate limits. If you see errors related to this, increase the scan interval in the integration's options.
-- **Camera RTSP on Older Models:** First-generation Meraki cameras (e.g., MV12, MV2) do not support RTSP streaming. This feature is only available on second-generation and newer models.
-- **Indirect SSID Control:** Enabling/disabling SSIDs is managed by adding/removing specific tags on access points, not by a direct administrative change. This is an indirect control method due to API limitations.
-
-## Disclaimer 📜
-
-This is a custom Home Assistant integration. It is not officially endorsed or supported by Cisco Meraki or Home Assistant. Use at your own risk.
