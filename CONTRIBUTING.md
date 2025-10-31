@@ -88,4 +88,86 @@ The self-hosted web interface is a React application located in `custom_componen
 
 * **Source vs. Build:**
     * The human-readable source code is in the `src/` directory.
-    * The code actually served to the browser is the compiled/optimized output in the
+    * The code actually served to the browser is the compiled/optimized output in the `dist/` directory.
+
+* **Agent Build Simulation:**
+    * As an agent, you **cannot** run the `npm run build` command.
+    * If you make changes to any files in the `src/` directory, you **must** manually update the corresponding file in `dist/` to reflect your changes.
+    * The most important file to keep updated for E2E tests is `dist/assets/index.js`. You may need to write a simplified, non-JSX version of the React logic in this file to ensure tests pass.
+
+* **React Standards:**
+    * All new components **must** be **Functional Components** using Hooks.
+    * Use `const` over `let` where variable reassignment is not needed.
+    * All new functions should have `JSDoc`-formatted documentation.
+
+---
+
+## 4. Development & Testing
+
+### Local Setup
+
+This project uses [Poetry](https://python-poetry.org/) for dependency management.
+
+1.  Install dependencies:
+    ```bash
+    poetry install
+    ```
+2.  Activate the virtual environment:
+    ```bash
+    poetry shell
+    ```
+
+### Running Quality Checks
+
+Before submitting, you **must** run all quality checks. These are also enforced by pre-commit hooks.
+
+1.  **Linting & Formatting (Ruff):**
+    ```bash
+    poetry run ruff check --fix .
+    poetry run ruff format .
+    ```
+
+2.  **Type Checking (mypy):**
+    ```bash
+    poetry run mypy .
+    ```
+
+3.  **Security Analysis (bandit):**
+    ```bash
+    poetry run bandit -r custom_components/meraki_ha/
+    ```
+
+4.  **Run Tests (pytest):**
+    ```bash
+    poetry run pytest
+    ```
+
+5.  **Home Assistant Validation (hassfest):**
+    This ensures the integration's manifest and structure are valid.
+    ```bash
+    poetry run python -m script.hassfest
+    ```
+
+### Debugging
+
+* Remove all debugging code (e.g., `_LOGGER.debug` statements, `print()` calls) before submitting your change.
+* When writing mocks for tests, ensure they are as accurate as possible to the real API responses they are replacing.
+
+---
+
+## 5. Versioning and Releases
+
+This project uses an automated versioning and release process triggered by merging Pull Requests (PRs) into the `main` branch.
+
+- **Automatic Version Increment:** When a PR is merged, the version number in `custom_components/meraki_ha/manifest.json` and `package.json` is automatically incremented.
+- **Determining Increment Type:** The type of version increment is determined by the PR title:
+- `[major]` in the PR title will trigger a major version update (e.g., `1.2.3` -> `2.0.0`).
+- `[minor]` in the PR title will trigger a minor version update (e.g., `1.2.3` -> `1.3.0`).
+- `[patch]` in the PR title or if no prefix is found, will trigger a patch version update (e.g., `1.2.3` -> `1.2.4`).
+- **Changelog Generation:** A `CHANGELOG.md` file is automatically updated with commit messages from the PR.
+- **GitHub Release:** A new GitHub Release is automatically created, tagged with the new version number.
+
+## 6. Dependencies 📦
+
+- `meraki`: The official Meraki SDK for Python, used for all API interactions.
+- `aiohttp`: Used by the Meraki SDK for asynchronous HTTP requests.
