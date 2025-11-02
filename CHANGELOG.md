@@ -1,3 +1,12 @@
+## [1.5.4-beta.12](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.11...v1.5.4-beta.12) (2025-11-02)
+
+
+### Bug Fixes
+
+* **deps:** Unpin pytest to resolve dependency conflict ([7f2e87a](https://github.com/brewmarsh/meraki-homeassistant/commit/7f2e87a1dcfffddea508e2488a7a024f992f584d))
+
+
+
 ## [1.5.4-beta.11](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.10...v1.5.4-beta.11) (2025-11-02)
 
 
