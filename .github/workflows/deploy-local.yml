@@ -1,20 +1,20 @@
 name: Deploy Latest Code to Local Folder on Linux Runner
 
-# This workflow will run on 'push' events to the specified branch.
+# This workflow will run on 'push' events to the specified branches.
 on:
   push:
     branches:
       - main 
-      - beta 
+      - beta # Trigger deployment on pushes/merges to the beta branch
 
 jobs:
   deploy-to-linux-folder:
     # This job runs on the self-hosted runner.
     runs-on: self-hosted
 
+    # Define environment variables
     env:
-      # IMPORTANT: This is the Linux path inside your Docker runner container, 
-      # which maps to the Host OS Home Assistant config directory.
+      # This is the path inside your runner container, mapping to the Host OS config.
       DESTINATION_PATH: '/ha_config/custom_components/meraki_ha'
 
     steps:
@@ -22,37 +22,39 @@ jobs:
         # Checks out your repository code into $GITHUB_WORKSPACE.
         uses: actions/checkout@v5
 
-      - name: Copy files to destination folder (Linux Commands)
-        # We use 'bash' and rely on 'sudo' to gain write access to the Host OS volume.
+      - name: Copy files to destination folder (rsync)
+        # Use 'bash' and 'sudo rsync' to bypass symlink and permission issues.
         shell: bash
         env:
-          # Define the destination path here to access it easily
           DEPLOY_PATH: ${{ env.DESTINATION_PATH }}
         run: |
-          SourcePath="${GITHUB_WORKSPACE}"
+          # The source directory containing ONLY the component files (with trailing slash)
+          SourceComponentDir="${GITHUB_WORKSPACE}/custom_components/meraki_ha/"
           DestinationPath="${DEPLOY_PATH}"
           
           echo "Starting deployment..."
-          echo "Source path: ${SourcePath}"
+          echo "Source path: ${SourceComponentDir}"
           echo "Destination path: ${DestinationPath}"
 
           # 1. Create the destination directory if it doesn't exist
           # Use sudo to elevate permissions for file system operations.
-          if [ ! -d "${DestinationPath}" ]; then
-              echo "Destination directory does not exist. Creating: ${DestinationPath}"
-              sudo mkdir -p "${DestinationPath}"
-          else
-              echo "Destination directory already exists: ${DestinationPath}"
-              # NOTE: Clearing existing content also requires sudo.
-              # Uncomment and add sudo if you decide to use this block:
-              # echo "Clearing existing content in ${DestinationPath}..."
-              # sudo find "${DestinationPath}/" -mindepth 1 -delete 
-              # echo "Existing content cleared."
-          fi
+          # The -p flag prevents an error if the directory already exists.
+          sudo mkdir -p "${DestinationPath}"
 
-          # 2. Copy all files and subdirectories from source to destination
-          # Use 'sudo cp -rf' to ensure the copy operation bypasses the Host OS permission locks.
-          sudo cp -rf "${SourcePath}/"* "${DestinationPath}"
+          # 2. Copy files using rsync for robustness
+          # rsync -ah --delete: 
+          #   -a: archive mode (preserves permissions, timestamps, etc.)
+          #   -h: human-readable output
+          #   --delete: removes files from destination that aren't in source (ensures clean state)
+          
+          # CRITICAL: Exclude development files/symlinks to avoid 'Operation not supported' errors.
+          sudo rsync -ah --delete \
+            --exclude '.git' \
+            --exclude 'node_modules' \
+            --exclude 'tests' \
+            --exclude '*.log' \
+            --exclude 'docker-runner' \
+            "${SourceComponentDir}" "${DestinationPath}"
           
           echo "Successfully copied latest code to ${DestinationPath}."
           echo "Deployment complete."
