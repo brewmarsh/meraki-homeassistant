@@ -97,3 +97,13 @@ MOCK_ALL_DATA = {
     "clients": [],
     "l7_firewall_rules": MOCK_L7_FIREWALL_RULES,
 }
+
+MOCK_CAMERA_DEVICE = {
+    **MOCK_DEVICE,
+    "productType": "camera",
+    "model": "MV12",
+    "video_settings": {
+        "rtspServerEnabled": True,
+        "rtspUrl": "rtsp://test.com/stream",
+    },
+}

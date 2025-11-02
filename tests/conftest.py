@@ -1,8 +1,11 @@
 """Global fixtures for meraki_ha integration."""
 
 from collections.abc import Generator
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
+from tests.const import MOCK_ALL_DATA
 
 
 @pytest.fixture(autouse=True)
@@ -17,3 +20,22 @@ def auto_enable_custom_integrations(
 
     """
     yield
+
+
+@pytest.fixture
+def mock_coordinator() -> MagicMock:
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+    coordinator = MagicMock()
+    coordinator.config_entry.options = {}
+    coordinator.data = MOCK_ALL_DATA
+    coordinator.async_request_refresh = AsyncMock()
+    coordinator.async_write_ha_state = MagicMock()
+    return coordinator
+
+
+@pytest.fixture
+def mock_config_entry() -> MagicMock:
+    """Fixture for a mocked ConfigEntry."""
+    entry = MagicMock()
+    entry.options = {}
+    return entry
