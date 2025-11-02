@@ -1,3 +1,12 @@
+## [1.5.4-beta.14](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.13...v1.5.4-beta.14) (2025-11-02)
+
+
+### Bug Fixes
+
+* **ci:** Temporarily disable failing test suite ([41b048e](https://github.com/brewmarsh/meraki-homeassistant/commit/41b048ea4676014c6d73dfc129576f53eebca3ac))
+
+
+
 ## [1.5.4-beta.13](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.12...v1.5.4-beta.13) (2025-11-02)
 
 
