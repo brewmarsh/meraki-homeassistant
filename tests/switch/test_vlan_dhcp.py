@@ -62,7 +62,7 @@ def test_vlan_dhcp_switch_creation(
     assert isinstance(switch, MerakiVLANDHCPSwitch)
     assert switch.unique_id == "meraki_vlan_net1_1_dhcp_handling"
     assert switch.name == "DHCP"
-    assert switch.is_on is True
+    assert switch.is_on is True  # type: ignore[attr-defined]
 
 
 def test_vlan_dhcp_switch_off_state(
@@ -71,9 +71,9 @@ def test_vlan_dhcp_switch_off_state(
     mock_meraki_client: MagicMock,
 ) -> None:
     """Test the off state of the VLAN DHCP switch."""
-    mock_coordinator_with_vlan_data.data["vlans"]["net1"][0][
-        "dhcpHandling"
-    ] = "Do not respond to DHCP requests"
+    mock_coordinator_with_vlan_data.data["vlans"]["net1"][0]["dhcpHandling"] = (
+        "Do not respond to DHCP requests"
+    )
 
     hass = MagicMock()
     entities = async_setup_switches(
@@ -86,7 +86,7 @@ def test_vlan_dhcp_switch_off_state(
     assert len(entities) == 1
     switch = entities[0]
 
-    assert switch.is_on is False
+    assert switch.is_on is False  # type: ignore[attr-defined]
 
 
 def test_vlan_dhcp_switch_creation_disabled(

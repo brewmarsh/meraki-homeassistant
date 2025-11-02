@@ -7,7 +7,6 @@ import pytest
 from custom_components.meraki_ha.binary_sensor.device.mt20_open_close import (
     MerakiMt20OpenCloseSensor,
 )
-from tests.const import MOCK_DEVICE
 
 
 @pytest.fixture

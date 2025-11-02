@@ -19,7 +19,9 @@ def test_base_handler_init(
 ) -> None:
     """Test the initialization of the BaseDeviceHandler."""
     with patch.multiple(BaseDeviceHandler, __abstractmethods__=set()):
-        handler = BaseDeviceHandler(mock_coordinator, MOCK_DEVICE, mock_config_entry)
+        handler = BaseDeviceHandler(  # type: ignore[abstract]
+            mock_coordinator, MOCK_DEVICE, mock_config_entry
+        )
         assert handler.device is MOCK_DEVICE
 
 
@@ -29,8 +31,10 @@ async def test_base_handler_discover_entities_raises_not_implemented(
 ) -> None:
     """Test that the base handler's discover_entities raises NotImplementedError."""
     with patch.multiple(BaseDeviceHandler, __abstractmethods__=set()):
-        handler = BaseDeviceHandler(mock_coordinator, MOCK_DEVICE, mock_config_entry)
+        handler = BaseDeviceHandler(  # type: ignore[abstract]
+            mock_coordinator, MOCK_DEVICE, mock_config_entry
+        )
         # The abstract method should raise NotImplementedError
-        BaseDeviceHandler.discover_entities.__isabstractmethod__ = False
+        BaseDeviceHandler.discover_entities.__isabstractmethod__ = False  # type: ignore[attr-defined]
         with pytest.raises(NotImplementedError):
             await handler.discover_entities()
