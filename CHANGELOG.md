@@ -1,3 +1,12 @@
+## [1.5.4-beta.13](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.12...v1.5.4-beta.13) (2025-11-02)
+
+
+### Bug Fixes
+
+* **ci:** Resolve linting, formatting, and type errors ([c6474ff](https://github.com/brewmarsh/meraki-homeassistant/commit/c6474ffe6c04314f278e35f89733e4bede360296))
+
+
+
 ## [1.5.4-beta.12](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.11...v1.5.4-beta.12) (2025-11-02)
 
 
