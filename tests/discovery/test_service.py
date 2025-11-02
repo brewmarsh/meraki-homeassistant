@@ -9,9 +9,8 @@ from tests.const import MOCK_DEVICE
 
 
 @pytest.fixture
-def mock_coordinator():
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
-    coordinator = MagicMock()
+def mock_coordinator_with_devices(mock_coordinator: MagicMock) -> MagicMock:
+    """Fixture for a mocked MerakiDataUpdateCoordinator with various devices."""
     wireless_device = MOCK_DEVICE.copy()
     wireless_device["model"] = "MR36"
     camera_device = MOCK_DEVICE.copy()
@@ -20,38 +19,35 @@ def mock_coordinator():
     unsupported_device = MOCK_DEVICE.copy()
     unsupported_device["serial"] = "unsupported_serial"
     unsupported_device["model"] = "unsupported"
-    coordinator.data = {
+    mock_coordinator.data = {
         "devices": [wireless_device, camera_device, unsupported_device],
         "networks": [],
         "ssids": [],
     }
-    return coordinator
+    return mock_coordinator
 
 
 @pytest.fixture
-def mock_camera_service():
+def mock_camera_service() -> AsyncMock:
     """Fixture for a mocked CameraService."""
     return AsyncMock()
 
 
 @pytest.fixture
-def mock_config_entry():
-    """Fixture for a mocked config entry."""
-    return MagicMock()
-
-
-@pytest.fixture
-def mock_control_service():
+def mock_control_service() -> MagicMock:
     """Fixture for a mock DeviceControlService."""
     return MagicMock()
 
 
 def test_discovery_service_init(
-    mock_coordinator, mock_config_entry, mock_camera_service, mock_control_service
+    mock_coordinator_with_devices: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_camera_service: AsyncMock,
+    mock_control_service: MagicMock,
 ):
     """Test the initialization of the DeviceDiscoveryService."""
     service = DeviceDiscoveryService(
-        coordinator=mock_coordinator,
+        coordinator=mock_coordinator_with_devices,
         config_entry=mock_config_entry,
         meraki_client=MagicMock(),
         switch_port_coordinator=MagicMock(),
@@ -59,16 +55,16 @@ def test_discovery_service_init(
         control_service=mock_control_service,
         network_control_service=MagicMock(),
     )
-    assert service._coordinator is mock_coordinator
+    assert service._coordinator is mock_coordinator_with_devices
     assert len(service._devices) == 3
 
 
 @pytest.mark.asyncio
 async def test_discover_entities_delegates_to_handler(
-    mock_coordinator,
-    mock_config_entry,
-    mock_camera_service,
-    mock_control_service,
+    mock_coordinator_with_devices: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_camera_service: AsyncMock,
+    mock_control_service: MagicMock,
     caplog,
 ):
     """Test that discover_entities delegates to the correct handlers."""
@@ -101,7 +97,7 @@ async def test_discover_entities_delegates_to_handler(
         MockNetworkHandler.create.return_value = mock_network_handler_instance
 
         service = DeviceDiscoveryService(
-            coordinator=mock_coordinator,
+            coordinator=mock_coordinator_with_devices,
             config_entry=mock_config_entry,
             meraki_client=MagicMock(),
             switch_port_coordinator=MagicMock(),
@@ -119,14 +115,14 @@ async def test_discover_entities_delegates_to_handler(
 
         # Assert correct services are passed to each handler
         MockMRHandler.assert_called_once_with(
-            mock_coordinator,
-            mock_coordinator.data["devices"][0],
+            mock_coordinator_with_devices,
+            mock_coordinator_with_devices.data["devices"][0],
             mock_config_entry,
             mock_control_service,
         )
         MockMVHandler.assert_called_once_with(
-            mock_coordinator,
-            mock_coordinator.data["devices"][1],
+            mock_coordinator_with_devices,
+            mock_coordinator_with_devices.data["devices"][1],
             mock_config_entry,
             mock_camera_service,
             mock_control_service,
