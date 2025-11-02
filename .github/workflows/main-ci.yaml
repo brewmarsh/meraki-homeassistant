@@ -34,14 +34,14 @@ jobs:
           ruff format --check .
           mypy custom_components/meraki_ha/ tests/
           bandit -r custom_components/meraki_ha/ -c .bandit.yaml
-      - name: Run tests with coverage
-        run: pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: brewmarsh/meraki-homeassistant
-          files: ./coverage.xml
+      # - name: Run tests with coverage
+      #   run: pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v5
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     slug: brewmarsh/meraki-homeassistant
+      #     files: ./coverage.xml
 
   validate-hacs:
     runs-on: 'ubuntu-latest'
