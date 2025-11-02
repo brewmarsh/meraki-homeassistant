@@ -77,7 +77,7 @@ async def test_mv_handler_all_features(
 
 
 @pytest.mark.asyncio
-async def test_.py
+async def test_mv_handler_some_features(
     mock_coordinator: MagicMock,
     mock_config_entry: MagicMock,
     mock_camera_service: AsyncMock,

@@ -73,7 +73,9 @@ async def test_camera_turn_on(
         MOCK_CAMERA_DEVICE["serial"],
         True,
     )
-    mock_coordinator.register_pending_update.assert_called_once_with(mock_camera.unique_id)
+    mock_coordinator.register_pending_update.assert_called_once_with(
+        mock_camera.unique_id
+    )
 
 
 @pytest.mark.asyncio
@@ -106,7 +108,9 @@ async def test_camera_turn_off(
         MOCK_CAMERA_DEVICE["serial"],
         False,
     )
-    mock_coordinator.register_pending_update.assert_called_once_with(mock_camera.unique_id)
+    mock_coordinator.register_pending_update.assert_called_once_with(
+        mock_camera.unique_id
+    )
 
 
 @pytest.mark.parametrize(
