@@ -1,3 +1,12 @@
+## [1.5.4-beta.24](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.23...v1.5.4-beta.24) (2025-11-03)
+
+
+### Bug Fixes
+
+* correct panel styling and icon size ([4befd2d](https://github.com/brewmarsh/meraki-homeassistant/commit/4befd2d317dab131503eda1647fd7a04aa0d3485))
+
+
+
 ## [1.5.4-beta.23](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.22...v1.5.4-beta.23) (2025-11-03)
 
 
