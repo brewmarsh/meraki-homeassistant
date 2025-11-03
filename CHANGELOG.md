@@ -1,3 +1,12 @@
+## [1.5.4-beta.28](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.27...v1.5.4-beta.28) (2025-11-03)
+
+
+### Features
+
+* **frontend:** refactor UI to use ha-card ([04d98a4](https://github.com/brewmarsh/meraki-homeassistant/commit/04d98a4acf99ec9d6b1a54b94e973650f8cb9f53))
+
+
+
 ## [1.5.4-beta.27](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.26...v1.5.4-beta.27) (2025-11-03)
 
 
