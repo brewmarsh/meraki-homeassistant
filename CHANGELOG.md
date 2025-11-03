@@ -1,20 +1,3 @@
-## [1.5.4-beta.22](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.21...v1.5.4-beta.22) (2025-11-03)
-
-
-### Bug Fixes
-
-* **ci:** resolve dependency conflicts and test failures ([98ede2a](https://github.com/brewmarsh/meraki-homeassistant/commit/98ede2af4d0d8c9e155dfe4e1649bdec45981edd))
-* **deps:** resolve pytest and homeassistant dependency conflicts ([832e1d2](https://github.com/brewmarsh/meraki-homeassistant/commit/832e1d2fc7a1a9fb80661ac50ade87054936d562))
-* **deps:** resolve pytest TypeError in Python 3.13 ([b4dc946](https://github.com/brewmarsh/meraki-homeassistant/commit/b4dc946fbe5ed62da7293a860fcd44cbe135d997))
-* **deps:** resolve pytest TypeError in Python 3.13 ([4aa3012](https://github.com/brewmarsh/meraki-homeassistant/commit/4aa3012975496619fe8c606c1629c6765d4bdeee))
-* **deps:** upgrade pytest to resolve python 3.13 incompatibility ([1761148](https://github.com/brewmarsh/meraki-homeassistant/commit/1761148aa531b22e885d7e330f538fffc303ac3f))
-
-
-
-## [1.5.4-beta.21](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.20...v1.5.4-beta.21) (2025-11-03)
-
-
-
 ## [1.5.4-beta.20](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.19...v1.5.4-beta.20) (2025-11-03)
 
 
