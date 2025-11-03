@@ -33,6 +33,25 @@ _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
 
 
+async def async_setup_panel(hass: HomeAssistant) -> None:
+    """
+    Set up the Meraki custom panel.
+
+    Args:
+        hass: The Home Assistant instance.
+
+    """
+    await hass.http.async_register_static_paths(
+        [
+            StaticPathConfig(
+                url_path=f"/api/panel_custom/{DOMAIN}",
+                path=str(Path(__file__).parent / "www"),
+                cache_headers=False,
+            ),
+        ],
+    )
+
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """
     Set up the Meraki integration.
@@ -47,15 +66,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     """
     hass.data.setdefault(DOMAIN, {})
-    await hass.http.async_register_static_paths(
-        [
-            StaticPathConfig(
-                url_path=f"/api/panel_custom/{DOMAIN}",
-                path=str(Path(__file__).parent / "www"),
-                cache_headers=False,
-            ),
-        ],
-    )
     return True
 
 
@@ -72,6 +82,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the setup was successful.
 
     """
+    await async_setup_panel(hass)
     async_setup_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
