@@ -1,65 +1,29 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 
-// Define the types for the properties Home Assistant will pass to the panel
-interface PanelInfo {
-  config: {
-    config_entry_id: string;
-  };
-  // Add other panel properties if needed
-}
-
-interface HassObject {
-  // Define a minimal hass object type
-  connection: any;
-  connected: boolean;
+const mockHass = {
+  connection: {
+    sendMessagePromise: async (message: any) => {
+      console.log('Mock sendMessagePromise called with:', message);
+      return Promise.resolve({
+        networks: [{ id: 'net-1', name: 'Marshmallow Home' }, { id: 'net-2', name: 'Shenanibarn' }],
+        devices: [
+          { networkId: 'net-1', name: 'Living Room AP', model: 'MR33', serial: 'Q2JD-XXXX-YYYY', status: 'online', lanIp: '192.168.1.1' },
+          { networkId: 'net-2', name: 'Barn Camera', model: 'MV12', serial: 'Q2LD-XXXX-ZZZZ', status: 'online', lanIp: '10.0.0.1' },
+        ],
+      });
+    }
+  },
   themes: {
-    darkMode: boolean;
-  };
-}
+    darkMode: true,
+  },
+};
 
-class MerakiPanel extends HTMLElement {
-  private _root?: ReactDOM.Root;
-  private _hass?: HassObject;
-  private _panel?: PanelInfo;
-
-  connectedCallback() {
-    if (!this._root) {
-        this._root = ReactDOM.createRoot(this);
-    }
-    this._render();
-  }
-
-  disconnectedCallback() {
-    if (this._root) {
-      this._root.unmount();
-      this._root = undefined;
-    }
-  }
-
-  set hass(hass: HassObject) {
-    this._hass = hass;
-    this._render();
-  }
-
-  set panel(panel: PanelInfo) {
-    this._panel = panel;
-    this._render();
-  }
-
-  private _render() {
-    if (!this._root || !this._hass || !this._panel) {
-      return;
-    }
-
-    this._root.render(
-      <React.StrictMode>
-        <App hass={this._hass} config_entry_id={this._panel.config.config_entry_id} />
-      </React.StrictMode>
-    );
-  }
-}
-
-customElements.define('meraki-panel', MerakiPanel);
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App hass={mockHass} config_entry_id="mock-entry-id" />
+  </React.StrictMode>
+);

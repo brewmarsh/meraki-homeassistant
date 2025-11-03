@@ -5,6 +5,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
 
 import Header from './components/Header';
 import NetworkView from './components/NetworkView';
@@ -27,8 +28,24 @@ interface Hass {
 }
 
 // Define the types for our data
+interface Network {
+  id: string;
+  name: string;
+}
+
+interface Device {
+  name: string;
+  model: string;
+  serial: string;
+  status: string;
+  lanIp?: string;
+  mac?: string;
+  networkId?: string;
+}
+
 interface MerakiData {
-  [key: string]: any;
+  networks: Network[];
+  devices: Device[];
 }
 
 interface AppProps {
@@ -72,30 +89,32 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: theme.palette.background.default }}>
+      <Box sx={{ p: 3, backgroundColor: theme.palette.background.default, minHeight: '100vh' }}>
         <Header />
-        <Box sx={{ flexGrow: 1, p: 3, overflow: 'auto' }}>
-          {loading && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-              <CircularProgress />
-            </Box>
-          )}
-          {error && (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              {error}
-            </Alert>
-          )}
-          {!loading && !error && data && (
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={8}>
+        {loading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <CircularProgress />
+          </Box>
+        )}
+        {error && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {error}
+          </Alert>
+        )}
+        {!loading && !error && data && (
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Paper elevation={2} sx={{ p: 2 }}>
                 <NetworkView data={data} />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <EventLog />
-              </Grid>
+              </Paper>
             </Grid>
-          )}
-        </Box>
+            <Grid item xs={12}>
+               <Paper elevation={2} sx={{ p: 2 }}>
+                <EventLog />
+              </Paper>
+            </Grid>
+          </Grid>
+        )}
       </Box>
     </ThemeProvider>
   );
