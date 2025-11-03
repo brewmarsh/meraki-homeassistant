@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import Container from '@mui/material/Container';
-import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
 
+import Header from './components/Header';
 import NetworkView from './components/NetworkView';
 import EventLog from './components/EventLog';
 import { createDynamicTheme } from './theme';
@@ -72,27 +72,31 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4, backgroundColor: theme.palette.background.default, color: theme.palette.text.primary }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Meraki Control
-        </Typography>
-        {loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-            <CircularProgress />
-          </Box>
-        )}
-        {error && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {error}
-          </Alert>
-        )}
-        {!loading && !error && data && (
-          <>
-            <NetworkView data={data} />
-            <EventLog />
-          </>
-        )}
-      </Container>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: theme.palette.background.default }}>
+        <Header />
+        <Box sx={{ flexGrow: 1, p: 3, overflow: 'auto' }}>
+          {loading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <CircularProgress />
+            </Box>
+          )}
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {error}
+            </Alert>
+          )}
+          {!loading && !error && data && (
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={8}>
+                <NetworkView data={data} />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <EventLog />
+              </Grid>
+            </Grid>
+          )}
+        </Box>
+      </Box>
     </ThemeProvider>
   );
 };

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import Typography from '@mui/material/Typography';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Collapse from '@mui/material/Collapse';
 import IconButton, { IconButtonProps } from '@mui/material/IconButton';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
-import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+
 import DeviceView from './DeviceView';
 
 interface ExpandMoreProps extends IconButtonProps {
@@ -39,56 +39,52 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
     };
 
     return (
-        <Box>
-            {networks.map((network: any) => {
-                const networkDevices = devices.filter((d: any) => d.networkId === network.id);
-                const isExpanded = expanded === network.id;
+        <Paper sx={{ p: 2, backgroundColor: 'background.paper', borderRadius: 2 }}>
+            <Typography variant="h5" sx={{ mb: 2, color: 'text.primary' }}>
+                Networks
+            </Typography>
+            <Grid container spacing={2}>
+                {networks.map((network: any) => {
+                    const networkDevices = devices.filter((d: any) => d.networkId === network.id);
+                    const isExpanded = expanded === network.id;
 
-                return (
-                    <Card
-                        key={network.id}
-                        data-testid="network-card"
-                        sx={{
-                            mb: 2.5,
-                            borderRadius: 2,
-                            boxShadow: 'none',
-                            border: '1px solid',
-                            borderColor: 'divider',
-                        }}
-                    >
-                        <Box
-                          sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              cursor: 'pointer',
-                              p: 2.5,
-                              '&:hover': {
-                                backgroundColor: 'action.hover',
-                              }
-                          }}
-                          onClick={() => handleExpandClick(network.id)}
-                        >
-                            <Typography variant="h5" component="div" sx={{ flexGrow: 1 }}>
-                                {network.name}
-                            </Typography>
-                            <ExpandMore
-                                expand={isExpanded}
-                                aria-expanded={isExpanded}
-                                aria-label="show more"
+                    return (
+                        <Grid item xs={12} key={network.id}>
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    cursor: 'pointer',
+                                    p: 2,
+                                    borderRadius: 1,
+                                    backgroundColor: 'action.hover',
+                                    '&:hover': {
+                                        backgroundColor: 'action.selected',
+                                    }
+                                }}
+                                onClick={() => handleExpandClick(network.id)}
                             >
-                                <ExpandMoreIcon />
-                            </ExpandMore>
-                        </Box>
-                        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                            <Divider />
-                            <CardContent sx={{ p: 2.5 }}>
-                                <DeviceView devices={networkDevices} />
-                            </CardContent>
-                        </Collapse>
-                    </Card>
-                );
-            })}
-        </Box>
+                                <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                                    {network.name}
+                                </Typography>
+                                <ExpandMore
+                                    expand={isExpanded}
+                                    aria-expanded={isExpanded}
+                                    aria-label="show more"
+                                >
+                                    <ExpandMoreIcon />
+                                </ExpandMore>
+                            </Box>
+                            <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                                <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                                    <DeviceView devices={networkDevices} />
+                                </Box>
+                            </Collapse>
+                        </Grid>
+                    );
+                })}
+            </Grid>
+        </Paper>
     );
 };
 
