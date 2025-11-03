@@ -1,3 +1,12 @@
+## [1.5.4-beta.27](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.26...v1.5.4-beta.27) (2025-11-03)
+
+
+### Bug Fixes
+
+* **frontend:** Prevent duplicate component registration and fix icon styling ([c4bc54e](https://github.com/brewmarsh/meraki-homeassistant/commit/c4bc54ea9f0ca46915c9d66a585222a4bba0e55e))
+
+
+
 ## [1.5.4-beta.26](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.25...v1.5.4-beta.26) (2025-11-03)
 
 
