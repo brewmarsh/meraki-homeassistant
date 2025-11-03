@@ -1,3 +1,12 @@
+## [1.5.4-beta.26](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.25...v1.5.4-beta.26) (2025-11-03)
+
+
+### Bug Fixes
+
+* **frontend:** refactor NetworkView and bump version for cache busting ([bd6bbfa](https://github.com/brewmarsh/meraki-homeassistant/commit/bd6bbfa42f641bca0ae95a626a5a0751543d5d9d))
+
+
+
 ## [1.5.4-beta.25](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.24...v1.5.4-beta.25) (2025-11-03)
 
 
