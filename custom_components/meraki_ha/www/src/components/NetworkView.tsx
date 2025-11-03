@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Typography from '@mui/material/Typography';
 import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Collapse from '@mui/material/Collapse';
 import ExpandLess from '@mui/icons-material/ExpandLess';
@@ -52,10 +52,10 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
       <List component="nav">
         {networks.map((network) => (
           <React.Fragment key={network.id}>
-            <ListItem button onClick={() => handleNetworkClick(network.id)}>
+            <ListItemButton onClick={() => handleNetworkClick(network.id)}>
               <ListItemText primary={network.name} />
-              {openNetworkId === network.id ? <ExpandLess sx={{ fontSize: '1.5rem' }} /> : <ExpandMore sx={{ fontSize: '1.5rem' }} />}
-            </ListItem>
+              {openNetworkId === network.id ? <ExpandLess /> : <ExpandMore />}
+            </ListItemButton>
             <Collapse in={openNetworkId === network.id} timeout="auto" unmountOnExit>
               <Box sx={{ pl: 4, py: 1 }}>
                 <DeviceView devices={devices.filter((d) => d.networkId === network.id)} />
