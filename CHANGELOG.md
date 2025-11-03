@@ -1,3 +1,12 @@
+## [1.5.4-beta.16](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.15...v1.5.4-beta.16) (2025-11-03)
+
+
+### Features
+
+* **frontend:** update web UI with modern styling ([696dfee](https://github.com/brewmarsh/meraki-homeassistant/commit/696dfeecb309a1f1287b6ab54768bdfb8f472d04))
+
+
+
 ## [1.5.4-beta.15](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.14...v1.5.4-beta.15) (2025-11-03)
 
 
