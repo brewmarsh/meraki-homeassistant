@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import Typography from '@mui/material/Typography';
-import List from '@mui/material/List';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
-import Collapse from '@mui/material/Collapse';
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import DeviceView from './DeviceView'; // Assuming DeviceView is in the same directory
-import Box from '@mui/material/Box';
+import DeviceView from './DeviceView';
 
 interface Network {
   id: string;
@@ -21,7 +13,7 @@ interface Device {
   status: string;
   lanIp?: string;
   mac?: string;
-  networkId?: string; // networkId is optional on devices
+  networkId?: string;
 }
 
 interface NetworkViewProps {
@@ -41,30 +33,25 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
   const { networks, devices } = data;
 
   if (!networks || networks.length === 0) {
-    return <Typography>No networks found.</Typography>;
+    return <p>No networks found.</p>;
   }
 
   return (
-    <Box>
-      <Typography variant="h5" gutterBottom>
-        Networks
-      </Typography>
-      <List component="nav">
-        {networks.map((network) => (
-          <React.Fragment key={network.id}>
-            <ListItemButton onClick={() => handleNetworkClick(network.id)}>
-              <ListItemText primary={network.name} />
-              {openNetworkId === network.id ? <ExpandLess /> : <ExpandMore />}
-            </ListItemButton>
-            <Collapse in={openNetworkId === network.id} timeout="auto" unmountOnExit>
-              <Box sx={{ pl: 4, py: 1 }}>
-                <DeviceView devices={devices.filter((d) => d.networkId === network.id)} />
-              </Box>
-            </Collapse>
-          </React.Fragment>
-        ))}
-      </List>
-    </Box>
+    <div className="card-content">
+      {networks.map((network) => (
+        <div key={network.id} className="network-item">
+          <div className="network-header" onClick={() => handleNetworkClick(network.id)}>
+            <span>{network.name}</span>
+            <span style={{ float: 'right' }}>{openNetworkId === network.id ? '▲' : '▼'}</span>
+          </div>
+          {openNetworkId === network.id && (
+            <div className="network-devices">
+              <DeviceView devices={devices.filter((d) => d.networkId === network.id)} />
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
   );
 };
 
