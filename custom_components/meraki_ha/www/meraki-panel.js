@@ -13037,4 +13037,4 @@ class Ik extends HTMLElement {
     );
   }
 }
-customElements.define("meraki-panel", Ik);
+customElements.get("meraki-panel") || customElements.define("meraki-panel", Ik);
