@@ -4,26 +4,21 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 
-const mockHass = {
-  connection: {
-    sendMessagePromise: async (message: any) => {
-      console.log('Mock sendMessagePromise called with:', message);
-      return Promise.resolve({
-        networks: [{ id: 'net-1', name: 'Marshmallow Home' }, { id: 'net-2', name: 'Shenanibarn' }],
-        devices: [
-          { networkId: 'net-1', name: 'Living Room AP', model: 'MR33', serial: 'Q2JD-XXXX-YYYY', status: 'online', lanIp: '192.168.1.1' },
-          { networkId: 'net-2', name: 'Barn Camera', model: 'MV12', serial: 'Q2LD-XXXX-ZZZZ', status: 'online', lanIp: '10.0.0.1' },
-        ],
-      });
-    }
-  },
-  themes: {
-    darkMode: true,
-  },
-};
+class MerakiPanel extends HTMLElement {
+  connectedCallback() {
+    const root = document.createElement('div');
+    root.id = 'root';
+    this.appendChild(root);
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App hass={mockHass} config_entry_id="mock-entry-id" />
-  </React.StrictMode>
-);
+    const hass = (this as any).hass;
+    const config_entry_id = (this as any).panel.config.config_entry_id;
+
+    ReactDOM.createRoot(root).render(
+      <React.StrictMode>
+        <App hass={hass} config_entry_id={config_entry_id} />
+      </React.StrictMode>
+    );
+  }
+}
+
+customElements.define('meraki-panel', MerakiPanel);
