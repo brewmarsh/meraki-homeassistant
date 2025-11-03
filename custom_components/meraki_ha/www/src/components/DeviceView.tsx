@@ -1,53 +1,61 @@
 import React from 'react';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import Divider from '@mui/material/Divider';
+
+interface Device {
+  name: string;
+  model: string;
+  serial: string;
+  status: string;
+  lanIp?: string;
+  mac?: string;
+}
 
 interface DeviceViewProps {
-    devices: any[];
+  devices: Device[];
 }
 
 const DeviceView: React.FC<DeviceViewProps> = ({ devices }) => {
-    const deviceTypes = {
-        'Routing': devices.filter(d => d.model?.startsWith('MX')),
-        'Switches': devices.filter(d => d.model?.startsWith('MS')),
-        'Wireless': devices.filter(d => d.model?.startsWith('MR')),
-        'Cameras': devices.filter(d => d.model?.startsWith('MV')),
-    };
+  if (!devices || devices.length === 0) {
+    return <Typography variant="body2">No devices found in this network.</Typography>;
+  }
 
-    const filteredDeviceTypes = Object.entries(deviceTypes).filter(([, deviceList]) => deviceList.length > 0);
-
-    return (
-        <Grid container spacing={2}>
-            {filteredDeviceTypes.map(([type, deviceList]) => (
-                <Grid item xs={12} key={type}>
-                    <Typography variant="h6" sx={{ mb: 1, color: 'text.secondary' }}>
-                        {type}
-                    </Typography>
-                    <Grid container spacing={2}>
-                        {deviceList.map((device: any) => (
-                            <Grid item xs={12} sm={6} md={4} key={device.serial}>
-                                <Paper
-                                    sx={{
-                                        p: 2,
-                                        borderRadius: 1,
-                                        backgroundColor: 'action.hover',
-                                    }}
-                                >
-                                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                                        {device.name || 'Unnamed Device'}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        {device.model} ({device.mac})
-                                    </Typography>
-                                </Paper>
-                            </Grid>
-                        ))}
-                    </Grid>
-                </Grid>
-            ))}
-        </Grid>
-    );
+  return (
+    <Box sx={{ mt: 2 }}>
+      <Typography variant="h6" gutterBottom>
+        Devices
+      </Typography>
+      <Paper elevation={1}>
+        <List dense>
+          {devices.map((device, index) => (
+            <React.Fragment key={device.serial}>
+              <ListItem>
+                <ListItemText
+                  primary={device.name || 'Unnamed Device'}
+                  secondary={
+                    <>
+                      <Typography component="span" variant="body2" color="text.primary">
+                        Model: {device.model} | Status: {device.status}
+                      </Typography>
+                      <br />
+                      {device.lanIp && `IP: ${device.lanIp} | `}
+                      {device.mac && `MAC: ${device.mac}`}
+                    </>
+                  }
+                />
+              </ListItem>
+              {index < devices.length - 1 && <Divider />}
+            </React.Fragment>
+          ))}
+        </List>
+      </Paper>
+    </Box>
+  );
 };
 
 export default DeviceView;
