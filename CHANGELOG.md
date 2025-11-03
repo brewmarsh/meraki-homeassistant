@@ -1,3 +1,12 @@
+## [1.5.4-beta.25](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.24...v1.5.4-beta.25) (2025-11-03)
+
+
+### Bug Fixes
+
+* **frontend:** refactor NetworkView to use ListItemButton ([4e351e9](https://github.com/brewmarsh/meraki-homeassistant/commit/4e351e93e961c86ecd037a1de9b6ce131025d712))
+
+
+
 ## [1.5.4-beta.24](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.23...v1.5.4-beta.24) (2025-11-03)
 
 
