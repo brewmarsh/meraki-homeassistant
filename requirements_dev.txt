@@ -1,4 +1,4 @@
-git+https://github.com/home-assistant/core@dev#egg=homeassistant
+homeassistant==2025.11.0b1
 uv==0.9.5
 aiofiles==23.2.1
 types-aiofiles==25.1.0.20251011
