@@ -54,7 +54,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
           <React.Fragment key={network.id}>
             <ListItem button onClick={() => handleNetworkClick(network.id)}>
               <ListItemText primary={network.name} />
-              {openNetworkId === network.id ? <ExpandLess /> : <ExpandMore />}
+              {openNetworkId === network.id ? <ExpandLess sx={{ fontSize: '1.5rem' }} /> : <ExpandMore sx={{ fontSize: '1.5rem' }} />}
             </ListItem>
             <Collapse in={openNetworkId === network.id} timeout="auto" unmountOnExit>
               <Box sx={{ pl: 4, py: 1 }}>

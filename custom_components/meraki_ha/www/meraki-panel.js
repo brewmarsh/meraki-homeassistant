@@ -12708,7 +12708,7 @@ const sk = n0, ak = ({ devices: e }) => !e || e.length === 0 ? /* @__PURE__ */ k
     /* @__PURE__ */ k.jsx(Qh, { component: "nav", children: o.map((l) => /* @__PURE__ */ k.jsxs(qe.Fragment, { children: [
       /* @__PURE__ */ k.jsxs(Xh, { button: !0, onClick: () => r(l.id), children: [
         /* @__PURE__ */ k.jsx(Zh, { primary: l.name }),
-        t === l.id ? /* @__PURE__ */ k.jsx(e0, {}) : /* @__PURE__ */ k.jsx(t0, {})
+        t === l.id ? /* @__PURE__ */ k.jsx(e0, { sx: { fontSize: "1.5rem" } }) : /* @__PURE__ */ k.jsx(t0, { sx: { fontSize: "1.5rem" } })
       ] }),
       /* @__PURE__ */ k.jsx(QC, { in: t === l.id, timeout: "auto", unmountOnExit: !0, children: /* @__PURE__ */ k.jsx(Pr, { sx: { pl: 4, py: 1 }, children: /* @__PURE__ */ k.jsx(ak, { devices: i.filter((s) => s.networkId === l.id) }) }) })
     ] }, l.id)) })
