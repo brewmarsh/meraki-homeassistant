@@ -48,7 +48,7 @@ jobs:
           #   --delete: removes files from destination that aren't in source (ensures clean state)
           
           # CRITICAL: Exclude development files/symlinks to avoid 'Operation not supported' errors.
-          sudo rsync -rltDv --no-inc-recursive --delete \
+          sudo rsync -rltpD --inplace --delete \
             --exclude '.git' \
             --exclude 'node_modules' \
             --exclude 'tests' \
