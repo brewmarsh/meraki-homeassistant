@@ -171,3 +171,45 @@ This project uses an automated versioning and release process triggered by mergi
 
 - `meraki`: The official Meraki SDK for Python, used for all API interactions.
 - `aiohttp`: Used by the Meraki SDK for asynchronous HTTP requests.
+
+---
+
+## 7. Pull Request Guidelines
+
+All pull requests should include the following sections.
+
+### Type of Change
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+
+*Remember to include `[major]`, `[minor]`, or `[patch]` in your PR title based on the type of change. Example: `[minor] Add support for new sensor type`*
+
+### Description
+A clear and concise description of the change.
+
+### Motivation and Context
+- Why is this change required? What problem does it solve?
+- If it fixes an open issue, please link to the issue here.
+
+### How Has This Been Tested?
+Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration.
+- [ ] Test A
+- [ ] Test B
+
+### Screenshots (if appropriate)
+
+### Types of changes
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+
+### Checklist
+- [ ] My code follows the style guidelines of this project
+- [ ] I have performed a self-review of my own code
+- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have made corresponding changes to the documentation
+- [ ] My changes generate no new warnings
+- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] New and existing unit tests pass locally with my changes
+- [ ] Any dependent changes have been merged and published in downstream modules
