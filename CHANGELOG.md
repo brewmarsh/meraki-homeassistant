@@ -1,3 +1,13 @@
+## [1.5.4-beta.23](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.22...v1.5.4-beta.23) (2025-11-03)
+
+
+### Bug Fixes
+
+* resolve panel loading and refactor frontend ([e186695](https://github.com/brewmarsh/meraki-homeassistant/commit/e186695875b9b6731983038a29adb6112720141e)), closes [#299](https://github.com/brewmarsh/meraki-homeassistant/issues/299)
+* **verify_ui:** Fix linting and formatting errors ([cbe9d38](https://github.com/brewmarsh/meraki-homeassistant/commit/cbe9d38c790e4a42ed6b907e5690c2e40cabf524))
+
+
+
 ## [1.5.4-beta.22](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.21...v1.5.4-beta.22) (2025-11-03)
 
 
