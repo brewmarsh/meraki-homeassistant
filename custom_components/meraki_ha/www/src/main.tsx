@@ -21,4 +21,6 @@ class MerakiPanel extends HTMLElement {
   }
 }
 
-customElements.define('meraki-panel', MerakiPanel);
+if (!customElements.get('meraki-panel')) {
+  customElements.define('meraki-panel', MerakiPanel);
+}
