@@ -1,5 +1,5 @@
 git+https://github.com/home-assistant/core@dev#egg=homeassistant
-uv==0.9.6
+uv==0.9.5
 aiofiles==23.2.1
 types-aiofiles==25.1.0.20251011
 meraki==1.40.1
@@ -10,9 +10,9 @@ bandit[toml]==1.7.9
 mypy==1.11.0
 voluptuous==0.15.2
 pyyaml==6.0.3
-playwright
-pytest-homeassistant-custom-component
+playwright==1.55.0
+pytest-homeassistant-custom-component==0.13.291
 pytest==8.4.2
 pytest-cov==7.0.0
 pytest-asyncio==1.2.0
-codecov
+codecov==2.1.13
