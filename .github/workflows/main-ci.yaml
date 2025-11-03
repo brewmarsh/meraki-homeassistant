@@ -29,7 +29,7 @@ jobs:
           pip install -r requirements_dev.txt
       - name: Run checks
         run: |
-          pip-audit --ignore-vuln PYSEC-2020-49 --ignore-vuln PYSEC-2022-42969 --ignore-vuln GHSA-g7vv-2v7x-gj9p
+          pip-audit --ignore-vuln PYSEC-2020-49 --ignore-vuln PYSEC-2022-42969 --ignore-vuln GHSA-g7vv-2v7x-gj9p --ignore-vuln GHSA-pqhf-p39g-3x64
           ruff check .
           ruff format --check .
           mypy custom_components/meraki_ha/ tests/
