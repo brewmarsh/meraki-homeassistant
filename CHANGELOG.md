@@ -1,3 +1,12 @@
+## [1.5.4-beta.18](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.17...v1.5.4-beta.18) (2025-11-03)
+
+
+### Bug Fixes
+
+* **frontend:** register panel in async_setup_entry and update UI styling ([cc1d296](https://github.com/brewmarsh/meraki-homeassistant/commit/cc1d296fe027f81284d59ad03b013ea3218268aa))
+
+
+
 ## [1.5.4-beta.17](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.16...v1.5.4-beta.17) (2025-11-03)
 
 
