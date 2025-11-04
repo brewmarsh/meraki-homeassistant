@@ -1,3 +1,12 @@
+## [1.5.4-beta.30](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.29...v1.5.4-beta.30) (2025-11-04)
+
+
+### Features
+
+* a new feature ([b6938a9](https://github.com/brewmarsh/meraki-homeassistant/commit/b6938a92fa281189b3adde44bdd6de85174d8c54))
+
+
+
 ## [1.5.4-beta.29](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.28...v1.5.4-beta.29) (2025-11-04)
 
 
