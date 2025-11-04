@@ -1,5 +1,6 @@
 """The Meraki Home Assistant integration."""
 
+import json
 import logging
 import random
 import string
@@ -28,6 +29,9 @@ from .webhook import async_register_webhook
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
+
+
+from .frontend import async_register_frontend
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
