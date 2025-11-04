@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 interface Device {
   name: string;
@@ -11,8 +11,6 @@ interface Device {
 
 interface DeviceViewProps {
   devices: Device[];
-  hass: any;
-  config_entry_id: string;
 }
 
 const getDeviceType = (model: string): string => {
@@ -29,29 +27,7 @@ const getDeviceType = (model: string): string => {
 const HeroIndicator: React.FC<{
   deviceType: string;
   devices: Device[];
-  hass: any;
-  config_entry_id: string;
-}> = ({ deviceType, devices, hass, config_entry_id }) => {
-  const [snapshotUrl, setSnapshotUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (deviceType === 'Cameras' && devices.length > 0) {
-      const fetchSnapshot = async () => {
-        try {
-          const result = await hass.connection.sendMessagePromise({
-            type: 'meraki_ha/get_camera_snapshot',
-            config_entry_id: config_entry_id,
-            serial: devices[0].serial,
-          });
-          setSnapshotUrl(result.url);
-        } catch (err) {
-          console.error('Error fetching camera snapshot:', err);
-        }
-      };
-      fetchSnapshot();
-    }
-  }, [deviceType, devices, hass, config_entry_id]);
-
+}> = ({ deviceType, devices }) => {
   const heroStyle: React.CSSProperties = {
     padding: '12px',
     marginBottom: '12px',
@@ -60,42 +36,30 @@ const HeroIndicator: React.FC<{
     textAlign: 'center',
   };
 
+  const onlineCount = devices.filter((d) => d.status === 'online').length;
+
   switch (deviceType) {
     case 'Cameras':
-      return (
-        <div style={heroStyle}>
-          {snapshotUrl ? <img src={snapshotUrl} style={{ maxWidth: '100%' }} /> : 'Loading camera preview...'}
-        </div>
-      );
+    case 'Wireless':
     case 'Switches':
-      const onlineSwitches = devices.filter((d) => d.status === 'online').length;
+    case 'Access Points':
       return (
         <div style={heroStyle}>
           <strong>
-            {onlineSwitches} / {devices.length}
+            {onlineCount} / {devices.length}
           </strong>{' '}
-          Switches Online
+          {deviceType} Online
         </div>
       );
     case 'Routers':
       const isRouterOnline = devices.some((d) => d.status === 'online');
       return <div style={heroStyle}>Gateway Status: <strong>{isRouterOnline ? 'Online' : 'Offline'}</strong></div>;
-    case 'Access Points':
-      const onlineAPs = devices.filter((d) => d.status === 'online').length;
-      return (
-        <div style={heroStyle}>
-          <strong>
-            {onlineAPs} / {devices.length}
-          </strong>{' '}
-          Access Points Online
-        </div>
-      );
     default:
       return null;
   }
 };
 
-const DeviceView: React.FC<DeviceViewProps> = ({ devices, hass, config_entry_id }) => {
+const DeviceView: React.FC<DeviceViewProps> = ({ devices }) => {
   if (!devices || devices.length === 0) {
     return <p>No devices found in this network.</p>;
   }
@@ -114,7 +78,7 @@ const DeviceView: React.FC<DeviceViewProps> = ({ devices, hass, config_entry_id 
       {Object.entries(groupedDevices).map(([type, deviceList]) => (
         <div key={type} className="device-group">
           <h4 style={{ marginTop: 0, marginBottom: '8px', borderBottom: '1px solid var(--divider-color)' }}>{type}</h4>
-          <HeroIndicator deviceType={type} devices={deviceList} hass={hass} config_entry_id={config_entry_id} />
+          <HeroIndicator deviceType={type} devices={deviceList} />
           {deviceList.map((device) => (
             <div key={device.serial} className="device-item" style={{ marginBottom: '8px' }}>
               <p style={{ margin: 0 }}>
