@@ -16,6 +16,9 @@ interface DeviceViewProps {
 }
 
 const getDeviceType = (model: string): string => {
+  if (model.startsWith('GS')) return 'Switches';
+  if (model.startsWith('GR')) return 'Wireless';
+  if (model.startsWith('MT')) return 'Sensors';
   if (model.startsWith('MS')) return 'Switches';
   if (model.startsWith('MV')) return 'Cameras';
   if (model.startsWith('MX')) return 'Routers';

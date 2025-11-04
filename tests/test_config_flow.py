@@ -56,7 +56,7 @@ async def test_async_step_user_success(hass: HomeAssistant) -> None:
         options_input = {
             CONF_SCAN_INTERVAL: 120,
             CONF_ENABLE_DEVICE_TRACKER: True,
-            CONF_IGNORED_NETWORKS: "Guest Network, Temp Network",
+            CONF_IGNORED_NETWORKS: [],
             "enable_vlan_management": False,
         }
         result = await hass.config_entries.flow.async_configure(
