@@ -45,6 +45,10 @@ class CameraService:
         """Get the video stream URL for a camera."""
         return await self._repository.async_get_rtsp_stream_url(serial)
 
+    async def get_camera_snapshot(self, serial: str) -> str | None:
+        """Get a camera snapshot URL."""
+        return await self.generate_snapshot(serial)
+
     async def get_motion_history(self, serial: str) -> list[dict[str, Any]]:
         """
         Get the motion history for a camera.

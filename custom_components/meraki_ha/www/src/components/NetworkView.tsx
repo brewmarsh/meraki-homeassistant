@@ -21,9 +21,11 @@ interface NetworkViewProps {
     networks: Network[];
     devices: Device[];
   };
+  hass: any;
+  config_entry_id: string;
 }
 
-const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
+const NetworkView: React.FC<NetworkViewProps> = ({ data, hass, config_entry_id }) => {
   const [openNetworkId, setOpenNetworkId] = useState<string | null>(null);
 
   const handleNetworkClick = (networkId: string) => {
@@ -37,20 +39,31 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
   }
 
   return (
-    <div className="card-content">
-      {networks.map((network) => (
-        <div key={network.id} className="network-item">
-          <div className="network-header" onClick={() => handleNetworkClick(network.id)}>
-            <span>{network.name}</span>
-            <span style={{ float: 'right' }}>{openNetworkId === network.id ? '▲' : '▼'}</span>
-          </div>
-          {openNetworkId === network.id && (
-            <div className="network-devices">
-              <DeviceView devices={devices.filter((d) => d.networkId === network.id)} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {networks.map((network) => {
+        const isOpen = openNetworkId === network.id;
+        return (
+          <ha-card key={network.id}>
+            <div
+              className="card-header"
+              onClick={() => handleNetworkClick(network.id)}
+              style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '16px' }}
+            >
+              <span>{network.name}</span>
+              <ha-icon style={{ marginLeft: '8px' }} icon={isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}></ha-icon>
             </div>
-          )}
-        </div>
-      ))}
+            {isOpen && (
+              <div className="card-content">
+                <DeviceView
+                  devices={devices.filter((d) => d.networkId === network.id)}
+                  hass={hass}
+                  config_entry_id={config_entry_id}
+                />
+              </div>
+            )}
+          </ha-card>
+        );
+      })}
     </div>
   );
 };

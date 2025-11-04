@@ -76,9 +76,7 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
       {error && <p>Error: {error}</p>}
       {!loading && !error && data && (
         <>
-          <ha-card header="Networks">
-            <NetworkView data={data} />
-          </ha-card>
+          <NetworkView data={data} hass={hass} config_entry_id={config_entry_id} />
           <ha-card header="Event Log">
             <EventLog />
           </ha-card>
