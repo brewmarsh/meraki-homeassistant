@@ -1,10 +1,253 @@
-## [1.5.4-beta.8](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.7...v1.5.4-beta.8) (2025-10-27)
+## [1.5.4-beta.33](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.32...v1.5.4-beta.33) (2025-11-04)
 
 
 ### Bug Fixes
 
-* Resolve remaining ruff linting errors ([15066c5](https://github.com/brewmarsh/meraki-homeassistant/commit/15066c5469a29e881025ef1785b2868a012aa1c2))
-* Resolve ruff linting and formatting errors ([84273cb](https://github.com/brewmarsh/meraki-homeassistant/commit/84273cbdeb0668c7d69a6d44aa2ee36a74b7fe7e))
+* **sensor:** Correctly parse MT sensor data ([fb8a8a2](https://github.com/brewmarsh/meraki-homeassistant/commit/fb8a8a2cca2076c63bc17e36ad17ccf1609cf7a8))
+
+
+
+## [1.5.4-beta.32](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.31...v1.5.4-beta.32) (2025-11-04)
+
+
+### Features
+
+* Fix VLAN count and test failures ([7bba357](https://github.com/brewmarsh/meraki-homeassistant/commit/7bba357d961395f19a01ce205faf4b21cd63d542))
+
+
+
+## [1.5.4-beta.31](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.30...v1.5.4-beta.31) (2025-11-04)
+
+
+### Features
+
+* a new feature ([074a609](https://github.com/brewmarsh/meraki-homeassistant/commit/074a60909d148ca5b5dfc4490689839654dbc020))
+
+
+
+## [1.5.4-beta.30](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.29...v1.5.4-beta.30) (2025-11-04)
+
+
+### Features
+
+* a new feature ([b6938a9](https://github.com/brewmarsh/meraki-homeassistant/commit/b6938a92fa281189b3adde44bdd6de85174d8c54))
+
+
+
+## [1.5.4-beta.29](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.28...v1.5.4-beta.29) (2025-11-04)
+
+
+### Features
+
+* **web-ui:** redesign network and device views ([068b473](https://github.com/brewmarsh/meraki-homeassistant/commit/068b4737f347232ff146a5883dc471752345959a))
+
+
+
+## [1.5.4-beta.28](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.27...v1.5.4-beta.28) (2025-11-03)
+
+
+### Features
+
+* **frontend:** refactor UI to use ha-card ([04d98a4](https://github.com/brewmarsh/meraki-homeassistant/commit/04d98a4acf99ec9d6b1a54b94e973650f8cb9f53))
+
+
+
+## [1.5.4-beta.27](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.26...v1.5.4-beta.27) (2025-11-03)
+
+
+### Bug Fixes
+
+* **frontend:** Prevent duplicate component registration and fix icon styling ([c4bc54e](https://github.com/brewmarsh/meraki-homeassistant/commit/c4bc54ea9f0ca46915c9d66a585222a4bba0e55e))
+
+
+
+## [1.5.4-beta.26](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.25...v1.5.4-beta.26) (2025-11-03)
+
+
+### Bug Fixes
+
+* **frontend:** refactor NetworkView and bump version for cache busting ([bd6bbfa](https://github.com/brewmarsh/meraki-homeassistant/commit/bd6bbfa42f641bca0ae95a626a5a0751543d5d9d))
+
+
+
+## [1.5.4-beta.25](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.24...v1.5.4-beta.25) (2025-11-03)
+
+
+### Bug Fixes
+
+* **frontend:** refactor NetworkView to use ListItemButton ([4e351e9](https://github.com/brewmarsh/meraki-homeassistant/commit/4e351e93e961c86ecd037a1de9b6ce131025d712))
+
+
+
+## [1.5.4-beta.24](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.23...v1.5.4-beta.24) (2025-11-03)
+
+
+### Bug Fixes
+
+* correct panel styling and icon size ([4befd2d](https://github.com/brewmarsh/meraki-homeassistant/commit/4befd2d317dab131503eda1647fd7a04aa0d3485))
+
+
+
+## [1.5.4-beta.23](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.22...v1.5.4-beta.23) (2025-11-03)
+
+
+### Bug Fixes
+
+* resolve panel loading and refactor frontend ([e186695](https://github.com/brewmarsh/meraki-homeassistant/commit/e186695875b9b6731983038a29adb6112720141e)), closes [#299](https://github.com/brewmarsh/meraki-homeassistant/issues/299)
+* **verify_ui:** Fix linting and formatting errors ([cbe9d38](https://github.com/brewmarsh/meraki-homeassistant/commit/cbe9d38c790e4a42ed6b907e5690c2e40cabf524))
+
+
+
+## [1.5.4-beta.22](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.21...v1.5.4-beta.22) (2025-11-03)
+
+
+### Bug Fixes
+
+* **ci:** resolve dependency conflicts and test failures ([98ede2a](https://github.com/brewmarsh/meraki-homeassistant/commit/98ede2af4d0d8c9e155dfe4e1649bdec45981edd))
+* **deps:** resolve pytest and homeassistant dependency conflicts ([832e1d2](https://github.com/brewmarsh/meraki-homeassistant/commit/832e1d2fc7a1a9fb80661ac50ade87054936d562))
+* **deps:** resolve pytest TypeError in Python 3.13 ([b4dc946](https://github.com/brewmarsh/meraki-homeassistant/commit/b4dc946fbe5ed62da7293a860fcd44cbe135d997))
+* **deps:** resolve pytest TypeError in Python 3.13 ([4aa3012](https://github.com/brewmarsh/meraki-homeassistant/commit/4aa3012975496619fe8c606c1629c6765d4bdeee))
+* **deps:** upgrade pytest to resolve python 3.13 incompatibility ([1761148](https://github.com/brewmarsh/meraki-homeassistant/commit/1761148aa531b22e885d7e330f538fffc303ac3f))
+
+
+
+## [1.5.4-beta.21](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.20...v1.5.4-beta.21) (2025-11-03)
+
+
+
+## [1.5.4-beta.20](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.19...v1.5.4-beta.20) (2025-11-03)
+
+
+
+## [1.5.4-beta.19](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.18...v1.5.4-beta.19) (2025-11-03)
+
+
+
+## [1.5.4-beta.18](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.17...v1.5.4-beta.18) (2025-11-03)
+
+
+### Bug Fixes
+
+* **frontend:** register panel in async_setup_entry and update UI styling ([cc1d296](https://github.com/brewmarsh/meraki-homeassistant/commit/cc1d296fe027f81284d59ad03b013ea3218268aa))
+
+
+
+## [1.5.4-beta.17](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.16...v1.5.4-beta.17) (2025-11-03)
+
+
+### Features
+
+* **frontend:** update web UI with modern styling ([45d26fa](https://github.com/brewmarsh/meraki-homeassistant/commit/45d26fa40837f5ee67074175ad44b75be578d548))
+
+
+
+## [1.5.4-beta.16](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.15...v1.5.4-beta.16) (2025-11-03)
+
+
+### Features
+
+* **frontend:** update web UI with modern styling ([696dfee](https://github.com/brewmarsh/meraki-homeassistant/commit/696dfeecb309a1f1287b6ab54768bdfb8f472d04))
+
+
+
+## [1.5.4-beta.15](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.14...v1.5.4-beta.15) (2025-11-03)
+
+
+
+## [1.5.4-beta.14](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.13...v1.5.4-beta.14) (2025-11-02)
+
+
+### Bug Fixes
+
+* **ci:** Temporarily disable failing test suite ([41b048e](https://github.com/brewmarsh/meraki-homeassistant/commit/41b048ea4676014c6d73dfc129576f53eebca3ac))
+
+
+
+## [1.5.4-beta.13](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.12...v1.5.4-beta.13) (2025-11-02)
+
+
+### Bug Fixes
+
+* **ci:** Resolve linting, formatting, and type errors ([c6474ff](https://github.com/brewmarsh/meraki-homeassistant/commit/c6474ffe6c04314f278e35f89733e4bede360296))
+
+
+
+## [1.5.4-beta.12](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.11...v1.5.4-beta.12) (2025-11-02)
+
+
+### Bug Fixes
+
+* **deps:** Unpin pytest to resolve dependency conflict ([7f2e87a](https://github.com/brewmarsh/meraki-homeassistant/commit/7f2e87a1dcfffddea508e2488a7a024f992f584d))
+
+
+
+## [1.5.4-beta.11](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.10...v1.5.4-beta.11) (2025-11-02)
+
+
+### Bug Fixes
+
+* **ci:** resolve all mypy and ruff errors ([f856026](https://github.com/brewmarsh/meraki-homeassistant/commit/f85602640f9263cc642de1a63ac5f5bba765c735))
+* **deps:** Update uv to fix vulnerability and resolve mypy errors ([a41842e](https://github.com/brewmarsh/meraki-homeassistant/commit/a41842e1c45de585b4f06b76e6c45318779ef847))
+* **lint:** Fix docstring and import errors ([5b8da0d](https://github.com/brewmarsh/meraki-homeassistant/commit/5b8da0d0b5bbe484737f1b86ec760082aa78aba9))
+* **mypy:** Attempt to fix mypy errors in sensor setup ([a58b063](https://github.com/brewmarsh/meraki-homeassistant/commit/a58b063519881b000f1e74bd4643d3b28ddf2216))
+* **mypy:** Final attempt to fix mypy errors in sensor setup ([d70508d](https://github.com/brewmarsh/meraki-homeassistant/commit/d70508d9dd2f99aa97890513e1fe856e824439f7))
+* **mypy:** Fix mypy errors and skip failing tests ([7ee6ce9](https://github.com/brewmarsh/meraki-homeassistant/commit/7ee6ce9019785e92292a69893c700ec53d7d6fb0))
+* **python:** Clean up Python errors and fix failing tests ([ffd422a](https://github.com/brewmarsh/meraki-homeassistant/commit/ffd422af0d11c6d4447424639fcd7ff1b1e24c85))
+* resolve CI errors and uv vulnerability ([2caf1f2](https://github.com/brewmarsh/meraki-homeassistant/commit/2caf1f246f332dc8208d62f59ac07a904486ef1d))
+* resolve mypy errors and uv vulnerability ([5d5c460](https://github.com/brewmarsh/meraki-homeassistant/commit/5d5c46004fa2865745999eef2b0a82c276223715))
+* **ruff:** Fix docstring error in sensor_registry.py ([aee0235](https://github.com/brewmarsh/meraki-homeassistant/commit/aee023512120578236116fdc5a9505717f5dfe21))
+* **ruff:** Fix docstring errors in sensor_registry.py ([1e32490](https://github.com/brewmarsh/meraki-homeassistant/commit/1e324907699521d4584800898e074c48623de0c2))
+* **ruff:** Format sensor_registry.py ([c434acd](https://github.com/brewmarsh/meraki-homeassistant/commit/c434acdaa96b1db7b776901499e25abdef8f1697))
+* **ruff:** Format sensor_registry.py ([b61c7ec](https://github.com/brewmarsh/meraki-homeassistant/commit/b61c7ecdd44fc5bc2e51cb1c3676abf0a3dcc898))
+* **ruff:** resolve all D407 and other docstring errors ([3f621ab](https://github.com/brewmarsh/meraki-homeassistant/commit/3f621ab8a1d635cd245e086a2c6ac19f93dbee88))
+* update uv to 0.9.6 to resolve GHSA-pqhf-p39g-3x64 ([2d2946d](https://github.com/brewmarsh/meraki-homeassistant/commit/2d2946d27d36865b4d11cff5c8ae1f01199cf953))
+
+
+### Features
+
+* Refactor test suite and fix pytest error ([cd7b17c](https://github.com/brewmarsh/meraki-homeassistant/commit/cd7b17cb72f560831ec3ad310dd4eaf04876ad75))
+
+
+
+## [1.5.4-beta.9](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.10...v1.5.4-beta.9) (2025-10-31)
+
+
+### Bug Fixes
+
+* **ci:** resolve all mypy and ruff errors ([f856026](https://github.com/brewmarsh/meraki-homeassistant/commit/f85602640f9263cc642de1a63ac5f5bba765c735))
+* **deps:** Update uv to fix vulnerability and resolve mypy errors ([a41842e](https://github.com/brewmarsh/meraki-homeassistant/commit/a41842e1c45de585b4f06b76e6c45318779ef847))
+* **lint:** Fix docstring and import errors ([5b8da0d](https://github.com/brewmarsh/meraki-homeassistant/commit/5b8da0d0b5bbe484737f1b86ec760082aa78aba9))
+* **mypy:** Attempt to fix mypy errors in sensor setup ([a58b063](https://github.com/brewmarsh/meraki-homeassistant/commit/a58b063519881b000f1e74bd4643d3b28ddf2216))
+* **mypy:** Final attempt to fix mypy errors in sensor setup ([d70508d](https://github.com/brewmarsh/meraki-homeassistant/commit/d70508d9dd2f99aa97890513e1fe856e824439f7))
+* **mypy:** Fix mypy errors and skip failing tests ([7ee6ce9](https://github.com/brewmarsh/meraki-homeassistant/commit/7ee6ce9019785e92292a69893c700ec53d7d6fb0))
+* **python:** Clean up Python errors and fix failing tests ([ffd422a](https://github.com/brewmarsh/meraki-homeassistant/commit/ffd422af0d11c6d4447424639fcd7ff1b1e24c85))
+* resolve CI errors and uv vulnerability ([2caf1f2](https://github.com/brewmarsh/meraki-homeassistant/commit/2caf1f246f332dc8208d62f59ac07a904486ef1d))
+* resolve mypy errors and uv vulnerability ([5d5c460](https://github.com/brewmarsh/meraki-homeassistant/commit/5d5c46004fa2865745999eef2b0a82c276223715))
+* **ruff:** Fix docstring error in sensor_registry.py ([aee0235](https://github.com/brewmarsh/meraki-homeassistant/commit/aee023512120578236116fdc5a9505717f5dfe21))
+* **ruff:** Fix docstring errors in sensor_registry.py ([1e32490](https://github.com/brewmarsh/meraki-homeassistant/commit/1e324907699521d4584800898e074c48623de0c2))
+* **ruff:** Format sensor_registry.py ([c434acd](https://github.com/brewmarsh/meraki-homeassistant/commit/c434acdaa96b1db7b776901499e25abdef8f1697))
+* **ruff:** Format sensor_registry.py ([b61c7ec](https://github.com/brewmarsh/meraki-homeassistant/commit/b61c7ecdd44fc5bc2e51cb1c3676abf0a3dcc898))
+* **ruff:** resolve all D407 and other docstring errors ([3f621ab](https://github.com/brewmarsh/meraki-homeassistant/commit/3f621ab8a1d635cd245e086a2c6ac19f93dbee88))
+* update uv to 0.9.6 to resolve GHSA-pqhf-p39g-3x64 ([2d2946d](https://github.com/brewmarsh/meraki-homeassistant/commit/2d2946d27d36865b4d11cff5c8ae1f01199cf953))
+
+
+
+## [1.5.4-beta.8](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.10...v1.5.4-beta.8) (2025-10-29)
+
+
+### Bug Fixes
+
+* **ci:** resolve all mypy and ruff errors ([f856026](https://github.com/brewmarsh/meraki-homeassistant/commit/f85602640f9263cc642de1a63ac5f5bba765c735))
+* **lint:** Fix docstring and import errors ([5b8da0d](https://github.com/brewmarsh/meraki-homeassistant/commit/5b8da0d0b5bbe484737f1b86ec760082aa78aba9))
+* **mypy:** Attempt to fix mypy errors in sensor setup ([a58b063](https://github.com/brewmarsh/meraki-homeassistant/commit/a58b063519881b000f1e74bd4643d3b28ddf2216))
+* **mypy:** Final attempt to fix mypy errors in sensor setup ([d70508d](https://github.com/brewmarsh/meraki-homeassistant/commit/d70508d9dd2f99aa97890513e1fe856e824439f7))
+* **mypy:** Fix mypy errors and skip failing tests ([7ee6ce9](https://github.com/brewmarsh/meraki-homeassistant/commit/7ee6ce9019785e92292a69893c700ec53d7d6fb0))
+* **python:** Clean up Python errors and fix failing tests ([ffd422a](https://github.com/brewmarsh/meraki-homeassistant/commit/ffd422af0d11c6d4447424639fcd7ff1b1e24c85))
+* **ruff:** Fix docstring error in sensor_registry.py ([aee0235](https://github.com/brewmarsh/meraki-homeassistant/commit/aee023512120578236116fdc5a9505717f5dfe21))
+* **ruff:** Fix docstring errors in sensor_registry.py ([1e32490](https://github.com/brewmarsh/meraki-homeassistant/commit/1e324907699521d4584800898e074c48623de0c2))
+* **ruff:** Format sensor_registry.py ([c434acd](https://github.com/brewmarsh/meraki-homeassistant/commit/c434acdaa96b1db7b776901499e25abdef8f1697))
+* **ruff:** Format sensor_registry.py ([b61c7ec](https://github.com/brewmarsh/meraki-homeassistant/commit/b61c7ecdd44fc5bc2e51cb1c3676abf0a3dcc898))
+* **ruff:** resolve all D407 and other docstring errors ([3f621ab](https://github.com/brewmarsh/meraki-homeassistant/commit/3f621ab8a1d635cd245e086a2c6ac19f93dbee88))
 
 
 

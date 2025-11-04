@@ -19,7 +19,6 @@ STATE_UNKNOWN_UPLINK = "Unknown"
 
 
 class MerakiUplinkStatusSensor(MerakiDeviceEntity):
-
     """Representation of a Meraki MX Appliance Uplink Status sensor."""
 
     _attr_icon = "mdi:upload-network-outline"

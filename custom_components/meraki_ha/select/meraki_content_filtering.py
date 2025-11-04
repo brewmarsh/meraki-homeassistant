@@ -18,10 +18,7 @@ from ..helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiContentFilteringSelect(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SelectEntity
-):
-
+class MerakiContentFilteringSelect(CoordinatorEntity, SelectEntity):
     """Representation of a Meraki Content Filtering select entity."""
 
     entity_category = EntityCategory.CONFIG
@@ -51,7 +48,7 @@ class MerakiContentFilteringSelect(
         self._update_internal_state()
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information to link this entity to the network device."""
         return resolve_device_info(
             entity_data=self._network_data,

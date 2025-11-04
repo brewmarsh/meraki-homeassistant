@@ -29,7 +29,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MXHandler(BaseDeviceHandler):
-
     """Handler for MX series security appliances."""
 
     def __init__(

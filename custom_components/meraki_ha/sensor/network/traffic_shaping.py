@@ -12,7 +12,6 @@ from ...types import MerakiNetwork
 
 
 class TrafficShapingSensor(MerakiNetworkEntity, SensorEntity):
-
     """Representation of a sensor that shows traffic shaping settings."""
 
     def __init__(
@@ -32,11 +31,6 @@ class TrafficShapingSensor(MerakiNetworkEntity, SensorEntity):
         self._attr_unique_id = f"{network_id}-traffic-shaping"
         self._attr_name = "Traffic Shaping"
         self._attr_native_value = "Unknown"
-
-    @property
-    def native_value(self) -> str:
-        """Return the state of the sensor."""
-        return self._attr_native_value
 
     @callback
     def _handle_coordinator_update(self) -> None:

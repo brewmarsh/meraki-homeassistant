@@ -17,14 +17,13 @@ from ...core.utils.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDataUsageSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
-):
-
+class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki appliance data usage sensor."""
 
-    _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_native_unit_of_measurement = UnitOfInformation.MEGABYTES
+    _attr_state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement: UnitOfInformation | None = (
+        UnitOfInformation.MEGABYTES
+    )
     _attr_icon = "mdi:chart-bar"
     _attr_has_entity_name = True
     _attr_extra_state_attributes: dict[str, Any] = {}

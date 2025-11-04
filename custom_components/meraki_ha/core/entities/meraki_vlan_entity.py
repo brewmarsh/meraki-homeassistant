@@ -12,7 +12,6 @@ from . import BaseMerakiEntity
 
 
 class MerakiVLANEntity(BaseMerakiEntity):
-
     """Representation of a Meraki VLAN."""
 
     def __init__(
@@ -48,6 +47,6 @@ class MerakiVLANEntity(BaseMerakiEntity):
         )
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return self._attr_device_info

@@ -1,4 +1,5 @@
 """Integration-level tests for the Meraki HA component."""
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, patch

@@ -2,7 +2,6 @@
 
 
 class MerakiRadioSettingsSensor:
-
     """
     A placeholder class for a missing sensor entity.
 

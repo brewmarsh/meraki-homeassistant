@@ -12,7 +12,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class SensorEndpoints:
-
     """Sensor endpoints for the Meraki API."""
 
     def __init__(self, client: MerakiAPIClient) -> None:
@@ -39,7 +38,7 @@ class SensorEndpoints:
             serial: The serial number of the device.
             operation: The operation to perform on the sensor.
 
-        Returns:
+        Returns
         -------
             The response from the API.
 
@@ -49,4 +48,22 @@ class SensorEndpoints:
             self._client.dashboard.sensor.createDeviceSensorCommand,
             serial=serial,
             operation=operation,
+        )
+
+    async def get_organization_sensor_readings_latest(
+        self,
+    ) -> list[dict[str, Any]]:
+        """
+        Return the latest available reading for each metric from each sensor.
+
+        Returns
+        -------
+            The response from the API.
+
+        """
+        _LOGGER.debug("Getting latest sensor readings for organization")
+        return await self._client.run_sync(
+            self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
+            organizationId=self._client.organization_id,
+            total_pages="all",
         )

@@ -1,5 +1,4 @@
 """Meraki API endpoints for appliances."""
-from __future__ import annotations
 
 from __future__ import annotations
 
@@ -23,7 +22,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ApplianceEndpoints:
-
     """Appliance-related endpoints."""
 
     def __init__(self, api_client: MerakiAPIClient, hass: HomeAssistant) -> None:
@@ -33,6 +31,7 @@ class ApplianceEndpoints:
         Args:
             api_client: The Meraki API client.
             hass: The Home Assistant instance.
+
         """
         self._api_client = api_client
         self._dashboard = api_client.dashboard
@@ -52,8 +51,10 @@ class ApplianceEndpoints:
             network_id: The ID of the network.
             timespan: The timespan for the traffic data.
 
-        Returns:
+        Returns
+        -------
             A list of traffic data.
+
         """
         traffic = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceTraffic,
@@ -75,8 +76,10 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns:
+        Returns
+        -------
             A list of VLANs.
+
         """
         vlans = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceVlans,
@@ -103,8 +106,10 @@ class ApplianceEndpoints:
             vlan_id: The ID of the VLAN.
             **kwargs: Additional arguments.
 
-        Returns:
+        Returns
+        -------
             The updated VLAN.
+
         """
         vlan = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceVlan,
@@ -127,8 +132,10 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns:
+        Returns
+        -------
             The L3 firewall rules.
+
         """
         rules = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules,
@@ -153,8 +160,10 @@ class ApplianceEndpoints:
             network_id: The ID of the network.
             **kwargs: Additional arguments.
 
-        Returns:
+        Returns
+        -------
             The updated L3 firewall rules.
+
         """
         rules = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules,
@@ -176,8 +185,10 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns:
+        Returns
+        -------
             The traffic shaping settings.
+
         """
         settings = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceTrafficShaping,
@@ -202,8 +213,10 @@ class ApplianceEndpoints:
             network_id: The ID of the network.
             **kwargs: Additional arguments.
 
-        Returns:
+        Returns
+        -------
             The updated traffic shaping settings.
+
         """
         settings = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceTrafficShaping,
@@ -225,8 +238,10 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns:
+        Returns
+        -------
             The VPN status.
+
         """
         status = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn,
@@ -247,8 +262,10 @@ class ApplianceEndpoints:
             network_id: The ID of the network.
             **kwargs: Additional arguments.
 
-        Returns:
+        Returns
+        -------
             The updated VPN status.
+
         """
         status = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn,
@@ -273,8 +290,10 @@ class ApplianceEndpoints:
         Args:
             serial: The serial number of the device.
 
-        Returns:
+        Returns
+        -------
             The uplinks settings.
+
         """
         uplinks = await self._api_client.run_sync(
             self._dashboard.appliance.getDeviceApplianceUplinksSettings,
@@ -300,8 +319,10 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns:
+        Returns
+        -------
             The content filtering settings.
+
         """
         result = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceContentFiltering,
@@ -327,8 +348,10 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns:
+        Returns
+        -------
             The content filtering categories.
+
         """
         result = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceContentFilteringCategories,
@@ -351,8 +374,10 @@ class ApplianceEndpoints:
         Args:
             serial: The serial number of the device.
 
-        Returns:
+        Returns
+        -------
             The response from the API.
+
         """
         result = await self._api_client.run_sync(
             self._dashboard.devices.rebootDevice,
@@ -373,8 +398,10 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns:
+        Returns
+        -------
             A list of ports.
+
         """
         ports = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkAppliancePorts,
@@ -395,14 +422,16 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns:
+        Returns
+        -------
             The settings for the network appliance.
+
         """
         settings = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceSettings,
             networkId=network_id,
         )
-        validated = validate_response(_settings)
+        validated = validate_response(settings)
         if not isinstance(validated, dict):
             _LOGGER.warning("get_network_appliance_settings did not return a dict")
             return {}
@@ -420,8 +449,10 @@ class ApplianceEndpoints:
         Args:
             network_id: The ID of the network.
 
-        Returns:
+        Returns
+        -------
             The L7 firewall rules.
+
         """
         rules = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceL7FirewallRules,
@@ -448,8 +479,10 @@ class ApplianceEndpoints:
             network_id: The ID of the network.
             **kwargs: Additional arguments.
 
-        Returns:
+        Returns
+        -------
             The updated L7 firewall rules.
+
         """
         rules = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceL7FirewallRules,
@@ -477,8 +510,10 @@ class ApplianceEndpoints:
             network_id: The ID of the network.
             **kwargs: Additional arguments.
 
-        Returns:
+        Returns
+        -------
             The updated content filtering settings.
+
         """
         result = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceContentFiltering,
@@ -502,6 +537,7 @@ class ApplianceEndpoints:
         Returns
         -------
             A list of uplink statuses.
+
         """
         statuses = await self._api_client.run_sync(
             self._dashboard.appliance.getOrganizationApplianceUplinkStatuses,

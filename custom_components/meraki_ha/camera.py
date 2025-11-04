@@ -1,4 +1,5 @@
 """Support for Meraki cameras."""
+
 from __future__ import annotations
 
 import asyncio
@@ -42,6 +43,7 @@ async def async_setup_entry(
         hass: The Home Assistant instance.
         config_entry: The config entry.
         async_add_entities: Callback to add entities.
+
     """
     if config_entry.entry_id not in hass.data[DOMAIN]:
         return
@@ -67,13 +69,15 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass: The Home Assistant instance.
         entry: The config entry.
 
-    Returns:
+    Returns
+    -------
         Whether the unload was successful.
+
     """
     return await hass.config_entries.async_unload_platforms(entry, [PLATFORM_CAMERA])
 
 
-class MerakiCamera(CoordinatorEntity[MerakiDataUpdateCoordinator], Camera):
+class MerakiCamera(CoordinatorEntity, Camera):
     """
     Representation of a Meraki camera.
 
@@ -97,6 +101,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDataUpdateCoordinator], Camera):
             config_entry: The config entry.
             device: The device data.
             camera_service: The camera service.
+
         """
         super().__init__(coordinator)
         # We need to call Camera's __init__ as well due to multiple inheritance
@@ -166,8 +171,10 @@ class MerakiCamera(CoordinatorEntity[MerakiDataUpdateCoordinator], Camera):
             width: The desired width of the image.
             height: The desired height of the image.
 
-        Returns:
+        Returns
+        -------
             The image bytes or None if an error occurred.
+
         """
         if self._device_data.get("status") != "online":
             _LOGGER.debug(
@@ -284,6 +291,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDataUpdateCoordinator], Camera):
 
         Args:
             enabled: Whether to enable or disable the stream.
+
         """
         device_in_coordinator = next(
             (

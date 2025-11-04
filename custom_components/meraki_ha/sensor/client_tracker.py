@@ -18,10 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 CLIENT_TRACKER_DEVICE_ID = "client_tracker"
 
 
-class ClientTrackerDeviceSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
-):
-
+class ClientTrackerDeviceSensor(CoordinatorEntity, SensorEntity):
     """A sensor representing the Client Tracker device itself."""
 
     _attr_has_entity_name = True
@@ -70,8 +67,7 @@ class ClientTrackerDeviceSensor(
             self._attr_native_value = 0
 
 
-class MerakiClientSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
-
+class MerakiClientSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki client as a sensor."""
 
     _attr_has_entity_name = True

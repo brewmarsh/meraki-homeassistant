@@ -1,4 +1,5 @@
 """Sensor for Meraki WAN1 Connectivity."""
+
 from __future__ import annotations
 
 import logging
@@ -21,15 +22,14 @@ STATE_DISCONNECTED = "Disconnected"
 
 
 class MerakiWAN1ConnectivitySensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator],
+    CoordinatorEntity,
     SensorEntity,
 ):
-
     """Representation of a Meraki WAN1 Connectivity Sensor."""
 
     _attr_icon = "mdi:wan"
     _attr_has_entity_name = True
-    _attr_device_class = "connectivity"
+    _attr_device_class = "connectivity"  # type: ignore[assignment]
 
     def __init__(
         self,

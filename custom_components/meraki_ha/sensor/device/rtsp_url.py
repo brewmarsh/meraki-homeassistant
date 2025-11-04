@@ -19,8 +19,7 @@ from ...helpers.entity_helpers import format_entity_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiRtspUrlSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
-
+class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     """
     Representation of an RTSP URL sensor.
 

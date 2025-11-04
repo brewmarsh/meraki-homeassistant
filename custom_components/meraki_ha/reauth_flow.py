@@ -1,4 +1,5 @@
 """Reauthentication flow for the Meraki Home Assistant integration."""
+
 from __future__ import annotations
 
 import logging
@@ -31,7 +32,7 @@ async def async_step_reauth(
         self: The config flow handler.
         user_input: The user input.
 
-    Returns:
+    Returns
     -------
         The flow result.
 

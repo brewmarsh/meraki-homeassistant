@@ -1,4 +1,5 @@
 """Module for asynchronous logging utilities."""
+
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable
@@ -21,7 +22,7 @@ def async_log_time(
         logger: The logger to use for logging.
         level: The logging level to use.
 
-    Returns:
+    Returns
     -------
         The decorator.
 

@@ -1,4 +1,5 @@
 """Tests for consistent device name formatting across various entity types."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock
@@ -49,7 +50,10 @@ def test_org_device_naming(mock_coordinator: MagicMock) -> None:
     org_name = "Test Organization"
 
     sensor = MerakiOrganizationSSIDClientsSensor(mock_coordinator, org_id, org_name)
-    assert sensor.device_info["name"] == "[Organization] Test Organization"
+    device_info = sensor.device_info
+    if device_info is None:
+        pytest.fail("Org sensor device_info is None")
+    assert device_info["name"] == "[Organization] Test Organization"
 
 
 def test_network_device_naming(mock_coordinator: MagicMock) -> None:
@@ -76,7 +80,10 @@ def test_network_device_naming(mock_coordinator: MagicMock) -> None:
         network_data,
         MagicMock(),
     )
-    assert sensor.device_info["name"] == "[Network] Test Network"
+    device_info = sensor.device_info
+    if device_info is None:
+        pytest.fail("Network sensor device_info is None")
+    assert device_info["name"] == "[Network] Test Network"
 
 
 def test_vlan_device_naming(mock_coordinator: MagicMock) -> None:
@@ -97,4 +104,7 @@ def test_vlan_device_naming(mock_coordinator: MagicMock) -> None:
         network_id,
         vlan_data,
     )
-    assert sensor.device_info["name"] == "[VLAN] Test VLAN"
+    device_info = sensor.device_info
+    if device_info is None:
+        pytest.fail("VLAN sensor device_info is None")
+    assert device_info["name"] == "[VLAN] Test VLAN"

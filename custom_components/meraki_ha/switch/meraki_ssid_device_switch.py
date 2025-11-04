@@ -19,10 +19,7 @@ from ..helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDBaseSwitch(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SwitchEntity
-):
-
+class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
     """Base class for Meraki SSID Switches."""
 
     entity_category = EntityCategory.CONFIG
@@ -67,7 +64,7 @@ class MerakiSSIDBaseSwitch(
         return None
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information to link this entity to the SSID device."""
         return resolve_device_info(
             entity_data={"networkId": self._network_id},
@@ -148,7 +145,6 @@ class MerakiSSIDBaseSwitch(
 
 
 class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
-
     """Switch to control the enabled/disabled state of a Meraki SSID."""
 
     def __init__(
@@ -182,7 +178,6 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
 
 
 class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
-
     """Switch to control the broadcast (visible/hidden) state of a Meraki SSID."""
 
     def __init__(

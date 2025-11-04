@@ -11,30 +11,25 @@ from ...const import MOCK_CONFIG_ENTRY, MOCK_GX_DEVICE
 
 
 @pytest.fixture
-def mock_coordinator():
-    """Fixture for a mock MerakiDataUpdateCoordinator."""
-    coordinator = MagicMock()
-    coordinator.data = {"devices": [MOCK_GX_DEVICE]}
-    return coordinator
-
-
-@pytest.fixture
-def mock_control_service():
+def mock_control_service() -> MagicMock:
     """Fixture for a mock DeviceControlService."""
     return MagicMock()
 
 
 @pytest.fixture
-def mock_camera_service():
+def mock_camera_service() -> AsyncMock:
     """Fixture for a mocked CameraService."""
     return AsyncMock()
 
 
 @pytest.mark.asyncio
 async def test_discover_entities_creates_reboot_button(
-    mock_coordinator, mock_camera_service, mock_control_service
-):
+    mock_coordinator: MagicMock,
+    mock_camera_service: AsyncMock,
+    mock_control_service: MagicMock,
+) -> None:
     """Test that discover_entities creates a MerakiRebootButton."""
+    mock_coordinator.data = {"devices": [MOCK_GX_DEVICE]}
     handler = GXHandler(
         mock_coordinator,
         MOCK_GX_DEVICE,

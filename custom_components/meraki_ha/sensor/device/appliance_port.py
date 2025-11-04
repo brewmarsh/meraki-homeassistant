@@ -16,10 +16,7 @@ from ...helpers.entity_helpers import format_entity_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAppliancePortSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
-):
-
+class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki appliance port sensor."""
 
     def __init__(
@@ -63,7 +60,7 @@ class MerakiAppliancePortSensor(
                         return
 
     @property
-    def state(self) -> str:
+    def native_value(self) -> str:
         """Return the state of the sensor."""
         if not self._port.get("enabled"):
             return "disabled"

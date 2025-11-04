@@ -1,94 +1,67 @@
 import React, { useState } from 'react';
-import Typography from '@mui/material/Typography';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Collapse from '@mui/material/Collapse';
-import IconButton, { IconButtonProps } from '@mui/material/IconButton';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { styled } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import Divider from '@mui/material/Divider';
 import DeviceView from './DeviceView';
 
-interface ExpandMoreProps extends IconButtonProps {
-  expand: boolean;
+interface Network {
+  id: string;
+  name: string;
 }
 
-const ExpandMore = styled((props: ExpandMoreProps) => {
-  const { expand, ...other } = props;
-  return <IconButton {...other} />;
-})(({ theme, expand }) => ({
-  transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-  marginLeft: 'auto',
-  color: theme.palette.text.secondary,
-  transition: theme.transitions.create('transform', {
-    duration: theme.transitions.duration.shortest,
-  }),
-}));
+interface Device {
+  name: string;
+  model: string;
+  serial: string;
+  status: string;
+  lanIp?: string;
+  mac?: string;
+  networkId?: string;
+}
 
 interface NetworkViewProps {
-    data: any;
+  data: {
+    networks: Network[];
+    devices: Device[];
+  };
 }
 
 const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
-    const { networks = [], devices = [] } = data;
-    const [expanded, setExpanded] = useState<string | false>(false);
+  const [openNetworkId, setOpenNetworkId] = useState<string | null>(null);
 
-    const handleExpandClick = (panel: string) => {
-      setExpanded(expanded === panel ? false : panel);
-    };
+  const handleNetworkClick = (networkId: string) => {
+    setOpenNetworkId(openNetworkId === networkId ? null : networkId);
+  };
 
-    return (
-        <Box>
-            {networks.map((network: any) => {
-                const networkDevices = devices.filter((d: any) => d.networkId === network.id);
-                const isExpanded = expanded === network.id;
+  const { networks, devices } = data;
 
-                return (
-                    <Card
-                        key={network.id}
-                        sx={{
-                            mb: 2.5,
-                            borderRadius: 2,
-                            boxShadow: 'none',
-                            border: '1px solid',
-                            borderColor: 'divider',
-                        }}
-                    >
-                        <Box
-                          sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              cursor: 'pointer',
-                              p: 2.5,
-                              '&:hover': {
-                                backgroundColor: 'action.hover',
-                              }
-                          }}
-                          onClick={() => handleExpandClick(network.id)}
-                        >
-                            <Typography variant="h5" component="div" sx={{ flexGrow: 1 }}>
-                                {network.name}
-                            </Typography>
-                            <ExpandMore
-                                expand={isExpanded}
-                                aria-expanded={isExpanded}
-                                aria-label="show more"
-                            >
-                                <ExpandMoreIcon />
-                            </ExpandMore>
-                        </Box>
-                        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                            <Divider />
-                            <CardContent sx={{ p: 2.5 }}>
-                                <DeviceView devices={networkDevices} />
-                            </CardContent>
-                        </Collapse>
-                    </Card>
-                );
-            })}
-        </Box>
-    );
+  if (!networks || networks.length === 0) {
+    return <p>No networks found.</p>;
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {networks.map((network) => {
+        const isOpen = openNetworkId === network.id;
+        return (
+          <ha-card key={network.id}>
+            <div
+              className="card-header"
+              onClick={() => handleNetworkClick(network.id)}
+              style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '16px' }}
+            >
+              <span>[Network] {network.name}</span>
+              <ha-icon style={{ marginLeft: '8px' }} icon={isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}></ha-icon>
+            </div>
+            {isOpen && (
+              <div className="card-content">
+                <DeviceView
+                  devices={devices.filter((d) => d.networkId === network.id)}
+                />
+              </div>
+            )}
+          </ha-card>
+        );
+      })}
+    </div>
+  );
 };
 
 export default NetworkView;

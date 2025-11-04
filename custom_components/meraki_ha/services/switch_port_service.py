@@ -17,7 +17,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class SwitchPortService:
-
     """A service for handling switch port logic."""
 
     def __init__(self, repository: MerakiRepository) -> None:
@@ -34,7 +33,7 @@ class SwitchPortService:
         ----
             serial: The serial number of the switch.
 
-        Returns:
+        Returns
         -------
             A list of port statuses, or None if an error occurred.
 
@@ -50,7 +49,7 @@ class SwitchPortService:
             serial: The serial number of the switch.
             port_id: The ID of the port.
 
-        Returns:
+        Returns
         -------
             The status of the port ('Connected' or 'Disconnected'), or None if
             not found.
@@ -72,7 +71,7 @@ class SwitchPortService:
             serial: The serial number of the switch.
             port_id: The ID of the port.
 
-        Returns:
+        Returns
         -------
             The speed of the port, or None if not found.
 

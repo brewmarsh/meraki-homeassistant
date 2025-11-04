@@ -19,10 +19,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAnalyticsSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
-):
-
+class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
     """Base class for Meraki analytics sensors."""
 
     def __init__(
@@ -42,7 +39,7 @@ class MerakiAnalyticsSensor(
         self._analytics_data: dict[str, Any] = {}
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
         return resolve_device_info(self._device, self.coordinator.config_entry)
 
@@ -75,7 +72,6 @@ class MerakiAnalyticsSensor(
 
 
 class MerakiPersonCountSensor(MerakiAnalyticsSensor):
-
     """Representation of a person count sensor."""
 
     def __init__(
@@ -90,7 +86,6 @@ class MerakiPersonCountSensor(MerakiAnalyticsSensor):
 
 
 class MerakiVehicleCountSensor(MerakiAnalyticsSensor):
-
     """Representation of a vehicle count sensor."""
 
     def __init__(

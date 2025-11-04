@@ -19,7 +19,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class CameraService:
-
     """Service for camera-related business logic."""
 
     def __init__(self, repository: CameraRepository) -> None:
@@ -45,6 +44,10 @@ class CameraService:
     async def get_video_stream_url(self, serial: str) -> str | None:
         """Get the video stream URL for a camera."""
         return await self._repository.async_get_rtsp_stream_url(serial)
+
+    async def get_camera_snapshot(self, serial: str) -> str | None:
+        """Get a camera snapshot URL."""
+        return await self.generate_snapshot(serial)
 
     async def get_motion_history(self, serial: str) -> list[dict[str, Any]]:
         """

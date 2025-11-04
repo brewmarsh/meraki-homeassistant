@@ -1,4 +1,5 @@
 """Sensor for Meraki switch PoE usage."""
+
 from __future__ import annotations
 
 import logging
@@ -19,10 +20,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiPoeUsageSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator],
+    CoordinatorEntity,
     SensorEntity,
 ):
-
     """
     Representation of a Meraki switch PoE usage sensor.
 

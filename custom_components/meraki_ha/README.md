@@ -4,7 +4,7 @@ This is a custom component for integrating Cisco Meraki devices into Home Assist
 
 ## Features
 
-This integration provides a wide range of entities for monitoring and controlling your Meraki networks and devices.
+This integration provides a wide range of entities for monitoring and controlling Meraki networks and devices.
 
 ### Parental Controls
 

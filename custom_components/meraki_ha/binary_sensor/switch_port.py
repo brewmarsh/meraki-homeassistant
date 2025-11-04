@@ -18,10 +18,7 @@ from ..helpers.entity_helpers import get_device_from_coordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class SwitchPortSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], BinarySensorEntity
-):
-
+class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
     """Representation of a Meraki switch port sensor."""
 
     _attr_state_color = True
@@ -41,7 +38,7 @@ class SwitchPortSensor(
         self._attr_name = f"Port {self._port['portId']}"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
         return resolve_device_info(self._device, self.coordinator.config_entry)
 

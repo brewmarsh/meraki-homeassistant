@@ -12,7 +12,6 @@ from ...types import MerakiNetwork
 
 
 class VlansListSensor(MerakiNetworkEntity, SensorEntity):
-
     """Representation of a sensor that lists all VLANs in a network."""
 
     def __init__(
@@ -25,23 +24,20 @@ class VlansListSensor(MerakiNetworkEntity, SensorEntity):
         super().__init__(coordinator, config_entry, network_data)
         self._attr_unique_id = f"{network_data['id']}_vlans"
         self._attr_name = "VLANs"
-        self._attr_native_value: list[str] = []
-
-    @property
-    def native_value(self) -> int:
-        """Return the number of VLANs."""
-        return len(self._attr_native_value)
+        self._vlan_list: list[str] = []
+        self._attr_native_value = 0
 
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""
-        return {"vlans": self._attr_native_value}
+        return {"vlans": self._vlan_list}
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         vlans = self.coordinator.data.get("vlans", {}).get(self._network["id"], [])
-        self._attr_native_value = [
-            vlan.get("name") for vlan in vlans if vlan.get("name")
+        self._vlan_list = [
+            vlan.get("name") or f"VLAN {vlan.get('id')}" for vlan in vlans
         ]
+        self._attr_native_value = len(vlans)
         self.async_write_ha_state()

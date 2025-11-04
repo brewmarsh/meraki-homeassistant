@@ -4,6 +4,7 @@ Meraki API client wrapper.
 This module defines the main API client that acts as a facade for various
 Meraki API endpoint categories.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -58,6 +59,7 @@ class MerakiAPIClient:
             org_id: The organization ID.
             coordinator: The data update coordinator.
             base_url: The base URL for the Meraki API.
+
         """
         self._api_key = api_key
         self._org_id = org_id
@@ -102,8 +104,10 @@ class MerakiAPIClient:
             *args: Positional arguments to pass to the function.
             **kwargs: Keyword arguments to pass to the function.
 
-        Returns:
+        Returns
+        -------
             The result of the function.
+
         """
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, partial(func, *args, **kwargs))
@@ -115,8 +119,10 @@ class MerakiAPIClient:
         Args:
             coro: The awaitable to run.
 
-        Returns:
+        Returns
+        -------
             The result of the awaitable.
+
         """
         async with self._semaphore:
             return await coro
@@ -125,8 +131,10 @@ class MerakiAPIClient:
         """
         Fetch the initial batch of data from the Meraki API.
 
-        Returns:
+        Returns
+        -------
             A dictionary of initial data.
+
         """
         tasks = {
             "networks": self._run_with_semaphore(
@@ -141,6 +149,9 @@ class MerakiAPIClient:
             "appliance_uplink_statuses": self._run_with_semaphore(
                 self.appliance.get_organization_appliance_uplink_statuses(),
             ),
+            "sensor_readings": self._run_with_semaphore(
+                self.sensor.get_organization_sensor_readings_latest(),
+            ),
         }
         results = await asyncio.gather(*tasks.values(), return_exceptions=True)
         return dict(zip(tasks.keys(), results, strict=True))
@@ -152,13 +163,16 @@ class MerakiAPIClient:
         Args:
             results: The raw initial data from the API.
 
-        Returns:
+        Returns
+        -------
             The processed initial data.
+
         """
         networks_res = results.get("networks")
         devices_res = results.get("devices")
         devices_availabilities_res = results.get("devices_availabilities")
         appliance_uplink_statuses_res = results.get("appliance_uplink_statuses")
+        sensor_readings_res = results.get("sensor_readings")
 
         networks: list[MerakiNetwork] = (
             networks_res if isinstance(networks_res, list) else []
@@ -194,15 +208,31 @@ class MerakiAPIClient:
                 appliance_uplink_statuses_res,
             )
 
+        sensor_readings: list[dict[str, Any]] = (
+            sensor_readings_res if isinstance(sensor_readings_res, list) else []
+        )
+        if not isinstance(sensor_readings_res, list):
+            _LOGGER.warning(
+                "Could not fetch Meraki sensor readings: %s", sensor_readings_res
+            )
+
         availabilities_by_serial = {
             availability["serial"]: availability
             for availability in devices_availabilities
             if isinstance(availability, dict) and "serial" in availability
         }
 
+        readings_by_serial = {
+            reading["serial"]: reading.get("readings", [])
+            for reading in sensor_readings
+            if isinstance(reading, dict) and "serial" in reading
+        }
+
         for device in devices:
             if availability := availabilities_by_serial.get(device["serial"]):
                 device["status"] = availability["status"]
+            if readings := readings_by_serial.get(device["serial"]):
+                device["readings"] = readings
 
         return {
             "networks": networks,
@@ -220,8 +250,10 @@ class MerakiAPIClient:
         Args:
             networks: A list of networks to fetch clients for.
 
-        Returns:
+        Returns
+        -------
             A list of clients.
+
         """
         client_tasks = [
             self._run_with_semaphore(self.network.get_network_clients(network["id"]))
@@ -247,8 +279,10 @@ class MerakiAPIClient:
         Args:
             devices: A list of devices to fetch clients for.
 
-        Returns:
+        Returns
+        -------
             A dictionary of clients by device serial.
+
         """
         client_tasks = {
             device["serial"]: self._run_with_semaphore(
@@ -278,8 +312,10 @@ class MerakiAPIClient:
             networks: A list of networks.
             devices: A list of devices.
 
-        Returns:
+        Returns
+        -------
             A dictionary of tasks.
+
         """
         detail_tasks: dict[str, Awaitable[Any]] = {}
         for network in networks:
@@ -301,57 +337,55 @@ class MerakiAPIClient:
                     detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
                         self.appliance.get_network_vlans(network["id"]),
                     )
-                detail_tasks[
-                    f"l3_firewall_rules_{network['id']}"
-                ] = self._run_with_semaphore(
-                    self.appliance.get_l3_firewall_rules(network["id"]),
+                detail_tasks[f"l3_firewall_rules_{network['id']}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_l3_firewall_rules(network["id"]),
+                    )
                 )
-                detail_tasks[
-                    f"traffic_shaping_{network['id']}"
-                ] = self._run_with_semaphore(
-                    self.appliance.get_traffic_shaping(network["id"]),
+                detail_tasks[f"traffic_shaping_{network['id']}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_traffic_shaping(network["id"]),
+                    )
                 )
                 detail_tasks[f"vpn_status_{network['id']}"] = self._run_with_semaphore(
                     self.appliance.get_vpn_status(network["id"]),
                 )
-                detail_tasks[
-                    f"content_filtering_{network['id']}"
-                ] = self._run_with_semaphore(
-                    self.appliance.get_network_appliance_content_filtering(
-                        network["id"],
-                    ),
+                detail_tasks[f"content_filtering_{network['id']}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_network_appliance_content_filtering(
+                            network["id"],
+                        ),
+                    )
                 )
             if "wireless" in product_types:
-                detail_tasks[
-                    f"rf_profiles_{network['id']}"
-                ] = self._run_with_semaphore(
+                detail_tasks[f"rf_profiles_{network['id']}"] = self._run_with_semaphore(
                     self.wireless.get_network_wireless_rf_profiles(network["id"]),
                 )
         for device in devices:
             if device.get("productType") == "camera":
-                detail_tasks[
-                    f"video_settings_{device['serial']}"
-                ] = self._run_with_semaphore(
-                    self.camera.get_camera_video_settings(device["serial"]),
+                detail_tasks[f"video_settings_{device['serial']}"] = (
+                    self._run_with_semaphore(
+                        self.camera.get_camera_video_settings(device["serial"]),
+                    )
                 )
-                detail_tasks[
-                    f"sense_settings_{device['serial']}"
-                ] = self._run_with_semaphore(
-                    self.camera.get_camera_sense_settings(device["serial"]),
+                detail_tasks[f"sense_settings_{device['serial']}"] = (
+                    self._run_with_semaphore(
+                        self.camera.get_camera_sense_settings(device["serial"]),
+                    )
                 )
             elif device.get("productType") == "switch":
-                detail_tasks[
-                    f"ports_statuses_{device['serial']}"
-                ] = self._run_with_semaphore(
-                    self.switch.get_device_switch_ports_statuses(device["serial"]),
+                detail_tasks[f"ports_statuses_{device['serial']}"] = (
+                    self._run_with_semaphore(
+                        self.switch.get_device_switch_ports_statuses(device["serial"]),
+                    )
                 )
             elif device.get("productType") == "appliance" and "networkId" in device:
-                detail_tasks[
-                    f"appliance_settings_{device['serial']}"
-                ] = self._run_with_semaphore(
-                    self.appliance.get_network_appliance_settings(
-                        device["networkId"],
-                    ),
+                detail_tasks[f"appliance_settings_{device['serial']}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_network_appliance_settings(
+                            device["networkId"],
+                        ),
+                    )
                 )
         return detail_tasks
 
@@ -371,8 +405,10 @@ class MerakiAPIClient:
             devices: A list of devices.
             previous_data: The previous data from the coordinator.
 
-        Returns:
+        Returns
+        -------
             The processed detailed data.
+
         """
         ssids: list[dict[str, Any]] = []
         appliance_traffic: dict[str, Any] = {}
@@ -515,8 +551,10 @@ class MerakiAPIClient:
         Args:
             previous_data: The previous data from the coordinator.
 
-        Returns:
+        Returns
+        -------
             A dictionary of all data.
+
         """
         if previous_data is None:
             previous_data = {}
@@ -573,6 +611,7 @@ class MerakiAPIClient:
         Args:
             webhook_url: The URL of the webhook.
             secret: The secret for the webhook.
+
         """
         await self.network.register_webhook(webhook_url, secret)
 
@@ -582,6 +621,7 @@ class MerakiAPIClient:
 
         Args:
             webhook_id: The ID of the webhook to unregister.
+
         """
         await self.network.unregister_webhook(webhook_id)
 
@@ -592,8 +632,10 @@ class MerakiAPIClient:
         Args:
             serial: The serial number of the device to reboot.
 
-        Returns:
+        Returns
+        -------
             The API response.
+
         """
         return await self.appliance.reboot_device(serial)
 
@@ -607,7 +649,9 @@ class MerakiAPIClient:
         Args:
             serial: The serial number of the switch.
 
-        Returns:
+        Returns
+        -------
             A list of port statuses.
+
         """
         return await self.switch.get_device_switch_ports_statuses(serial)

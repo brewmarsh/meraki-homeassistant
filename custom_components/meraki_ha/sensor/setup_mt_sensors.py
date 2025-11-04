@@ -16,7 +16,7 @@ def async_setup_mt_sensors(
     device_info: dict,
 ) -> list[Entity]:
     """Set up Meraki MT sensor entities for a given device."""
-    entities = []
+    entities: list[Entity] = []
     model = device_info.get("model")
 
     if not model or not model.startswith("MT"):

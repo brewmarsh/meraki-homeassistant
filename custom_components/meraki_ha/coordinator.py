@@ -1,4 +1,5 @@
 """Data update coordinator for the Meraki HA integration."""
+
 import logging
 from datetime import datetime, timedelta
 from typing import Any
@@ -25,7 +26,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
-
     """A centralized coordinator for Meraki API data."""
 
     def __init__(
@@ -107,7 +107,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ----
             unique_id: The unique ID of the entity.
 
-        Returns:
+        Returns
         -------
             True if the entity is in a pending state, False otherwise.
 
@@ -143,14 +143,13 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "cannot filter ignored networks.",
             )
             return
-        ignored_networks_str = self.config_entry.options.get(
+        ignored_network_ids = self.config_entry.options.get(
             CONF_IGNORED_NETWORKS,
             DEFAULT_IGNORED_NETWORKS,
         )
-        if ignored_networks_str and "networks" in data:
-            ignored_names = {name.strip() for name in ignored_networks_str.split(",")}
+        if ignored_network_ids and "networks" in data:
             data["networks"] = [
-                n for n in data["networks"] if n.get("name") not in ignored_names
+                n for n in data["networks"] if n.get("id") not in ignored_network_ids
             ]
 
     def _populate_device_entities(self, data: dict[str, Any]) -> None:
@@ -245,7 +244,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ----
             serial: The serial number of the device.
 
-        Returns:
+        Returns
         -------
             The device data or None if not found.
 
@@ -260,7 +259,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ----
             network_id: The ID of the network.
 
-        Returns:
+        Returns
         -------
             The network data or None if not found.
 
@@ -276,7 +275,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             network_id: The ID of the network.
             ssid_number: The number of the SSID.
 
-        Returns:
+        Returns
         -------
             The SSID data or None if not found.
 
@@ -336,7 +335,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             network_id: The ID of the network.
             interval_hours: The interval in hours.
 
-        Returns:
+        Returns
         -------
             True if the check is due, False otherwise.
 
@@ -354,7 +353,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ----
             network_id: The ID of the network.
 
-        Returns:
+        Returns
         -------
             True if the check is due, False otherwise.
 
@@ -369,7 +368,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ----
             network_id: The ID of the network.
 
-        Returns:
+        Returns
         -------
             True if the check is due, False otherwise.
 

@@ -12,7 +12,6 @@ from . import BaseMerakiEntity
 
 
 class MerakiFirewallRuleEntity(BaseMerakiEntity):
-
     """Representation of a Meraki Firewall Rule."""
 
     def __init__(
@@ -64,6 +63,6 @@ class MerakiFirewallRuleEntity(BaseMerakiEntity):
         )
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return self._attr_device_info

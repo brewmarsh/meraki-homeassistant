@@ -1,5 +1,4 @@
 """Tests for the Meraki camera entity."""
-from __future__ import annotations
 
 from __future__ import annotations
 
@@ -9,76 +8,36 @@ import pytest
 from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.camera import MerakiCamera
-from tests.const import MOCK_DEVICE
-
-# A mock camera device with all the data the entity expects
-MOCK_CAMERA_DEVICE = {
-    **MOCK_DEVICE,
-    "productType": "camera",
-    "model": "MV12",
-    "video_settings": {
-        "rtspServerEnabled": True,
-        "rtspUrl": "rtsp://test.com/stream",
-    },
-}
+from tests.const import MOCK_CAMERA_DEVICE
 
 
 @pytest.fixture
-def mock_coordinator() -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
-    coordinator = MagicMock()
-    coordinator.config_entry.options = {}
-    # Set the coordinator's data attribute to contain our mock device
-    coordinator.data = {"devices": [MOCK_CAMERA_DEVICE]}
-    # Mock the async_request_refresh method so it can be awaited
-    coordinator.async_request_refresh = AsyncMock()
-    # Mock async_write_ha_state
-    coordinator.async_write_ha_state = MagicMock()
-    return coordinator
-
-
-@pytest.fixture
-def mock_config_entry() -> MagicMock:
-    """Fixture for a mocked ConfigEntry."""
-    entry = MagicMock()
-    entry.options = {"rtsp_stream_enabled": True}
-    return entry
-
-
-@pytest.fixture
-def mock_camera_service() -> AsyncMock:
-    """Fixture for a mocked CameraService."""
-    service = AsyncMock()
-    service.generate_snapshot = AsyncMock(return_value="http://test.com/snapshot.jpg")
-    return service
-
-
-@pytest.mark.asyncio
-async def test_camera_stream_source(
+def mock_camera(
     mock_coordinator: MagicMock,
     mock_config_entry: MagicMock,
     mock_camera_service: AsyncMock,
-) -> None:
-    """
-    Test the camera stream source relies on coordinator data.
-
-    Args:
-    ----
-        mock_coordinator: The mocked coordinator.
-        mock_config_entry: The mocked config entry.
-        mock_camera_service: The mocked camera service.
-
-    """
-    # Arrange
-    camera = MerakiCamera(
+) -> MerakiCamera:
+    """Fixture for a mocked MerakiCamera."""
+    return MerakiCamera(
         mock_coordinator,
         mock_config_entry,
         MOCK_CAMERA_DEVICE,
         mock_camera_service,
     )
 
+
+@pytest.mark.asyncio
+async def test_camera_stream_source(mock_camera: MerakiCamera) -> None:
+    """
+    Test the camera stream source relies on coordinator data.
+
+    Args:
+    ----
+        mock_camera: The mocked camera.
+
+    """
     # Act
-    source = await camera.stream_source()
+    source = await mock_camera.stream_source()
 
     # Assert
     assert source == "rtsp://1.2.3.4:9000/live"
@@ -87,8 +46,8 @@ async def test_camera_stream_source(
 @pytest.mark.asyncio
 async def test_camera_turn_on(
     hass: HomeAssistant,
+    mock_camera: MerakiCamera,
     mock_coordinator: MagicMock,
-    mock_config_entry: MagicMock,
     mock_camera_service: AsyncMock,
 ) -> None:
     """
@@ -97,37 +56,33 @@ async def test_camera_turn_on(
     Args:
     ----
         hass: The Home Assistant instance.
+        mock_camera: The mocked camera.
         mock_coordinator: The mocked coordinator.
-        mock_config_entry: The mocked config entry.
         mock_camera_service: The mocked camera service.
 
     """
     # Arrange
-    camera = MerakiCamera(
-        mock_coordinator,
-        mock_config_entry,
-        MOCK_CAMERA_DEVICE,
-        mock_camera_service,
-    )
-    camera.hass = hass
-    camera.entity_id = "camera.test_camera"
+    mock_camera.hass = hass
+    mock_camera.entity_id = "camera.test_camera"
 
     # Act
-    await camera.async_turn_on()
+    await mock_camera.async_turn_on()
 
     # Assert
     mock_camera_service.async_set_rtsp_stream_enabled.assert_called_once_with(
         MOCK_CAMERA_DEVICE["serial"],
         True,
     )
-    mock_coordinator.register_pending_update.assert_called_once_with(camera.unique_id)
+    mock_coordinator.register_pending_update.assert_called_once_with(
+        mock_camera.unique_id
+    )
 
 
 @pytest.mark.asyncio
 async def test_camera_turn_off(
     hass: HomeAssistant,
+    mock_camera: MerakiCamera,
     mock_coordinator: MagicMock,
-    mock_config_entry: MagicMock,
     mock_camera_service: AsyncMock,
 ) -> None:
     """
@@ -136,30 +91,26 @@ async def test_camera_turn_off(
     Args:
     ----
         hass: The Home Assistant instance.
+        mock_camera: The mocked camera.
         mock_coordinator: The mocked coordinator.
-        mock_config_entry: The mocked config entry.
         mock_camera_service: The mocked camera service.
 
     """
     # Arrange
-    camera = MerakiCamera(
-        mock_coordinator,
-        mock_config_entry,
-        MOCK_CAMERA_DEVICE,
-        mock_camera_service,
-    )
-    camera.hass = hass
-    camera.entity_id = "camera.test_camera"
+    mock_camera.hass = hass
+    mock_camera.entity_id = "camera.test_camera"
 
     # Act
-    await camera.async_turn_off()
+    await mock_camera.async_turn_off()
 
     # Assert
     mock_camera_service.async_set_rtsp_stream_enabled.assert_called_once_with(
         MOCK_CAMERA_DEVICE["serial"],
         False,
     )
-    mock_coordinator.register_pending_update.assert_called_once_with(camera.unique_id)
+    mock_coordinator.register_pending_update.assert_called_once_with(
+        mock_camera.unique_id
+    )
 
 
 @pytest.mark.parametrize(
@@ -213,8 +164,7 @@ def test_is_streaming_logic(
 @pytest.mark.asyncio
 async def test_camera_image(
     hass: HomeAssistant,
-    mock_coordinator: MagicMock,
-    mock_config_entry: MagicMock,
+    mock_camera: MerakiCamera,
     mock_camera_service: AsyncMock,
 ) -> None:
     """
@@ -223,19 +173,12 @@ async def test_camera_image(
     Args:
     ----
         hass: The Home Assistant instance.
-        mock_coordinator: The mocked coordinator.
-        mock_config_entry: The mocked config entry.
+        mock_camera: The mocked camera.
         mock_camera_service: The mocked camera service.
 
     """
     # Arrange
-    camera = MerakiCamera(
-        mock_coordinator,
-        mock_config_entry,
-        MOCK_CAMERA_DEVICE,
-        mock_camera_service,
-    )
-    camera.hass = hass
+    mock_camera.hass = hass
 
     with patch(
         "custom_components.meraki_ha.camera.async_get_clientsession",
@@ -250,7 +193,7 @@ async def test_camera_image(
         )
 
         # Act
-        image = await camera.async_camera_image()
+        image = await mock_camera.async_camera_image()
 
         # Assert
         assert image == b"image_bytes"

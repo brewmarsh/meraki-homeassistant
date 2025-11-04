@@ -1,8 +1,10 @@
 """Base classes for Meraki camera switch entities."""
+
 import logging
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
@@ -14,10 +16,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiCameraSettingSwitchBase(
-    CoordinatorEntity[MerakiDataUpdateCoordinator],
+    CoordinatorEntity,
     SwitchEntity,
 ):
-
     """Base class for a Meraki Camera Setting Switch."""
 
     def __init__(
@@ -57,7 +58,7 @@ class MerakiCameraSettingSwitchBase(
         ----
             device: The device data.
 
-        Returns:
+        Returns
         -------
             The state value.
 
@@ -88,7 +89,7 @@ class MerakiCameraSettingSwitchBase(
         self.async_write_ha_state()
 
     @property
-    def is_on(self) -> bool:
+    def is_on(self) -> bool | None:
         """Return the current state of the switch."""
         return self._attr_is_on
 
@@ -126,11 +127,11 @@ class MerakiCameraSettingSwitchBase(
         raise NotImplementedError
 
     @property
-    def device_info(self) -> dict[str, Any]:
+    def device_info(self) -> DeviceInfo:
         """Return device information."""
-        return {
-            "identifiers": {("meraki_ha", self._device_data["serial"])},
-            "name": self._device_data["name"],
-            "manufacturer": "Cisco Meraki",
-            "model": self._device_data["model"],
-        }
+        return DeviceInfo(
+            identifiers={("meraki_ha", self._device_data["serial"])},
+            name=self._device_data["name"],
+            manufacturer="Cisco Meraki",
+            model=self._device_data["model"],
+        )

@@ -1,4 +1,5 @@
 """Network-related utility functions."""
+
 from __future__ import annotations
 
 import ipaddress
@@ -20,7 +21,7 @@ def calculate_network_health(data: dict[str, Any]) -> float:
     ----
         data: Network data dictionary containing status metrics.
 
-    Returns:
+    Returns
     -------
         A float between 0-100 representing network health.
 
@@ -59,7 +60,7 @@ def get_active_vlans(network_data: dict[str, Any]) -> list[dict[str, Any]]:
     ----
         network_data: Network data dictionary.
 
-    Returns:
+    Returns
     -------
         List of active VLAN dictionaries with id and subnet info.
 
@@ -87,7 +88,7 @@ def get_ssid_status(network_data: dict[str, Any], ssid_number: int) -> str | Non
         network_data: Network data dictionary.
         ssid_number: The SSID number to check.
 
-    Returns:
+    Returns
     -------
         Status string or None if SSID not found.
 
@@ -109,7 +110,7 @@ def is_private_ip(url_or_ip: str | None) -> bool:
     ----
         url_or_ip: The URL or IP address to check.
 
-    Returns:
+    Returns
     -------
         True if the IP is private, False otherwise.
 
@@ -137,7 +138,7 @@ def construct_rtsp_url(ip_address: str) -> str:
     ----
         ip_address: The IP address of the camera.
 
-    Returns:
+    Returns
     -------
         The RTSP URL.
 

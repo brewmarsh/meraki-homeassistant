@@ -1,20 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import Container from '@mui/material/Container';
-import Typography from '@mui/material/Typography';
-import CircularProgress from '@mui/material/CircularProgress';
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-
+import React, { useState, useEffect } from 'react';
+import Header from './components/Header';
 import NetworkView from './components/NetworkView';
 import EventLog from './components/EventLog';
-import { createDynamicTheme } from './theme';
-
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/400.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
 
 // Define a more complete type for the Home Assistant object
 interface Hass {
@@ -27,8 +14,24 @@ interface Hass {
 }
 
 // Define the types for our data
+interface Network {
+  id: string;
+  name: string;
+}
+
+interface Device {
+  name: string;
+  model: string;
+  serial: string;
+  status: string;
+  lanIp?: string;
+  mac?: string;
+  networkId?: string;
+}
+
 interface MerakiData {
-  [key: string]: any;
+  networks: Network[];
+  devices: Device[];
 }
 
 interface AppProps {
@@ -40,9 +43,6 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Create the theme based on Home Assistant's dark mode setting
-  const theme = useMemo(() => createDynamicTheme(hass?.themes?.darkMode ?? true), [hass]);
 
   useEffect(() => {
     if (!hass || !hass.connection) {
@@ -70,30 +70,19 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
   }, [hass, config_entry_id]);
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4, backgroundColor: theme.palette.background.default, color: theme.palette.text.primary }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Meraki Control
-        </Typography>
-        {loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-            <CircularProgress />
-          </Box>
-        )}
-        {error && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {error}
-          </Alert>
-        )}
-        {!loading && !error && data && (
-          <>
-            <NetworkView data={data} />
+    <div>
+      <Header />
+      {loading && <p>Loading...</p>}
+      {error && <p>Error: {error}</p>}
+      {!loading && !error && data && (
+        <>
+          <NetworkView data={data} />
+          <ha-card header="Event Log">
             <EventLog />
-          </>
-        )}
-      </Container>
-    </ThemeProvider>
+          </ha-card>
+        </>
+      )}
+    </div>
   );
 };
 

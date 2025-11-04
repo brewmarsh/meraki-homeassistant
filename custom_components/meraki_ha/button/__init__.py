@@ -4,6 +4,7 @@ import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN, PLATFORM_BUTTON
@@ -31,7 +32,7 @@ async def async_setup_entry(
     if not meraki_client:
         _LOGGER.warning("Meraki client not available; skipping button setup.")
         return False
-    button_entities = []
+    button_entities: list[Entity] = []
 
     for device in coordinator.data.get("devices", []):
         # Add reboot button for all devices

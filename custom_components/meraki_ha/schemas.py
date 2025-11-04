@@ -1,4 +1,5 @@
 """Schema definitions for the Meraki Home Assistant integration."""
+
 from __future__ import annotations
 
 import voluptuous as vol
@@ -42,6 +43,13 @@ OPTIONS_SCHEMA = vol.Schema(
         ): selector.BooleanSelector(),
         vol.Optional(
             CONF_IGNORED_NETWORKS, default=DEFAULT_IGNORED_NETWORKS
-        ): selector.TextSelector(),
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[],
+                multiple=True,
+                custom_value=False,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
     }
 )

@@ -20,6 +20,7 @@ RUN apt-get update && \
     tar \
     unzip \
     wget \
+    rsync \
     # Clean up APT cache
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
