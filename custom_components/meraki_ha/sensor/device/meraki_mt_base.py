@@ -61,7 +61,26 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
 
         for reading in readings:
             if reading.get("metric") == self.entity_description.key:
-                return reading.get("value")
+                metric_data = reading.get(self.entity_description.key)
+                if isinstance(metric_data, dict):
+                    # Map metric to the key holding its value
+                    key_map = {
+                        "temperature": "celsius",
+                        "humidity": "relativePercentage",
+                        "pm25": "concentration",
+                        "tvoc": "concentration",
+                        "co2": "concentration",
+                        "noise": "ambient",
+                        "water": "present",
+                        "power": "draw",
+                        "voltage": "level",
+                        "current": "draw",
+                    }
+                    value_key = key_map.get(self.entity_description.key)
+                    if value_key:
+                        if value_key == "ambient":
+                            return metric_data.get("ambient", {}).get("level")
+                        return metric_data.get(value_key)
         return None
 
     @property
