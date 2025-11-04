@@ -1,3 +1,12 @@
+## [1.5.4-beta.33](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.32...v1.5.4-beta.33) (2025-11-04)
+
+
+### Bug Fixes
+
+* **sensor:** Correctly parse MT sensor data ([fb8a8a2](https://github.com/brewmarsh/meraki-homeassistant/commit/fb8a8a2cca2076c63bc17e36ad17ccf1609cf7a8))
+
+
+
 ## [1.5.4-beta.32](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.31...v1.5.4-beta.32) (2025-11-04)
 
 
