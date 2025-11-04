@@ -78,12 +78,15 @@ async def test_turn_on(
         patch.object(
             switch._client.appliance,
             "get_network_appliance_content_filtering",
+            new_callable=AsyncMock,
             return_value={
                 "blockedUrlCategories": ["meraki:contentFiltering/category/2"]
             },
         ) as mock_get,
         patch.object(
-            switch._client.appliance, "update_network_appliance_content_filtering"
+            switch._client.appliance,
+            "update_network_appliance_content_filtering",
+            new_callable=AsyncMock,
         ) as mock_update,
     ):
         await switch.async_turn_on()
@@ -112,12 +115,15 @@ async def test_turn_off(
         patch.object(
             switch._client.appliance,
             "get_network_appliance_content_filtering",
+            new_callable=AsyncMock,
             return_value={
                 "blockedUrlCategories": ["meraki:contentFiltering/category/2"]
             },
         ) as mock_get,
         patch.object(
-            switch._client.appliance, "update_network_appliance_content_filtering"
+            switch._client.appliance,
+            "update_network_appliance_content_filtering",
+            new_callable=AsyncMock,
         ) as mock_update,
     ):
         await switch.async_turn_off()
