@@ -1,3 +1,12 @@
+## [1.5.4-beta.32](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.31...v1.5.4-beta.32) (2025-11-04)
+
+
+### Features
+
+* Fix VLAN count and test failures ([7bba357](https://github.com/brewmarsh/meraki-homeassistant/commit/7bba357d961395f19a01ce205faf4b21cd63d542))
+
+
+
 ## [1.5.4-beta.31](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.30...v1.5.4-beta.31) (2025-11-04)
 
 
