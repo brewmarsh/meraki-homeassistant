@@ -22,6 +22,7 @@ def mock_coordinator_mt15(mock_coordinator: MagicMock) -> MagicMock:
             },
         ]
     }
+    mock_coordinator.last_update_success = True
     return mock_coordinator
 
 
