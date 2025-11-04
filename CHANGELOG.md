@@ -1,3 +1,12 @@
+## [1.5.4-beta.29](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.28...v1.5.4-beta.29) (2025-11-04)
+
+
+### Features
+
+* **web-ui:** redesign network and device views ([068b473](https://github.com/brewmarsh/meraki-homeassistant/commit/068b4737f347232ff146a5883dc471752345959a))
+
+
+
 ## [1.5.4-beta.28](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.27...v1.5.4-beta.28) (2025-11-03)
 
 
