@@ -143,14 +143,13 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "cannot filter ignored networks.",
             )
             return
-        ignored_networks_str = self.config_entry.options.get(
+        ignored_network_ids = self.config_entry.options.get(
             CONF_IGNORED_NETWORKS,
             DEFAULT_IGNORED_NETWORKS,
         )
-        if ignored_networks_str and "networks" in data:
-            ignored_names = {name.strip() for name in ignored_networks_str.split(",")}
+        if ignored_network_ids and "networks" in data:
             data["networks"] = [
-                n for n in data["networks"] if n.get("name") not in ignored_names
+                n for n in data["networks"] if n.get("id") not in ignored_network_ids
             ]
 
     def _populate_device_entities(self, data: dict[str, Any]) -> None:

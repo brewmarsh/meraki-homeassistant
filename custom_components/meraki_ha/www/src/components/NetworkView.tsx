@@ -49,7 +49,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, hass, config_entry_id }
               onClick={() => handleNetworkClick(network.id)}
               style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '16px' }}
             >
-              <span>{network.name}</span>
+              <span>[Network] {network.name}</span>
               <ha-icon style={{ marginLeft: '8px' }} icon={isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}></ha-icon>
             </div>
             {isOpen && (
