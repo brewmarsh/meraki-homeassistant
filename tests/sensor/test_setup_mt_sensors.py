@@ -18,8 +18,8 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                 "model": "MT10",
                 "productType": "sensor",
                 "readings": [
-                    {"metric": "temperature", "value": 25.5},
-                    {"metric": "humidity", "value": 60.0},
+                    {"metric": "temperature", "temperature": {"celsius": 25.5}},
+                    {"metric": "humidity", "humidity": {"relativePercentage": 60.0}},
                 ],
             },
             {
@@ -28,12 +28,12 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                 "model": "MT15",
                 "productType": "sensor",
                 "readings": [
-                    {"metric": "temperature", "value": 22.1},
-                    {"metric": "humidity", "value": 45.2},
-                    {"metric": "co2", "value": 450},
-                    {"metric": "tvoc", "value": 150},
-                    {"metric": "pm25", "value": 10.5},
-                    {"metric": "noise", "value": 35.2},
+                    {"metric": "temperature", "temperature": {"celsius": 22.1}},
+                    {"metric": "humidity", "humidity": {"relativePercentage": 45.2}},
+                    {"metric": "co2", "co2": {"concentration": 450}},
+                    {"metric": "tvoc", "tvoc": {"concentration": 150}},
+                    {"metric": "pm25", "pm25": {"concentration": 10.5}},
+                    {"metric": "noise", "noise": {"ambient": {"level": 35.2}}},
                 ],
             },
             {
@@ -42,7 +42,7 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                 "model": "MT12",
                 "productType": "sensor",
                 "readings": [
-                    {"metric": "water", "value": False},
+                    {"metric": "water", "water": {"present": False}},
                 ],
             },
             {
@@ -51,9 +51,9 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                 "model": "MT40",
                 "productType": "sensor",
                 "readings": [
-                    {"metric": "power", "value": 120.5},
-                    {"metric": "voltage", "value": 120.1},
-                    {"metric": "current", "value": 1.0},
+                    {"metric": "power", "power": {"draw": 120.5}},
+                    {"metric": "voltage", "voltage": {"level": 120.1}},
+                    {"metric": "current", "current": {"draw": 1.0}},
                 ],
             },
         ]

@@ -149,6 +149,9 @@ class MerakiAPIClient:
             "appliance_uplink_statuses": self._run_with_semaphore(
                 self.appliance.get_organization_appliance_uplink_statuses(),
             ),
+            "sensor_readings": self._run_with_semaphore(
+                self.sensor.get_organization_sensor_readings_latest(),
+            ),
         }
         results = await asyncio.gather(*tasks.values(), return_exceptions=True)
         return dict(zip(tasks.keys(), results, strict=True))
@@ -169,6 +172,7 @@ class MerakiAPIClient:
         devices_res = results.get("devices")
         devices_availabilities_res = results.get("devices_availabilities")
         appliance_uplink_statuses_res = results.get("appliance_uplink_statuses")
+        sensor_readings_res = results.get("sensor_readings")
 
         networks: list[MerakiNetwork] = (
             networks_res if isinstance(networks_res, list) else []
@@ -204,15 +208,31 @@ class MerakiAPIClient:
                 appliance_uplink_statuses_res,
             )
 
+        sensor_readings: list[dict[str, Any]] = (
+            sensor_readings_res if isinstance(sensor_readings_res, list) else []
+        )
+        if not isinstance(sensor_readings_res, list):
+            _LOGGER.warning(
+                "Could not fetch Meraki sensor readings: %s", sensor_readings_res
+            )
+
         availabilities_by_serial = {
             availability["serial"]: availability
             for availability in devices_availabilities
             if isinstance(availability, dict) and "serial" in availability
         }
 
+        readings_by_serial = {
+            reading["serial"]: reading.get("readings", [])
+            for reading in sensor_readings
+            if isinstance(reading, dict) and "serial" in reading
+        }
+
         for device in devices:
             if availability := availabilities_by_serial.get(device["serial"]):
                 device["status"] = availability["status"]
+            if readings := readings_by_serial.get(device["serial"]):
+                device["readings"] = readings
 
         return {
             "networks": networks,
