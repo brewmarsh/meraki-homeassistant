@@ -21,11 +21,9 @@ interface NetworkViewProps {
     networks: Network[];
     devices: Device[];
   };
-  hass: any;
-  config_entry_id: string;
 }
 
-const NetworkView: React.FC<NetworkViewProps> = ({ data, hass, config_entry_id }) => {
+const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
   const [openNetworkId, setOpenNetworkId] = useState<string | null>(null);
 
   const handleNetworkClick = (networkId: string) => {
@@ -56,8 +54,6 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, hass, config_entry_id }
               <div className="card-content">
                 <DeviceView
                   devices={devices.filter((d) => d.networkId === network.id)}
-                  hass={hass}
-                  config_entry_id={config_entry_id}
                 />
               </div>
             )}
