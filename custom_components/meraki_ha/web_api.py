@@ -50,6 +50,19 @@ def async_setup_api(hass: HomeAssistant) -> None:
             extra=ALLOW_EXTRA,
         ),
     )
+    websocket_api.async_register_command(
+        hass,
+        "meraki_ha/get_camera_snapshot",
+        handle_get_camera_snapshot,
+        Schema(
+            {
+                Required("type"): All(str, "meraki_ha/get_camera_snapshot"),
+                Required("config_entry_id"): str,
+                Required("serial"): str,
+            },
+            extra=ALLOW_EXTRA,
+        ),
+    )
 
 
 @websocket_api.async_response
@@ -104,3 +117,30 @@ async def handle_get_camera_stream_url(
     camera_service: CameraService = hass.data[DOMAIN][config_entry_id]["camera_service"]
     stream_url = await camera_service.get_video_stream_url(serial)
     connection.send_result(msg["id"], {"url": stream_url})
+
+
+@websocket_api.async_response
+async def handle_get_camera_snapshot(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """
+    Handle get_camera_snapshot command.
+
+    Args:
+    ----
+        hass: The Home Assistant instance.
+        connection: The WebSocket connection.
+        msg: The WebSocket message.
+
+    """
+    config_entry_id = msg["config_entry_id"]
+    serial = msg["serial"]
+    if config_entry_id not in hass.data[DOMAIN]:
+        connection.send_error(msg["id"], "not_found", "Config entry not found")
+        return
+
+    camera_service: CameraService = hass.data[DOMAIN][config_entry_id]["camera_service"]
+    snapshot_url = await camera_service.get_camera_snapshot(serial)
+    connection.send_result(msg["id"], {"url": snapshot_url})
