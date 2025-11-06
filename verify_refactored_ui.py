@@ -2,7 +2,6 @@ import asyncio
 import http.server
 import os
 import socketserver
-import sys
 import threading
 
 from playwright.async_api import async_playwright

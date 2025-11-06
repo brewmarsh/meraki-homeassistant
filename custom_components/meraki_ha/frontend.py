@@ -1,13 +1,17 @@
 """Starting setup task: Frontend."""
 from __future__ import annotations
+
 import json
 from pathlib import Path
+
 import aiofiles
-from homeassistant.core import HomeAssistant
 from homeassistant.components import frontend
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+
 from .const import DOMAIN
+
 
 async def async_register_frontend(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Register the frontend."""

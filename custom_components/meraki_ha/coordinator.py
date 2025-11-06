@@ -180,7 +180,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
                 if entities_for_device:
                     # For simplicity, link to the first entity found.
-                    # A more robust solution might involve identifying a "primary" entity.
+                    # A more robust solution might involve identifying a "primary"
+                    # entity.
                     device["entity_id"] = entities_for_device[0].entity_id
 
     async def _async_update_data(self) -> dict[str, Any]:
