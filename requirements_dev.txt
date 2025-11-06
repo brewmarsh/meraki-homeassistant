@@ -1,4 +1,4 @@
-git+https://github.com/home-assistant/core@dev#egg=homeassistant
+homeassistant==2025.11.0
 uv==0.9.6
 aiofiles==23.2.1
 types-aiofiles==25.1.0.20251011
@@ -11,8 +11,8 @@ mypy==1.11.0
 voluptuous==0.15.2
 pyyaml==6.0.3
 playwright
-pytest-homeassistant-custom-component
-pytest
-pytest-cov
-pytest-asyncio
+pytest-homeassistant-custom-component==0.13.294
+pytest==8.4.2
+pytest-cov==7.0.0
+pytest-asyncio==1.2.0
 codecov
