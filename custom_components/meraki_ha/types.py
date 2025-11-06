@@ -70,3 +70,4 @@ class MerakiDevice(TypedDict, total=False):
     dynamicDns: dict
     rtsp_url: str | None
     sense_settings: dict
+    readings: list[dict]
