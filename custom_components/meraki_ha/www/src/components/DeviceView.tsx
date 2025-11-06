@@ -1,6 +1,7 @@
 import React from 'react';
 
 interface Device {
+  entity_id: string;
   name: string;
   model: string;
   serial: string;
@@ -15,7 +16,7 @@ interface DeviceViewProps {
 
 const getDeviceType = (model: string): string => {
   if (model.startsWith('GS')) return 'Switches';
-  if (model.startsWith('GR')) return 'Wireless';
+  if (model.startsWith('GR')) return 'Access Points';
   if (model.startsWith('MT')) return 'Sensors';
   if (model.startsWith('MS')) return 'Switches';
   if (model.startsWith('MV')) return 'Cameras';
@@ -40,9 +41,9 @@ const HeroIndicator: React.FC<{
 
   switch (deviceType) {
     case 'Cameras':
-    case 'Wireless':
     case 'Switches':
     case 'Access Points':
+    case 'Sensors':
       return (
         <div style={heroStyle}>
           <strong>
@@ -82,7 +83,25 @@ const DeviceView: React.FC<DeviceViewProps> = ({ devices }) => {
           {deviceList.map((device) => (
             <div key={device.serial} className="device-item" style={{ marginBottom: '8px' }}>
               <p style={{ margin: 0 }}>
-                <strong>{device.name || 'Unnamed Device'}</strong>
+                <strong
+                  onClick={() =>
+                    device.entity_id &&
+                    window.dispatchEvent(
+                      new CustomEvent('hass-more-info', {
+                        bubbles: true,
+                        composed: true,
+                        detail: { entityId: device.entity_id },
+                      }),
+                    )
+                  }
+                  style={{
+                    cursor: device.entity_id ? 'pointer' : 'default',
+                    color: device.entity_id ? 'var(--primary-color)' : undefined,
+                  }}
+                  title={device.entity_id || ''}
+                >
+                  {device.name || 'Unnamed Device'}
+                </strong>
               </p>
               <p style={{ margin: 0, fontSize: 'var(--secondary-text-size)' }}>
                 Model: {device.model} | Status: {device.status}
