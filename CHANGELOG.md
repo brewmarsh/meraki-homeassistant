@@ -1,3 +1,12 @@
+## [1.5.4-beta.36](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.35...v1.5.4-beta.36) (2025-11-07)
+
+
+### Features
+
+* **docs:** ha-doc-update: Please make one more pass through the feature sets and update all documentation, internal and external, in preparation of publishing a new release. ([3c7e41a](https://github.com/brewmarsh/meraki-homeassistant/commit/3c7e41a2d7291b318269cf0eeb202eba332a0286))
+
+
+
 ## [1.6.0](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.35...v1.6.0) (2025-11-07)
 
 
