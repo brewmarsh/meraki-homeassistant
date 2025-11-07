@@ -1,3 +1,20 @@
+## [1.6.0](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.35...v1.6.0) (2025-11-07)
+
+
+### Features
+
+* **frontend:** Update HA panel with new features ([de41a6f](https://github.com/brewmarsh/meraki-homeassistant/commit/de41a6fee05a4159c1a39a2dcde246095e3b4ccc))
+* **frontend:** implement UI enhancements for HA panel ([35ef2a7](https://github.com/brewmarsh/meraki-homeassistant/commit/35ef2a78e61430c8f0627695804ed8f99de3789c))
+* **web-ui:** redesign network and device views ([068b473](https://github.com/brewmarsh/meraki-homeassistant/commit/068b4737f347232ff146a5883dc471752345959a))
+
+### Bug Fixes
+
+* **deps:** Update test dependencies for Python 3.13 compatibility ([d32ada9](https://github.com/brewmarsh/meraki-homeassistant/commit/d32ada943b913763537f06786d4272738d3ccb21))
+* **frontend:** Prevent duplicate component registration and fix icon styling ([c4bc54e](https://github.com/brewmarsh/meraki-homeassistant/commit/c4bc54ea9f0ca46915c9d66a585222a4bba0e55e))
+* **sensor:** Correctly parse MT sensor data ([fb8a8a2](https://github.com/brewmarsh/meraki-homeassistant/commit/fb8a8a2cca2076c63bc17e36ad17ccf1609cf7a8))
+
+
+
 ## [1.5.4-beta.35](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.34...v1.5.4-beta.35) (2025-11-07)
 
 
