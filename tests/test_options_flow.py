@@ -14,15 +14,39 @@ from custom_components.meraki_ha.const import (
     DOMAIN,
 )
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
+
+@pytest.fixture
+def mock_meraki_client() -> AsyncMock:
+    """Fixture for a mocked MerakiAPIClient."""
+    client = AsyncMock()
+    client.get_all_data = AsyncMock(
+        return_value={
+            "devices": [],
+            "networks": [],
+            "ssids": [],
+            "clients": [],
+            "vlans": {},
+            "appliance_uplink_statuses": [],
+            "rf_profiles": {},
+            "appliance_traffic": {},
+        },
+    )
+    return client
+
 
 @pytest.mark.asyncio
-async def test_options_flow(hass: HomeAssistant) -> None:
+async def test_options_flow(
+    hass: HomeAssistant, mock_meraki_client: AsyncMock
+) -> None:
     """
     Test the options flow.
 
     Args:
     ----
         hass: The Home Assistant instance.
+        mock_meraki_client: The mocked Meraki API client.
 
     """
     config_entry = MockConfigEntry(
@@ -39,6 +63,37 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         },
     )
     config_entry.add_to_hass(hass)
+
+    with (
+        patch(
+            "custom_components.meraki_ha.coordinator.ApiClient",
+            return_value=mock_meraki_client,
+        ),
+        patch(
+            "custom_components.meraki_ha.async_register_webhook", return_value=None
+        ),
+        patch(
+            "custom_components.meraki_ha.async_register_frontend", return_value=None
+        ),
+        patch("homeassistant.components.frontend.async_setup", return_value=True),
+        patch("homeassistant.components.panel_custom.async_setup", return_value=True),
+        patch(
+            "asyncio.base_events.BaseEventLoop.create_server", new_callable=AsyncMock
+        ),
+        patch(
+            "custom_components.meraki_ha.const.PLATFORMS",
+            [
+                "sensor",
+                "binary_sensor",
+                "button",
+                "switch",
+                "text",
+                "number",
+            ],
+        ),
+    ):
+        assert await hass.config_entries.async_setup(config_entry.entry_id)
+        await hass.async_block_till_done()
 
     # Start the options flow
     result = await hass.config_entries.options.async_init(config_entry.entry_id)
