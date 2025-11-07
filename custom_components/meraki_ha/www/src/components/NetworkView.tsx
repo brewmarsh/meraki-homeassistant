@@ -7,6 +7,7 @@ interface Network {
 }
 
 interface Device {
+  entity_id: string;
   name: string;
   model: string;
   serial: string;

@@ -1,14 +1,10 @@
 """The Meraki Home Assistant integration."""
 
-import json
 import logging
 import random
 import string
-from pathlib import Path
 
-import aiofiles  # type: ignore[import-untyped]
-from homeassistant.components import frontend
-from homeassistant.components.http import StaticPathConfig
+from homeassistant.components import frontend as hass_frontend
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
@@ -23,6 +19,7 @@ from .const import (
 from .coordinator import MerakiDataUpdateCoordinator
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
+from .frontend import async_register_frontend
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .web_api import async_setup_api
@@ -31,9 +28,6 @@ from .webhook import async_register_webhook
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
-
-
-from .frontend import async_register_frontend
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -117,7 +111,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the unload was successful.
 
     """
-    frontend.async_remove_panel(hass, "meraki")
+    hass_frontend.async_remove_panel(hass, "meraki")
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:

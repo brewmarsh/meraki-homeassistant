@@ -169,7 +169,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         for device in data["devices"]:
             device.setdefault("status_messages", [])
-            device["entities"] = []
 
             ha_device = dev_reg.async_get_device(
                 identifiers={(DOMAIN, device["serial"])},
@@ -179,17 +178,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     ent_reg,
                     ha_device.id,
                 )
-                for entity_entry in entities_for_device:
-                    state = self.hass.states.get(entity_entry.entity_id)
-                    if state:
-                        device["entities"].append(
-                            {
-                                "entity_id": entity_entry.entity_id,
-                                "name": state.name,
-                                "state": state.state,
-                                "attributes": dict(state.attributes),
-                            },
-                        )
+                if entities_for_device:
+                    # For simplicity, link to the first entity found.
+                    # A more robust solution might involve identifying a "primary"
+                    # entity.
+                    device["entity_id"] = entities_for_device[0].entity_id
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint and apply filters."""
