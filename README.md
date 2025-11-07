@@ -32,6 +32,12 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
 - [Known Issues & Limitations](#known-issues--limitations-️)
 - [Disclaimer](#disclaimer-)
 
+## Screenshots 📸
+
+| Network View | Device Detail View |
+| :---: | :---: |
+| ![Network View](https://user-images.githubusercontent.com/1099616/279869151-24702f37-646d-4176-963d-2103f6f3630d.png) | ![Device Detail View](https://user-images.githubusercontent.com/1099616/279869158-2947a195-5c02-4580-b7a4-315111956f46.png) |
+
 ## Key Features ✨
 
 - **Comprehensive Monitoring:** Keep tabs on all your Meraki hardware, including Wireless Access Points (MR/GR), Switches (MS/GS), Security Appliances (MX), Cameras (MV), and Environmental Sensors (MT).
@@ -39,6 +45,25 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
 - **Web Interface:** A dedicated web UI for advanced features like guest Wi-Fi management and viewing event logs.
 - **Rich Sensor Data:** Creates a wide array of sensors for device status, client counts, data usage, firmware updates, PoE consumption, and much more.
 - **Camera Integration:** View live RTSP streams from your Meraki cameras within Home Assistant.
+- **Device & Entity Model:** The integration represents different aspects of your Meraki setup as devices within Home Assistant to create a logical hierarchy.
+- **Organization-Wide Sensors:** These sensors provide aggregate client counts across your entire Meraki organization and are linked to the Organization device.
+- **Physical Device Sensors:** These sensors are linked to specific physical Meraki hardware devices.
+- **Network Sensors:** These sensors are linked to Meraki Network "devices" in Home Assistant.
+- **VLAN Sensors:** For each VLAN configured in a network, sensors are created to monitor its status.
+- **Appliance Port Sensors:** For each port on a Meraki MX security appliance, a sensor is created to monitor its status.
+- **SSID Sensors:** A variety of sensors are created for each SSID, including client count, bandwidth limits, and more.
+- **Environmental Sensors (MT Series):** For each Meraki environmental sensor (MT series), entities are created to monitor real-time conditions.
+
+## Troubleshooting
+
+If you encounter issues with the integration, please check the following:
+
+- **API Key and Organization ID:** Ensure that your API key and organization ID are correct.
+- **API Access:** Make sure that API access is enabled in your Meraki dashboard.
+- **Home Assistant Logs:** Check the Home Assistant logs for any error messages related to the integration.
+- **Restart Home Assistant:** If you've made any changes to the integration's configuration, restart Home Assistant to apply them.
+
+If you're still having trouble, please open an issue on the GitHub repository.
 
 ## Installation 🛠️
 
@@ -101,9 +126,16 @@ The following options can be configured when you first set up the integration, o
 * **Enable VLAN Management:** Whether to enable VLAN management entities. Default: false.
 * **Ignored Networks:** A comma-separated list of network IDs to ignore.
 
-## Custom Panel 🖼️
+## Web UI 🖼️
 
 This integration provides a custom panel to display a dashboard of your Meraki network. The panel is automatically added to your Home Assistant sidebar when you install the integration.
+
+The Web UI provides a comprehensive overview of your Meraki network, including:
+
+- **Network Summary:** A list of all your networks, with a summary of the devices in each.
+- **Device Details:** A detailed view of each device, including its status, configuration, and connected clients.
+- **Client Details:** A list of all the clients on your network, with the ability to block or unblock them.
+- **Event Log:** A log of all the events on your network, including device connectivity, client activity, and configuration changes.
 
 ## Services & Controls 🎛️
 
