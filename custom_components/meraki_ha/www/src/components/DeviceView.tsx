@@ -78,7 +78,6 @@ const DeviceView: React.FC<DeviceViewProps> = ({ devices }) => {
     <div className="device-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {Object.entries(groupedDevices).map(([type, deviceList]) => (
         <div key={type} className="device-group">
-          <h4 style={{ marginTop: 0, marginBottom: '8px', borderBottom: '1px solid var(--divider-color)' }}>{type}</h4>
           <HeroIndicator deviceType={type} devices={deviceList} />
           {deviceList.map((device) => (
             <div key={device.serial} className="device-item" style={{ marginBottom: '8px' }}>
