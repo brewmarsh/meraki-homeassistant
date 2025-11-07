@@ -1,15 +1,15 @@
 """Switch entity for blocking/unblocking Meraki clients."""
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.core import callback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
 from ..helpers.device_info_helpers import resolve_device_info
@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiClientBlockerSwitch(
-    CoordinatorEntity[SsidFirewallCoordinator],
+    CoordinatorEntity,
     SwitchEntity,
 ):
     """Representation of a Meraki Client Blocker switch entity."""
@@ -30,7 +30,7 @@ class MerakiClientBlockerSwitch(
         self,
         firewall_coordinator: SsidFirewallCoordinator,
         config_entry: ConfigEntry,
-        client_data: Dict[str, Any],
+        client_data: dict[str, Any],
     ) -> None:
         """Initialize the Meraki Client Blocker switch entity."""
         super().__init__(firewall_coordinator)
@@ -49,7 +49,7 @@ class MerakiClientBlockerSwitch(
         self._update_internal_state()
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information to link this entity to the client device."""
         return resolve_device_info(
             entity_data=self._client_data,

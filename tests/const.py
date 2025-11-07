@@ -1,6 +1,9 @@
 """Constants for Meraki tests."""
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
+
 from custom_components.meraki_ha.types import MerakiDevice, MerakiNetwork
 
 MOCK_CONFIG_ENTRY_ID = "test_entry"
@@ -93,4 +96,14 @@ MOCK_ALL_DATA = {
     "ssids": [MOCK_SSID],
     "clients": [],
     "l7_firewall_rules": MOCK_L7_FIREWALL_RULES,
+}
+
+MOCK_CAMERA_DEVICE = {
+    **MOCK_DEVICE,
+    "productType": "camera",
+    "model": "MV12",
+    "video_settings": {
+        "rtspServerEnabled": True,
+        "rtspUrl": "rtsp://test.com/stream",
+    },
 }

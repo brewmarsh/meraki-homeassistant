@@ -1,19 +1,23 @@
 """Base classes for Meraki camera switch entities."""
 
-from typing import Any, Dict
 import logging
+from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+
+from ..core.api.client import MerakiAPIClient
+from ..types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiCameraSettingSwitchBase(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SwitchEntity
+    CoordinatorEntity,
+    SwitchEntity,
 ):
     """Base class for a Meraki Camera Setting Switch."""
 
@@ -21,23 +25,48 @@ class MerakiCameraSettingSwitchBase(
         self,
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: Dict[str, Any],
+        device_data: dict[str, Any],
         key: str,
         api_field: str,
     ) -> None:
-        """Initialize a camera setting switch."""
+        """
+        Initialize a camera setting switch.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            meraki_client: The Meraki API client.
+            device_data: The device data.
+            key: The key for the setting.
+            api_field: The API field for the setting.
+
+        """
         super().__init__(coordinator)
         self.client = meraki_client
         self._device_data = device_data
         self._key = key
         self._api_field = api_field
         self._attr_unique_id = f"{self._device_data['serial']}_{self._key}"
+        self._attr_is_on = False
         self._update_state()  # Set initial state
 
-    def _get_value_from_device(self, device: Dict[str, Any]) -> bool:
-        """Drill down into the device dictionary to get the state value."""
+    def _get_value_from_device(self, device: MerakiDevice | None) -> bool:
+        """
+        Drill down into the device dictionary to get the state value.
+
+        Args:
+        ----
+            device: The device data.
+
+        Returns
+        -------
+            The state value.
+
+        """
+        if device is None:
+            return False
         keys = self._api_field.split(".")
-        value = device
+        value: Any = device
         for key in keys:
             if isinstance(value, dict):
                 value = value.get(key)
@@ -60,67 +89,49 @@ class MerakiCameraSettingSwitchBase(
         self.async_write_ha_state()
 
     @property
-    def is_on(self) -> bool:
+    def is_on(self) -> bool | None:
         """Return the current state of the switch."""
         return self._attr_is_on
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn the setting on."""
+        """
+        Turn the setting on.
+
+        Args:
+        ----
+            **kwargs: Additional arguments.
+
+        """
         await self._async_update_setting(True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the setting off."""
+        """
+        Turn the setting off.
+
+        Args:
+        ----
+            **kwargs: Additional arguments.
+
+        """
         await self._async_update_setting(False)
 
     async def _async_update_setting(self, is_on: bool) -> None:
-        """Update the setting via the Meraki API."""
-        try:
-            if self._key == "sense_enabled":
-                await self.client.camera.update_camera_sense_settings(
-                    serial=self._device_data["serial"], sense_enabled=is_on
-                )
-            elif self._key == "audio_detection":
-                parts = self._api_field.split(".")
-                payload = {parts[0]: {parts[1]: {parts[2]: is_on}}}
-                await self.client.camera.update_camera_video_settings(
-                    serial=self._device_data["serial"], **payload
-                )
-            else:
-                field_name = (
-                    "externalRtspEnabled"
-                    if "externalRtspEnabled" in self._api_field
-                    else self._api_field
-                )
-                video_settings = await self.client.camera.update_camera_video_settings(
-                    serial=self._device_data["serial"], **{field_name: is_on}
-                )
-                if video_settings:
-                    # Update coordinator data with the new video settings
-                    for i, device in enumerate(
-                        self.coordinator.data.get("devices", [])
-                    ):
-                        if device.get("serial") == self._device_data["serial"]:
-                            self.coordinator.data["devices"][i]["video_settings"] = (
-                                video_settings
-                            )
-                            break
-                    self.coordinator.async_update_listeners()
+        """
+        Update the setting via the Meraki API.
 
-            await self.coordinator.async_request_refresh()
-        except Exception as e:
-            _LOGGER.error(
-                "Failed to update camera setting %s for %s: %s",
-                self._key,
-                self._device_data["serial"],
-                e,
-            )
+        Args:
+        ----
+            is_on: Whether the setting is on or off.
+
+        """
+        raise NotImplementedError
 
     @property
-    def device_info(self) -> Dict[str, Any]:
+    def device_info(self) -> DeviceInfo:
         """Return device information."""
-        return {
-            "identifiers": {("meraki_ha", self._device_data["serial"])},
-            "name": self._device_data["name"],
-            "manufacturer": "Cisco Meraki",
-            "model": self._device_data["model"],
-        }
+        return DeviceInfo(
+            identifiers={("meraki_ha", self._device_data["serial"])},
+            name=self._device_data["name"],
+            manufacturer="Cisco Meraki",
+            model=self._device_data["model"],
+        )

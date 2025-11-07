@@ -1,15 +1,13 @@
-"""
-Sensor entities for camera analytics.
-"""
+"""Sensor for camera analytics."""
 
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
@@ -21,13 +19,13 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAnalyticsSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
+class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
     """Base class for Meraki analytics sensors."""
 
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: Dict[str, Any],
+        device: dict[str, Any],
         camera_service: CameraService,
         object_type: str,
     ) -> None:
@@ -38,36 +36,36 @@ class MerakiAnalyticsSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], Sens
         self._object_type = object_type
         self._attr_unique_id = f"{self._device['serial']}-{object_type}-count"
         self._attr_name = f"{self._device['name']} {object_type.capitalize()} Count"
-        self._analytics_data: Dict[str, Any] = {}
+        self._analytics_data: dict[str, Any] = {}
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
         return resolve_device_info(self._device, self.coordinator.config_entry)
 
     @property
-    def native_value(self) -> Optional[int]:
+    def native_value(self) -> int | None:
         """Return the state of the sensor."""
-        if not self._analytics_data:
-            return None
-        # Assuming a single zone for simplicity. In a real scenario, this might
-        # need to aggregate data from multiple zones.
-        return self._analytics_data[0].get(self._object_type)
+        return self._analytics_data.get(self._object_type)
 
     @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         if not self._analytics_data:
             return {}
-        return {"raw_data": self._analytics_data}
+        return {"raw_data": [self._analytics_data]}
 
     async def async_update(self) -> None:
         """Update the sensor."""
         serial = self._device["serial"]
         try:
-            self._analytics_data = await self._camera_service.get_analytics_data(
+            analytics_data = await self._camera_service.get_analytics_data(
                 serial, self._object_type
             )
+            if isinstance(analytics_data, list) and analytics_data:
+                self._analytics_data = analytics_data[0]
+            else:
+                self._analytics_data = {}
         except Exception as e:
             _LOGGER.error("Error updating analytics sensor for %s: %s", serial, e)
             self._analytics_data = {}
@@ -79,7 +77,7 @@ class MerakiPersonCountSensor(MerakiAnalyticsSensor):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: Dict[str, Any],
+        device: dict[str, Any],
         camera_service: CameraService,
     ) -> None:
         """Initialize the sensor."""
@@ -93,7 +91,7 @@ class MerakiVehicleCountSensor(MerakiAnalyticsSensor):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: Dict[str, Any],
+        device: dict[str, Any],
         camera_service: CameraService,
     ) -> None:
         """Initialize the sensor."""

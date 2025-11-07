@@ -1,18 +1,22 @@
 """Config flow for the Meraki Home Assistant integration."""
 
-import logging
-from typing import Any, Dict, Optional
+from __future__ import annotations
 
-from homeassistant import config_entries, data_entry_flow
-from homeassistant.core import callback
+import logging
+from typing import Any
+
 import voluptuous as vol
+from homeassistant import config_entries
+from homeassistant.config_entries import ConfigFlowResult
+from homeassistant.core import callback
+from homeassistant.data_entry_flow import AbortFlow
 
 from .authentication import validate_meraki_credentials
 from .const import (
-    DOMAIN,
+    CONF_INTEGRATION_TITLE,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
-    CONF_INTEGRATION_TITLE,
+    DOMAIN,
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .options_flow import MerakiOptionsFlowHandler
@@ -28,16 +32,28 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the config flow."""
-        self.data: Dict[str, Any] = {}
-        self.options: Dict[str, Any] = {}
+        self.data: dict[str, Any] = {}
+        self.options: dict[str, Any] = {}
 
     async def async_step_user(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
-        """Handle the initial step."""
-        errors: Dict[str, str] = {}
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """
+        Handle the initial step.
+
+        Args:
+        ----
+            user_input: The user input.
+
+        Returns
+        -------
+            The flow result.
+
+        """
+        errors: dict[str, str] = {}
         if user_input is not None:
             try:
                 validation_result = await validate_meraki_credentials(
@@ -48,7 +64,8 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
                 self.data[CONF_MERAKI_API_KEY] = user_input[CONF_MERAKI_API_KEY]
                 self.data[CONF_MERAKI_ORG_ID] = user_input[CONF_MERAKI_ORG_ID]
                 self.data["org_name"] = validation_result.get(
-                    "org_name", user_input[CONF_MERAKI_ORG_ID]
+                    "org_name",
+                    user_input[CONF_MERAKI_ORG_ID],
                 )
 
                 await self.async_set_unique_id(user_input[CONF_MERAKI_ORG_ID])
@@ -61,9 +78,9 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
                 errors["base"] = "invalid_auth"
             except MerakiConnectionError:
                 errors["base"] = "cannot_connect"
-            except data_entry_flow.AbortFlow as e:
+            except AbortFlow as e:
                 raise e
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
 
@@ -74,13 +91,27 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         )
 
     async def async_step_init(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
-        """Handle the general settings step."""
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """
+        Handle the general settings step.
+
+        Args:
+        ----
+            user_input: The user input.
+
+        Returns
+        -------
+            The flow result.
+
+        """
         if user_input is not None:
             self.options.update(user_input)
             return self.async_create_entry(
-                title=CONF_INTEGRATION_TITLE, data=self.data, options=self.options
+                title=self.data.get("org_name", CONF_INTEGRATION_TITLE),
+                data=self.data,
+                options=self.options,
             )
 
         return self.async_show_form(
@@ -93,13 +124,36 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
     def async_get_options_flow(
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
-        """Get the options flow for this handler."""
+        """
+        Get the options flow for this handler.
+
+        Args:
+        ----
+            config_entry: The config entry.
+
+        Returns
+        -------
+            The options flow handler.
+
+        """
         return MerakiOptionsFlowHandler(config_entry)
 
     async def async_step_reconfigure(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> data_entry_flow.FlowResult:
-        """Handle a reconfiguration flow."""
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """
+        Handle a reconfiguration flow.
+
+        Args:
+        ----
+            user_input: The user input.
+
+        Returns
+        -------
+            The flow result.
+
+        """
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         if not entry:
             return self.async_abort(reason="unknown_entry")
@@ -111,7 +165,8 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             return self.async_abort(reason="reconfigure_successful")
 
         schema_with_defaults = self._populate_schema_defaults(
-            OPTIONS_SCHEMA, entry.options
+            OPTIONS_SCHEMA,
+            entry.options,
         )
 
         return self.async_show_form(
@@ -120,9 +175,23 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         )
 
     def _populate_schema_defaults(
-        self, schema: vol.Schema, defaults: dict
+        self,
+        schema: vol.Schema,
+        defaults: dict[str, Any],
     ) -> vol.Schema:
-        """Populate a schema with default values."""
+        """
+        Populate a schema with default values from a dictionary.
+
+        Args:
+        ----
+            schema: The schema to populate.
+            defaults: The default values.
+
+        Returns
+        -------
+            The populated schema.
+
+        """
         new_schema_keys = {}
         for key, value in schema.schema.items():
             if key.schema in defaults:

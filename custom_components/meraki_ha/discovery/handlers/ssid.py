@@ -1,5 +1,5 @@
 """
-Meraki SSID Handler
+Meraki SSID Handler.
 
 This module defines the SSIDHandler class, which is responsible for discovering
 virtual devices and entities for each Meraki SSID.
@@ -8,45 +8,44 @@ virtual devices and entities for each Meraki SSID.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
-from ...text.meraki_ssid_name import MerakiSSIDNameText
-from .base import BaseHandler
-from ...switch.adult_content_filtering import MerakiAdultContentFilteringSwitch
+from ...sensor.network.ssid_auth_mode import MerakiSSIDAuthModeSensor
 
 # Import the specific sensor classes
 from ...sensor.network.ssid_availability import MerakiSSIDAvailabilitySensor
+from ...sensor.network.ssid_band_selection import MerakiSSIDBandSelectionSensor
 from ...sensor.network.ssid_channel import MerakiSSIDChannelSensor
 from ...sensor.network.ssid_client_count import MerakiSSIDClientCountSensor
-from ...sensor.network.ssid_splash_page import MerakiSSIDSplashPageSensor
-from ...sensor.network.ssid_auth_mode import MerakiSSIDAuthModeSensor
+from ...sensor.network.ssid_details import (
+    MerakiSSIDMandatoryDhcpSensor,
+    MerakiSSIDMinBitrate5GhzSensor,
+    MerakiSSIDMinBitrate24GhzSensor,
+    MerakiSSIDTotalDownloadLimitSensor,
+    MerakiSSIDTotalUploadLimitSensor,
+    MerakiSSIDWalledGardenSensor,
+)
 from ...sensor.network.ssid_encryption_mode import MerakiSSIDEncryptionModeSensor
-from ...sensor.network.ssid_wpa_encryption_mode import MerakiSSIDWPAEncryptionModeSensor
 from ...sensor.network.ssid_ip_assignment_mode import MerakiSSIDIPAssignmentModeSensor
-from ...sensor.network.ssid_band_selection import MerakiSSIDBandSelectionSensor
 from ...sensor.network.ssid_per_client_bandwidth_limit import (
     MerakiSSIDPerClientBandwidthLimitSensor,
 )
 from ...sensor.network.ssid_per_ssid_bandwidth_limit import (
     MerakiSSIDPerSsidBandwidthLimitSensor,
 )
+from ...sensor.network.ssid_splash_page import MerakiSSIDSplashPageSensor
 from ...sensor.network.ssid_visible import MerakiSSIDVisibleSensor
-from ...sensor.network.ssid_details import (
-    MerakiSSIDWalledGardenSensor,
-    MerakiSSIDTotalUploadLimitSensor,
-    MerakiSSIDTotalDownloadLimitSensor,
-    MerakiSSIDMandatoryDhcpSensor,
-    MerakiSSIDMinBitrate24GhzSensor,
-    MerakiSSIDMinBitrate5GhzSensor,
-)
-
+from ...sensor.network.ssid_wpa_encryption_mode import MerakiSSIDWPAEncryptionModeSensor
+from ...switch.adult_content_filtering import MerakiAdultContentFilteringSwitch
+from ...text.meraki_ssid_name import MerakiSSIDNameText
+from .base import BaseHandler
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ...core.api.client import MerakiAPIClient
     from ...coordinator import MerakiDataUpdateCoordinator
+    from ...core.api.client import MerakiAPIClient
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -57,9 +56,9 @@ class SSIDHandler(BaseHandler):
 
     def __init__(
         self,
-        coordinator: "MerakiDataUpdateCoordinator",
-        config_entry: "ConfigEntry",
-        meraki_client: "MerakiAPIClient",
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        meraki_client: MerakiAPIClient,
     ) -> None:
         """Initialize the SSIDHandler."""
         super().__init__(coordinator, config_entry)
@@ -68,10 +67,10 @@ class SSIDHandler(BaseHandler):
     @classmethod
     def create(
         cls,
-        coordinator: "MerakiDataUpdateCoordinator",
-        config_entry: "ConfigEntry",
-        meraki_client: "MerakiAPIClient",
-    ) -> "SSIDHandler":
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        meraki_client: MerakiAPIClient,
+    ) -> SSIDHandler:
         """Create an instance of the handler."""
         return cls(
             coordinator,
@@ -79,14 +78,14 @@ class SSIDHandler(BaseHandler):
             meraki_client,
         )
 
-    async def discover_entities(self) -> List[Entity]:
+    async def discover_entities(self) -> list[Entity]:
         """Discover entities for all SSIDs."""
         from ...switch.meraki_ssid_device_switch import (
-            MerakiSSIDEnabledSwitch,
             MerakiSSIDBroadcastSwitch,
+            MerakiSSIDEnabledSwitch,
         )
 
-        entities: List[Entity] = []
+        entities: list[Entity] = []
         if not self._coordinator.data or "ssids" not in self._coordinator.data:
             return entities
 

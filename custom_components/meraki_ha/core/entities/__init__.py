@@ -1,7 +1,6 @@
 """Base entity classes for the Meraki integration."""
 
 from abc import ABC
-from typing import Optional
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
@@ -13,12 +12,13 @@ from ...const import (
     DOMAIN,
     MANUFACTURER,
 )
-from ..coordinators import MerakiDataUpdateCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
 from ..utils.naming_utils import format_device_name
 
 
-class BaseMerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator], Entity, ABC):
-    """Base entity class for Meraki entities.
+class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
+    """
+    Base entity class for Meraki entities.
 
     Provides common functionality for all Meraki entities including:
     - Device info management
@@ -30,16 +30,19 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator], Entity, A
         self,
         coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
-        serial: Optional[str] = None,
-        network_id: Optional[str] = None,
+        serial: str | None = None,
+        network_id: str | None = None,
     ) -> None:
-        """Initialize the entity.
+        """
+        Initialize the entity.
 
         Args:
+        ----
             coordinator: The data coordinator
             config_entry: The config entry
             serial: Device serial number (if this is a device-based entity)
             network_id: Network ID (if this is a network-based entity)
+
         """
         super().__init__(coordinator)
         self._config_entry = config_entry
@@ -48,11 +51,11 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator], Entity, A
         self._attr_has_entity_name = True
 
     @property
-    def device_info(self) -> Optional[DeviceInfo]:
+    def device_info(self) -> DeviceInfo | None:
         """Get device info for this entity."""
         # Handle network-based entities
         if self._network_id and not self._serial:
-            network = self.coordinator.networks_by_id.get(self._network_id)
+            network = self.coordinator.get_network(self._network_id)
             if network:
                 return DeviceInfo(
                     identifiers={(DOMAIN, f"network_{self._network_id}")},
@@ -64,7 +67,7 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator], Entity, A
 
         # Handle device-based entities
         if self._serial:
-            device = self.coordinator.devices_by_serial.get(self._serial)
+            device = self.coordinator.get_device(self._serial)
             if device:
                 model = device.get("model", "unknown")
                 return DeviceInfo(
@@ -89,17 +92,17 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataUpdateCoordinator], Entity, A
 
         # For device-based entities, check device status
         if self._serial:
-            device = self.coordinator.devices_by_serial.get(self._serial)
+            device = self.coordinator.get_device(self._serial)
             return bool(device and device.get("status") == "online")
 
         # For network-based entities, check network status
         if self._network_id:
-            network = self.coordinator.networks_by_id.get(self._network_id)
+            network = self.coordinator.get_network(self._network_id)
             return bool(network)
 
         return True
 
     @property
-    def entity_category(self) -> Optional[EntityCategory]:
+    def entity_category(self) -> EntityCategory | None:
         """Return the entity category."""
         return None  # Override in child classes if needed

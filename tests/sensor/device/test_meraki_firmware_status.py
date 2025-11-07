@@ -1,7 +1,8 @@
 """Tests for the Meraki device firmware status sensor."""
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from custom_components.meraki_ha.sensor.device.meraki_firmware_status import (
     MerakiFirmwareStatusSensor,

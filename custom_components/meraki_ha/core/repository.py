@@ -1,11 +1,12 @@
 """
-Meraki Repository
+Meraki Repository.
 
 This module defines the MerakiRepository class, which is responsible for
 interacting with the Meraki API client and handling data processing.
 """
 
 from __future__ import annotations
+
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -27,10 +28,13 @@ class MerakiRepository:
         Reboot a device.
 
         Args:
+        ----
             serial: The serial number of the device to reboot.
 
-        Returns:
+        Returns
+        -------
             A dictionary containing the API response, or None if an error occurred.
+
         """
         try:
             response = await self._api_client.async_reboot_device(serial)
@@ -46,10 +50,13 @@ class MerakiRepository:
         Get statuses for all ports of a switch.
 
         Args:
+        ----
             serial: The serial number of the switch.
 
-        Returns:
+        Returns
+        -------
             A list of port statuses, or None if an error occurred.
+
         """
         try:
             response = await self._api_client.async_get_switch_port_statuses(serial)

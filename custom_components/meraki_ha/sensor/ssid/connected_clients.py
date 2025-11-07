@@ -1,7 +1,7 @@
 """Sensor entity for monitoring connected clients on a Meraki SSID."""
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
@@ -14,9 +14,7 @@ from ...helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSsidConnectedClientsSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
-):
+class MerakiSsidConnectedClientsSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki SSID Connected Clients sensor."""
 
     _attr_icon = "mdi:wifi-strength-4"
@@ -28,7 +26,7 @@ class MerakiSsidConnectedClientsSensor(
         self,
         coordinator: MerakiDataUpdateCoordinator,
         network_id: str,
-        ssid_data: Dict[str, Any],
+        ssid_data: dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
@@ -36,7 +34,9 @@ class MerakiSsidConnectedClientsSensor(
         self._network_id = network_id
         self._ssid_number = ssid_data["number"]
         self._config_entry = config_entry
-        self._attr_unique_id = f"{self._network_id}_{self._ssid_number}_connected_clients"
+        self._attr_unique_id = (
+            f"{self._network_id}_{self._ssid_number}_connected_clients"
+        )
         self._attr_name = f"{ssid_data['name']} Connected Clients"
 
         self._attr_device_info = resolve_device_info(

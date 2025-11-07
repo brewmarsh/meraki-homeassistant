@@ -1,23 +1,46 @@
 """A custom caching decorator for async methods."""
 
-from functools import wraps
 import time
-from typing import Any, Dict
+from collections.abc import Awaitable, Callable
+from functools import wraps
+from typing import Any, Concatenate, ParamSpec, TypeVar
+
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
-def async_timed_cache(timeout: int = 300):
-    """Decorate to cache the result of an async method on an instance.
+def async_timed_cache(
+    timeout: int = 300,
+) -> Callable[
+    [Callable[Concatenate[Any, P], Awaitable[T]]],
+    Callable[Concatenate[Any, P], Awaitable[T]],
+]:
+    """
+    Decorate to cache the result of an async method on an instance.
 
     The cache is stored on the instance itself and has a timeout.
+
+    Args:
+        timeout: The cache timeout in seconds.
+
+    Returns
+    -------
+        The decorator.
+
     """
 
-    def decorator(func):
+    def decorator(
+        func: Callable[Concatenate[Any, P], Awaitable[T]],
+    ) -> Callable[Concatenate[Any, P], Awaitable[T]]:
+        """Return the decorator."""
+
         @wraps(func)
-        async def wrapper(self, *args, **kwargs):
+        async def wrapper(self: Any, *args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrap the original function."""
             if not hasattr(self, "_cache_storage"):
-                self._cache_storage: Dict[str, Any] = {}
+                self._cache_storage = {}
             if not hasattr(self, "_cache_last_update"):
-                self._cache_last_update: Dict[str, float] = {}
+                self._cache_last_update = {}
 
             # Create a unique key for the function call
             key_parts = [func.__name__]

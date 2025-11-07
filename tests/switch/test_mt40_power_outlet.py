@@ -1,17 +1,17 @@
 """Tests for the Meraki MT40 power outlet switch."""
 
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.switch.mt40_power_outlet import MerakiMt40PowerOutlet
 
 
 @pytest.fixture
-def mock_coordinator():
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
-    coordinator = MagicMock()
-    coordinator.data = {
+def mock_coordinator_with_mt40_data(mock_coordinator: MagicMock) -> MagicMock:
+    """Fixture for a mocked MerakiDataUpdateCoordinator with MT40 data."""
+    mock_coordinator.data = {
         "devices": [
             {
                 "serial": "mt40-1",
@@ -24,36 +24,31 @@ def mock_coordinator():
             },
         ]
     }
-    coordinator.is_pending = MagicMock(return_value=False)
-    return coordinator
+    mock_coordinator.is_pending = MagicMock(return_value=False)
+    return mock_coordinator
 
 
 @pytest.fixture
-def mock_config_entry():
-    """Fixture for a mocked ConfigEntry."""
-    entry = MagicMock()
-    entry.entry_id = "test_entry_id"
-    entry.data = {
-        "api_key": "test_key",
-        "org_id": "test_org",
-    }
-    entry.options = {}
-    return entry
-
-
-@pytest.fixture
-def mock_meraki_client():
+def mock_meraki_client() -> MagicMock:
     """Fixture for a mocked MerakiAPIClient."""
     client = MagicMock()
     client.sensor.create_device_sensor_command = AsyncMock()
     return client
 
 
-def test_mt40_switch_state(hass, mock_coordinator, mock_config_entry, mock_meraki_client):
+def test_mt40_switch_state(
+    hass: HomeAssistant,
+    mock_coordinator_with_mt40_data: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_meraki_client: MagicMock,
+):
     """Test the initial state and update of the MT40 power outlet switch."""
-    device_info = mock_coordinator.data["devices"][0]
+    device_info = mock_coordinator_with_mt40_data.data["devices"][0]
     switch = MerakiMt40PowerOutlet(
-        mock_coordinator, device_info, mock_config_entry, mock_meraki_client
+        mock_coordinator_with_mt40_data,
+        device_info,
+        mock_config_entry,
+        mock_meraki_client,
     )
     switch.hass = hass
     switch.entity_id = "switch.mt40_power_controller_outlet"
@@ -69,11 +64,19 @@ def test_mt40_switch_state(hass, mock_coordinator, mock_config_entry, mock_merak
 
 
 @pytest.mark.asyncio
-async def test_mt40_turn_on(hass, mock_coordinator, mock_config_entry, mock_meraki_client):
+async def test_mt40_turn_on(
+    hass: HomeAssistant,
+    mock_coordinator_with_mt40_data: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_meraki_client: MagicMock,
+):
     """Test turning the MT40 power outlet on."""
-    device_info = mock_coordinator.data["devices"][0]
+    device_info = mock_coordinator_with_mt40_data.data["devices"][0]
     switch = MerakiMt40PowerOutlet(
-        mock_coordinator, device_info, mock_config_entry, mock_meraki_client
+        mock_coordinator_with_mt40_data,
+        device_info,
+        mock_config_entry,
+        mock_meraki_client,
     )
     switch.hass = hass
     switch.entity_id = "switch.mt40_power_controller_outlet"
@@ -84,15 +87,25 @@ async def test_mt40_turn_on(hass, mock_coordinator, mock_config_entry, mock_mera
         serial="mt40-1",
         operation="enableDownstreamPower",
     )
-    mock_coordinator.register_pending_update.assert_called_once_with(switch.unique_id)
+    mock_coordinator_with_mt40_data.register_pending_update.assert_called_once_with(
+        switch.unique_id
+    )
 
 
 @pytest.mark.asyncio
-async def test_mt40_turn_off(hass, mock_coordinator, mock_config_entry, mock_meraki_client):
+async def test_mt40_turn_off(
+    hass: HomeAssistant,
+    mock_coordinator_with_mt40_data: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_meraki_client: MagicMock,
+):
     """Test turning the MT40 power outlet off."""
-    device_info = mock_coordinator.data["devices"][0]
+    device_info = mock_coordinator_with_mt40_data.data["devices"][0]
     switch = MerakiMt40PowerOutlet(
-        mock_coordinator, device_info, mock_config_entry, mock_meraki_client
+        mock_coordinator_with_mt40_data,
+        device_info,
+        mock_config_entry,
+        mock_meraki_client,
     )
     switch.hass = hass
     switch.entity_id = "switch.mt40_power_controller_outlet"
@@ -103,14 +116,23 @@ async def test_mt40_turn_off(hass, mock_coordinator, mock_config_entry, mock_mer
         serial="mt40-1",
         operation="disableDownstreamPower",
     )
-    mock_coordinator.register_pending_update.assert_called_once_with(switch.unique_id)
+    mock_coordinator_with_mt40_data.register_pending_update.assert_called_once_with(
+        switch.unique_id
+    )
 
 
-def test_mt40_availability(mock_coordinator, mock_config_entry, mock_meraki_client):
+def test_mt40_availability(
+    mock_coordinator_with_mt40_data: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_meraki_client: MagicMock,
+):
     """Test availability of the MT40 switch."""
-    device_info = mock_coordinator.data["devices"][0]
+    device_info = mock_coordinator_with_mt40_data.data["devices"][0]
     switch = MerakiMt40PowerOutlet(
-        mock_coordinator, device_info, mock_config_entry, mock_meraki_client
+        mock_coordinator_with_mt40_data,
+        device_info,
+        mock_config_entry,
+        mock_meraki_client,
     )
 
     # Switch should be available

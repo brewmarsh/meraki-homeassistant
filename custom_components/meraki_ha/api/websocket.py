@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import voluptuous as vol
-
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -36,7 +35,9 @@ def ws_subscribe_meraki_data(
         connection.send_error(msg["id"], "not_found", "Config entry not found")
         return
 
-    coordinator: DataUpdateCoordinator = hass.data[DOMAIN][config_entry_id]["coordinator"]
+    coordinator: DataUpdateCoordinator = hass.data[DOMAIN][config_entry_id][
+        "coordinator"
+    ]
 
     @callback
     def async_send_update() -> None:

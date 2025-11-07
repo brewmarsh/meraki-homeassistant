@@ -1,1 +1,1 @@
-# This file makes the 'hubs' directory a Python package.
+"""Tests for the hubs of the Meraki integration."""

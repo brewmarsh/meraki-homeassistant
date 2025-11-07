@@ -1,16 +1,14 @@
-"""
-Button entity for taking a camera snapshot.
-"""
+"""Button entity for taking a camera snapshot."""
 
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
@@ -22,13 +20,13 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSnapshotButton(CoordinatorEntity[MerakiDataUpdateCoordinator], ButtonEntity):
+class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
     """Representation of a snapshot button."""
 
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: Dict[str, Any],
+        device: dict[str, Any],
         camera_service: CameraService,
         config_entry: ConfigEntry,
     ) -> None:
@@ -41,7 +39,7 @@ class MerakiSnapshotButton(CoordinatorEntity[MerakiDataUpdateCoordinator], Butto
         self._attr_name = f"{self._device['name']} Snapshot"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
         return resolve_device_info(self._device, self._config_entry)
 

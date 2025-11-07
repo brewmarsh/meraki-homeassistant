@@ -1,4 +1,5 @@
-"""Sensor entity for representing the status of a Meraki device.
+"""
+Sensor entity for representing the status of a Meraki device.
 
 This module defines the `MerakiDeviceStatusSensor` class, which
 is a Home Assistant sensor entity that displays the status (product type)
@@ -6,32 +7,28 @@ of a specific Meraki device.
 """
 
 import logging
-from typing import Any, Dict, Optional  # Added Optional
+from typing import Any
 
 from homeassistant.components.sensor import (
+    SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
-    SensorDeviceClass,
-)  # Updated import
-
-# Added callback for coordinator updates
-from homeassistant.core import callback
+)
 from homeassistant.config_entries import ConfigEntry
-
-# from homeassistant.helpers.entity import EntityDescription # No longer needed
+from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-# Assuming MerakiDataUpdateCoordinator is the specific coordinator type
-from ...coordinator import MerakiDataUpdateCoordinator
 from ...const import DOMAIN
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDeviceStatusSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
-    """Representation of a Meraki Device Status sensor.
+class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
+    """
+    Representation of a Meraki Device Status sensor.
 
     This sensor displays the actual reported status of a Meraki device
     (e.g., "online", "offline", "alerting"). It uses SensorEntityDescription
@@ -52,15 +49,19 @@ class MerakiDeviceStatusSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], S
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: Dict[str, Any],  # Initial device_data snapshot
+        device_data: dict[str, Any],  # Initial device_data snapshot
         config_entry: ConfigEntry,
     ) -> None:
-        """Initialize the Meraki Device Status sensor.
+        """
+        Initialize the Meraki Device Status sensor.
 
         Args:
-          coordinator: The data update coordinator.
-          device_data: A dictionary containing initial information about the Meraki device
-                 (e.g., name, serial, model, firmware, productType).
+        ----
+            coordinator: The data update coordinator.
+            device_data: A dictionary containing initial information about the
+                Meraki device.
+            config_entry: The config entry.
+
         """
         super().__init__(coordinator)
         self._device_serial: str = device_data["serial"]  # Serial is mandatory
@@ -70,7 +71,6 @@ class MerakiDeviceStatusSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], S
 
         # Set device info for linking to HA device registry
         # This uses the initial device_data for static info.
-        # device_name_for_registry = device_data.get("name") or self._device_serial
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(device_data, config_entry.options),
@@ -80,12 +80,7 @@ class MerakiDeviceStatusSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], S
             sw_version=device_data.get("firmware"),
         )
 
-        # Name of the sensor itself (e.g., "Device Name Status")
-        # self.entity_id will be sensor.device_name_status
-        # _attr_name is not explicitly set, letting has_entity_name and device name work.
-        # If has_entity_name is False or more control is needed:
-        # self._attr_name = f"{device_name_for_registry} Status" # This line should be removed if present
-
+        # _attr_name is not explicitly set
         self.entity_description = SensorEntityDescription(
             key="device_status",
             name="Status",
@@ -95,9 +90,6 @@ class MerakiDeviceStatusSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], S
             icon="mdi:help-network-outline",
         )
         self._attr_options = ["online", "offline", "alerting", "dormant", "unknown"]
-        # Properties like state_class and native_unit_of_measurement are now set by SensorEntityDescription.
-        # Other properties (options, suggested_unit_of_measurement, suggested_display_precision, last_reset)
-        # are intentionally not overridden here and will default to None or appropriate base class behavior.
 
         # Initial update of state and attributes
         self._update_sensor_data()
@@ -111,9 +103,11 @@ class MerakiDeviceStatusSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], S
             "alerting": "mdi:access-point-network-off",
             "dormant": "mdi:access-point-network-off",
         }
-        return status_icon_map.get(self.native_value, "mdi:help-network-outline")
+        if isinstance(self.native_value, str):
+            return status_icon_map.get(self.native_value, "mdi:help-network-outline")
+        return "mdi:help-network-outline"
 
-    def _get_current_device_data(self) -> Optional[Dict[str, Any]]:
+    def _get_current_device_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
         if self.coordinator.data and self.coordinator.data.get("devices"):
             for dev_data in self.coordinator.data["devices"]:
@@ -122,20 +116,16 @@ class MerakiDeviceStatusSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], S
         return None
 
     def _update_sensor_data(self) -> None:
-        """Update sensor state (native_value, icon) and attributes from coordinator data."""
+        """Update sensor state and attributes from coordinator data."""
         current_device_data = self._get_current_device_data()
 
-        if (
-            not current_device_data
-        ):  # Should be primarily handled by the `available` property
+        if not current_device_data:
             self._attr_native_value = None
             self._attr_icon = "mdi:help-rhombus"
-            # Consider clearing extra_state_attributes if device becomes unavailable for a long time
-            # self._attr_extra_state_attributes = {}
             return
 
         # Status is the primary value of this sensor
-        device_status: Optional[str] = current_device_data.get("status")
+        device_status: str | None = current_device_data.get("status")
         if isinstance(device_status, str):
             self._attr_native_value = device_status.lower()
         else:
@@ -165,20 +155,23 @@ class MerakiDeviceStatusSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], S
         # If the device is an appliance, add uplink information as attributes
         if current_device_data.get("productType") == "appliance":
             for uplink in current_device_data.get("uplinks", []):
-                interface = uplink.get("interface", "unknown_interface")
-                self._attr_extra_state_attributes[f"{interface}_status"] = uplink.get(
-                    "status"
-                )
-                self._attr_extra_state_attributes[f"{interface}_ip"] = uplink.get("ip")
-                self._attr_extra_state_attributes[f"{interface}_gateway"] = uplink.get(
-                    "gateway"
-                )
-                self._attr_extra_state_attributes[f"{interface}_public_ip"] = (
-                    uplink.get("publicIp")
-                )
-                self._attr_extra_state_attributes[f"{interface}_dns_servers"] = (
-                    uplink.get("dns")
-                )
+                interface = uplink.get("interface")
+                if interface is not None:
+                    self._attr_extra_state_attributes[f"{interface}_status"] = (
+                        uplink.get("status")
+                    )
+                    self._attr_extra_state_attributes[f"{interface}_ip"] = uplink.get(
+                        "ip"
+                    )
+                    self._attr_extra_state_attributes[f"{interface}_gateway"] = (
+                        uplink.get("gateway")
+                    )
+                    self._attr_extra_state_attributes[f"{interface}_public_ip"] = (
+                        uplink.get("publicIp")
+                    )
+                    self._attr_extra_state_attributes[f"{interface}_dns_servers"] = (
+                        uplink.get("dns")
+                    )
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -192,26 +185,10 @@ class MerakiDeviceStatusSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], S
         # Check basic coordinator availability
         if not super().available:  # Checks coordinator.last_update_success
             return False
-        # Check if the specific device data is available in the coordinator's current data
+        # Check if the specific device data is available
         if self.coordinator.data and self.coordinator.data.get("devices"):
             return any(
                 dev.get("serial") == self._device_serial
                 for dev in self.coordinator.data["devices"]
             )
         return False
-
-    # @property
-    # def options(self) -> list[str] | None:
-    #   return None
-    #
-    # @property
-    # def suggested_unit_of_measurement(self) -> str | None:
-    #   return None
-    #
-    # @property
-    # def suggested_display_precision(self) -> int | None:
-    #   return None
-    #
-    # @property
-    # def last_reset(self) -> datetime | None:
-    #   return None

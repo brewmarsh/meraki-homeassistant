@@ -1,26 +1,25 @@
 """Helper function for setting up all switch entities."""
 
 import logging
-from typing import List, Set, cast
+from typing import cast
 
-from homeassistant.core import HomeAssistant
-from ..types import MerakiVlan
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
 
-from ..core.api.client import MerakiAPIClient
-from ..coordinator import MerakiDataUpdateCoordinator
-from .vlan_dhcp import MerakiVLANDHCPSwitch
-from .camera_controls import AnalyticsSwitch
-from .meraki_ssid_device_switch import (
-    MerakiSSIDEnabledSwitch,
-    MerakiSSIDBroadcastSwitch,
-)
 from ..const import (
     CONF_ENABLE_VLAN_MANAGEMENT,
 )
+from ..coordinator import MerakiDataUpdateCoordinator
+from ..core.api.client import MerakiAPIClient
+from ..types import MerakiVlan
+from .camera_controls import AnalyticsSwitch
+from .meraki_ssid_device_switch import (
+    MerakiSSIDBroadcastSwitch,
+    MerakiSSIDEnabledSwitch,
+)
 from .mt40_power_outlet import MerakiMt40PowerOutlet
-
+from .vlan_dhcp import MerakiVLANDHCPSwitch
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,12 +27,12 @@ _LOGGER = logging.getLogger(__name__)
 def _setup_vlan_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
-    added_entities: Set[str],
-) -> List[Entity]:
+    added_entities: set[str],
+) -> list[Entity]:
     """Set up VLAN switches."""
     if not config_entry.options.get(CONF_ENABLE_VLAN_MANAGEMENT):
         return []
-    entities: List[Entity] = []
+    entities: list[Entity] = []
     vlans_by_network = coordinator.data.get("vlans", {})
     for network_id, vlans in vlans_by_network.items():
         if not isinstance(vlans, list):
@@ -61,10 +60,10 @@ def _setup_vlan_switches(
 def _setup_ssid_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
-    added_entities: Set[str],
-) -> List[Entity]:
+    added_entities: set[str],
+) -> list[Entity]:
     """Set up SSID switches."""
-    entities: List[Entity] = []
+    entities: list[Entity] = []
     ssids = coordinator.data.get("ssids", [])
     for ssid in ssids:
         ssid_number = ssid.get("number")
@@ -102,10 +101,10 @@ def _setup_ssid_switches(
 def _setup_camera_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
-    added_entities: Set[str],
-) -> List[Entity]:
+    added_entities: set[str],
+) -> list[Entity]:
     """Set up camera-specific switches."""
-    entities: List[Entity] = []
+    entities: list[Entity] = []
     devices = coordinator.data.get("devices", [])
     for device_info in devices:
         if device_info.get("productType", "").startswith("camera"):
@@ -114,9 +113,7 @@ def _setup_camera_switches(
             unique_id = f"{serial}_analytics_switch"
             if unique_id not in added_entities:
                 entities.append(
-                    AnalyticsSwitch(
-                        coordinator, coordinator.api, device_info
-                    )
+                    AnalyticsSwitch(coordinator, coordinator.api, device_info)
                 )
                 added_entities.add(unique_id)
     return entities
@@ -125,11 +122,11 @@ def _setup_camera_switches(
 def _setup_mt40_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
-    added_entities: Set[str],
+    added_entities: set[str],
     meraki_client: "MerakiAPIClient",
-) -> List[Entity]:
+) -> list[Entity]:
     """Set up MT40 power outlet switches."""
-    entities: List[Entity] = []
+    entities: list[Entity] = []
     devices = coordinator.data.get("devices", [])
     for device_info in devices:
         if device_info.get("model", "").startswith("MT40"):
@@ -150,10 +147,10 @@ def async_setup_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
     meraki_client: "MerakiAPIClient",
-) -> List[Entity]:
+) -> list[Entity]:
     """Set up all switch entities from the central coordinator."""
-    entities: List[Entity] = []
-    added_entities: Set[str] = set()
+    entities: list[Entity] = []
+    added_entities: set[str] = set()
 
     if not coordinator.data:
         _LOGGER.warning("Coordinator has no data; skipping switch setup.")

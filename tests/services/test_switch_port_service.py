@@ -1,7 +1,8 @@
 """Tests for the SwitchPortService."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 from custom_components.meraki_ha.services.switch_port_service import SwitchPortService
 

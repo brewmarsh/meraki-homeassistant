@@ -2,17 +2,16 @@
 
 from __future__ import annotations
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from homeassistant.config_entries import ConfigEntry
-
-from ..utils.naming_utils import format_device_name
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...types import MerakiNetwork
+from ..utils.naming_utils import format_device_name
 
 
-class MerakiNetworkEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
+class MerakiNetworkEntity(CoordinatorEntity):
     """Representation of a Meraki Network."""
 
     def __init__(
@@ -40,6 +39,6 @@ class MerakiNetworkEntity(CoordinatorEntity[MerakiDataUpdateCoordinator]):
         )
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return self._attr_device_info

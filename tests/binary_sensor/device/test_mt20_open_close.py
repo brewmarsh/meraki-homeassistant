@@ -10,10 +10,9 @@ from custom_components.meraki_ha.binary_sensor.device.mt20_open_close import (
 
 
 @pytest.fixture
-def mock_coordinator():
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
-    coordinator = MagicMock()
-    coordinator.data = {
+def mock_coordinator_mt20(mock_coordinator: MagicMock) -> MagicMock:
+    """Fixture for a mocked MerakiDataUpdateCoordinator with MT20 data."""
+    mock_coordinator.data = {
         "devices": [
             {
                 "serial": "mt20-1",
@@ -35,27 +34,16 @@ def mock_coordinator():
             },
         ]
     }
-    return coordinator
+    return mock_coordinator
 
 
-@pytest.fixture
-def mock_config_entry():
-    """Fixture for a mocked ConfigEntry."""
-    entry = MagicMock()
-    entry.entry_id = "test_entry_id"
-    entry.data = {
-        "api_key": "test_key",
-        "org_id": "test_org",
-    }
-    entry.options = {}
-    return entry
-
-
-def test_mt20_open_sensor(mock_coordinator, mock_config_entry):
+def test_mt20_open_sensor(
+    mock_coordinator_mt20: MagicMock, mock_config_entry: MagicMock
+):
     """Test the MT20 open/close sensor when the door is open."""
-    device_info = mock_coordinator.data["devices"][0]
+    device_info = mock_coordinator_mt20.data["devices"][0]
     sensor = MerakiMt20OpenCloseSensor(
-        mock_coordinator, device_info, mock_config_entry
+        mock_coordinator_mt20, device_info, mock_config_entry
     )
 
     assert sensor.unique_id == "mt20-1-door"
@@ -64,11 +52,13 @@ def test_mt20_open_sensor(mock_coordinator, mock_config_entry):
     assert sensor.available is True
 
 
-def test_mt20_closed_sensor(mock_coordinator, mock_config_entry):
+def test_mt20_closed_sensor(
+    mock_coordinator_mt20: MagicMock, mock_config_entry: MagicMock
+):
     """Test the MT20 open/close sensor when the door is closed."""
-    device_info = mock_coordinator.data["devices"][1]
+    device_info = mock_coordinator_mt20.data["devices"][1]
     sensor = MerakiMt20OpenCloseSensor(
-        mock_coordinator, device_info, mock_config_entry
+        mock_coordinator_mt20, device_info, mock_config_entry
     )
 
     assert sensor.unique_id == "mt20-2-door"
@@ -77,11 +67,13 @@ def test_mt20_closed_sensor(mock_coordinator, mock_config_entry):
     assert sensor.available is True
 
 
-def test_mt20_availability(mock_coordinator, mock_config_entry):
+def test_mt20_availability(
+    mock_coordinator_mt20: MagicMock, mock_config_entry: MagicMock
+):
     """Test sensor availability for the MT20 sensor."""
-    device_info = mock_coordinator.data["devices"][0]
+    device_info = mock_coordinator_mt20.data["devices"][0]
     sensor = MerakiMt20OpenCloseSensor(
-        mock_coordinator, device_info, mock_config_entry
+        mock_coordinator_mt20, device_info, mock_config_entry
     )
 
     # Sensor should be available initially

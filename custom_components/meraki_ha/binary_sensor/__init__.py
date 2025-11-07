@@ -2,15 +2,15 @@
 
 import logging
 
-from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN
 from .device.camera_motion import MerakiMotionSensor
 from .device.mt20_open_close import MerakiMt20OpenCloseSensor
 from .switch_port import SwitchPortSensor
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ async def async_setup_entry(
     coordinator = entry_data["coordinator"]
     camera_service = entry_data.get("camera_service")
 
-    binary_sensor_entities = []
+    binary_sensor_entities: list[Entity] = []
     devices = coordinator.data.get("devices", [])
 
     # Pre-check for camera service to avoid repeated checks in the loop

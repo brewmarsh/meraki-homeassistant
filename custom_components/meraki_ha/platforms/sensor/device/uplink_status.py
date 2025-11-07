@@ -1,4 +1,5 @@
-"""Sensor entity for representing the uplink status of a Meraki MX appliance.
+"""
+Sensor entity for representing the uplink status of a Meraki MX appliance.
 
 This module defines the `MerakiUplinkStatusSensor` class, a Home Assistant
 sensor entity that displays the status of the primary uplink for a Meraki
@@ -6,7 +7,7 @@ MX security appliance.
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from ....core.entities.device import MerakiDeviceEntity
 
@@ -46,7 +47,7 @@ class MerakiUplinkStatusSensor(MerakiDeviceEntity):
         return status.capitalize()
 
     @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         return {
             "wan1_ip": self.device_data.get("wan1Ip"),

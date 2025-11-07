@@ -14,9 +14,7 @@ from ..helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAdultContentFilteringSwitch(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SwitchEntity
-):
+class MerakiAdultContentFilteringSwitch(CoordinatorEntity, SwitchEntity):
     """Representation of a Meraki Adult Content Filtering switch."""
 
     def __init__(
@@ -39,7 +37,10 @@ class MerakiAdultContentFilteringSwitch(
     @property
     def unique_id(self) -> str:
         """Return a unique ID."""
-        return f"meraki-adult-content-filtering-{self._ssid['networkId']}-{self._ssid['number']}"
+        return (
+            f"meraki-adult-content-filtering-{self._ssid['networkId']}-"
+            f"{self._ssid['number']}"
+        )
 
     @property
     def device_info(self):

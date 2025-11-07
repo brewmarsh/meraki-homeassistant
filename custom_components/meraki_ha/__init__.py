@@ -1,49 +1,66 @@
 """The Meraki Home Assistant integration."""
 
 import logging
-import json
-from pathlib import Path
-import aiofiles
+import random
+import string
+
+from homeassistant.components import frontend as hass_frontend
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.components import frontend, http
 
 from .const import (
+    CONF_MERAKI_ORG_ID,
     DOMAIN,
     PLATFORMS,
     WEBHOOK_ID_FORMAT,
-    CONF_MERAKI_ORG_ID,
 )
 from .coordinator import MerakiDataUpdateCoordinator
-from .webhook import async_register_webhook
-from .web_api import async_setup_api
 from .core.repositories.camera_repository import CameraRepository
-from .services.camera_service import CameraService
 from .core.repository import MerakiRepository
+from .frontend import async_register_frontend
+from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
-
+from .web_api import async_setup_api
+from .webhook import async_register_webhook
 
 _LOGGER = logging.getLogger(__name__)
 
+CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
+
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up the Meraki integration."""
+    """
+    Set up the Meraki integration.
+
+    Args:
+        hass: The Home Assistant instance.
+        config: The configuration.
+
+    Returns
+    -------
+        Whether the setup was successful.
+
+    """
     hass.data.setdefault(DOMAIN, {})
-    await hass.http.async_register_static_paths(
-        [
-            http.StaticPathConfig(
-                f"/api/panel_custom/{DOMAIN}",
-                str(Path(__file__).parent / "www"),
-                cache_headers=False,
-            )
-        ]
-    )
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Meraki from a config entry."""
+    """
+    Set up Meraki from a config entry.
+
+    Args:
+        hass: The Home Assistant instance.
+        entry: The config entry.
+
+    Returns
+    -------
+        Whether the setup was successful.
+
+    """
+    await async_register_frontend(hass, entry)
     async_setup_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
@@ -64,53 +81,37 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     webhook_id = WEBHOOK_ID_FORMAT.format(entry_id=entry.entry_id)
     hass.data[DOMAIN][entry.entry_id]["webhook_id"] = webhook_id
     if not entry.data.get("webhook_secret"):
-        secret = "".join(
-            __import__("random").choice(__import__("string").ascii_letters)
-            for _ in range(32)
-        )
+        secret = "".join(random.choice(string.ascii_letters) for _ in range(32))
         hass.config_entries.async_update_entry(
-            entry, data={**entry.data, "webhook_secret": secret}
+            entry,
+            data={**entry.data, "webhook_secret": secret},
         )
     else:
         secret = entry.data["webhook_secret"]
 
-    await async_register_webhook(
-        hass, webhook_id, secret, coordinator.api, entry=entry
-    )
+    await async_register_webhook(hass, webhook_id, secret, coordinator.api, entry=entry)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
-    manifest_path = Path(__file__).parent / "manifest.json"
-    async with aiofiles.open(manifest_path, mode='r') as f:
-        manifest_data = await f.read()
-        manifest = json.loads(manifest_data)
-    version = manifest.get("version", "0.0.0")
-    module_url = f"/api/panel_custom/{DOMAIN}/meraki-panel.js?v={version}"
-    frontend.async_register_built_in_panel(
-        hass,
-        component_name="custom",
-        sidebar_title=entry.title,
-        sidebar_icon="mdi:router-network",
-        frontend_url_path="meraki",
-        config={
-            "_panel_custom": {
-                "name": "meraki-panel",
-                "module_url": module_url,
-                "embed_iframe": False,
-                "trust_external_script": True,
-            },
-            "config_entry_id": entry.entry_id,
-        },
-        require_admin=True,
-    )
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a Meraki config entry."""
-    frontend.async_remove_panel(hass, "meraki")
+    """
+    Unload a Meraki config entry.
+
+    Args:
+        hass: The Home Assistant instance.
+        entry: The config entry.
+
+    Returns
+    -------
+        Whether the unload was successful.
+
+    """
+    hass_frontend.async_remove_panel(hass, "meraki")
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
@@ -120,6 +121,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload Meraki config entry."""
+    """
+    Reload Meraki config entry.
+
+    Args:
+        hass: The Home Assistant instance.
+        entry: The config entry.
+
+    """
     await async_unload_entry(hass, entry)
     await async_setup_entry(hass, entry)

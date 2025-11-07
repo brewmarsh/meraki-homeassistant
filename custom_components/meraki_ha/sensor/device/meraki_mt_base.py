@@ -1,12 +1,11 @@
 """Base class for Meraki MT sensor entities."""
 
 import logging
-from typing import Any, Dict, Union
+from typing import Any
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
@@ -16,14 +15,14 @@ from ...core.utils.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMtSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity):
+class MerakiMtSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki MT sensor."""
 
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: Dict[str, Any],
-        entity_description: EntityDescription,
+        device: dict[str, Any],
+        entity_description: SensorEntityDescription,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -54,7 +53,7 @@ class MerakiMtSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntit
                 return
 
     @property
-    def native_value(self) -> Union[float, bool, None]:
+    def native_value(self) -> float | bool | None:
         """Return the state of the sensor."""
         readings = self._device.get("readings")
         if not readings or not isinstance(readings, list):
@@ -62,7 +61,26 @@ class MerakiMtSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntit
 
         for reading in readings:
             if reading.get("metric") == self.entity_description.key:
-                return reading.get("value")
+                metric_data = reading.get(self.entity_description.key)
+                if isinstance(metric_data, dict):
+                    # Map metric to the key holding its value
+                    key_map = {
+                        "temperature": "celsius",
+                        "humidity": "relativePercentage",
+                        "pm25": "concentration",
+                        "tvoc": "concentration",
+                        "co2": "concentration",
+                        "noise": "ambient",
+                        "water": "present",
+                        "power": "draw",
+                        "voltage": "level",
+                        "current": "draw",
+                    }
+                    value_key = key_map.get(self.entity_description.key)
+                    if value_key:
+                        if value_key == "ambient":
+                            return metric_data.get("ambient", {}).get("level")
+                        return metric_data.get(value_key)
         return None
 
     @property

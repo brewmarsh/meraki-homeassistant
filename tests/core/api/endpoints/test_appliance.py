@@ -1,12 +1,14 @@
 """Tests for the appliance API endpoints."""
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 import pytest
+
+from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.core.api.endpoints.appliance import (
     ApplianceEndpoints,
 )
-from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from tests.const import MOCK_NETWORK
 
 
@@ -61,12 +63,8 @@ async def test_get_network_vlans(appliance_endpoints, mock_dashboard):
 @pytest.mark.asyncio
 async def test_update_network_vlan(appliance_endpoints, mock_dashboard):
     """Test update_network_vlan."""
-    mock_dashboard.appliance.updateNetworkApplianceVlan = MagicMock(
-        return_value={}
-    )
-    await appliance_endpoints.update_network_vlan(
-        MOCK_NETWORK["id"], "1", name="test"
-    )
+    mock_dashboard.appliance.updateNetworkApplianceVlan = MagicMock(return_value={})
+    await appliance_endpoints.update_network_vlan(MOCK_NETWORK["id"], "1", name="test")
     mock_dashboard.appliance.updateNetworkApplianceVlan.assert_called_once_with(
         networkId=MOCK_NETWORK["id"], vlanId="1", name="test"
     )
@@ -90,9 +88,7 @@ async def test_update_l3_firewall_rules(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules = MagicMock(
         return_value={}
     )
-    await appliance_endpoints.update_l3_firewall_rules(
-        MOCK_NETWORK["id"], rules=[]
-    )
+    await appliance_endpoints.update_l3_firewall_rules(MOCK_NETWORK["id"], rules=[])
     mock_dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules.assert_called_once_with(
         networkId=MOCK_NETWORK["id"], rules=[]
     )
@@ -116,9 +112,7 @@ async def test_update_traffic_shaping(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.updateNetworkApplianceTrafficShaping = MagicMock(
         return_value={}
     )
-    await appliance_endpoints.update_traffic_shaping(
-        MOCK_NETWORK["id"], enabled=True
-    )
+    await appliance_endpoints.update_traffic_shaping(MOCK_NETWORK["id"], enabled=True)
     mock_dashboard.appliance.updateNetworkApplianceTrafficShaping.assert_called_once_with(
         networkId=MOCK_NETWORK["id"], enabled=True
     )

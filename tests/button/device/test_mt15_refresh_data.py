@@ -1,6 +1,6 @@
 """Tests for the Meraki MT15 refresh data button."""
 
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -10,11 +10,9 @@ from custom_components.meraki_ha.button.device.mt15_refresh_data import (
 
 
 @pytest.fixture
-def mock_coordinator():
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
-    coordinator = MagicMock()
-    coordinator.last_update_success = True
-    coordinator.data = {
+def mock_coordinator_mt15(mock_coordinator: MagicMock) -> MagicMock:
+    """Fixture for a mocked MerakiDataUpdateCoordinator with MT15 data."""
+    mock_coordinator.data = {
         "devices": [
             {
                 "serial": "mt15-1",
@@ -24,24 +22,12 @@ def mock_coordinator():
             },
         ]
     }
-    return coordinator
+    mock_coordinator.last_update_success = True
+    return mock_coordinator
 
 
 @pytest.fixture
-def mock_config_entry():
-    """Fixture for a mocked ConfigEntry."""
-    entry = MagicMock()
-    entry.entry_id = "test_entry_id"
-    entry.data = {
-        "api_key": "test_key",
-        "org_id": "test_org",
-    }
-    entry.options = {}
-    return entry
-
-
-@pytest.fixture
-def mock_meraki_client():
+def mock_meraki_client() -> MagicMock:
     """Fixture for a mocked MerakiAPIClient."""
     client = MagicMock()
     client.sensor.create_device_sensor_command = AsyncMock()
@@ -49,12 +35,14 @@ def mock_meraki_client():
 
 
 def test_mt15_button_creation(
-    mock_coordinator, mock_config_entry, mock_meraki_client
+    mock_coordinator_mt15: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_meraki_client: MagicMock,
 ):
     """Test the creation of the MT15 refresh data button."""
-    device_info = mock_coordinator.data["devices"][0]
+    device_info = mock_coordinator_mt15.data["devices"][0]
     button = MerakiMt15RefreshDataButton(
-        mock_coordinator, device_info, mock_config_entry, mock_meraki_client
+        mock_coordinator_mt15, device_info, mock_config_entry, mock_meraki_client
     )
 
     assert button.unique_id == "mt15-1-refresh"
@@ -64,12 +52,14 @@ def test_mt15_button_creation(
 
 @pytest.mark.asyncio
 async def test_mt15_button_press(
-    mock_coordinator, mock_config_entry, mock_meraki_client
+    mock_coordinator_mt15: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_meraki_client: MagicMock,
 ):
     """Test pressing the MT15 refresh data button."""
-    device_info = mock_coordinator.data["devices"][0]
+    device_info = mock_coordinator_mt15.data["devices"][0]
     button = MerakiMt15RefreshDataButton(
-        mock_coordinator, device_info, mock_config_entry, mock_meraki_client
+        mock_coordinator_mt15, device_info, mock_config_entry, mock_meraki_client
     )
 
     await button.async_press()

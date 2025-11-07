@@ -1,111 +1,120 @@
-# AI Agent Instructions
+# `AGENTS.md`: Agent & Developer Guidelines
 
-This file contains instructions for AI agents working with this codebase.
+This document provides essential instructions for AI agents and human developers working across this organization's codebases. Adhering to these guidelines is critical for maintaining code quality, consistency, and stability.
 
-## Best Practices
-
-- When writing tests, ensure that all mocks are as accurate as possible to the real APIs they are replacing. This will help to prevent bugs from being introduced into the codebase.
-- Remove all debugging code, such as `_LOGGER.debug` statements, once feature development is complete.
-- Follow the coding style of the project. This will help to ensure that the codebase is consistent and easy to read.
-- Write clear and concise commit messages. This will help other developers to understand the changes that have been made.
-- Update the documentation when making changes. This will help to ensure that the documentation is accurate and up-to-date.
-- Run all tests before submitting changes. This will help to ensure that the changes have not introduced any new bugs.
-- When using the Meraki API, please double-check against the Meraki API documentation at <https://developer.cisco.com/meraki/api-v1/>
-- When using the Home Assistant API, double-check against the Home Assistant API documentation at <https://developers.home-assistant.io/docs/api/rest/>
-- Prioritize local control, use established libraries, manage dependencies, and be mindful of performance impacts. Specifically, always prefer interacting with devices through established Python libraries rather than directly within the integration.
-- **Centralized Device Creation:** To ensure device information is consistent, always use the `resolve_device_info` helper in `custom_components/meraki_ha/helpers/device_info_helpers.py` when creating a `DeviceInfo` object for an entity. Do not create `DeviceInfo` objects manually in entity classes.
-- **Device vs. Entity Naming:** Use the `format_device_name` utility for the `name` field within `DeviceInfo`. For the name of an entity itself (`_attr_name`), use the `format_entity_name` helper.
-- **Handling Disabled Features:** When an API call fails because a feature (like Traffic Analysis or VLANs) is disabled in the Meraki Dashboard, the corresponding sensor should reflect this. Instead of becoming `unknown`, its state should be set to `Disabled`, and an attribute should be added to explain the reason.
-- **Testing New Entities:** When adding new sensors that are created dynamically by `setup_helpers.py`, a useful pattern is to call `async_setup_sensors` with mock coordinator data and then inspect the returned list of entities. This is preferable to testing the sensor class in isolation.
-
-## Working with the Web UI
-
-The self-hosted web interface is a React application located in `custom_components/meraki_ha/web_ui/`.
-
-- **Source vs. Build:** The human-readable source code is in the `src/` directory. The code that is actually served to the browser is the compiled and optimized output located in the `dist/` directory.
-- **Manual Build Simulation:** As an agent, you cannot run the `npm run build` command. If you make changes to any files in the `src/` directory, you **must** manually update the corresponding file in `dist/` to reflect your changes.
-- **For E2E tests:** The tests run against the `dist/` files. The most important file to keep updated is `dist/assets/index.js`. You may need to write a simplified, non-JSX version of the React logic in this file to ensure the tests pass. This process is for testing purposes only to validate the backend and overall flow.
+This file contains **common rules** that apply to *all* projects. For project-specific details (like technology stack, file paths, and build commands), please refer to the `README.md` or `CONTRIBUTING.md` file in the specific repository.
 
 ---
-### **Handoff Instructions for Next Agent (from Jules, 2025-09-02)**
 
-**Objective:** Fix a series of startup errors in the `meraki_ha` custom component that are preventing it from loading in Home Assistant.
+## 1. Onboarding & Project-Specifics
 
-**Root Cause:**
-The primary issue is a breaking change in the underlying `meraki` Python library. The library has updated its method names from `camelCase` (e.g., `getOrganizationNetworks`) to Python's standard `snake_case` (e.g., `get_organization_networks`). The custom component's code has not been fully updated to reflect this change, causing a series of `AttributeError` exceptions.
+Before starting work, review the following files in the **root of the specific repository**:
 
-**Previous Agent's Mistake (Please Read Carefully):**
-The previous agent (me) made a critical error by misdiagnosing this problem. I flip-flopped between `camelCase` and `snake_case`, leading to a series of incorrect patches that did not solve the problem. **The ground truth is that all calls to the `meraki` library object (`self._dashboard.*`) must use `snake_case`.**
+* **`README.md`**: Contains the project's objective, technology stack, and definitive guide for setup, installation, and deployment.
+* **`CONTRIBUTING.md` (if present)**: Contains detailed, project-specific rules, key file paths, and architectural patterns you must follow.
+* **`[e.g., pyproject.toml, package.json]`**: Review the project's dependencies and available scripts.
 
-**Other Known Issues to Fix:**
-In addition to the primary `AttributeError`s, there are three other known bugs that must be fixed:
-1.  **Blocking I/O Call:** In `custom_components/meraki_ha/core/api/client.py`, the `meraki.DashboardAPI` is initialized with `output_log=True`, which causes synchronous file I/O. This must be set to `False`.
-2.  **Incorrect Webhook Logic:** The logic to register webhooks is flawed. It attempts to register a webhook at the organization level, but the API only supports network-level webhooks. The fix is to make `client.py`'s `register_webhook` method call the network-level registration logic.
-3.  **`NameError`:** In `custom_components/meraki_ha/binary_sensor/device/camera_motion.py`, a `NameError` occurs because `TYPE_CHECKING` is used without being imported.
-
-**Comprehensive Plan to Fix All Issues:**
-
-1.  **Fix the `NameError` and Blocking I/O Call.**
-    *   Add `from typing import TYPE_CHECKING` to the top of `custom_components/meraki_ha/binary_sensor/device/camera_motion.py`.
-    *   In `custom_components/meraki_ha/core/api/client.py`, change `output_log=True` to `output_log=False`.
-
-2.  **Correct the Webhook Logic.**
-    *   In `custom_components/meraki_ha/core/api/client.py`, modify the `register_webhook` and `unregister_webhook` methods to call `self.network.register_webhook` and `self.network.unregister_webhook` respectively.
-    *   In `custom_components/meraki_ha/core/api/endpoints/organization.py`, delete the now unused `create_organization_webhook` and `delete_organization_webhook` methods.
-
-3.  **Perform a Comprehensive API Method Audit (The Main Fix).**
-    *   Systematically go through all API endpoint files in `custom_components/meraki_ha/core/api/endpoints/`.
-    *   In each file, find all calls to the `meraki` library (e.g., `self._dashboard.organizations.getOrganizationNetworks`).
-    *   Convert every one of these `camelCase` method names to the correct `snake_case` format (e.g., `self._dashboard.organizations.get_organization_networks`).
-    *   **Recommendation:** To maintain internal consistency, you should also rename the custom component's own methods from `camelCase` to `snake_case` (e.g., `def getOrganizationNetworks` should become `def get_organization_networks`). Then update the calls to these methods in `client.py`.
-
-4.  **Submit the Comprehensive Fix.**
-    *   After all the above fixes are implemented, request a single code review and submit the complete patch.
 ---
 
-## Architectural Pattern for Configuration Entities
+## 2. Version Control & Naming
 
-**Author:** Jules, 2025-09-14
+A clean Git history is essential for collaboration. All branches and commits **must** follow these naming conventions.
 
-**Problem:** The Meraki Cloud API has a significant **provisioning delay**. When a configuration change is sent (e.g., disabling an SSID), the API acknowledges the change immediately with a `200 OK` response. However, the change can take several minutes to be fully provisioned on the backend. During this time, `GET` requests to the same API endpoint will return the *old* (stale) data.
+### Branch Naming
 
-**Consequences:** This delay caused a persistent bug where Home Assistant's UI would not correctly reflect the state of a switch. The flow was:
-1. User toggles a switch.
-2. The UI updates optimistically.
-3. A `PUT` request is sent to Meraki.
-4. The next scheduled data refresh in Home Assistant makes a `GET` request.
-5. The `GET` request receives stale data from the Meraki API.
-6. The Home Assistant coordinator updates the entity with this stale data, overwriting the correct optimistic state and making the UI revert to its previous, incorrect state.
+Use a prefix separated by a slash (`/`) to categorize your work.
 
-**Solution: Optimistic UI with Cooldown**
+* **`feature/<short-description>`**: For adding new features (e.g., `feature/add-user-profile`).
+* **`fix/<short-description>`**: For fixing bugs (e.g., `fix/login-csrf-bug`).
+* **`chore/<short-description>`**: For maintenance, refactoring, or CI/CD tasks (e.g., `chore/update-docker-base-image`).
+* **`docs/<short-description>`**: For documentation-only changes (e.g., `docs/update-api-examples`).
 
-To solve this, a specific architectural pattern **must** be used for all entities that modify configuration in Meraki (e.g., switches, text inputs, selects).
+### Commit (Check-in) Naming
 
-The required logic is as follows:
+All commit messages **must** follow the [**Conventional Commits**](https://www.conventionalcommits.org/en/v1.0.0/) format. This is not optional.
 
-1.  **Optimistic State Update:** The entity's action method (e.g., `async_turn_on`, `async_set_value`) **must** immediately update its own state and tell Home Assistant to write this state to the UI.
-    ```python
-    # Example from a switch
-    self._attr_is_on = True
-    self.async_write_ha_state()
-    ```
+The format is: `type(scope): subject`
 
-2.  **Fire-and-Forget API Call:** The method should then make the API call to Meraki without waiting for a response to be confirmed by a refresh.
+* **`feat:`**: A new feature (e.g., `feat: allow users to reset their password`).
+* **`fix:`**: A bug fix (e.g., `fix: correct password hash iterations during login`).
+* **`docs:`**: Documentation-only changes (e.g., `docs: update AGENTS.md with commit standards`).
+* **`style:`**: Code style changes (e.g., `style: run ruff formatter on all python files`).
+* **`refactor:`**: A code change that neither fixes a bug nor adds a feature (e.g., `refactor: extract api client into separate service`).
+* **`test:`**: Adding missing tests or correcting existing tests (e.g., `test: add unit test for new validation logic`).
+* **`chore:`**: Changes to the build process or auxiliary tools (e.g., `chore: add new linter to pre-commit hook`).
 
-3.  **Register a Cooldown:** After making the API call, the entity **must** register a "pending update" with the central `MerakiDataCoordinator`. This acts as a cooldown period.
-    ```python
-    # Example
-    self.coordinator.register_pending_update(self.unique_id)
-    ```
-    The default cooldown is 150 seconds, which has been proven to be effective.
+---
 
-4.  **Ignore Coordinator Updates During Cooldown:** The entity's state update method (`_update_internal_state`), which is called by the coordinator, **must** check if it is in a cooldown period before processing new data. If it is, it should do nothing.
-    ```python
-    # Example
-    def _update_internal_state(self) -> None:
-        if self.coordinator.is_pending(self.unique_id):
-            return # Ignore update
-        # ... rest of the update logic
-    ```
+## 3. Code Organization & Naming
 
-This pattern ensures a responsive UI that is resilient to the backend API's provisioning delay. **Do not attempt to "fix" this by forcing an immediate refresh after an action.** This will not work and will re-introduce the original bug.
+### General Naming Conventions
+
+* **Python:**
+    * Files: `snake_case.py`
+    * Classes: `PascalCase`
+    * Functions & Variables: `snake_case`
+    * Constants: `UPPER_SNAKE_CASE`
+* **JavaScript/React:**
+    * Files & Components: `PascalCase.jsx` (for components), `camelCase.js` (for utilities).
+    * Functions & Variables: `camelCase`
+    * Constants: `UPPER_SNAKE_CASE`
+
+### General Structure
+
+* **Keep Logic Separate:** Route handlers (`routes.py`, `views.py`) should only parse requests and return responses. All business logic **must** be in separate service functions/classes (e.g., in a `services/` or `utils/` directory).
+* **Keep Clients Separate:** All third-party API client logic (e.g., Meraki API, Google API) **must** be in its own module (e.g., `clients/meraki_client.py`).
+* **Constants:** Do not use "magic strings" or numbers in code. Define them as constants in a central `const.py` file or at the top of the module.
+
+---
+
+## 4. Coding Standards & Best Practices
+
+### 4.1. General Principles
+
+* **Use the ORM:** When a project uses an ORM (like SQLAlchemy or Django ORM), **all** database interactions must use it. Do not write raw SQL queries unless absolutely necessary.
+* **Beware N+1 Queries:** When fetching lists of items that have related data, use the ORM's built-in methods (e.g., `joinedload`, `subqueryload`, `select_related`, `prefetch_related`) to prevent N+1 query bugs.
+* **Security:**
+    * **Validate Input:** All user-provided input **must** be validated on the server side.
+    * **CSRF Protection:** All state-changing requests (POST, PUT, DELETE) **must** be protected against Cross-Site Request Forgery (CSRF).
+    * **Passwords:** Never handle or store passwords in plaintext. Use `werkzeug.security` or `django.contrib.auth` for hashing.
+
+### 4.2. Language-Specific Rules (Python)
+
+* **Linting & Formatting:** This project uses [**Ruff**](https://docs.astral.sh/ruff/) for linting *and* formatting (replacing Black, Flake8, and isort).
+    * All code **must** be formatted with `ruff format .` before committing.
+    * All code **must** be free of linter errors from `ruff check .`.
+* **Type Hinting:** All new functions **must** include [PEP 484](https://peps.python.org/pep-0484/) type hints for all arguments and return values.
+* **Docstrings:** All public modules, classes, and functions **must** have docstrings following the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html#3.8-comments-and-docstrings).
+* **Dependencies:** Use `pyproject.toml` with a tool like [Poetry](https://python-poetry.org/) or [PDM](https://pdm.fming.dev/) for dependency management. `requirements.txt` should only be used if the project is already using it.
+* **Error Handling:** Use specific exceptions. Do not use broad `except Exception:` blocks.
+
+### 4.3. Language-Specific Rules (JavaScript/React)
+
+* **Linting & Formatting:** This project uses [**Prettier**](https://prettier.io/) for formatting and [**ESLint**](https://eslint.org/) for linting.
+* **Modern JS:** Use modern ECMAScript features (e.g., `const`/`let` over `var`, arrow functions, spread syntax).
+* **React:**
+    * Use **Functional Components** and **Hooks** (e.g., `useState`, `useEffect`) for all new code.
+    * Do not write class-based components.
+
+---
+
+## 5. Quality & Testing
+
+### 5.1. Code Quality Tools
+
+* **Pre-commit Hooks:** This repository should use `pre-commit` to automatically run linters and formatters before each commit. You can install it with `pre-commit install`.
+* **Static Analysis:** This project may use `mypy` (Python type checking) or `bandit` (Python security analysis). These checks must pass in the CI pipeline.
+
+### 5.2. Testing
+
+* **Coverage:** All new features or business logic **must** be accompanied by unit tests.
+* **Run Tests:** Always run the full test suite (e.g., `pytest`, `npm test`) *before* submitting your code.
+* **Mocks:** When writing tests, ensure all mocks are as accurate as possible to the real APIs or functions they are replacing.
+
+---
+
+## 6. Documentation & Iteration
+
+* **Iterative Improvement:** If you encounter an issue (e.g., a security vulnerability, a bug, a confusing pattern), look for other instances of the same problem in the codebase and fix them all.
+* **Update Documentation:** As you make changes, ensure that `README.md` and `CONTRIBUTING.md` are updated to reflect the new state of the application.
+* **Update This File:** If you discover a new development technique, a useful debugging procedure, or a common pitfall, please update *this* `AGENTS.md` file to help future agents.

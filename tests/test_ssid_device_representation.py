@@ -1,9 +1,12 @@
 """Tests for consistent SSID device representation across all entity types."""
 
-import pytest
+from __future__ import annotations
+
+from typing import Any
 from unittest.mock import MagicMock
 
-# Import all the different types of SSID entities
+import pytest
+
 from custom_components.meraki_ha.sensor.network.ssid_availability import (
     MerakiSSIDAvailabilitySensor,
 )
@@ -17,7 +20,7 @@ from custom_components.meraki_ha.text.meraki_ssid_name import MerakiSSIDNameText
 
 
 @pytest.fixture
-def mock_coordinator_and_data():
+def mock_coordinator_and_data() -> tuple[MagicMock, MagicMock, dict[str, Any]]:
     """Fixture for a mocked MerakiDataUpdateCoordinator and basic data."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
@@ -35,8 +38,17 @@ def mock_coordinator_and_data():
     return coordinator, meraki_client, ssid_data
 
 
-def test_ssid_device_unification(mock_coordinator_and_data):
-    """Test that all SSID entity types have the same device info."""
+def test_ssid_device_unification(
+    mock_coordinator_and_data: tuple[MagicMock, MagicMock, dict[str, Any]],
+) -> None:
+    """
+    Test that all SSID entity types have the same device info.
+
+    Args:
+    ----
+        mock_coordinator_and_data: The mocked coordinator and data.
+
+    """
     coordinator, meraki_client, ssid_data = mock_coordinator_and_data
     config_entry = coordinator.config_entry
 
@@ -51,13 +63,18 @@ def test_ssid_device_unification(mock_coordinator_and_data):
 
     # 2. A sensor based on MerakiSSIDDetailSensor
     detail_sensor = MerakiSSIDWalledGardenSensor(
-        coordinator, config_entry, ssid_data, None
+        coordinator,
+        config_entry,
+        ssid_data,
+        None,
     )
 
     # 3. A switch based on MerakiSSIDBaseSwitch
-    # 3. A switch based on MerakiSSIDBaseSwitch
     switch = MerakiSSIDEnabledSwitch(
-        coordinator, meraki_client, config_entry, ssid_data
+        coordinator,
+        meraki_client,
+        config_entry,
+        ssid_data,
     )
 
     # 4. The text entity
@@ -66,10 +83,25 @@ def test_ssid_device_unification(mock_coordinator_and_data):
     # --- Assertions ---
 
     # Get the identifiers from each entity's DeviceInfo
-    sensor_identifiers = sensor.device_info["identifiers"]
-    detail_sensor_identifiers = detail_sensor.device_info["identifiers"]
-    switch_identifiers = switch.device_info["identifiers"]
-    text_identifiers = text.device_info["identifiers"]
+    sensor_device_info = sensor.device_info
+    if sensor_device_info is None:
+        pytest.fail("Sensor device_info is None")
+    sensor_identifiers = sensor_device_info["identifiers"]
+
+    detail_sensor_device_info = detail_sensor.device_info
+    if detail_sensor_device_info is None:
+        pytest.fail("Detail sensor device_info is None")
+    detail_sensor_identifiers = detail_sensor_device_info["identifiers"]
+
+    switch_device_info = switch.device_info
+    if switch_device_info is None:
+        pytest.fail("Switch device_info is None")
+    switch_identifiers = switch_device_info["identifiers"]
+
+    text_device_info = text.device_info
+    if text_device_info is None:
+        pytest.fail("Text device_info is None")
+    text_identifiers = text_device_info["identifiers"]
 
     # Assert that all entities share the exact same device identifier
     assert sensor_identifiers == {expected_device_identifier}

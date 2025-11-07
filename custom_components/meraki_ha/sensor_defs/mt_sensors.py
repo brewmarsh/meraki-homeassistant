@@ -12,8 +12,8 @@ from homeassistant.const import (
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfPower,
-    UnitOfTemperature,
     UnitOfSoundPressure,
+    UnitOfTemperature,
 )
 
 # Descriptions for individual sensor metrics

@@ -1,32 +1,29 @@
-"""
-Button entity for Meraki MT15 refresh data button.
-"""
+"""Button entity for refreshing MT15 sensor data."""
+
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...helpers.device_info_helpers import resolve_device_info
 from ...core.api.client import MerakiAPIClient
+from ...helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMt15RefreshDataButton(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], ButtonEntity
-):
+class MerakiMt15RefreshDataButton(CoordinatorEntity, ButtonEntity):
     """Representation of a Meraki MT15 refresh data button."""
 
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_info: Dict[str, Any],
+        device_info: dict[str, Any],
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> None:
@@ -39,7 +36,7 @@ class MerakiMt15RefreshDataButton(
         self._attr_name = f"{self._device_info['name']} Refresh Data"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
         return resolve_device_info(self._device_info, self._config_entry)
 
@@ -58,4 +55,6 @@ class MerakiMt15RefreshDataButton(
     @property
     def available(self) -> bool:
         """Return if the entity is available."""
-        return self._device_info.get("model", "").startswith("MT15") and super().available
+        return (
+            self._device_info.get("model", "").startswith("MT15") and super().available
+        )

@@ -25,7 +25,16 @@ class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
         config_entry: ConfigEntry,
         network: MerakiNetwork,
     ) -> None:
-        """Initialize the switch."""
+        """
+        Initialize the switch.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            config_entry: The config entry.
+            network: The network data.
+
+        """
         super().__init__(coordinator, config_entry, network)
         self._attr_unique_id = f"vpn_{self._network_id}"
         self._attr_name = "Site-to-Site VPN"
@@ -40,12 +49,10 @@ class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
                 self.unique_id,
             )
             return
-        vpn_status = (
-            self.coordinator.data.get("vpn_status", {})
-            .get(self._network_id, {})
-        )
-        if vpn_status:
-            self._attr_is_on = vpn_status.get("mode") != "disabled"
+        if self._network_id in self.coordinator.data.get("vpn_status", {}):
+            vpn_status = self.coordinator.data["vpn_status"][self._network_id]
+            if vpn_status:
+                self._attr_is_on = vpn_status.get("mode") != "disabled"
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -54,19 +61,37 @@ class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
         self.async_write_ha_state()
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn the switch on."""
+        """
+        Turn the switch on.
+
+        Args:
+        ----
+            **kwargs: Additional arguments.
+
+        """
         self._attr_is_on = True
         self.async_write_ha_state()
         self.coordinator.register_pending_update(self.unique_id)
-        await self.coordinator.api.appliance.update_vpn_status(
-            network_id=self._network_id, mode="hub"
-        )
+        if self._network_id:
+            await self.coordinator.api.appliance.update_vpn_status(
+                network_id=self._network_id,
+                mode="hub",
+            )
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the switch off."""
+        """
+        Turn the switch off.
+
+        Args:
+        ----
+            **kwargs: Additional arguments.
+
+        """
         self._attr_is_on = False
         self.async_write_ha_state()
         self.coordinator.register_pending_update(self.unique_id)
-        await self.coordinator.api.appliance.update_vpn_status(
-            network_id=self._network_id, mode="disabled"
-        )
+        if self._network_id:
+            await self.coordinator.api.appliance.update_vpn_status(
+                network_id=self._network_id,
+                mode="disabled",
+            )

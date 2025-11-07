@@ -1,34 +1,41 @@
 """Tests for the Meraki config flow."""
-import sys
-from unittest.mock import patch, MagicMock
+
+from __future__ import annotations
+
+from unittest.mock import patch
 
 import pytest
 from homeassistant.core import HomeAssistant
 
+from custom_components.meraki_ha.config_flow import MerakiAuthenticationError
 from custom_components.meraki_ha.const import (
-    DOMAIN,
+    CONF_ENABLE_DEVICE_TRACKER,
+    CONF_IGNORED_NETWORKS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
-    CONF_ENABLE_DEVICE_TRACKER,
-    CONF_IGNORED_NETWORKS,
+    DOMAIN,
 )
-from custom_components.meraki_ha.config_flow import MerakiAuthenticationError
-
-# Mock the hass_frontend module
-sys.modules['hass_frontend'] = MagicMock()
 
 
 @pytest.mark.asyncio
-async def test_async_step_user_success(hass: HomeAssistant, mocker) -> None:
-    """Test the user step of the config flow with valid credentials."""
+async def test_async_step_user_success(hass: HomeAssistant) -> None:
+    """
+    Test the user step of the config flow with valid credentials.
+
+    Args:
+    ----
+        hass: The Home Assistant instance.
+
+    """
     with patch(
         "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
         return_value={"valid": True, "org_name": "Test Org"},
     ):
         # Initial step
         result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": "user"}
+            DOMAIN,
+            context={"source": "user"},
         )
         assert result["type"] == "form"
         assert result["step_id"] == "user"
@@ -39,7 +46,8 @@ async def test_async_step_user_success(hass: HomeAssistant, mocker) -> None:
             CONF_MERAKI_ORG_ID: "test-org-id",
         }
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], user_input
+            result["flow_id"],
+            user_input,
         )
         assert result["type"] == "form"
         assert result["step_id"] == "init"
@@ -48,32 +56,40 @@ async def test_async_step_user_success(hass: HomeAssistant, mocker) -> None:
         options_input = {
             CONF_SCAN_INTERVAL: 120,
             CONF_ENABLE_DEVICE_TRACKER: True,
-            CONF_IGNORED_NETWORKS: "Guest Network, Temp Network",
+            CONF_IGNORED_NETWORKS: [],
             "enable_vlan_management": False,
         }
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], options_input
+            result["flow_id"],
+            options_input,
         )
         await hass.async_block_till_done()
 
         # Final assertions
         assert result["type"] == "create_entry"
-        assert result["title"] == "Meraki"
+        assert result["title"] == "Test Org"
         assert result["data"][CONF_MERAKI_API_KEY] == user_input[CONF_MERAKI_API_KEY]
         assert result["data"][CONF_MERAKI_ORG_ID] == user_input[CONF_MERAKI_ORG_ID]
-
         assert result["options"] == options_input
 
 
 @pytest.mark.asyncio
-async def test_async_step_user_invalid_auth(hass: HomeAssistant, mocker) -> None:
-    """Test the user step of the config flow with invalid credentials."""
+async def test_async_step_user_invalid_auth(hass: HomeAssistant) -> None:
+    """
+    Test the user step of the config flow with invalid credentials.
+
+    Args:
+    ----
+        hass: The Home Assistant instance.
+
+    """
     with patch(
         "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
         side_effect=MerakiAuthenticationError,
     ):
         result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": "user"}
+            DOMAIN,
+            context={"source": "user"},
         )
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],

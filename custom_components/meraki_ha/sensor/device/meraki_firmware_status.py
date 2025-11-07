@@ -1,9 +1,9 @@
 """Sensor for Meraki Device Firmware Status."""
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
-from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -16,9 +16,7 @@ from ...core.utils.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiFirmwareStatusSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
-):
+class MerakiFirmwareStatusSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki Device Firmware Status Sensor."""
 
     _attr_icon = "mdi:package-up"
@@ -29,7 +27,7 @@ class MerakiFirmwareStatusSensor(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: Dict[str, Any],
+        device_data: dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
@@ -47,10 +45,10 @@ class MerakiFirmwareStatusSensor(
             sw_version=device_data.get("firmware"),
         )
 
-        self._attr_extra_state_attributes: Dict[str, Any] = {}
+        self._attr_extra_state_attributes: dict[str, Any] = {}
         self._update_state()
 
-    def _get_current_device_data(self) -> Optional[Dict[str, Any]]:
+    def _get_current_device_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
         if self.coordinator.data and self.coordinator.data.get("devices"):
             for device in self.coordinator.data["devices"]:

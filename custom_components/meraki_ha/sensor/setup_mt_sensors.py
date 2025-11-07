@@ -1,13 +1,12 @@
 """Setup helper for Meraki MT sensors."""
 
 import logging
-from typing import List
 
 from homeassistant.helpers.entity import Entity
 
 from ..coordinator import MerakiDataUpdateCoordinator
-from .device.meraki_mt_base import MerakiMtSensor
 from ..sensor_defs.mt_sensors import MT_SENSOR_MODELS
+from .device.meraki_mt_base import MerakiMtSensor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -15,9 +14,9 @@ _LOGGER = logging.getLogger(__name__)
 def async_setup_mt_sensors(
     coordinator: MerakiDataUpdateCoordinator,
     device_info: dict,
-) -> List[Entity]:
+) -> list[Entity]:
     """Set up Meraki MT sensor entities for a given device."""
-    entities = []
+    entities: list[Entity] = []
     model = device_info.get("model")
 
     if not model or not model.startswith("MT"):
@@ -27,7 +26,7 @@ def async_setup_mt_sensors(
     if sensor_descriptions is None:
         _LOGGER.warning("Unsupported Meraki MT model: %s", model)
         # Fallback for unknown MT models - try to create all known sensor types
-        # The `available` property in the base class will prevent unsupported ones from showing up.
+        # The `available` property will prevent unsupported ones from showing up.
         sensor_descriptions = [
             desc for desc_list in MT_SENSOR_MODELS.values() for desc in desc_list
         ]

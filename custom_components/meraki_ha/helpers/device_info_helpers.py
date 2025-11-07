@@ -1,7 +1,7 @@
 """Helper functions for creating Home Assistant DeviceInfo objects."""
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -13,10 +13,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def resolve_device_info(
-    entity_data: Dict[str, Any],
+    entity_data: dict[str, Any],
     config_entry: ConfigEntry,
-    ssid_data: Optional[Dict[str, Any]] = None,
-) -> Optional[DeviceInfo]:
+    ssid_data: dict[str, Any] | None = None,
+) -> DeviceInfo | None:
     """
     Resolve the DeviceInfo for a Meraki entity.
 

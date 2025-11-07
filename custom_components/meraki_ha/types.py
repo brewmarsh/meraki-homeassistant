@@ -1,7 +1,8 @@
 """Type definitions for Meraki API data structures."""
 
-from typing import List, Optional
-from typing_extensions import TypedDict
+from __future__ import annotations
+
+from typing import TypedDict
 
 
 class MerakiVlan(TypedDict):
@@ -9,8 +10,9 @@ class MerakiVlan(TypedDict):
 
     id: str
     name: str
-    subnet: Optional[str]
-    applianceIp: Optional[str]
+    subnet: str | None
+    applianceIp: str | None
+    ipv6: dict | None
 
 
 class MerakiNetwork(TypedDict):
@@ -18,7 +20,10 @@ class MerakiNetwork(TypedDict):
 
     id: str
     name: str
-    productTypes: List[str]
+    productTypes: list[str]
+    organizationId: str
+    tags: str | None
+    clientCount: int | None
 
 
 class MerakiFirewallRule(TypedDict):
@@ -56,12 +61,13 @@ class MerakiDevice(TypedDict, total=False):
     name: str
     model: str
     networkId: str
-    status: Optional[str]
+    status: str | None
     productType: str
-    lanIp: Optional[str]
+    lanIp: str | None
     video_settings: dict
     ports_statuses: list
     radio_settings: dict
     dynamicDns: dict
-    rtsp_url: Optional[str]
+    rtsp_url: str | None
     sense_settings: dict
+    readings: list[dict]

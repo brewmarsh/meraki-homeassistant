@@ -1,5 +1,7 @@
 """Sensor entities for Meraki organization-level client counts."""
 
+from __future__ import annotations
+
 import logging
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
@@ -7,16 +9,17 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...coordinator import MerakiDataUpdateCoordinator
 from ...const import DOMAIN
-from ...helpers.entity_helpers import format_entity_name
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
+from ...helpers.entity_helpers import format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiOrganizationSSIDClientsSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity,
+    SensorEntity,
 ):
     """Representation of a Meraki Organization SSID Clients sensor."""
 
@@ -30,7 +33,16 @@ class MerakiOrganizationSSIDClientsSensor(
         org_id: str,
         org_name: str,
     ) -> None:
-        """Initialize the sensor."""
+        """
+        Initialize the sensor.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            org_id: The organization ID.
+            org_name: The organization name.
+
+        """
         super().__init__(coordinator)
         self._org_id = org_id
         self._org_name = org_name
@@ -61,14 +73,16 @@ class MerakiOrganizationSSIDClientsSensor(
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the sensor."""
-        if self.coordinator.data:
-            self._attr_native_value = self.coordinator.data.get("clients_on_ssids", 0)
-        else:
-            self._attr_native_value = 0
+        self._attr_native_value = (
+            self.coordinator.data.get("clients_on_ssids", 0)
+            if self.coordinator.data
+            else 0
+        )
 
 
 class MerakiOrganizationWirelessClientsSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity,
+    SensorEntity,
 ):
     """Representation of a Meraki Organization Wireless Clients sensor."""
 
@@ -82,7 +96,16 @@ class MerakiOrganizationWirelessClientsSensor(
         org_id: str,
         org_name: str,
     ) -> None:
-        """Initialize the sensor."""
+        """
+        Initialize the sensor.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            org_id: The organization ID.
+            org_name: The organization name.
+
+        """
         super().__init__(coordinator)
         self._org_id = org_id
         self._org_name = org_name
@@ -112,16 +135,16 @@ class MerakiOrganizationWirelessClientsSensor(
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the sensor."""
-        if self.coordinator.data:
-            self._attr_native_value = self.coordinator.data.get(
-                "clients_on_wireless", 0
-            )
-        else:
-            self._attr_native_value = 0
+        self._attr_native_value = (
+            self.coordinator.data.get("clients_on_wireless", 0)
+            if self.coordinator.data
+            else 0
+        )
 
 
 class MerakiOrganizationApplianceClientsSensor(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity,
+    SensorEntity,
 ):
     """Representation of a Meraki Organization Appliance Clients sensor."""
 
@@ -135,7 +158,16 @@ class MerakiOrganizationApplianceClientsSensor(
         org_id: str,
         org_name: str,
     ) -> None:
-        """Initialize the sensor."""
+        """
+        Initialize the sensor.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            org_id: The organization ID.
+            org_name: The organization name.
+
+        """
         super().__init__(coordinator)
         self._org_id = org_id
         self._org_name = org_name
@@ -165,9 +197,8 @@ class MerakiOrganizationApplianceClientsSensor(
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the sensor."""
-        if self.coordinator.data:
-            self._attr_native_value = self.coordinator.data.get(
-                "clients_on_appliances", 0
-            )
-        else:
-            self._attr_native_value = 0
+        self._attr_native_value = (
+            self.coordinator.data.get("clients_on_appliances", 0)
+            if self.coordinator.data
+            else 0
+        )

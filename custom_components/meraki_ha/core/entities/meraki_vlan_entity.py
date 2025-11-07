@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
-from homeassistant.config_entries import ConfigEntry
-from . import BaseMerakiEntity
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...types import MerakiVlan
 from ...core.utils.naming_utils import format_device_name
+from ...types import MerakiVlan
+from . import BaseMerakiEntity
 
 
 class MerakiVLANEntity(BaseMerakiEntity):
@@ -37,7 +37,9 @@ class MerakiVLANEntity(BaseMerakiEntity):
         )
 
         self._attr_device_info = DeviceInfo(
-            identifiers={(self._config_entry.domain, f"vlan_{network_id}_{vlan['id']}")},
+            identifiers={
+                (self._config_entry.domain, f"vlan_{network_id}_{vlan['id']}")
+            },
             name=formatted_name,
             manufacturer="Cisco Meraki",
             model="VLAN",
@@ -45,6 +47,6 @@ class MerakiVLANEntity(BaseMerakiEntity):
         )
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return self._attr_device_info

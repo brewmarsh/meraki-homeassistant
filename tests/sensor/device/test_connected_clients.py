@@ -1,7 +1,8 @@
 """Tests for the Meraki connected clients sensor."""
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from custom_components.meraki_ha.sensor.device.connected_clients import (
     MerakiDeviceConnectedClientsSensor,
@@ -74,7 +75,7 @@ def mock_data_coordinator():
 
 
 def test_connected_clients_sensor_appliance(mock_data_coordinator):
-    """Test the connected clients sensor for an appliance. Should count all online clients on its network."""
+    """Test the connected clients sensor for an appliance."""
     device = mock_data_coordinator.data["devices"][0]  # The appliance
     config_entry = mock_data_coordinator.config_entry
     mock_data_coordinator.config_entry.options = {"device_name_format": "prefix"}
@@ -87,7 +88,7 @@ def test_connected_clients_sensor_appliance(mock_data_coordinator):
 
 
 def test_connected_clients_sensor_gateway(mock_data_coordinator):
-    """Test the connected clients sensor for a cellular gateway. Should count all online clients on its network."""
+    """Test the connected clients sensor for a cellular gateway."""
     device = mock_data_coordinator.data["devices"][3]  # The gateway
     config_entry = mock_data_coordinator.config_entry
     mock_data_coordinator.config_entry.options = {"device_name_format": "prefix"}
@@ -100,7 +101,7 @@ def test_connected_clients_sensor_gateway(mock_data_coordinator):
 
 
 def test_connected_clients_sensor_switch(mock_data_coordinator):
-    """Test the connected clients sensor for a switch. Should use the per-device count."""
+    """Test the connected clients sensor for a switch."""
     device = mock_data_coordinator.data["devices"][1]  # The switch
     config_entry = mock_data_coordinator.config_entry
     mock_data_coordinator.config_entry.options = {"device_name_format": "prefix"}
@@ -113,7 +114,7 @@ def test_connected_clients_sensor_switch(mock_data_coordinator):
 
 
 def test_connected_clients_sensor_wireless(mock_data_coordinator):
-    """Test the connected clients sensor for a wireless device. Should use the per-device count."""
+    """Test the connected clients sensor for a wireless device."""
     device = mock_data_coordinator.data["devices"][2]  # The wireless AP
     config_entry = mock_data_coordinator.config_entry
     mock_data_coordinator.config_entry.options = {"device_name_format": "prefix"}

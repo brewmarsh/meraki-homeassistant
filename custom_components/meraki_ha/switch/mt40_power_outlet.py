@@ -1,10 +1,9 @@
-"""
-Switch entity for Meraki MT40 power outlet.
-"""
+"""Switch entity for Meraki MT40 power outlet."""
+
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
@@ -13,63 +12,91 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..coordinator import MerakiDataUpdateCoordinator
-from ..helpers.device_info_helpers import resolve_device_info
 from ..core.api.client import MerakiAPIClient
+from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiMt40PowerOutlet(
-    CoordinatorEntity[MerakiDataUpdateCoordinator], SwitchEntity
+    CoordinatorEntity,
+    SwitchEntity,
 ):
     """Representation of a Meraki MT40 power outlet."""
 
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_info: Dict[str, Any],
+        device_info: dict[str, Any],
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> None:
-        """Initialize the switch."""
+        """
+        Initialize the switch.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            device_info: The device information.
+            config_entry: The config entry.
+            meraki_client: The Meraki API client.
+
+        """
         super().__init__(coordinator)
         self._device_info = device_info
         self._config_entry = config_entry
         self._meraki_client = meraki_client
         self._attr_unique_id = f"{self._device_info['serial']}-outlet"
         self._attr_name = f"{self._device_info['name']} Outlet"
-        self._attr_is_on = None
+        self._attr_is_on: bool | None = None
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
         return resolve_device_info(self._device_info, self._config_entry)
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        for device in self.coordinator.data.get("devices", []):
-            if device.get("serial") == self._device_info["serial"]:
-                self._device_info = device
-                if not self.coordinator.is_pending(self.unique_id):
-                    self._attr_is_on = self._get_power_state()
-                self.async_write_ha_state()
-                return
-        super()._handle_coordinator_update()
+        device = next(
+            (
+                d
+                for d in self.coordinator.data.get("devices", [])
+                if d.get("serial") == self._device_info["serial"]
+            ),
+            None,
+        )
+        if device:
+            self._device_info = device
+            if not self.coordinator.is_pending(self.unique_id):
+                self._attr_is_on = self._get_power_state()
+            self.async_write_ha_state()
+        else:
+            super()._handle_coordinator_update()
 
     def _get_power_state(self) -> bool | None:
         """Get the power state from the device's readings."""
         readings = self._device_info.get("readings")
         if not isinstance(readings, list):
             return None
-        for reading in readings:
-            # Assuming the metric for the outlet state is 'downstream_power'
-            if reading.get("metric") == "downstream_power":
-                return reading.get("value")
-        return None
+        return next(
+            (
+                reading.get("value")
+                for reading in readings
+                if reading.get("metric") == "downstream_power"
+            ),
+            None,
+        )
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn the power outlet on."""
+        """
+        Turn the power outlet on.
+
+        Args:
+        ----
+            **kwargs: Additional arguments.
+
+        """
         self._attr_is_on = True
         self.async_write_ha_state()
         self.coordinator.register_pending_update(self.unique_id)
@@ -84,7 +111,14 @@ class MerakiMt40PowerOutlet(
             self.coordinator.cancel_pending_update(self.unique_id)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the power outlet off."""
+        """
+        Turn the power outlet off.
+
+        Args:
+        ----
+            **kwargs: Additional arguments.
+
+        """
         self._attr_is_on = False
         self.async_write_ha_state()
         self.coordinator.register_pending_update(self.unique_id)

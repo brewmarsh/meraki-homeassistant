@@ -1,11 +1,12 @@
 """
-Switch Port Service
+Switch Port Service.
 
 This module defines the SwitchPortService class, which is responsible for
 handling business logic related to switch ports.
 """
 
 from __future__ import annotations
+
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -29,10 +30,13 @@ class SwitchPortService:
         Get statuses for all ports of a switch.
 
         Args:
+        ----
             serial: The serial number of the switch.
 
-        Returns:
+        Returns
+        -------
             A list of port statuses, or None if an error occurred.
+
         """
         return await self._repository.async_get_switch_port_statuses(serial)
 
@@ -41,11 +45,15 @@ class SwitchPortService:
         Get the status for a specific port.
 
         Args:
+        ----
             serial: The serial number of the switch.
             port_id: The ID of the port.
 
-        Returns:
-            The status of the port ('Connected' or 'Disconnected'), or None if not found.
+        Returns
+        -------
+            The status of the port ('Connected' or 'Disconnected'), or None if
+            not found.
+
         """
         statuses = await self.async_get_ports_statuses(serial)
         if statuses:
@@ -59,11 +67,14 @@ class SwitchPortService:
         Get the speed for a specific port.
 
         Args:
+        ----
             serial: The serial number of the switch.
             port_id: The ID of the port.
 
-        Returns:
+        Returns
+        -------
             The speed of the port, or None if not found.
+
         """
         statuses = await self.async_get_ports_statuses(serial)
         if statuses:

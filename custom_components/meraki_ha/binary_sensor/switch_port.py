@@ -1,7 +1,7 @@
 """Binary sensor for Meraki switch port status."""
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -12,14 +12,13 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..coordinator import MerakiDataUpdateCoordinator
-from ..helpers.entity_helpers import get_device_from_coordinator
 from ..helpers.device_info_helpers import resolve_device_info
-
+from ..helpers.entity_helpers import get_device_from_coordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class SwitchPortSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], BinarySensorEntity):
+class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
     """Representation of a Meraki switch port sensor."""
 
     _attr_state_color = True
@@ -28,8 +27,8 @@ class SwitchPortSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], BinarySen
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: Dict[str, Any],
-        port: Dict[str, Any],
+        device: dict[str, Any],
+        port: dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -39,7 +38,7 @@ class SwitchPortSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], BinarySen
         self._attr_name = f"Port {self._port['portId']}"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
         return resolve_device_info(self._device, self.coordinator.config_entry)
 
@@ -61,7 +60,7 @@ class SwitchPortSensor(CoordinatorEntity[MerakiDataUpdateCoordinator], BinarySen
         return self._port.get("status") == "Connected"
 
     @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         return {
             "port_id": self._port.get("portId"),

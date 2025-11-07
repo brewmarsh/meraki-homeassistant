@@ -1,39 +1,31 @@
 """Tests for the MRHandler."""
 
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock
+
 from custom_components.meraki_ha.discovery.handlers.mr import MRHandler
 from tests.const import MOCK_DEVICE
 
 
 @pytest.fixture
-def mock_coordinator():
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
-    return MagicMock()
-
-
-@pytest.fixture
-def mock_config_entry():
-    """Fixture for a mocked config entry."""
-    return MagicMock()
-
-
-@pytest.fixture
-def mock_control_service():
+def mock_control_service() -> MagicMock:
     """Fixture for a mock DeviceControlService."""
     return MagicMock()
 
 
 @pytest.fixture
-def mock_camera_service():
+def mock_camera_service() -> AsyncMock:
     """Fixture for a mocked CameraService."""
     return AsyncMock()
 
 
 @pytest.mark.asyncio
 async def test_mr_handler_discover_entities(
-    mock_coordinator, mock_config_entry, mock_camera_service, mock_control_service
-):
+    mock_coordinator: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_control_service: MagicMock,
+) -> None:
     """Test that the MRHandler's discover_entities returns an empty list (for now)."""
     handler = MRHandler(
         mock_coordinator,

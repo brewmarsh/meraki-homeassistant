@@ -2,6 +2,36 @@
 
 This document provides instructions for setting up a development environment for the Meraki Home Assistant integration.
 
+## Backend Development
+
+The backend of the integration is written in Python and uses the `meraki` library to interact with the Meraki API.
+
+### Backend Code Location
+
+The source code for the backend is located in the `custom_components/meraki_ha/` directory.
+
+### Installing Dependencies
+
+To work with the backend code, you must first install the necessary Python dependencies. It is recommended to use a virtual environment to avoid conflicts with other projects.
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements_dev.txt
+```
+
+### Running the Linter and Tests
+
+To ensure that your code is up to the project's standards, you should run the linter and tests before submitting a pull request.
+
+```bash
+ruff check .
+ruff format .
+mypy .
+bandit -c .bandit.yaml -r .
+pytest
+```
+
 ## Frontend Development
 
 The Meraki side panel is a modern web application built with React, Vite, and TypeScript.
