@@ -1,3 +1,12 @@
+## [1.5.4-beta.35](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.34...v1.5.4-beta.35) (2025-11-07)
+
+
+### Features
+
+* Remove redundant heading from device view ([ab4c70d](https://github.com/brewmarsh/meraki-homeassistant/commit/ab4c70d8cc508427ff1e4a1cafca5b5bae873c19))
+
+
+
 ## [1.5.4-beta.34](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.33...v1.5.4-beta.34) (2025-11-07)
 
 
