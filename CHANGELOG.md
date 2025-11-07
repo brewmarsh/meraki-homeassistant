@@ -1,3 +1,23 @@
+## [1.5.4-beta.34](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.33...v1.5.4-beta.34) (2025-11-07)
+
+
+### Bug Fixes
+
+* **deps:** Update test dependencies for Python 3.13 compatibility ([d32ada9](https://github.com/brewmarsh/meraki-homeassistant/commit/d32ada943b913763537f06786d4272738d3ccb21))
+* **lint:** resolve linting errors and remove failing test ([9ccbc82](https://github.com/brewmarsh/meraki-homeassistant/commit/9ccbc82b69c8d872830b9e6075fb9d80f665b87a))
+* **lint:** resolve linting errors and test regression ([cc1e889](https://github.com/brewmarsh/meraki-homeassistant/commit/cc1e8894b023daece63c523aec7457f4055ae7c1))
+
+
+### Features
+
+* **frontend:** implement UI enhancements for HA panel ([35ef2a7](https://github.com/brewmarsh/meraki-homeassistant/commit/35ef2a78e61430c8f0627695804ed8f99de3789c))
+* **frontend:** Update HA panel with new features ([e48713f](https://github.com/brewmarsh/meraki-homeassistant/commit/e48713f34486bdcf7124aa0566fc8932bf91a66f))
+* **frontend:** Update HA panel with new features ([f8e4767](https://github.com/brewmarsh/meraki-homeassistant/commit/f8e47673581014a9f6d1d9ebfce471a9cdd7bd1a))
+* **frontend:** Update HA panel with new features ([7eee2dd](https://github.com/brewmarsh/meraki-homeassistant/commit/7eee2ddf064206578505a79c2a3b5e53848bf49f))
+* **frontend:** Update HA panel with new features ([de41a6f](https://github.com/brewmarsh/meraki-homeassistant/commit/de41a6fee05a4159c1a39a2dcde246095e3b4ccc))
+
+
+
 ## [1.5.4-beta.33](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.32...v1.5.4-beta.33) (2025-11-04)
 
 
