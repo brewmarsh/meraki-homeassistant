@@ -1,7 +1,7 @@
 function tc(e) {
   return e && e.__esModule && Object.prototype.hasOwnProperty.call(e, "default") ? e.default : e;
 }
-var Hu = { exports: {} }, el = {}, Wu = { exports: {} }, L = {};
+var Hu = { exports: {} }, el = {}, Wu = { exports: {} }, T = {};
 /**
  * @license React
  * react.production.min.js
@@ -139,7 +139,7 @@ var ue = { current: null }, wr = { transition: null }, yc = { ReactCurrentDispat
 function qu() {
   throw Error("act(...) is not supported in production builds of React.");
 }
-L.Children = { map: nr, forEach: function(e, n, t) {
+T.Children = { map: nr, forEach: function(e, n, t) {
   nr(e, function() {
     n.apply(this, arguments);
   }, t);
@@ -157,15 +157,15 @@ L.Children = { map: nr, forEach: function(e, n, t) {
     throw Error("React.Children.only expected to receive a single React element child.");
   return e;
 } };
-L.Component = it;
-L.Fragment = lc;
-L.Profiler = oc;
-L.PureComponent = Ui;
-L.StrictMode = ic;
-L.Suspense = cc;
-L.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = yc;
-L.act = qu;
-L.cloneElement = function(e, n, t) {
+T.Component = it;
+T.Fragment = lc;
+T.Profiler = oc;
+T.PureComponent = Ui;
+T.StrictMode = ic;
+T.Suspense = cc;
+T.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = yc;
+T.act = qu;
+T.cloneElement = function(e, n, t) {
   if (e == null)
     throw Error("React.cloneElement(...): The argument must be a React element, but you passed " + e + ".");
   var r = Ku({}, e.props), l = e.key, i = e.ref, o = e._owner;
@@ -186,28 +186,28 @@ L.cloneElement = function(e, n, t) {
   }
   return { $$typeof: Xt, type: e.type, key: l, ref: i, props: r, _owner: o };
 };
-L.createContext = function(e) {
+T.createContext = function(e) {
   return e = { $$typeof: sc, _currentValue: e, _currentValue2: e, _threadCount: 0, Provider: null, Consumer: null, _defaultValue: null, _globalName: null }, e.Provider = { $$typeof: uc, _context: e }, e.Consumer = e;
 };
-L.createElement = Ju;
-L.createFactory = function(e) {
+T.createElement = Ju;
+T.createFactory = function(e) {
   var n = Ju.bind(null, e);
   return n.type = e, n;
 };
-L.createRef = function() {
+T.createRef = function() {
   return { current: null };
 };
-L.forwardRef = function(e) {
+T.forwardRef = function(e) {
   return { $$typeof: ac, render: e };
 };
-L.isValidElement = Vi;
-L.lazy = function(e) {
+T.isValidElement = Vi;
+T.lazy = function(e) {
   return { $$typeof: dc, _payload: { _status: -1, _result: e }, _init: vc };
 };
-L.memo = function(e, n) {
+T.memo = function(e, n) {
   return { $$typeof: fc, type: e, compare: n === void 0 ? null : n };
 };
-L.startTransition = function(e) {
+T.startTransition = function(e) {
   var n = wr.transition;
   wr.transition = {};
   try {
@@ -216,53 +216,53 @@ L.startTransition = function(e) {
     wr.transition = n;
   }
 };
-L.unstable_act = qu;
-L.useCallback = function(e, n) {
+T.unstable_act = qu;
+T.useCallback = function(e, n) {
   return ue.current.useCallback(e, n);
 };
-L.useContext = function(e) {
+T.useContext = function(e) {
   return ue.current.useContext(e);
 };
-L.useDebugValue = function() {
+T.useDebugValue = function() {
 };
-L.useDeferredValue = function(e) {
+T.useDeferredValue = function(e) {
   return ue.current.useDeferredValue(e);
 };
-L.useEffect = function(e, n) {
+T.useEffect = function(e, n) {
   return ue.current.useEffect(e, n);
 };
-L.useId = function() {
+T.useId = function() {
   return ue.current.useId();
 };
-L.useImperativeHandle = function(e, n, t) {
+T.useImperativeHandle = function(e, n, t) {
   return ue.current.useImperativeHandle(e, n, t);
 };
-L.useInsertionEffect = function(e, n) {
+T.useInsertionEffect = function(e, n) {
   return ue.current.useInsertionEffect(e, n);
 };
-L.useLayoutEffect = function(e, n) {
+T.useLayoutEffect = function(e, n) {
   return ue.current.useLayoutEffect(e, n);
 };
-L.useMemo = function(e, n) {
+T.useMemo = function(e, n) {
   return ue.current.useMemo(e, n);
 };
-L.useReducer = function(e, n, t) {
+T.useReducer = function(e, n, t) {
   return ue.current.useReducer(e, n, t);
 };
-L.useRef = function(e) {
+T.useRef = function(e) {
   return ue.current.useRef(e);
 };
-L.useState = function(e) {
+T.useState = function(e) {
   return ue.current.useState(e);
 };
-L.useSyncExternalStore = function(e, n, t) {
+T.useSyncExternalStore = function(e, n, t) {
   return ue.current.useSyncExternalStore(e, n, t);
 };
-L.useTransition = function() {
+T.useTransition = function() {
   return ue.current.useTransition();
 };
-L.version = "18.3.1";
-Wu.exports = L;
+T.version = "18.3.1";
+Wu.exports = T;
 var en = Wu.exports;
 const gc = /* @__PURE__ */ tc(en);
 /**
@@ -289,7 +289,7 @@ el.Fragment = Sc;
 el.jsx = bu;
 el.jsxs = bu;
 Hu.exports = el;
-var T = Hu.exports, Ql = {}, es = { exports: {} }, ge = {}, ns = { exports: {} }, ts = {};
+var L = Hu.exports, Ql = {}, es = { exports: {} }, ge = {}, ns = { exports: {} }, ts = {};
 /**
  * @license React
  * scheduler.production.min.js
@@ -6206,7 +6206,7 @@ function ec() {
 ec(), es.exports = ge;
 var Ld = es.exports, Bu = Ld;
 Ql.createRoot = Bu.createRoot, Ql.hydrateRoot = Bu.hydrateRoot;
-const Rd = () => /* @__PURE__ */ T.jsx("div", { style: { padding: "16px", marginBottom: "24px", textAlign: "center" }, children: /* @__PURE__ */ T.jsx("h1", { children: "Meraki Integration Control" }) }), jd = (e) => e.startsWith("GS") ? "Switches" : e.startsWith("GR") ? "Access Points" : e.startsWith("MT") ? "Sensors" : e.startsWith("MS") ? "Switches" : e.startsWith("MV") ? "Cameras" : e.startsWith("MX") ? "Routers" : e.startsWith("MR") ? "Access Points" : "Other", Md = ({ deviceType: e, devices: n }) => {
+const Rd = () => /* @__PURE__ */ L.jsx("div", { style: { padding: "16px", marginBottom: "24px", textAlign: "center" }, children: /* @__PURE__ */ L.jsx("h1", { children: "Meraki Integration Control" }) }), jd = (e) => e.startsWith("GS") ? "Switches" : e.startsWith("GR") ? "Access Points" : e.startsWith("MT") ? "Sensors" : e.startsWith("MS") ? "Switches" : e.startsWith("MV") ? "Cameras" : e.startsWith("MX") ? "Routers" : e.startsWith("MR") ? "Access Points" : "Other", Md = ({ deviceType: e, devices: n }) => {
   const t = {
     padding: "12px",
     marginBottom: "12px",
@@ -6219,8 +6219,8 @@ const Rd = () => /* @__PURE__ */ T.jsx("div", { style: { padding: "16px", margin
     case "Switches":
     case "Access Points":
     case "Sensors":
-      return /* @__PURE__ */ T.jsxs("div", { style: t, children: [
-        /* @__PURE__ */ T.jsxs("strong", { children: [
+      return /* @__PURE__ */ L.jsxs("div", { style: t, children: [
+        /* @__PURE__ */ L.jsxs("strong", { children: [
           r,
           " / ",
           n.length
@@ -6231,25 +6231,24 @@ const Rd = () => /* @__PURE__ */ T.jsx("div", { style: { padding: "16px", margin
       ] });
     case "Routers":
       const l = n.some((i) => i.status === "online");
-      return /* @__PURE__ */ T.jsxs("div", { style: t, children: [
+      return /* @__PURE__ */ L.jsxs("div", { style: t, children: [
         "Gateway Status: ",
-        /* @__PURE__ */ T.jsx("strong", { children: l ? "Online" : "Offline" })
+        /* @__PURE__ */ L.jsx("strong", { children: l ? "Online" : "Offline" })
       ] });
     default:
       return null;
   }
 }, Od = ({ devices: e }) => {
   if (!e || e.length === 0)
-    return /* @__PURE__ */ T.jsx("p", { children: "No devices found in this network." });
+    return /* @__PURE__ */ L.jsx("p", { children: "No devices found in this network." });
   const n = e.reduce((t, r) => {
     const l = jd(r.model);
     return t[l] || (t[l] = []), t[l].push(r), t;
   }, {});
-  return /* @__PURE__ */ T.jsx("div", { className: "device-list", style: { display: "flex", flexDirection: "column", gap: "16px" }, children: Object.entries(n).map(([t, r]) => /* @__PURE__ */ T.jsxs("div", { className: "device-group", children: [
-    /* @__PURE__ */ T.jsx("h4", { style: { marginTop: 0, marginBottom: "8px", borderBottom: "1px solid var(--divider-color)" }, children: t }),
-    /* @__PURE__ */ T.jsx(Md, { deviceType: t, devices: r }),
-    r.map((l) => /* @__PURE__ */ T.jsxs("div", { className: "device-item", style: { marginBottom: "8px" }, children: [
-      /* @__PURE__ */ T.jsx("p", { style: { margin: 0 }, children: /* @__PURE__ */ T.jsx(
+  return /* @__PURE__ */ L.jsx("div", { className: "device-list", style: { display: "flex", flexDirection: "column", gap: "16px" }, children: Object.entries(n).map(([t, r]) => /* @__PURE__ */ L.jsxs("div", { className: "device-group", children: [
+    /* @__PURE__ */ L.jsx(Md, { deviceType: t, devices: r }),
+    r.map((l) => /* @__PURE__ */ L.jsxs("div", { className: "device-item", style: { marginBottom: "8px" }, children: [
+      /* @__PURE__ */ L.jsx("p", { style: { margin: 0 }, children: /* @__PURE__ */ L.jsx(
         "strong",
         {
           onClick: () => l.entity_id && window.dispatchEvent(
@@ -6267,13 +6266,13 @@ const Rd = () => /* @__PURE__ */ T.jsx("div", { style: { padding: "16px", margin
           children: l.name || "Unnamed Device"
         }
       ) }),
-      /* @__PURE__ */ T.jsxs("p", { style: { margin: 0, fontSize: "var(--secondary-text-size)" }, children: [
+      /* @__PURE__ */ L.jsxs("p", { style: { margin: 0, fontSize: "var(--secondary-text-size)" }, children: [
         "Model: ",
         l.model,
         " | Status: ",
         l.status
       ] }),
-      /* @__PURE__ */ T.jsxs("p", { style: { margin: 0, fontSize: "var(--secondary-text-size)" }, children: [
+      /* @__PURE__ */ L.jsxs("p", { style: { margin: 0, fontSize: "var(--secondary-text-size)" }, children: [
         l.lanIp && `IP: ${l.lanIp} | `,
         l.mac && `MAC: ${l.mac}`
       ] })
@@ -6283,25 +6282,25 @@ const Rd = () => /* @__PURE__ */ T.jsx("div", { style: { padding: "16px", margin
   const [n, t] = en.useState(null), r = (o) => {
     t(n === o ? null : o);
   }, { networks: l, devices: i } = e;
-  return !l || l.length === 0 ? /* @__PURE__ */ T.jsx("p", { children: "No networks found." }) : /* @__PURE__ */ T.jsx("div", { style: { display: "flex", flexDirection: "column", gap: "16px" }, children: l.map((o) => {
+  return !l || l.length === 0 ? /* @__PURE__ */ L.jsx("p", { children: "No networks found." }) : /* @__PURE__ */ L.jsx("div", { style: { display: "flex", flexDirection: "column", gap: "16px" }, children: l.map((o) => {
     const u = n === o.id;
-    return /* @__PURE__ */ T.jsxs("ha-card", { children: [
-      /* @__PURE__ */ T.jsxs(
+    return /* @__PURE__ */ L.jsxs("ha-card", { children: [
+      /* @__PURE__ */ L.jsxs(
         "div",
         {
           className: "card-header",
           onClick: () => r(o.id),
           style: { display: "flex", alignItems: "center", cursor: "pointer", padding: "16px" },
           children: [
-            /* @__PURE__ */ T.jsxs("span", { children: [
+            /* @__PURE__ */ L.jsxs("span", { children: [
               "[Network] ",
               o.name
             ] }),
-            /* @__PURE__ */ T.jsx("ha-icon", { style: { marginLeft: "8px" }, icon: u ? "mdi:chevron-up" : "mdi:chevron-down" })
+            /* @__PURE__ */ L.jsx("ha-icon", { style: { marginLeft: "8px" }, icon: u ? "mdi:chevron-up" : "mdi:chevron-down" })
           ]
         }
       ),
-      u && /* @__PURE__ */ T.jsx("div", { className: "card-content", children: /* @__PURE__ */ T.jsx(
+      u && /* @__PURE__ */ L.jsx("div", { className: "card-content", children: /* @__PURE__ */ L.jsx(
         Od,
         {
           devices: i.filter((s) => s.networkId === o.id)
@@ -6309,7 +6308,7 @@ const Rd = () => /* @__PURE__ */ T.jsx("div", { style: { padding: "16px", margin
       ) })
     ] }, o.id);
   }) });
-}, Id = () => /* @__PURE__ */ T.jsx("div", { className: "card-content", children: /* @__PURE__ */ T.jsx("p", { children: "Integration-specific events will be displayed here." }) }), Fd = ({ hass: e, config_entry_id: n }) => {
+}, Id = () => /* @__PURE__ */ L.jsx("div", { className: "card-content", children: /* @__PURE__ */ L.jsx("p", { children: "Integration-specific events will be displayed here." }) }), Fd = ({ hass: e, config_entry_id: n }) => {
   const [t, r] = en.useState(null), [l, i] = en.useState(!0), [o, u] = en.useState(null);
   return en.useEffect(() => {
     if (!e || !e.connection) {
@@ -6329,16 +6328,16 @@ const Rd = () => /* @__PURE__ */ T.jsx("div", { style: { padding: "16px", margin
         i(!1);
       }
     })();
-  }, [e, n]), /* @__PURE__ */ T.jsxs("div", { children: [
-    /* @__PURE__ */ T.jsx(Rd, {}),
-    l && /* @__PURE__ */ T.jsx("p", { children: "Loading..." }),
-    o && /* @__PURE__ */ T.jsxs("p", { children: [
+  }, [e, n]), /* @__PURE__ */ L.jsxs("div", { children: [
+    /* @__PURE__ */ L.jsx(Rd, {}),
+    l && /* @__PURE__ */ L.jsx("p", { children: "Loading..." }),
+    o && /* @__PURE__ */ L.jsxs("p", { children: [
       "Error: ",
       o
     ] }),
-    !l && !o && t && /* @__PURE__ */ T.jsxs(T.Fragment, { children: [
-      /* @__PURE__ */ T.jsx(Dd, { data: t }),
-      /* @__PURE__ */ T.jsx("ha-card", { header: "Event Log", children: /* @__PURE__ */ T.jsx(Id, {}) })
+    !l && !o && t && /* @__PURE__ */ L.jsxs(L.Fragment, { children: [
+      /* @__PURE__ */ L.jsx(Dd, { data: t }),
+      /* @__PURE__ */ L.jsx("ha-card", { header: "Event Log", children: /* @__PURE__ */ L.jsx(Id, {}) })
     ] })
   ] });
 };
@@ -6348,7 +6347,7 @@ class Ud extends HTMLElement {
     n.id = "root", this.appendChild(n);
     const t = this.hass, r = this.panel.config.config_entry_id;
     Ql.createRoot(n).render(
-      /* @__PURE__ */ T.jsx(gc.StrictMode, { children: /* @__PURE__ */ T.jsx(Fd, { hass: t, config_entry_id: r }) })
+      /* @__PURE__ */ L.jsx(gc.StrictMode, { children: /* @__PURE__ */ L.jsx(Fd, { hass: t, config_entry_id: r }) })
     );
   }
 }
