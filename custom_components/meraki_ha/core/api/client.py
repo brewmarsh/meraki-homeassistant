@@ -324,10 +324,10 @@ class MerakiAPIClient:
                 detail_tasks[f"ssids_{network['id']}"] = self._run_with_semaphore(
                     self.wireless.get_network_ssids(network["id"]),
                 )
-                detail_tasks[
-                    f"wireless_settings_{network['id']}"
-                ] = self._run_with_semaphore(
-                    self.wireless.get_network_wireless_settings(network["id"]),
+                detail_tasks[f"wireless_settings_{network['id']}"] = (
+                    self._run_with_semaphore(
+                        self.wireless.get_network_wireless_settings(network["id"]),
+                    )
                 )
             if "appliance" in product_types:
                 if not self.coordinator or self.coordinator.is_traffic_check_due(
