@@ -112,9 +112,13 @@ class WirelessEndpoints:
     ) -> dict[str, Any]:
         """
         Get wireless settings for a network.
+
         Args:
+        ----
             network_id: The ID of the network.
-        Returns:
+
+        Returns
+        -------
             The wireless settings.
         """
         settings = await self._api_client.run_sync(
@@ -133,10 +137,14 @@ class WirelessEndpoints:
     ) -> dict[str, Any]:
         """
         Update wireless settings for a network.
+
         Args:
+        ----
             network_id: The ID of the network.
             **kwargs: The settings to update.
-        Returns:
+
+        Returns
+        -------
             The updated settings.
         """
         settings = await self._api_client.run_sync(
