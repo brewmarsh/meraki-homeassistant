@@ -35,6 +35,7 @@ interface MerakiData {
   devices: Device[];
   enabled_networks: string[];
   config_entry_id: string;
+  version: string;
 }
 
 interface AppProps {
@@ -83,6 +84,9 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
           <ha-card header="Event Log">
             <EventLog />
           </ha-card>
+          <div style={{ textAlign: 'center', marginTop: '16px' }}>
+            <p>Version: {data.version}</p>
+          </div>
         </>
       )}
     </div>

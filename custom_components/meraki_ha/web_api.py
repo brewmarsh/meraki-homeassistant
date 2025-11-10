@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import logging
+import os
 from typing import Any
 
 from homeassistant.components import websocket_api
@@ -104,12 +106,19 @@ async def handle_get_config(
     ]
     config_entry = hass.config_entries.async_get_entry(config_entry_id)
     enabled_networks = config_entry.options.get(CONF_ENABLED_NETWORKS)
+
+    manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
+    with open(manifest_path) as f:
+        manifest = json.load(f)
+    version = manifest.get("version")
+
     connection.send_result(
         msg["id"],
         {
             **coordinator.data,
             "enabled_networks": enabled_networks,
             "config_entry_id": config_entry_id,
+            "version": version,
         },
     )
 
