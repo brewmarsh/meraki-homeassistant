@@ -5,7 +5,9 @@ updates:
     schedule:
       interval: daily
       time: '06:00'
-    prefix-add: '[patch]'
+    commit-message:
+      prefix: '[patch]'
+    target-branch: "beta"
   - package-ecosystem: "docker"
     # Location of the Dockerfile
     directory: "/docker-runner"
@@ -15,7 +17,7 @@ updates:
     # The image to monitor for new releases. 
     # Dependabot tracks the versions of the 'actions/runner' on GitHub.
     # It detects that the ARG is tied to this dependency.
-    target-branch: "main" 
+    target-branch: "beta"
     labels:
       - "runner-update"
       - "dependencies"
@@ -24,3 +26,5 @@ updates:
       args:
         # Monitored ARG variable name (must match your Dockerfile)
         - RUNNER_VERSION
+    commit-message:
+      prefix: '[patch]'
