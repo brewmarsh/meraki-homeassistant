@@ -33,6 +33,8 @@ interface Device {
 interface MerakiData {
   networks: Network[];
   devices: Device[];
+  enabled_networks: string[];
+  config_entry_id: string;
 }
 
 interface AppProps {
@@ -77,7 +79,7 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
       {error && <p>Error: {error}</p>}
       {!loading && !error && data && (
         <>
-          <NetworkView data={data} />
+          <NetworkView data={data} hass={hass} />
           <ha-card header="Event Log">
             <EventLog />
           </ha-card>
