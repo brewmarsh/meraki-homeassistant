@@ -4,7 +4,6 @@ import logging
 import random
 import string
 
-from homeassistant.components import frontend as hass_frontend
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
