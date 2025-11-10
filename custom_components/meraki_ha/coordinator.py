@@ -167,6 +167,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         dev_reg = dr.async_get(self.hass)
         ent_reg = er.async_get(self.hass)
+        if not self.config_entry:
+            return
         current_devices = {
             list(device.identifiers)[0][1]
             for device in dev_reg.devices
