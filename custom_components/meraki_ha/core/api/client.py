@@ -324,6 +324,11 @@ class MerakiAPIClient:
                 detail_tasks[f"ssids_{network['id']}"] = self._run_with_semaphore(
                     self.wireless.get_network_ssids(network["id"]),
                 )
+                detail_tasks[
+                    f"wireless_settings_{network['id']}"
+                ] = self._run_with_semaphore(
+                    self.wireless.get_network_wireless_settings(network["id"]),
+                )
             if "appliance" in product_types:
                 if not self.coordinator or self.coordinator.is_traffic_check_due(
                     network["id"],
@@ -418,6 +423,7 @@ class MerakiAPIClient:
         vpn_status_by_network: dict[str, Any] = {}
         rf_profiles_by_network: dict[str, Any] = {}
         content_filtering_by_network: dict[str, Any] = {}
+        wireless_settings_by_network: dict[str, Any] = {}
 
         for network in networks:
             network_ssids_key = f"ssids_{network['id']}"
@@ -508,6 +514,15 @@ class MerakiAPIClient:
                     content_filtering_key
                 ]
 
+            wireless_settings_key = f"wireless_settings_{network['id']}"
+            wireless_settings = detail_data.get(wireless_settings_key)
+            if isinstance(wireless_settings, dict):
+                wireless_settings_by_network[network["id"]] = wireless_settings
+            elif previous_data and wireless_settings_key in previous_data:
+                wireless_settings_by_network[network["id"]] = previous_data[
+                    wireless_settings_key
+                ]
+
         for device in devices:
             product_type = device.get("productType")
             if product_type == "camera":
@@ -539,6 +554,7 @@ class MerakiAPIClient:
             "vpn_status": vpn_status_by_network,
             "rf_profiles": rf_profiles_by_network,
             "content_filtering": content_filtering_by_network,
+            "wireless_settings": wireless_settings_by_network,
         }
 
     async def get_all_data(

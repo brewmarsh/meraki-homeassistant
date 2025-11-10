@@ -13,6 +13,7 @@ from ..const import (
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..types import MerakiVlan
+from .access_point_leds import MerakiAPLEDSwitch
 from .camera_controls import AnalyticsSwitch
 from .meraki_ssid_device_switch import (
     MerakiSSIDBroadcastSwitch,
@@ -142,6 +143,29 @@ def _setup_mt40_switches(
     return entities
 
 
+def _setup_ap_led_switches(
+    config_entry: ConfigEntry,
+    coordinator: MerakiDataUpdateCoordinator,
+    added_entities: set[str],
+) -> list[Entity]:
+    """Set up AP LED switches."""
+    entities: list[Entity] = []
+    networks = coordinator.data.get("networks", [])
+    for network in networks:
+        if "wireless" in network.get("productTypes", []):
+            unique_id = f"meraki_{network['id']}_ap_leds"
+            if unique_id not in added_entities:
+                entities.append(
+                    MerakiAPLEDSwitch(
+                        coordinator,
+                        config_entry,
+                        network,
+                    )
+                )
+                added_entities.add(unique_id)
+    return entities
+
+
 def async_setup_switches(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -162,5 +186,6 @@ def async_setup_switches(
     entities.extend(
         _setup_mt40_switches(config_entry, coordinator, added_entities, meraki_client)
     )
+    entities.extend(_setup_ap_led_switches(config_entry, coordinator, added_entities))
 
     return entities
