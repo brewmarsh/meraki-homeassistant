@@ -7,6 +7,7 @@ import logging
 import os
 from typing import Any
 
+import aiofiles
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 from voluptuous import ALLOW_EXTRA, All, Required, Schema
@@ -108,8 +109,9 @@ async def handle_get_config(
     enabled_networks = config_entry.options.get(CONF_ENABLED_NETWORKS)
 
     manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
-    with open(manifest_path) as f:
-        manifest = json.load(f)
+    async with aiofiles.open(manifest_path, mode="r") as f:
+        contents = await f.read()
+    manifest = json.loads(contents)
     version = manifest.get("version")
 
     connection.send_result(
