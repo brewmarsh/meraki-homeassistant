@@ -1,3 +1,19 @@
+# [2.0.0-beta.5](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.4...v2.0.0-beta.5) (2025-11-10)
+
+
+### Bug Fixes
+
+* **api:** add missing wireless settings methods ([87a9055](https://github.com/brewmarsh/meraki-homeassistant/commit/87a9055ac0d447e4be44c2b5064a1d16f57640aa))
+* **api:** correct docstring formatting ([73c9620](https://github.com/brewmarsh/meraki-homeassistant/commit/73c9620a1d3c573e636f52ccd7fa6ba8a3fe9696))
+* **tests:** correct import order in test_access_point_leds.py ([d596a88](https://github.com/brewmarsh/meraki-homeassistant/commit/d596a88cf11580937dd30a8d018249e808e01652))
+
+
+### Features
+
+* **switch:** add access point led control ([623437b](https://github.com/brewmarsh/meraki-homeassistant/commit/623437b4242f34670b5cc420329a0d88a2439792))
+
+
+
 # [2.0.0-beta.4](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.3...v2.0.0-beta.4) (2025-11-10)
 
 
