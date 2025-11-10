@@ -106,6 +106,51 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
+    @async_timed_cache()
+    async def get_network_wireless_settings(
+        self, network_id: str
+    ) -> dict[str, Any]:
+        """
+        Get wireless settings for a network.
+        Args:
+            network_id: The ID of the network.
+        Returns:
+            The wireless settings.
+        """
+        settings = await self._api_client.run_sync(
+            self._dashboard.wireless.getNetworkWirelessSettings,
+            networkId=network_id,
+        )
+        validated = validate_response(settings)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("get_network_wireless_settings did not return a dict")
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    async def update_network_wireless_settings(
+        self, network_id: str, **kwargs: dict[str, Any]
+    ) -> dict[str, Any]:
+        """
+        Update wireless settings for a network.
+        Args:
+            network_id: The ID of the network.
+            **kwargs: The settings to update.
+        Returns:
+            The updated settings.
+        """
+        settings = await self._api_client.run_sync(
+            self._dashboard.wireless.updateNetworkWirelessSettings,
+            networkId=network_id,
+            **kwargs,
+        )
+        validated = validate_response(settings)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("update_network_wireless_settings did not return a dict")
+            return {}
+        return validated
+
+    @handle_meraki_errors
     async def update_network_wireless_ssid(
         self,
         network_id: str,
