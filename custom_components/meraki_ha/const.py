@@ -43,14 +43,14 @@ CONF_ENABLE_DEVICE_TRACKER: Final = "enable_device_tracker"
 """Configuration key for enabling device tracker."""
 
 
-CONF_IGNORED_NETWORKS: Final = "ignored_networks"
-"""Configuration key for a list of network names to ignore."""
-
 CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
 """Configuration key for enabling vlan management."""
 
 
-DEFAULT_IGNORED_NETWORKS: Final = ""
+CONF_ENABLED_NETWORKS: Final = "enabled_networks"
+"""Configuration key for a list of network IDs to enable."""
+
+DEFAULT_ENABLED_NETWORKS: Final = []
 """Default value for the ignored networks list."""
 
 DEFAULT_ENABLE_VLAN_MANAGEMENT: Final = False

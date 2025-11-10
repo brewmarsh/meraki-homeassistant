@@ -8,7 +8,7 @@ import voluptuous as vol
 from homeassistant import config_entries, data_entry_flow
 from homeassistant.helpers import selector
 
-from .const import CONF_IGNORED_NETWORKS, CONF_INTEGRATION_TITLE, DOMAIN
+from .const import CONF_ENABLED_NETWORKS, CONF_INTEGRATION_TITLE, DOMAIN
 from .coordinator import MerakiDataUpdateCoordinator
 from .schemas import OPTIONS_SCHEMA
 
@@ -101,7 +101,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                 # default value set to the existing option value.
                 key = type(key)(key.schema, default=defaults[key.schema])
 
-            if key_name == CONF_IGNORED_NETWORKS and isinstance(
+            if key_name == CONF_ENABLED_NETWORKS and isinstance(
                 value, selector.SelectSelector
             ):
                 new_config = value.config.copy()
