@@ -107,9 +107,7 @@ class WirelessEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache()
-    async def get_network_wireless_settings(
-        self, network_id: str
-    ) -> dict[str, Any]:
+    async def get_network_wireless_settings(self, network_id: str) -> dict[str, Any]:
         """
         Get wireless settings for a network.
 
