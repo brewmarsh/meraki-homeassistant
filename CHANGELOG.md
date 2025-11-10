@@ -1,3 +1,12 @@
+# [2.0.0-beta.3](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.2...v2.0.0-beta.3) (2025-11-10)
+
+
+### Features
+
+* configure dependabot to target beta branch ([83f4057](https://github.com/brewmarsh/meraki-homeassistant/commit/83f4057caca2dc13adc4c33e786b4ce74f88d8cb))
+
+
+
 # [2.0.0-beta.2](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0...v2.0.0-beta.2) (2025-11-10)
 
 
