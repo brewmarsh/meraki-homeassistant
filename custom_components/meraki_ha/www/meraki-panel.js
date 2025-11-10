@@ -289,7 +289,7 @@ el.Fragment = Sc;
 el.jsx = bu;
 el.jsxs = bu;
 Hu.exports = el;
-var T = Hu.exports, Ql = {}, es = { exports: {} }, ge = {}, ns = { exports: {} }, ts = {};
+var z = Hu.exports, Ql = {}, es = { exports: {} }, ge = {}, ns = { exports: {} }, ts = {};
 /**
  * @license React
  * scheduler.production.min.js
@@ -301,13 +301,13 @@ var T = Hu.exports, Ql = {}, es = { exports: {} }, ge = {}, ns = { exports: {} }
  */
 (function(e) {
   function n(x, P) {
-    var z = x.length;
+    var T = x.length;
     x.push(P);
     e:
-      for (; 0 < z; ) {
-        var W = z - 1 >>> 1, G = x[W];
+      for (; 0 < T; ) {
+        var W = T - 1 >>> 1, G = x[W];
         if (0 < l(G, P))
-          x[W] = P, x[z] = G, z = W;
+          x[W] = P, x[T] = G, T = W;
         else
           break e;
       }
@@ -318,16 +318,16 @@ var T = Hu.exports, Ql = {}, es = { exports: {} }, ge = {}, ns = { exports: {} }
   function r(x) {
     if (x.length === 0)
       return null;
-    var P = x[0], z = x.pop();
-    if (z !== P) {
-      x[0] = z;
+    var P = x[0], T = x.pop();
+    if (T !== P) {
+      x[0] = T;
       e:
         for (var W = 0, G = x.length, bt = G >>> 1; W < bt; ) {
           var yn = 2 * (W + 1) - 1, gl = x[yn], gn = yn + 1, er = x[gn];
-          if (0 > l(gl, z))
-            gn < G && 0 > l(er, gl) ? (x[W] = er, x[gn] = z, W = gn) : (x[W] = gl, x[yn] = z, W = yn);
-          else if (gn < G && 0 > l(er, z))
-            x[W] = er, x[gn] = z, W = gn;
+          if (0 > l(gl, T))
+            gn < G && 0 > l(er, gl) ? (x[W] = er, x[gn] = T, W = gn) : (x[W] = gl, x[yn] = T, W = yn);
+          else if (gn < G && 0 > l(er, T))
+            x[W] = er, x[gn] = T, W = gn;
           else
             break e;
         }
@@ -335,8 +335,8 @@ var T = Hu.exports, Ql = {}, es = { exports: {} }, ge = {}, ns = { exports: {} }
     return P;
   }
   function l(x, P) {
-    var z = x.sortIndex - P.sortIndex;
-    return z !== 0 ? z : x.id - P.id;
+    var T = x.sortIndex - P.sortIndex;
+    return T !== 0 ? T : x.id - P.id;
   }
   if (typeof performance == "object" && typeof performance.now == "function") {
     var i = performance;
@@ -373,7 +373,7 @@ var T = Hu.exports, Ql = {}, es = { exports: {} }, ge = {}, ns = { exports: {} }
   }
   function E(x, P) {
     w = !1, k && (k = !1, f(N), N = -1), g = !0;
-    var z = p;
+    var T = p;
     try {
       for (d(P), h = t(s); h !== null && (!(h.expirationTime > P) || x && !Ne()); ) {
         var W = h.callback;
@@ -393,7 +393,7 @@ var T = Hu.exports, Ql = {}, es = { exports: {} }, ge = {}, ns = { exports: {} }
       }
       return bt;
     } finally {
-      h = null, p = z, g = !1;
+      h = null, p = T, g = !1;
     }
   }
   var _ = !1, C = null, N = -1, H = 5, R = -1;
@@ -455,12 +455,12 @@ var T = Hu.exports, Ql = {}, es = { exports: {} }, ge = {}, ns = { exports: {} }
       default:
         P = p;
     }
-    var z = p;
+    var T = p;
     p = P;
     try {
       return x();
     } finally {
-      p = z;
+      p = T;
     }
   }, e.unstable_pauseExecution = function() {
   }, e.unstable_requestPaint = function() {
@@ -475,16 +475,16 @@ var T = Hu.exports, Ql = {}, es = { exports: {} }, ge = {}, ns = { exports: {} }
       default:
         x = 3;
     }
-    var z = p;
+    var T = p;
     p = x;
     try {
       return P();
     } finally {
-      p = z;
+      p = T;
     }
-  }, e.unstable_scheduleCallback = function(x, P, z) {
+  }, e.unstable_scheduleCallback = function(x, P, T) {
     var W = e.unstable_now();
-    switch (typeof z == "object" && z !== null ? (z = z.delay, z = typeof z == "number" && 0 < z ? W + z : W) : z = W, x) {
+    switch (typeof T == "object" && T !== null ? (T = T.delay, T = typeof T == "number" && 0 < T ? W + T : W) : T = W, x) {
       case 1:
         var G = -1;
         break;
@@ -500,16 +500,16 @@ var T = Hu.exports, Ql = {}, es = { exports: {} }, ge = {}, ns = { exports: {} }
       default:
         G = 5e3;
     }
-    return G = z + G, x = { id: m++, callback: P, priorityLevel: x, startTime: z, expirationTime: G, sortIndex: -1 }, z > W ? (x.sortIndex = z, n(c, x), t(s) === null && x === t(c) && (k ? (f(N), N = -1) : k = !0, yl(v, z - W))) : (x.sortIndex = G, n(s, x), w || g || (w = !0, vl(E))), x;
+    return G = T + G, x = { id: m++, callback: P, priorityLevel: x, startTime: T, expirationTime: G, sortIndex: -1 }, T > W ? (x.sortIndex = T, n(c, x), t(s) === null && x === t(c) && (k ? (f(N), N = -1) : k = !0, yl(v, T - W))) : (x.sortIndex = G, n(s, x), w || g || (w = !0, vl(E))), x;
   }, e.unstable_shouldYield = Ne, e.unstable_wrapCallback = function(x) {
     var P = p;
     return function() {
-      var z = p;
+      var T = p;
       p = P;
       try {
         return x.apply(this, arguments);
       } finally {
-        p = z;
+        p = T;
       }
     };
   };
@@ -6206,7 +6206,7 @@ function ec() {
 ec(), es.exports = ge;
 var Ld = es.exports, Bu = Ld;
 Ql.createRoot = Bu.createRoot, Ql.hydrateRoot = Bu.hydrateRoot;
-const Rd = () => /* @__PURE__ */ T.jsx("div", { style: { padding: "16px", marginBottom: "24px", textAlign: "center" }, children: /* @__PURE__ */ T.jsx("h1", { children: "Meraki Integration Control" }) }), jd = (e) => e.startsWith("GS") ? "Switches" : e.startsWith("GR") ? "Access Points" : e.startsWith("MT") ? "Sensors" : e.startsWith("MS") ? "Switches" : e.startsWith("MV") ? "Cameras" : e.startsWith("MX") ? "Routers" : e.startsWith("MR") ? "Access Points" : "Other", Md = ({ deviceType: e, devices: n }) => {
+const Rd = () => /* @__PURE__ */ z.jsx("div", { style: { padding: "16px", marginBottom: "24px", textAlign: "center" }, children: /* @__PURE__ */ z.jsx("h1", { children: "Meraki Integration Control" }) }), jd = (e) => e.startsWith("GS") ? "Switches" : e.startsWith("GR") ? "Access Points" : e.startsWith("MT") ? "Sensors" : e.startsWith("MS") ? "Switches" : e.startsWith("MV") ? "Cameras" : e.startsWith("MX") ? "Routers" : e.startsWith("MR") ? "Access Points" : "Other", Md = ({ deviceType: e, devices: n }) => {
   const t = {
     padding: "12px",
     marginBottom: "12px",
@@ -6219,8 +6219,8 @@ const Rd = () => /* @__PURE__ */ T.jsx("div", { style: { padding: "16px", margin
     case "Switches":
     case "Access Points":
     case "Sensors":
-      return /* @__PURE__ */ T.jsxs("div", { style: t, children: [
-        /* @__PURE__ */ T.jsxs("strong", { children: [
+      return /* @__PURE__ */ z.jsxs("div", { style: t, children: [
+        /* @__PURE__ */ z.jsxs("strong", { children: [
           r,
           " / ",
           n.length
@@ -6231,24 +6231,24 @@ const Rd = () => /* @__PURE__ */ T.jsx("div", { style: { padding: "16px", margin
       ] });
     case "Routers":
       const l = n.some((i) => i.status === "online");
-      return /* @__PURE__ */ T.jsxs("div", { style: t, children: [
+      return /* @__PURE__ */ z.jsxs("div", { style: t, children: [
         "Gateway Status: ",
-        /* @__PURE__ */ T.jsx("strong", { children: l ? "Online" : "Offline" })
+        /* @__PURE__ */ z.jsx("strong", { children: l ? "Online" : "Offline" })
       ] });
     default:
       return null;
   }
 }, Od = ({ devices: e }) => {
   if (!e || e.length === 0)
-    return /* @__PURE__ */ T.jsx("p", { children: "No devices found in this network." });
+    return /* @__PURE__ */ z.jsx("p", { children: "No devices found in this network." });
   const n = e.reduce((t, r) => {
     const l = jd(r.model);
     return t[l] || (t[l] = []), t[l].push(r), t;
   }, {});
-  return /* @__PURE__ */ T.jsx("div", { className: "device-list", style: { display: "flex", flexDirection: "column", gap: "16px" }, children: Object.entries(n).map(([t, r]) => /* @__PURE__ */ T.jsxs("div", { className: "device-group", children: [
-    /* @__PURE__ */ T.jsx(Md, { deviceType: t, devices: r }),
-    r.map((l) => /* @__PURE__ */ T.jsxs("div", { className: "device-item", style: { marginBottom: "8px" }, children: [
-      /* @__PURE__ */ T.jsx("p", { style: { margin: 0 }, children: /* @__PURE__ */ T.jsx(
+  return /* @__PURE__ */ z.jsx("div", { className: "device-list", style: { display: "flex", flexDirection: "column", gap: "16px" }, children: Object.entries(n).map(([t, r]) => /* @__PURE__ */ z.jsxs("div", { className: "device-group", children: [
+    /* @__PURE__ */ z.jsx(Md, { deviceType: t, devices: r }),
+    r.map((l) => /* @__PURE__ */ z.jsxs("div", { className: "device-item", style: { marginBottom: "8px" }, children: [
+      /* @__PURE__ */ z.jsx("p", { style: { margin: 0 }, children: /* @__PURE__ */ z.jsx(
         "strong",
         {
           onClick: () => l.entity_id && window.dispatchEvent(
@@ -6266,13 +6266,13 @@ const Rd = () => /* @__PURE__ */ T.jsx("div", { style: { padding: "16px", margin
           children: l.name || "Unnamed Device"
         }
       ) }),
-      /* @__PURE__ */ T.jsxs("p", { style: { margin: 0, fontSize: "var(--secondary-text-size)" }, children: [
+      /* @__PURE__ */ z.jsxs("p", { style: { margin: 0, fontSize: "var(--secondary-text-size)" }, children: [
         "Model: ",
         l.model,
         " | Status: ",
         l.status
       ] }),
-      /* @__PURE__ */ T.jsxs("p", { style: { margin: 0, fontSize: "var(--secondary-text-size)" }, children: [
+      /* @__PURE__ */ z.jsxs("p", { style: { margin: 0, fontSize: "var(--secondary-text-size)" }, children: [
         l.lanIp && `IP: ${l.lanIp} | `,
         l.mac && `MAC: ${l.mac}`
       ] })
@@ -6283,7 +6283,7 @@ const Rd = () => /* @__PURE__ */ T.jsx("div", { style: { padding: "16px", margin
     r(t === m ? null : m);
   }, { networks: i, devices: o, enabled_networks: u, config_entry_id: s } = e;
   if (!i || i.length === 0)
-    return /* @__PURE__ */ T.jsx("p", { children: "No networks found." });
+    return /* @__PURE__ */ z.jsx("p", { children: "No networks found." });
   const c = async (m, h) => {
     const p = h ? [...u, m] : u.filter((g) => g !== m);
     try {
@@ -6296,22 +6296,22 @@ const Rd = () => /* @__PURE__ */ T.jsx("div", { style: { padding: "16px", margin
       console.error("Error updating enabled networks:", g);
     }
   };
-  return /* @__PURE__ */ T.jsx("div", { style: { display: "flex", flexDirection: "column", gap: "16px" }, children: i.map((m) => {
+  return /* @__PURE__ */ z.jsx("div", { style: { display: "flex", flexDirection: "column", gap: "16px" }, children: i.map((m) => {
     const h = t === m.id;
-    return /* @__PURE__ */ T.jsxs("ha-card", { children: [
-      /* @__PURE__ */ T.jsxs(
+    return /* @__PURE__ */ z.jsxs("ha-card", { children: [
+      /* @__PURE__ */ z.jsxs(
         "div",
         {
           className: "card-header",
           onClick: () => l(m.id),
           style: { display: "flex", alignItems: "center", cursor: "pointer", padding: "16px" },
           children: [
-            /* @__PURE__ */ T.jsxs("span", { children: [
+            /* @__PURE__ */ z.jsxs("span", { children: [
               "[Network] ",
               m.name
             ] }),
-            /* @__PURE__ */ T.jsx("ha-icon", { style: { marginLeft: "8px" }, icon: h ? "mdi:chevron-up" : "mdi:chevron-down" }),
-            /* @__PURE__ */ T.jsx("div", { style: { marginLeft: "auto" }, children: /* @__PURE__ */ T.jsx(
+            /* @__PURE__ */ z.jsx("ha-icon", { style: { marginLeft: "8px" }, icon: h ? "mdi:chevron-up" : "mdi:chevron-down" }),
+            /* @__PURE__ */ z.jsx("div", { style: { marginLeft: "auto" }, children: /* @__PURE__ */ z.jsx(
               "ha-switch",
               {
                 checked: u == null || u.includes(m.id),
@@ -6321,7 +6321,7 @@ const Rd = () => /* @__PURE__ */ T.jsx("div", { style: { padding: "16px", margin
           ]
         }
       ),
-      h && /* @__PURE__ */ T.jsx("div", { className: "card-content", children: /* @__PURE__ */ T.jsx(
+      h && /* @__PURE__ */ z.jsx("div", { className: "card-content", children: /* @__PURE__ */ z.jsx(
         Od,
         {
           devices: o.filter((p) => p.networkId === m.id)
@@ -6329,7 +6329,7 @@ const Rd = () => /* @__PURE__ */ T.jsx("div", { style: { padding: "16px", margin
       ) })
     ] }, m.id);
   }) });
-}, Id = () => /* @__PURE__ */ T.jsx("div", { className: "card-content", children: /* @__PURE__ */ T.jsx("p", { children: "Integration-specific events will be displayed here." }) }), Fd = ({ hass: e, config_entry_id: n }) => {
+}, Id = () => /* @__PURE__ */ z.jsx("div", { className: "card-content", children: /* @__PURE__ */ z.jsx("p", { children: "Integration-specific events will be displayed here." }) }), Fd = ({ hass: e, config_entry_id: n }) => {
   const [t, r] = en.useState(null), [l, i] = en.useState(!0), [o, u] = en.useState(null);
   return en.useEffect(() => {
     if (!e || !e.connection) {
@@ -6349,16 +6349,20 @@ const Rd = () => /* @__PURE__ */ T.jsx("div", { style: { padding: "16px", margin
         i(!1);
       }
     })();
-  }, [e, n]), /* @__PURE__ */ T.jsxs("div", { children: [
-    /* @__PURE__ */ T.jsx(Rd, {}),
-    l && /* @__PURE__ */ T.jsx("p", { children: "Loading..." }),
-    o && /* @__PURE__ */ T.jsxs("p", { children: [
+  }, [e, n]), /* @__PURE__ */ z.jsxs("div", { children: [
+    /* @__PURE__ */ z.jsx(Rd, {}),
+    l && /* @__PURE__ */ z.jsx("p", { children: "Loading..." }),
+    o && /* @__PURE__ */ z.jsxs("p", { children: [
       "Error: ",
       o
     ] }),
-    !l && !o && t && /* @__PURE__ */ T.jsxs(T.Fragment, { children: [
-      /* @__PURE__ */ T.jsx(Dd, { data: t, hass: e }),
-      /* @__PURE__ */ T.jsx("ha-card", { header: "Event Log", children: /* @__PURE__ */ T.jsx(Id, {}) })
+    !l && !o && t && /* @__PURE__ */ z.jsxs(z.Fragment, { children: [
+      /* @__PURE__ */ z.jsx(Dd, { data: t, hass: e }),
+      /* @__PURE__ */ z.jsx("ha-card", { header: "Event Log", children: /* @__PURE__ */ z.jsx(Id, {}) }),
+      /* @__PURE__ */ z.jsx("div", { style: { textAlign: "center", marginTop: "16px" }, children: /* @__PURE__ */ z.jsxs("p", { children: [
+        "Version: ",
+        t.version
+      ] }) })
     ] })
   ] });
 };
@@ -6368,7 +6372,7 @@ class Ud extends HTMLElement {
     t.id = "root", n.appendChild(t);
     const r = this.hass, l = this.panel.config.config_entry_id;
     Ql.createRoot(t).render(
-      /* @__PURE__ */ T.jsx(gc.StrictMode, { children: /* @__PURE__ */ T.jsx(Fd, { hass: r, config_entry_id: l }) })
+      /* @__PURE__ */ z.jsx(gc.StrictMode, { children: /* @__PURE__ */ z.jsx(Fd, { hass: r, config_entry_id: l }) })
     );
   }
 }
