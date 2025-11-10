@@ -51,3 +51,15 @@ async def async_register_frontend(hass: HomeAssistant, entry: ConfigEntry) -> No
         },
         require_admin=True,
     )
+
+
+def async_unregister_frontend(hass: HomeAssistant) -> None:
+    """
+    Unregister the Meraki panel from the Home Assistant frontend.
+
+    Args:
+    ----
+        hass: The Home Assistant instance.
+
+    """
+    frontend.async_remove_panel(hass, "meraki")

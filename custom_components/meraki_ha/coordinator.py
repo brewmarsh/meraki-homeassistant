@@ -172,7 +172,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         current_devices = {
             list(device.identifiers)[0][1]
             for device in dev_reg.devices.values()
-            if device.config_entry_id == self.config_entry.entry_id
+            if self.config_entry.entry_id in device.config_entries
         }
         latest_devices = {device["serial"] for device in data.get("devices", [])}
 

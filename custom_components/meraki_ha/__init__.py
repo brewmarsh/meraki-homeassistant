@@ -19,7 +19,7 @@ from .const import (
 from .coordinator import MerakiDataUpdateCoordinator
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
-from .frontend import async_register_frontend
+from .frontend import async_register_frontend, async_unregister_frontend
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .web_api import async_setup_api
@@ -111,7 +111,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the unload was successful.
 
     """
-    hass_frontend.async_remove_panel(hass, "meraki")
+    async_unregister_frontend(hass)
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
