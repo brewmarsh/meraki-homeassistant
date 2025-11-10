@@ -1,13 +1,11 @@
 """Test Meraki AP LED switch."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from custom_components.meraki_ha.switch.access_point_leds import MerakiAPLEDSwitch
 
-
-from unittest.mock import MagicMock
 
 @pytest.fixture
 def mock_coordinator():
