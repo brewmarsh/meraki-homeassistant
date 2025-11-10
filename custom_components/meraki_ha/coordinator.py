@@ -153,9 +153,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if "networks" in data:
             original_networks = data["networks"]
             data["networks"] = [
-                n
-                for n in original_networks
-                if n.get("id") in enabled_network_ids
+                n for n in original_networks if n.get("id") in enabled_network_ids
             ]
 
     async def _async_remove_disabled_devices(self, data: dict[str, Any]) -> None:
@@ -174,9 +172,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             for device in dev_reg.devices
             if device.config_entry_id == self.config_entry.entry_id
         }
-        latest_devices = {
-            device["serial"] for device in data.get("devices", [])
-        }
+        latest_devices = {device["serial"] for device in data.get("devices", [])}
 
         disabled_devices = current_devices - latest_devices
         for serial in disabled_devices:
