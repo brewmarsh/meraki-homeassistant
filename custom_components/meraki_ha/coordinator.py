@@ -166,7 +166,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 ]
             if "ssids" in data:
                 data["ssids"] = [
-                    s for s in data["ssids"] if s.get("networkId") in enabled_network_ids
+                    s
+                    for s in data["ssids"]
+                    if s.get("networkId") in enabled_network_ids
                 ]
 
     async def _async_remove_disabled_devices(self, data: dict[str, Any]) -> None:
