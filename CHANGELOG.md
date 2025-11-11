@@ -1,3 +1,12 @@
+# [2.0.0-beta.18](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.17...v2.0.0-beta.18) (2025-11-11)
+
+
+### Bug Fixes
+
+* Resolve panel loading failure by deferring panel registration ([4951084](https://github.com/brewmarsh/meraki-homeassistant/commit/4951084d73df422e3b7d8af35d55cedcfd750037))
+
+
+
 # [2.0.0-beta.17](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.16...v2.0.0-beta.17) (2025-11-11)
 
 
