@@ -4,6 +4,7 @@ import logging
 import random
 import string
 
+from homeassistant.components import frontend as hass_frontend
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
@@ -18,7 +19,7 @@ from .const import (
 from .coordinator import MerakiDataUpdateCoordinator
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
-from .frontend import async_register_frontend, async_unregister_frontend
+from .frontend import async_register_frontend
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .web_api import async_setup_api
@@ -62,8 +63,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await async_register_frontend(hass, entry)
     async_setup_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
-    await coordinator.async_config_entry_first_refresh()
-
     repo = MerakiRepository(coordinator.api)
     device_control_service = DeviceControlService(repo)
     camera_repo = CameraRepository(coordinator.api, entry.data[CONF_MERAKI_ORG_ID])
@@ -90,6 +89,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await async_register_webhook(hass, webhook_id, secret, coordinator.api, entry=entry)
 
+    await coordinator.async_config_entry_first_refresh()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
@@ -110,7 +110,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the unload was successful.
 
     """
-    async_unregister_frontend(hass)
+    hass_frontend.async_remove_panel(hass, "meraki")
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
