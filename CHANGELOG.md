@@ -1,3 +1,12 @@
+# [2.0.0-beta.12](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.11...v2.0.0-beta.12) (2025-11-11)
+
+
+### Features
+
+* Add network enable/disable toggle to UI and display version ([e2a275a](https://github.com/brewmarsh/meraki-homeassistant/commit/e2a275a3dc981ab3890e8a96844ce029aeefcc83))
+
+
+
 # [2.0.0-beta.11](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.10...v2.0.0-beta.11) (2025-11-10)
 
 
