@@ -1,3 +1,13 @@
+# [2.0.0-beta.14](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.13...v2.0.0-beta.14) (2025-11-11)
+
+
+### Bug Fixes
+
+* Restore missing SSID entities ([3c6dae1](https://github.com/brewmarsh/meraki-homeassistant/commit/3c6dae165eb0877f1759f36169d43b76ca7c9eb7))
+* Restore missing SSID entities and address linting ([3cb7ffc](https://github.com/brewmarsh/meraki-homeassistant/commit/3cb7ffcff40ae3839dd05bfbdd8fca2f978f985d))
+
+
+
 # [2.0.0-beta.13](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.12...v2.0.0-beta.13) (2025-11-11)
 
 
