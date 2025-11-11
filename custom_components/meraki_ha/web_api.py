@@ -107,6 +107,10 @@ async def handle_get_config(
     ]
     config_entry = hass.config_entries.async_get_entry(config_entry_id)
     enabled_networks = config_entry.options.get(CONF_ENABLED_NETWORKS)
+    if enabled_networks is None:
+        enabled_networks = [
+            n["id"] for n in coordinator.data.get("networks", []) if "id" in n
+        ]
 
     manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
     async with aiofiles.open(manifest_path, mode="r") as f:
