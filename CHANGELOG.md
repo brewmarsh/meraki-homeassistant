@@ -1,3 +1,13 @@
+# [2.0.0-beta.15](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.14...v2.0.0-beta.15) (2025-11-11)
+
+
+### Features
+
+* Refine network toggle UI and state management ([34c1ae5](https://github.com/brewmarsh/meraki-homeassistant/commit/34c1ae587e90c98bd1da452de8a000bb5607e636))
+* Refine network toggle UI and state management ([093fd54](https://github.com/brewmarsh/meraki-homeassistant/commit/093fd544438040d3cfa7752f1f4fb8840a55768b))
+
+
+
 # [2.0.0-beta.14](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.13...v2.0.0-beta.14) (2025-11-11)
 
 
