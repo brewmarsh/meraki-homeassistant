@@ -1,3 +1,12 @@
+# [2.0.0-beta.16](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.15...v2.0.0-beta.16) (2025-11-11)
+
+
+### Bug Fixes
+
+* Synchronize 'Enabled Networks' config with web UI ([f98276f](https://github.com/brewmarsh/meraki-homeassistant/commit/f98276f94d6c6c36c741ad6b8f5a93a9d608d794))
+
+
+
 # [2.0.0-beta.15](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.14...v2.0.0-beta.15) (2025-11-11)
 
 
