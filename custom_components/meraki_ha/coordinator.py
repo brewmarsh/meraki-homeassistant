@@ -148,16 +148,15 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # If the option is not set, all networks are enabled by default.
         if enabled_network_ids is None:
-            return
+            enabled_network_ids = [
+                n["id"] for n in data.get("networks", []) if "id" in n
+            ]
 
         if "networks" in data:
-            original_networks = data["networks"]
-            enabled_networks = [
-                n for n in original_networks if n.get("id") in enabled_network_ids
-            ]
-            data["networks"] = enabled_networks
+            for network in data["networks"]:
+                network["is_enabled"] = network.get("id") in enabled_network_ids
 
-            # Also filter devices and SSIDs to match the enabled networks
+            # Filter devices and SSIDs to only include those from enabled networks
             if "devices" in data:
                 data["devices"] = [
                     d
