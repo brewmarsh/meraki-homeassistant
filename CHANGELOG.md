@@ -1,3 +1,12 @@
+# [2.0.0-beta.17](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.16...v2.0.0-beta.17) (2025-11-11)
+
+
+### Bug Fixes
+
+* Resolve `async_config_entry_first_refresh` deprecation warning ([b06b532](https://github.com/brewmarsh/meraki-homeassistant/commit/b06b53225baf6f7985eb904c94ff0780de64fe7c))
+
+
+
 # [2.0.0-beta.16](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.15...v2.0.0-beta.16) (2025-11-11)
 
 

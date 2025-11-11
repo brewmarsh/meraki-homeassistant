@@ -25,5 +25,5 @@
     "diskcache==5.6.3",
     "aiofiles"
   ],
-"version": "2.0.0-beta.16"
+"version": "2.0.0-beta.17"
 }
