@@ -63,6 +63,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await async_register_frontend(hass, entry)
     async_setup_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
+    await coordinator.async_config_entry_first_refresh()
+
     repo = MerakiRepository(coordinator.api)
     device_control_service = DeviceControlService(repo)
     camera_repo = CameraRepository(coordinator.api, entry.data[CONF_MERAKI_ORG_ID])
@@ -89,7 +91,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await async_register_webhook(hass, webhook_id, secret, coordinator.api, entry=entry)
 
-    await coordinator.async_config_entry_first_refresh()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))

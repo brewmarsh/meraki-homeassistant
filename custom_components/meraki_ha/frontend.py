@@ -13,15 +13,22 @@ from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
+import logging
+
+_LOGGER = logging.getLogger(__name__)
+
 
 async def async_register_frontend(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Register the frontend."""
+    _LOGGER.debug("Registering frontend for Meraki HA")
     # Setup panel
+    static_path = str(Path(__file__).parent / "www")
+    _LOGGER.debug("Frontend static path: %s", static_path)
     await hass.http.async_register_static_paths(
         [
             StaticPathConfig(
                 url_path=f"/api/panel_custom/{DOMAIN}",
-                path=str(Path(__file__).parent / "www"),
+                path=static_path,
                 cache_headers=False,
             ),
         ],
@@ -34,22 +41,25 @@ async def async_register_frontend(hass: HomeAssistant, entry: ConfigEntry) -> No
         manifest = json.loads(manifest_data)
     version = manifest.get("version", "0.0.0")
     module_url = f"/api/panel_custom/{DOMAIN}/meraki-panel.js?v={version}"
-    frontend.async_register_built_in_panel(
-        hass,
-        component_name="custom",
-        sidebar_title=entry.title,
-        sidebar_icon="mdi:router-network",
-        frontend_url_path="meraki",
-        config={
-            "_panel_custom": {
-                "name": "meraki-panel",
-                "module_url": module_url,
-                "embed_iframe": False,
-                "trust_external_script": True,
+    _LOGGER.debug("Frontend module URL: %s", module_url)
+    hass.async_create_task(
+        frontend.async_register_built_in_panel(
+            hass,
+            component_name="custom",
+            sidebar_title=entry.title,
+            sidebar_icon="mdi:router-network",
+            frontend_url_path="meraki",
+            config={
+                "_panel_custom": {
+                    "name": "meraki-panel",
+                    "module_url": module_url,
+                    "embed_iframe": False,
+                    "trust_external_script": True,
+                },
+                "config_entry_id": entry.entry_id,
             },
-            "config_entry_id": entry.entry_id,
-        },
-        require_admin=True,
+            require_admin=True,
+        )
     )
 
 
