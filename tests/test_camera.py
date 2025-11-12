@@ -1,6 +1,7 @@
 """Tests for the Meraki camera entity."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
 from custom_components.meraki_ha.camera import MerakiCamera
@@ -53,41 +54,33 @@ def mock_camera_service():
 @pytest.mark.parametrize(
     "use_lan_ip_option, device_data, expected_url",
     [
-        # Test Case 1: use_lan_ip=True, API provides public URL, lanIp available -> Should use LAN
         (
             True,
             {"rtsp_url": "rtsp://8.8.8.8/stream", "lanIp": "192.168.1.100"},
             "rtsp://192.168.1.100/",
         ),
-        # Test Case 2: use_lan_ip=True, API provides private URL -> Should use API URL
         (
             True,
             {"rtsp_url": "rtsp://10.0.0.5/stream", "lanIp": "192.168.1.100"},
             "rtsp://10.0.0.5/stream",
         ),
-        # Test Case 3: use_lan_ip=True, API provides public, no lanIp -> Should use API URL
         (
             True,
             {"rtsp_url": "rtsp://8.8.8.8/stream", "lanIp": None},
             "rtsp://8.8.8.8/stream",
         ),
-        # Test Case 4: use_lan_ip=True, API provides no URL, lanIp available -> Should use LAN
         (True, {"rtsp_url": None, "lanIp": "192.168.1.100"}, "rtsp://192.168.1.100/"),
-        # Test Case 5: use_lan_ip=False, API provides public URL -> Should use API URL
         (
             False,
             {"rtsp_url": "rtsp://8.8.8.8/stream", "lanIp": "192.168.1.100"},
             "rtsp://8.8.8.8/stream",
         ),
-        # Test Case 6: use_lan_ip=False, API provides no URL, lanIp available -> Should use LAN
         (False, {"rtsp_url": None, "lanIp": "192.168.1.100"}, "rtsp://192.168.1.100/"),
-        # Test Case 7: use_lan_ip=False, API provides invalid URL, lanIp available -> Should use LAN
         (
             False,
             {"rtsp_url": "http://invalid.com", "lanIp": "192.168.1.100"},
             "rtsp://192.168.1.100/",
         ),
-        # Test Case 8: No valid URLs available -> Should return None
         (False, {"rtsp_url": None, "lanIp": None}, None),
     ],
 )
@@ -318,7 +311,7 @@ def test_coordinator_update(mock_coordinator, mock_config_entry, mock_camera_ser
 def test_entity_disabled_if_no_url(
     mock_coordinator, mock_config_entry, mock_camera_service
 ):
-    """Test that the camera entity is disabled by default if no stream URL can be determined."""
+    """Test that the camera entity is disabled if no stream URL is found."""
     # Arrange
     # Create a mock device with no way to determine a stream URL
     mock_device_no_url = {

@@ -9,6 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
+from .api.websocket import async_setup_websocket_api
 from .const import (
     CONF_MERAKI_ORG_ID,
     DOMAIN,
@@ -47,6 +48,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     """
     hass.data.setdefault(DOMAIN, {})
+    async_setup_websocket_api(hass)
     return True
 
 
