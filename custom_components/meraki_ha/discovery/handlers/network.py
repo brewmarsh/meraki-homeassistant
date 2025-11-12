@@ -18,9 +18,6 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ....core.coordinators.switch_port_status_coordinator import (
-        SwitchPortStatusCoordinator,
-    )
     from ....services.camera_service import CameraService
     from ....services.device_control_service import DeviceControlService
     from ....types import MerakiDevice
@@ -53,7 +50,6 @@ class NetworkHandler(BaseHandler):
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
-        switch_port_coordinator: SwitchPortStatusCoordinator,
     ) -> NetworkHandler:
         """Create an instance of the handler."""
         return cls(

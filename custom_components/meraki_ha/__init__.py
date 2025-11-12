@@ -2,6 +2,7 @@
 
 import logging
 import secrets
+from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -22,8 +23,6 @@ from .const import (
 )
 from .core.api.client import MerakiAPIClient
 from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-from .core.coordinators.switch_port_status_coordinator import SwitchPortStatusCoordinator
-from .core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
 from .core.repository import MerakiRepository
 from .web_server import MerakiWebServer
 from .webhook import async_register_webhook, async_unregister_webhook
@@ -32,6 +31,7 @@ from .core.repositories.camera_repository import CameraRepository
 from .services.device_control_service import DeviceControlService
 from .services.camera_service import CameraService
 from .services.network_control_service import NetworkControlService
+from .discovery.service import DeviceDiscoveryService
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -42,8 +42,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     hass.data.setdefault(DOMAIN, {})
     return True
 
-
-from datetime import timedelta
 
 async def async_setup_or_update_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up or update Meraki from a config entry."""
@@ -80,44 +78,13 @@ async def async_setup_or_update_entry(hass: HomeAssistant, entry: ConfigEntry) -
         )
         await entry_data["coordinator"].async_config_entry_first_refresh()
     else:
-        entry_data["coordinator"].async_set_update_interval(
-            timedelta(seconds=scan_interval)
-        )
+        entry_data["coordinator"].update_interval = timedelta(seconds=scan_interval)
         await entry_data["coordinator"].async_refresh()
     coordinator = entry_data["coordinator"]
 
     if "meraki_repository" not in entry_data:
         entry_data["meraki_repository"] = MerakiRepository(api_client)
     meraki_repository = entry_data["meraki_repository"]
-
-    if "switch_port_coordinator" not in entry_data:
-        entry_data["switch_port_coordinator"] = SwitchPortStatusCoordinator(
-            hass=hass,
-            repository=meraki_repository,
-            main_coordinator=coordinator,
-            config_entry=entry,
-        )
-        await entry_data["switch_port_coordinator"].async_refresh()
-    switch_port_coordinator = entry_data["switch_port_coordinator"]
-
-    if "ssid_firewall_coordinators" not in entry_data:
-        entry_data["ssid_firewall_coordinators"] = {}
-    ssid_firewall_coordinators = entry_data["ssid_firewall_coordinators"]
-
-    if coordinator.data:
-        # Create per-SSID coordinators
-        for ssid in coordinator.data.get("ssids", []):
-            if "networkId" in ssid and "number" in ssid:
-                ssid_coord_key = f"{ssid['networkId']}_{ssid['number']}"
-                if ssid_coord_key not in ssid_firewall_coordinators:
-                    ssid_firewall_coordinators[ssid_coord_key] = SsidFirewallCoordinator(
-                        hass=hass,
-                        api_client=api_client,
-                        scan_interval=scan_interval,
-                        network_id=ssid["networkId"],
-                        ssid_number=ssid["number"],
-                    )
-                    await ssid_firewall_coordinators[ssid_coord_key].async_refresh()
 
     # Handle web server
     web_ui_enabled = entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI)
@@ -158,16 +125,12 @@ async def async_setup_or_update_entry(hass: HomeAssistant, entry: ConfigEntry) -
         entry_data["network_control_service"] = NetworkControlService(api_client, coordinator)
     network_control_service = entry_data["network_control_service"]
 
-    # Defer import to avoid circular dependencies and blocking startup
-    from .discovery.service import DeviceDiscoveryService
-
     # New discovery service setup.
     if "discovery_service" not in entry_data:
         entry_data["discovery_service"] = DeviceDiscoveryService(
             coordinator=coordinator,
             config_entry=entry,
             meraki_client=api_client,
-            switch_port_coordinator=switch_port_coordinator,
             camera_service=camera_service,
             control_service=control_service,
             network_control_service=network_control_service,
