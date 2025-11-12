@@ -1,3 +1,12 @@
+# [2.0.0-beta.19](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.18...v2.0.0-beta.19) (2025-11-12)
+
+
+### Bug Fixes
+
+* Resolve TypeError and panel loading race condition ([6f48755](https://github.com/brewmarsh/meraki-homeassistant/commit/6f487553d8309a9e80b66693e03c36046e75dd9a))
+
+
+
 # [2.0.0-beta.18](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.17...v2.0.0-beta.18) (2025-11-11)
 
 
