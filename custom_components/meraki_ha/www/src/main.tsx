@@ -6,9 +6,10 @@ import './index.css';
 
 class MerakiPanel extends HTMLElement {
   connectedCallback() {
+    const shadowRoot = this.attachShadow({ mode: 'open' });
     const root = document.createElement('div');
     root.id = 'root';
-    this.appendChild(root);
+    shadowRoot.appendChild(root);
 
     const hass = (this as any).hass;
     const config_entry_id = (this as any).panel.config.config_entry_id;

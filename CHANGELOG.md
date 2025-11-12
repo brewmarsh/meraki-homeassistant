@@ -1,4 +1,117 @@
-# Changelog
+# [2.0.0-beta.20](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.19...v2.0.0-beta.20) (2025-11-12)
+
+## [2.0.0-beta.19](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.18...v2.0.0-beta.19) (2025-11-12)
+
+### Bug Fixes
+
+- Resolve TypeError and panel loading race condition ([6f48755](https://github.com/brewmarsh/meraki-homeassistant/commit/6f487553d8309a9e80b66693e03c36046e75dd9a))
+
+## [2.0.0-beta.18](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.17...v2.0.0-beta.18) (2025-11-11)
+
+### Bug Fixes
+
+- Resolve panel loading failure by deferring panel registration ([4951084](https://github.com/brewmarsh/meraki-homeassistant/commit/4951084d73df422e3b7d8af35d55cedcfd750037))
+
+## [2.0.0-beta.17](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.16...v2.0.0-beta.17) (2025-11-11)
+
+### Bug Fixes
+
+- Resolve `async_config_entry_first_refresh` deprecation warning ([b06b532](https://github.com/brewmarsh/meraki-homeassistant/commit/b06b53225baf6f7985eb904c94ff0780de64fe7c))
+
+## [2.0.0-beta.16](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.15...v2.0.0-beta.16) (2025-11-11)
+
+### Bug Fixes
+
+- Synchronize 'Enabled Networks' config with web UI ([f98276f](https://github.com/brewmarsh/meraki-homeassistant/commit/f98276f94d6c6c36c741ad6b8f5a93a9d608d794))
+
+## [2.0.0-beta.15](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.14...v2.0.0-beta.15) (2025-11-11)
+
+### Features
+
+- Refine network toggle UI and state management ([34c1ae5](https://github.com/brewmarsh/meraki-homeassistant/commit/34c1ae587e90c98bd1da452de8a000bb5607e636))
+- Refine network toggle UI and state management ([093fd54](https://github.com/brewmarsh/meraki-homeassistant/commit/093fd544438040d3cfa7752f1f4fb8840a55768b))
+
+## [2.0.0-beta.14](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.13...v2.0.0-beta.14) (2025-11-11)
+
+### Bug Fixes
+
+- Restore missing SSID entities ([3c6dae1](https://github.com/brewmarsh/meraki-homeassistant/commit/3c6dae165eb0877f1759f36169d43b76ca7c9eb7))
+- Restore missing SSID entities and address linting ([3cb7ffc](https://github.com/brewmarsh/meraki-homeassistant/commit/3cb7ffcff40ae3839dd05bfbdd8fca2f978f985d))
+
+## [2.0.0-beta.13](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.12...v2.0.0-beta.13) (2025-11-11)
+
+### Features
+
+- Add network enable/disable toggle ([3dd5da4](https://github.com/brewmarsh/meraki-homeassistant/commit/3dd5da472086abd0c027ad05bcb7ba03424a0bfe))
+
+## [2.0.0-beta.12](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.11...v2.0.0-beta.12) (2025-11-11)
+
+### Features
+
+- Add network enable/disable toggle to UI and display version ([e2a275a](https://github.com/brewmarsh/meraki-homeassistant/commit/e2a275a3dc981ab3890e8a96844ce029aeefcc83))
+
+## [2.0.0-beta.11](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.10...v2.0.0-beta.11) (2025-11-10)
+
+### Features
+
+- Add network enable/disable toggle to UI and display version ([4732100](https://github.com/brewmarsh/meraki-homeassistant/commit/4732100eb72e83fa327d7e8295f7186622854366))
+
+## [2.0.0-beta.10](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.9...v2.0.0-beta.10) (2025-11-10)
+
+### Features
+
+- Add network enable/disable toggle to UI and display version ([9f2c46d](https://github.com/brewmarsh/meraki-homeassistant/commit/9f2c46d0df0527ffb9965281b62c34ebc54cb42f))
+
+## [2.0.0-beta.9](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.8...v2.0.0-beta.9) (2025-11-10)
+
+### Features
+
+- Add network enable/disable toggle to UI and display version ([3d2daf8](https://github.com/brewmarsh/meraki-homeassistant/commit/3d2daf8f196ff7df586f51c119bd273cf0b54367))
+- Add network enable/disable toggle to UI and display version ([26f2894](https://github.com/brewmarsh/meraki-homeassistant/commit/26f28947e7b37999e4dce79ca83c26e18e5b1495))
+
+## [2.0.0-beta.8](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.7...v2.0.0-beta.8) (2025-11-10)
+
+### Features
+
+- Add network enable/disable toggle to UI and display version ([77c012e](https://github.com/brewmarsh/meraki-homeassistant/commit/77c012eefa84c7dc6657209a707c5859526fd3dfd))
+
+## [2.0.0-beta.7](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.6...v2.0.0-beta.7) (2025-11-10)
+
+### Features
+
+- Add network enable/disable toggle to UI ([c4f61ff](https://github.com/brewmarsh/meraki-homeassistant/commit/c4f61ffb1f971ade718f06729df7796bf6d34989))
+
+## [2.0.0-beta.6](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.5...v2.0.0-beta.6) (2025-11-10)
+
+### Features
+
+- Add network enable/disable toggle to UI ([f624e05](https://github.com/brewmarsh/meraki-homeassistant/commit/f624e05ff35b4c823283a137f8c7a83d7485d59a))
+- Add network enable/disable toggle to UI ([c774699](https://github.com/brewmarsh/meraki-homeassistant/commit/c774699ac51ea8ddebc43772099f72c9daa84480))
+- Add network enable/disable toggle to UI ([fd884fa](https://github.com/brewmarsh/meraki-homeassistant/commit/fd884fae17dfe669a570c4036103102d2feba052))
+- Add network enable/disable toggle to UI ([66383d7](https://github.com/brewmarsh/meraki-homeassistant/commit/66383d713a09da27af781a2970afbc3917f15acd))
+- Add network enable/disable toggle to UI ([01d694f](https://github.com/brewmarsh/meraki-homeassistant/commit/01d694ff630bef3b6e9b0f2d1639456f3e0118e1))
+
+## [2.0.0-beta.5](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.4...v2.0.0-beta.5) (2025-11-10)
+
+### Bug Fixes
+
+- **api:** add missing wireless settings methods ([87a9055](https://github.com/brewmarsh/meraki-homeassistant/commit/87a9055ac0d447e4be44c2b5064a1d16f57640aa))
+- **api:** correct docstring formatting ([73c9620](https://github.com/brewmarsh/meraki-homeassistant/commit/73c9620a1d3c573e636f52ccd7fa6ba8a3fe9696))
+- **tests:** correct import order in test_access_point_leds.py ([d596a88](https://github.com/brewmarsh/meraki-homeassistant/commit/d596a88cf11580937dd30a8d018249e808e01652))
+
+### Features
+
+- **switch:** add access point led control ([623437b](https://github.com/brewmarsh/meraki-homeassistant/commit/623437b4242f34670b5cc420329a0d88a2439792))
+
+## [2.0.0-beta.4](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.3...v2.0.0-beta.4) (2025-11-10)
+
+## [2.0.0-beta.3](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.2...v2.0.0-beta.3) (2025-11-10)
+
+### Features
+
+- configure dependabot to target beta branch ([83f4057](https://github.com/brewmarsh/meraki-homeassistant/commit/83f4057caca2dc13adc4c33e786b4ce74f88d8cb))
+
+## [2.0.0-beta.2](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0...v2.0.0-beta.2) (2025-11-10)
 
 ## [2.0.0](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.36...v2.0.0) (2025-11-07)
 
