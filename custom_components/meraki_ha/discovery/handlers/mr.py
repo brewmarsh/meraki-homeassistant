@@ -1,26 +1,27 @@
 """
-MR (Wireless) Device Handler.
+MR (Wireless) Device Handler
 
 This module defines the MRHandler class, which is responsible for discovering
 entities for Meraki MR series (wireless) devices.
 """
-
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, List
 
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
-    from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
-
-    from ....coordinator import MerakiDataUpdateCoordinator
-    from ....services.camera_service import CameraService
-    from ....services.device_control_service import DeviceControlService
-    from ....services.network_control_service import NetworkControlService
+    from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from homeassistant.config_entries import ConfigEntry
     from ....types import MerakiDevice
+    from ...services.device_control_service import DeviceControlService
+    from ....services.camera_service import CameraService
+    from ....services.network_control_service import NetworkControlService
+    from ....core.coordinators.switch_port_status_coordinator import (
+        SwitchPortStatusCoordinator,
+    )
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,65 +32,40 @@ class MRHandler(BaseDeviceHandler):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
-        device: MerakiDevice,
-        config_entry: ConfigEntry,
-        control_service: DeviceControlService,
+        coordinator: "MerakiDataCoordinator",
+        device: "MerakiDevice",
+        config_entry: "ConfigEntry",
+        control_service: "DeviceControlService",
+        network_control_service: "NetworkControlService",
     ) -> None:
-        """
-        Initialize the MRHandler.
-
-        Args:
-            coordinator: The data update coordinator.
-            device: The device data.
-            config_entry: The config entry.
-            control_service: The device control service.
-
-        """
+        """Initialize the MRHandler."""
         super().__init__(coordinator, device, config_entry)
         self._control_service = control_service
+        self._network_control_service = network_control_service
 
     @classmethod
     def create(
         cls,
-        coordinator: MerakiDataUpdateCoordinator,
-        device: MerakiDevice,
-        config_entry: ConfigEntry,
-        camera_service: CameraService,
-        control_service: DeviceControlService,
-        network_control_service: NetworkControlService,
-        switch_port_coordinator: Any,
-    ) -> MRHandler:
-        """
-        Create an instance of the handler.
-
-        Args:
-            coordinator: The data update coordinator.
-            device: The device data.
-            config_entry: The config entry.
-            camera_service: The camera service.
-            control_service: The device control service.
-            network_control_service: The network control service.
-            switch_port_coordinator: The switch port coordinator.
-
-        """
+        coordinator: "MerakiDataCoordinator",
+        device: "MerakiDevice",
+        config_entry: "ConfigEntry",
+        camera_service: "CameraService",
+        control_service: "DeviceControlService",
+        network_control_service: "NetworkControlService",
+        switch_port_coordinator: "SwitchPortStatusCoordinator",
+    ) -> "MRHandler":
+        """Create an instance of the handler."""
         return cls(
             coordinator,
             device,
             config_entry,
             control_service,
+            network_control_service,
         )
 
-    async def discover_entities(self) -> list[Entity]:
-        """
-        Discover entities for a wireless device.
-
-        Returns
-        -------
-            A list of entities.
-
-        """
-        entities: list[Entity] = []
+    async def discover_entities(self) -> List[Entity]:
+        """Discover entities for a wireless device."""
+        entities: List[Entity] = []
 
         # In the future, this is where we would create entities like:
         # - Radio settings sensors

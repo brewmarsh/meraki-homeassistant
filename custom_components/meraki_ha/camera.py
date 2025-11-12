@@ -35,6 +35,8 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
+import asyncio
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -47,7 +49,13 @@ async def async_setup_entry(
     camera_entities = [e for e in discovered_entities if isinstance(e, MerakiCamera)]
 
     if camera_entities:
-        async_add_entities(camera_entities)
+        _LOGGER.debug("Adding %d camera entities", len(camera_entities))
+        chunk_size = 50
+        for i in range(0, len(camera_entities), chunk_size):
+            chunk = camera_entities[i:i + chunk_size]
+            async_add_entities(chunk)
+            if len(camera_entities) > chunk_size:
+                await asyncio.sleep(1)
 
 
 class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
