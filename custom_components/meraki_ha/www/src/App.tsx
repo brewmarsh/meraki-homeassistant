@@ -14,9 +14,17 @@ interface Hass {
 }
 
 // Define the types for our data
+interface SSID {
+  number: number;
+  name: string;
+  enabled: boolean;
+  networkId: string;
+}
+
 interface Network {
   id: string;
   name: string;
+  ssids: SSID[];
 }
 
 interface Device {

@@ -207,6 +207,17 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if "networkId" in s and "number" in s
             }
 
+            # Add SSIDs to each network for easier access in the UI
+            all_ssids = data.get("ssids", [])
+            for network in data.get("networks", []):
+                network_id = network.get("id")
+                if network_id:
+                    network["ssids"] = [
+                        ssid
+                        for ssid in all_ssids
+                        if ssid.get("networkId") == network_id
+                    ]
+
             self._populate_device_entities(data)
 
             self.last_successful_update = datetime.now()

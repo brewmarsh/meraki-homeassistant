@@ -1,9 +1,19 @@
 import React, { useState } from 'react';
 import DeviceView from './DeviceView';
+import SSIDView from './SSIDView';
+
+// Define the types for our data
+interface SSID {
+  number: number;
+  name: string;
+  enabled: boolean;
+  networkId: string;
+}
 
 interface Network {
   id: string;
   name: string;
+  ssids: SSID[];
 }
 
 interface Device {
@@ -41,6 +51,9 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {networks.map((network) => {
         const isOpen = openNetworkId === network.id;
+        const enabledSsids = network.ssids ? network.ssids.filter(s => s.enabled).length : 0;
+        const totalSsids = network.ssids ? network.ssids.length : 0;
+
         return (
           <ha-card key={network.id}>
             <div
@@ -56,6 +69,15 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
                 <DeviceView
                   devices={devices.filter((d) => d.networkId === network.id)}
                 />
+                {network.ssids && network.ssids.length > 0 && (
+                  <>
+                    <div className="hero-indicator" style={{ padding: '0 16px 16px' }}>
+                      <ha-icon icon="mdi:wifi"></ha-icon>
+                      {enabledSsids} / {totalSsids} SSIDs Enabled
+                    </div>
+                    <SSIDView ssids={network.ssids} />
+                  </>
+                )}
               </div>
             )}
           </ha-card>
