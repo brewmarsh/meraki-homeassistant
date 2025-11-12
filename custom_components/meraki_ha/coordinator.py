@@ -11,11 +11,10 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
-    CONF_IGNORED_NETWORKS,
+    CONF_ENABLED_NETWORKS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
-    DEFAULT_IGNORED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
@@ -48,7 +47,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             org_id=entry.data[CONF_MERAKI_ORG_ID],
             coordinator=self,
         )
-        self.config_entry = entry
         self.devices_by_serial: dict[str, MerakiDevice] = {}
         self.networks_by_id: dict[str, MerakiNetwork] = {}
         self.ssids_by_network_and_number: dict[tuple[str, int], dict[str, Any]] = {}
@@ -72,6 +70,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER,
             name=DOMAIN,
             update_interval=timedelta(seconds=scan_interval),
+            config_entry=entry,
         )
 
     def register_pending_update(
@@ -128,9 +127,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         _LOGGER.debug("Update for %s is still pending (on cooldown)", unique_id)
         return True
 
-    def _filter_ignored_networks(self, data: dict[str, Any]) -> None:
+    def _filter_enabled_networks(self, data: dict[str, Any]) -> None:
         """
-        Filter out networks that the user has chosen to ignore.
+        Filter out networks that the user has chosen to disable.
 
         Args:
         ----
@@ -140,17 +139,66 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if not self.config_entry or not hasattr(self.config_entry, "options"):
             _LOGGER.debug(
                 "Config entry or options not available, "
-                "cannot filter ignored networks.",
+                "cannot filter enabled networks.",
             )
             return
-        ignored_network_ids = self.config_entry.options.get(
-            CONF_IGNORED_NETWORKS,
-            DEFAULT_IGNORED_NETWORKS,
+        enabled_network_ids = self.config_entry.options.get(
+            CONF_ENABLED_NETWORKS,
         )
-        if ignored_network_ids and "networks" in data:
-            data["networks"] = [
-                n for n in data["networks"] if n.get("id") not in ignored_network_ids
+
+        # If the option is not set, all networks are enabled by default.
+        if enabled_network_ids is None:
+            enabled_network_ids = [
+                n["id"] for n in data.get("networks", []) if "id" in n
             ]
+
+        if "networks" in data:
+            for network in data["networks"]:
+                network["is_enabled"] = network.get("id") in enabled_network_ids
+
+            # Filter devices and SSIDs to only include those from enabled networks
+            if "devices" in data:
+                data["devices"] = [
+                    d
+                    for d in data["devices"]
+                    if d.get("networkId") in enabled_network_ids
+                ]
+            if "ssids" in data:
+                data["ssids"] = [
+                    s
+                    for s in data["ssids"]
+                    if s.get("networkId") in enabled_network_ids
+                ]
+
+    async def _async_remove_disabled_devices(self, data: dict[str, Any]) -> None:
+        """
+        Remove devices and entities from disabled networks.
+
+        Args:
+        ----
+            data: The data dictionary containing the latest device information.
+
+        """
+        dev_reg = dr.async_get(self.hass)
+        ent_reg = er.async_get(self.hass)
+        if not self.config_entry:
+            return
+        current_devices = {
+            list(device.identifiers)[0][1]
+            for device in dev_reg.devices.values()
+            if self.config_entry.entry_id in device.config_entries
+        }
+        latest_devices = {device["serial"] for device in data.get("devices", [])}
+
+        disabled_devices = current_devices - latest_devices
+        for serial in disabled_devices:
+            device = dev_reg.async_get_device(identifiers={(DOMAIN, serial)})
+            if device:
+                entities = er.async_entries_for_device(ent_reg, device.id)
+                for entity in entities:
+                    ent_reg.async_remove(entity.entity_id)
+                dev_reg.async_remove_device(device.id)
+                _LOGGER.debug(f"Removed device {serial} and its entities.")
 
     def _populate_device_entities(self, data: dict[str, Any]) -> None:
         """
@@ -192,7 +240,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 _LOGGER.warning("API call to get_all_data returned no data.")
                 raise UpdateFailed("API call returned no data.")
 
-            self._filter_ignored_networks(data)
+            self._filter_enabled_networks(data)
+            _LOGGER.debug("SSIDs after filtering: %s", data.get("ssids"))
+            await self._async_remove_disabled_devices(data)
 
             # Create lookup tables for efficient access in entities
             self.devices_by_serial = {

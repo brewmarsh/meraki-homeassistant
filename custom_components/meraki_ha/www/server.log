@@ -1,9 +1,0 @@
-
-> meraki-ha-webui@0.0.0 dev
-> vite --host
-
-
-  VITE v4.5.14  ready in 305 ms
-
-  ➜  Local:   http://localhost:5173/
-  ➜  Network: http://192.168.0.2:5173/
