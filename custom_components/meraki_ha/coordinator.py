@@ -241,6 +241,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 raise UpdateFailed("API call returned no data.")
 
             self._filter_enabled_networks(data)
+            _LOGGER.debug("SSIDs after filtering: %s", data.get("ssids"))
             await self._async_remove_disabled_devices(data)
 
             # Create lookup tables for efficient access in entities

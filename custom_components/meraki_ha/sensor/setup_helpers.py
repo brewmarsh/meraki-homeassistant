@@ -238,11 +238,18 @@ def _setup_ssid_sensors(
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up SSID-specific sensors."""
+    _LOGGER.debug("Setting up SSID sensors")
     entities: list[Entity] = []
     ssids = coordinator.data.get("ssids", [])
+    _LOGGER.debug("SSIDs to set up: %s", ssids)
     for ssid_data in ssids:
         network_id = ssid_data.get("networkId")
         ssid_number = ssid_data.get("number")
+        _LOGGER.debug(
+            "Processing SSID: network_id=%s, ssid_number=%s",
+            network_id,
+            ssid_number,
+        )
         if not network_id or ssid_number is None:
             continue
 
@@ -264,6 +271,7 @@ def async_setup_sensors(
     camera_service: "CameraService",
 ) -> list[Entity]:
     """Set up all sensor entities from the central coordinator."""
+    _LOGGER.debug("Setting up all sensors")
     entities: list[Entity] = []
     added_entities: set[str] = set()
 
