@@ -1,0 +1,58 @@
+name: Reusable Quality Checks
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        required: true
+        type: string
+
+jobs:
+  quality-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        id: setup-python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ inputs.python-version }}-${{ hashFiles('**/requirements_dev.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ inputs.python-version }}-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_dev.txt
+
+      - name: Run ruff
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Run mypy
+        run: mypy custom_components/meraki_ha/ tests/
+
+      - name: Run bandit
+        run: bandit -r custom_components/meraki_ha/ -c .bandit.yaml
+
+      - name: Run pip-audit
+        run: pip-audit --ignore-vuln PYSEC-2020-49 --ignore-vuln PYSEC-2022-42969 --ignore-vuln GHSA-g7vv-2v7x-gj9p
+
+      - name: Run tests with coverage
+        run: pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: brewmarsh/meraki-homeassistant
+          files: ./coverage.xml
