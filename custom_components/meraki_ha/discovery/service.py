@@ -159,6 +159,7 @@ class DeviceDiscoveryService:
                     device,
                     self._config_entry,
                     self._control_service,
+                    self._network_control_service,
                 )
 
             entities = await handler.discover_entities()
