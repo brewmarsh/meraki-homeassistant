@@ -77,7 +77,7 @@ class NetworkHandler(BaseHandler):
             )
             if "appliance" in network.get("productTypes", []):
                 try:
-                    categories = await self._coordinator.api_client.appliance.get_network_appliance_content_filtering_categories(  # noqa: E501
+                    categories = await self._coordinator.api.appliance.get_network_appliance_content_filtering_categories(  # noqa: E501
                         network["id"]
                     )
                     for category in categories.get("categories", []):
