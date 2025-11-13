@@ -1,24 +1,19 @@
-"""
-Device handler for Meraki MT sensors.
-"""
+"""Device handler for Meraki MT sensors."""
+
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
-    from ....types import MerakiDevice
-    from homeassistant.helpers.entity import Entity
-    from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
     from homeassistant.config_entries import ConfigEntry
-    from ...services.device_control_service import DeviceControlService
-    from ....services.camera_service import CameraService
-    from ....services.network_control_service import NetworkControlService
-    from ....core.coordinators.switch_port_status_coordinator import (
-        SwitchPortStatusCoordinator,
-    )
+    from homeassistant.helpers.entity import Entity
+
+    from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from ....services.device_control_service import DeviceControlService
+    from ....types import MerakiDevice
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,38 +24,32 @@ class MTHandler(BaseDeviceHandler):
 
     def __init__(
         self,
-        coordinator: "MerakiDataCoordinator",
-        device: "MerakiDevice",
-        config_entry: "ConfigEntry",
-        control_service: "DeviceControlService",
-        network_control_service: "NetworkControlService",
+        coordinator: MerakiDataCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+        control_service: DeviceControlService,
     ) -> None:
         """Initialize the MTHandler."""
         super().__init__(coordinator, device, config_entry)
         self._control_service = control_service
-        self._network_control_service = network_control_service
 
     @classmethod
     def create(
         cls,
-        coordinator: "MerakiDataCoordinator",
-        device: "MerakiDevice",
-        config_entry: "ConfigEntry",
-        camera_service: "CameraService",
-        control_service: "DeviceControlService",
-        network_control_service: "NetworkControlService",
-        switch_port_coordinator: "SwitchPortStatusCoordinator",
-    ) -> "MTHandler":
+        coordinator: MerakiDataCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+        control_service: DeviceControlService,
+    ) -> MTHandler:
         """Create an instance of the handler."""
         return cls(
             coordinator,
             device,
             config_entry,
             control_service,
-            network_control_service,
         )
 
-    async def discover_entities(self) -> List[Entity]:
+    async def discover_entities(self) -> list[Entity]:
         """Discover entities for the device."""
-        entities: List[Entity] = []
+        entities: list[Entity] = []
         return entities
