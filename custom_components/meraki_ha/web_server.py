@@ -215,11 +215,10 @@ class MerakiWebServer:
         """Handle requests for content filtering settings."""
         network_id = request.match_info.get("network_id")
         try:
-            settings = (
-                await self.coordinator.api_client.appliance.get_network_appliance_content_filtering(
-                    networkId=network_id,
-                )
+            get_content_filtering = (
+                self.coordinator.api_client.appliance.get_network_appliance_content_filtering
             )
+            settings = await get_content_filtering(networkId=network_id)
             return web.json_response(settings)
         except Exception as e:
             _LOGGER.error(
@@ -234,11 +233,10 @@ class MerakiWebServer:
         network_id = request.match_info.get("network_id")
         try:
             new_settings = await request.json()
-            await (
-                self.coordinator.api_client.appliance.update_network_appliance_content_filtering(
-                    networkId=network_id, **new_settings
-                )
+            update_content_filtering = (
+                self.coordinator.api_client.appliance.update_network_appliance_content_filtering
             )
+            await update_content_filtering(networkId=network_id, **new_settings)
             return web.json_response({"status": "success"}, status=200)
         except Exception as e:
             _LOGGER.error(
@@ -252,11 +250,10 @@ class MerakiWebServer:
         """Handle requests for L7 firewall rules."""
         network_id = request.match_info.get("network_id")
         try:
-            rules = await (
-                self.coordinator.api_client.appliance.get_network_appliance_firewall_l7_firewall_rules(
-                    networkId=network_id
-                )
+            get_l7_firewall_rules = (
+                self.coordinator.api_client.appliance.get_network_appliance_firewall_l7_firewall_rules
             )
+            rules = await get_l7_firewall_rules(networkId=network_id)
             return web.json_response(rules)
         except Exception as e:
             _LOGGER.error("Failed to get L7 firewall rules: %s", e, exc_info=True)
@@ -269,11 +266,10 @@ class MerakiWebServer:
         network_id = request.match_info.get("network_id")
         try:
             new_rules = await request.json()
-            await (
-                self.coordinator.api_client.appliance.update_network_appliance_firewall_l7_firewall_rules(
-                    networkId=network_id, **new_rules
-                )
+            update_l7_firewall_rules = (
+                self.coordinator.api_client.appliance.update_network_appliance_firewall_l7_firewall_rules
             )
+            await update_l7_firewall_rules(networkId=network_id, **new_rules)
             return web.json_response({"status": "success"}, status=200)
         except Exception as e:
             _LOGGER.error("Failed to update L7 firewall rules: %s", e, exc_info=True)
