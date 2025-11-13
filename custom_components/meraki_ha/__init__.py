@@ -9,30 +9,28 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
+    CONF_ENABLE_WEB_UI,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
-    CONF_ENABLE_WEB_UI,
     CONF_WEB_UI_PORT,
     DATA_CLIENT,
-    DEFAULT_SCAN_INTERVAL,
     DEFAULT_ENABLE_WEB_UI,
+    DEFAULT_SCAN_INTERVAL,
     DEFAULT_WEB_UI_PORT,
     DOMAIN,
     PLATFORMS,
 )
 from .core.api.client import MerakiAPIClient
 from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
+from .discovery.service import DeviceDiscoveryService
+from .services.camera_service import CameraService
+from .services.device_control_service import DeviceControlService
+from .services.network_control_service import NetworkControlService
 from .web_server import MerakiWebServer
 from .webhook import async_register_webhook, async_unregister_webhook
-from .core.repository import MerakiRepository
-from .core.repositories.camera_repository import CameraRepository
-from .services.device_control_service import DeviceControlService
-from .services.camera_service import CameraService
-from .services.network_control_service import NetworkControlService
-from .discovery.service import DeviceDiscoveryService
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -114,7 +112,9 @@ async def async_setup_or_update_entry(hass: HomeAssistant, entry: ConfigEntry) -
     control_service = entry_data["control_service"]
 
     if "camera_repository" not in entry_data:
-        entry_data["camera_repository"] = CameraRepository(api_client, api_client.organization_id)
+        entry_data["camera_repository"] = CameraRepository(
+            api_client, api_client.organization_id
+        )
     camera_repository = entry_data["camera_repository"]
 
     if "camera_service" not in entry_data:
@@ -122,7 +122,9 @@ async def async_setup_or_update_entry(hass: HomeAssistant, entry: ConfigEntry) -
     camera_service = entry_data["camera_service"]
 
     if "network_control_service" not in entry_data:
-        entry_data["network_control_service"] = NetworkControlService(api_client, coordinator)
+        entry_data["network_control_service"] = NetworkControlService(
+            api_client, coordinator
+        )
     network_control_service = entry_data["network_control_service"]
 
     # New discovery service setup.

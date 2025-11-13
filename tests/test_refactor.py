@@ -1,10 +1,11 @@
 """Tests for the Meraki integration refactoring."""
 
-from unittest.mock import patch, AsyncMock
+from unittest.mock import AsyncMock, patch
+
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.meraki_ha.const import DOMAIN, CONF_SCAN_INTERVAL, DATA_CLIENT
+from custom_components.meraki_ha.const import CONF_SCAN_INTERVAL, DATA_CLIENT, DOMAIN
 
 
 async def test_successful_setup(hass: HomeAssistant, enable_custom_integrations: None):
@@ -13,13 +14,11 @@ async def test_successful_setup(hass: HomeAssistant, enable_custom_integrations:
         domain=DOMAIN,
         data={"meraki_api_key": "test_api_key", "meraki_org_id": "org_id"},
         options={CONF_SCAN_INTERVAL: 300},
-        entry_id="test_entry"
+        entry_id="test_entry",
     )
     entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.meraki_ha.MerakiAPIClient"
-    ) as mock_api_client, patch(
+    with patch("custom_components.meraki_ha.MerakiAPIClient") as mock_api_client, patch(
         "custom_components.meraki_ha.discovery.service.DeviceDiscoveryService.discover_entities",
         return_value=[],
     ), patch(
@@ -27,11 +26,17 @@ async def test_successful_setup(hass: HomeAssistant, enable_custom_integrations:
     ) as mock_register_webhook, patch(
         "homeassistant.config_entries.ConfigEntries.async_forward_entry_setups"
     ) as mock_forward_setups:
-
-        mock_api_client.return_value.get_all_data = AsyncMock(return_value={
-            "devices": [], "networks": [], "ssids": [], "clients": [], "vlans": {},
-            "appliance_uplink_statuses": [], "rf_profiles": {}
-        })
+        mock_api_client.return_value.get_all_data = AsyncMock(
+            return_value={
+                "devices": [],
+                "networks": [],
+                "ssids": [],
+                "clients": [],
+                "vlans": {},
+                "appliance_uplink_statuses": [],
+                "rf_profiles": {},
+            }
+        )
 
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
@@ -67,24 +72,27 @@ async def test_reconfiguration(hass: HomeAssistant, enable_custom_integrations: 
         domain=DOMAIN,
         data={"meraki_api_key": "test_api_key", "meraki_org_id": "org_id"},
         options={CONF_SCAN_INTERVAL: 300},
-        entry_id="test_entry"
+        entry_id="test_entry",
     )
     entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.meraki_ha.MerakiAPIClient"
-    ) as mock_api_client, patch(
+    with patch("custom_components.meraki_ha.MerakiAPIClient") as mock_api_client, patch(
         "custom_components.meraki_ha.discovery.service.DeviceDiscoveryService.discover_entities",
         return_value=[],
-    ), patch(
-        "custom_components.meraki_ha.webhook.async_register_webhook"
-    ), patch(
+    ), patch("custom_components.meraki_ha.webhook.async_register_webhook"), patch(
         "homeassistant.config_entries.ConfigEntries.async_forward_entry_setups"
     ):
-        mock_api_client.return_value.get_all_data = AsyncMock(return_value={
-            "devices": [], "networks": [], "ssids": [], "clients": [], "vlans": {},
-            "appliance_uplink_statuses": [], "rf_profiles": {}
-        })
+        mock_api_client.return_value.get_all_data = AsyncMock(
+            return_value={
+                "devices": [],
+                "networks": [],
+                "ssids": [],
+                "clients": [],
+                "vlans": {},
+                "appliance_uplink_statuses": [],
+                "rf_profiles": {},
+            }
+        )
 
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
@@ -103,9 +111,7 @@ async def test_reconfiguration(hass: HomeAssistant, enable_custom_integrations: 
     ), patch(
         "custom_components.meraki_ha.discovery.service.DeviceDiscoveryService.discover_entities",
         return_value=[],
-    ), patch(
-        "custom_components.meraki_ha.webhook.async_register_webhook"
-    ), patch(
+    ), patch("custom_components.meraki_ha.webhook.async_register_webhook"), patch(
         "homeassistant.config_entries.ConfigEntries.async_forward_entry_setups"
     ):
         hass.config_entries.async_update_entry(entry, options=new_options)
@@ -114,7 +120,6 @@ async def test_reconfiguration(hass: HomeAssistant, enable_custom_integrations: 
     # Assertions
     assert hass.data[DOMAIN][entry.entry_id]["coordinator"] is original_coordinator
     assert hass.data[DOMAIN][entry.entry_id][DATA_CLIENT] is original_api_client
-    assert (
-        hass.data[DOMAIN][entry.entry_id]["coordinator"].update_interval
-        == timedelta(seconds=100)
-    )
+    assert hass.data[DOMAIN][entry.entry_id][
+        "coordinator"
+    ].update_interval == timedelta(seconds=100)
