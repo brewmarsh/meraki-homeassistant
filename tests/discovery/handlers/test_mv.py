@@ -43,12 +43,20 @@ def mock_meraki_client() -> MagicMock:
     return MagicMock()
 
 
+@pytest.fixture
+def mock_network_control_service() -> MagicMock:
+    """Fixture for a mocked NetworkControlService."""
+    return MagicMock()
+
+
 @pytest.mark.asyncio
 async def test_mv_handler_all_features(
     mock_coordinator: MagicMock,
     mock_config_entry: MagicMock,
     mock_camera_service: AsyncMock,
     mock_control_service: MagicMock,
+    mock_network_control_service: MagicMock,
+    mock_meraki_client: MagicMock,
 ) -> None:
     """Test that the MVHandler discovers all entities for a capable camera."""
     # Arrange
@@ -60,6 +68,8 @@ async def test_mv_handler_all_features(
             mock_config_entry,
             mock_camera_service,
             mock_control_service,
+            mock_network_control_service,
+            mock_meraki_client,
         )
 
     # Act
@@ -82,6 +92,8 @@ async def test_mv_handler_some_features(
     mock_config_entry: MagicMock,
     mock_camera_service: AsyncMock,
     mock_control_service: MagicMock,
+    mock_network_control_service: MagicMock,
+    mock_meraki_client: MagicMock,
 ) -> None:
     """Test that the MVHandler discovers some entities for a less capable camera."""
     # Arrange
@@ -96,6 +108,8 @@ async def test_mv_handler_some_features(
             mock_config_entry,
             mock_camera_service,
             mock_control_service,
+            mock_network_control_service,
+            mock_meraki_client,
         )
 
     # Act
@@ -118,6 +132,8 @@ async def test_mv_handler_no_extra_features(
     mock_config_entry: MagicMock,
     mock_camera_service: AsyncMock,
     mock_control_service: MagicMock,
+    mock_network_control_service: MagicMock,
+    mock_meraki_client: MagicMock,
 ) -> None:
     """Test that the MVHandler discovers only basic entities for a basic camera."""
     # Arrange
@@ -130,6 +146,8 @@ async def test_mv_handler_no_extra_features(
             mock_config_entry,
             mock_camera_service,
             mock_control_service,
+            mock_network_control_service,
+            mock_meraki_client,
         )
 
     # Act

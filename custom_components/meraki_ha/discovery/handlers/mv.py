@@ -12,6 +12,8 @@ from ...sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
 )
+from ...sensor.device.rtsp_url import MerakiRtspUrlSensor
+from ...switch.camera_controls import AnalyticsSwitch
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
@@ -39,12 +41,14 @@ class MVHandler(BaseDeviceHandler):
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
+        meraki_client: MerakiAPIClient,
     ) -> None:
         """Initialize the MVHandler."""
         super().__init__(coordinator, device, config_entry)
         self._camera_service = camera_service
         self._control_service = control_service
         self._network_control_service = network_control_service
+        self._meraki_client = meraki_client
 
     @classmethod
     def create(
@@ -55,6 +59,7 @@ class MVHandler(BaseDeviceHandler):
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
+        meraki_client: MerakiAPIClient,
     ) -> MVHandler:
         """Create an instance of the handler."""
         return cls(
@@ -64,6 +69,7 @@ class MVHandler(BaseDeviceHandler):
             camera_service,
             control_service,
             network_control_service,
+            meraki_client,
         )
 
     async def discover_entities(self) -> list[Entity]:
@@ -75,6 +81,7 @@ class MVHandler(BaseDeviceHandler):
         entities.append(
             MerakiCamera(
                 self._coordinator,
+                self._config_entry,
                 self.device,
                 self._camera_service,
             )
@@ -108,6 +115,7 @@ class MVHandler(BaseDeviceHandler):
                 self._coordinator,
                 self.device,
                 self._camera_service,
+                self._config_entry,
             )
         )
 
@@ -117,6 +125,25 @@ class MVHandler(BaseDeviceHandler):
                 self._coordinator,
                 self.device,
                 self._camera_service,
+                self._config_entry,
+            )
+        )
+
+        # Add rtsp url sensor
+        entities.append(
+            MerakiRtspUrlSensor(
+                self._coordinator,
+                self.device,
+                self._config_entry,
+            )
+        )
+
+        # Add analytics switch
+        entities.append(
+            AnalyticsSwitch(
+                self._coordinator,
+                self._meraki_client,
+                self.device,
             )
         )
 
