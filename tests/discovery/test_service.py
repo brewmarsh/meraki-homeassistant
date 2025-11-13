@@ -124,6 +124,7 @@ async def test_discover_entities_delegates_to_handler(
             mock_config_entry,
             mock_camera_service,
             mock_control_service,
+            ANY,  # network_control_service
             ANY,  # meraki_client
         )
         assert "No handler found for model 'unsupported'" in caplog.text
