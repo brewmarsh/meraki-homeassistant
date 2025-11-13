@@ -1,3 +1,40 @@
+# [2.0.0-beta.22](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.20...v2.0.0-beta.22) (2025-11-13)
+
+
+### Bug Fixes
+
+* Correct device handler method signatures ([9504554](https://github.com/brewmarsh/meraki-homeassistant/commit/950455451d579c62b2b81d78e16ed07bdae4e478))
+* **format:** Reformat conftest.py ([124dc6e](https://github.com/brewmarsh/meraki-homeassistant/commit/124dc6efbac2b902f1e984affae9bd294e3fef74))
+* **lint:** Resolve various linting and formatting issues ([d7a30a6](https://github.com/brewmarsh/meraki-homeassistant/commit/d7a30a61033af4da9d50757de85180b586d948ce))
+* Pass hass object to MerakiAPIClient constructor ([0bfba52](https://github.com/brewmarsh/meraki-homeassistant/commit/0bfba52c6e252475b2e80e5c4a2f501700d20cc3))
+* Prevent snapshot attempts for offline cameras ([5230130](https://github.com/brewmarsh/meraki-homeassistant/commit/5230130a7c3183e460657db4f4011251ef8c3ef1))
+* Resolve all linting and formatting errors ([e5234df](https://github.com/brewmarsh/meraki-homeassistant/commit/e5234dfffeae5da19fe220c03dc91083531b9862))
+* Resolve all linting and formatting errors ([894af4f](https://github.com/brewmarsh/meraki-homeassistant/commit/894af4f093f779869d19aaeb0870a21caa82d8f6))
+* Resolve all linting and formatting errors ([5b70ccc](https://github.com/brewmarsh/meraki-homeassistant/commit/5b70ccc7b94f804b8181776145b0929e24365ef6))
+* Resolve all linting and formatting errors ([5c31a4a](https://github.com/brewmarsh/meraki-homeassistant/commit/5c31a4ac30551fd1e144f8fd2690f1fe833fdd5c))
+* Resolve blocking import and linting errors ([b32f224](https://github.com/brewmarsh/meraki-homeassistant/commit/b32f22455fe6e148d87f847da8a646274af1283f))
+* Resolve blocking import and linting errors ([0910cc6](https://github.com/brewmarsh/meraki-homeassistant/commit/0910cc6cdaddc1ceea8ece945afbdb3eb04cf9f1))
+* Resolve blocking import and subsequent import errors ([46d24b9](https://github.com/brewmarsh/meraki-homeassistant/commit/46d24b9259885f40caff2c49c45dd5f41cc0aa27))
+* Resolve formatting issue in web_server.py ([b51d9be](https://github.com/brewmarsh/meraki-homeassistant/commit/b51d9be5d4b8ae3d8a0fdcf0833e1d05da487c71))
+* Resolve formatting issue in web_server.py ([821e1e8](https://github.com/brewmarsh/meraki-homeassistant/commit/821e1e8fab770f3808ac808168f63dfac1d3d2e3))
+* Resolve formatting issue in web_server.py ([9a90a36](https://github.com/brewmarsh/meraki-homeassistant/commit/9a90a3611f2956b5c547beb0e6046256b76d95c8))
+* Resolve formatting issue in web_server.py ([3adaa84](https://github.com/brewmarsh/meraki-homeassistant/commit/3adaa847e4700cdefabc88fa4d34fcfeca7d86bc))
+* Resolve formatting issue in web_server.py ([48eb285](https://github.com/brewmarsh/meraki-homeassistant/commit/48eb2854a26c755c37d2f99e11ff6ef919eab267))
+* resolve linting errors ([bb2530b](https://github.com/brewmarsh/meraki-homeassistant/commit/bb2530b419d5228a50c3fe124e9f4ae81c9f7344))
+* Resolve linting errors ([3f1a430](https://github.com/brewmarsh/meraki-homeassistant/commit/3f1a4309d32c4b3a661b9aea4f5711652f94cd15))
+
+
+### Features
+
+* Refactor config flow and fix related bugs ([d1ed8bb](https://github.com/brewmarsh/meraki-homeassistant/commit/d1ed8bb853510d29d8f1f0e51f231852f81c265f))
+* Refactor config flow and fix related bugs ([9b95d0f](https://github.com/brewmarsh/meraki-homeassistant/commit/9b95d0fef1fbd1f911cb3d56345909a99e32c713))
+* Refactor configuration and fix performance issue ([2fefa94](https://github.com/brewmarsh/meraki-homeassistant/commit/2fefa94dccf126d2c33e74ce648e49b36d9a8071))
+* Refactor configuration and reconfiguration flows ([2eee6e5](https://github.com/brewmarsh/meraki-homeassistant/commit/2eee6e54f6ffbde60517c4c5ccff1f5eef07a242))
+* **webui:** Display SSIDs in Network View ([2489415](https://github.com/brewmarsh/meraki-homeassistant/commit/2489415d02a1c5e51bb29ca95bc044f0a604cde3))
+* **webui:** Refactor web UI to a dynamic React-based dashboard ([390cb87](https://github.com/brewmarsh/meraki-homeassistant/commit/390cb8706775f40beee6c551dc785bf21405a25e))
+
+
+
 # [2.0.0-beta.21](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.20...v2.0.0-beta.21) (2025-11-13)
 
 
