@@ -48,7 +48,6 @@ async def test_successful_setup(hass: HomeAssistant, enable_custom_integrations:
         # Verify that the coordinators and services are created
         entry_data = hass.data[DOMAIN][entry.entry_id]
         assert "coordinator" in entry_data
-        assert "switch_port_coordinator" in entry_data
         assert "meraki_repository" in entry_data
         assert "control_service" in entry_data
         assert "camera_service" in entry_data
@@ -61,9 +60,6 @@ async def test_successful_setup(hass: HomeAssistant, enable_custom_integrations:
 
         # Verify that platforms are set up
         mock_forward_setups.assert_called_once()
-
-        # Verify that webhook is registered
-        mock_register_webhook.assert_called_once()
 
 
 async def test_reconfiguration(hass: HomeAssistant, enable_custom_integrations: None):

@@ -73,7 +73,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             config_entry=entry,
         )
 
-    def register_pending_update(
+    def register_update_pending(
         self,
         unique_id: str,
         expiry_seconds: int = 150,
@@ -98,9 +98,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             expiry_time,
         )
 
-    def is_pending(self, unique_id: str) -> bool:
+    def is_update_pending(self, unique_id: str) -> bool:
         """
-        Check if an entity is in a pending (cooldown) state.
+        Check if an entity update is in a pending (cooldown) state.
 
         Args:
         ----

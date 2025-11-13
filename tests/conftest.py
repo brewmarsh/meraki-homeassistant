@@ -30,6 +30,9 @@ def mock_coordinator() -> MagicMock:
     coordinator.data = MOCK_ALL_DATA
     coordinator.async_request_refresh = AsyncMock()
     coordinator.async_write_ha_state = MagicMock()
+    coordinator.is_update_pending = MagicMock(return_value=False)
+    coordinator.register_update_pending = MagicMock()
+    coordinator.async_request_refresh = AsyncMock()
     return coordinator
 
 
@@ -39,3 +42,16 @@ def mock_config_entry() -> MagicMock:
     entry = MagicMock()
     entry.options = {}
     return entry
+
+
+@pytest.fixture(autouse=True)
+def prevent_socket_and_camera_load() -> Generator[None, None, None]:
+    """
+    Patch asyncio to prevent opening a real socket.
+    """
+    from unittest.mock import patch, MagicMock
+
+    with patch(
+        "asyncio.base_events.BaseEventLoop.create_server", new_callable=AsyncMock
+    ), patch("turbojpeg.TurboJPEG", MagicMock()):
+        yield
