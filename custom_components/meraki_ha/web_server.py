@@ -217,7 +217,7 @@ class MerakiWebServer:
         try:
             settings = await (
                 self.coordinator.api_client.appliance.get_network_appliance_content_filtering(
-                    networkId=network_id
+                    networkId=network_id,
                 )
             )
             return web.json_response(settings)
