@@ -1,3 +1,13 @@
+# [2.0.0-beta.21](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.24...v2.0.0-beta.21) (2025-11-13)
+
+
+### Bug Fixes
+
+* Correct handler instantiation ([ff13a9b](https://github.com/brewmarsh/meraki-homeassistant/commit/ff13a9b1a24bfe6b7a940b2586e561cb6d0eefc1))
+* Correct handler instantiation ([0421c66](https://github.com/brewmarsh/meraki-homeassistant/commit/0421c6632a68a513abfc725605a21c4693cfecd1))
+
+
+
 # [2.0.0-beta.20](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.19...v2.0.0-beta.20) (2025-11-12)
 
 ## [2.0.0-beta.19](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.18...v2.0.0-beta.19) (2025-11-12)
