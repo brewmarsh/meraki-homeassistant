@@ -1,3 +1,13 @@
+# [2.0.0-beta.24](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.23...v2.0.0-beta.24) (2025-11-13)
+
+
+### Bug Fixes
+
+* Correct handler instantiation and attribute access ([2f1fe55](https://github.com/brewmarsh/meraki-homeassistant/commit/2f1fe55e06f95ca656d2852e571af5e94f9fb6f9))
+* Correct handler instantiation and attribute access ([e044876](https://github.com/brewmarsh/meraki-homeassistant/commit/e0448769ef6233eed38a512eda40f185f724b164))
+
+
+
 # [2.0.0-beta.23](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.22...v2.0.0-beta.23) (2025-11-13)
 
 
