@@ -1,3 +1,12 @@
+# [2.0.0-beta.23](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.22...v2.0.0-beta.23) (2025-11-13)
+
+
+### Bug Fixes
+
+* Pass config_entry to MerakiCamera constructor ([232afe5](https://github.com/brewmarsh/meraki-homeassistant/commit/232afe5691367e98de50a1889dead7d429a1e2d4))
+
+
+
 # [2.0.0-beta.22](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.20...v2.0.0-beta.22) (2025-11-13)
 
 
