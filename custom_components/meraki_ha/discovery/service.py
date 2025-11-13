@@ -136,8 +136,6 @@ class DeviceDiscoveryService:
                     self._config_entry,
                     self._control_service,
                     self._network_control_service,
-                    self._network_control_service,
-                    self._meraki_client,
                 )
             elif model_prefix in ("MS", "GS"):
                 handler = handler_class(
