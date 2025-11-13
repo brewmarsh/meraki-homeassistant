@@ -50,10 +50,8 @@ class GXHandler(BaseDeviceHandler):
         coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
-        camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
-        switch_port_coordinator: SwitchPortStatusCoordinator,
     ) -> GXHandler:
         """Create an instance of the handler."""
         return cls(

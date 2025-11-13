@@ -1,27 +1,21 @@
-"""
-MR (Wireless) Device Handler
+"""MR (Wireless) Device Handler."""
 
-This module defines the MRHandler class, which is responsible for discovering
-entities for Meraki MR series (wireless) devices.
-"""
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
-    from homeassistant.helpers.entity import Entity
-    from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
     from homeassistant.config_entries import ConfigEntry
-    from ....types import MerakiDevice
-    from ...services.device_control_service import DeviceControlService
+    from homeassistant.helpers.entity import Entity
+
+    from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
     from ....services.camera_service import CameraService
     from ....services.network_control_service import NetworkControlService
-    from ....core.coordinators.switch_port_status_coordinator import (
-        SwitchPortStatusCoordinator,
-    )
+    from ....types import MerakiDevice
+    from ...services.device_control_service import DeviceControlService
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,11 +26,11 @@ class MRHandler(BaseDeviceHandler):
 
     def __init__(
         self,
-        coordinator: "MerakiDataCoordinator",
-        device: "MerakiDevice",
-        config_entry: "ConfigEntry",
-        control_service: "DeviceControlService",
-        network_control_service: "NetworkControlService",
+        coordinator: MerakiDataCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+        control_service: DeviceControlService,
+        network_control_service: NetworkControlService,
     ) -> None:
         """Initialize the MRHandler."""
         super().__init__(coordinator, device, config_entry)
@@ -46,14 +40,12 @@ class MRHandler(BaseDeviceHandler):
     @classmethod
     def create(
         cls,
-        coordinator: "MerakiDataCoordinator",
-        device: "MerakiDevice",
-        config_entry: "ConfigEntry",
-        camera_service: "CameraService",
-        control_service: "DeviceControlService",
-        network_control_service: "NetworkControlService",
-        switch_port_coordinator: "SwitchPortStatusCoordinator",
-    ) -> "MRHandler":
+        coordinator: MerakiDataCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+        control_service: DeviceControlService,
+        network_control_service: NetworkControlService,
+    ) -> MRHandler:
         """Create an instance of the handler."""
         return cls(
             coordinator,
@@ -63,9 +55,9 @@ class MRHandler(BaseDeviceHandler):
             network_control_service,
         )
 
-    async def discover_entities(self) -> List[Entity]:
+    async def discover_entities(self) -> list[Entity]:
         """Discover entities for a wireless device."""
-        entities: List[Entity] = []
+        entities: list[Entity] = []
 
         # In the future, this is where we would create entities like:
         # - Radio settings sensors

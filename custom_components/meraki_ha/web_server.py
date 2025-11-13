@@ -130,7 +130,8 @@ class MerakiWebServer:
         """Handle requests to update the integration settings."""
         try:
             new_options = await request.json()
-            # It's good practice to merge with existing options, though client should send all
+            # It's good practice to merge with existing options, though client should
+            # send all
             updated_options = {**self.coordinator.config_entry.options, **new_options}
             self.hass.config_entries.async_update_entry(
                 self.coordinator.config_entry, options=updated_options
@@ -169,7 +170,7 @@ class MerakiWebServer:
 
         # Add network-level resources
         if "network_content_filtering_coordinators" in entry_data:
-            for network_id, coordinator in entry_data[
+            for network_id, _coordinator in entry_data[
                 "network_content_filtering_coordinators"
             ].items():
                 network_info = self.coordinator.get_network(network_id)
@@ -184,11 +185,11 @@ class MerakiWebServer:
 
         # Add SSID-level resources
         if "ssid_content_filtering_coordinators" in entry_data:
-            for coordinator_key, coordinator in entry_data[
+            for _coordinator_key, _coordinator in entry_data[
                 "ssid_content_filtering_coordinators"
             ].items():
-                network_id = coordinator.network_id
-                ssid_number = coordinator.ssid_number
+                network_id = _coordinator.network_id
+                ssid_number = _coordinator.ssid_number
                 ssid_info = self.coordinator.get_ssid(network_id, ssid_number)
                 if ssid_info:
                     resources.append(
@@ -215,7 +216,7 @@ class MerakiWebServer:
         network_id = request.match_info.get("network_id")
         try:
             settings = await self.coordinator.api_client.appliance.get_network_appliance_content_filtering(
-                networkId=network_id
+                networkId=network_id,
             )
             return web.json_response(settings)
         except Exception as e:
@@ -232,7 +233,8 @@ class MerakiWebServer:
         try:
             new_settings = await request.json()
             await self.coordinator.api_client.appliance.update_network_appliance_content_filtering(
-                networkId=network_id, **new_settings
+                networkId=network_id,
+                **new_settings,
             )
             return web.json_response({"status": "success"}, status=200)
         except Exception as e:
@@ -248,7 +250,7 @@ class MerakiWebServer:
         network_id = request.match_info.get("network_id")
         try:
             rules = await self.coordinator.api_client.appliance.get_network_appliance_firewall_l7_firewall_rules(
-                networkId=network_id
+                networkId=network_id,
             )
             return web.json_response(rules)
         except Exception as e:
@@ -263,7 +265,8 @@ class MerakiWebServer:
         try:
             new_rules = await request.json()
             await self.coordinator.api_client.appliance.update_network_appliance_firewall_l7_firewall_rules(
-                networkId=network_id, **new_rules
+                networkId=network_id,
+                **new_rules,
             )
             return web.json_response({"status": "success"}, status=200)
         except Exception as e:

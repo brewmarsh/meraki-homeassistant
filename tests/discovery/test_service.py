@@ -50,7 +50,6 @@ def test_discovery_service_init(
         coordinator=mock_coordinator_with_devices,
         config_entry=mock_config_entry,
         meraki_client=MagicMock(),
-        switch_port_coordinator=MagicMock(),
         camera_service=mock_camera_service,
         control_service=mock_control_service,
         network_control_service=MagicMock(),
@@ -100,7 +99,6 @@ async def test_discover_entities_delegates_to_handler(
             coordinator=mock_coordinator_with_devices,
             config_entry=mock_config_entry,
             meraki_client=MagicMock(),
-            switch_port_coordinator=MagicMock(),
             camera_service=mock_camera_service,
             control_service=mock_control_service,
             network_control_service=MagicMock(),
@@ -119,6 +117,7 @@ async def test_discover_entities_delegates_to_handler(
             mock_coordinator_with_devices.data["devices"][0],
             mock_config_entry,
             mock_control_service,
+            ANY,  # network_control_service
         )
         MockMVHandler.assert_called_once_with(
             mock_coordinator_with_devices,
@@ -126,6 +125,7 @@ async def test_discover_entities_delegates_to_handler(
             mock_config_entry,
             mock_camera_service,
             mock_control_service,
+            ANY,  # network_control_service
             ANY,  # meraki_client
         )
         assert "No handler found for model 'unsupported'" in caplog.text
