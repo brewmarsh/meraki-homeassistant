@@ -117,6 +117,7 @@ async def test_discover_entities_delegates_to_handler(
             mock_coordinator_with_devices.data["devices"][0],
             mock_config_entry,
             mock_control_service,
+            ANY,  # network_control_service
         )
         MockMVHandler.assert_called_once_with(
             mock_coordinator_with_devices,

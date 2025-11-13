@@ -145,12 +145,21 @@ class DeviceDiscoveryService:
                     self._control_service,
                     self._network_control_service,
                 )
+            elif model_prefix == "MR":
+                handler = handler_class(
+                    self._coordinator,
+                    device,
+                    self._config_entry,
+                    self._control_service,
+                    self._network_control_service,
+                )
             else:
                 handler = handler_class(
                     self._coordinator,
                     device,
                     self._config_entry,
                     self._control_service,
+                    self._network_control_service,
                 )
 
             entities = await handler.discover_entities()
