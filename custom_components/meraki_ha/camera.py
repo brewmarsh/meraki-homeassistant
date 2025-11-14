@@ -1,4 +1,5 @@
 """Support for Meraki cameras."""
+
 from __future__ import annotations
 
 import asyncio
@@ -17,6 +18,7 @@ from .helpers.entity_helpers import format_entity_name
 
 try:
     from homeassistant.components.camera import CameraEntityFeature
+
     SUPPORT_STREAM = CameraEntityFeature.STREAM
 except (ImportError, AttributeError):
     from homeassistant.components.camera import SUPPORT_STREAM
@@ -49,7 +51,7 @@ async def async_setup_entry(
         _LOGGER.debug("Adding %d camera entities", len(camera_entities))
         chunk_size = 50
         for i in range(0, len(camera_entities), chunk_size):
-            chunk = camera_entities[i:i + chunk_size]
+            chunk = camera_entities[i : i + chunk_size]
             async_add_entities(chunk)
             if len(camera_entities) > chunk_size:
                 await asyncio.sleep(1)
@@ -171,9 +173,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
             return False
 
         url = self.device_data.get("rtsp_url")
-        return (
-            url is not None and isinstance(url, str) and url.startswith("rtsp://")
-        )
+        return url is not None and isinstance(url, str) and url.startswith("rtsp://")
 
     async def async_turn_on(self) -> None:
         """Turn on the camera stream."""

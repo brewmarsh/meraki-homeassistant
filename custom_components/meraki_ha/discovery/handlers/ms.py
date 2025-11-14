@@ -63,7 +63,5 @@ class MSHandler(BaseDeviceHandler):
         entities: list[Entity] = []
         if self.device and self.device.get("ports_statuses"):
             for port in self.device["ports_statuses"]:
-                entities.append(
-                    SwitchPortSensor(self._coordinator, self.device, port)
-                )
+                entities.append(SwitchPortSensor(self._coordinator, self.device, port))
         return entities

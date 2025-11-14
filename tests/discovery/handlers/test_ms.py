@@ -1,4 +1,5 @@
 """Tests for the MSHandler."""
+
 from unittest.mock import MagicMock
 
 import pytest
