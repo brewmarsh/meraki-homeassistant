@@ -42,6 +42,7 @@ class MRHandler(BaseDeviceHandler):
         coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
+        camera_service,  # Unused
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
     ) -> MRHandler:

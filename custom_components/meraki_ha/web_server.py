@@ -97,10 +97,12 @@ class MerakiWebServer:
             with open(index_path) as f:
                 content = f.read()
 
-            ha_url = str(self.hass.config.api.base_url)
-            content = content.replace("__HA_URL__", ha_url)
+            if self.hass.config.api:
+                ha_url = str(self.hass.config.api.base_url)
+                content = content.replace("__HA_URL__", ha_url)
 
-            config_entry_id = self.coordinator.config_entry.entry_id
+            if self.coordinator.config_entry:
+                config_entry_id = self.coordinator.config_entry.entry_id
             content = content.replace("__CONFIG_ENTRY_ID__", config_entry_id)
 
             return web.Response(text=content, content_type="text/html")
@@ -111,9 +113,7 @@ class MerakiWebServer:
     async def handle_api_config(self, request: web.Request) -> web.Response:
         """Handle requests for the integration's configuration."""
         # Placeholder
-        return web.json_response(
-            {"organization_id": self.coordinator.api_client.org_id}
-        )
+        return web.json_response({"organization_id": self.coordinator.api.org_id})
 
     async def handle_api_networks(self, request: web.Request) -> web.Response:
         """Handle requests for network data."""
@@ -124,18 +124,24 @@ class MerakiWebServer:
 
     async def handle_api_get_settings(self, request: web.Request) -> web.Response:
         """Handle requests to get the current integration settings."""
-        return web.json_response(dict(self.coordinator.config_entry.options))
+        if self.coordinator.config_entry:
+            return web.json_response(dict(self.coordinator.config_entry.options))
+        return web.json_response({})
 
     async def handle_api_post_settings(self, request: web.Request) -> web.Response:
         """Handle requests to update the integration settings."""
         try:
             new_options = await request.json()
-            # It's good practice to merge with existing options, though client should
-            # send all
-            updated_options = {**self.coordinator.config_entry.options, **new_options}
-            self.hass.config_entries.async_update_entry(
-                self.coordinator.config_entry, options=updated_options
-            )
+            if self.coordinator.config_entry:
+                # It's good practice to merge with existing options, though client should
+                # send all
+                updated_options = {
+                    **self.coordinator.config_entry.options,
+                    **new_options,
+                }
+                self.hass.config_entries.async_update_entry(
+                    self.coordinator.config_entry, options=updated_options
+                )
             return web.json_response({"status": "success"}, status=200)
         except Exception as e:
             _LOGGER.error("Failed to update settings: %s", e, exc_info=True)
@@ -165,8 +171,11 @@ class MerakiWebServer:
     ) -> web.Response:
         """Get a list of all networks and SSIDs that support content filtering."""
         resources = []
-        domain = self.coordinator.config_entry.domain
-        entry_data = self.hass.data[domain][self.coordinator.config_entry.entry_id]
+        if self.coordinator.config_entry:
+            domain = self.coordinator.config_entry.domain
+            entry_data = self.hass.data[domain][self.coordinator.config_entry.entry_id]
+        else:
+            return web.json_response({"error": "Config entry not available"}, status=500)
 
         # Add network-level resources
         if "network_content_filtering_coordinators" in entry_data:
@@ -214,7 +223,7 @@ class MerakiWebServer:
     ) -> web.Response:
         """Handle requests for content filtering settings."""
         network_id = request.match_info.get("network_id")
-        appliance = self.coordinator.api_client.appliance
+        appliance = self.coordinator.api.appliance
         try:
             settings = await appliance.get_network_appliance_content_filtering(
                 networkId=network_id,
@@ -231,7 +240,7 @@ class MerakiWebServer:
     ) -> web.Response:
         """Handle requests to update content filtering settings."""
         network_id = request.match_info.get("network_id")
-        appliance = self.coordinator.api_client.appliance
+        appliance = self.coordinator.api.appliance
         try:
             new_settings = await request.json()
             await appliance.update_network_appliance_content_filtering(
@@ -250,7 +259,7 @@ class MerakiWebServer:
     ) -> web.Response:
         """Handle requests for L7 firewall rules."""
         network_id = request.match_info.get("network_id")
-        appliance = self.coordinator.api_client.appliance
+        appliance = self.coordinator.api.appliance
         try:
             rules = await appliance.get_network_appliance_firewall_l7_firewall_rules(
                 networkId=network_id,
@@ -265,7 +274,7 @@ class MerakiWebServer:
     ) -> web.Response:
         """Handle requests to update L7 firewall rules."""
         network_id = request.match_info.get("network_id")
-        appliance = self.coordinator.api_client.appliance
+        appliance = self.coordinator.api.appliance
         try:
             new_rules = await request.json()
             await appliance.update_network_appliance_firewall_l7_firewall_rules(
@@ -302,11 +311,14 @@ class MerakiWebServer:
         ssid_number = request.match_info.get("ssid_number")
         coordinator_key = f"{network_id}_{ssid_number}"
 
-        domain = self.coordinator.config_entry.domain
-        entry_data = self.hass.data[domain][self.coordinator.config_entry.entry_id]
-        coordinator = entry_data.get("ssid_content_filtering_coordinators", {}).get(
-            coordinator_key
-        )
+        if self.coordinator.config_entry:
+            domain = self.coordinator.config_entry.domain
+            entry_data = self.hass.data[domain][self.coordinator.config_entry.entry_id]
+            coordinator = entry_data.get("ssid_content_filtering_coordinators", {}).get(
+                coordinator_key
+            )
+        else:
+            return web.json_response({"error": "Config entry not available"}, status=500)
 
         if not coordinator or not coordinator.data:
             return web.json_response(
@@ -323,11 +335,14 @@ class MerakiWebServer:
         ssid_number = request.match_info.get("ssid_number")
         coordinator_key = f"{network_id}_{ssid_number}"
 
-        domain = self.coordinator.config_entry.domain
-        entry_data = self.hass.data[domain][self.coordinator.config_entry.entry_id]
-        coordinator = entry_data.get("ssid_content_filtering_coordinators", {}).get(
-            coordinator_key
-        )
+        if self.coordinator.config_entry:
+            domain = self.coordinator.config_entry.domain
+            entry_data = self.hass.data[domain][self.coordinator.config_entry.entry_id]
+            coordinator = entry_data.get("ssid_content_filtering_coordinators", {}).get(
+                coordinator_key
+            )
+        else:
+            return web.json_response({"error": "Config entry not available"}, status=500)
 
         if not coordinator:
             return web.json_response(

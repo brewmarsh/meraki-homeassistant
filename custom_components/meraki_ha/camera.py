@@ -16,12 +16,7 @@ from .const import DOMAIN
 from .core.utils.naming_utils import format_device_name
 from .helpers.entity_helpers import format_entity_name
 
-try:
-    from homeassistant.components.camera import CameraEntityFeature
-
-    SUPPORT_STREAM = CameraEntityFeature.STREAM
-except (ImportError, AttributeError):
-    from homeassistant.components.camera import SUPPORT_STREAM
+from homeassistant.components.camera import CameraEntityFeature
 
 
 if TYPE_CHECKING:
@@ -57,7 +52,7 @@ async def async_setup_entry(
                 await asyncio.sleep(1)
 
 
-class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
+class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
     """
     Representation of a Meraki camera.
 
@@ -156,9 +151,9 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
         return attrs
 
     @property
-    def supported_features(self) -> int:
+    def supported_features(self) -> CameraEntityFeature:
         """Return supported features."""
-        return SUPPORT_STREAM
+        return CameraEntityFeature.STREAM
 
     @property
     def is_streaming(self) -> bool:

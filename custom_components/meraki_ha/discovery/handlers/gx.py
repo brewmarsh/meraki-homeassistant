@@ -46,6 +46,7 @@ class GXHandler(BaseDeviceHandler):
         coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
+        camera_service,  # Unused
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
     ) -> GXHandler:

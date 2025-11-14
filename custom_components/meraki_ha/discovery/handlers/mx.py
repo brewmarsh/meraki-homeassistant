@@ -53,7 +53,6 @@ class MXHandler(BaseDeviceHandler):
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
-        switch_port_coordinator: SwitchPortStatusCoordinator,
     ) -> MXHandler:
         """Create an instance of the handler."""
         return cls(

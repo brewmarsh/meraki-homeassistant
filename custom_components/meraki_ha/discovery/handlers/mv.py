@@ -63,7 +63,6 @@ class MVHandler(BaseDeviceHandler):
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
-        meraki_client: MerakiAPIClient,
     ) -> MVHandler:
         """Create an instance of the handler."""
         return cls(
