@@ -1,13 +1,12 @@
 """The Meraki Home Assistant integration."""
 
 import logging
-import voluptuous as vol
-from homeassistant.helpers import config_validation as cv
 import secrets
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (

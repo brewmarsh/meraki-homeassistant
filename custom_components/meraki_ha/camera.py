@@ -7,7 +7,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
-from homeassistant.components.camera import Camera
+from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -15,9 +15,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .core.utils.naming_utils import format_device_name
 from .helpers.entity_helpers import format_entity_name
-
-from homeassistant.components.camera import CameraEntityFeature
-
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -52,7 +49,7 @@ async def async_setup_entry(
                 await asyncio.sleep(1)
 
 
-class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
+class MerakiCamera(CoordinatorEntity, Camera):
     """
     Representation of a Meraki camera.
 
