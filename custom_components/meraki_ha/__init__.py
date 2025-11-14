@@ -1,6 +1,8 @@
 """The Meraki Home Assistant integration."""
 
 import logging
+import voluptuous as vol
+from homeassistant.helpers import config_validation as cv
 import secrets
 from datetime import timedelta
 
@@ -33,6 +35,8 @@ from .web_server import MerakiWebServer
 from .webhook import async_register_webhook, async_unregister_webhook
 
 _LOGGER = logging.getLogger(__name__)
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:

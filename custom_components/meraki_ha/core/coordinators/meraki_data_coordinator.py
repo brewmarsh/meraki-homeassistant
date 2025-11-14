@@ -50,10 +50,12 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
                 CONF_IGNORED_NETWORKS, DEFAULT_IGNORED_NETWORKS
             )
             if ignored_networks_str and "networks" in data:
-            ignored_names = {name.strip() for name in ignored_networks_str.split(",")}
-            data["networks"] = [
-                n for n in data["networks"] if n.get("name") not in ignored_names
-            ]
+                ignored_names = {
+                    name.strip() for name in ignored_networks_str.split(",")
+                }
+                data["networks"] = [
+                    n for n in data["networks"] if n.get("name") not in ignored_names
+                ]
 
     def _filter_unconfigured_ssids(self, data: dict) -> None:
         """Filter out unconfigured SSIDs if the user has chosen to hide them."""
@@ -64,7 +66,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator):
                 )
                 and "ssids" in data
             ):
-            data["ssids"] = [s for s in data["ssids"] if s.get("enabled")]
+                data["ssids"] = [s for s in data["ssids"] if s.get("enabled")]
 
     async def _async_update_data(self):
         """Fetch data from API endpoint and apply filters."""
