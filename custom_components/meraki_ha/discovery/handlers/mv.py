@@ -1,4 +1,9 @@
-"""MV (Camera) Device Handler."""
+"""
+MV (Camera) Device Handler.
+
+This module defines the MVHandler class, which is responsible for discovering
+entities for Meraki MV series (camera) devices.
+"""
 
 from __future__ import annotations
 
@@ -12,14 +17,13 @@ from ...sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
 )
-from ...sensor.device.rtsp_url import MerakiRtspUrlSensor
-from ...switch.camera_controls import AnalyticsSwitch
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
+    from ....core.api.client import MerakiAPIClient
     from ....services.network_control_service import NetworkControlService
     from ....types import MerakiDevice
     from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
@@ -59,7 +63,7 @@ class MVHandler(BaseDeviceHandler):
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
-        meraki_client: MerakiAPIClient,
+        meraki_client: MerakiAPIClient = None,
     ) -> MVHandler:
         """Create an instance of the handler."""
         return cls(
@@ -126,24 +130,6 @@ class MVHandler(BaseDeviceHandler):
                 self.device,
                 self._camera_service,
                 self._config_entry,
-            )
-        )
-
-        # Add rtsp url sensor
-        entities.append(
-            MerakiRtspUrlSensor(
-                self._coordinator,
-                self.device,
-                self._config_entry,
-            )
-        )
-
-        # Add analytics switch
-        entities.append(
-            AnalyticsSwitch(
-                self._coordinator,
-                self._meraki_client,
-                self.device,
             )
         )
 

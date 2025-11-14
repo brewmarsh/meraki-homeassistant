@@ -96,7 +96,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
     def _update_internal_state(self) -> None:
         """Update the internal state of the switch based on coordinator data."""
         # Ignore coordinator data to avoid overwriting optimistic state
-        if self.coordinator.is_pending(self.unique_id):
+        if self.coordinator.is_update_pending(self.unique_id):
             return
 
         current_ssid_data = self._get_current_ssid_data()
@@ -133,7 +133,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
         )
 
         # Register a pending update to prevent overwriting the optimistic state
-        self.coordinator.register_pending_update(self.unique_id)
+        self.coordinator.register_update_pending(self.unique_id)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""

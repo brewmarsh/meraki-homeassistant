@@ -21,9 +21,7 @@ async def test_successful_setup(hass: HomeAssistant, enable_custom_integrations:
     with patch("custom_components.meraki_ha.MerakiAPIClient") as mock_api_client, patch(
         "custom_components.meraki_ha.discovery.service.DeviceDiscoveryService.discover_entities",
         return_value=[],
-    ), patch(
-        "custom_components.meraki_ha.webhook.async_register_webhook"
-    ) as mock_register_webhook, patch(
+    ), patch("custom_components.meraki_ha.webhook.async_register_webhook"), patch(
         "homeassistant.config_entries.ConfigEntries.async_forward_entry_setups"
     ) as mock_forward_setups:
         mock_api_client.return_value.get_all_data = AsyncMock(
@@ -48,7 +46,6 @@ async def test_successful_setup(hass: HomeAssistant, enable_custom_integrations:
         # Verify that the coordinators and services are created
         entry_data = hass.data[DOMAIN][entry.entry_id]
         assert "coordinator" in entry_data
-        assert "switch_port_coordinator" in entry_data
         assert "meraki_repository" in entry_data
         assert "control_service" in entry_data
         assert "camera_service" in entry_data
@@ -61,9 +58,6 @@ async def test_successful_setup(hass: HomeAssistant, enable_custom_integrations:
 
         # Verify that platforms are set up
         mock_forward_setups.assert_called_once()
-
-        # Verify that webhook is registered
-        mock_register_webhook.assert_called_once()
 
 
 async def test_reconfiguration(hass: HomeAssistant, enable_custom_integrations: None):

@@ -12,7 +12,6 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
 
     from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-    from ....services.camera_service import CameraService
     from ....services.network_control_service import NetworkControlService
     from ....types import MerakiDevice
     from ...services.device_control_service import DeviceControlService
@@ -43,6 +42,7 @@ class MRHandler(BaseDeviceHandler):
         coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
+        camera_service,  # Unused
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
     ) -> MRHandler:

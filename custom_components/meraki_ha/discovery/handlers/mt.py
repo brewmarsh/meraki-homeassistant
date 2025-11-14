@@ -39,7 +39,9 @@ class MTHandler(BaseDeviceHandler):
         coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
+        camera_service,  # Unused
         control_service: DeviceControlService,
+        network_control_service,  # Unused
     ) -> MTHandler:
         """Create an instance of the handler."""
         return cls(

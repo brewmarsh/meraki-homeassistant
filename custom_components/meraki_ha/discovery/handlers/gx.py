@@ -16,10 +16,6 @@ if TYPE_CHECKING:
     from ....core.coordinators.meraki_data_coordinator import (
         MerakiDataUpdateCoordinator,
     )
-    from ....core.coordinators.switch_port_status_coordinator import (
-        SwitchPortStatusCoordinator,
-    )
-    from ....services.camera_service import CameraService
     from ....types import MerakiDevice
     from ...services.device_control_service import DeviceControlService
     from ...services.network_control_service import NetworkControlService
@@ -50,6 +46,7 @@ class GXHandler(BaseDeviceHandler):
         coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
+        camera_service,  # Unused
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
     ) -> GXHandler:
