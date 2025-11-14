@@ -21,9 +21,7 @@ async def test_successful_setup(hass: HomeAssistant, enable_custom_integrations:
     with patch("custom_components.meraki_ha.MerakiAPIClient") as mock_api_client, patch(
         "custom_components.meraki_ha.discovery.service.DeviceDiscoveryService.discover_entities",
         return_value=[],
-    ), patch(
-        "custom_components.meraki_ha.webhook.async_register_webhook"
-    ) as mock_register_webhook, patch(
+    ), patch("custom_components.meraki_ha.webhook.async_register_webhook"), patch(
         "homeassistant.config_entries.ConfigEntries.async_forward_entry_setups"
     ) as mock_forward_setups:
         mock_api_client.return_value.get_all_data = AsyncMock(

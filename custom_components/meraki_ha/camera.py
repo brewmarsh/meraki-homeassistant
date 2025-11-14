@@ -1,21 +1,19 @@
-"""
-Support for Meraki cameras.
-"""
+"""Support for Meraki cameras."""
 from __future__ import annotations
 
+import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any
 
 import aiohttp
 from homeassistant.components.camera import Camera
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .core.errors import MerakiInformationalError
-from .helpers.entity_helpers import format_entity_name
 from .core.utils.naming_utils import format_device_name
+from .helpers.entity_helpers import format_entity_name
 
 try:
     from homeassistant.components.camera import CameraEntityFeature
@@ -28,14 +26,13 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
     from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
     from .services.camera_service import CameraService
 
 
 _LOGGER = logging.getLogger(__name__)
 
-
-import asyncio
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -69,10 +66,10 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
 
     def __init__(
         self,
-        coordinator: "MerakiDataCoordinator",
-        config_entry: "ConfigEntry",
-        device: Dict[str, Any],
-        camera_service: "CameraService",
+        coordinator: MerakiDataCoordinator,
+        config_entry: ConfigEntry,
+        device: dict[str, Any],
+        camera_service: CameraService,
     ) -> None:
         """Initialize the camera."""
         super().__init__(coordinator)
@@ -88,7 +85,7 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
         self._attr_model = self.device_data.get("model")
 
     @property
-    def device_data(self) -> Dict[str, Any]:
+    def device_data(self) -> dict[str, Any]:
         """Return the device data from the coordinator."""
         return self.coordinator.get_device(self._device_serial) or {}
 
@@ -105,8 +102,8 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
         )
 
     async def async_camera_image(
-        self, width: Optional[int] = None, height: Optional[int] = None
-    ) -> Optional[bytes]:
+        self, width: int | None = None, height: int | None = None
+    ) -> bytes | None:
         """Return a still image from the camera."""
         url = await self._camera_service.generate_snapshot(self._device_serial)
         if not url:
@@ -126,14 +123,14 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
             self.coordinator.add_status_message(self._device_serial, msg)
             return None
 
-    async def stream_source(self) -> Optional[str]:
+    async def stream_source(self) -> str | None:
         """Return the source of the stream, if enabled."""
         if self.is_streaming:
             return self.device_data.get("rtsp_url")
         return None
 
     @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         attrs = {}
         video_settings = self.device_data.get("video_settings", {})
@@ -143,9 +140,14 @@ class MerakiCamera(CoordinatorEntity["MerakiDataCoordinator"], Camera):
                 self._device_serial, "RTSP stream is disabled in the Meraki dashboard."
             )
         elif not self.device_data.get("rtsp_url"):
-            attrs["stream_status"] = "Stream URL not available. This may be because the camera does not support cloud archival."
+            attrs["stream_status"] = (
+                "Stream URL not available. This may be because the camera does not"
+                " support cloud archival."
+            )
             self.coordinator.add_status_message(
-                self._device_serial, "RTSP stream URL is not available. The camera might not support cloud archival."
+                self._device_serial,
+                "RTSP stream URL is not available. The camera might not support cloud"
+                " archival.",
             )
         else:
             attrs["stream_status"] = "Enabled"

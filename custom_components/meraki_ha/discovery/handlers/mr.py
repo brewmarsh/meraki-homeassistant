@@ -12,7 +12,6 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
 
     from ....core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
-    from ....services.camera_service import CameraService
     from ....services.network_control_service import NetworkControlService
     from ....types import MerakiDevice
     from ...services.device_control_service import DeviceControlService

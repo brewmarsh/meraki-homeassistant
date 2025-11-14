@@ -214,8 +214,9 @@ class MerakiWebServer:
     ) -> web.Response:
         """Handle requests for content filtering settings."""
         network_id = request.match_info.get("network_id")
+        appliance = self.coordinator.api_client.appliance
         try:
-            settings = await self.coordinator.api_client.appliance.get_network_appliance_content_filtering(
+            settings = await appliance.get_network_appliance_content_filtering(
                 networkId=network_id,
             )
             return web.json_response(settings)
@@ -230,9 +231,10 @@ class MerakiWebServer:
     ) -> web.Response:
         """Handle requests to update content filtering settings."""
         network_id = request.match_info.get("network_id")
+        appliance = self.coordinator.api_client.appliance
         try:
             new_settings = await request.json()
-            await self.coordinator.api_client.appliance.update_network_appliance_content_filtering(
+            await appliance.update_network_appliance_content_filtering(
                 networkId=network_id,
                 **new_settings,
             )
@@ -248,8 +250,9 @@ class MerakiWebServer:
     ) -> web.Response:
         """Handle requests for L7 firewall rules."""
         network_id = request.match_info.get("network_id")
+        appliance = self.coordinator.api_client.appliance
         try:
-            rules = await self.coordinator.api_client.appliance.get_network_appliance_firewall_l7_firewall_rules(
+            rules = await appliance.get_network_appliance_firewall_l7_firewall_rules(
                 networkId=network_id,
             )
             return web.json_response(rules)
@@ -262,9 +265,10 @@ class MerakiWebServer:
     ) -> web.Response:
         """Handle requests to update L7 firewall rules."""
         network_id = request.match_info.get("network_id")
+        appliance = self.coordinator.api_client.appliance
         try:
             new_rules = await request.json()
-            await self.coordinator.api_client.appliance.update_network_appliance_firewall_l7_firewall_rules(
+            await appliance.update_network_appliance_firewall_l7_firewall_rules(
                 networkId=network_id,
                 **new_rules,
             )

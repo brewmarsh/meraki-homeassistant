@@ -1,5 +1,5 @@
 """
-MV (Camera) Device Handler
+MV (Camera) Device Handler.
 
 This module defines the MVHandler class, which is responsible for discovering
 entities for Meraki MV series (camera) devices.
@@ -7,29 +7,27 @@ entities for Meraki MV series (camera) devices.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
-from .base import BaseDeviceHandler
+from ...binary_sensor.device.camera_motion import MerakiMotionSensor
+from ...button.device.camera_snapshot import MerakiSnapshotButton
 from ...camera import MerakiCamera
-from ...core.errors import MerakiInformationalError
 from ...sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
 )
-from ...binary_sensor.device.camera_motion import MerakiMotionSensor
-from ...button.device.camera_snapshot import MerakiSnapshotButton
+from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
+
+    from ....core.api.client import MerakiAPIClient
+    from ....services.network_control_service import NetworkControlService
     from ....types import MerakiDevice
     from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
     from ...services.camera_service import CameraService
     from ...services.device_control_service import DeviceControlService
-    from ....services.network_control_service import NetworkControlService
-    from ....core.coordinators.switch_port_status_coordinator import (
-        SwitchPortStatusCoordinator,
-    )
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -40,13 +38,13 @@ class MVHandler(BaseDeviceHandler):
 
     def __init__(
         self,
-        coordinator: "MerakiDataCoordinator",
-        device: "MerakiDevice",
-        config_entry: "ConfigEntry",
-        camera_service: "CameraService",
-        control_service: "DeviceControlService",
-        network_control_service: "NetworkControlService",
-        meraki_client: "MerakiAPIClient",
+        coordinator: MerakiDataCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+        camera_service: CameraService,
+        control_service: DeviceControlService,
+        network_control_service: NetworkControlService,
+        meraki_client: MerakiAPIClient,
     ) -> None:
         """Initialize the MVHandler."""
         super().__init__(coordinator, device, config_entry)
@@ -58,14 +56,14 @@ class MVHandler(BaseDeviceHandler):
     @classmethod
     def create(
         cls,
-        coordinator: "MerakiDataCoordinator",
-        device: "MerakiDevice",
-        config_entry: "ConfigEntry",
-        camera_service: "CameraService",
-        control_service: "DeviceControlService",
-        network_control_service: "NetworkControlService",
-        meraki_client: "MerakiAPIClient",
-    ) -> "MVHandler":
+        coordinator: MerakiDataCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+        camera_service: CameraService,
+        control_service: DeviceControlService,
+        network_control_service: NetworkControlService,
+        meraki_client: MerakiAPIClient,
+    ) -> MVHandler:
         """Create an instance of the handler."""
         return cls(
             coordinator,
@@ -77,9 +75,9 @@ class MVHandler(BaseDeviceHandler):
             meraki_client,
         )
 
-    async def discover_entities(self) -> List[Entity]:
+    async def discover_entities(self) -> list[Entity]:
         """Discover entities for a camera device."""
-        entities: List[Entity] = []
+        entities: list[Entity] = []
         serial = self.device["serial"]
 
         # Always create the base camera entity
@@ -92,7 +90,8 @@ class MVHandler(BaseDeviceHandler):
             )
         )
 
-        # The rest of the sensors should probably be created regardless of stream availability
+        # The rest of the sensors should probably be created regardless of stream
+        # availability
         features = await self._camera_service.get_supported_analytics(serial)
 
         if "person_detection" in features:
