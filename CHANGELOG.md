@@ -1,3 +1,15 @@
+# [2.0.0-beta.23](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.24...v2.0.0-beta.23) (2025-11-14)
+
+
+### Bug Fixes
+
+* **ci:** correct typo in pip-audit command ([5aeca50](https://github.com/brewmarsh/meraki-homeassistant/commit/5aeca50fbc15087c11fc2aa9642271988b953eac))
+* Correct handler instantiation ([76f63d2](https://github.com/brewmarsh/meraki-homeassistant/commit/76f63d2cac16406cbe106e2c650aa513b84f3ae4))
+* Correct handler instantiation ([ff13a9b](https://github.com/brewmarsh/meraki-homeassistant/commit/ff13a9b1a24bfe6b7a940b2586e561cb6d0eefc1))
+* Correct handler instantiation ([0421c66](https://github.com/brewmarsh/meraki-homeassistant/commit/0421c6632a68a513abfc725605a21c4693cfecd1))
+
+
+
 # [2.0.0-beta.22](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.24...v2.0.0-beta.22) (2025-11-13)
 
 
