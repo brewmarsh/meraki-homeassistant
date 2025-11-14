@@ -29,22 +29,25 @@ jobs:
           source .venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements_dev.txt
-      - name: Upload venv
+      - name: Archive venv
+        run: tar -czf venv.tar.gz .venv
+      - name: Upload venv artifact
         uses: actions/upload-artifact@v4
         with:
           name: venv
-          path: .venv
+          path: venv.tar.gz
 
   ruff:
     needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Download venv
+      - name: Download venv artifact
         uses: actions/download-artifact@v4
         with:
           name: venv
-          path: .venv
+      - name: Extract venv
+        run: tar -xzf venv.tar.gz
       - name: Run ruff
         run: |
           source .venv/bin/activate
@@ -56,11 +59,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Download venv
+      - name: Download venv artifact
         uses: actions/download-artifact@v4
         with:
           name: venv
-          path: .venv
+      - name: Extract venv
+        run: tar -xzf venv.tar.gz
       - name: Run mypy
         run: |
           source .venv/bin/activate
@@ -71,11 +75,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Download venv
+      - name: Download venv artifact
         uses: actions/download-artifact@v4
         with:
           name: venv
-          path: .venv
+      - name: Extract venv
+        run: tar -xzf venv.tar.gz
       - name: Run bandit
         run: |
           source .venv/bin/activate
@@ -86,11 +91,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Download venv
+      - name: Download venv artifact
         uses: actions/download-artifact@v4
         with:
           name: venv
-          path: .venv
+      - name: Extract venv
+        run: tar -xzf venv.tar.gz
       - name: Run pip-audit
         run: |
           source .venv/bin/activate
@@ -101,11 +107,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Download venv
+      - name: Download venv artifact
         uses: actions/download-artifact@v4
         with:
           name: venv
-          path: .venv
+      - name: Extract venv
+        run: tar -xzf venv.tar.gz
       - name: Run tests with coverage
         run: |
           source .venv/bin/activate
