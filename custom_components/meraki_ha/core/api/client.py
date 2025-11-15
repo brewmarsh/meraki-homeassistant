@@ -27,6 +27,8 @@ from .endpoints.sensor import SensorEndpoints
 from .endpoints.switch import SwitchEndpoints
 from .endpoints.wireless import WirelessEndpoints
 
+from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from ...meraki_data_coordinator import MerakiDataCoordinator
 
@@ -47,7 +49,7 @@ class MerakiAPIClient:
         hass: HomeAssistant,
         api_key: str,
         org_id: str,
-        coordinator: MerakiDataCoordinator | None = None,
+        coordinator: "MerakiDataCoordinator" | None = None,
         base_url: str = "https://api.meraki.com/api/v1",
     ) -> None:
         """
