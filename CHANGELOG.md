@@ -1,3 +1,12 @@
+# [2.0.0-beta.27](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.26...v2.0.0-beta.27) (2025-11-15)
+
+
+### Bug Fixes
+
+* **init:** Use modern config schema to fix ha-missing-config ([d1f4fb1](https://github.com/brewmarsh/meraki-homeassistant/commit/d1f4fb192fe41cb75739edd5c9e6f8244f5d33b9))
+
+
+
 # [2.0.0-beta.26](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.25...v2.0.0-beta.26) (2025-11-15)
 
 
