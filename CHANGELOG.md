@@ -1,3 +1,12 @@
+# [2.0.0-beta.26](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.25...v2.0.0-beta.26) (2025-11-15)
+
+
+### Bug Fixes
+
+* **coordinator:** Unify coordinator classes to resolve AttributeError ([cb80e49](https://github.com/brewmarsh/meraki-homeassistant/commit/cb80e4918eb66b9ac7e38bc235c15d6b02eec7ad))
+
+
+
 # [2.0.0-beta.25](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.24...v2.0.0-beta.25) (2025-11-15)
 
 
