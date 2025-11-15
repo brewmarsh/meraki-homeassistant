@@ -7,7 +7,7 @@ import logging
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...meraki_data_coordinator import MerakiDataCoordinator
 from ...core.entities.meraki_vlan_entity import MerakiVLANEntity
 from ...core.utils.entity_id_utils import get_vlan_entity_id
 from ...types import MerakiVlan
@@ -20,7 +20,7 @@ class MerakiVLANIDSensor(MerakiVLANEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -46,7 +46,7 @@ class MerakiVLANIPv4EnabledSensor(MerakiVLANEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -74,7 +74,7 @@ class MerakiVLANIPv4InterfaceSensor(MerakiVLANEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -102,7 +102,7 @@ class MerakiVLANIPv4UplinkSensor(MerakiVLANEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -131,7 +131,7 @@ class MerakiVLANIPv6EnabledSensor(MerakiVLANEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -162,7 +162,7 @@ class MerakiVLANIPv6InterfaceSensor(MerakiVLANEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -193,7 +193,7 @@ class MerakiVLANIPv6UplinkSensor(MerakiVLANEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,

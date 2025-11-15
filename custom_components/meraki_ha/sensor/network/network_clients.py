@@ -7,7 +7,7 @@ from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...meraki_data_coordinator import MerakiDataCoordinator
 from ...core.entities.meraki_network_entity import MerakiNetworkEntity
 from ...types import MerakiNetwork
 
@@ -26,7 +26,7 @@ class MerakiNetworkClientsSensor(MerakiNetworkEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         network_data: dict[str, Any],
         network_control_service: "NetworkControlService",

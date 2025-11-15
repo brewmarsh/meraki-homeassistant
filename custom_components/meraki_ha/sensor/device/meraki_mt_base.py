@@ -9,7 +9,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...meraki_data_coordinator import MerakiDataCoordinator
 from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: dict[str, Any],
         entity_description: SensorEntityDescription,
     ) -> None:

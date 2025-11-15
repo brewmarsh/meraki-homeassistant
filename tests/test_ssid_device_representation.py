@@ -21,7 +21,7 @@ from custom_components.meraki_ha.text.meraki_ssid_name import MerakiSSIDNameText
 
 @pytest.fixture
 def mock_coordinator_and_data() -> tuple[MagicMock, MagicMock, dict[str, Any]]:
-    """Fixture for a mocked MerakiDataUpdateCoordinator and basic data."""
+    """Fixture for a mocked MerakiDataCoordinator and basic data."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
 

@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
 
     from ...types import MerakiDevice
-    from ..coordinator import MerakiDataUpdateCoordinator
+    from ..meraki_data_coordinator import MerakiDataCoordinator
     from ..core.api.client import MerakiAPIClient
     from ..services.camera_service import CameraService
     from ..services.device_control_service import DeviceControlService
@@ -51,7 +51,7 @@ class DeviceDiscoveryService:
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
         camera_service: CameraService,

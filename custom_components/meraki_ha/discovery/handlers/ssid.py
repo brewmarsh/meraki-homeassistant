@@ -44,7 +44,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ...coordinator import MerakiDataUpdateCoordinator
+    from ...meraki_data_coordinator import MerakiDataCoordinator
     from ...core.api.client import MerakiAPIClient
 
 
@@ -56,7 +56,7 @@ class SSIDHandler(BaseHandler):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> None:
@@ -67,7 +67,7 @@ class SSIDHandler(BaseHandler):
     @classmethod
     def create(
         cls,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> SSIDHandler:

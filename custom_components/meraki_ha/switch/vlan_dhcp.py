@@ -9,7 +9,7 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
-from ..coordinator import MerakiDataUpdateCoordinator
+from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..core.entities.meraki_vlan_entity import MerakiVLANEntity
 from ..core.utils.entity_id_utils import get_vlan_entity_id
 from ..types import MerakiVlan
@@ -22,7 +22,7 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,

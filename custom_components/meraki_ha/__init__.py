@@ -23,7 +23,7 @@ from .const import (
     PLATFORMS,
 )
 from .core.api.client import MerakiAPIClient
-from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from .meraki_data_coordinator import MerakiDataCoordinator
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
 from .discovery.service import DeviceDiscoveryService

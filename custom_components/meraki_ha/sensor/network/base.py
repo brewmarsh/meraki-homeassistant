@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...meraki_data_coordinator import MerakiDataCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ class MerakiSSIDBaseSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
         attribute: str,

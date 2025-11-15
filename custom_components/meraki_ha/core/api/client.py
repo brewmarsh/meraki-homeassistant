@@ -28,7 +28,7 @@ from .endpoints.switch import SwitchEndpoints
 from .endpoints.wireless import WirelessEndpoints
 
 if TYPE_CHECKING:
-    from ...coordinator import MerakiDataUpdateCoordinator
+    from ...meraki_data_coordinator import MerakiDataCoordinator
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ class MerakiAPIClient:
         hass: HomeAssistant,
         api_key: str,
         org_id: str,
-        coordinator: MerakiDataUpdateCoordinator | None = None,
+        coordinator: MerakiDataCoordinator | None = None,
         base_url: str = "https://api.meraki.com/api/v1",
     ) -> None:
         """

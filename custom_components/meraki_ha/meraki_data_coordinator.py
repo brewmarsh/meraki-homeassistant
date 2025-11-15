@@ -24,7 +24,7 @@ from .types import MerakiDevice, MerakiNetwork
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
+class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """A centralized coordinator for Meraki API data."""
 
     def __init__(

@@ -9,7 +9,7 @@ from homeassistant import config_entries, data_entry_flow
 from homeassistant.helpers import selector
 
 from .const import CONF_ENABLED_NETWORKS, CONF_INTEGRATION_TITLE, DOMAIN
-from .coordinator import MerakiDataUpdateCoordinator
+from .coordinator import MerakiDataCoordinator
 from .schemas import OPTIONS_SCHEMA
 
 
@@ -50,7 +50,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                 data=self.options,
             )
 
-        coordinator: MerakiDataUpdateCoordinator = self.hass.data[DOMAIN][
+        coordinator: MerakiDataCoordinator = self.hass.data[DOMAIN][
             self.config_entry.entry_id
         ]["coordinator"]
         network_options = []

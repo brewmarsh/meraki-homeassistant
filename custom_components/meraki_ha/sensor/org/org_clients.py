@@ -10,7 +10,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...meraki_data_coordinator import MerakiDataCoordinator
 from ...core.utils.naming_utils import format_device_name
 from ...helpers.entity_helpers import format_entity_name
 
@@ -29,7 +29,7 @@ class MerakiOrganizationSSIDClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         org_id: str,
         org_name: str,
     ) -> None:
@@ -92,7 +92,7 @@ class MerakiOrganizationWirelessClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         org_id: str,
         org_name: str,
     ) -> None:
@@ -154,7 +154,7 @@ class MerakiOrganizationApplianceClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         org_id: str,
         org_name: str,
     ) -> None:

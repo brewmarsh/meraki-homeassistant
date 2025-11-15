@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ..coordinator import MerakiDataUpdateCoordinator
+from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..core.utils.naming_utils import format_device_name
 from ..helpers.entity_helpers import format_entity_name
@@ -19,7 +19,7 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
         device_data: dict[str, Any],
     ) -> None:

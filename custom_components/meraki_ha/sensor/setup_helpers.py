@@ -11,7 +11,7 @@ from ..const import (
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_ENABLE_VLAN_MANAGEMENT,
 )
-from ..coordinator import MerakiDataUpdateCoordinator
+from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..sensor_registry import (
     COMMON_SENSORS_COORD_DEV_CONF,
     get_sensors_for_device_type,
@@ -43,7 +43,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def _setup_device_sensors(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiDataCoordinator,
     added_entities: set[str],
     camera_service: "CameraService",
 ) -> list[Entity]:
@@ -110,7 +110,7 @@ def _setup_device_sensors(
 
 def _setup_network_sensors(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiDataCoordinator,
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up network-specific sensors."""
@@ -136,7 +136,7 @@ def _setup_network_sensors(
 
 def _setup_client_tracker_sensors(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiDataCoordinator,
 ) -> list[Entity]:
     """Set up client tracker sensors."""
     if not config_entry.options.get(CONF_ENABLE_DEVICE_TRACKER, True):
@@ -158,7 +158,7 @@ def _setup_client_tracker_sensors(
 
 def _setup_vlan_sensors(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiDataCoordinator,
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up VLAN sensors."""
@@ -201,7 +201,7 @@ def _setup_vlan_sensors(
 
 def _setup_uplink_sensors(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiDataCoordinator,
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up appliance uplink sensors."""
@@ -234,7 +234,7 @@ def _setup_uplink_sensors(
 
 def _setup_ssid_sensors(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiDataCoordinator,
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up SSID-specific sensors."""
@@ -267,7 +267,7 @@ def _setup_ssid_sensors(
 def async_setup_sensors(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiDataCoordinator,
     camera_service: "CameraService",
 ) -> list[Entity]:
     """Set up all sensor entities from the central coordinator."""

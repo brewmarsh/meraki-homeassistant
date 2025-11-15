@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from ....services.camera_service import CameraService
     from ....services.device_control_service import DeviceControlService
     from ....types import MerakiDevice
-    from ...coordinator import MerakiDataUpdateCoordinator
+    from ...meraki_data_coordinator import MerakiDataCoordinator
     from ...services.network_control_service import NetworkControlService
 
 
@@ -33,7 +33,7 @@ class NetworkHandler(BaseHandler):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         network_control_service: NetworkControlService,
     ) -> None:
@@ -44,7 +44,7 @@ class NetworkHandler(BaseHandler):
     @classmethod
     def create(
         cls,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
         camera_service: CameraService,
