@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-from homeassistant import config_entries, data_entry_flow
+from homeassistant.config_entries import ConfigEntry, ConfigFlowResult
 from homeassistant.helpers import selector
 
 from .const import CONF_ENABLED_NETWORKS, CONF_INTEGRATION_TITLE, DOMAIN
@@ -30,7 +30,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_init(
         self,
         user_input: dict[str, Any] | None = None,
-    ) -> data_entry_flow.FlowResult:
+    ) -> ConfigFlowResult:
         """
         Manage the options flow.
 

@@ -7,9 +7,8 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigFlowResult
+from homeassistant.config_entries import AbortFlow, ConfigFlowResult
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import AbortFlow
 
 from .authentication import validate_meraki_credentials
 from .const import (
