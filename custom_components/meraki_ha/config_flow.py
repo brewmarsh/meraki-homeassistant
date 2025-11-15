@@ -18,7 +18,6 @@ from .const import (
     DOMAIN,
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
-from .options_flow import MerakiOptionsFlowHandler
 from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 
 _LOGGER = logging.getLogger(__name__)
@@ -134,6 +133,8 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             The options flow handler.
 
         """
+        from .options_flow import MerakiOptionsFlowHandler
+
         return MerakiOptionsFlowHandler(config_entry)
 
     async def async_step_reconfigure(
