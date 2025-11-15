@@ -7,7 +7,7 @@ from typing import Union
 from aiohttp import web
 from homeassistant.core import HomeAssistant
 
-from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+from .meraki_data_coordinator import MerakiDataCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 

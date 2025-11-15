@@ -10,7 +10,7 @@ from tests.const import MOCK_DEVICE
 
 @pytest.fixture
 def mock_coordinator_with_devices(mock_coordinator: MagicMock) -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator with various devices."""
+    """Fixture for a mocked MerakiDataCoordinator with various devices."""
     wireless_device = MOCK_DEVICE.copy()
     wireless_device["model"] = "MR36"
     camera_device = MOCK_DEVICE.copy()

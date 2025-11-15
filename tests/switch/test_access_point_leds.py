@@ -9,7 +9,7 @@ from custom_components.meraki_ha.switch.access_point_leds import MerakiAPLEDSwit
 
 @pytest.fixture
 def mock_coordinator():
-    """Mock the MerakiDataUpdateCoordinator."""
+    """Mock the MerakiDataCoordinator."""
     coordinator = AsyncMock()
     coordinator.data = {
         "wireless_settings": {

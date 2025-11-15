@@ -17,7 +17,7 @@ from custom_components.meraki_ha.sensor.org.org_clients import (
 
 @pytest.fixture
 def mock_coordinator() -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+    """Fixture for a mocked MerakiDataCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     coordinator.data = {

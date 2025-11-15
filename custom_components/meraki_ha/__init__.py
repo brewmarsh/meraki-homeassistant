@@ -23,10 +23,10 @@ from .const import (
     PLATFORMS,
 )
 from .core.api.client import MerakiAPIClient
-from .core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
 from .discovery.service import DeviceDiscoveryService
+from .meraki_data_coordinator import MerakiDataCoordinator
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .services.network_control_service import NetworkControlService
@@ -76,7 +76,7 @@ async def async_setup_or_update_entry(hass: HomeAssistant, entry: ConfigEntry) -
             hass=hass,
             api_client=api_client,
             scan_interval=scan_interval,
-            config_entry=entry,
+            entry=entry,
         )
         await entry_data["coordinator"].async_config_entry_first_refresh()
     else:

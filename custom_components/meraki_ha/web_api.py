@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant
 from voluptuous import ALLOW_EXTRA, All, Required, Schema
 
 from .const import CONF_ENABLED_NETWORKS, DOMAIN
-from .coordinator import MerakiDataUpdateCoordinator
+from .meraki_data_coordinator import MerakiDataCoordinator
 from .services.camera_service import CameraService
 
 _LOGGER = logging.getLogger(__name__)
@@ -102,7 +102,7 @@ async def handle_get_config(
         connection.send_error(msg["id"], "not_found", "Config entry not found")
         return
 
-    coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry_id][
+    coordinator: MerakiDataCoordinator = hass.data[DOMAIN][config_entry_id][
         "coordinator"
     ]
     config_entry = hass.config_entries.async_get_entry(config_entry_id)

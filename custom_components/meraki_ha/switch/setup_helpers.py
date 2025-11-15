@@ -10,8 +10,8 @@ from homeassistant.helpers.entity import Entity
 from ..const import (
     CONF_ENABLE_VLAN_MANAGEMENT,
 )
-from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
+from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..types import MerakiVlan
 from .access_point_leds import MerakiAPLEDSwitch
 from .camera_controls import AnalyticsSwitch
@@ -27,7 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def _setup_vlan_switches(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiDataCoordinator,
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up VLAN switches."""
@@ -60,7 +60,7 @@ def _setup_vlan_switches(
 
 def _setup_ssid_switches(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiDataCoordinator,
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up SSID switches."""
@@ -101,7 +101,7 @@ def _setup_ssid_switches(
 
 def _setup_camera_switches(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiDataCoordinator,
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up camera-specific switches."""
@@ -122,7 +122,7 @@ def _setup_camera_switches(
 
 def _setup_mt40_switches(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiDataCoordinator,
     added_entities: set[str],
     meraki_client: "MerakiAPIClient",
 ) -> list[Entity]:
@@ -145,7 +145,7 @@ def _setup_mt40_switches(
 
 def _setup_ap_led_switches(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiDataCoordinator,
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up AP LED switches."""
@@ -169,7 +169,7 @@ def _setup_ap_led_switches(
 def async_setup_switches(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiDataCoordinator,
     meraki_client: "MerakiAPIClient",
 ) -> list[Entity]:
     """Set up all switch entities from the central coordinator."""

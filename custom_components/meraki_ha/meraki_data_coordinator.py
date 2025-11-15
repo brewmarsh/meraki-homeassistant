@@ -24,12 +24,14 @@ from .types import MerakiDevice, MerakiNetwork
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
+class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """A centralized coordinator for Meraki API data."""
 
     def __init__(
         self,
         hass: HomeAssistant,
+        api_client: ApiClient,
+        scan_interval: int,
         entry: ConfigEntry,
     ) -> None:
         """
@@ -70,7 +72,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER,
             name=DOMAIN,
             update_interval=timedelta(seconds=scan_interval),
-            config_entry=entry,
         )
 
     def register_update_pending(

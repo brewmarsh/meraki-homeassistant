@@ -4,11 +4,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.core.api.endpoints.appliance import (
     ApplianceEndpoints,
 )
+from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
 from tests.const import MOCK_NETWORK
 
 
@@ -28,7 +28,7 @@ def hass():
 @pytest.fixture
 def coordinator():
     """Fixture for a mocked coordinator."""
-    mock = MagicMock(spec=MerakiDataUpdateCoordinator)
+    mock = MagicMock(spec=MerakiDataCoordinator)
     mock.is_vlan_check_due.return_value = True
     mock.is_traffic_check_due.return_value = True
     return mock
