@@ -1,3 +1,12 @@
+# [2.0.0-beta.28](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.27...v2.0.0-beta.28) (2025-11-15)
+
+
+### Bug Fixes
+
+* **structure:** Remove redundant platforms directory causing startup failure ([25ebff0](https://github.com/brewmarsh/meraki-homeassistant/commit/25ebff0f1828e593a616684713153854e6e574fa))
+
+
+
 # [2.0.0-beta.27](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.26...v2.0.0-beta.27) (2025-11-15)
 
 
