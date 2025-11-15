@@ -43,12 +43,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             entry: The config entry.
 
         """
-        self.api = ApiClient(
-            hass=hass,
-            api_key=entry.data[CONF_MERAKI_API_KEY],
-            org_id=entry.data[CONF_MERAKI_ORG_ID],
-            coordinator=self,
-        )
+        self.api = api_client
         self.devices_by_serial: dict[str, MerakiDevice] = {}
         self.networks_by_id: dict[str, MerakiNetwork] = {}
         self.ssids_by_network_and_number: dict[tuple[str, int], dict[str, Any]] = {}
