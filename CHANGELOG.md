@@ -1,3 +1,12 @@
+# [2.0.0-beta.29](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.28...v2.0.0-beta.29) (2025-11-15)
+
+
+### Bug Fixes
+
+* **config_flow:** Remove deprecated handler registration ([c5eac0a](https://github.com/brewmarsh/meraki-homeassistant/commit/c5eac0ae3ea7910d68f0ff84086ab7b28ba1b494))
+
+
+
 # [2.0.0-beta.28](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.27...v2.0.0-beta.28) (2025-11-15)
 
 
