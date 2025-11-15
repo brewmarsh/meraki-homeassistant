@@ -1,3 +1,12 @@
+# [2.0.0-beta.30](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.29...v2.0.0-beta.30) (2025-11-15)
+
+
+### Bug Fixes
+
+* **options_flow:** Correct import path to resolve startup failure ([6b3bcc5](https://github.com/brewmarsh/meraki-homeassistant/commit/6b3bcc5caae4ad15ad01d59330608530ab5c623c))
+
+
+
 # [2.0.0-beta.29](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.28...v2.0.0-beta.29) (2025-11-15)
 
 
