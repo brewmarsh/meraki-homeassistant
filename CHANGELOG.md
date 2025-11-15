@@ -1,3 +1,12 @@
+# [2.0.0-beta.34](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.33...v2.0.0-beta.34) (2025-11-15)
+
+
+### Bug Fixes
+
+* Defer options flow import to prevent blocking call ([c0a8239](https://github.com/brewmarsh/meraki-homeassistant/commit/c0a8239ba4566a4d8fff104a1235440003dd58d2))
+
+
+
 # [2.0.0-beta.33](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.32...v2.0.0-beta.33) (2025-11-15)
 
 
