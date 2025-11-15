@@ -1,3 +1,24 @@
+# [2.0.0-beta.25](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.24...v2.0.0-beta.25) (2025-11-15)
+
+
+### Bug Fixes
+
+* **ci:** correct typo in pip-audit command ([5aeca50](https://github.com/brewmarsh/meraki-homeassistant/commit/5aeca50fbc15087c11fc2aa9642271988b953eac))
+* **coordinator:** Unify coordinator classes to resolve AttributeError ([4ff8037](https://github.com/brewmarsh/meraki-homeassistant/commit/4ff80373861bb54c4d1102a4cd0323c89f2f3c2e))
+* **coordinator:** Unify coordinator classes to resolve AttributeError ([0bccca6](https://github.com/brewmarsh/meraki-homeassistant/commit/0bccca691c90ab3b740d5004fad32acd5bfca28a))
+* **coordinator:** Unify coordinator classes to resolve AttributeError ([a1cd383](https://github.com/brewmarsh/meraki-homeassistant/commit/a1cd3835d184c33a0c4ac2b28b1d9e3effde6082))
+* Correct handler instantiation ([76f63d2](https://github.com/brewmarsh/meraki-homeassistant/commit/76f63d2cac16406cbe106e2c650aa513b84f3ae4))
+* Correct handler instantiation ([ff13a9b](https://github.com/brewmarsh/meraki-homeassistant/commit/ff13a9b1a24bfe6b7a940b2586e561cb6d0eefc1))
+* Correct handler instantiation ([0421c66](https://github.com/brewmarsh/meraki-homeassistant/commit/0421c6632a68a513abfc725605a21c4693cfecd1))
+* Resolve ha-blocking-import and stabilize integration ([67419b6](https://github.com/brewmarsh/meraki-homeassistant/commit/67419b6178f02e43060c07b229d19605499c158d))
+* Resolve mypy and hassfest errors ([d34d9a7](https://github.com/brewmarsh/meraki-homeassistant/commit/d34d9a7314bef26abba9884a025f6eaa4bd9566d))
+* Resolve mypy errors ([0bed1b1](https://github.com/brewmarsh/meraki-homeassistant/commit/0bed1b1057035793a4cc13496db2768b42d8fdbd))
+* Resolve ruff and mypy errors ([f15ace3](https://github.com/brewmarsh/meraki-homeassistant/commit/f15ace3d63b57c4ab832fb5ac9f130ef1fc1eda4))
+* Resolve startup errors and ruff violations ([24106f7](https://github.com/brewmarsh/meraki-homeassistant/commit/24106f766efd3a52272e8de57f69ccc5951db447))
+* Resolve startup errors and ruff violations ([d203f2a](https://github.com/brewmarsh/meraki-homeassistant/commit/d203f2aa56acac43eec0e802a0babe2e7c399fd1))
+
+
+
 # [2.0.0-beta.23](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.24...v2.0.0-beta.23) (2025-11-14)
 
 
