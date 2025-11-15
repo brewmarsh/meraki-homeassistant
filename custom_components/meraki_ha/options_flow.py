@@ -9,7 +9,7 @@ from homeassistant import config_entries, data_entry_flow
 from homeassistant.helpers import selector
 
 from .const import CONF_ENABLED_NETWORKS, CONF_INTEGRATION_TITLE, DOMAIN
-from .coordinator import MerakiDataCoordinator
+from .meraki_data_coordinator import MerakiDataCoordinator
 from .schemas import OPTIONS_SCHEMA
 
 
