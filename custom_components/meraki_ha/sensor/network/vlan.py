@@ -7,9 +7,9 @@ import logging
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 
-from ...meraki_data_coordinator import MerakiDataCoordinator
 from ...core.entities.meraki_vlan_entity import MerakiVLANEntity
 from ...core.utils.entity_id_utils import get_vlan_entity_id
+from ...meraki_data_coordinator import MerakiDataCoordinator
 from ...types import MerakiVlan
 
 _LOGGER = logging.getLogger(__name__)

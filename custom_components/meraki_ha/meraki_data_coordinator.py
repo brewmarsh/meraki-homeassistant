@@ -30,6 +30,8 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def __init__(
         self,
         hass: HomeAssistant,
+        api_client: ApiClient,
+        scan_interval: int,
         entry: ConfigEntry,
     ) -> None:
         """
@@ -70,7 +72,6 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER,
             name=DOMAIN,
             update_interval=timedelta(seconds=scan_interval),
-            config_entry=entry,
         )
 
     def register_update_pending(

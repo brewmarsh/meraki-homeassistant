@@ -29,7 +29,9 @@ def mock_hass_with_webhook_data(hass: HomeAssistant) -> HomeAssistant:
     config_entry = MagicMock()
     coordinator = MerakiDataCoordinator(
         hass,
-        config_entry,
+        api_client=MagicMock(),
+        scan_interval=300,
+        entry=config_entry,
     )
     coordinator.data = {
         "devices": [{"serial": "Q234-ABCD-5678", "status": "online"}],

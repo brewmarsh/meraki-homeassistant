@@ -13,10 +13,10 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
+    from ....types import MerakiDevice
     from ...meraki_data_coordinator import (
         MerakiDataCoordinator,
     )
-    from ....types import MerakiDevice
     from ...services.device_control_service import DeviceControlService
     from ...services.network_control_service import NetworkControlService
 

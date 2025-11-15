@@ -9,9 +9,9 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
-from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..core.entities.meraki_firewall_rule_entity import MerakiFirewallRuleEntity
 from ..core.utils.entity_id_utils import get_firewall_rule_entity_id
+from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..types import MerakiFirewallRule
 
 _LOGGER = logging.getLogger(__name__)

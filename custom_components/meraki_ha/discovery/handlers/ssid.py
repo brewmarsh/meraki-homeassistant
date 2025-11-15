@@ -44,8 +44,8 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ...meraki_data_coordinator import MerakiDataCoordinator
     from ...core.api.client import MerakiAPIClient
+    from ...meraki_data_coordinator import MerakiDataCoordinator
 
 
 _LOGGER = logging.getLogger(__name__)

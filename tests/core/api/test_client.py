@@ -4,9 +4,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.core.errors import MerakiInformationalError
+from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
 from tests.const import MOCK_DEVICE, MOCK_NETWORK
 
 

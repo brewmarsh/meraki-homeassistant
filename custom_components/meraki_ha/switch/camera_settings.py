@@ -7,9 +7,8 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..meraki_data_coordinator import MerakiDataCoordinator
-
 from ..core.api.client import MerakiAPIClient
+from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)

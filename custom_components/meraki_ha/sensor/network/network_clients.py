@@ -7,8 +7,8 @@ from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
-from ...meraki_data_coordinator import MerakiDataCoordinator
 from ...core.entities.meraki_network_entity import MerakiNetworkEntity
+from ...meraki_data_coordinator import MerakiDataCoordinator
 from ...types import MerakiNetwork
 
 if TYPE_CHECKING:

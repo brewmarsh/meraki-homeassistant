@@ -10,8 +10,8 @@ from homeassistant.helpers.entity import Entity
 from ..const import (
     CONF_ENABLE_VLAN_MANAGEMENT,
 )
-from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..core.api.client import MerakiAPIClient
+from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..types import MerakiVlan
 from .access_point_leds import MerakiAPLEDSwitch
 from .camera_controls import AnalyticsSwitch
