@@ -1,3 +1,12 @@
+# [2.0.0-beta.31](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.30...v2.0.0-beta.31) (2025-11-15)
+
+
+### Bug Fixes
+
+* **coordinator:** Remove client re-init to fix handler error ([223cadb](https://github.com/brewmarsh/meraki-homeassistant/commit/223cadb875523bab5e5e676900f20386732e00ce))
+
+
+
 # [2.0.0-beta.30](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.29...v2.0.0-beta.30) (2025-11-15)
 
 
