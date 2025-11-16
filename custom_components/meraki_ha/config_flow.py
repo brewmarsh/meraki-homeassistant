@@ -6,8 +6,6 @@ import logging
 from typing import Any
 
 import voluptuous as vol
-from homeassistant import config_entries
-from homeassistant.config_entries import AbortFlow, ConfigFlowResult
 from homeassistant.core import callback
 
 from .authentication import validate_meraki_credentials
@@ -23,11 +21,20 @@ from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 _LOGGER = logging.getLogger(__name__)
 
 
-class ConfigFlowHandler(config_entries.ConfigFlow):
+from homeassistant.config_entries import (
+    AbortFlow,
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
+
+
+class ConfigFlowHandler(ConfigFlow):
     """Handle a config flow for Meraki."""
 
     VERSION = 1
-    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
+    CONNECTION_CLASS = "cloud_poll"
 
     def __init__(self) -> None:
         """Initialize the config flow."""
@@ -119,8 +126,8 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
     @staticmethod
     @callback
     def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> config_entries.OptionsFlow:
+        config_entry: ConfigEntry,
+    ) -> OptionsFlow:
         """
         Get the options flow for this handler.
 
