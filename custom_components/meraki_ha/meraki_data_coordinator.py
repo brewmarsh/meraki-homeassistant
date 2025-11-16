@@ -240,6 +240,20 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.debug("SSIDs after filtering: %s", data.get("ssids"))
             await self._async_remove_disabled_devices(data)
 
+            # Process errors and update timers
+            for network_id, traffic_data in data.get("appliance_traffic", {}).items():
+                if isinstance(traffic_data, dict) and traffic_data.get("error") == "disabled":
+                    self.add_network_status_message(
+                        network_id, "Traffic Analysis is not enabled for this network."
+                    )
+                    self.mark_traffic_check_done(network_id)
+            for network_id, vlan_data in data.get("vlans", {}).items():
+                if isinstance(vlan_data, list) and not vlan_data:
+                    self.add_network_status_message(
+                        network_id, "VLANs are not enabled for this network."
+                    )
+                    self.mark_vlan_check_done(network_id)
+
             # Create lookup tables for efficient access in entities
             self.devices_by_serial = {
                 d["serial"]: d for d in data.get("devices", []) if "serial" in d
