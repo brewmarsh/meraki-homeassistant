@@ -6,6 +6,7 @@ from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
@@ -78,7 +79,10 @@ async def async_setup_or_update_entry(hass: HomeAssistant, entry: ConfigEntry) -
             scan_interval=scan_interval,
             entry=entry,
         )
-        await entry_data["coordinator"].async_config_entry_first_refresh()
+        try:
+            await entry_data["coordinator"].async_config_entry_first_refresh()
+        except ConfigEntryNotReady:
+            raise
     else:
         entry_data["coordinator"].update_interval = timedelta(seconds=scan_interval)
         await entry_data["coordinator"].async_refresh()
