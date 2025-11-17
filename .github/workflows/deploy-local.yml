@@ -73,9 +73,17 @@ jobs:
 
           # Step 1a: Check Configuration
           echo "Checking Home Assistant configuration..."
-          CHECK_RESULT=$(curl -X POST -H "Authorization: Bearer $HA_TOKEN" \
+          CHECK_RESULT=$(curl -sS -X POST -H "Authorization: Bearer $HA_TOKEN" \
                -H "Content-Type: application/json" \
                "$HA_URL/api/config/core/check_config")
+
+          # Verify that the response from the server is JSON before trying to parse it.
+          if ! echo "$CHECK_RESULT" | grep -q '^{'; then
+            echo "Error: API response does not appear to be valid JSON."
+            echo "Received response:"
+            echo "$CHECK_RESULT"
+            exit 1
+          fi
 
           ERRORS=$(echo "$CHECK_RESULT" | jq -r '.errors')
 
