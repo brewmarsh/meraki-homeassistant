@@ -38,9 +38,7 @@ def coordinator():
 def api_client(hass, mock_dashboard, coordinator):
     """Fixture for a MerakiAPIClient instance."""
     with patch("meraki.DashboardAPI", return_value=mock_dashboard):
-        client = MerakiAPIClient(
-            hass=hass, api_key="test-key", org_id="test-org"
-        )
+        client = MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
         yield client
 
 

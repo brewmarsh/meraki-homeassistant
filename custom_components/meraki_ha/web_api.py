@@ -113,7 +113,7 @@ async def handle_get_config(
         ]
 
     manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
-    async with aiofiles.open(manifest_path, mode="r") as f:
+    async with aiofiles.open(manifest_path) as f:
         contents = await f.read()
     manifest = json.loads(contents)
     version = manifest.get("version")
