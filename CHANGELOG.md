@@ -1,3 +1,12 @@
+# [2.0.0-beta.44](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.43...v2.0.0-beta.44) (2025-11-17)
+
+
+### Features
+
+* Defer import to fix blocking call ([9700dd5](https://github.com/brewmarsh/meraki-homeassistant/commit/9700dd5e2476fbe9619bcc369ae02d5512a16916))
+
+
+
 # [2.0.0-beta.43](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.42...v2.0.0-beta.43) (2025-11-17)
 
 
