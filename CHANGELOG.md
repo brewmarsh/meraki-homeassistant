@@ -1,3 +1,12 @@
+# [2.0.0-beta.48](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.47...v2.0.0-beta.48) (2025-11-17)
+
+
+### Bug Fixes
+
+* **ci:** handle non-JSON responses in deploy workflow ([bd83fed](https://github.com/brewmarsh/meraki-homeassistant/commit/bd83fed3f8468035916a97b1453c64983c901988))
+
+
+
 # [2.0.0-beta.47](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.46...v2.0.0-beta.47) (2025-11-17)
 
 
