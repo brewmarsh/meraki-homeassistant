@@ -1,3 +1,12 @@
+# [2.0.0-beta.40](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.39...v2.0.0-beta.40) (2025-11-17)
+
+
+### Bug Fixes
+
+* **init:** resolve blocking call on startup by refactoring setup ([95a3040](https://github.com/brewmarsh/meraki-homeassistant/commit/95a30401720388d7b66a5edc90a9c6b7d21b1f91))
+
+
+
 # [2.0.0-beta.39](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.38...v2.0.0-beta.39) (2025-11-17)
 
 
