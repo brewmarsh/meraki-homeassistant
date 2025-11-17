@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
-from custom_components.meraki_ha.core.errors import MerakiInformationalError
 from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
 from tests.const import MOCK_DEVICE, MOCK_NETWORK
 
@@ -35,9 +34,7 @@ def coordinator():
 @pytest.fixture
 def api_client(hass, mock_dashboard, coordinator):
     """Fixture for a MerakiAPIClient instance."""
-    return MerakiAPIClient(
-            hass=hass, api_key="test-key", org_id="test-org"
-    )
+    return MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
 
 
 @pytest.mark.asyncio
