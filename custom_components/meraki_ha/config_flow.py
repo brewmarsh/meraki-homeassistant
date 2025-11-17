@@ -15,14 +15,12 @@ from homeassistant.config_entries import (
 )
 from homeassistant.core import callback
 
-from .authentication import validate_meraki_credentials
 from .const import (
     CONF_INTEGRATION_TITLE,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     DOMAIN,
 )
-from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 
 _LOGGER = logging.getLogger(__name__)
@@ -55,6 +53,9 @@ class ConfigFlowHandler(ConfigFlow):
             The flow result.
 
         """
+        from .authentication import validate_meraki_credentials
+        from .core.errors import MerakiAuthenticationError, MerakiConnectionError
+
         errors: dict[str, str] = {}
         if user_input is not None:
             try:
