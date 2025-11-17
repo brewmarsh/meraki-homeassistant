@@ -1,3 +1,12 @@
+# [2.0.0-beta.41](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.40...v2.0.0-beta.41) (2025-11-17)
+
+
+### Bug Fixes
+
+* **options_flow:** resolve circular import on startup ([525ff6c](https://github.com/brewmarsh/meraki-homeassistant/commit/525ff6c3f2331dc23819388eb089085968cb044e))
+
+
+
 # [2.0.0-beta.40](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.39...v2.0.0-beta.40) (2025-11-17)
 
 
