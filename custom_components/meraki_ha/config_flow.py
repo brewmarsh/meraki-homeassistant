@@ -19,7 +19,6 @@ from .const import (
     CONF_INTEGRATION_TITLE,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
-    DOMAIN,
 )
 from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 
