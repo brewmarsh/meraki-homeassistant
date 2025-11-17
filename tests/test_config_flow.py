@@ -7,7 +7,6 @@ from unittest.mock import patch
 import pytest
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.config_flow import MerakiAuthenticationError
 from custom_components.meraki_ha.const import (
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_IGNORED_NETWORKS,
@@ -16,6 +15,7 @@ from custom_components.meraki_ha.const import (
     CONF_SCAN_INTERVAL,
     DOMAIN,
 )
+from custom_components.meraki_ha.core.errors import MerakiAuthenticationError
 
 
 @pytest.mark.asyncio
@@ -29,7 +29,7 @@ async def test_async_step_user_success(hass: HomeAssistant) -> None:
 
     """
     with patch(
-        "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
+        "custom_components.meraki_ha.authentication.validate_meraki_credentials",
         return_value={"valid": True, "org_name": "Test Org"},
     ):
         # Initial step
@@ -84,7 +84,7 @@ async def test_async_step_user_invalid_auth(hass: HomeAssistant) -> None:
 
     """
     with patch(
-        "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
+        "custom_components.meraki_ha.authentication.validate_meraki_credentials",
         side_effect=MerakiAuthenticationError,
     ):
         result = await hass.config_entries.flow.async_init(
