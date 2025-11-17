@@ -1,3 +1,13 @@
+# [2.0.0-beta.39](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.38...v2.0.0-beta.39) (2025-11-17)
+
+
+### Bug Fixes
+
+* **config_flow:** resolve blocking call and import error on startup ([5732374](https://github.com/brewmarsh/meraki-homeassistant/commit/57323745c7e62705fbc93e2ea6c5c93563298a59))
+* **config_flow:** resolve blocking call and import error on startup ([1facb61](https://github.com/brewmarsh/meraki-homeassistant/commit/1facb61c1a9da1e2b6ccd43e5e6fc4c491508954))
+
+
+
 # [2.0.0-beta.38](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.37...v2.0.0-beta.38) (2025-11-17)
 
 
