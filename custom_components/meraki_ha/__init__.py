@@ -7,6 +7,8 @@ from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.typing import ConfigType
 
 from .const import (
     CONF_ENABLE_WEB_UI,
@@ -34,10 +36,19 @@ from .webhook import async_register_webhook, async_unregister_webhook
 
 _LOGGER = logging.getLogger(__name__)
 
+CONFIG_SCHEMA = cv.deprecated(cv.empty_config_schema(DOMAIN))
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Meraki from a config entry."""
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up the Meraki integration."""
     hass.data.setdefault(DOMAIN, {})
+    return True
+
+
+async def async_setup_or_update_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up or update Meraki from a config entry."""
+    _LOGGER.debug("Setting up or updating Meraki entry: %s", entry.entry_id)
+
     entry_data = hass.data.setdefault(DOMAIN, {}).setdefault(entry.entry_id, {})
 
     try:
@@ -150,6 +161,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
 
     return True
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up Meraki from a config entry."""
+    if not await async_setup_or_update_entry(hass, entry):
+        return False
+
+    entry.async_on_unload(entry.add_update_listener(async_update_entry))
+    return True
+
+
+async def async_update_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Update a given config entry."""
+    await async_setup_or_update_entry(hass, entry)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
