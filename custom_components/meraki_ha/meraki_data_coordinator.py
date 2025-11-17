@@ -14,8 +14,6 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import (
     CONF_ENABLED_NETWORKS,
-    CONF_MERAKI_API_KEY,
-    CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -244,7 +242,10 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
             # Process errors and update timers
             for network_id, traffic_data in data.get("appliance_traffic", {}).items():
-                if isinstance(traffic_data, dict) and traffic_data.get("error") == "disabled":
+                if (
+                    isinstance(traffic_data, dict)
+                    and traffic_data.get("error") == "disabled"
+                ):
                     self.add_network_status_message(
                         network_id, "Traffic Analysis is not enabled for this network."
                     )
