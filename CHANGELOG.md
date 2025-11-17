@@ -1,3 +1,12 @@
+# [2.0.0-beta.43](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.42...v2.0.0-beta.43) (2025-11-17)
+
+
+### Bug Fixes
+
+* **startup:** Resolve circular dependency and modernize setup ([27a2ec4](https://github.com/brewmarsh/meraki-homeassistant/commit/27a2ec4d2d1f14416c9bf8b79f7b0e5697876de3))
+
+
+
 # [2.0.0-beta.42](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.41...v2.0.0-beta.42) (2025-11-17)
 
 
