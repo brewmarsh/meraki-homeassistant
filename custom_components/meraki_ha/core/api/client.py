@@ -14,7 +14,9 @@ from functools import partial
 from typing import TYPE_CHECKING, Any
 
 import meraki
-from homeassistant.core import HomeAssistant
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
 
 from ...core.errors import MerakiInformationalError
 from ...types import MerakiDevice, MerakiNetwork
@@ -40,7 +42,7 @@ class MerakiAPIClient:
 
     def __init__(
         self,
-        hass: HomeAssistant,
+        hass: "HomeAssistant",
         api_key: str,
         org_id: str,
         base_url: str = "https://api.meraki.com/api/v1",

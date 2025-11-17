@@ -8,11 +8,13 @@ against the Meraki Dashboard API using the Meraki SDK.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from meraki.exceptions import APIError as MerakiSDKAPIError
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
 
 from .core.api.client import MerakiAPIClient
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
@@ -28,7 +30,7 @@ class MerakiAuthentication:
     making a request to the Meraki API via the SDK.
     """
 
-    def __init__(self, hass: HomeAssistant, api_key: str, organization_id: str) -> None:
+    def __init__(self, hass: "HomeAssistant", api_key: str, organization_id: str) -> None:
         """
         Initialize the Meraki Authentication class.
 
@@ -155,7 +157,7 @@ class MerakiAuthentication:
 
 
 async def validate_meraki_credentials(
-    hass: HomeAssistant,
+    hass: "HomeAssistant",
     api_key: str,
     organization_id: str,
 ) -> dict[str, Any]:

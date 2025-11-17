@@ -2,11 +2,13 @@
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
@@ -29,7 +31,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def __init__(
         self,
-        hass: HomeAssistant,
+        hass: "HomeAssistant",
         api_client: ApiClient,
         scan_interval: int,
         entry: ConfigEntry,
