@@ -1,3 +1,13 @@
+# [2.0.0-beta.46](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.45...v2.0.0-beta.46) (2025-11-17)
+
+
+### Bug Fixes
+
+* **ci:** install jq in deploy workflow ([75f6cc3](https://github.com/brewmarsh/meraki-homeassistant/commit/75f6cc3e79a5bddabb6dc2b9cd3053ebc8a6d3f7))
+* **config_flow:** Defer imports within async_step_user to resolve blocking call ([a77464c](https://github.com/brewmarsh/meraki-homeassistant/commit/a77464cdfeb0af77610c4774e4a80a48a22044a1))
+
+
+
 # [2.0.0-beta.45](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.44...v2.0.0-beta.45) (2025-11-17)
 
 
