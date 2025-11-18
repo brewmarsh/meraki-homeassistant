@@ -42,7 +42,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     try:
         if DATA_CLIENT not in entry_data:
-            entry_data[DATA_CLIENT] = MerakiAPIClient(
+            entry_data[DATA_CLIENT] = await MerakiAPIClient(
                 hass,
                 api_key=entry.data[CONF_MERAKI_API_KEY],
                 org_id=entry.data[CONF_MERAKI_ORG_ID],
