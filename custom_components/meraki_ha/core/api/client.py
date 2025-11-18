@@ -14,7 +14,9 @@ from functools import partial
 from typing import TYPE_CHECKING, Any
 
 import meraki
-from homeassistant.core import HomeAssistant
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
 
 from ...core.errors import MerakiInformationalError
 from ...types import MerakiDevice, MerakiNetwork
@@ -26,10 +28,6 @@ from .endpoints.organization import OrganizationEndpoints
 from .endpoints.sensor import SensorEndpoints
 from .endpoints.switch import SwitchEndpoints
 from .endpoints.wireless import WirelessEndpoints
-
-if TYPE_CHECKING:
-    from ...meraki_data_coordinator import MerakiDataCoordinator
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,7 +45,6 @@ class MerakiAPIClient:
         hass: HomeAssistant,
         api_key: str,
         org_id: str,
-        coordinator: MerakiDataCoordinator | None = None,
         base_url: str = "https://api.meraki.com/api/v1",
     ) -> None:
         """
@@ -57,25 +54,15 @@ class MerakiAPIClient:
             hass: The Home Assistant instance.
             api_key: The Meraki API key.
             org_id: The organization ID.
-            coordinator: The data update coordinator.
             base_url: The base URL for the Meraki API.
 
         """
         self._api_key = api_key
         self._org_id = org_id
         self._hass = hass
-        self.coordinator = coordinator
+        self._base_url = base_url
 
-        self.dashboard: meraki.DashboardAPI = meraki.DashboardAPI(
-            api_key=api_key,
-            base_url=base_url,
-            output_log=False,
-            print_console=False,
-            suppress_logging=True,
-            maximum_retries=3,
-            wait_on_rate_limit=True,
-            nginx_429_retry_wait_time=2,
-        )
+        self.dashboard: meraki.DashboardAPI | None = None
 
         # Initialize endpoint handlers
         self.appliance = ApplianceEndpoints(self, self._hass)
@@ -89,6 +76,25 @@ class MerakiAPIClient:
 
         # Semaphore to limit concurrent API calls
         self._semaphore = asyncio.Semaphore(2)
+
+    async def async_setup(self) -> None:
+        """Perform asynchronous setup of the API client."""
+        self.dashboard = await self._hass.async_add_executor_job(
+            self._create_dashboard_api
+        )
+
+    def _create_dashboard_api(self) -> meraki.DashboardAPI:
+        """Create and return the MerakiDashboardAPI instance."""
+        return meraki.DashboardAPI(
+            api_key=self._api_key,
+            base_url=self._base_url,
+            output_log=False,
+            print_console=False,
+            suppress_logging=True,
+            maximum_retries=3,
+            wait_on_rate_limit=True,
+            nginx_429_retry_wait_time=2,
+        )
 
     async def run_sync(
         self,
@@ -330,18 +336,12 @@ class MerakiAPIClient:
                     )
                 )
             if "appliance" in product_types:
-                if not self.coordinator or self.coordinator.is_traffic_check_due(
-                    network["id"],
-                ):
-                    detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
-                        self.network.get_network_traffic(network["id"], "appliance"),
-                    )
-                if not self.coordinator or self.coordinator.is_vlan_check_due(
-                    network["id"],
-                ):
-                    detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
-                        self.appliance.get_network_vlans(network["id"]),
-                    )
+                detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
+                    self.network.get_network_traffic(network["id"], "appliance"),
+                )
+                detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
+                    self.appliance.get_network_vlans(network["id"]),
+                )
                 detail_tasks[f"l3_firewall_rules_{network['id']}"] = (
                     self._run_with_semaphore(
                         self.appliance.get_l3_firewall_rules(network["id"]),
@@ -440,16 +440,10 @@ class MerakiAPIClient:
             network_traffic = detail_data.get(network_traffic_key)
             if isinstance(network_traffic, MerakiInformationalError):
                 if "traffic analysis" in str(network_traffic).lower():
-                    if self.coordinator:
-                        self.coordinator.add_network_status_message(
-                            network["id"],
-                            "Traffic Analysis is not enabled for this network.",
-                        )
-                        self.coordinator.mark_traffic_check_done(network["id"])
-                appliance_traffic[network["id"]] = {
-                    "error": "disabled",
-                    "reason": str(network_traffic),
-                }
+                    appliance_traffic[network["id"]] = {
+                        "error": "disabled",
+                        "reason": str(network_traffic),
+                    }
             elif isinstance(network_traffic, dict):
                 appliance_traffic[network["id"]] = network_traffic
             elif previous_data and network_traffic_key in previous_data:
@@ -459,13 +453,7 @@ class MerakiAPIClient:
             network_vlans = detail_data.get(network_vlans_key)
             if isinstance(network_vlans, MerakiInformationalError):
                 if "vlans are not enabled" in str(network_vlans).lower():
-                    if self.coordinator:
-                        self.coordinator.add_network_status_message(
-                            network["id"],
-                            "VLANs are not enabled for this network.",
-                        )
-                        self.coordinator.mark_vlan_check_done(network["id"])
-                vlan_by_network[network["id"]] = []
+                    vlan_by_network[network["id"]] = []
             elif isinstance(network_vlans, list):
                 vlan_by_network[network["id"]] = network_vlans
             elif previous_data and network_vlans_key in previous_data:

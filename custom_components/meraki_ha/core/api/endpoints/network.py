@@ -32,7 +32,6 @@ class NetworkEndpoints:
 
         """
         self._api_client = api_client
-        self._dashboard = api_client.dashboard
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
@@ -50,7 +49,7 @@ class NetworkEndpoints:
 
         """
         clients = await self._api_client.run_sync(
-            self._dashboard.networks.getNetworkClients,
+            self._api_client.dashboard.networks.getNetworkClients,
             networkId=network_id,
             total_pages="all",
         )
@@ -79,7 +78,7 @@ class NetworkEndpoints:
 
         """
         traffic = await self._api_client.run_sync(
-            self._dashboard.networks.getNetworkTraffic,
+            self._api_client.dashboard.networks.getNetworkTraffic,
             networkId=network_id,
             deviceType=device_type,
             timespan=86400,  # 24 hours
@@ -106,7 +105,7 @@ class NetworkEndpoints:
 
         """
         webhooks = await self._api_client.run_sync(
-            self._dashboard.networks.getNetworkWebhooksHttpServers,
+            self._api_client.dashboard.networks.getNetworkWebhooksHttpServers,
             networkId=network_id,
         )
         validated = validate_response(webhooks)
@@ -127,7 +126,7 @@ class NetworkEndpoints:
 
         """
         await self._api_client.run_sync(
-            self._dashboard.networks.deleteNetworkWebhooksHttpServer,
+            self._api_client.dashboard.networks.deleteNetworkWebhooksHttpServer,
             networkId=network_id,
             httpServerId=webhook_id,
         )
@@ -174,7 +173,7 @@ class NetworkEndpoints:
                 await self.delete_webhook(network_id, existing_webhook["id"])
 
             await self._api_client.run_sync(
-                self._dashboard.networks.createNetworkWebhooksHttpServer,
+                self._api_client.dashboard.networks.createNetworkWebhooksHttpServer,
                 networkId=network_id,
                 url=webhook_url,
                 sharedSecret=secret,
@@ -194,7 +193,7 @@ class NetworkEndpoints:
         networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
             await self._api_client.run_sync(
-                self._dashboard.networks.deleteNetworkWebhooksHttpServer,
+                self._api_client.dashboard.networks.deleteNetworkWebhooksHttpServer,
                 networkId=network["id"],
                 httpServerId=webhook_id,
             )
@@ -218,7 +217,7 @@ class NetworkEndpoints:
 
         """
         history = await self._api_client.run_sync(
-            self._dashboard.camera.getNetworkCameraAnalyticsRecent,
+            self._api_client.dashboard.camera.getNetworkCameraAnalyticsRecent,
             networkId=network_id,
             objectType=object_type,
         )

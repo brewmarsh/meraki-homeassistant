@@ -6,8 +6,7 @@ from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.typing import ConfigType
+from homeassistant.exceptions import ConfigEntryNotReady
 
 from .const import (
     CONF_ENABLE_WEB_UI,
@@ -35,28 +34,21 @@ from .webhook import async_register_webhook, async_unregister_webhook
 
 _LOGGER = logging.getLogger(__name__)
 
-CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
-
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up the Meraki integration."""
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up Meraki from a config entry."""
     hass.data.setdefault(DOMAIN, {})
-    return True
-
-
-async def async_setup_or_update_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up or update Meraki from a config entry."""
-    _LOGGER.debug("Setting up or updating Meraki entry: %s", entry.entry_id)
-
     entry_data = hass.data.setdefault(DOMAIN, {}).setdefault(entry.entry_id, {})
 
     try:
         if DATA_CLIENT not in entry_data:
-            entry_data[DATA_CLIENT] = MerakiAPIClient(
+            client = MerakiAPIClient(
                 hass,
                 api_key=entry.data[CONF_MERAKI_API_KEY],
                 org_id=entry.data[CONF_MERAKI_ORG_ID],
             )
+            await client.async_setup()
+            entry_data[DATA_CLIENT] = client
         api_client = entry_data[DATA_CLIENT]
     except KeyError as err:
         _LOGGER.error("Missing required configuration: %s", err)
@@ -78,7 +70,10 @@ async def async_setup_or_update_entry(hass: HomeAssistant, entry: ConfigEntry) -
             scan_interval=scan_interval,
             entry=entry,
         )
-        await entry_data["coordinator"].async_config_entry_first_refresh()
+        try:
+            await entry_data["coordinator"].async_config_entry_first_refresh()
+        except ConfigEntryNotReady:
+            raise
     else:
         entry_data["coordinator"].update_interval = timedelta(seconds=scan_interval)
         await entry_data["coordinator"].async_refresh()
@@ -156,21 +151,14 @@ async def async_setup_or_update_entry(hass: HomeAssistant, entry: ConfigEntry) -
             entry, data={**entry.data, "webhook_id": webhook_id, "secret": secret}
         )
 
+    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Meraki from a config entry."""
-    if not await async_setup_or_update_entry(hass, entry):
-        return False
-
-    entry.async_on_unload(entry.add_update_listener(async_update_entry))
-    return True
-
-
-async def async_update_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Update a given config entry."""
-    await async_setup_or_update_entry(hass, entry)
+async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Reload the config entry when it has changed."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

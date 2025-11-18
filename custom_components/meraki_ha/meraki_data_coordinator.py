@@ -2,18 +2,18 @@
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
     CONF_ENABLED_NETWORKS,
-    CONF_MERAKI_API_KEY,
-    CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -29,7 +29,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def __init__(
         self,
-        hass: HomeAssistant,
+        hass: "HomeAssistant",
         api_client: ApiClient,
         scan_interval: int,
         entry: ConfigEntry,
@@ -43,12 +43,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             entry: The config entry.
 
         """
-        self.api = ApiClient(
-            hass=hass,
-            api_key=entry.data[CONF_MERAKI_API_KEY],
-            org_id=entry.data[CONF_MERAKI_ORG_ID],
-            coordinator=self,
-        )
+        self.api = api_client
         self.devices_by_serial: dict[str, MerakiDevice] = {}
         self.networks_by_id: dict[str, MerakiNetwork] = {}
         self.ssids_by_network_and_number: dict[tuple[str, int], dict[str, Any]] = {}
@@ -127,6 +122,40 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Cooldown is still active
         _LOGGER.debug("Update for %s is still pending (on cooldown)", unique_id)
         return True
+
+    def is_pending(self, unique_id: str) -> bool:
+        """
+        Check if an entity update is in a pending (cooldown) state.
+
+        Args:
+        ----
+            unique_id: The unique ID of the entity.
+
+        Returns
+        -------
+            True if the entity is in a pending state, False otherwise.
+
+        """
+        return self.is_update_pending(unique_id)
+
+    def register_pending(
+        self,
+        unique_id: str,
+        expiry_seconds: int = 150,
+    ) -> None:
+        """
+        Register a pending update to ignore coordinator data.
+
+        This prevents overwriting an optimistic state with stale data from the
+        Meraki API, which can have a significant provisioning delay.
+
+        Args:
+        ----
+            unique_id: The unique ID of the entity.
+            expiry_seconds: The duration of the cooldown period.
+
+        """
+        self.register_update_pending(unique_id, expiry_seconds)
 
     def _filter_enabled_networks(self, data: dict[str, Any]) -> None:
         """
@@ -244,6 +273,23 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._filter_enabled_networks(data)
             _LOGGER.debug("SSIDs after filtering: %s", data.get("ssids"))
             await self._async_remove_disabled_devices(data)
+
+            # Process errors and update timers
+            for network_id, traffic_data in data.get("appliance_traffic", {}).items():
+                if (
+                    isinstance(traffic_data, dict)
+                    and traffic_data.get("error") == "disabled"
+                ):
+                    self.add_network_status_message(
+                        network_id, "Traffic Analysis is not enabled for this network."
+                    )
+                    self.mark_traffic_check_done(network_id)
+            for network_id, vlan_data in data.get("vlans", {}).items():
+                if isinstance(vlan_data, list) and not vlan_data:
+                    self.add_network_status_message(
+                        network_id, "VLANs are not enabled for this network."
+                    )
+                    self.mark_vlan_check_done(network_id)
 
             # Create lookup tables for efficient access in entities
             self.devices_by_serial = {

@@ -2,8 +2,8 @@
 
 import logging
 import os
-from typing import Union
 
+import aiofiles
 from aiohttp import web
 from homeassistant.core import HomeAssistant
 
@@ -87,15 +87,13 @@ class MerakiWebServer:
         self.app.router.add_get("/{path:.*}", self.handle_spa)
         self.app.router.add_get("/", self.handle_spa)
 
-    async def handle_spa(
-        self, request: web.Request
-    ) -> Union[web.FileResponse, web.Response]:
+    async def handle_spa(self, request: web.Request) -> web.FileResponse | web.Response:
         """Serve the single-page application's entry point (index.html)."""
         static_dir = os.path.join(os.path.dirname(__file__), "www", "dist")
         index_path = os.path.join(static_dir, "index.html")
         if os.path.exists(index_path):
-            with open(index_path) as f:
-                content = f.read()
+            async with aiofiles.open(index_path) as f:
+                content = await f.read()
 
             if self.hass.config.api:
                 ha_url = str(self.hass.config.api.base_url)  # type: ignore[attr-defined]

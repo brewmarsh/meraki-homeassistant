@@ -4,7 +4,7 @@ name: Deploy Latest Code to Local Folder on Linux Runner
 on:
   push:
     branches:
-      - main 
+      - main
       - beta # Trigger deployment on pushes/merges to the beta branch
 
 jobs:
@@ -31,7 +31,7 @@ jobs:
           # The source directory containing ONLY the component files (with trailing slash)
           SourceComponentDir="${GITHUB_WORKSPACE}/custom_components/meraki_ha/"
           DestinationPath="${DEPLOY_PATH}"
-          
+
           echo "Starting deployment..."
           echo "Source path: ${SourceComponentDir}"
           echo "Destination path: ${DestinationPath}"
@@ -46,7 +46,7 @@ jobs:
           #   -a: archive mode (preserves permissions, timestamps, etc.)
           #   -h: human-readable output
           #   --delete: removes files from destination that aren't in source (ensures clean state)
-          
+
           # CRITICAL: Exclude development files/symlinks to avoid 'Operation not supported' errors.
           sudo rsync -rltpD --inplace --delete \
             --exclude '.git' \
@@ -56,6 +56,76 @@ jobs:
             --exclude 'docker-runner' \
             --exclude 'custom_components' \
             "${SourceComponentDir}" "${DestinationPath}"
-          
+
           echo "Successfully copied latest code to ${DestinationPath}."
           echo "Deployment complete."
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Restart Home Assistant
+        shell: bash
+        env:
+          HA_URL: ${{ secrets.HA_URL }}
+          HA_TOKEN: ${{ secrets.HA_TOKEN }}
+        run: |
+          echo "Attempting to restart Home Assistant..."
+
+          # Sanitize the Home Assistant token to remove any trailing newlines or whitespace.
+          CLEAN_HA_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
+
+          # Step 1a: Check Configuration
+          echo "Checking Home Assistant configuration..."
+          BODY_FILE=$(mktemp) # Create a temporary file to store the response body.
+
+          # Make the API call and capture the HTTP status code.
+          HTTP_STATUS=$(curl -sS -o "$BODY_FILE" -w "%{http_code}" -X POST \
+              -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
+              -H "Content-Type: application/json" \
+              "$HA_URL/api/config/core/check_config")
+
+          CHECK_RESULT=$(cat "$BODY_FILE")
+          rm "$BODY_FILE" # Clean up the temporary file.
+
+          # Check for non-2xx status codes (e.g., 404 Not Found, 401 Unauthorized).
+          if [[ "$HTTP_STATUS" -lt 200 || "$HTTP_STATUS" -ge 300 ]]; then
+              echo "Error: API call to check config failed with HTTP status code $HTTP_STATUS."
+              echo "Please check that the HA_URL secret is correct and the server is reachable."
+              echo "URL: $HA_URL/api/config/core/check_config"
+              echo "Response: $CHECK_RESULT"
+              exit 1
+          fi
+
+          # Verify that the successful response is valid JSON before trying to parse it.
+          if ! echo "$CHECK_RESULT" | grep -q '^{'; then
+            echo "Error: API response with status $HTTP_STATUS does not appear to be valid JSON."
+            echo "Received response:"
+            echo "$CHECK_RESULT"
+            exit 1
+          fi
+
+          ERRORS=$(echo "$CHECK_RESULT" | jq -r '.errors')
+
+          if [ "$ERRORS" != "null" ] && [ "$ERRORS" != "" ]; then
+            echo "Config check failed! Errors:"
+            echo "$CHECK_RESULT" | jq
+            exit 1 # Stop the pipeline
+          else
+            echo "Config check passed."
+          fi
+
+          # Step 1b: Trigger Restart
+          echo "Triggering Home Assistant restart..."
+          RESTART_STATUS=$(curl -sS -o /dev/null -w "%{http_code}" -X POST \
+              -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
+              -H "Content-Type: application/json" \
+              "$HA_URL/api/services/home_assistant/restart")
+
+          if [[ "$RESTART_STATUS" -lt 200 || "$RESTART_STATUS" -ge 300 ]]; then
+              echo "Error: API call to restart failed with HTTP status code $RESTART_STATUS."
+              exit 1
+          fi
+
+          echo "Home Assistant restart command sent. Waiting for it to come back online..."
+          # Add a sleep to allow Home Assistant to restart
+          sleep 60 # Wait for 60 seconds. Adjust as needed.
