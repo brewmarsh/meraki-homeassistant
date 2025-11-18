@@ -1,3 +1,12 @@
+# [2.0.0-beta.57](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.56...v2.0.0-beta.57) (2025-11-18)
+
+
+### Bug Fixes
+
+* **api:** Refactor API client to prevent NoneType error ([236c280](https://github.com/brewmarsh/meraki-homeassistant/commit/236c28028f31997853b2047510389cf6dba9c4d7))
+
+
+
 # [2.0.0-beta.56](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.55...v2.0.0-beta.56) (2025-11-18)
 
 
