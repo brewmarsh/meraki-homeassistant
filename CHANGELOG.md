@@ -1,3 +1,12 @@
+# [2.0.0-beta.64](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.63...v2.0.0-beta.64) (2025-11-18)
+
+
+### Bug Fixes
+
+* **frontend:** rebuild frontend to fix unknown command error ([d29f81b](https://github.com/brewmarsh/meraki-homeassistant/commit/d29f81bbd9ad8b2385cf9e169ac923bc28249912))
+
+
+
 # [2.0.0-beta.63](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.62...v2.0.0-beta.63) (2025-11-18)
 
 
