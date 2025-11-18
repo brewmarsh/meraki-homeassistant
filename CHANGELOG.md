@@ -1,3 +1,12 @@
+# [2.0.0-beta.61](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.60...v2.0.0-beta.61) (2025-11-18)
+
+
+### Bug Fixes
+
+* restore side panel by registering frontend ([4e1ae4b](https://github.com/brewmarsh/meraki-homeassistant/commit/4e1ae4bac526a87011131ba197d2338567906c3a))
+
+
+
 # [2.0.0-beta.60](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.59...v2.0.0-beta.60) (2025-11-18)
 
 
