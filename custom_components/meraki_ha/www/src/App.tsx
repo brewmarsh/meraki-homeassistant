@@ -56,7 +56,7 @@ const App: React.FC<AppProps> = () => {
         socket.send(
           JSON.stringify({
             id: messageId,
-            type: 'meraki_ha/subscribe_meraki_data',
+            type: 'meraki_ha/get_config',
             config_entry_id: (window as any).CONFIG_ENTRY_ID,
           })
         );
@@ -70,12 +70,10 @@ const App: React.FC<AppProps> = () => {
           if (message.success) {
             setData(message.result);
           } else {
-            console.error('Subscription failed:', message.error);
-            setError(`Subscription failed: ${message.error.message}`);
+            console.error('Failed to fetch Meraki data:', message.error);
+            setError(`Failed to fetch Meraki data: ${message.error.message}`);
           }
           setLoading(false);
-        } else if (message.type === 'event') {
-          setData(message.event.data);
         }
       }
     };
