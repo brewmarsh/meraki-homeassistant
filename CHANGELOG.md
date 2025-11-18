@@ -1,3 +1,12 @@
+# [2.0.0-beta.58](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.57...v2.0.0-beta.58) (2025-11-18)
+
+
+### Bug Fixes
+
+* **text:** Correct pending update method names ([a468e62](https://github.com/brewmarsh/meraki-homeassistant/commit/a468e62229eadd16ecba838cf9e50a57fb124019))
+
+
+
 # [2.0.0-beta.57](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.56...v2.0.0-beta.57) (2025-11-18)
 
 
