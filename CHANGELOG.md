@@ -1,3 +1,12 @@
+# [2.0.0-beta.55](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.54...v2.0.0-beta.55) (2025-11-18)
+
+
+### Bug Fixes
+
+* **ci:** improve error handling for api calls ([daa85a7](https://github.com/brewmarsh/meraki-homeassistant/commit/daa85a783a14bd8489ff6da2ad7723b01fc94c83))
+
+
+
 # [2.0.0-beta.54](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.53...v2.0.0-beta.54) (2025-11-18)
 
 
