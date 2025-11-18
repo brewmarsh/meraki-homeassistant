@@ -123,6 +123,40 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         _LOGGER.debug("Update for %s is still pending (on cooldown)", unique_id)
         return True
 
+    def is_pending(self, unique_id: str) -> bool:
+        """
+        Check if an entity update is in a pending (cooldown) state.
+
+        Args:
+        ----
+            unique_id: The unique ID of the entity.
+
+        Returns
+        -------
+            True if the entity is in a pending state, False otherwise.
+
+        """
+        return self.is_update_pending(unique_id)
+
+    def register_pending(
+        self,
+        unique_id: str,
+        expiry_seconds: int = 150,
+    ) -> None:
+        """
+        Register a pending update to ignore coordinator data.
+
+        This prevents overwriting an optimistic state with stale data from the
+        Meraki API, which can have a significant provisioning delay.
+
+        Args:
+        ----
+            unique_id: The unique ID of the entity.
+            expiry_seconds: The duration of the cooldown period.
+
+        """
+        self.register_update_pending(unique_id, expiry_seconds)
+
     def _filter_enabled_networks(self, data: dict[str, Any]) -> None:
         """
         Filter out networks that the user has chosen to disable.
