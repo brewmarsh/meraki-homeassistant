@@ -1,3 +1,12 @@
+# [2.0.0-beta.62](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.61...v2.0.0-beta.62) (2025-11-18)
+
+
+### Bug Fixes
+
+* restore side panel and correct websocket command ([8e11cf3](https://github.com/brewmarsh/meraki-homeassistant/commit/8e11cf3cea8e1c41403fdf54661213b536a319c7))
+
+
+
 # [2.0.0-beta.61](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.60...v2.0.0-beta.61) (2025-11-18)
 
 
