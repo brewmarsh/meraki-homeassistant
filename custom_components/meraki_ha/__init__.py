@@ -42,11 +42,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     try:
         if DATA_CLIENT not in entry_data:
-            entry_data[DATA_CLIENT] = await MerakiAPIClient(
+            client = MerakiAPIClient(
                 hass,
                 api_key=entry.data[CONF_MERAKI_API_KEY],
                 org_id=entry.data[CONF_MERAKI_ORG_ID],
             )
+            await client.async_setup()
+            entry_data[DATA_CLIENT] = client
         api_client = entry_data[DATA_CLIENT]
     except KeyError as err:
         _LOGGER.error("Missing required configuration: %s", err)

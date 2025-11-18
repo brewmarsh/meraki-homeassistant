@@ -63,11 +63,12 @@ class MerakiAuthentication:
             MerakiConnectionError: If there is a connection error.
 
         """
-        client = await MerakiAPIClient(
+        client = MerakiAPIClient(
             hass=self.hass,
             api_key=self.api_key,
             org_id=self.organization_id,
         )
+        await client.async_setup()
 
         try:
             all_organizations: list[dict[str, Any]] = (
