@@ -1,3 +1,12 @@
+# [2.0.0-beta.60](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.59...v2.0.0-beta.60) (2025-11-18)
+
+
+### Features
+
+* **coordinator:** Add backward compatibility for pending update methods ([66cea68](https://github.com/brewmarsh/meraki-homeassistant/commit/66cea68960b924def5074313f6086ae292f94995))
+
+
+
 # [2.0.0-beta.59](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.58...v2.0.0-beta.59) (2025-11-18)
 
 
