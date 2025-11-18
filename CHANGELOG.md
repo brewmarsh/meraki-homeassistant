@@ -1,3 +1,17 @@
+# [2.0.0-beta.63](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.62...v2.0.0-beta.63) (2025-11-18)
+
+
+### Bug Fixes
+
+* **frontend:** Bump version to force cache bust ([ea603a7](https://github.com/brewmarsh/meraki-homeassistant/commit/ea603a71cbaebe8633f8f2f14b75ecbd519fd4cd))
+
+
+### Features
+
+* Add camera status check before snapshot ([06b457b](https://github.com/brewmarsh/meraki-homeassistant/commit/06b457bda0800ed299c4edfdc5349cbc14f73406))
+
+
+
 # [2.0.0-beta.62](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.61...v2.0.0-beta.62) (2025-11-18)
 
 
