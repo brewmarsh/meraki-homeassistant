@@ -1,3 +1,12 @@
+# [2.0.0-beta.49](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.48...v2.0.0-beta.49) (2025-11-18)
+
+
+### Bug Fixes
+
+* **config_flow:** Correct AbortFlow import ([9fe7fd8](https://github.com/brewmarsh/meraki-homeassistant/commit/9fe7fd8aafbaf0bcc21dc356b8aeb76c769a8ad5))
+
+
+
 # [2.0.0-beta.48](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.47...v2.0.0-beta.48) (2025-11-17)
 
 
