@@ -71,9 +71,13 @@ jobs:
         run: |
           echo "Attempting to restart Home Assistant..."
 
+          # Sanitize the Home Assistant token to remove any trailing newlines or whitespace.
+          # This prevents "Missing expected CR after header value" errors from curl.
+          CLEAN_HA_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
+
           # Step 1a: Check Configuration
           echo "Checking Home Assistant configuration..."
-          CHECK_RESULT=$(curl -sS -X POST -H "Authorization: Bearer $HA_TOKEN" \
+          CHECK_RESULT=$(curl -sS -X POST -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
                -H "Content-Type: application/json" \
                "$HA_URL/api/config/core/check_config")
 
@@ -97,7 +101,7 @@ jobs:
 
           # Step 1b: Trigger Restart
           echo "Triggering Home Assistant restart..."
-          curl -X POST -H "Authorization: Bearer $HA_TOKEN" \
+          curl -X POST -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
                -H "Content-Type: application/json" \
                "$HA_URL/api/services/home_assistant/restart"
 
