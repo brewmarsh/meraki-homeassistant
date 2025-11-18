@@ -99,6 +99,10 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
         """Return a still image from the camera."""
+        if self.device_data.get("status") != "online":
+            _LOGGER.debug("Skipping snapshot for offline camera: %s", self.name)
+            return None
+
         url = await self._camera_service.generate_snapshot(self._device_serial)
         if not url:
             msg = f"Failed to get snapshot URL for {self.name}"
