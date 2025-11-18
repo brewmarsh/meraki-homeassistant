@@ -23,6 +23,11 @@ from .const import (
 )
 from .core.api.client import MerakiAPIClient
 from .core.repositories.camera_repository import CameraRepository
+from .frontend import (
+    async_register_panel,
+    async_register_static_path,
+    async_unregister_frontend,
+)
 from .core.repository import MerakiRepository
 from .discovery.service import DeviceDiscoveryService
 from .meraki_data_coordinator import MerakiDataCoordinator
@@ -141,6 +146,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     discovered_entities = await discovery_service.discover_entities()
     entry_data["entities"] = discovered_entities
 
+    # Register frontend panel
+    await async_register_static_path(hass)
+    await async_register_panel(hass, entry)
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     if "webhook_id" not in entry.data:
@@ -172,6 +181,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if "web_server" in entry_data:
             server = entry_data["web_server"]
             await server.stop()
+        async_unregister_frontend(hass)
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
