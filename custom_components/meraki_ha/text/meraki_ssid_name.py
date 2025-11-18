@@ -97,7 +97,7 @@ class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
     def _update_internal_state(self) -> None:
         """Update the internal state of the text entity based on coordinator data."""
         # Ignore coordinator data to avoid overwriting optimistic state
-        if self.coordinator.is_pending(self.unique_id):
+        if self.coordinator.is_update_pending(self.unique_id):
             return
 
         current_ssid_data = self._get_current_ssid_data()
@@ -126,7 +126,7 @@ class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
                 name=value,
             )
             # Register a pending update to prevent overwriting the optimistic state
-            self.coordinator.register_pending_update(self.unique_id)
+            self.coordinator.register_update_pending(self.unique_id)
             await self.coordinator.async_request_refresh()
         except Exception as e:
             _LOGGER.error(
