@@ -40,7 +40,7 @@ class MerakiAPIClient:
     the underlying API session and asynchronous execution.
     """
 
-    async def __init__(
+    def __init__(
         self,
         hass: HomeAssistant,
         api_key: str,
@@ -62,9 +62,7 @@ class MerakiAPIClient:
         self._hass = hass
         self._base_url = base_url
 
-        self.dashboard = await self._hass.async_add_executor_job(
-            self._create_dashboard_api
-        )
+        self.dashboard: meraki.DashboardAPI | None = None
 
         # Initialize endpoint handlers
         self.appliance = ApplianceEndpoints(self, self._hass)
@@ -78,6 +76,12 @@ class MerakiAPIClient:
 
         # Semaphore to limit concurrent API calls
         self._semaphore = asyncio.Semaphore(2)
+
+    async def async_setup(self) -> None:
+        """Perform asynchronous setup of the API client."""
+        self.dashboard = await self._hass.async_add_executor_job(
+            self._create_dashboard_api
+        )
 
     def _create_dashboard_api(self) -> meraki.DashboardAPI:
         """Create and return the MerakiDashboardAPI instance."""
