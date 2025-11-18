@@ -1,3 +1,12 @@
+# [2.0.0-beta.50](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.49...v2.0.0-beta.50) (2025-11-18)
+
+
+### Bug Fixes
+
+* **ci:** Sanitize Home Assistant token in deploy workflow ([72dfd9d](https://github.com/brewmarsh/meraki-homeassistant/commit/72dfd9d6a43ab42e31cf7e3af43449b3a0c5fc25))
+
+
+
 # [2.0.0-beta.49](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.48...v2.0.0-beta.49) (2025-11-18)
 
 
