@@ -4,11 +4,8 @@ import importlib
 import logging
 from typing import Any
 
-from homeassistant.config_entries import (
-    AbortFlow,
-    ConfigEntry,
-    OptionsFlow,
-)
+from homeassistant.config_entries import ConfigEntry, OptionsFlow
+from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.core import callback
 
 # Dynamically import ConfigFlowResult where needed
