@@ -1,3 +1,12 @@
+# [2.0.0-beta.53](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.52...v2.0.0-beta.53) (2025-11-18)
+
+
+### Bug Fixes
+
+* **core:** await MerakiAPIClient initialization ([8f06164](https://github.com/brewmarsh/meraki-homeassistant/commit/8f06164fa5e650b9af0567506f04b78f6321bfad))
+
+
+
 # [2.0.0-beta.52](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.51...v2.0.0-beta.52) (2025-11-18)
 
 
