@@ -1,3 +1,12 @@
+# [2.0.0-beta.65](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.64...v2.0.0-beta.65) (2025-11-18)
+
+
+### Bug Fixes
+
+* **ci:** improve diagnostics for ha-local-deploy ([0f578a3](https://github.com/brewmarsh/meraki-homeassistant/commit/0f578a3871eac4d3bfd239d242534f8baac6cf88))
+
+
+
 # [2.0.0-beta.64](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.63...v2.0.0-beta.64) (2025-11-18)
 
 
