@@ -1,3 +1,12 @@
+# [2.0.0-beta.59](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.58...v2.0.0-beta.59) (2025-11-18)
+
+
+### Features
+
+* Use constant for Meraki client key ([df1a09a](https://github.com/brewmarsh/meraki-homeassistant/commit/df1a09aee373a8e5ed8ae4ab95732a8e6beb800b))
+
+
+
 # [2.0.0-beta.58](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.57...v2.0.0-beta.58) (2025-11-18)
 
 
