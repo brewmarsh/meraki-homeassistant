@@ -72,18 +72,33 @@ jobs:
           echo "Attempting to restart Home Assistant..."
 
           # Sanitize the Home Assistant token to remove any trailing newlines or whitespace.
-          # This prevents "Missing expected CR after header value" errors from curl.
           CLEAN_HA_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
 
           # Step 1a: Check Configuration
           echo "Checking Home Assistant configuration..."
-          CHECK_RESULT=$(curl -sS -X POST -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
-               -H "Content-Type: application/json" \
-               "$HA_URL/api/config/core/check_config")
+          BODY_FILE=$(mktemp) # Create a temporary file to store the response body.
 
-          # Verify that the response from the server is JSON before trying to parse it.
+          # Make the API call and capture the HTTP status code.
+          HTTP_STATUS=$(curl -sS -o "$BODY_FILE" -w "%{http_code}" -X POST \
+              -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
+              -H "Content-Type: application/json" \
+              "$HA_URL/api/config/core/check_config")
+
+          CHECK_RESULT=$(cat "$BODY_FILE")
+          rm "$BODY_FILE" # Clean up the temporary file.
+
+          # Check for non-2xx status codes (e.g., 404 Not Found, 401 Unauthorized).
+          if [[ "$HTTP_STATUS" -lt 200 || "$HTTP_STATUS" -ge 300 ]]; then
+              echo "Error: API call to check config failed with HTTP status code $HTTP_STATUS."
+              echo "Please check that the HA_URL secret is correct and the server is reachable."
+              echo "URL: $HA_URL/api/config/core/check_config"
+              echo "Response: $CHECK_RESULT"
+              exit 1
+          fi
+
+          # Verify that the successful response is valid JSON before trying to parse it.
           if ! echo "$CHECK_RESULT" | grep -q '^{'; then
-            echo "Error: API response does not appear to be valid JSON."
+            echo "Error: API response with status $HTTP_STATUS does not appear to be valid JSON."
             echo "Received response:"
             echo "$CHECK_RESULT"
             exit 1
@@ -101,9 +116,15 @@ jobs:
 
           # Step 1b: Trigger Restart
           echo "Triggering Home Assistant restart..."
-          curl -X POST -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
-               -H "Content-Type: application/json" \
-               "$HA_URL/api/services/home_assistant/restart"
+          RESTART_STATUS=$(curl -sS -o /dev/null -w "%{http_code}" -X POST \
+              -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
+              -H "Content-Type: application/json" \
+              "$HA_URL/api/services/home_assistant/restart")
+
+          if [[ "$RESTART_STATUS" -lt 200 || "$RESTART_STATUS" -ge 300 ]]; then
+              echo "Error: API call to restart failed with HTTP status code $RESTART_STATUS."
+              exit 1
+          fi
 
           echo "Home Assistant restart command sent. Waiting for it to come back online..."
           # Add a sleep to allow Home Assistant to restart
