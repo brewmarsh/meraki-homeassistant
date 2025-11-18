@@ -74,7 +74,23 @@ jobs:
           # Sanitize the Home Assistant token to remove any trailing newlines or whitespace.
           CLEAN_HA_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
 
-          # Step 1a: Check Configuration
+          # Step 1a: Basic Connectivity Test
+          echo "Testing basic connectivity to Home Assistant..."
+          API_STATUS=$(curl -sS -o /dev/null -w "%{http_code}" -X GET \
+              -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
+              -H "Content-Type: application/json" \
+              "$HA_URL/api/")
+
+          if [[ "$API_STATUS" -ne 200 ]]; then
+              echo "Error: Could not connect to the Home Assistant API. HTTP status code: $API_STATUS."
+              echo "Please verify that the HA_URL secret is set correctly and that your Home Assistant instance is running."
+              echo "Attempted URL: $HA_URL/api/"
+              exit 1
+          else
+              echo "Connectivity test passed."
+          fi
+
+          # Step 1b: Check Configuration
           echo "Checking Home Assistant configuration..."
           BODY_FILE=$(mktemp) # Create a temporary file to store the response body.
 
@@ -90,6 +106,9 @@ jobs:
           # Check for non-2xx status codes (e.g., 404 Not Found, 401 Unauthorized).
           if [[ "$HTTP_STATUS" -lt 200 || "$HTTP_STATUS" -ge 300 ]]; then
               echo "Error: API call to check config failed with HTTP status code $HTTP_STATUS."
+              if [[ "$HTTP_STATUS" -eq 404 ]]; then
+                  echo "A 404 error here often means the 'config' integration is not enabled in your Home Assistant's configuration.yaml."
+              fi
               echo "Please check that the HA_URL secret is correct and the server is reachable."
               echo "URL: $HA_URL/api/config/core/check_config"
               echo "Response: $CHECK_RESULT"
