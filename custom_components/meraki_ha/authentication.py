@@ -63,7 +63,7 @@ class MerakiAuthentication:
             MerakiConnectionError: If there is a connection error.
 
         """
-        client = MerakiAPIClient(
+        client = await MerakiAPIClient(
             hass=self.hass,
             api_key=self.api_key,
             org_id=self.organization_id,
