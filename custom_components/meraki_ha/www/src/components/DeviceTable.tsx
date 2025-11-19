@@ -20,13 +20,15 @@ const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => 
     device.serial?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDeviceClick = (entityId: string) => {
+  const handleDeviceClick = (e: React.MouseEvent<HTMLAnchorElement>, entityId: string) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent the row's onClick from firing
     const event = new CustomEvent('hass-more-info', {
       bubbles: true,
       composed: true,
       detail: { entityId },
     });
-    window.dispatchEvent(event);
+    e.currentTarget.dispatchEvent(event);
   };
 
   return (
@@ -60,10 +62,8 @@ const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => 
                     <a
                       href="#"
                       onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation(); // Prevent the row's onClick from firing
                         if (device.entity_id) {
-                          handleDeviceClick(device.entity_id);
+                          handleDeviceClick(e, device.entity_id);
                         }
                       }}
                       className="text-blue-500 hover:underline"
