@@ -12,3 +12,4 @@ node_modules/
 # Coverage
 .coverage
 coverage.xml
+custom_components/meraki_ha/www/node_modules

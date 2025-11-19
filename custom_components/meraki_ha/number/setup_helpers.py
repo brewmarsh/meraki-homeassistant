@@ -6,7 +6,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
 
-from ..coordinator import MerakiDataUpdateCoordinator
+from ..meraki_data_coordinator import MerakiDataCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 def async_setup_numbers(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiDataCoordinator,
 ) -> list[Entity]:
     """Set up all number entities from the central coordinator."""
     return []

@@ -1,4 +1,4 @@
-"""Discovery handler for MT devices."""
+"""Device handler for Meraki MT sensors."""
 
 from __future__ import annotations
 
@@ -11,16 +11,9 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ....core.coordinators.meraki_data_coordinator import (
-        MerakiDataUpdateCoordinator,
-    )
-    from ....core.coordinators.switch_port_status_coordinator import (
-        SwitchPortStatusCoordinator,
-    )
-    from ....services.camera_service import CameraService
-    from ....services.network_control_service import NetworkControlService
+    from ....services.device_control_service import DeviceControlService
     from ....types import MerakiDevice
-    from ...services.device_control_service import DeviceControlService
+    from ...meraki_data_coordinator import MerakiDataCoordinator
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,7 +24,7 @@ class MTHandler(BaseDeviceHandler):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
         control_service: DeviceControlService,
@@ -43,13 +36,12 @@ class MTHandler(BaseDeviceHandler):
     @classmethod
     def create(
         cls,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
-        camera_service: CameraService,
+        camera_service,  # Unused
         control_service: DeviceControlService,
-        network_control_service: NetworkControlService,
-        switch_port_coordinator: SwitchPortStatusCoordinator,
+        network_control_service,  # Unused
     ) -> MTHandler:
         """Create an instance of the handler."""
         return cls(

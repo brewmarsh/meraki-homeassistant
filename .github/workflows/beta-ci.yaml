@@ -7,7 +7,7 @@ on:
     branches: ['beta']
 
 jobs:
-  ci:
+  setup:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -17,25 +17,106 @@ jobs:
         with:
           python-version: '3.13'
       - name: Cache pip dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
+          path: ./.venv
           key: ${{ runner.os }}-pip-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/requirements_dev.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-${{ steps.setup-python.outputs.python-version }}-
       - name: Install dependencies
         run: |
+          python -m venv .venv
+          source .venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements_dev.txt
-      - name: Run checks
+      - name: Archive venv
+        run: tar -czf venv.tar.gz .venv
+      - name: Upload venv artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: venv
+          path: venv.tar.gz
+
+  ruff:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download venv artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: venv
+      - name: Extract venv
+        run: tar -xzf venv.tar.gz
+      - name: Run ruff
         run: |
-          pip-audit --ignore-vuln PYSEC-2020-49 --ignore-vuln PYSEC-2022-42969 --ignore-vuln GHSA-g7vv-2v7x-gj9p
+          source .venv/bin/activate
           ruff check .
           ruff format --check .
+
+  mypy:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download venv artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: venv
+      - name: Extract venv
+        run: tar -xzf venv.tar.gz
+      - name: Run mypy
+        run: |
+          source .venv/bin/activate
           mypy custom_components/meraki_ha/ tests/
+
+  bandit:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download venv artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: venv
+      - name: Extract venv
+        run: tar -xzf venv.tar.gz
+      - name: Run bandit
+        run: |
+          source .venv/bin/activate
           bandit -r custom_components/meraki_ha/ -c .bandit.yaml
+
+  pip-audit:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download venv artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: venv
+      - name: Extract venv
+        run: tar -xzf venv.tar.gz
+      - name: Run pip-audit
+        run: |
+          source .venv/bin/activate
+          pip-audit --ignore-vuln PYSEC-2020-49 --ignore-vuln PYSEC-2022-42969 --ignore-vuln GHSA-g7vv-2v7x-gj9p
+
+  pytest:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download venv artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: venv
+      - name: Extract venv
+        run: tar -xzf venv.tar.gz
       - name: Run tests with coverage
-        run: pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
+        run: |
+          source .venv/bin/activate
+          pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:

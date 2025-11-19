@@ -32,7 +32,6 @@ class NetworkEndpoints:
 
         """
         self._api_client = api_client
-        self._dashboard = api_client.dashboard
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
@@ -49,8 +48,10 @@ class NetworkEndpoints:
             A list of clients.
 
         """
+        if self._api_client.dashboard is None:
+            return []
         clients = await self._api_client.run_sync(
-            self._dashboard.networks.getNetworkClients,
+            self._api_client.dashboard.networks.getNetworkClients,
             networkId=network_id,
             total_pages="all",
         )
@@ -78,8 +79,10 @@ class NetworkEndpoints:
             A list of traffic data.
 
         """
+        if self._api_client.dashboard is None:
+            return []
         traffic = await self._api_client.run_sync(
-            self._dashboard.networks.getNetworkTraffic,
+            self._api_client.dashboard.networks.getNetworkTraffic,
             networkId=network_id,
             deviceType=device_type,
             timespan=86400,  # 24 hours
@@ -105,8 +108,10 @@ class NetworkEndpoints:
             A list of webhooks.
 
         """
+        if self._api_client.dashboard is None:
+            return []
         webhooks = await self._api_client.run_sync(
-            self._dashboard.networks.getNetworkWebhooksHttpServers,
+            self._api_client.dashboard.networks.getNetworkWebhooksHttpServers,
             networkId=network_id,
         )
         validated = validate_response(webhooks)
@@ -126,8 +131,10 @@ class NetworkEndpoints:
             webhook_id: The ID of the webhook.
 
         """
+        if self._api_client.dashboard is None:
+            return
         await self._api_client.run_sync(
-            self._dashboard.networks.deleteNetworkWebhooksHttpServer,
+            self._api_client.dashboard.networks.deleteNetworkWebhooksHttpServer,
             networkId=network_id,
             httpServerId=webhook_id,
         )
@@ -173,8 +180,10 @@ class NetworkEndpoints:
             if existing_webhook:
                 await self.delete_webhook(network_id, existing_webhook["id"])
 
+            if self._api_client.dashboard is None:
+                return
             await self._api_client.run_sync(
-                self._dashboard.networks.createNetworkWebhooksHttpServer,
+                self._api_client.dashboard.networks.createNetworkWebhooksHttpServer,
                 networkId=network_id,
                 url=webhook_url,
                 sharedSecret=secret,
@@ -182,22 +191,26 @@ class NetworkEndpoints:
             )
 
     @handle_meraki_errors
-    async def unregister_webhook(self, webhook_id: str) -> None:
+    async def unregister_webhook(self, webhook_url: str) -> None:
         """
         Unregister a webhook with the Meraki API.
 
         Args:
         ----
-            webhook_id: The ID of the webhook.
+            webhook_url: The URL of the webhook to unregister.
 
         """
         networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
-            await self._api_client.run_sync(
-                self._dashboard.networks.deleteNetworkWebhooksHttpServer,
-                networkId=network["id"],
-                httpServerId=webhook_id,
-            )
+            network_id = network["id"]
+            webhook_to_delete = await self.find_webhook_by_url(network_id, webhook_url)
+            if webhook_to_delete and "id" in webhook_to_delete:
+                _LOGGER.debug(
+                    "Deleting webhook %s from network %s",
+                    webhook_to_delete["id"],
+                    network_id,
+                )
+                await self.delete_webhook(network_id, webhook_to_delete["id"])
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
@@ -217,8 +230,10 @@ class NetworkEndpoints:
             A list of analytics history.
 
         """
+        if self._api_client.dashboard is None:
+            return []
         history = await self._api_client.run_sync(
-            self._dashboard.camera.getNetworkCameraAnalyticsRecent,
+            self._api_client.dashboard.camera.getNetworkCameraAnalyticsRecent,
             networkId=network_id,
             objectType=object_type,
         )

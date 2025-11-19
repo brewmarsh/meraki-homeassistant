@@ -10,7 +10,7 @@ from tests.const import MOCK_DEVICE
 
 @pytest.fixture
 def mock_coordinator_with_devices(mock_coordinator: MagicMock) -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator with various devices."""
+    """Fixture for a mocked MerakiDataCoordinator with various devices."""
     wireless_device = MOCK_DEVICE.copy()
     wireless_device["model"] = "MR36"
     camera_device = MOCK_DEVICE.copy()
@@ -50,7 +50,6 @@ def test_discovery_service_init(
         coordinator=mock_coordinator_with_devices,
         config_entry=mock_config_entry,
         meraki_client=MagicMock(),
-        switch_port_coordinator=MagicMock(),
         camera_service=mock_camera_service,
         control_service=mock_control_service,
         network_control_service=MagicMock(),
@@ -71,21 +70,15 @@ async def test_discover_entities_delegates_to_handler(
     # We must mock the handlers directly to assert their instantiation arguments
     MockMRHandler = MagicMock()
     MockMRHandler.__name__ = "MRHandler"
-    MockMVHandler = MagicMock()
-    MockMVHandler.__name__ = "MVHandler"
 
     mock_mr_handler_instance = MagicMock()
     mock_mr_handler_instance.discover_entities = AsyncMock(return_value=["mr_entity"])
     MockMRHandler.return_value = mock_mr_handler_instance
 
-    mock_mv_handler_instance = MagicMock()
-    mock_mv_handler_instance.discover_entities = AsyncMock(return_value=["mv_entity"])
-    MockMVHandler.return_value = mock_mv_handler_instance
-
     with (
         patch.dict(
             "custom_components.meraki_ha.discovery.service.HANDLER_MAPPING",
-            {"MR": MockMRHandler, "MV": MockMVHandler},
+            {"MR": MockMRHandler},
         ),
         patch(
             "custom_components.meraki_ha.discovery.handlers.network.NetworkHandler"
@@ -100,7 +93,6 @@ async def test_discover_entities_delegates_to_handler(
             coordinator=mock_coordinator_with_devices,
             config_entry=mock_config_entry,
             meraki_client=MagicMock(),
-            switch_port_coordinator=MagicMock(),
             camera_service=mock_camera_service,
             control_service=mock_control_service,
             network_control_service=MagicMock(),
@@ -111,7 +103,6 @@ async def test_discover_entities_delegates_to_handler(
 
         # Assert
         assert "mr_entity" in entities
-        assert "mv_entity" in entities
 
         # Assert correct services are passed to each handler
         MockMRHandler.assert_called_once_with(
@@ -119,13 +110,6 @@ async def test_discover_entities_delegates_to_handler(
             mock_coordinator_with_devices.data["devices"][0],
             mock_config_entry,
             mock_control_service,
-        )
-        MockMVHandler.assert_called_once_with(
-            mock_coordinator_with_devices,
-            mock_coordinator_with_devices.data["devices"][1],
-            mock_config_entry,
-            mock_camera_service,
-            mock_control_service,
-            ANY,  # meraki_client
+            ANY,  # network_control_service
         )
         assert "No handler found for model 'unsupported'" in caplog.text
