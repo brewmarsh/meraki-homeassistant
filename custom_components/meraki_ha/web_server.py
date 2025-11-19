@@ -3,7 +3,7 @@
 import logging
 import os
 
-import aiofiles
+import aiofiles  # type: ignore[import-untyped]
 from aiohttp import web
 from homeassistant.core import HomeAssistant
 

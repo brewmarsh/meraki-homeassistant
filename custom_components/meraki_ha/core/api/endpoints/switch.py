@@ -50,8 +50,11 @@ class SwitchEndpoints:
             A list of port statuses.
 
         """
+        if self._api_client.dashboard is None:
+            return []
         statuses = await self._api_client.run_sync(
-            self._api_client.dashboard.switch.getDeviceSwitchPortsStatuses, serial=serial
+            self._api_client.dashboard.switch.getDeviceSwitchPortsStatuses,
+            serial=serial,
         )
         validated = validate_response(statuses)
         if not isinstance(validated, list):
@@ -74,6 +77,8 @@ class SwitchEndpoints:
             A list of ports.
 
         """
+        if self._api_client.dashboard is None:
+            return []
         ports = await self._api_client.run_sync(
             self._api_client.dashboard.switch.getDeviceSwitchPorts, serial=serial
         )

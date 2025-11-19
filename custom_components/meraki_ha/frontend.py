@@ -6,7 +6,7 @@ import json
 import logging
 from pathlib import Path
 
-import aiofiles
+import aiofiles  # type: ignore[import-untyped]
 from homeassistant.components import frontend
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry

@@ -38,6 +38,8 @@ class WirelessEndpoints:
             A list of SSIDs.
 
         """
+        if self._api_client.dashboard is None:
+            return []
         ssids = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getNetworkWirelessSsids,
             networkId=network_id,
@@ -63,6 +65,8 @@ class WirelessEndpoints:
             The wireless settings.
 
         """
+        if self._api_client.dashboard is None:
+            return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getDeviceWirelessRadioSettings,
             serial=serial,
@@ -93,6 +97,8 @@ class WirelessEndpoints:
             The SSID details.
 
         """
+        if self._api_client.dashboard is None:
+            return {}
         ssid = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getNetworkWirelessSsid,
             networkId=network_id,
@@ -118,6 +124,8 @@ class WirelessEndpoints:
         -------
             The wireless settings.
         """
+        if self._api_client.dashboard is None:
+            return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getNetworkWirelessSettings,
             networkId=network_id,
@@ -144,6 +152,8 @@ class WirelessEndpoints:
         -------
             The updated settings.
         """
+        if self._api_client.dashboard is None:
+            return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.updateNetworkWirelessSettings,
             networkId=network_id,
@@ -176,6 +186,8 @@ class WirelessEndpoints:
             The updated SSID.
 
         """
+        if self._api_client.dashboard is None:
+            return {}
         ssid = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.updateNetworkWirelessSsid,
             networkId=network_id,
@@ -206,6 +218,8 @@ class WirelessEndpoints:
             A list of RF profiles.
 
         """
+        if self._api_client.dashboard is None:
+            return []
         profiles = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getNetworkWirelessRfProfiles,
             networkId=network_id,
@@ -236,6 +250,8 @@ class WirelessEndpoints:
             The L7 firewall rules.
 
         """
+        if self._api_client.dashboard is None:
+            return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getNetworkWirelessSsidL7FirewallRules,
             networkId=network_id,
@@ -270,6 +286,8 @@ class WirelessEndpoints:
             The updated L7 firewall rules.
 
         """
+        if self._api_client.dashboard is None:
+            return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.updateNetworkWirelessSsidL7FirewallRules,
             networkId=network_id,

@@ -45,9 +45,12 @@ async def test_switch_state(mock_coordinator, mock_config_entry, mock_network):
 async def test_switch_turn_on(mock_coordinator, mock_config_entry, mock_network):
     """Test turning the switch on."""
     switch = MerakiAPLEDSwitch(mock_coordinator, mock_config_entry, mock_network)
-    with patch.object(
-        switch.coordinator.api.wireless, "update_network_wireless_settings"
-    ) as mock_update, patch.object(switch, "async_write_ha_state") as mock_write_state:
+    with (
+        patch.object(
+            switch.coordinator.api.wireless, "update_network_wireless_settings"
+        ) as mock_update,
+        patch.object(switch, "async_write_ha_state") as mock_write_state,
+    ):
         await switch.async_turn_on()
         mock_update.assert_called_once_with(network_id="N_12345", ledLightsOn=True)
         mock_write_state.assert_called_once()
@@ -57,9 +60,12 @@ async def test_switch_turn_on(mock_coordinator, mock_config_entry, mock_network)
 async def test_switch_turn_off(mock_coordinator, mock_config_entry, mock_network):
     """Test turning the switch off."""
     switch = MerakiAPLEDSwitch(mock_coordinator, mock_config_entry, mock_network)
-    with patch.object(
-        switch.coordinator.api.wireless, "update_network_wireless_settings"
-    ) as mock_update, patch.object(switch, "async_write_ha_state") as mock_write_state:
+    with (
+        patch.object(
+            switch.coordinator.api.wireless, "update_network_wireless_settings"
+        ) as mock_update,
+        patch.object(switch, "async_write_ha_state") as mock_write_state,
+    ):
         await switch.async_turn_off()
         mock_update.assert_called_once_with(network_id="N_12345", ledLightsOn=False)
         mock_write_state.assert_called_once()

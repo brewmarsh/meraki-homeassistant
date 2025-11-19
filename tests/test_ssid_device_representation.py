@@ -84,23 +84,19 @@ def test_ssid_device_unification(
 
     # Get the identifiers from each entity's DeviceInfo
     sensor_device_info = sensor.device_info
-    if sensor_device_info is None:
-        pytest.fail("Sensor device_info is None")
+    assert sensor_device_info is not None
     sensor_identifiers = sensor_device_info["identifiers"]
 
     detail_sensor_device_info = detail_sensor.device_info
-    if detail_sensor_device_info is None:
-        pytest.fail("Detail sensor device_info is None")
+    assert detail_sensor_device_info is not None
     detail_sensor_identifiers = detail_sensor_device_info["identifiers"]
 
     switch_device_info = switch.device_info
-    if switch_device_info is None:
-        pytest.fail("Switch device_info is None")
+    assert switch_device_info is not None
     switch_identifiers = switch_device_info["identifiers"]
 
     text_device_info = text.device_info
-    if text_device_info is None:
-        pytest.fail("Text device_info is None")
+    assert text_device_info is not None
     text_identifiers = text_device_info["identifiers"]
 
     # Assert that all entities share the exact same device identifier

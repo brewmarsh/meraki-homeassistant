@@ -7,7 +7,7 @@ import logging
 import os
 from typing import Any
 
-import aiofiles
+import aiofiles  # type: ignore[import-untyped]
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 from voluptuous import ALLOW_EXTRA, All, Required, Schema

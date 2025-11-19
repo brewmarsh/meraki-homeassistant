@@ -62,8 +62,7 @@ async def test_meraki_ssid_enabled_switch(
     assert switch.is_on is True
     assert switch.name == "Enabled Control"
     device_info = switch.device_info
-    if device_info is None:
-        pytest.fail("Device info is None")
+    assert device_info is not None
     assert device_info["name"] == "[SSID] Test SSID"
 
     # Test with omit format
@@ -76,8 +75,7 @@ async def test_meraki_ssid_enabled_switch(
     )
     assert switch.name == "Enabled Control"
     device_info = switch.device_info
-    if device_info is None:
-        pytest.fail("Device info is None")
+    assert device_info is not None
     assert device_info["name"] == "Test SSID"
 
     switch.hass = hass
@@ -109,8 +107,7 @@ async def test_meraki_ssid_broadcast_switch(
     assert switch.is_on is True
     assert switch.name == "Broadcast Control"
     device_info = switch.device_info
-    if device_info is None:
-        pytest.fail("Device info is None")
+    assert device_info is not None
     assert device_info["name"] == "[SSID] Test SSID"
 
     # Test with omit format
@@ -123,8 +120,7 @@ async def test_meraki_ssid_broadcast_switch(
     )
     assert switch.name == "Broadcast Control"
     device_info = switch.device_info
-    if device_info is None:
-        pytest.fail("Device info is None")
+    assert device_info is not None
     assert device_info["name"] == "Test SSID"
 
     switch.hass = hass

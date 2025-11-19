@@ -44,6 +44,8 @@ class OrganizationEndpoints:
             The organization details.
 
         """
+        if self._api_client.dashboard is None:
+            return {}
         org = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganization,
             organizationId=self._api_client.organization_id,
@@ -65,6 +67,8 @@ class OrganizationEndpoints:
             A list of networks.
 
         """
+        if self._api_client.dashboard is None:
+            return []
         networks = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationNetworks,
             organizationId=self._api_client.organization_id,
@@ -86,6 +90,8 @@ class OrganizationEndpoints:
             A list of firmware upgrades.
 
         """
+        if self._api_client.dashboard is None:
+            return []
         upgrades = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationFirmwareUpgrades,
             organizationId=self._api_client.organization_id,
@@ -107,6 +113,8 @@ class OrganizationEndpoints:
             A list of device statuses.
 
         """
+        if self._api_client.dashboard is None:
+            return []
         statuses = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationDeviceStatuses,
             organizationId=self._api_client.organization_id,
@@ -128,6 +136,8 @@ class OrganizationEndpoints:
             A list of device availabilities.
 
         """
+        if self._api_client.dashboard is None:
+            return []
         availabilities = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationDevicesAvailabilities,
             organizationId=self._api_client.organization_id,
@@ -152,6 +162,8 @@ class OrganizationEndpoints:
             A list of devices.
 
         """
+        if self._api_client.dashboard is None:
+            return []
         devices = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationDevices,
             organizationId=self._api_client.organization_id,
@@ -173,6 +185,8 @@ class OrganizationEndpoints:
             A list of organizations.
 
         """
+        if self._api_client.dashboard is None:
+            return []
         orgs = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizations
         )
