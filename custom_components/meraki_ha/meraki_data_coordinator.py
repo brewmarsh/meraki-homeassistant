@@ -209,26 +209,57 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             data: The data dictionary containing the latest device information.
 
         """
-        dev_reg = dr.async_get(self.hass)
-        ent_reg = er.async_get(self.hass)
         if not self.config_entry:
             return
-        current_devices = {
-            list(device.identifiers)[0][1]
+
+        dev_reg = dr.async_get(self.hass)
+        ent_reg = er.async_get(self.hass)
+
+        # Get all devices associated with this config entry
+        current_devices_in_registry = {
+            device
             for device in dev_reg.devices.values()
             if self.config_entry.entry_id in device.config_entries
         }
-        latest_devices = {device["serial"] for device in data.get("devices", [])}
 
-        disabled_devices = current_devices - latest_devices
-        for serial in disabled_devices:
-            device = dev_reg.async_get_device(identifiers={(DOMAIN, serial)})
-            if device:
-                entities = er.async_entries_for_device(ent_reg, device.id)
-                for entity in entities:
-                    ent_reg.async_remove(entity.entity_id)
-                dev_reg.async_remove_device(device.id)
-                _LOGGER.debug(f"Removed device {serial} and its entities.")
+        # Build a set of all valid identifiers from the latest coordinator data
+        latest_valid_identifiers: set[str] = {
+            device["serial"] for device in data.get("devices", [])
+        }
+        for ssid in data.get("ssids", []):
+            network_id = ssid.get("networkId")
+            ssid_number = ssid.get("number")
+            if network_id and ssid_number is not None:
+                latest_valid_identifiers.add(f"{network_id}_{ssid_number}")
+
+        # Add network identifiers
+        for network in data.get("networks", []):
+            if network.get("is_enabled"):
+                latest_valid_identifiers.add(f"network_{network['id']}")
+
+        # Add VLAN identifiers
+        for network_id, vlans in data.get("vlans", {}).items():
+            if isinstance(vlans, list):
+                for vlan in vlans:
+                    if "id" in vlan:
+                        latest_valid_identifiers.add(f"vlan_{network_id}_{vlan['id']}")
+
+        # Determine which devices to remove
+        devices_to_remove = {
+            device
+            for device in current_devices_in_registry
+            if list(device.identifiers)[0][1] not in latest_valid_identifiers
+        }
+
+        for device in devices_to_remove:
+            device_id_to_remove = list(device.identifiers)[0][1]
+            _LOGGER.debug(
+                "Removing device %s and its entities.", device_id_to_remove
+            )
+            entities = er.async_entries_for_device(ent_reg, device.id)
+            for entity in entities:
+                ent_reg.async_remove(entity.entity_id)
+            dev_reg.async_remove_device(device.id)
 
     def _populate_device_entities(self, data: dict[str, Any]) -> None:
         """
