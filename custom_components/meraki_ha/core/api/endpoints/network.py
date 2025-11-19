@@ -181,22 +181,26 @@ class NetworkEndpoints:
             )
 
     @handle_meraki_errors
-    async def unregister_webhook(self, webhook_id: str) -> None:
+    async def unregister_webhook(self, webhook_url: str) -> None:
         """
         Unregister a webhook with the Meraki API.
 
         Args:
         ----
-            webhook_id: The ID of the webhook.
+            webhook_url: The URL of the webhook to unregister.
 
         """
         networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
-            await self._api_client.run_sync(
-                self._api_client.dashboard.networks.deleteNetworkWebhooksHttpServer,
-                networkId=network["id"],
-                httpServerId=webhook_id,
-            )
+            network_id = network["id"]
+            webhook_to_delete = await self.find_webhook_by_url(network_id, webhook_url)
+            if webhook_to_delete and "id" in webhook_to_delete:
+                _LOGGER.debug(
+                    "Deleting webhook %s from network %s",
+                    webhook_to_delete["id"],
+                    network_id,
+                )
+                await self.delete_webhook(network_id, webhook_to_delete["id"])
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)

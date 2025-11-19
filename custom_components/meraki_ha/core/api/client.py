@@ -619,15 +619,16 @@ class MerakiAPIClient:
         """
         await self.network.register_webhook(webhook_url, secret)
 
-    async def unregister_webhook(self, webhook_id: str) -> None:
+    async def unregister_webhook(self, webhook_url: str) -> None:
         """
         Unregister a webhook with the Meraki API.
 
         Args:
-            webhook_id: The ID of the webhook to unregister.
+        ----
+            webhook_url: The URL of the webhook to unregister.
 
         """
-        await self.network.unregister_webhook(webhook_id)
+        await self.network.unregister_webhook(webhook_url)
 
     async def async_reboot_device(self, serial: str) -> dict[str, Any]:
         """
