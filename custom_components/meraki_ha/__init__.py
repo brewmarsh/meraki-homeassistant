@@ -34,6 +34,7 @@ from .meraki_data_coordinator import MerakiDataCoordinator
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .services.network_control_service import NetworkControlService
+from .web_api import async_setup_api
 from .web_server import MerakiWebServer
 from .webhook import async_register_webhook, async_unregister_webhook
 
@@ -149,6 +150,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Register frontend panel
     await async_register_static_path(hass)
     await async_register_panel(hass, entry)
+    async_setup_api(hass)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
