@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import DeviceView from './DeviceView';
+import DeviceTable from './DeviceTable';
 import SSIDView from './SSIDView';
 
 // Define the types for our data
@@ -34,9 +34,10 @@ interface NetworkViewProps {
     devices: Device[];
   };
   onToggle: (networkId: string, enabled: boolean) => void;
+  setActiveView: (view: { view: string; deviceId?: string }) => void;
 }
 
-const NetworkView: React.FC<NetworkViewProps> = ({ data, onToggle }) => {
+const NetworkView: React.FC<NetworkViewProps> = ({ data, onToggle, setActiveView }) => {
   const [openNetworkId, setOpenNetworkId] = useState<string | null>(null);
 
   const handleNetworkClick = (networkId: string) => {
@@ -95,8 +96,9 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, onToggle }) => {
             </div>
             {isOpen && network.is_enabled && (
               <div className="card-content">
-                <DeviceView
+                <DeviceTable
                   devices={devices.filter((d) => d.networkId === network.id)}
+                  setActiveView={setActiveView}
                 />
                 {network.ssids && network.ssids.length > 0 && (
                   <>
