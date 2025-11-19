@@ -178,7 +178,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if entry_data:
         if "webhook_id" in entry.data:
             api_client = entry_data[DATA_CLIENT]
-            await async_unregister_webhook(hass, entry.data["webhook_id"], api_client)
+            webhook_url = get_webhook_url(hass, entry.data["webhook_id"])
+            await async_unregister_webhook(hass, webhook_url, api_client)
 
         if "web_server" in entry_data:
             server = entry_data["web_server"]
