@@ -1,3 +1,12 @@
+# [2.0.0-beta.66](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.65...v2.0.0-beta.66) (2025-11-19)
+
+
+### Bug Fixes
+
+* **websockets:** Register web API to resolve unknown command error ([ebf7359](https://github.com/brewmarsh/meraki-homeassistant/commit/ebf7359763c376ceafc88704d2d726eab62b9794))
+
+
+
 # [2.0.0-beta.65](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.64...v2.0.0-beta.65) (2025-11-18)
 
 
