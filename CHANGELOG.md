@@ -1,3 +1,7 @@
+# [2.0.0-beta.68](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.67...v2.0.0-beta.68) (2025-11-19)
+
+
+
 # [2.0.0-beta.67](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.66...v2.0.0-beta.67) (2025-11-19)
 
 
