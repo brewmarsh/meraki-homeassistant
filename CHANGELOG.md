@@ -1,16 +1,3 @@
-# [2.0.0-beta.68](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.67...v2.0.0-beta.68) (2025-11-19)
-
-
-
-# [2.0.0-beta.67](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.66...v2.0.0-beta.67) (2025-11-19)
-
-
-### Features
-
-* **web-ui:** add device icons and entity links ([3f7f477](https://github.com/brewmarsh/meraki-homeassistant/commit/3f7f47700b926ccc4557267debcb976c914367d3))
-
-
-
 # [2.0.0-beta.66](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.65...v2.0.0-beta.66) (2025-11-19)
 
 

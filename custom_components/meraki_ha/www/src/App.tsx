@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Dashboard from './components/Dashboard';
+import NetworkView from './components/NetworkView';
 import DeviceView from './components/DeviceView';
 
 // Define the types for our data
@@ -19,6 +19,21 @@ const App: React.FC<AppProps> = () => {
   });
 
   useEffect(() => {
+    if (window.location.hostname === 'localhost') {
+        setData({
+          "networks": [
+            { "id": "N_12345", "name": "Main Office", "is_enabled": true, "ssids": [] }
+          ],
+          devices: [
+            { name: 'Living Room AP', model: 'MR33', serial: 'Q2JD-XXXX-XXXX', status: 'online', entity_id: 'switch.living_room_ap', networkId: 'N_12345' },
+            { name: 'Office Switch', model: 'MS220-8P', serial: 'Q2HD-XXXX-XXXX', status: 'online', entity_id: 'switch.office_switch', networkId: 'N_12345' },
+            { name: 'Front Door Camera', model: 'MV12', serial: 'Q2FD-XXXX-XXXX', status: 'online', entity_id: 'camera.front_door_camera', networkId: 'N_12345' },
+          ],
+          ssids: [],
+        });
+        setLoading(false);
+        return;
+    }
     let accessToken = localStorage.getItem('meraki_ha_llat');
     if (!accessToken) {
       accessToken = prompt(
@@ -103,11 +118,16 @@ const App: React.FC<AppProps> = () => {
     return <div className="p-4 text-red-500">Error: {error}</div>;
   }
 
+  const handleToggle = (networkId: string, enabled: boolean) => {
+    // This is a placeholder. In a real app, you'd send this to the backend.
+    console.log(`Toggled network ${networkId} to ${enabled}`);
+  };
+
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Meraki HA Web UI</h1>
       {activeView.view === 'dashboard' ? (
-        <Dashboard setActiveView={setActiveView} data={data} />
+        <NetworkView data={data} onToggle={handleToggle} setActiveView={setActiveView} />
       ) : (
         <DeviceView
           activeView={activeView}

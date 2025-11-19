@@ -51,7 +51,8 @@ const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => 
             {filteredDevices.map(device => (
               <tr
                 key={device.serial}
-                className="border-b border-light-border dark:border-dark-border"
+                className="border-b border-light-border dark:border-dark-border hover:bg-light-hover dark:hover:bg-dark-hover cursor-pointer"
+                onClick={() => setActiveView({ view: 'device', deviceId: device.serial })}
               >
                 <td className="p-4">
                   <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -60,6 +61,7 @@ const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => 
                       href="#"
                       onClick={(e) => {
                         e.preventDefault();
+                        e.stopPropagation(); // Prevent the row's onClick from firing
                         if (device.entity_id) {
                           handleDeviceClick(device.entity_id);
                         }
