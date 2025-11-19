@@ -215,9 +215,9 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         dev_reg = dr.async_get(self.hass)
         ent_reg = er.async_get(self.hass)
 
-        # Get all devices associated with this config entry
-        current_devices_in_registry = {
-            device
+        # Get identifiers for all devices associated with this config entry
+        device_ids_in_registry = {
+            list(device.identifiers)[0][1]
             for device in dev_reg.devices.values()
             if self.config_entry.entry_id in device.config_entries
         }
@@ -244,22 +244,17 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     if "id" in vlan:
                         latest_valid_identifiers.add(f"vlan_{network_id}_{vlan['id']}")
 
-        # Determine which devices to remove
-        devices_to_remove = {
-            device
-            for device in current_devices_in_registry
-            if list(device.identifiers)[0][1] not in latest_valid_identifiers
-        }
+        # Determine which device identifiers to remove
+        device_ids_to_remove = device_ids_in_registry - latest_valid_identifiers
 
-        for device in devices_to_remove:
-            device_id_to_remove = list(device.identifiers)[0][1]
-            _LOGGER.debug(
-                "Removing device %s and its entities.", device_id_to_remove
-            )
-            entities = er.async_entries_for_device(ent_reg, device.id)
-            for entity in entities:
-                ent_reg.async_remove(entity.entity_id)
-            dev_reg.async_remove_device(device.id)
+        for device_id in device_ids_to_remove:
+            device = dev_reg.async_get_device(identifiers={(DOMAIN, device_id)})
+            if device:
+                _LOGGER.debug("Removing device %s and its entities.", device_id)
+                entities = er.async_entries_for_device(ent_reg, device.id)
+                for entity in entities:
+                    ent_reg.async_remove(entity.entity_id)
+                dev_reg.async_remove_device(device.id)
 
     def _populate_device_entities(self, data: dict[str, Any]) -> None:
         """
