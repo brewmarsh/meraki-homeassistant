@@ -47,7 +47,7 @@ OPTIONS_SCHEMA = vol.Schema(
             selector.SelectSelectorConfig(
                 options=[],
                 multiple=True,
-                custom_value=False,
+                custom_value=True,
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
         ),
