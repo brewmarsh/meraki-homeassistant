@@ -45,6 +45,8 @@ class DevicesEndpoints:
             A list of clients.
 
         """
+        if self._api_client.dashboard is None:
+            return []
         clients = await self._api_client.run_sync(
             self._api_client.dashboard.devices.getDeviceClients,
             serial,
@@ -69,6 +71,8 @@ class DevicesEndpoints:
             The device details.
 
         """
+        if self._api_client.dashboard is None:
+            return {}
         device = await self._api_client.run_sync(
             self._api_client.dashboard.devices.getDevice,
             serial=serial,
@@ -94,6 +98,8 @@ class DevicesEndpoints:
             The updated device.
 
         """
+        if self._api_client.dashboard is None:
+            return {}
         device = await self._api_client.run_sync(
             self._api_client.dashboard.devices.updateDevice,
             serial=serial,

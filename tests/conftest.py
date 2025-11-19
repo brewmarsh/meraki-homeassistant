@@ -49,7 +49,10 @@ def prevent_socket_and_camera_load() -> Generator[None, None, None]:
     """Patch asyncio to prevent opening a real socket."""
     from unittest.mock import MagicMock, patch
 
-    with patch(
-        "asyncio.base_events.BaseEventLoop.create_server", new_callable=AsyncMock
-    ), patch("turbojpeg.TurboJPEG", MagicMock()):
+    with (
+        patch(
+            "asyncio.base_events.BaseEventLoop.create_server", new_callable=AsyncMock
+        ),
+        patch("turbojpeg.TurboJPEG", MagicMock()),
+    ):
         yield
