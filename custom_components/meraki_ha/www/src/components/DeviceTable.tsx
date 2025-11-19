@@ -8,10 +8,26 @@ interface DeviceTableProps {
 const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
+  const getDeviceIcon = (model: string) => {
+    if (model?.startsWith('MR')) return 'mdi:access-point';
+    if (model?.startsWith('MS')) return 'mdi:lan';
+    if (model?.startsWith('MV')) return 'mdi:cctv';
+    return 'mdi:help-circle';
+  };
+
   const filteredDevices = devices.filter(device =>
     device.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     device.serial?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleDeviceClick = (entityId: string) => {
+    const event = new CustomEvent('hass-more-info', {
+      bubbles: true,
+      composed: true,
+      detail: { entityId },
+    });
+    window.dispatchEvent(event);
+  };
 
   return (
     <div className="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md">
@@ -35,10 +51,25 @@ const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => 
             {filteredDevices.map(device => (
               <tr
                 key={device.serial}
-                className="border-b border-light-border dark:border-dark-border cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-                onClick={() => setActiveView({ view: 'device', deviceId: device.serial })}
+                className="border-b border-light-border dark:border-dark-border"
               >
-                <td className="p-4">{device.name || 'N/A'}</td>
+                <td className="p-4">
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <ha-icon icon={getDeviceIcon(device.model)} style={{ marginRight: '8px' }}></ha-icon>
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (device.entity_id) {
+                          handleDeviceClick(device.entity_id);
+                        }
+                      }}
+                      className="text-blue-500 hover:underline"
+                    >
+                      {device.name || 'N/A'}
+                    </a>
+                  </div>
+                </td>
                 <td className="p-4">{device.model || 'N/A'}</td>
                 <td className="p-4 capitalize">{device.status || 'N/A'}</td>
               </tr>
