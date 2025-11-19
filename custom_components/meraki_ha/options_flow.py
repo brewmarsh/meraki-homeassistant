@@ -96,11 +96,19 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
         for key, value in schema.schema.items():
             key_name = key.schema
             # 'key.schema' is the name of the option (e.g., 'scan_interval')
-            if key_name in defaults:
-                # Create a new voluptuous key (e.g., vol.Required) with the
-                # default value set to the existing option value.
-                key = type(key)(key.schema, default=defaults[key.schema])
+            if key_name == CONF_IGNORED_NETWORKS:
+                current = defaults.get(CONF_IGNORED_NETWORKS, [])
 
+                # Normalize to a list
+                if current is None:
+                    current = []
+                elif isinstance(current, str):
+                    current = [x.strip() for x in current.split(",") if x.strip()]
+
+                key = type(key)(key.schema, default=current)
+
+            elif key_name in defaults:
+                key = type(key)(key.schema, default=defaults[key.schema])
             if key_name == CONF_IGNORED_NETWORKS and isinstance(
                 value, selector.SelectSelector
             ):
