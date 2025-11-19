@@ -123,14 +123,23 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
         # The payload for the API call uses the `_attribute_to_check`.
         payload = {self._attribute_to_check: value}
 
-        # "Fire and forget" API call.
-        self.hass.async_create_task(
-            self._meraki_client.wireless.update_network_wireless_ssid(
+        try:
+            await self._meraki_client.wireless.update_network_wireless_ssid(
                 network_id=self._network_id,
                 number=self._ssid_number,
                 **payload,
             )
-        )
+        except Exception as e:
+            _LOGGER.error(
+                "Failed to update SSID %s: %s",
+                self.name,
+                e,
+                exc_info=True,
+            )
+            # Revert optimistic update on failure
+            self._attr_is_on = not value
+            self.async_write_ha_state()
+            return
 
         # Register a pending update to prevent overwriting the optimistic state
         self.coordinator.register_update_pending(self.unique_id)
