@@ -79,7 +79,7 @@ jobs:
 
       - name: Upload Release Notes
         if: steps.increment.outputs.new_version != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: release-notes
           path: RELEASE_NOTES.md
