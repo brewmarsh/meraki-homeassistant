@@ -17,7 +17,7 @@ jobs:
       new_version: ${{ steps.increment.outputs.new_version }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           ref: 'main'
@@ -26,7 +26,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '20'
 
@@ -68,7 +68,7 @@ jobs:
 
       - name: Commit and push changes
         if: steps.increment.outputs.new_version != ''
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }} and CHANGELOG'
           file_pattern: 'custom_components/meraki_ha/manifest.json CHANGELOG.md package.json .bumpversion.cfg package-lock.json'
@@ -79,7 +79,7 @@ jobs:
 
       - name: Upload Release Notes
         if: steps.increment.outputs.new_version != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: release-notes
           path: RELEASE_NOTES.md
@@ -92,7 +92,7 @@ jobs:
       contents: write
     steps:
       - name: Download Release Notes
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: release-notes
 
