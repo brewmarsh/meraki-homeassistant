@@ -702,6 +702,9 @@ class MerakiAPIClient:
             A dictionary containing the events and next page token.
 
         """
+        if not self.dashboard:
+            raise MerakiInformationalError("Dashboard API not initialized")
+
         return await self._run_with_semaphore(
             self.run_sync(
                 self.dashboard.networks.getNetworkEvents,

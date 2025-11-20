@@ -1,9 +1,10 @@
-import time
 import http.server
+import os
 import socketserver
 import threading
-import os
-from playwright.sync_api import sync_playwright, expect
+import time
+
+from playwright.sync_api import expect, sync_playwright
 
 # Set up a simple HTTP server to serve the verification.html
 PORT = 8080
