@@ -9,9 +9,14 @@ const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => 
   const [searchTerm, setSearchTerm] = useState('');
 
   const getDeviceIcon = (model: string) => {
-    if (model?.startsWith('MR')) return 'mdi:access-point';
-    if (model?.startsWith('MS')) return 'mdi:lan';
-    if (model?.startsWith('MV')) return 'mdi:cctv';
+    const m = model?.toUpperCase() || '';
+    if (m.startsWith('MR')) return 'mdi:wifi';
+    if (m.startsWith('MS')) return 'mdi:lan';
+    if (m.startsWith('MV')) return 'mdi:cctv';
+    if (m.startsWith('MX')) return 'mdi:shield-check';
+    if (m.startsWith('MG')) return 'mdi:signal-cellular-outline';
+    if (m.startsWith('MT')) return 'mdi:thermometer';
+    if (m.startsWith('Z')) return 'mdi:router-wireless';
     return 'mdi:help-circle';
   };
 
@@ -20,15 +25,21 @@ const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => 
     device.serial?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDeviceClick = (e: React.MouseEvent<HTMLAnchorElement>, entityId: string) => {
+  const handleDeviceClick = (e: React.MouseEvent, entityId: string) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent the row's onClick from firing
+    e.stopPropagation();
     const event = new CustomEvent('hass-more-info', {
       bubbles: true,
       composed: true,
       detail: { entityId },
     });
     e.currentTarget.dispatchEvent(event);
+  };
+
+  const handleDetailsClick = (e: React.MouseEvent, serial: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setActiveView({ view: 'device', deviceId: serial });
   };
 
   return (
@@ -47,33 +58,39 @@ const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => 
               <th className="text-left p-4 font-semibold">Name</th>
               <th className="text-left p-4 font-semibold">Model</th>
               <th className="text-left p-4 font-semibold">Status</th>
+              <th className="text-center p-4 font-semibold w-16">Details</th>
             </tr>
           </thead>
-          <tbody>
+            <tbody>
             {filteredDevices.map(device => (
               <tr
                 key={device.serial}
                 className="border-b border-light-border dark:border-dark-border hover:bg-light-hover dark:hover:bg-dark-hover cursor-pointer"
-                onClick={() => setActiveView({ view: 'device', deviceId: device.serial })}
+                onClick={(e) => {
+                  if (device.entity_id) {
+                    handleDeviceClick(e, device.entity_id);
+                  } else {
+                    handleDetailsClick(e, device.serial);
+                  }
+                }}
               >
                 <td className="p-4">
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <ha-icon icon={getDeviceIcon(device.model)} style={{ marginRight: '8px' }}></ha-icon>
-                    <a
-                      href="#"
-                      onClick={(e) => {
-                        if (device.entity_id) {
-                          handleDeviceClick(e, device.entity_id);
-                        }
-                      }}
-                      className="text-blue-500 hover:underline"
-                    >
-                      {device.name || 'N/A'}
-                    </a>
+                    <span className="font-medium">{device.name || 'N/A'}</span>
                   </div>
                 </td>
                 <td className="p-4">{device.model || 'N/A'}</td>
                 <td className="p-4 capitalize">{device.status || 'N/A'}</td>
+                <td className="p-4 text-center">
+                  <button
+                    onClick={(e) => handleDetailsClick(e, device.serial)}
+                    className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 transition-colors"
+                    title="View Details"
+                  >
+                    <ha-icon icon="mdi:information-outline"></ha-icon>
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
