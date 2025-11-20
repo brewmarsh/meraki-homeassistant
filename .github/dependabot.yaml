@@ -21,10 +21,5 @@ updates:
     labels:
       - "runner-update"
       - "dependencies"
-    # Specific configuration to monitor the ARG version
-    dockerfile-config:
-      args:
-        # Monitored ARG variable name (must match your Dockerfile)
-        - RUNNER_VERSION
     commit-message:
       prefix: '[patch]'
