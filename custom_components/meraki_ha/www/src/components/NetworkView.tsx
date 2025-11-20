@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import DeviceTable from './DeviceTable';
 import SSIDView from './SSIDView';
+import EventLog from './EventLog';
 
 // Define the types for our data
 interface SSID {
@@ -112,6 +113,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, onToggle, setActiveView
                     <SSIDView ssids={network.ssids} />
                   </>
                 )}
+                <EventLog networkId={network.id} />
               </div>
             )}
           </ha-card>
