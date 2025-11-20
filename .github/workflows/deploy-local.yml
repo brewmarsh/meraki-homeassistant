@@ -136,14 +136,18 @@ jobs:
 
           # Step 1b: Trigger Restart
           echo "Triggering Home Assistant restart..."
-          RESTART_STATUS=$(curl -sS -o /dev/null -w "%{http_code}" -X POST \
+          RESTART_RESPONSE_FILE=$(mktemp)
+          RESTART_STATUS=$(curl -sS -o "$RESTART_RESPONSE_FILE" -w "%{http_code}" -X POST \
               -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
               -H "Content-Type: application/json" \
               -d "{}" \
               "$HA_URL/api/services/home_assistant/restart")
+          RESTART_RESPONSE=$(cat "$RESTART_RESPONSE_FILE")
+          rm "$RESTART_RESPONSE_FILE"
 
           if [[ "$RESTART_STATUS" -lt 200 || "$RESTART_STATUS" -ge 300 ]]; then
               echo "Error: API call to restart failed with HTTP status code $RESTART_STATUS."
+              echo "Response: $RESTART_RESPONSE"
               exit 1
           fi
 
