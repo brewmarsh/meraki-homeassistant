@@ -13,3 +13,4 @@ node_modules/
 .coverage
 coverage.xml
 custom_components/meraki_ha/www/node_modules
+message_to_user.txt

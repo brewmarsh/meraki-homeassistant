@@ -154,4 +154,3 @@ jobs:
           echo "Home Assistant restart command sent. Waiting for it to come back online..."
           # Add a sleep to allow Home Assistant to restart
           sleep 60 # Wait for 60 seconds. Adjust as needed.
-          echo "Restart command sent successfully. Home Assistant should be restarting now."
