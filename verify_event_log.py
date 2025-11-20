@@ -24,8 +24,8 @@ def run_server():
         print(f"Serving at port {PORT}")
         httpd.serve_forever()
 
-def verify_frontend():
-    """Run Playwright to verify the frontend functionality."""
+def verify_event_log():
+    """Run Playwright to verify the Event Log functionality."""
     # Start the server in a separate thread
     thread = threading.Thread(target=run_server)
     thread.daemon = True
@@ -47,44 +47,28 @@ def verify_frontend():
             page.goto(f"http://localhost:{PORT}/verification.html")
 
             # Wait for the network card to appear
-            # The mock data has network name "Main Office"
-            # The header text format is "[Network] Main Office"
             network_header = page.locator("text=[Network] Main Office")
             network_header.wait_for(timeout=5000)
 
-            # Click to expand
+            # Click to expand the network card
             print("Clicking network header to expand...")
             network_header.click()
 
-            # Wait for the device table to load
-            # The mock data in App.tsx has 'Living Room AP'
-            page.wait_for_selector("text=Living Room AP", timeout=5000)
-            print("Device table loaded.")
+            # Wait for the Event Log section to appear
+            # We look for "Recent Events" header which is in EventLog.tsx
+            page.wait_for_selector("text=Recent Events", timeout=5000)
+            print("Event Log section found.")
 
-            # Verify MR icon (mdi:wifi) for MR33
-            mr_icon = page.locator("tr:has-text('MR33') ha-icon")
-            expect(mr_icon).to_have_attribute("icon", "mdi:wifi")
-            print("Verified MR icon is mdi:wifi")
+            # Verify mock events are displayed
+            # "Client connected"
+            expect(page.locator("text=Client connected")).to_be_visible()
+            # "Device came online"
+            expect(page.locator("text=Device came online")).to_be_visible()
 
-            # Verify MS icon (mdi:lan) for MS220-8P
-            ms_icon = page.locator("tr:has-text('MS220-8P') ha-icon")
-            expect(ms_icon).to_have_attribute("icon", "mdi:lan")
-            print("Verified MS icon is mdi:lan")
-
-            # Verify MV icon (mdi:cctv) for MV12
-            mv_icon = page.locator("tr:has-text('MV12') ha-icon")
-            expect(mv_icon).to_have_attribute("icon", "mdi:cctv")
-            print("Verified MV icon is mdi:cctv")
-
-            # Verify Details button exists
-            details_btn = page.locator(
-                "tr:has-text('MR33') button[title='View Details']"
-            )
-            expect(details_btn).to_be_visible()
-            print("Verified Details button exists")
+            print("Mock events verified.")
 
             os.makedirs("verification", exist_ok=True)
-            screenshot_path = os.path.abspath("verification/verification.png")
+            screenshot_path = os.path.abspath("verification/event_log_verification.png")
             page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot saved to {screenshot_path}")
 
@@ -96,4 +80,4 @@ def verify_frontend():
             browser.close()
 
 if __name__ == "__main__":
-    verify_frontend()
+    verify_event_log()
