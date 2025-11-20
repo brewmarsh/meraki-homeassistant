@@ -92,7 +92,7 @@ jobs:
       contents: write
     steps:
       - name: Download Release Notes
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: release-notes
 
