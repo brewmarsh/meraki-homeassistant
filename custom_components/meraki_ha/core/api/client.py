@@ -697,7 +697,8 @@ class MerakiAPIClient:
             starting_after: Token for next page.
             ending_before: Token for previous page.
 
-        Returns:
+        Returns
+        -------
             A dictionary containing the events and next page token.
 
         """

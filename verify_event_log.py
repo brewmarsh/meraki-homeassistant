@@ -1,19 +1,22 @@
 import time
-from playwright.sync_api import sync_playwright, expect
 import http.server
 import socketserver
 import threading
 import os
+from playwright.sync_api import sync_playwright, expect
 
 # Set up a simple HTTP server to serve the verification.html
 PORT = 8080
 DIRECTORY = "custom_components/meraki_ha/www"
 
 class Handler(http.server.SimpleHTTPRequestHandler):
+    """A simple HTTP request handler that serves files from a specific directory."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
 def run_server():
+    """Start the HTTP server on the specified port."""
     # Allow reusing address
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("", PORT), Handler) as httpd:
@@ -21,6 +24,7 @@ def run_server():
         httpd.serve_forever()
 
 def verify_event_log():
+    """Run Playwright to verify the Event Log functionality."""
     # Start the server in a separate thread
     thread = threading.Thread(target=run_server)
     thread.daemon = True
