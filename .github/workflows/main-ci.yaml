@@ -102,6 +102,29 @@ jobs:
           source .venv/bin/activate
           pip-audit --ignore-vuln PYSEC-2020-49 --ignore-vuln PYSEC-2022-42969 --ignore-vuln GHSA-g7vv-2v7x-gj9p
 
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        working-directory: custom_components/meraki_ha/www
+        run: npm ci
+      - name: Build frontend
+        working-directory: custom_components/meraki_ha/www
+        run: npm run build
+      - name: Check for uncommitted changes
+        run: |
+          if [[ `git status --porcelain` ]]; then
+            echo "Frontend assets are out of date. Please run 'npm run build' in custom_components/meraki_ha/www and commit the changes."
+            git status
+            git diff
+            exit 1
+          fi
+
   validate-hacs:
     runs-on: 'ubuntu-latest'
     steps:
