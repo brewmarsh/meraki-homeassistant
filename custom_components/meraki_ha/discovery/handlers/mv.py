@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 from ...binary_sensor.device.camera_motion import MerakiMotionSensor
 from ...button.device.camera_snapshot import MerakiSnapshotButton
 from ...camera import MerakiCamera
+from ...const import CONF_ENABLE_CAMERA_ENTITIES
 from ...sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
@@ -80,6 +81,10 @@ class MVHandler(BaseDeviceHandler):
         """Discover entities for a camera device."""
         entities: list[Entity] = []
         serial = self.device["serial"]
+
+        # Check if camera entities are enabled
+        if not self._config_entry.options.get(CONF_ENABLE_CAMERA_ENTITIES, True):
+            return entities
 
         # Always create the base camera entity
         entities.append(

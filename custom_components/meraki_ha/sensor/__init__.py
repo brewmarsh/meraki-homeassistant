@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..const import DOMAIN
+from ..const import CONF_ENABLE_ORG_SENSORS, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,6 +23,27 @@ async def async_setup_entry(
 
     discovered_entities = entry_data.get("entities", [])
     sensor_entities = [e for e in discovered_entities if isinstance(e, SensorEntity)]
+
+    # Filter out organization sensors if disabled
+    # Org sensors are typically identifiable by their unique_id starting with org prefix
+    # or their class.
+    # Based on inspection, org sensors are added to discovered_entities.
+    # We can filter them here.
+
+    if not config_entry.options.get(CONF_ENABLE_ORG_SENSORS, True):
+        _LOGGER.debug("Organization sensors are disabled.")
+        # Identify org sensors.
+        # In MerakiOrganizationEntity, unique_id is f"{org_id}_{key}" usually.
+        # Let's check the class name or module of the entity.
+        filtered_entities = []
+        for entity in sensor_entities:
+            # Check if it is an org sensor
+            # Using class name check or module check
+            if "MerakiOrganization" in entity.__class__.__name__:
+                _LOGGER.debug("Skipping organization sensor %s", entity.name)
+                continue
+            filtered_entities.append(entity)
+        sensor_entities = filtered_entities
 
     if sensor_entities:
         _LOGGER.debug("Adding %d sensor entities", len(sensor_entities))

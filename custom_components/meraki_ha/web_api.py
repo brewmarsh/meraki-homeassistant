@@ -10,7 +10,7 @@ from typing import Any
 import aiofiles  # type: ignore[import-untyped]
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
-from voluptuous import ALLOW_EXTRA, All, Required, Schema
+from voluptuous import ALLOW_EXTRA, All, Optional, Required, Schema
 
 from .const import CONF_ENABLED_NETWORKS, DOMAIN
 from .meraki_data_coordinator import MerakiDataCoordinator
@@ -81,6 +81,19 @@ def async_setup_api(hass: HomeAssistant) -> None:
     )
     websocket_api.async_register_command(
         hass,
+        "meraki_ha/update_options",
+        handle_update_options,
+        Schema(
+            {
+                Required("type"): All(str, "meraki_ha/update_options"),
+                Required("config_entry_id"): str,
+                Required("options"): dict,
+            },
+            extra=ALLOW_EXTRA,
+        ),
+    )
+    websocket_api.async_register_command(
+        hass,
         "meraki_ha/get_network_events",
         handle_get_network_events,
         Schema(
@@ -88,8 +101,8 @@ def async_setup_api(hass: HomeAssistant) -> None:
                 Required("type"): All(str, "meraki_ha/get_network_events"),
                 Required("config_entry_id"): str,
                 Required("network_id"): str,
-                "per_page": int,
-                "starting_after": str,
+                Optional("per_page", default=10): int,
+                Optional("starting_after"): str,
             },
             extra=ALLOW_EXTRA,
         ),
@@ -138,6 +151,7 @@ async def handle_get_config(
         {
             **coordinator.data,
             "enabled_networks": enabled_networks,
+            "options": config_entry.options,
             "config_entry_id": config_entry_id,
             "version": version,
         },
@@ -230,6 +244,43 @@ async def handle_update_enabled_networks(
         options={
             **config_entry.options,
             CONF_ENABLED_NETWORKS: enabled_networks,
+        },
+    )
+    connection.send_result(msg["id"], {"success": True})
+
+
+@websocket_api.async_response
+async def handle_update_options(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """
+    Handle update_options command.
+
+    Args:
+    ----
+        hass: The Home Assistant instance.
+        connection: The WebSocket connection.
+        msg: The WebSocket message.
+
+    """
+    config_entry_id = msg["config_entry_id"]
+    new_options = msg["options"]
+    if config_entry_id not in hass.data[DOMAIN]:
+        connection.send_error(msg["id"], "not_found", "Config entry not found")
+        return
+
+    config_entry = hass.config_entries.async_get_entry(config_entry_id)
+    if not config_entry:
+        connection.send_error(msg["id"], "not_found", "Config entry not found")
+        return
+
+    hass.config_entries.async_update_entry(
+        config_entry,
+        options={
+            **config_entry.options,
+            **new_options,
         },
     )
     connection.send_result(msg["id"], {"success": True})
