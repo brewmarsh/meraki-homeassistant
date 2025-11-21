@@ -144,6 +144,11 @@ jobs:
       - name: Install dependencies
         working-directory: custom_components/meraki_ha/www
         run: npm ci
+      - name: Convert line endings to LF
+        working-directory: custom_components/meraki_ha/www
+        run: |
+          dos2unix index.html
+          dos2unix meraki-panel.js
       - name: Build frontend
         working-directory: custom_components/meraki_ha/www
         run: npm run build
