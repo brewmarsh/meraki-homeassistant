@@ -349,6 +349,8 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
             self._populate_device_entities(data)
 
+            _LOGGER.info("Meraki networks: %s", data.get("networks"))
+
             self.last_successful_update = datetime.now()
             self.last_successful_data = data
             return data
