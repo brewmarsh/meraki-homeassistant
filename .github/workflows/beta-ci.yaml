@@ -133,30 +133,25 @@ jobs:
         with:
           category: 'integration'
 
-  build-frontend:
-    needs: setup
+  frontend-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - name: Install dependencies and build
+          node-version: '20'
+      - name: Install dependencies
+        working-directory: custom_components/meraki_ha/www
+        run: npm ci
+      - name: Build frontend
+        working-directory: custom_components/meraki_ha/www
+        run: npm run build
+      - name: Check for uncommitted changes
         run: |
-          cd custom_components/meraki_ha/www
-          npm install
-          npm run build
-      - name: Copy built file
-        run: |
-          cd custom_components/meraki_ha/www
-          cp dist/assets/index-*.js meraki-panel.js
-      - name: Configure git
-        run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@github.com'
-      - name: Commit and push changes
-        run: |
-          git add custom_components/meraki_ha/www/meraki-panel.js
-          git commit -m "chore(frontend): build and deploy updated web UI" || echo "No changes to commit"
-          git push
+          if [[ `git status --porcelain` ]]; then
+            echo "Frontend assets are out of date. Please run 'npm run build' in custom_components/meraki_ha/www and commit the changes."
+            git status
+            git diff
+            exit 1
+          fi
