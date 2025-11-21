@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Checkout repository
         # Checks out your repository code into $GITHUB_WORKSPACE.
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Copy files to destination folder (rsync)
         # Use 'bash' and 'sudo rsync' to bypass symlink and permission issues.
