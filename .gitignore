@@ -28,3 +28,4 @@ custom_components/meraki_ha/www/dist/
 
 # Local configuration
 config/
+blocked_message.md
