@@ -19,6 +19,7 @@ from .const import (
     DOMAIN,
 )
 from .core.api.client import MerakiAPIClient as ApiClient
+from .core.errors import ApiClientCommunicationError
 from .types import MerakiDevice, MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
@@ -352,16 +353,20 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.last_successful_update = datetime.now()
             self.last_successful_data = data
             return data
-        except Exception as err:
-            if self.last_successful_update and (
-                datetime.now() - self.last_successful_update
-            ) < timedelta(minutes=30):
+        except ApiClientCommunicationError as err:
+            # If we have successfully fetched data before, log a warning and return
+            # the stale data. Otherwise, raise UpdateFailed to indicate that the
+            # integration cannot start.
+            if self.last_successful_data:
                 _LOGGER.warning(
-                    "Failed to fetch new data, using stale data. Error: %s",
+                    "Could not connect to Meraki API, using stale data. "
+                    "This is expected if the internet connection is down. "
+                    "Error: %s",
                     err,
                 )
-                return self.data
-
+                return self.last_successful_data
+            raise UpdateFailed(f"Could not connect to Meraki API: {err}") from err
+        except Exception as err:
             _LOGGER.error(
                 "Unexpected error fetching Meraki data: %s",
                 err,
