@@ -10,11 +10,13 @@ from playwright.sync_api import expect, sync_playwright
 PORT = 8080
 DIRECTORY = "custom_components/meraki_ha/www"
 
+
 class Handler(http.server.SimpleHTTPRequestHandler):
     """A simple HTTP request handler that serves files from a specific directory."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
+
 
 def run_server():
     """Start the HTTP server on the specified port."""
@@ -23,6 +25,7 @@ def run_server():
     with socketserver.TCPServer(("", PORT), Handler) as httpd:
         print(f"Serving at port {PORT}")
         httpd.serve_forever()
+
 
 def verify_event_log():
     """Run Playwright to verify the Event Log functionality."""
@@ -78,6 +81,7 @@ def verify_event_log():
             raise
         finally:
             browser.close()
+
 
 if __name__ == "__main__":
     verify_event_log()

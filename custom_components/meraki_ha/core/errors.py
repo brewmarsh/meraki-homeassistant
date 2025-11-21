@@ -1,46 +1,29 @@
-"""Core errors and exceptions for the Meraki integration."""
+"""Custom exceptions for the Meraki HA integration."""
 
 
-class MerakiError(Exception):
-    """Base exception for Meraki integration."""
-
-    def __init__(self, message: str = "") -> None:
-        """Initialize the exception."""
-        super().__init__(message)
-        self.message = message
+class MerakiHAException(Exception):
+    """Base exception for Meraki HA."""
 
 
-class MerakiConnectionError(MerakiError):
-    """Error to indicate a connection problem."""
-
-    pass
+class ApiClientCommunicationError(MerakiHAException):
+    """Exception to indicate a communication error with the Meraki API."""
 
 
-class MerakiAuthenticationError(MerakiError):
-    """Error to indicate an authentication problem."""
-
-    pass
+class MerakiInformationalError(MerakiHAException):
+    """An informational 'error' from the Meraki API."""
 
 
-class MerakiConfigError(MerakiError):
-    """Error to indicate a configuration problem."""
-
-    pass
+class MerakiAuthenticationError(MerakiHAException):
+    """Exception to indicate an authentication error with the Meraki API."""
 
 
-class MerakiDeviceError(MerakiError):
-    """Error to indicate a device-specific problem."""
-
-    pass
+class MerakiConnectionError(MerakiHAException):
+    """Exception to indicate a connection error with the Meraki API."""
 
 
-class MerakiNetworkError(MerakiError):
-    """Error to indicate a network-specific problem."""
-
-    pass
+class MerakiDeviceError(MerakiHAException):
+    """Exception to indicate a device-specific error with the Meraki API."""
 
 
-class MerakiInformationalError(MerakiError):
-    """Error to indicate an informational/non-critical problem."""
-
-    pass
+class MerakiNetworkError(MerakiHAException):
+    """Exception to indicate a network-specific error with the Meraki API."""
