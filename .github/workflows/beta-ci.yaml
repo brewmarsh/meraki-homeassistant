@@ -149,6 +149,8 @@ jobs:
         run: npm run build
       - name: Check for uncommitted changes
         run: |
+          # Show diff to help debug why assets are out of date
+          git diff
           if [[ `git status --porcelain` ]]; then
             echo "Frontend assets are out of date. Please run 'npm run build' in custom_components/meraki_ha/www and commit the changes."
             git status
