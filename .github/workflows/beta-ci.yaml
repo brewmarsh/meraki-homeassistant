@@ -141,21 +141,28 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: '20'
-      - name: Install dependencies
-        working-directory: custom_components/meraki_ha/www
-        run: npm ci
-      - name: Convert line endings to LF
+      - name: Convert line endings to LF and remove BOM
         working-directory: custom_components/meraki_ha/www
         run: |
+          # Remove BOM (Byte Order Mark) if present, then convert to LF
+          sed -i '1s/^\xEF\xBB\xBF//' index.html
           dos2unix index.html
           dos2unix meraki-panel.js
       - name: Build frontend
         working-directory: custom_components/meraki_ha/www
         run: npm run build
+      - name: Capture frontend diff for debugging
+        working-directory: custom_components/meraki_ha/www
+        run: |
+          git diff > frontend-diff.txt
+          cat frontend-diff.txt
+      - name: Upload frontend diff artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-diff
+          path: custom_components/meraki_ha/www/frontend-diff.txt
       - name: Check for uncommitted changes
         run: |
-          # Show diff to help debug why assets are out of date
-          git diff
           if [[ `git status --porcelain` ]]; then
             echo "Frontend assets are out of date. Please run 'npm run build' in custom_components/meraki_ha/www and commit the changes."
             git status
