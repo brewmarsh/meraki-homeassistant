@@ -18,7 +18,7 @@ import meraki
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
-from ...core.errors import MerakiInformationalError
+from ...core.errors import ApiClientCommunicationError, MerakiInformationalError
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
@@ -115,8 +115,13 @@ class MerakiAPIClient:
             The result of the function.
 
         """
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, partial(func, *args, **kwargs))
+        try:
+            loop = asyncio.get_event_loop()
+            return await loop.run_in_executor(None, partial(func, *args, **kwargs))
+        except meraki.APIError as e:
+            raise ApiClientCommunicationError(
+                f"Error communicating with Meraki API: {e}"
+            ) from e
 
     async def _run_with_semaphore(self, coro: Awaitable[Any]) -> Any:
         """
