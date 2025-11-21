@@ -31,6 +31,7 @@ repos:
 - Frontend bundle files (for example `custom_components/meraki_ha/www/meraki-panel.js`) are generated artifacts produced by the build toolchain. - Use the pre-commit framework to automatically format code and check for common errors. This helps maintain code quality and consistency across the project.
 
 - **Pre-commit hooks:**
+
   - **`ruff`**: For linting and formatting Python code.
   - **`black`**: For Python code formatting. (Note: This is commented out, relying on ruff)
   - **`codespell`**: For checking spelling in text files.

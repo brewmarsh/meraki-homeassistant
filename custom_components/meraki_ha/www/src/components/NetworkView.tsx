@@ -38,7 +38,11 @@ interface NetworkViewProps {
   setActiveView: (view: { view: string; deviceId?: string }) => void;
 }
 
-const NetworkView: React.FC<NetworkViewProps> = ({ data, onToggle, setActiveView }) => {
+const NetworkView: React.FC<NetworkViewProps> = ({
+  data,
+  onToggle,
+  setActiveView,
+}) => {
   const [openNetworkId, setOpenNetworkId] = useState<string | null>(null);
 
   const handleNetworkClick = (networkId: string) => {

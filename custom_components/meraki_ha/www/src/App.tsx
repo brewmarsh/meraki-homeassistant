@@ -22,29 +22,50 @@ const App: React.FC<AppProps> = () => {
 
   const fetchData = () => {
     if (window.location.hostname === 'localhost') {
-        setData({
-          "networks": [
-            { "id": "N_12345", "name": "Main Office", "is_enabled": true, "ssids": [] }
-          ],
-          devices: [
-            { name: 'Living Room AP', model: 'MR33', serial: 'Q2JD-XXXX-XXXX', status: 'online', entity_id: 'switch.living_room_ap', networkId: 'N_12345' },
-            { name: 'Office Switch', model: 'MS220-8P', serial: 'Q2HD-XXXX-XXXX', status: 'online', entity_id: 'switch.office_switch', networkId: 'N_12345' },
-            { name: 'Front Door Camera', model: 'MV12', serial: 'Q2FD-XXXX-XXXX', status: 'online', entity_id: 'camera.front_door_camera', networkId: 'N_12345' },
-          ],
-          ssids: [],
-          options: {
-              enable_device_status: true,
-              enable_org_sensors: true,
-              enable_camera_entities: true,
-              enable_device_sensors: true,
-              enable_network_sensors: true,
-              enable_vlan_sensors: true,
-              enable_port_sensors: true,
-              enable_ssid_sensors: true,
-          }
-        });
-        setLoading(false);
-        return;
+      setData({
+        networks: [
+          { id: 'N_12345', name: 'Main Office', is_enabled: true, ssids: [] },
+        ],
+        devices: [
+          {
+            name: 'Living Room AP',
+            model: 'MR33',
+            serial: 'Q2JD-XXXX-XXXX',
+            status: 'online',
+            entity_id: 'switch.living_room_ap',
+            networkId: 'N_12345',
+          },
+          {
+            name: 'Office Switch',
+            model: 'MS220-8P',
+            serial: 'Q2HD-XXXX-XXXX',
+            status: 'online',
+            entity_id: 'switch.office_switch',
+            networkId: 'N_12345',
+          },
+          {
+            name: 'Front Door Camera',
+            model: 'MV12',
+            serial: 'Q2FD-XXXX-XXXX',
+            status: 'online',
+            entity_id: 'camera.front_door_camera',
+            networkId: 'N_12345',
+          },
+        ],
+        ssids: [],
+        options: {
+          enable_device_status: true,
+          enable_org_sensors: true,
+          enable_camera_entities: true,
+          enable_device_sensors: true,
+          enable_network_sensors: true,
+          enable_vlan_sensors: true,
+          enable_port_sensors: true,
+          enable_ssid_sensors: true,
+        },
+      });
+      setLoading(false);
+      return;
     }
 
     let accessToken = localStorage.getItem('meraki_ha_llat');
@@ -52,7 +73,7 @@ const App: React.FC<AppProps> = () => {
       // Try to get token from hass object if available (usually not in iframe)
       const hass = (window as any).hass;
       if (hass && hass.auth && hass.auth.accessToken) {
-          accessToken = hass.auth.accessToken;
+        accessToken = hass.auth.accessToken;
       }
     }
 
@@ -62,19 +83,23 @@ const App: React.FC<AppProps> = () => {
     // We will keep it but update to handle "options" in response.
 
     if (!accessToken) {
-         accessToken = prompt(
-            'Please enter your Home Assistant Long-Lived Access Token:'
-          );
-          if (accessToken) {
-            localStorage.setItem('meraki_ha_llat', accessToken);
-          } else {
-            setError('No access token provided.');
-            setLoading(false);
-            return;
-          }
+      accessToken = prompt(
+        'Please enter your Home Assistant Long-Lived Access Token:'
+      );
+      if (accessToken) {
+        localStorage.setItem('meraki_ha_llat', accessToken);
+      } else {
+        setError('No access token provided.');
+        setLoading(false);
+        return;
+      }
     }
 
-    const haUrl = (window as any).HA_URL ? (window as any).HA_URL.replace(/^http/, 'ws') : window.location.protocol === 'https:' ? 'wss://' + window.location.host : 'ws://' + window.location.host;
+    const haUrl = (window as any).HA_URL
+      ? (window as any).HA_URL.replace(/^http/, 'ws')
+      : window.location.protocol === 'https:'
+        ? 'wss://' + window.location.host
+        : 'ws://' + window.location.host;
     const wsUrl = `${haUrl}/api/websocket`;
     const socket = new WebSocket(wsUrl);
     let messageId = 1;
@@ -109,22 +134,22 @@ const App: React.FC<AppProps> = () => {
       } else if (message.id === messageId) {
         if (message.type === 'result') {
           if (message.success) {
-              // Check if result is wrapped in 'result' or is the result itself
-              // Based on web_api.py: connection.send_result(msg["id"], { ... })
-              // The HA websocket client returns { id, type: result, success: true, result: { ... } }
-              // So message.result is the data.
+            // Check if result is wrapped in 'result' or is the result itself
+            // Based on web_api.py: connection.send_result(msg["id"], { ... })
+            // The HA websocket client returns { id, type: result, success: true, result: { ... } }
+            // So message.result is the data.
             setData(message.result);
           } else {
-             // This branch might not be reached if success is false, HA sends error type?
-             // Usually HA sends type: "result", success: false, error: { ... }
-             console.error('Failed to fetch Meraki data:', message.error);
-             setError(`Failed to fetch Meraki data: ${message.error?.message}`);
+            // This branch might not be reached if success is false, HA sends error type?
+            // Usually HA sends type: "result", success: false, error: { ... }
+            console.error('Failed to fetch Meraki data:', message.error);
+            setError(`Failed to fetch Meraki data: ${message.error?.message}`);
           }
           setLoading(false);
         } else if (message.type === 'result' && message.success === false) {
-             console.error('Failed to fetch Meraki data:', message.error);
-             setError(`Failed to fetch Meraki data: ${message.error?.message}`);
-             setLoading(false);
+          console.error('Failed to fetch Meraki data:', message.error);
+          setError(`Failed to fetch Meraki data: ${message.error?.message}`);
+          setLoading(false);
         }
       }
     };
@@ -143,7 +168,7 @@ const App: React.FC<AppProps> = () => {
   };
 
   useEffect(() => {
-      fetchData();
+    fetchData();
   }, []);
 
   if (loading) {
@@ -163,16 +188,20 @@ const App: React.FC<AppProps> = () => {
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Meraki HA Web UI</h1>
         <button
-            onClick={() => setShowSettings(true)}
-            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-            title="Settings"
+          onClick={() => setShowSettings(true)}
+          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+          title="Settings"
         >
-            <ha-icon icon="mdi:cog"></ha-icon>
+          <ha-icon icon="mdi:cog"></ha-icon>
         </button>
       </div>
 
       {activeView.view === 'dashboard' ? (
-        <NetworkView data={data} onToggle={handleToggle} setActiveView={setActiveView} />
+        <NetworkView
+          data={data}
+          onToggle={handleToggle}
+          setActiveView={setActiveView}
+        />
       ) : (
         <DeviceView
           activeView={activeView}
@@ -182,11 +211,13 @@ const App: React.FC<AppProps> = () => {
       )}
 
       {showSettings && data && (
-          <Settings
-            options={data.options || {}}
-            configEntryId={(window as any).CONFIG_ENTRY_ID || (data as any).config_entry_id}
-            onClose={() => setShowSettings(false)}
-          />
+        <Settings
+          options={data.options || {}}
+          configEntryId={
+            (window as any).CONFIG_ENTRY_ID || (data as any).config_entry_id
+          }
+          onClose={() => setShowSettings(false)}
+        />
       )}
     </div>
   );

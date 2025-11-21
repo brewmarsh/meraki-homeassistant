@@ -5,7 +5,10 @@ interface DeviceTableProps {
   setActiveView: (view: { view: string; deviceId?: string }) => void;
 }
 
-const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => {
+const DeviceTable: React.FC<DeviceTableProps> = ({
+  devices,
+  setActiveView,
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const getDeviceIcon = (model: string) => {
@@ -20,9 +23,10 @@ const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => 
     return 'mdi:help-circle';
   };
 
-  const filteredDevices = devices.filter(device =>
-    device.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    device.serial?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredDevices = devices.filter(
+    (device) =>
+      device.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      device.serial?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleDeviceClick = (e: React.MouseEvent, entityId: string) => {
@@ -61,8 +65,8 @@ const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => 
               <th className="text-center p-4 font-semibold w-16">Details</th>
             </tr>
           </thead>
-            <tbody>
-            {filteredDevices.map(device => (
+          <tbody>
+            {filteredDevices.map((device) => (
               <tr
                 key={device.serial}
                 className="border-b border-light-border dark:border-dark-border hover:bg-light-hover dark:hover:bg-dark-hover cursor-pointer"
@@ -76,7 +80,10 @@ const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => 
               >
                 <td className="p-4">
                   <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <ha-icon icon={getDeviceIcon(device.model)} style={{ marginRight: '8px' }}></ha-icon>
+                    <ha-icon
+                      icon={getDeviceIcon(device.model)}
+                      style={{ marginRight: '8px' }}
+                    ></ha-icon>
                     <span className="font-medium">{device.name || 'N/A'}</span>
                   </div>
                 </td>

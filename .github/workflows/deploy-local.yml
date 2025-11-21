@@ -42,7 +42,7 @@ jobs:
           sudo mkdir -p "${DestinationPath}"
 
           # 2. Copy files using rsync for robustness
-          # rsync -ah --delete: 
+          # rsync -ah --delete:
           #   -a: archive mode (preserves permissions, timestamps, etc.)
           #   -h: human-readable output
           #   --delete: removes files from destination that aren't in source (ensures clean state)
