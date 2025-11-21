@@ -1,3 +1,12 @@
+# [2.2.0-beta.4](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.3...v2.2.0-beta.4) (2025-11-21)
+
+
+### Bug Fixes
+
+* **release:** install frontend dependencies before build ([ff1acf4](https://github.com/brewmarsh/meraki-homeassistant/commit/ff1acf46f5858010854649089cd8b3ef08176e3f))
+
+
+
 # [2.2.0-beta.3](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.1.0...v2.2.0-beta.3) (2025-11-21)
 
 
