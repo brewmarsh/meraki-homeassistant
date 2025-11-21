@@ -119,9 +119,36 @@ class MerakiAPIClient:
             loop = asyncio.get_event_loop()
             return await loop.run_in_executor(None, partial(func, *args, **kwargs))
         except meraki.APIError as e:
+            _LOGGER.error(
+                "Meraki API Error encountered: %s",
+                e,
+                exc_info=True,
+            )
             raise ApiClientCommunicationError(
                 f"Error communicating with Meraki API: {e}"
             ) from e
+        except Exception as e:
+            _LOGGER.error(
+                "An unexpected error occurred during API call: %s. Type: %s",
+                e,
+                type(e).__name__,
+                exc_info=True,
+            )
+            # Attempt to provide a more user-friendly message if it seems
+            # like a JSON error
+            # like a JSON error
+            # like a JSON error
+            if "JSON" in str(e):  # Heuristic check for JSON-related errors
+                raise ApiClientCommunicationError(
+                    f"Invalid JSON response from Meraki API. Please check Meraki logs or " \
+                    f"network connectivity. Details: {e}"
+                    f"network connectivity. Details: {e}"
+                    f"network connectivity. Details: {e}"
+                ) from e
+            else:
+                raise ApiClientCommunicationError(
+                    f"An unexpected error occurred: {e}"
+                ) from e
 
     async def _run_with_semaphore(self, coro: Awaitable[Any]) -> Any:
         """

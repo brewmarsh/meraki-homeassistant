@@ -151,7 +151,7 @@ async def handle_get_config(
         {
             **coordinator.data,
             "enabled_networks": enabled_networks,
-            "options": config_entry.options,
+            "options": dict(config_entry.options),
             "config_entry_id": config_entry_id,
             "version": version,
         },
