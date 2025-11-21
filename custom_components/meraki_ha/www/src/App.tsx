@@ -48,6 +48,7 @@ const App: React.FC<AppProps> = () => {
             model: 'MV12',
             serial: 'Q2FD-XXXX-XXXX',
             status: 'online',
+            lanIp: '192.168.1.100',
             entity_id: 'camera.front_door_camera',
             networkId: 'N_12345',
           },
