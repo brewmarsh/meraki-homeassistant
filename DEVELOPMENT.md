@@ -28,30 +28,34 @@ For a more isolated and consistent testing environment, you can use the provided
     ```
     This will start a local Home Assistant instance with your local version of the Meraki integration mounted.
 3.  **Access Home Assistant:**
-    *   URL: `http://localhost:8123`
-    *   Follow the on-screen prompts to create a user and configure the Meraki integration.
+    - URL: `http://localhost:8123`
+    - Follow the on-screen prompts to create a user and configure the Meraki integration.
 
 ## 2. Running Quality Checks
 
 Before submitting, you **must** run all quality checks. These are also enforced by pre-commit hooks.
 
 1.  **Linting & Formatting (Ruff):**
+
     ```bash
     poetry run ruff check --fix .
     poetry run ruff format .
     ```
 
 2.  **Type Checking (mypy):**
+
     ```bash
     poetry run mypy .
     ```
 
 3.  **Security Analysis (bandit):**
+
     ```bash
     poetry run bandit -r custom_components/meraki_ha/
     ```
 
 4.  **Run Tests (pytest):**
+
     ```bash
     poetry run pytest
     ```
@@ -104,35 +108,36 @@ This will start a local server, typically on port 5173, that provides hot-reload
 
 This is the **most critical pattern** in this codebase for all entities that modify configuration (e.g., `switch`, `select`, `text`).
 
-*   **Problem:** The Meraki Cloud API has a significant provisioning delay.
-*   **Solution:** We use an optimistic state with a timed cooldown.
-    1.  The entity's action method immediately updates its own state and writes it to the UI.
-    2.  It then makes a "fire-and-forget" API call to Meraki.
-    3.  After the API call, it registers a "pending update" with the `MerakiDataCoordinator` (default 150 seconds).
-    4.  The entity's state update method ignores coordinator updates while it is in the cooldown period.
+- **Problem:** The Meraki Cloud API has a significant provisioning delay.
+- **Solution:** We use an optimistic state with a timed cooldown.
+  1.  The entity's action method immediately updates its own state and writes it to the UI.
+  2.  It then makes a "fire-and-forget" API call to Meraki.
+  3.  After the API call, it registers a "pending update" with the `MerakiDataCoordinator` (default 150 seconds).
+  4.  The entity's state update method ignores coordinator updates while it is in the cooldown period.
 
 ### 4.2. API Client Conventions
 
-*   All calls to the `meraki` library object **must** use `snake_case` methods.
-*   This project's own client wrapper methods also use `snake_case` for consistency.
+- All calls to the `meraki` library object **must** use `snake_case` methods.
+- This project's own client wrapper methods also use `snake_case` for consistency.
 
 ## 5. Home Assistant Integration Best Practices
 
-*   **Device & Entity Helpers:**
-    *   Use the `resolve_device_info` and `format_device_name` helpers for `DeviceInfo`.
-    *   Use the `format_entity_name` helper for entity names.
-*   **Handling Disabled Features:**
-    *   When a feature is disabled in the Meraki Dashboard, the corresponding entity should be set to `Disabled`, not `unknown`.
-*   **Constants:**
-    *   All constants must be defined in `custom_components/meraki_ha/const.py`.
-*   **Configuration Validation:**
-    *   All configuration data must be validated using `voluptuous` schemas.
+- **Device & Entity Helpers:**
+  - Use the `resolve_device_info` and `format_device_name` helpers for `DeviceInfo`.
+  - Use the `format_entity_name` helper for entity names.
+- **Handling Disabled Features:**
+  - When a feature is disabled in the Meraki Dashboard, the corresponding entity should be set to `Disabled`, not `unknown`.
+- **Constants:**
+  - All constants must be defined in `custom_components/meraki_ha/const.py`.
+- **Configuration Validation:**
+  - All configuration data must be validated using `voluptuous` schemas.
 
 ## 6. Versioning and Releases
 
 This project uses an automated versioning and release process based on PR titles:
--   `[major]`: Major version update (e.g., `1.2.3` -> `2.0.0`).
--   `[minor]`: Minor version update (e.g., `1.2.3` -> `1.3.0`).
--   `[patch]` or no prefix: Patch version update (e.g., `1.2.3` -> `1.2.4`).
+
+- `[major]`: Major version update (e.g., `1.2.3` -> `2.0.0`).
+- `[minor]`: Minor version update (e.g., `1.2.3` -> `1.3.0`).
+- `[patch]` or no prefix: Patch version update (e.g., `1.2.3` -> `1.2.4`).
 
 A `CHANGELOG.md` is automatically updated, and a new GitHub Release is created.
