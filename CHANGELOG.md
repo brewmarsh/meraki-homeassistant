@@ -1,3 +1,12 @@
+# [2.2.0-beta.8](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.7...v2.2.0-beta.8) (2025-11-21)
+
+
+### Features
+
+* add entity configuration options to backend and frontend ([5744afe](https://github.com/brewmarsh/meraki-homeassistant/commit/5744afe0361091498d4864fd8b5a8de20b983295))
+
+
+
 # [2.2.0-beta.7](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.6...v2.2.0-beta.7) (2025-11-21)
 
 
