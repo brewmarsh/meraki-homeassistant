@@ -1,3 +1,39 @@
+# [2.2.0-beta.4](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.3...v2.2.0-beta.4) (2025-11-21)
+
+
+### Bug Fixes
+
+* **release:** install frontend dependencies before build ([ff1acf4](https://github.com/brewmarsh/meraki-homeassistant/commit/ff1acf46f5858010854649089cd8b3ef08176e3f))
+
+
+
+# [2.2.0-beta.3](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.1.0...v2.2.0-beta.3) (2025-11-21)
+
+
+### Bug Fixes
+
+* **ci:** resolve linting errors and test failure ([2466f06](https://github.com/brewmarsh/meraki-homeassistant/commit/2466f066deb1319c244cff6f657ee76df8331c61))
+* Correct indentation in MerakiAPIClient ([90bac82](https://github.com/brewmarsh/meraki-homeassistant/commit/90bac824461daf677ead251cb6ffbcd2ca4ea993))
+* **deploy:** correct restart service name in API call ([c9490c6](https://github.com/brewmarsh/meraki-homeassistant/commit/c9490c6f718b64c6e7875476eee95fbd4a2fcfdd))
+* **error-handling:** improve resilience to network errors ([7d7d6a8](https://github.com/brewmarsh/meraki-homeassistant/commit/7d7d6a8886dc2232b312b280fbe872d42dd880fa))
+* **frontend:** update index.html to point to custom-panel.js ([e2927c8](https://github.com/brewmarsh/meraki-homeassistant/commit/e2927c867570d5c43acd11595e23bb0d2a8ba825))
+* Recreate test_e2e_live.py with linting fixes ([ef98f0b](https://github.com/brewmarsh/meraki-homeassistant/commit/ef98f0b62e3cec7b8451abd94493661d2cec45a2))
+* Resolve linting errors and restore web_api.py ([92df7b3](https://github.com/brewmarsh/meraki-homeassistant/commit/92df7b346a5905d285a827ba5c137504618b781f))
+* Resolve Mypy and Ruff errors ([a008052](https://github.com/brewmarsh/meraki-homeassistant/commit/a008052f16e3a762517d04722d94fcc56ebdf0e2))
+* **tests:** resolve linting errors in e2e live test ([213ac77](https://github.com/brewmarsh/meraki-homeassistant/commit/213ac7792b549c84db3b128675c93aadcb5c12cc))
+
+
+### Features
+
+* Add live E2E test and instructions ([bacd3e3](https://github.com/brewmarsh/meraki-homeassistant/commit/bacd3e3f61b51a11d9b564cc0183f824c916c3cb))
+* Enhance device table with icons and row clicks, bump version to 2.2.0-beta.1 ([8a9a3d9](https://github.com/brewmarsh/meraki-homeassistant/commit/8a9a3d9699e6d0e8d546e113ed44d2d7686db1f8))
+* **frontend:** build and deploy updated web UI ([35902d1](https://github.com/brewmarsh/meraki-homeassistant/commit/35902d1a2c27ed51a0d88046eaf93607bff86522))
+* **frontend:** build and deploy updated web UI and automate build ([4f29b38](https://github.com/brewmarsh/meraki-homeassistant/commit/4f29b387e55f97984669aa3b634515c19f7ca63c))
+* Implement functional Event Log in Web UI ([689e10c](https://github.com/brewmarsh/meraki-homeassistant/commit/689e10cd0370e4a3fd3fe85adf68dc36fcba9bbb))
+* Update device table icons and click behavior ([0d45200](https://github.com/brewmarsh/meraki-homeassistant/commit/0d45200b058d5f149855a764d3addea230a5c6bb))
+
+
+
 # [2.0.0-beta.66](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.65...v2.0.0-beta.66) (2025-11-19)
 
 
