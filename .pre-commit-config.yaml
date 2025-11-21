@@ -37,9 +37,11 @@ repos:
       - id: codespell
         args:
           - --ignore-words-list=hass,thirdparty
-          - --skip="./.*,*.csv,*.json"
+          - --skip="./.*,*.csv,*.json,custom_components/meraki_ha/www/meraki-panel.js"
           - --quiet-level=2
         exclude_types: [csv, json]
+        files: '^(custom_components|tests|tools)/'
+        exclude: '^custom_components/meraki_ha/www/.*'
   #  - repo: https://github.com/adrienverge/yamllint.git
   #    rev: v1.35.1
   #    hooks:
@@ -62,3 +64,12 @@ repos:
     rev: v0.8.1
     hooks:
       - id: markdownlint-cli2
+
+  # Local hooks
+  - repo: local
+    hooks:
+      - id: forbid-agent-artifacts
+        name: Forbid agent artifacts
+        entry: python tools/check_artifacts.py
+        language: python
+        files: ''

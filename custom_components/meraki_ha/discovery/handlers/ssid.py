@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from ...const import CONF_ENABLE_SSID_SENSORS
 from ...sensor.network.ssid_auth_mode import MerakiSSIDAuthModeSensor
 
 # Import the specific sensor classes
@@ -87,6 +88,10 @@ class SSIDHandler(BaseHandler):
 
         entities: list[Entity] = []
         if not self._coordinator.data or "ssids" not in self._coordinator.data:
+            return entities
+
+        # Check if SSID sensors/entities are enabled
+        if not self._config_entry.options.get(CONF_ENABLE_SSID_SENSORS, True):
             return entities
 
         for ssid in self._coordinator.data["ssids"]:

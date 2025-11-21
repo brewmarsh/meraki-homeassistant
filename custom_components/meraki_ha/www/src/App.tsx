@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import NetworkView from './components/NetworkView';
 import DeviceView from './components/DeviceView';
+import Settings from './components/Settings';
 
 // Define the types for our data
 interface MerakiData {
@@ -17,8 +18,9 @@ const App: React.FC<AppProps> = () => {
     view: 'dashboard',
     deviceId: undefined,
   });
+  const [showSettings, setShowSettings] = useState(false);
 
-  useEffect(() => {
+  const fetchData = () => {
     if (window.location.hostname === 'localhost') {
         setData({
           "networks": [
@@ -30,25 +32,49 @@ const App: React.FC<AppProps> = () => {
             { name: 'Front Door Camera', model: 'MV12', serial: 'Q2FD-XXXX-XXXX', status: 'online', entity_id: 'camera.front_door_camera', networkId: 'N_12345' },
           ],
           ssids: [],
+          options: {
+              enable_device_status: true,
+              enable_org_sensors: true,
+              enable_camera_entities: true,
+              enable_device_sensors: true,
+              enable_network_sensors: true,
+              enable_vlan_sensors: true,
+              enable_port_sensors: true,
+              enable_ssid_sensors: true,
+          }
         });
         setLoading(false);
         return;
     }
+
     let accessToken = localStorage.getItem('meraki_ha_llat');
     if (!accessToken) {
-      accessToken = prompt(
-        'Please enter your Home Assistant Long-Lived Access Token:'
-      );
-      if (accessToken) {
-        localStorage.setItem('meraki_ha_llat', accessToken);
-      } else {
-        setError('No access token provided.');
-        setLoading(false);
-        return;
+      // Try to get token from hass object if available (usually not in iframe)
+      const hass = (window as any).hass;
+      if (hass && hass.auth && hass.auth.accessToken) {
+          accessToken = hass.auth.accessToken;
       }
     }
 
-    const haUrl = (window as any).HA_URL.replace(/^http/, 'ws');
+    // If still no token and not in dev, we rely on the existing connection flow
+    // But typically the panel is served within HA which has auth.
+    // The previous code used a standalone websocket connection pattern.
+    // We will keep it but update to handle "options" in response.
+
+    if (!accessToken) {
+         accessToken = prompt(
+            'Please enter your Home Assistant Long-Lived Access Token:'
+          );
+          if (accessToken) {
+            localStorage.setItem('meraki_ha_llat', accessToken);
+          } else {
+            setError('No access token provided.');
+            setLoading(false);
+            return;
+          }
+    }
+
+    const haUrl = (window as any).HA_URL ? (window as any).HA_URL.replace(/^http/, 'ws') : window.location.protocol === 'https:' ? 'wss://' + window.location.host : 'ws://' + window.location.host;
     const wsUrl = `${haUrl}/api/websocket`;
     const socket = new WebSocket(wsUrl);
     let messageId = 1;
@@ -83,24 +109,30 @@ const App: React.FC<AppProps> = () => {
       } else if (message.id === messageId) {
         if (message.type === 'result') {
           if (message.success) {
+              // Check if result is wrapped in 'result' or is the result itself
+              // Based on web_api.py: connection.send_result(msg["id"], { ... })
+              // The HA websocket client returns { id, type: result, success: true, result: { ... } }
+              // So message.result is the data.
             setData(message.result);
           } else {
-            console.error('Failed to fetch Meraki data:', message.error);
-            setError(`Failed to fetch Meraki data: ${message.error.message}`);
+             // This branch might not be reached if success is false, HA sends error type?
+             // Usually HA sends type: "result", success: false, error: { ... }
+             console.error('Failed to fetch Meraki data:', message.error);
+             setError(`Failed to fetch Meraki data: ${message.error?.message}`);
           }
           setLoading(false);
+        } else if (message.type === 'result' && message.success === false) {
+             console.error('Failed to fetch Meraki data:', message.error);
+             setError(`Failed to fetch Meraki data: ${message.error?.message}`);
+             setLoading(false);
         }
       }
     };
 
     socket.onerror = (err) => {
       console.error('WebSocket error:', err);
-      setError('WebSocket connection error. See console for details.');
-      setLoading(false);
-    };
-
-    socket.onclose = () => {
-      console.log('WebSocket connection closed');
+      // setError('WebSocket connection error. See console for details.');
+      // Don't block UI on socket error if we can fallback or retry, but here we rely on it.
     };
 
     return () => {
@@ -108,6 +140,10 @@ const App: React.FC<AppProps> = () => {
         socket.close();
       }
     };
+  };
+
+  useEffect(() => {
+      fetchData();
   }, []);
 
   if (loading) {
@@ -119,13 +155,22 @@ const App: React.FC<AppProps> = () => {
   }
 
   const handleToggle = (networkId: string, enabled: boolean) => {
-    // This is a placeholder. In a real app, you'd send this to the backend.
     console.log(`Toggled network ${networkId} to ${enabled}`);
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Meraki HA Web UI</h1>
+    <div className="p-4 relative">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Meraki HA Web UI</h1>
+        <button
+            onClick={() => setShowSettings(true)}
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+            title="Settings"
+        >
+            <ha-icon icon="mdi:cog"></ha-icon>
+        </button>
+      </div>
+
       {activeView.view === 'dashboard' ? (
         <NetworkView data={data} onToggle={handleToggle} setActiveView={setActiveView} />
       ) : (
@@ -134,6 +179,14 @@ const App: React.FC<AppProps> = () => {
           setActiveView={setActiveView}
           data={data}
         />
+      )}
+
+      {showSettings && data && (
+          <Settings
+            options={data.options || {}}
+            configEntryId={(window as any).CONFIG_ENTRY_ID || (data as any).config_entry_id}
+            onClose={() => setShowSettings(false)}
+          />
       )}
     </div>
   );

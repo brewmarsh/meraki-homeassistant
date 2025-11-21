@@ -6,6 +6,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from ...button.reboot import MerakiRebootButton
+from ...const import CONF_ENABLE_PORT_SENSORS
 from ...sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
 from .base import BaseDeviceHandler
 
@@ -66,19 +67,27 @@ class MXHandler(BaseDeviceHandler):
         entities.append(
             MerakiRebootButton(self._control_service, self.device, self._config_entry)
         )
-        # Add uplink sensors
-        if self._coordinator.data and self._coordinator.data.get(
-            "appliance_uplink_statuses"
-        ):
-            for status in self._coordinator.data["appliance_uplink_statuses"]:
-                if status.get("serial") == self.device["serial"]:
-                    for uplink in status.get("uplinks", []):
-                        entities.append(
-                            MerakiApplianceUplinkSensor(
-                                coordinator=self._coordinator,
-                                device_data=self.device,
-                                config_entry=self._config_entry,
-                                uplink_data=uplink,
+
+        # Check if port/uplink sensors are enabled
+        if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
+            # Add uplink sensors
+            if self._coordinator.data and self._coordinator.data.get(
+                "appliance_uplink_statuses"
+            ):
+                for status in self._coordinator.data["appliance_uplink_statuses"]:
+                    if status.get("serial") == self.device["serial"]:
+                        for uplink in status.get("uplinks", []):
+                            entities.append(
+                                MerakiApplianceUplinkSensor(
+                                    coordinator=self._coordinator,
+                                    device_data=self.device,
+                                    config_entry=self._config_entry,
+                                    uplink_data=uplink,
+                                )
                             )
-                        )
+        else:
+            _LOGGER.debug(
+                "Uplink sensors disabled for device %s", self.device.get("serial")
+            )
+
         return entities
