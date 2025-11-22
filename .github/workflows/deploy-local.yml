@@ -1,14 +1,14 @@
 name: Deploy Latest Code to Local Folder on Linux Runner
 
-# This workflow will run on 'push' events to the specified branches.
 on:
-  push:
-    branches:
-      - main
-      - beta # Trigger deployment on pushes/merges to the beta branch
+  workflow_run:
+    workflows: ['Beta CI'] # Name of the workflow that needs to complete
+    types:
+      - completed # Trigger when the workflow is completed (success or failure)
 
 jobs:
   deploy-to-linux-folder:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     # This job runs on the self-hosted runner.
     runs-on: self-hosted
 
