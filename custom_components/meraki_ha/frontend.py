@@ -43,13 +43,6 @@ async def async_register_panel(hass: HomeAssistant, entry: ConfigEntry) -> None:
     version = manifest.get("version", "0.0.0")
     # Add a random query parameter for aggressive cache-busting (for debugging)
     module_url = f"/api/panel_custom/{DOMAIN}/meraki-panel.js?v={version}"
-    # Inject config_entry_id directly into the global scope
-    module_url += f"""
-<script>
-  window.CONFIG_ENTRY_ID = "{entry.entry_id}";
-  console.log('Frontend: window.CONFIG_ENTRY_ID set to', window.CONFIG_ENTRY_ID);
-</script>
-"""
     _LOGGER.debug("Frontend module URL: %s", module_url)
     frontend.async_register_built_in_panel(
         hass,

@@ -10,34 +10,6 @@ interface MerakiData {
 
 interface AppProps {}
 
-// Helper function to get config_entry_id from hass object
-const getHaConfigEntryId = () => {
-  const hass = (window as any).hass;
-  console.log('DEBUG: hass object:', hass);
-  if (hass && hass.panel) {
-    console.log('DEBUG: hass.panel object:', hass.panel);
-    if (hass.panel.config) {
-      console.log('DEBUG: hass.panel.config object:', hass.panel.config);
-      if (hass.panel.config.config_entry_id) {
-        console.log(
-          'DEBUG: config_entry_id found:',
-          hass.panel.config.config_entry_id
-        );
-        return hass.panel.config.config_entry_id;
-      } else {
-        console.log(
-          'DEBUG: hass.panel.config.config_entry_id is null or undefined.'
-        );
-      }
-    } else {
-      console.log('DEBUG: hass.panel.config is null or undefined.');
-    }
-  } else {
-    console.log('DEBUG: hass or hass.panel is null or undefined.');
-  }
-  return null;
-};
-
 const App: React.FC<AppProps> = () => {
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -152,7 +124,7 @@ const App: React.FC<AppProps> = () => {
           JSON.stringify({
             id: messageId,
             type: 'meraki_ha/get_config',
-            config_entry_id: getHaConfigEntryId(),
+            config_entry_id: (window as any).hass.panel.config.config_entry_id,
           })
         );
       } else if (message.type === 'auth_invalid') {
@@ -242,7 +214,10 @@ const App: React.FC<AppProps> = () => {
       {showSettings && data && (
         <Settings
           options={data.options || {}}
-          configEntryId={getHaConfigEntryId() || (data as any).config_entry_id}
+          configEntryId={
+            (window as any).hass.panel.config.config_entry_id ||
+            (data as any).config_entry_id
+          }
           onClose={() => setShowSettings(false)}
         />
       )}
