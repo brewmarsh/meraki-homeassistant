@@ -638,7 +638,9 @@ class MerakiAPIClient:
         """Get the organization ID."""
         return self._org_id
 
-    async def register_webhook(self, webhook_url: str, secret: str, config_entry_id: str) -> None:
+    async def register_webhook(
+        self, webhook_url: str, secret: str, config_entry_id: str
+    ) -> None:
         """
         Register a webhook with the Meraki API.
 
