@@ -1,3 +1,9 @@
+# [2.2.0-beta.10](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.9...v2.2.0-beta.10) (2025-11-22)
+
+
+### Bug Fixes
+
+* frontend loading error [#299](https://github.com/brewmarsh/meraki-homeassistant/issues/299) and RTSP feature ([507971d](https://github.com/brewmarsh/meraki-homeassistant/commit/507971dde65c0d2f179628a227bf2940d48d5320))
 # [2.2.0-beta.9](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.8...v2.2.0-beta.9) (2025-11-21)
 
 
