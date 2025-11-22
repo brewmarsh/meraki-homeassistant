@@ -147,6 +147,8 @@ jobs:
       contents: write # Grant write permissions for the GITHUB_TOKEN
     steps:
       - uses: actions/checkout@v6
+      - name: Show manifest.json version
+        run: cat custom_components/meraki_ha/manifest.json
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
