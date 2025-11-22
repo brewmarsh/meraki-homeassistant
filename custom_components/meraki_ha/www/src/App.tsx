@@ -120,11 +120,20 @@ const App: React.FC<AppProps> = () => {
 
       if (message.type === 'auth_ok') {
         console.log('Authenticated successfully');
+        console.log(
+          'DEBUG (App.tsx): Attempting to send meraki_ha/get_config'
+        );
+        const haConfigEntryId = (window as any).hass?.panel?.config
+          ?.config_entry_id;
+        console.log(
+          'DEBUG (App.tsx): hass.panel.config.config_entry_id:',
+          haConfigEntryId
+        );
         socket.send(
           JSON.stringify({
             id: messageId,
             type: 'meraki_ha/get_config',
-            config_entry_id: (window as any).hass.panel.config.config_entry_id,
+            config_entry_id: haConfigEntryId,
           })
         );
       } else if (message.type === 'auth_invalid') {
@@ -214,10 +223,15 @@ const App: React.FC<AppProps> = () => {
       {showSettings && data && (
         <Settings
           options={data.options || {}}
-          configEntryId={
-            (window as any).hass.panel.config.config_entry_id ||
-            (data as any).config_entry_id
-          }
+          configEntryId={(function () {
+            const haConfigEntryId = (window as any).hass?.panel?.config
+              ?.config_entry_id;
+            console.log(
+              'DEBUG (App.tsx): Settings configEntryId from hass.panel.config.config_entry_id:',
+              haConfigEntryId
+            );
+            return haConfigEntryId || (data as any).config_entry_id;
+          })()}
           onClose={() => setShowSettings(false)}
         />
       )}
