@@ -13,27 +13,13 @@ interface AppProps {}
 // Helper function to get config_entry_id from hass object
 const getHaConfigEntryId = () => {
   const hass = (window as any).hass;
-  console.log('DEBUG: hass object:', hass);
-  if (hass && hass.panel) {
-    console.log('DEBUG: hass.panel object:', hass.panel);
-    if (hass.panel.config) {
-      console.log('DEBUG: hass.panel.config object:', hass.panel.config);
-      if (hass.panel.config.config_entry_id) {
-        console.log(
-          'DEBUG: config_entry_id found:',
-          hass.panel.config.config_entry_id
-        );
-        return hass.panel.config.config_entry_id;
-      } else {
-        console.log(
-          'DEBUG: hass.panel.config.config_entry_id is null or undefined.'
-        );
-      }
-    } else {
-      console.log('DEBUG: hass.panel.config is null or undefined.');
-    }
-  } else {
-    console.log('DEBUG: hass or hass.panel is null or undefined.');
+  if (
+    hass &&
+    hass.panel &&
+    hass.panel.config &&
+    hass.panel.config.config_entry_id
+  ) {
+    return hass.panel.config.config_entry_id;
   }
   return null;
 };
