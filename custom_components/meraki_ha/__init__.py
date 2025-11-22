@@ -39,7 +39,6 @@ from .web_server import MerakiWebServer
 from .webhook import (
     async_register_webhook,
     async_unregister_webhook,
-    get_webhook_url,
 )
 
 _LOGGER = logging.getLogger(__name__)

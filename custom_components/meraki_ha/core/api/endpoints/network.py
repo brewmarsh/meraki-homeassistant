@@ -256,7 +256,9 @@ class NetworkEndpoints:
         networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
             network_id = network["id"]
-            webhook_to_delete = await self.find_webhook_by_name(network_id, webhook_name)
+            webhook_to_delete = await self.find_webhook_by_name(
+                network_id, webhook_name
+            )
             if webhook_to_delete and "id" in webhook_to_delete:
                 _LOGGER.debug(
                     "Deleting webhook %s from network %s",

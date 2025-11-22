@@ -140,10 +140,8 @@ class MerakiAPIClient:
             # like a JSON error
             if "JSON" in str(e):  # Heuristic check for JSON-related errors
                 raise ApiClientCommunicationError(
-                    f"Invalid JSON response from Meraki API. Please check Meraki logs or " \
-                    f"network connectivity. Details: {e}"
-                    f"network connectivity. Details: {e}"
-                    f"network connectivity. Details: {e}"
+                    f"Invalid JSON response from Meraki API. "
+                    f"Please check Meraki logs or network connectivity. Details: {e}"
                 ) from e
             else:
                 raise ApiClientCommunicationError(
@@ -640,27 +638,27 @@ class MerakiAPIClient:
         """Get the organization ID."""
         return self._org_id
 
-    async def register_webhook(self, webhook_url: str, secret: str) -> None:
+    async def register_webhook(self, webhook_url: str, secret: str, config_entry_id: str) -> None:
         """
         Register a webhook with the Meraki API.
 
         Args:
             webhook_url: The URL of the webhook.
             secret: The secret for the webhook.
+            config_entry_id: The ID of the Home Assistant config entry.
 
         """
-        await self.network.register_webhook(webhook_url, secret)
+        await self.network.register_webhook(webhook_url, secret, config_entry_id)
 
-    async def unregister_webhook(self, webhook_url: str) -> None:
+    async def unregister_webhook(self, config_entry_id: str) -> None:
         """
         Unregister a webhook with the Meraki API.
 
         Args:
-        ----
-            webhook_url: The URL of the webhook to unregister.
+            config_entry_id: The ID of the Home Assistant config entry.
 
         """
-        await self.network.unregister_webhook(webhook_url)
+        await self.network.unregister_webhook(config_entry_id)
 
     async def async_reboot_device(self, serial: str) -> dict[str, Any]:
         """
