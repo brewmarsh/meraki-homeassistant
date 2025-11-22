@@ -133,6 +133,14 @@ jobs:
         with:
           category: 'integration'
 
+  final-check:
+    needs:
+      [ruff, mypy, bandit, pip-audit, pytest, validate-hacs, frontend-build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All checks passed
+        run: echo "All necessary CI checks passed successfully!"
+
   frontend-build:
     runs-on: ubuntu-latest
     steps:
