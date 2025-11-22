@@ -3,6 +3,7 @@
 
 Used by pre-commit as a local hook to prevent committing agent/debug artifacts.
 """
+
 import re
 import subprocess
 import sys
