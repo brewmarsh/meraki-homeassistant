@@ -143,6 +143,8 @@ jobs:
 
   frontend-build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Grant write permissions for the GITHUB_TOKEN
     steps:
       - uses: actions/checkout@v6
       - name: Set up Node.js
@@ -164,21 +166,16 @@ jobs:
       - name: Build frontend
         working-directory: custom_components/meraki_ha/www
         run: npm run build
-      - name: Capture frontend diff for debugging
+      - name: Commit and Push Frontend Changes
         working-directory: custom_components/meraki_ha/www
         run: |
-          git diff > frontend-diff.txt
-          cat frontend-diff.txt
-      - name: Upload frontend diff artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-diff
-          path: custom_components/meraki_ha/www/frontend-diff.txt
-      - name: Check for uncommitted changes
-        run: |
-          if [[ `git status --porcelain` ]]; then
-            echo "Frontend assets are out of date. Please run 'npm run build' in custom_components/meraki_ha/www and commit the changes."
-            git status
-            git diff
-            exit 1
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
+          if git diff --exit-code --quiet meraki-panel.js package-lock.json; then
+            echo "No changes to frontend assets."
+          else
+            echo "Frontend assets changed, committing and pushing..."
+            git add meraki-panel.js package-lock.json
+            git commit -m "chore: Auto-update frontend assets"
+            git push
           fi
