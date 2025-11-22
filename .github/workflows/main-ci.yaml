@@ -102,6 +102,13 @@ jobs:
           source .venv/bin/activate
           pip-audit --ignore-vuln PYSEC-2020-49 --ignore-vuln PYSEC-2022-42969 --ignore-vuln GHSA-g7vv-2v7x-gj9p
 
+  hassfest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run Hassfest validation
+        uses: 'home-assistant/actions/hassfest@master'
+
   frontend-build:
     runs-on: ubuntu-latest
     steps:
@@ -125,11 +132,9 @@ jobs:
             exit 1
           fi
 
-  validate-hacs:
-    runs-on: 'ubuntu-latest'
+  final-check:
+    needs: [ruff, mypy, bandit, pip-audit, hassfest, frontend-build]
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - name: HACS validation
-        uses: 'hacs/action@main'
-        with:
-          category: 'integration'
+      - name: All checks passed
+        run: echo "All necessary CI checks passed successfully!"

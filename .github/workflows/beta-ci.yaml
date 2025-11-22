@@ -102,44 +102,63 @@ jobs:
           source .venv/bin/activate
           pip-audit --ignore-vuln PYSEC-2020-49 --ignore-vuln PYSEC-2022-42969 --ignore-vuln GHSA-g7vv-2v7x-gj9p
 
-  pytest:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Download venv artifact
-        uses: actions/download-artifact@v6
-        with:
-          name: venv
-      - name: Extract venv
-        run: tar -xzf venv.tar.gz
-      - name: Run tests with coverage
-        run: |
-          source .venv/bin/activate
-          pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: brewmarsh/meraki-homeassistant
-          files: ./coverage.xml
+    pytest:
+      needs: setup
 
-  validate-hacs:
-    runs-on: 'ubuntu-latest'
-    steps:
-      - uses: actions/checkout@v6
-      - name: HACS validation
-        uses: 'hacs/action@main'
-        with:
-          category: 'integration'
+      runs-on: ubuntu-latest
 
-  final-check:
-    needs:
-      [ruff, mypy, bandit, pip-audit, pytest, validate-hacs, frontend-build]
-    runs-on: ubuntu-latest
-    steps:
-      - name: All checks passed
-        run: echo "All necessary CI checks passed successfully!"
+      steps:
+        - uses: actions/checkout@v6
+
+        - name: Download venv artifact
+
+          uses: actions/download-artifact@v6
+
+          with:
+            name: venv
+
+        - name: Extract venv
+
+          run: tar -xzf venv.tar.gz
+
+        - name: Run tests with coverage
+
+          run: |
+
+            source .venv/bin/activate
+
+            pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
+
+        - name: Upload coverage to Codecov
+
+          uses: codecov/codecov-action@v5
+
+          with:
+            token: ${{ secrets.CODECOV_TOKEN }}
+
+            slug: brewmarsh/meraki-homeassistant
+
+            files: ./coverage.xml
+
+    hassfest:
+      runs-on: ubuntu-latest
+
+      steps:
+        - uses: actions/checkout@v6
+
+        - name: Run Hassfest validation
+
+          uses: 'home-assistant/actions/hassfest@master'
+
+    final-check:
+      needs: [ruff, mypy, bandit, pip-audit, pytest, hassfest, frontend-build]
+
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: All checks passed
+
+          run: echo "All necessary CI checks passed successfully!"
 
   frontend-build:
     runs-on: ubuntu-latest
