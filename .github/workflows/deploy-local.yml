@@ -11,6 +11,8 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     # This job runs on the self-hosted runner.
     runs-on: self-hosted
+    permissions:
+      contents: read # Explicitly grant read permission for the GITHUB_TOKEN
 
     # Define environment variables
     env:
