@@ -54,7 +54,6 @@ jobs:
             --exclude 'tests' \
             --exclude '*.log' \
             --exclude 'docker-runner' \
-            --exclude 'custom_components' \
             "${SourceComponentDir}" "${DestinationPath}"
 
           echo "Successfully copied latest code to ${DestinationPath}."
