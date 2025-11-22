@@ -163,7 +163,56 @@ class NetworkEndpoints:
         return None
 
     @handle_meraki_errors
-    async def register_webhook(self, webhook_url: str, secret: str) -> None:
+    async def find_webhook_by_name(
+        self, network_id: str, name: str
+    ) -> dict[str, Any] | None:
+        """
+        Find a webhook by its name.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+            name: The name of the webhook.
+
+        Returns
+        -------
+            The webhook details, or None if not found.
+
+        """
+        webhooks = await self.get_webhooks(network_id)
+        for webhook in webhooks:
+            if webhook.get("name") == name:
+                return webhook
+        return None
+
+    @handle_meraki_errors
+    async def find_webhook_by_name_and_url(
+        self, network_id: str, name: str, url: str
+    ) -> dict[str, Any] | None:
+        """
+        Find a webhook by its name and URL.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+            name: The name of the webhook.
+            url: The URL of the webhook.
+
+        Returns
+        -------
+            The webhook details, or None if not found.
+
+        """
+        webhooks = await self.get_webhooks(network_id)
+        for webhook in webhooks:
+            if webhook.get("name") == name and webhook.get("url") == url:
+                return webhook
+        return None
+
+    @handle_meraki_errors
+    async def register_webhook(
+        self, webhook_url: str, secret: str, config_entry_id: str
+    ) -> None:
         """
         Register a webhook with the Meraki API.
 
@@ -176,7 +225,10 @@ class NetworkEndpoints:
         networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
             network_id = network["id"]
-            existing_webhook = await self.find_webhook_by_url(network_id, webhook_url)
+            webhook_name = f"Home Assistant Webhook - {config_entry_id}"
+            existing_webhook = await self.find_webhook_by_name_and_url(
+                network_id, webhook_name, webhook_url
+            )
             if existing_webhook:
                 await self.delete_webhook(network_id, existing_webhook["id"])
 
@@ -187,11 +239,11 @@ class NetworkEndpoints:
                 networkId=network_id,
                 url=webhook_url,
                 sharedSecret=secret,
-                name=f"Home Assistant Integration - {network.get('name', 'Unknown')}",
+                name=webhook_name,
             )
 
     @handle_meraki_errors
-    async def unregister_webhook(self, webhook_url: str) -> None:
+    async def unregister_webhook(self, config_entry_id: str) -> None:
         """
         Unregister a webhook with the Meraki API.
 
@@ -200,10 +252,11 @@ class NetworkEndpoints:
             webhook_url: The URL of the webhook to unregister.
 
         """
+        webhook_name = f"Home Assistant Webhook - {config_entry_id}"
         networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
             network_id = network["id"]
-            webhook_to_delete = await self.find_webhook_by_url(network_id, webhook_url)
+            webhook_to_delete = await self.find_webhook_by_name(network_id, webhook_name)
             if webhook_to_delete and "id" in webhook_to_delete:
                 _LOGGER.debug(
                     "Deleting webhook %s from network %s",

@@ -161,7 +161,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if "webhook_id" not in entry.data:
         webhook_id = entry.entry_id
         secret = secrets.token_hex(16)
-        await async_register_webhook(hass, webhook_id, secret, api_client, entry)
+        await async_register_webhook(
+            hass, webhook_id, secret, api_client, entry, entry.entry_id
+        )
         hass.config_entries.async_update_entry(
             entry, data={**entry.data, "webhook_id": webhook_id, "secret": secret}
         )
@@ -182,8 +184,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if entry_data:
         if "webhook_id" in entry.data:
             api_client = entry_data[DATA_CLIENT]
-            webhook_url = get_webhook_url(hass, entry.data["webhook_id"])
-            await async_unregister_webhook(hass, webhook_url, api_client)
+            await async_unregister_webhook(hass, entry.entry_id, api_client)
 
         if "web_server" in entry_data:
             server = entry_data["web_server"]

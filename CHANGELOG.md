@@ -1,3 +1,9 @@
+# [2.2.0-beta.9](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.8...v2.2.0-beta.9) (2025-11-21)
+
+
+### Features
+
+* display RTSP URL for cameras in the frontend device table ([442015f](https://github.com/brewmarsh/meraki-homeassistant/commit/442015f670e405d7c30a79619a1937045d7c3898))
 # [2.2.0-beta.8](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.7...v2.2.0-beta.8) (2025-11-21)
 
 
