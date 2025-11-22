@@ -10,6 +10,20 @@ interface MerakiData {
 
 interface AppProps {}
 
+// Helper function to get config_entry_id from hass object
+const getHaConfigEntryId = () => {
+  const hass = (window as any).hass;
+  if (
+    hass &&
+    hass.panel &&
+    hass.panel.config &&
+    hass.panel.config.config_entry_id
+  ) {
+    return hass.panel.config.config_entry_id;
+  }
+  return null;
+};
+
 const App: React.FC<AppProps> = () => {
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -99,8 +113,8 @@ const App: React.FC<AppProps> = () => {
     const haUrl = (window as any).HA_URL
       ? (window as any).HA_URL.replace(/^http/, 'ws')
       : window.location.protocol === 'https:'
-        ? 'wss://' + window.location.host
-        : 'ws://' + window.location.host;
+      ? 'wss://' + window.location.host
+      : 'ws://' + window.location.host;
     const wsUrl = `${haUrl}/api/websocket`;
     const socket = new WebSocket(wsUrl);
     let messageId = 1;
@@ -124,7 +138,7 @@ const App: React.FC<AppProps> = () => {
           JSON.stringify({
             id: messageId,
             type: 'meraki_ha/get_config',
-            config_entry_id: (window as any).CONFIG_ENTRY_ID,
+            config_entry_id: getHaConfigEntryId(),
           })
         );
       } else if (message.type === 'auth_invalid') {
@@ -214,9 +228,7 @@ const App: React.FC<AppProps> = () => {
       {showSettings && data && (
         <Settings
           options={data.options || {}}
-          configEntryId={
-            (window as any).CONFIG_ENTRY_ID || (data as any).config_entry_id
-          }
+          configEntryId={getHaConfigEntryId() || (data as any).config_entry_id}
           onClose={() => setShowSettings(false)}
         />
       )}
