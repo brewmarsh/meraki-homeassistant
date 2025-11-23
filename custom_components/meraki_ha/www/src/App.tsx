@@ -11,6 +11,7 @@ interface MerakiData {
 interface AppProps {}
 
 const App: React.FC<AppProps> = () => {
+  console.log('DEBUG (App.tsx): App component started.'); // New very early log
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

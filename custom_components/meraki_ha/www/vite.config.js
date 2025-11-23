@@ -5,7 +5,6 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   esbuild: {
-    drop: ['debugger'], // Keep console.log, only drop debugger
     keepNames: true, // Keep original names for better debugging
   },
   build: {
