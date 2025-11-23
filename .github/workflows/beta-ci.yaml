@@ -7,7 +7,7 @@ on:
     branches: ['beta']
 
 permissions:
-  contents: read # Default for pull_request and push
+  contents: write # Grant write permissions for the GITHUB_TOKEN for auto-commit
   workflows: write # Grant permission to trigger other workflows
 
 jobs:
