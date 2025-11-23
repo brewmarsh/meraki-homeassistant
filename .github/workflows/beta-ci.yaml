@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: ['beta']
 
+permissions:
+  contents: read # Default for pull_request and push
+  workflows: write # Grant permission to trigger other workflows
+
 jobs:
   setup:
     runs-on: ubuntu-latest
