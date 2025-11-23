@@ -6,10 +6,6 @@ on:
   pull_request:
     branches: ['beta']
 
-permissions:
-  contents: write # Grant write permissions for the GITHUB_TOKEN for auto-commit
-  workflows: write # Grant permission to trigger other workflows
-
 jobs:
   setup:
     runs-on: ubuntu-latest
