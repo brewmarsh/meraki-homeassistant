@@ -4,6 +4,10 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  esbuild: {
+    drop: ['debugger'], // Keep console.log, only drop debugger
+    keepNames: true, // Keep original names for better debugging
+  },
   build: {
     // Build directly to the current directory (www)
     outDir: '.',
