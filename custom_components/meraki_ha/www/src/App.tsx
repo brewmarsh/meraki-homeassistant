@@ -20,8 +20,22 @@ const App: React.FC<AppProps> = () => {
     deviceId: undefined,
   });
   const [showSettings, setShowSettings] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<any>(null); // New state variable for debug info
 
   const fetchData = () => {
+    // Capture debug info early
+    const hassObject = (window as any).hass;
+    const panelObject = hassObject?.panel;
+    const panelConfig = panelObject?.config;
+    const configEntryId = panelConfig?.config_entry_id;
+
+    setDebugInfo({
+      hass: !!hassObject, // Check if hass object exists
+      panel: panelObject,
+      panelConfig: panelConfig,
+      configEntryId: configEntryId,
+    });
+
     if (window.location.hostname === 'localhost') {
       setData({
         networks: [
@@ -188,7 +202,19 @@ const App: React.FC<AppProps> = () => {
   }
 
   if (error) {
-    return <div className="p-4 text-red-500">Error: {error}</div>;
+    return (
+      <div className="p-4 text-red-500">
+        Error: {error}
+        {debugInfo && (
+          <div className="mt-4 p-2 bg-gray-700 text-white rounded">
+            <h3 className="font-bold">Debug Info:</h3>
+            <pre className="text-sm overflow-auto">
+              {JSON.stringify(debugInfo, null, 2)}
+            </pre>
+          </div>
+        )}
+      </div>
+    );
   }
 
   const handleToggle = (networkId: string, enabled: boolean) => {
