@@ -117,6 +117,7 @@ const App: React.FC<AppProps> = () => {
     };
 
     socket.onmessage = (event) => {
+      console.log('DEBUG (App.tsx): WebSocket message received.');
       const message = JSON.parse(event.data);
 
       if (message.type === 'auth_ok') {
