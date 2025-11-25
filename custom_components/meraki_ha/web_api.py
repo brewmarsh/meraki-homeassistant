@@ -125,7 +125,27 @@ async def handle_get_config(
         msg: The WebSocket message.
 
     """
-    config_entry_id = msg["config_entry_id"]
+    _LOGGER.debug(
+        "Received meraki_ha/get_config command. Message: %s",
+        msg,
+    )
+    config_entry_id = msg.get("config_entry_id")
+    _LOGGER.debug(
+        "config_entry_id received: %s (Type: %s)",
+        config_entry_id,
+        type(config_entry_id),
+    )
+    if config_entry_id is None:
+        _LOGGER.error(
+            "Config entry ID is None in meraki_ha/get_config command. Message: %s",
+            msg,
+        )
+        connection.send_error(
+            msg["id"],
+            "invalid_format",
+            "required key not provided @ data['config_entry_id']. Got None",
+        )
+        return
     if config_entry_id not in hass.data[DOMAIN]:
         connection.send_error(msg["id"], "not_found", "Config entry not found")
         return
