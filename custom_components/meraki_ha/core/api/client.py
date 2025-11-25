@@ -18,7 +18,10 @@ import meraki
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
-from ...core.errors import MerakiInformationalError, MerakiTrafficAnalysisError
+from ...core.errors import (
+    MerakiTrafficAnalysisError,
+    MerakiVlansDisabledError,
+)
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
@@ -443,17 +446,17 @@ class MerakiAPIClient:
             network_traffic_key = f"traffic_{network['id']}"
             network_traffic = detail_data.get(network_traffic_key)
             if isinstance(network_traffic, MerakiTrafficAnalysisError):
+                _LOGGER.info(
+                    "Traffic analysis is not enabled for network '%s'. "
+                    "This is not an error and can be ignored if you do not "
+                    "use this feature.",
+                    network["name"],
+                )
                 self.traffic_analysis_failed_networks.add(network["id"])
                 appliance_traffic[network["id"]] = {
                     "error": "disabled",
                     "reason": str(network_traffic),
                 }
-            elif isinstance(network_traffic, MerakiInformationalError):
-                if "traffic analysis" in str(network_traffic).lower():
-                    appliance_traffic[network["id"]] = {
-                        "error": "disabled",
-                        "reason": str(network_traffic),
-                    }
             elif isinstance(network_traffic, dict):
                 appliance_traffic[network["id"]] = network_traffic
             elif previous_data and network_traffic_key in previous_data:
@@ -461,9 +464,8 @@ class MerakiAPIClient:
 
             network_vlans_key = f"vlans_{network['id']}"
             network_vlans = detail_data.get(network_vlans_key)
-            if isinstance(network_vlans, MerakiInformationalError):
-                if "vlans are not enabled" in str(network_vlans).lower():
-                    vlan_by_network[network["id"]] = []
+            if isinstance(network_vlans, MerakiVlansDisabledError):
+                vlan_by_network[network["id"]] = []
             elif isinstance(network_vlans, list):
                 vlan_by_network[network["id"]] = network_vlans
             elif previous_data and network_vlans_key in previous_data:
