@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import NetworkView from './components/NetworkView';
 import DeviceView from './components/DeviceView';
 
@@ -17,6 +17,7 @@ const App: React.FC<AppProps> = () => {
     view: 'dashboard',
     deviceId: undefined,
   });
+  const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     if (window.location.hostname === 'localhost') {
@@ -50,7 +51,8 @@ const App: React.FC<AppProps> = () => {
 
     const haUrl = (window as any).HA_URL.replace(/^http/, 'ws');
     const wsUrl = `${haUrl}/api/websocket`;
-    const socket = new WebSocket(wsUrl);
+    socketRef.current = new WebSocket(wsUrl);
+    const socket = socketRef.current;
     let messageId = 1;
 
     socket.onopen = () => {
@@ -83,7 +85,17 @@ const App: React.FC<AppProps> = () => {
       } else if (message.id === messageId) {
         if (message.type === 'result') {
           if (message.success) {
-            setData(message.result);
+            const resultData = message.result;
+            const { networks, enabled_networks } = resultData;
+
+            if (networks && enabled_networks) {
+              const processedNetworks = networks.map((network: any) => ({
+                ...network,
+                is_enabled: enabled_networks.includes(network.id),
+              }));
+              resultData.networks = processedNetworks;
+            }
+            setData(resultData);
           } else {
             console.error('Failed to fetch Meraki data:', message.error);
             setError(`Failed to fetch Meraki data: ${message.error.message}`);
@@ -104,7 +116,7 @@ const App: React.FC<AppProps> = () => {
     };
 
     return () => {
-      if (socket.readyState === 1) {
+      if (socket && socket.readyState === 1) {
         socket.close();
       }
     };
@@ -119,8 +131,32 @@ const App: React.FC<AppProps> = () => {
   }
 
   const handleToggle = (networkId: string, enabled: boolean) => {
-    // This is a placeholder. In a real app, you'd send this to the backend.
-    console.log(`Toggled network ${networkId} to ${enabled}`);
+    if (!data) return;
+
+    const updatedNetworks = data.networks.map((network: any) =>
+      network.id === networkId ? { ...network, is_enabled: enabled } : network
+    );
+
+    const updatedData = { ...data, networks: updatedNetworks };
+    setData(updatedData);
+
+    const enabledNetworkIds = updatedNetworks
+      .filter((network: any) => network.is_enabled)
+      .map((network: any) => network.id);
+
+    const socket = socketRef.current;
+    if (socket && socket.readyState === 1) {
+      socket.send(
+        JSON.stringify({
+          id: Date.now(),
+          type: 'meraki_ha/update_enabled_networks',
+          config_entry_id: (window as any).CONFIG_ENTRY_ID,
+          enabled_networks: enabledNetworkIds,
+        })
+      );
+    } else {
+      console.error('WebSocket is not connected.');
+    }
   };
 
   return (
