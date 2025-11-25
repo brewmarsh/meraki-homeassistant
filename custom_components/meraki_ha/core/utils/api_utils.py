@@ -48,7 +48,7 @@ def handle_meraki_errors(
                 func.__name__,
                 err,
             )
-            # Inspect the wrapped function's return type to return a safe empty value
+            # Inspect return type to provide a safe empty value
             sig = inspect.signature(func)
             return_type = sig.return_annotation
             if return_type is list or getattr(return_type, "__origin__", None) in (
@@ -64,7 +64,7 @@ def handle_meraki_errors(
                     err,
                     func.__name__,
                 )
-                # Inspect the wrapped function's return type to return a safe empty value
+                # Inspect return type to provide a safe empty value
                 sig = inspect.signature(func)
                 return_type = sig.return_annotation
                 if (
