@@ -141,6 +141,7 @@ def _raise_if_informational_error(err: APIError) -> None:
         err: The APIError instance.
 
     Raises:
+
     ------
         MerakiVlansDisabledError: If VLANs are not enabled.
         MerakiTrafficAnalysisError: If traffic analysis is not enabled.
