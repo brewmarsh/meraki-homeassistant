@@ -67,16 +67,12 @@ def handle_meraki_errors(
                 # Inspect return type to provide a safe empty value
                 sig = inspect.signature(func)
                 return_type = sig.return_annotation
-                if (
-                    return_type is list
-                    or getattr(return_type, "__origin__", None) in (
-                        list,
-                        list,
-                    )
+                if return_type is list or getattr(return_type, "__origin__", None) in (
+                    list,
+                    list,
                 ):
                     return cast(T, [])
                 return cast(T, {})
-
 
             _LOGGER.error("Meraki API error: %s", err)
             if _is_auth_error(err):

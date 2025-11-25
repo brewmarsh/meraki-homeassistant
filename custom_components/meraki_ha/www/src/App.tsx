@@ -8,10 +8,13 @@ interface MerakiData {
   [key: string]: any;
 }
 
-interface AppProps {}
+// Update props to accept hass and panel
+interface AppProps {
+  hass: any;
+  panel: any;
+}
 
-const App: React.FC<AppProps> = () => {
-  console.log('DEBUG (App.tsx): App component started.'); // New very early log
+const App: React.FC<AppProps> = ({ hass, panel }) => {
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,22 +23,10 @@ const App: React.FC<AppProps> = () => {
     deviceId: undefined,
   });
   const [showSettings, setShowSettings] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<any>(null); // New state variable for debug info
 
-  const fetchData = () => {
-    // Capture debug info early
-    const hassObject = (window as any).hass;
-    const panelObject = hassObject?.panel;
-    const panelConfig = panelObject?.config;
-    const configEntryId = panelConfig?.config_entry_id;
+  const configEntryId = panel?.config?.config_entry_id;
 
-    setDebugInfo({
-      hass: !!hassObject, // Check if hass object exists
-      panel: panelObject,
-      panelConfig: panelConfig,
-      configEntryId: configEntryId,
-    });
-
+  useEffect(() => {
     if (window.location.hostname === 'localhost') {
       setData({
         networks: [
@@ -84,140 +75,56 @@ const App: React.FC<AppProps> = () => {
       return;
     }
 
-    let accessToken = localStorage.getItem('meraki_ha_llat');
-    if (!accessToken) {
-      // Try to get token from hass object if available (usually not in iframe)
-      const hass = (window as any).hass;
-      if (hass && hass.auth && hass.auth.accessToken) {
-        accessToken = hass.auth.accessToken;
-      }
+    if (!hass || !configEntryId) {
+      setError('Hass or Config Entry ID not available.');
+      setLoading(false);
+      return;
     }
 
-    // If still no token and not in dev, we rely on the existing connection flow
-    // But typically the panel is served within HA which has auth.
-    // The previous code used a standalone websocket connection pattern.
-    // We will keep it but update to handle "options" in response.
-
-    if (!accessToken) {
-      accessToken = prompt(
-        'Please enter your Home Assistant Long-Lived Access Token:'
-      );
-      if (accessToken) {
-        localStorage.setItem('meraki_ha_llat', accessToken);
-      } else {
-        setError('No access token provided.');
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const result: MerakiData = await hass.callWS({
+          type: 'meraki_ha/get_config',
+          config_entry_id: configEntryId,
+        });
+        setData(result);
+        setError(null);
+      } catch (err: any) {
+        console.error('Error fetching Meraki data:', err);
+        setError(err.message || 'An unknown error occurred.');
+      } finally {
         setLoading(false);
-        return;
-      }
-    }
-
-    const haUrl = (window as any).HA_URL
-      ? (window as any).HA_URL.replace(/^http/, 'ws')
-      : window.location.protocol === 'https:'
-      ? 'wss://' + window.location.host
-      : 'ws://' + window.location.host;
-    const wsUrl = `${haUrl}/api/websocket`;
-    const socket = new WebSocket(wsUrl);
-    let messageId = 1;
-
-    socket.onopen = () => {
-      console.log('WebSocket connection established');
-      socket.send(
-        JSON.stringify({
-          type: 'auth',
-          access_token: accessToken,
-        })
-      );
-    };
-
-    socket.onmessage = (event) => {
-      console.log('DEBUG (App.tsx): WebSocket message received.');
-      const message = JSON.parse(event.data);
-
-      if (message.type === 'auth_ok') {
-        console.log('Authenticated successfully');
-        console.log(
-          'DEBUG (App.tsx): Attempting to send meraki_ha/get_config'
-        );
-        const haConfigEntryId = (window as any).hass?.panel?.config
-          ?.config_entry_id;
-        console.log(
-          'DEBUG (App.tsx): hass.panel.config.config_entry_id:',
-          haConfigEntryId
-        );
-        socket.send(
-          JSON.stringify({
-            id: messageId,
-            type: 'meraki_ha/get_config',
-            config_entry_id: haConfigEntryId,
-          })
-        );
-      } else if (message.type === 'auth_invalid') {
-        console.error('Authentication failed:', message.message);
-        setError('Authentication failed. Please check your token.');
-        setLoading(false);
-        localStorage.removeItem('meraki_ha_llat');
-      } else if (message.id === messageId) {
-        if (message.type === 'result') {
-          if (message.success) {
-            // Check if result is wrapped in 'result' or is the result itself
-            // Based on web_api.py: connection.send_result(msg["id"], { ... })
-            // The HA websocket client returns { id, type: result, success: true, result: { ... } }
-            // So message.result is the data.
-            setData(message.result);
-          } else {
-            // This branch might not be reached if success is false, HA sends error type?
-            // Usually HA sends type: "result", success: false, error: { ... }
-            console.error('Failed to fetch Meraki data:', message.error);
-            setError(`Failed to fetch Meraki data: ${message.error?.message}`);
-          }
-          setLoading(false);
-        } else if (message.type === 'result' && message.success === false) {
-          console.error('Failed to fetch Meraki data:', message.error);
-          setError(`Failed to fetch Meraki data: ${message.error?.message}`);
-          setLoading(false);
-        }
       }
     };
 
-    socket.onerror = (err) => {
-      console.error('WebSocket error:', err);
-      // setError('WebSocket connection error. See console for details.');
-      // Don't block UI on socket error if we can fallback or retry, but here we rely on it.
-    };
-
-    return () => {
-      if (socket.readyState === 1) {
-        socket.close();
-      }
-    };
-  };
-
-  useEffect(() => {
     fetchData();
-  }, []);
+
+    // Optional: Subscribe to updates if the backend supports it
+    // const unsubscribe = hass.connection.subscribeMessage(
+    //   (message) => {
+    //     console.log('Received update:', message);
+    //     // Update state based on the message
+    //   },
+    //   {
+    //     type: 'meraki_ha/subscribe_updates',
+    //     config_entry_id: configEntryId,
+    //   }
+    // );
+
+    // return () => unsubscribe();
+  }, [hass, configEntryId]); // Rerun if hass or configEntryId changes
 
   if (loading) {
     return <div className="p-4">Loading...</div>;
   }
 
   if (error) {
-    return (
-      <div className="p-4 text-red-500">
-        Error: {error}
-        {debugInfo && (
-          <div className="mt-4 p-2 bg-gray-700 text-white rounded">
-            <h3 className="font-bold">Debug Info:</h3>
-            <pre className="text-sm overflow-auto">
-              {JSON.stringify(debugInfo, null, 2)}
-            </pre>
-          </div>
-        )}
-      </div>
-    );
+    return <div className="p-4 text-red-500">Error: {error}</div>;
   }
 
   const handleToggle = (networkId: string, enabled: boolean) => {
+    // This functionality is not fully implemented in this refactor
     console.log(`Toggled network ${networkId} to ${enabled}`);
   };
 
@@ -250,18 +157,16 @@ const App: React.FC<AppProps> = () => {
 
       {showSettings && data && (
         <Settings
+          hass={hass} // Pass hass to settings
           options={data.options || {}}
-          configEntryId={(function () {
-            const haConfigEntryId = (window as any).hass?.panel?.config
-              ?.config_entry_id;
-            console.log(
-              'DEBUG (App.tsx): Settings configEntryId from hass.panel.config.config_entry_id:',
-              haConfigEntryId
-            );
-            return haConfigEntryId || (data as any).config_entry_id;
-          })()}
+          configEntryId={configEntryId}
           onClose={() => setShowSettings(false)}
         />
+      )}
+      {data?.version && (
+        <div className="absolute bottom-0 right-0 p-2 text-xs text-gray-500">
+          Version: {data.version}
+        </div>
       )}
     </div>
   );
