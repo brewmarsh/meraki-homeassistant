@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 from ...core.errors import (
-    MerakiInformationalError,
     MerakiTrafficAnalysisError,
     MerakiVlansDisabledError,
 )
