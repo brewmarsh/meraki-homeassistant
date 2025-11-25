@@ -74,6 +74,9 @@ class MerakiAPIClient:
         self.wireless = WirelessEndpoints(self)
         self.sensor = SensorEndpoints(self)
 
+        # Set to store network IDs that have failed traffic analysis
+        self.traffic_analysis_failed_networks: set[str] = set()
+
         # Semaphore to limit concurrent API calls
         self._semaphore = asyncio.Semaphore(2)
 
@@ -336,9 +339,10 @@ class MerakiAPIClient:
                     )
                 )
             if "appliance" in product_types:
-                detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
-                    self.network.get_network_traffic(network["id"], "appliance"),
-                )
+                if network["id"] not in self.traffic_analysis_failed_networks:
+                    detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
+                        self.network.get_network_traffic(network["id"], "appliance"),
+                    )
                 detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
                     self.appliance.get_network_vlans(network["id"]),
                 )
@@ -438,7 +442,13 @@ class MerakiAPIClient:
 
             network_traffic_key = f"traffic_{network['id']}"
             network_traffic = detail_data.get(network_traffic_key)
-            if isinstance(network_traffic, MerakiInformationalError):
+            if isinstance(network_traffic, MerakiTrafficAnalysisError):
+                self.traffic_analysis_failed_networks.add(network["id"])
+                appliance_traffic[network["id"]] = {
+                    "error": "disabled",
+                    "reason": str(network_traffic),
+                }
+            elif isinstance(network_traffic, MerakiInformationalError):
                 if "traffic analysis" in str(network_traffic).lower():
                     appliance_traffic[network["id"]] = {
                         "error": "disabled",

@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+import meraki
+from custom_components.meraki_ha.core.errors import MerakiTrafficAnalysisError
 from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
     validate_response,
@@ -81,12 +83,25 @@ class NetworkEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        traffic = await self._api_client.run_sync(
-            self._api_client.dashboard.networks.getNetworkTraffic,
-            networkId=network_id,
-            deviceType=device_type,
-            timespan=86400,  # 24 hours
-        )
+        try:
+            traffic = await self._api_client.run_sync(
+                self._api_client.dashboard.networks.getNetworkTraffic,
+                networkId=network_id,
+                deviceType=device_type,
+                timespan=86400,  # 24 hours
+            )
+        except meraki.APIError as e:
+            if "Traffic Analysis with Hostname Visibility must be enabled" in str(e):
+                _LOGGER.info(
+                    "Traffic analysis is not enabled for network %s. "
+                    "Please enable it at "
+                    "https://documentation.meraki.com/MX/Design_and_Configure/Configuration_Guides/Firewall_and_Traffic_Shaping/Traffic_Analysis_and_Classification",
+                    network_id,
+                )
+                raise MerakiTrafficAnalysisError(
+                    f"Traffic analysis not enabled for network {network_id}"
+                ) from e
+            raise
         validated = validate_response(traffic)
         if not isinstance(validated, list):
             _LOGGER.warning("get_network_traffic did not return a list.")
