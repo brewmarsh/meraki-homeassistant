@@ -43,4 +43,6 @@ class MerakiNetworkError(MerakiError):
 class MerakiInformationalError(MerakiError):
     """Error to indicate an informational/non-critical problem."""
 
-    pass
+
+class MerakiTrafficAnalysisError(MerakiInformationalError):
+    """Error to indicate that traffic analysis is not enabled."""
