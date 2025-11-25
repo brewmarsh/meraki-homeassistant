@@ -15,7 +15,6 @@ from ..errors import (
     MerakiAuthenticationError,
     MerakiConnectionError,
     MerakiDeviceError,
-    MerakiInformationalError,
     MerakiNetworkError,
 )
 
@@ -60,7 +59,24 @@ def handle_meraki_errors(
             return cast(T, {})
         except APIError as err:
             if _is_informational_error(err):
-                raise MerakiInformationalError(f"Informational error: {err}") from err
+                _LOGGER.warning(
+                    "Meraki API informational error: %s (%s)",
+                    err,
+                    func.__name__,
+                )
+                # Inspect the wrapped function's return type to return a safe empty value
+                sig = inspect.signature(func)
+                return_type = sig.return_annotation
+                if (
+                    return_type is list
+                    or getattr(return_type, "__origin__", None) in (
+                        list,
+                        list,
+                    )
+                ):
+                    return cast(T, [])
+                return cast(T, {})
+
 
             _LOGGER.error("Meraki API error: %s", err)
             if _is_auth_error(err):
