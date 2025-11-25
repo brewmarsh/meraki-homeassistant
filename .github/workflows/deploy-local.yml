@@ -1,14 +1,12 @@
 name: Deploy Latest Code to Local Folder on Linux Runner
 
 on:
-  workflow_run:
-    workflows: ['Beta CI'] # Name of the workflow that needs to complete
-    types:
-      - completed # Trigger when the workflow is completed (success or failure)
+  push:
+    branches:
+      - beta
 
 jobs:
   deploy-to-linux-folder:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     # This job runs on the self-hosted runner.
     runs-on: self-hosted
     permissions:
@@ -23,8 +21,6 @@ jobs:
       - name: Checkout repository
         # Checks out your repository code into $GITHUB_WORKSPACE.
         uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Copy files to destination folder (rsync)
         # Use 'bash' and 'sudo rsync' to bypass symlink and permission issues.
