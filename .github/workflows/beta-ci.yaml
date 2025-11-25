@@ -140,41 +140,23 @@ jobs:
 
   frontend-build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # Grant write permissions for the GITHUB_TOKEN
     steps:
       - uses: actions/checkout@v6
-      - name: Show manifest.json version
-        run: cat custom_components/meraki_ha/manifest.json
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '20'
-      - name: Install npm dependencies
+      - name: Install dependencies
         working-directory: custom_components/meraki_ha/www
-        run: npm install
-      - name: Install dos2unix
-        run: sudo apt-get update && sudo apt-get install -y dos2unix
-      - name: Convert line endings to LF and remove BOM
-        working-directory: custom_components/meraki_ha/www
-        run: |
-          # Remove BOM (Byte Order Mark) if present, then convert to LF
-          sed -i '1s/^\xEF\xBB\xBF//' index.html
-          dos2unix index.html
-          dos2unix meraki-panel.js
+        run: npm ci
       - name: Build frontend
         working-directory: custom_components/meraki_ha/www
         run: npm run build
-      - name: Commit and Push Frontend Changes
-        working-directory: custom_components/meraki_ha/www
+      - name: Check for uncommitted changes
         run: |
-          git config user.name github-actions[bot]
-          git config user.email github-actions[bot]@users.noreply.github.com
-          if git diff --exit-code --quiet meraki-panel.js package-lock.json; then
-            echo "No changes to frontend assets."
-          else
-            echo "Frontend assets changed, committing and pushing..."
-            git add meraki-panel.js package-lock.json
-            git commit -m "chore: Auto-update frontend assets"
-            git push
+          if [[ `git status --porcelain` ]]; then
+            echo "Frontend assets are out of date. Please run 'npm run build' in custom_components/meraki_ha/www and commit the changes."
+            git status
+            git diff
+            exit 1
           fi
