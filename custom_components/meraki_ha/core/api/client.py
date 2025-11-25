@@ -18,7 +18,7 @@ import meraki
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
-from ...core.errors import MerakiInformationalError
+from ...core.errors import MerakiInformationalError, MerakiTrafficAnalysisError
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints

@@ -6,6 +6,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 import meraki
+
 from custom_components.meraki_ha.core.errors import MerakiTrafficAnalysisError
 from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
