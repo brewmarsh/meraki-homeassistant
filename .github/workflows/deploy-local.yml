@@ -73,7 +73,7 @@ jobs:
           API_STATUS=$(curl -sS -o /dev/null -w "%{http_code}" -X POST \
               -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
               -H "Content-Type: application/json" \
-              -d '{"service": "reload_themes", "domain": "frontend"}' \
+              -d "{}" \
               "$HA_URL/api/services/frontend/reload_themes")
           if [[ "$API_STATUS" -ne 200 ]]; then
               echo "Warning: Failed to clear frontend cache. HTTP status code: $API_STATUS."
