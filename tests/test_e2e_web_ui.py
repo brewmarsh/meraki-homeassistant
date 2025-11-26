@@ -69,7 +69,6 @@ async def setup_integration_fixture(
         yield config_entry
 
 
-@pytest.mark.skip(reason="Test is failing and needs to be fixed")
 @pytest.mark.asyncio
 async def test_dashboard_loads_and_displays_data(
     hass: HomeAssistant,
@@ -84,9 +83,9 @@ async def test_dashboard_loads_and_displays_data(
     """
     # Use a simple python http server to serve the www directory
     # This is to avoid issues with the HA server not serving the files
-
-    # Change to the www directory to serve files from there
     os.chdir("custom_components/meraki_ha/www")
+    # Build the frontend to make sure the latest changes are included
+    os.system("npm run build")
 
     Handler = http.server.SimpleHTTPRequestHandler
     httpd = None
@@ -94,58 +93,49 @@ async def test_dashboard_loads_and_displays_data(
     try:
         httpd = socketserver.TCPServer(("", TEST_PORT), Handler)
         httpd_thread = threading.Thread(target=httpd.serve_forever)
+        httpd_thread.daemon = True
         httpd_thread.start()
 
         async with async_playwright() as p:
             browser = await p.chromium.launch()
             page = await browser.new_page()
 
-            # Create a basic HTML file to load the panel
-            with open("index.html", "w") as f:
-                f.write(
-                    """
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>Test</title>
-                    </head>
-                    <body>
-                        <div id="root"></div>
-                        <script type="module" src="/meraki-panel.js"></script>
-                    </body>
-                    </html>
-                """
-                )
-
-            # Serialize the mock data to be injected into the page
+            # Mock the hass object
             mock_data_json = json.dumps(MOCK_ALL_DATA)
-
-            # This script runs before the page's scripts, creating a mock hass object
             await page.add_init_script(
                 f"""
-                  window.hass = {{
-                    connection: {{
-                      subscribeMessage: async (callback, subscription) => {{
-                        const mockData = {mock_data_json};
-                        const message = {{
-                          type: 'result',
-                          success: true,
-                          result: mockData
-                        }};
-                        callback(message);
-                        return () => Promise.resolve();
-                      }}
-                    }}
-                  }};
-                """,
+                document.addEventListener('DOMContentLoaded', () => {{
+                    const panel = document.createElement('meraki-panel');
+                    document.body.appendChild(panel);
+                    panel.panel = {{
+                        config: {{
+                            config_entry_id: 'test-entry-id-from-panel'
+                        }}
+                    }};
+                    panel.hass = {{
+                        callWS: async (msg) => {{
+                            if (msg.type === 'meraki_ha/get_config') {{
+                                return {mock_data_json};
+                            }}
+                            return {{}};
+                        }},
+                    }};
+                }});
+                """
             )
 
-            await page.goto(f"http://localhost:{TEST_PORT}/")
+            await page.goto(f"http://localhost:{TEST_PORT}/index.html")
 
-            # Check for the network card, which should now be rendered with mock data
-            network_card = page.locator("[data-testid=network-card]")
+            # Wait for the loading indicator to disappear
+            loading_indicator = page.get_by_text("Loading...")
+            await expect(loading_indicator).to_be_hidden(timeout=10000)
+
+            # Check for the network card
+            network_card = page.locator("ha-card")
             await expect(network_card).to_be_visible()
-            await expect(network_card.locator("p")).to_have_text("Test Network")
+            await expect(
+                network_card.locator("span", has_text="[Network]")
+            ).to_contain_text("Main Office")
 
             await browser.close()
     finally:

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 interface EventLogProps {
   hass: any;
   networkId?: string;
+  configEntryId: string;
 }
 
 interface MerakiEvent {
@@ -24,7 +25,11 @@ interface MerakiEventsResponse {
   // The `getNetworkEvents` method in meraki library returns a dict.
 }
 
-const EventLog: React.FC<EventLogProps> = ({ hass, networkId }) => {
+const EventLog: React.FC<EventLogProps> = ({
+  hass,
+  networkId,
+  configEntryId,
+}) => {
   const [events, setEvents] = useState<MerakiEvent[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,9 +66,7 @@ const EventLog: React.FC<EventLogProps> = ({ hass, networkId }) => {
           throw new Error('Hass connection not available');
         }
 
-        const configEntryId = (window as any).CONFIG_ENTRY_ID;
-
-        const response = await hass.connection.sendMessagePromise({
+        const response = await hass.callWS({
           type: 'meraki_ha/get_network_events',
           config_entry_id: configEntryId,
           network_id: networkId,
@@ -84,7 +87,7 @@ const EventLog: React.FC<EventLogProps> = ({ hass, networkId }) => {
     };
 
     fetchEvents();
-  }, [networkId]);
+  }, [hass, networkId, configEntryId]);
 
   if (!networkId) {
     return (

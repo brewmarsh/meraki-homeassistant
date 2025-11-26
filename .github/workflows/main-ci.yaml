@@ -145,8 +145,35 @@ jobs:
             echo "No frontend changes to commit."
           fi
 
+  test:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Download venv artifact
+        uses: actions/download-artifact@v6
+        with:
+          name: venv
+      - name: Extract venv
+        run: tar -xzf venv.tar.gz
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+      - name: Install npm dependencies
+        working-directory: custom_components/meraki_ha/www
+        run: npm ci
+      - name: Install Playwright browsers
+        run: |
+          source .venv/bin/activate
+          playwright install --with-deps
+      - name: Run tests
+        run: |
+          source .venv/bin/activate
+          pytest
+
   final-check:
-    needs: [ruff, mypy, bandit, pip-audit, hassfest, frontend-build]
+    needs: [ruff, mypy, bandit, pip-audit, hassfest, frontend-build, test]
     runs-on: ubuntu-latest
     steps:
       - name: All checks passed

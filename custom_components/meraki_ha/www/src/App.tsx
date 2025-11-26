@@ -147,6 +147,7 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
           data={data}
           onToggle={handleToggle}
           setActiveView={setActiveView}
+          configEntryId={configEntryId}
         />
       ) : (
         <DeviceView
