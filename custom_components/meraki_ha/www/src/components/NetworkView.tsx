@@ -30,6 +30,7 @@ interface Device {
 }
 
 interface NetworkViewProps {
+  hass: any;
   data: {
     networks: Network[];
     devices: Device[];
@@ -39,6 +40,7 @@ interface NetworkViewProps {
 }
 
 const NetworkView: React.FC<NetworkViewProps> = ({
+  hass,
   data,
   onToggle,
   setActiveView,
@@ -114,10 +116,10 @@ const NetworkView: React.FC<NetworkViewProps> = ({
                       <ha-icon icon="mdi:wifi"></ha-icon>
                       {enabledSsids} / {totalSsids} SSIDs Enabled
                     </div>
-                    <SSIDView ssids={network.ssids} />
+                    <SSIDView hass={hass} ssids={network.ssids} />
                   </>
                 )}
-                <EventLog networkId={network.id} />
+                <EventLog hass={hass} networkId={network.id} />
               </div>
             )}
           </ha-card>

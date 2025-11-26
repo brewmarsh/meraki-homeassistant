@@ -143,6 +143,7 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
 
       {activeView.view === 'dashboard' ? (
         <NetworkView
+          hass={hass}
           data={data}
           onToggle={handleToggle}
           setActiveView={setActiveView}
