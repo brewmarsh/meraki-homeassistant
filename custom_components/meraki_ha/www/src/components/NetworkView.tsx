@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DeviceTable from './DeviceTable';
 import SSIDView from './SSIDView';
 import EventLog from './EventLog';
@@ -45,10 +45,21 @@ const NetworkView: React.FC<NetworkViewProps> = ({
   onToggle,
   setActiveView,
 }) => {
-  const [openNetworkId, setOpenNetworkId] = useState<string | null>(null);
+  const [openNetworkIds, setOpenNetworkIds] = useState<string[]>(() => {
+    const saved = sessionStorage.getItem('openNetworkIds');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem('openNetworkIds', JSON.stringify(openNetworkIds));
+  }, [openNetworkIds]);
 
   const handleNetworkClick = (networkId: string) => {
-    setOpenNetworkId(openNetworkId === networkId ? null : networkId);
+    setOpenNetworkIds((prev) =>
+      prev.includes(networkId)
+        ? prev.filter((id) => id !== networkId)
+        : [...prev, networkId]
+    );
   };
 
   const { networks, devices } = data;
@@ -60,7 +71,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {networks.map((network) => {
-        const isOpen = openNetworkId === network.id;
+        const isOpen = openNetworkIds.includes(network.id);
         const enabledSsids = network.ssids
           ? network.ssids.filter((s) => s.enabled).length
           : 0;
