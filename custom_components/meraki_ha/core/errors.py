@@ -13,6 +13,10 @@ class MerakiInformationalError(MerakiHAException):
     """An informational 'error' from the Meraki API."""
 
 
+class MerakiTrafficAnalysisError(MerakiInformationalError):
+    """Exception for when traffic analysis is not enabled on the Meraki dashboard."""
+
+
 class MerakiAuthenticationError(MerakiHAException):
     """Exception to indicate an authentication error with the Meraki API."""
 

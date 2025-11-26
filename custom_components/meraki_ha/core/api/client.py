@@ -18,7 +18,11 @@ import meraki
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
-from ...core.errors import ApiClientCommunicationError, MerakiInformationalError
+from ...core.errors import (
+    ApiClientCommunicationError,
+    MerakiInformationalError,
+    MerakiTrafficAnalysisError,
+)
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
@@ -119,6 +123,10 @@ class MerakiAPIClient:
             loop = asyncio.get_event_loop()
             return await loop.run_in_executor(None, partial(func, *args, **kwargs))
         except meraki.APIError as e:
+            error_str = str(e).lower()
+            if "traffic analysis" in error_str or "vlans are not enabled" in error_str:
+                raise  # Re-raise for the decorator to handle
+
             _LOGGER.error(
                 "Meraki API Error encountered: %s",
                 e,
@@ -134,11 +142,7 @@ class MerakiAPIClient:
                 type(e).__name__,
                 exc_info=True,
             )
-            # Attempt to provide a more user-friendly message if it seems
-            # like a JSON error
-            # like a JSON error
-            # like a JSON error
-            if "JSON" in str(e):  # Heuristic check for JSON-related errors
+            if "JSON" in str(e):
                 raise ApiClientCommunicationError(
                     f"Invalid JSON response from Meraki API. "
                     f"Please check Meraki logs or network connectivity. Details: {e}"
@@ -468,12 +472,16 @@ class MerakiAPIClient:
 
             network_traffic_key = f"traffic_{network['id']}"
             network_traffic = detail_data.get(network_traffic_key)
-            if isinstance(network_traffic, MerakiInformationalError):
-                if "traffic analysis" in str(network_traffic).lower():
-                    appliance_traffic[network["id"]] = {
-                        "error": "disabled",
-                        "reason": str(network_traffic),
-                    }
+            if isinstance(network_traffic, MerakiTrafficAnalysisError):
+                _LOGGER.info(
+                    "Traffic analysis is not enabled for network %s. %s",
+                    network["id"],
+                    network_traffic,
+                )
+                appliance_traffic[network["id"]] = {
+                    "error": "disabled",
+                    "reason": str(network_traffic),
+                }
             elif isinstance(network_traffic, dict):
                 appliance_traffic[network["id"]] = network_traffic
             elif previous_data and network_traffic_key in previous_data:
