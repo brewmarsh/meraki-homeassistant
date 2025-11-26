@@ -129,7 +129,7 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
   };
 
   return (
-    <div className="p-4 relative">
+    <div className="p-4 relative bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Meraki HA Web UI</h1>
         <button
@@ -143,6 +143,7 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
 
       {activeView.view === 'dashboard' ? (
         <NetworkView
+          hass={hass}
           data={data}
           onToggle={handleToggle}
           setActiveView={setActiveView}

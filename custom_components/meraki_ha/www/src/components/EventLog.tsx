@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 interface EventLogProps {
+  hass: any;
   networkId?: string;
 }
 
@@ -23,7 +24,7 @@ interface MerakiEventsResponse {
   // The `getNetworkEvents` method in meraki library returns a dict.
 }
 
-const EventLog: React.FC<EventLogProps> = ({ networkId }) => {
+const EventLog: React.FC<EventLogProps> = ({ hass, networkId }) => {
   const [events, setEvents] = useState<MerakiEvent[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,17 +57,7 @@ const EventLog: React.FC<EventLogProps> = ({ networkId }) => {
           return;
         }
 
-        const hass =
-          (document.querySelector('meraki-panel') as any)?.hass ||
-          (window as any).hass;
         if (!hass) {
-          // Fallback if we can't find hass object easily (e.g. during dev/test if not mocked properly)
-          // But usually we expect it passed down or available.
-          // Actually, in our architecture, we should probably pass `hass` down or use a Context.
-          // But for now, let's try to dispatch an event or use the connection if we can access it.
-          // `App.tsx` manages the connection. Maybe we should lift this state up?
-          // For simplicity in this component, we'll assume we can get the connection or dispatch.
-          // Actually, App.tsx sends messages via websocket.
           throw new Error('Hass connection not available');
         }
 

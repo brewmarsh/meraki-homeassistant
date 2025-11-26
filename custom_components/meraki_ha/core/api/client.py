@@ -474,9 +474,9 @@ class MerakiAPIClient:
             network_traffic = detail_data.get(network_traffic_key)
             if isinstance(network_traffic, MerakiTrafficAnalysisError):
                 _LOGGER.info(
-                    "Traffic analysis is not enabled for network %s. %s",
+                    "Traffic analysis is not enabled for network %s. To enable it, "
+                    "see https://documentation.meraki.com/MX/Design_and_Configure/Configuration_Guides/Firewall_and_Traffic_Shaping/Traffic_Analysis_and_Classification",
                     network["id"],
-                    network_traffic,
                 )
                 appliance_traffic[network["id"]] = {
                     "error": "disabled",

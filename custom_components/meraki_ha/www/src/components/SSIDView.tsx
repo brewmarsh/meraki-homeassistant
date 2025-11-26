@@ -8,10 +8,11 @@ interface SSID {
 }
 
 interface SSIDViewProps {
+  hass: any;
   ssids: SSID[];
 }
 
-const SSIDView: React.FC<SSIDViewProps> = ({ ssids }) => {
+const SSIDView: React.FC<SSIDViewProps> = ({ hass, ssids }) => {
   if (!ssids || ssids.length === 0) {
     return null;
   }

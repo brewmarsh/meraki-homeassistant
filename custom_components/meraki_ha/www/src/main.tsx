@@ -7,25 +7,35 @@ class MerakiPanel extends HTMLElement {
   private _root: ReactDOM.Root | null = null;
   private _hass: any;
   private _panel: any;
+  private _mountPoint?: HTMLDivElement;
 
   connectedCallback() {
     if (!this.shadowRoot) {
       this.attachShadow({ mode: 'open' });
-      const mountPoint = document.createElement('div');
-      mountPoint.id = 'root';
+      this._mountPoint = document.createElement('div');
+      this._mountPoint.id = 'root';
 
       const styleElement = document.createElement('style');
       styleElement.textContent = style;
 
       this.shadowRoot!.appendChild(styleElement);
-      this.shadowRoot!.appendChild(mountPoint);
-      this._root = ReactDOM.createRoot(mountPoint);
+      this.shadowRoot!.appendChild(this._mountPoint);
+      this._root = ReactDOM.createRoot(this._mountPoint);
     }
     this._render();
   }
 
   set hass(hass: any) {
     this._hass = hass;
+
+    if (this._mountPoint) {
+      if (hass?.themes?.darkMode) {
+        this._mountPoint.classList.add('dark');
+      } else {
+        this._mountPoint.classList.remove('dark');
+      }
+    }
+
     this._render();
   }
 
