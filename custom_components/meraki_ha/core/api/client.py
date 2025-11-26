@@ -123,6 +123,10 @@ class MerakiAPIClient:
             loop = asyncio.get_event_loop()
             return await loop.run_in_executor(None, partial(func, *args, **kwargs))
         except meraki.APIError as e:
+            error_str = str(e).lower()
+            if "traffic analysis" in error_str or "vlans are not enabled" in error_str:
+                raise  # Re-raise for the decorator to handle
+
             _LOGGER.error(
                 "Meraki API Error encountered: %s",
                 e,
@@ -138,11 +142,7 @@ class MerakiAPIClient:
                 type(e).__name__,
                 exc_info=True,
             )
-            # Attempt to provide a more user-friendly message if it seems
-            # like a JSON error
-            # like a JSON error
-            # like a JSON error
-            if "JSON" in str(e):  # Heuristic check for JSON-related errors
+            if "JSON" in str(e):
                 raise ApiClientCommunicationError(
                     f"Invalid JSON response from Meraki API. "
                     f"Please check Meraki logs or network connectivity. Details: {e}"
