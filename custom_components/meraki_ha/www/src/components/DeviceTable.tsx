@@ -101,6 +101,8 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
                     {rtspUrl ? (
                       <a
                         href={rtspUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="text-blue-500 hover:text-blue-700 underline"
                         onClick={(e) => e.stopPropagation()}
                       >
