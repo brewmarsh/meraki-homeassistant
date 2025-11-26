@@ -153,10 +153,23 @@ jobs:
         working-directory: custom_components/meraki_ha/www
         run: npm run build
       - name: Check for uncommitted changes
+        if: github.event_name == 'pull_request'
         run: |
           if [[ `git status --porcelain` ]]; then
             echo "Frontend assets are out of date. Please run 'npm run build' in custom_components/meraki_ha/www and commit the changes."
             git status
             git diff
             exit 1
+          fi
+      - name: Commit and push frontend changes
+        if: github.event_name == 'push'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add custom_components/meraki_ha/www/
+          if ! git diff --staged --quiet; then
+            git commit -m "build(frontend): update meraki-panel.js [skip ci]"
+            git push
+          else
+            echo "No frontend changes to commit."
           fi
