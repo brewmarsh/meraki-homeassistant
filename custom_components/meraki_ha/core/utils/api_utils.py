@@ -16,6 +16,7 @@ from ..errors import (
     MerakiConnectionError,
     MerakiDeviceError,
     MerakiNetworkError,
+    MerakiTrafficAnalysisError,
 )
 
 # Type variable for generic function return type
@@ -58,6 +59,18 @@ def handle_meraki_errors(
                 return cast(T, [])
             return cast(T, {})
         except APIError as err:
+            if _is_traffic_analysis_error(err):
+                raise MerakiTrafficAnalysisError(
+                    "Traffic Analysis with Hostname Visibility must be enabled on this "
+                    "network to retrieve traffic data. See "
+                    "https://documentation.meraki.com/MX/Design_and_Configure/Configuration_Guides/Firewall_and_Traffic_Shaping/Traffic_Analysis_and_Classification"
+                ) from err
+            if _is_vlan_error(err):
+                _LOGGER.info(
+                    "VLANs are not enabled for this network. To enable VLANs, see "
+                    "https://documentation.meraki.com/SASE_and_SD-WAN/MX/Design_and_Configure/Configuration_Guides/Networks_and_Routing/Configuring_VLANs_on_the_MX_Security_Appliance",
+                )
+                return cast(T, [])
             if _is_informational_error(err):
                 _LOGGER.warning(
                     "Meraki API informational error: %s (%s)",
@@ -147,11 +160,17 @@ def _is_network_error(err: APIError) -> bool:
 def _is_informational_error(err: APIError) -> bool:
     """Check if error is informational (e.g., feature not enabled)."""
     error_str = str(err).lower()
-    return (
-        "vlans are not enabled" in error_str
-        or "traffic analysis" in error_str
-        or "historical viewing is not supported" in error_str
-    )
+    return "historical viewing is not supported" in error_str
+
+
+def _is_traffic_analysis_error(err: APIError) -> bool:
+    """Check if the error is due to traffic analysis not being enabled."""
+    return "traffic analysis" in str(err).lower()
+
+
+def _is_vlan_error(err: APIError) -> bool:
+    """Check if the error is due to VLANs not being enabled."""
+    return "vlans are not enabled" in str(err).lower()
 
 
 def validate_response(response: Any) -> dict[str, Any] | list[Any]:

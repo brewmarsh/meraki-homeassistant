@@ -18,7 +18,11 @@ import meraki
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
-from ...core.errors import ApiClientCommunicationError, MerakiInformationalError
+from ...core.errors import (
+    ApiClientCommunicationError,
+    MerakiInformationalError,
+    MerakiTrafficAnalysisError,
+)
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
@@ -468,12 +472,16 @@ class MerakiAPIClient:
 
             network_traffic_key = f"traffic_{network['id']}"
             network_traffic = detail_data.get(network_traffic_key)
-            if isinstance(network_traffic, MerakiInformationalError):
-                if "traffic analysis" in str(network_traffic).lower():
-                    appliance_traffic[network["id"]] = {
-                        "error": "disabled",
-                        "reason": str(network_traffic),
-                    }
+            if isinstance(network_traffic, MerakiTrafficAnalysisError):
+                _LOGGER.info(
+                    "Traffic analysis is not enabled for network %s. To enable it, "
+                    "see https://documentation.meraki.com/MX/Design_and_Configure/Configuration_Guides/Firewall_and_Traffic_Shaping/Traffic_Analysis_and_Classification",
+                    network["id"],
+                )
+                appliance_traffic[network["id"]] = {
+                    "error": "disabled",
+                    "reason": str(network_traffic),
+                }
             elif isinstance(network_traffic, dict):
                 appliance_traffic[network["id"]] = network_traffic
             elif previous_data and network_traffic_key in previous_data:
