@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 
 interface SettingsProps {
+  hass: any; // Add hass to props
   options: Record<string, any>;
   configEntryId: string;
   onClose: () => void;
 }
 
 const Settings: React.FC<SettingsProps> = ({
+  hass, // Destructure hass from props
   options,
   configEntryId,
   onClose,
@@ -23,19 +25,17 @@ const Settings: React.FC<SettingsProps> = ({
 
   const handleSave = async () => {
     setSaving(true);
-    // Send update to backend
     try {
-      const hass = (window as any).hass;
-      if (hass && hass.connection) {
-        await hass.connection.sendMessagePromise({
+      // Use the hass prop directly
+      if (hass) {
+        await hass.callWS({
           type: 'meraki_ha/update_options',
           config_entry_id: configEntryId,
           options: localOptions,
         });
       } else {
-        // Fallback for dev/standalone mode using a new socket if needed, or just log
-        // For now assuming standard HA env for saving
-        console.log('Saving options:', localOptions);
+        // Fallback for dev/standalone mode
+        console.log('Saving options (dev):', localOptions);
       }
     } catch (e) {
       console.error('Failed to save options:', e);
@@ -43,7 +43,7 @@ const Settings: React.FC<SettingsProps> = ({
     } finally {
       setSaving(false);
       onClose();
-      // Optionally reload page or data
+      // Reload to apply changes
       window.location.reload();
     }
   };

@@ -37,6 +37,7 @@ interface NetworkViewProps {
   };
   onToggle: (networkId: string, enabled: boolean) => void;
   setActiveView: (view: { view: string; deviceId?: string }) => void;
+  configEntryId: string;
 }
 
 const NetworkView: React.FC<NetworkViewProps> = ({
@@ -44,6 +45,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({
   data,
   onToggle,
   setActiveView,
+  configEntryId,
 }) => {
   const [openNetworkIds, setOpenNetworkIds] = useState<string[]>(() => {
     const saved = sessionStorage.getItem('openNetworkIds');
@@ -130,7 +132,11 @@ const NetworkView: React.FC<NetworkViewProps> = ({
                     <SSIDView hass={hass} ssids={network.ssids} />
                   </>
                 )}
-                <EventLog hass={hass} networkId={network.id} />
+                <EventLog
+                  hass={hass}
+                  networkId={network.id}
+                  configEntryId={configEntryId}
+                />
               </div>
             )}
           </ha-card>
