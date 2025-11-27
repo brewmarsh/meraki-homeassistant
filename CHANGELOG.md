@@ -1,3 +1,13 @@
+# [2.2.0-beta.22](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.21...v2.2.0-beta.22) (2025-11-27)
+
+
+### Bug Fixes
+
+* resolve linter errors in E2E test ([ae1a9d4](https://github.com/brewmarsh/meraki-homeassistant/commit/ae1a9d4cc7139a145afabbaf30b4ea47e6b4a9bf))
+
+### Features
+
+* improve frontend E2E test coverage ([8a2b463](https://github.com/brewmarsh/meraki-homeassistant/commit/8a2b4635b467647f6ccabcf52c9ef38a94a89d82))
 # [2.2.0-beta.21](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.20...v2.2.0-beta.21) (2025-11-27)
 
 
