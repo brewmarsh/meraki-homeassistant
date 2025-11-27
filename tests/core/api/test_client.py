@@ -43,7 +43,8 @@ def api_client(hass, mock_dashboard, coordinator):
     # The mock_dashboard fixture mocks the CLASS meraki.DashboardAPI.
     # When api_client is created, it doesn't instantiate dashboard yet.
     # If we call async_setup, it will use the mocked class.
-    # But for unit testing methods that assume self.dashboard is set, we can set it here.
+    # But for unit testing methods that assume self.dashboard is set, we can
+    # set it here.
     client.dashboard = MagicMock()
     return client
 
