@@ -7,6 +7,7 @@ import json
 import os
 import socketserver
 import threading
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -132,7 +133,7 @@ async def test_e2e_panel_comprehensive(
 
             # Prepare mock data with enabled network
             # We copy MOCK_ALL_DATA and ensure the first network is enabled
-            mock_data = MOCK_ALL_DATA.copy()
+            mock_data: dict[str, Any] = MOCK_ALL_DATA.copy()
             if mock_data["networks"]:
                 mock_data["networks"][0]["is_enabled"] = True
 
@@ -153,7 +154,14 @@ async def test_e2e_panel_comprehensive(
                 class HACard extends HTMLElement {{
                     constructor() {{ super(); this.attachShadow({{mode: 'open'}}); }}
                     connectedCallback() {{
-                        this.shadowRoot.innerHTML = `<div style="border: 1px solid #ccc; padding: 16px; display: block;"><slot></slot></div>`;
+                        this.shadowRoot.innerHTML = `
+                            <div style="
+                                border: 1px solid #ccc;
+                                padding: 16px;
+                                display: block;">
+                                <slot></slot>
+                            </div>
+                        `;
                         this.style.display = 'block';
                     }}
                 }}
@@ -191,9 +199,15 @@ async def test_e2e_panel_comprehensive(
                     }}
                 }}
 
-                if (!customElements.get('ha-card')) customElements.define('ha-card', HACard);
-                if (!customElements.get('ha-icon')) customElements.define('ha-icon', HAIcon);
-                if (!customElements.get('ha-switch')) customElements.define('ha-switch', HASwitch);
+                if (!customElements.get('ha-card')) {{
+                    customElements.define('ha-card', HACard);
+                }}
+                if (!customElements.get('ha-icon')) {{
+                    customElements.define('ha-icon', HAIcon);
+                }}
+                if (!customElements.get('ha-switch')) {{
+                    customElements.define('ha-switch', HASwitch);
+                }}
 
 
                 document.addEventListener('DOMContentLoaded', () => {{
@@ -209,7 +223,9 @@ async def test_e2e_panel_comprehensive(
                             console.log("callWS called with type: " + msg.type);
 
                             // Store in sessionStorage to persist across reloads
-                            const calls = JSON.parse(sessionStorage.getItem('mockCallWS'));
+                            const calls = JSON.parse(
+                                sessionStorage.getItem('mockCallWS')
+                            );
                             calls.push(msg);
                             sessionStorage.setItem('mockCallWS', JSON.stringify(calls));
 
@@ -273,7 +289,8 @@ async def test_e2e_panel_comprehensive(
 
             # Verify we are back
             await expect(network_card).to_be_visible()
-            # Ensure table is still visible (it might not be if state wasn't persisted, but let's check basic visibility)
+            # Ensure table is still visible (it might not be if state wasn't persisted)
+            # but let's check basic visibility
             # NetworkView persists state in sessionStorage, so it should remain open.
             await expect(device_table).to_be_visible()
 
@@ -290,7 +307,10 @@ async def test_e2e_panel_comprehensive(
             # Find the switch for this label
             # The structure is label -> parent -> ha-switch
             # We can find the row by text
-            settings_row = settings_modal.locator("div.flex.items-center.justify-between", has_text="Device & Entity Model")
+            settings_row = settings_modal.locator(
+                "div.flex.items-center.justify-between",
+                has_text="Device & Entity Model",
+            )
             toggle_switch = settings_row.locator("ha-switch")
 
             # Click the switch to toggle it
@@ -304,9 +324,13 @@ async def test_e2e_panel_comprehensive(
             await expect(settings_modal).to_be_hidden()
 
             # Verify update_options was called
-            calls = await page.evaluate("JSON.parse(sessionStorage.getItem('mockCallWS'))")
+            calls = await page.evaluate(
+                "JSON.parse(sessionStorage.getItem('mockCallWS'))"
+            )
             # We expect at least one get_config and one update_options
-            update_call = next((c for c in calls if c['type'] == 'meraki_ha/update_options'), None)
+            update_call = next(
+                (c for c in calls if c["type"] == "meraki_ha/update_options"), None
+            )
 
             if update_call is None:
                 print(f"DEBUG: All calls: {calls}")
@@ -315,7 +339,7 @@ async def test_e2e_panel_comprehensive(
 
             # We explicitly set "enable_device_status": True in mock data
             # So toggling it should make it False
-            assert update_call['options']['enable_device_status'] is False
+            assert update_call["options"]["enable_device_status"] is False
 
             await browser.close()
     finally:
