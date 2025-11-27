@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 
 interface DeviceTableProps {
+  hass: any;
   devices: any[];
   setActiveView: (view: { view: string; deviceId?: string }) => void;
 }
 
 const DeviceTable: React.FC<DeviceTableProps> = ({
+  hass,
   devices,
   setActiveView,
 }) => {
@@ -74,6 +76,11 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
                   ? `rtsp://${device.lanIp}:9000/live`
                   : null;
 
+              // Determine status from HA entity if available
+              const haState =
+                device.entity_id && hass?.states?.[device.entity_id];
+              const displayStatus = haState ? haState.state : (device.status || 'N/A');
+
               return (
                 <tr
                   key={device.serial}
@@ -96,7 +103,7 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
                     </div>
                   </td>
                   <td className="p-4">{device.model || 'N/A'}</td>
-                  <td className="p-4 capitalize">{device.status || 'N/A'}</td>
+                  <td className="p-4 capitalize">{displayStatus}</td>
                   <td className="p-4">
                     {rtspUrl ? (
                       <a
