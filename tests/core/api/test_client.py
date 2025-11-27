@@ -34,7 +34,19 @@ def coordinator():
 @pytest.fixture
 def api_client(hass, mock_dashboard, coordinator):
     """Fixture for a MerakiAPIClient instance."""
-    return MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
+    client = MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
+    # Manually assign the mocked dashboard to the client instance
+    # This is necessary because we are not awaiting async_setup() in some tests,
+    # or because mock_dashboard is a class mock but we need an instance mock.
+    # However, MerakiAPIClient.dashboard is initialized to None.
+    # We need to simulate that async_setup has run or just set it directly.
+    # The mock_dashboard fixture mocks the CLASS meraki.DashboardAPI.
+    # When api_client is created, it doesn't instantiate dashboard yet.
+    # If we call async_setup, it will use the mocked class.
+    # But for unit testing methods that assume self.dashboard is set, we can
+    # set it here.
+    client.dashboard = MagicMock()
+    return client
 
 
 @pytest.mark.asyncio
@@ -190,3 +202,41 @@ def test_process_detailed_data_merges_device_info(api_client):
     # Assert
     assert "radio_settings" in device
     assert device["radio_settings"]["five_ghz_settings"]["channel"] == 149
+
+
+@pytest.mark.asyncio
+async def test_get_network_events_filters_none(api_client):
+    """Test that get_network_events filters out None values from arguments."""
+    # Arrange
+    api_client.dashboard.networks.getNetworkEvents.return_value = {"events": []}
+    network_id = "N_123"
+
+    # Act
+    await api_client.get_network_events(network_id)
+
+    # Assert
+    api_client.dashboard.networks.getNetworkEvents.assert_called_once()
+    args, kwargs = api_client.dashboard.networks.getNetworkEvents.call_args
+    assert network_id in args
+    # Ensure no None values in kwargs
+    for key, value in kwargs.items():
+        assert value is not None, f"Found None value for key: {key}"
+    # Specifically check that productType is not in kwargs (since it defaults to None)
+    assert "productType" not in kwargs
+
+
+@pytest.mark.asyncio
+async def test_get_network_events_passes_values(api_client):
+    """Test that get_network_events passes non-None values correctly."""
+    # Arrange
+    api_client.dashboard.networks.getNetworkEvents.return_value = {"events": []}
+    network_id = "N_123"
+    product_type = "appliance"
+
+    # Act
+    await api_client.get_network_events(network_id, product_type=product_type)
+
+    # Assert
+    api_client.dashboard.networks.getNetworkEvents.assert_called_once()
+    args, kwargs = api_client.dashboard.networks.getNetworkEvents.call_args
+    assert kwargs.get("productType") == product_type
