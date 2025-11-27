@@ -117,6 +117,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({
             {isOpen && network.is_enabled && (
               <div className="card-content">
                 <DeviceTable
+                  hass={hass}
                   devices={devices.filter((d) => d.networkId === network.id)}
                   setActiveView={setActiveView}
                 />
