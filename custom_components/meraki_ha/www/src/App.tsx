@@ -131,7 +131,7 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
   return (
     <div className="p-4 relative bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Meraki HA Web UI</h1>
+        <h1 className="text-2xl font-bold">Cisco Meraki Integration</h1>
         <button
           onClick={() => setShowSettings(true)}
           className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
