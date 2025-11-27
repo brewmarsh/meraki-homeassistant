@@ -1,3 +1,13 @@
+# [2.2.0-beta.18](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.17...v2.2.0-beta.18) (2025-11-27)
+
+
+### Bug Fixes
+
+* **api:** address linter line length error in test ([acc9d9b](https://github.com/brewmarsh/meraki-homeassistant/commit/acc9d9bafd94601736000b3683417f154c9306fe))* **api:** remove None values from API calls to prevent validation errors ([3090584](https://github.com/brewmarsh/meraki-homeassistant/commit/30905841d660c77419752ed5b156ad1c7b866e5a))
+
+### Features
+
+* update panel title to Cisco Meraki Integration ([ba1f45e](https://github.com/brewmarsh/meraki-homeassistant/commit/ba1f45e6b7e115a4fd63711872068e900fac69df))
 # [2.2.0-beta.17](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.10...v2.2.0-beta.17) (2025-11-27)
 
 
