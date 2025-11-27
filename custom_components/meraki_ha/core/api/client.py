@@ -745,22 +745,28 @@ class MerakiAPIClient:
         if not self.dashboard:
             raise MerakiInformationalError("Dashboard API not initialized")
 
+        # Create dictionary of arguments and filter out None values
+        kwargs = {
+            "productType": product_type,
+            "includedEventTypes": included_event_types,
+            "excludedEventTypes": excluded_event_types,
+            "deviceSerial": device_serial,
+            "deviceMac": device_mac,
+            "clientIp": client_ip,
+            "clientMac": client_mac,
+            "clientName": client_name,
+            "smDeviceMac": sm_device_mac,
+            "smDeviceName": sm_device_name,
+            "perPage": per_page,
+            "startingAfter": starting_after,
+            "endingBefore": ending_before,
+        }
+        filtered_kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
         return await self._run_with_semaphore(
             self.run_sync(
                 self.dashboard.networks.getNetworkEvents,
                 network_id,
-                productType=product_type,
-                includedEventTypes=included_event_types,
-                excludedEventTypes=excluded_event_types,
-                deviceSerial=device_serial,
-                deviceMac=device_mac,
-                clientIp=client_ip,
-                clientMac=client_mac,
-                clientName=client_name,
-                smDeviceMac=sm_device_mac,
-                smDeviceName=sm_device_name,
-                perPage=per_page,
-                startingAfter=starting_after,
-                endingBefore=ending_before,
+                **filtered_kwargs,
             )
         )
