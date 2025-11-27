@@ -286,10 +286,27 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if entities_for_device:
                     # Prioritize more representative entities
                     primary_entity = None
+                    device_entities = []
                     for entity in entities_for_device:
-                        if entity.platform in ["switch", "camera", "binary_sensor"]:
+                        # Collect entity details for the frontend
+                        state = self.hass.states.get(entity.entity_id)
+                        device_entities.append(
+                            {
+                                "name": entity.name or entity.original_name,
+                                "entity_id": entity.entity_id,
+                                "state": state.state if state else "unknown",
+                            }
+                        )
+
+                        if not primary_entity and entity.platform in [
+                            "switch",
+                            "camera",
+                            "binary_sensor",
+                        ]:
                             primary_entity = entity
-                            break
+
+                    device["entities"] = device_entities
+
                     if primary_entity:
                         device["entity_id"] = primary_entity.entity_id
                     else:
