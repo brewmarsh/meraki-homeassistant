@@ -298,10 +298,11 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                             }
                         )
 
-                        if (
-                            not primary_entity
-                            and entity.platform in ["switch", "camera", "binary_sensor"]
-                        ):
+                        if not primary_entity and entity.platform in [
+                            "switch",
+                            "camera",
+                            "binary_sensor",
+                        ]:
                             primary_entity = entity
 
                     device["entities"] = device_entities
