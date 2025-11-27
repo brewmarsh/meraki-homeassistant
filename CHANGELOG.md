@@ -1,3 +1,9 @@
+# [2.2.0-beta.20](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.18...v2.2.0-beta.20) (2025-11-27)
+
+
+### Bug Fixes
+
+* format meraki_data_coordinator.py with ruff ([c494539](https://github.com/brewmarsh/meraki-homeassistant/commit/c494539e1693e199943dfa439440e077374a9b07))* **frontend:** populate entity list for devices in frontend ([d8ef540](https://github.com/brewmarsh/meraki-homeassistant/commit/d8ef540e78e488f500ba17dd34d7439b156a6569))
 # [2.2.0-beta.19](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.18...v2.2.0-beta.19) (2025-11-27)
 
 # [2.2.0-beta.18](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.17...v2.2.0-beta.18) (2025-11-27)
