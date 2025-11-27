@@ -1,3 +1,9 @@
+# [2.2.0-beta.21](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.20...v2.2.0-beta.21) (2025-11-27)
+
+
+### Bug Fixes
+
+* **frontend:** display live entity state in device table ([55aa8c6](https://github.com/brewmarsh/meraki-homeassistant/commit/55aa8c639a8675ae95dd0efb48086bb4ff66cf5b))
 # [2.2.0-beta.20](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.18...v2.2.0-beta.20) (2025-11-27)
 
 
