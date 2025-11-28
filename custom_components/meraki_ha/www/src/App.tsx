@@ -113,7 +113,7 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
     // );
 
     // return () => unsubscribe();
-  }, [hass, configEntryId]); // Rerun if hass or configEntryId changes
+  }, [configEntryId]); // Rerun if configEntryId changes
 
   if (loading) {
     return <div className="p-4">Loading...</div>;
