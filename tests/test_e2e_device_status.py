@@ -34,8 +34,8 @@ MOCK_UNAVAILABLE_DEVICE = {
     "networkId": "N_12345",
     "productType": "wireless",
     "lanIp": "1.2.3.7",
-    "status": "online", # Meraki says online
-    "entity_id": "switch.unavailable_device" # HA entity
+    "status": "online",  # Meraki says online
+    "entity_id": "switch.unavailable_device",  # HA entity
 }
 
 MOCK_REPRO_DATA: dict[str, Any] = MOCK_ALL_DATA.copy()
