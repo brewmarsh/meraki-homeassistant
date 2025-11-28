@@ -38,11 +38,11 @@ MOCK_UNAVAILABLE_DEVICE = {
     "entity_id": "switch.unavailable_device" # HA entity
 }
 
-MOCK_REPRO_DATA = MOCK_ALL_DATA.copy()
+MOCK_REPRO_DATA: dict[str, Any] = MOCK_ALL_DATA.copy()
 MOCK_REPRO_DATA["devices"] = [MOCK_UNAVAILABLE_DEVICE]
 if MOCK_REPRO_DATA["networks"]:
     MOCK_REPRO_DATA["networks"][0]["is_enabled"] = True
-    MOCK_REPRO_DATA["networks"][0]["ssids"] = [] # Clear SSIDs to simplify
+    MOCK_REPRO_DATA["networks"][0]["ssids"] = []  # Clear SSIDs to simplify
 
 
 class ReuseAddrTCPServer(socketserver.TCPServer):
@@ -92,7 +92,8 @@ async def test_repro_unavailable_status(
     """Test that unavailable HA entity causes unavailable status in UI."""
     original_cwd = os.getcwd()
     os.chdir("custom_components/meraki_ha/www")
-    # Build not strictly needed if we assume previous build is good, but let's do it to be safe or rely on previous
+    # Build not strictly needed if we assume previous build is good,
+    # but let's do it to be safe or rely on previous
     # os.system("npm run build")
 
     with open("test_repro_index.html", "w") as f:
@@ -140,16 +141,26 @@ async def test_repro_unavailable_status(
                 }}
                 class HAIcon extends HTMLElement {{
                     constructor() {{ super(); this.attachShadow({{mode: 'open'}}); }}
-                    connectedCallback() {{ this.shadowRoot.innerHTML = `<span>icon</span>`; }}
+                    connectedCallback() {{
+                        this.shadowRoot.innerHTML = `<span>icon</span>`;
+                    }}
                 }}
                 class HASwitch extends HTMLElement {{
                     constructor() {{ super(); this.attachShadow({{mode: 'open'}}); }}
-                    connectedCallback() {{ this.shadowRoot.innerHTML = `<input type="checkbox" />`; }}
+                    connectedCallback() {{
+                        this.shadowRoot.innerHTML = `<input type="checkbox" />`;
+                    }}
                 }}
 
-                if (!customElements.get('ha-card')) customElements.define('ha-card', HACard);
-                if (!customElements.get('ha-icon')) customElements.define('ha-icon', HAIcon);
-                if (!customElements.get('ha-switch')) customElements.define('ha-switch', HASwitch);
+                if (!customElements.get('ha-card')) {{
+                    customElements.define('ha-card', HACard);
+                }}
+                if (!customElements.get('ha-icon')) {{
+                    customElements.define('ha-icon', HAIcon);
+                }}
+                if (!customElements.get('ha-switch')) {{
+                    customElements.define('ha-switch', HASwitch);
+                }}
 
                 document.addEventListener('DOMContentLoaded', () => {{
                     const panel = document.createElement('meraki-panel');
@@ -188,8 +199,9 @@ async def test_repro_unavailable_status(
             row = page.locator("tr", has_text="Unavailable Device")
             await expect(row).to_be_visible()
 
-            # The status cell text should be "unavailable" currently, but we want it to be "online"
-            # because the Meraki API status is "online" even if the HA entity is unavailable.
+            # The status cell text should be "unavailable" currently, but we want it
+            # to be "online" because the Meraki API status is "online" even if
+            # the HA entity is unavailable.
             status_cell = row.locator("td").nth(2)
             await expect(status_cell).to_contain_text("online", ignore_case=True)
 
