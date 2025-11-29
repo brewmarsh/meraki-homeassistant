@@ -37,7 +37,7 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
 
 |                                                     Network View                                                      |                                                     Device Detail View                                                      |
 | :-------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------: |
-| ![Network View](https://user-images.githubusercontent.com/1099616/279869151-24702f37-646d-4176-963d-2103f6f3630d.png) | ![Device Detail View](https://user-images.githubusercontent.com/1099616/279869158-2947a195-5c02-4580-b7a4-315111956f46.png) |
+| ![Network View](docs/images/network_view.png) | ![Device Detail View](docs/images/device_detail_view.png) |
 
 ## Key Features ✨
 
@@ -47,7 +47,6 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
 - **Rich Sensor Data:** Creates a wide array of sensors for device status, client counts, data usage, firmware updates, PoE consumption, and much more.
 - **Camera Integration:** View live RTSP streams from your Meraki cameras within Home Assistant.
 - **Device & Entity Model:** The integration represents different aspects of your Meraki setup as devices within Home Assistant to create a logical hierarchy.
-- **Organization-Wide Sensors:** These sensors provide aggregate client counts across your entire Meraki organization and are linked to the Organization device.
 - **Physical Device Sensors:** These sensors are linked to specific physical Meraki hardware devices.
 - **Network Sensors:** These sensors are linked to Meraki Network "devices" in Home Assistant.
 - **VLAN Sensors:** For each VLAN configured in a network, sensors are created to monitor its status.
@@ -184,17 +183,6 @@ The integration represents different aspects of your Meraki setup as devices wit
 - **Meraki SSIDs:** Wireless SSIDs are registered as "devices," parented by their network.
 - **Meraki VLANs:** Each VLAN is registered as a "device" to group its associated sensors.
 
-### Organization-Wide Sensors
-
-These sensors provide aggregate client counts across your entire Meraki organization and are linked to the Organization device. The client data for these sensors is based on activity within the **last day**.
-
-| Entity Type | Name                             | Description                                                                     |
-| :---------- | :------------------------------- | :------------------------------------------------------------------------------ |
-| `sensor`    | `Organization SSID Clients`      | Total clients connected to all SSIDs across the organization.                   |
-| `sensor`    | `Organization Wireless Clients`  | Total clients connected to wireless Access Points (MR series).                  |
-| `sensor`    | `Organization Appliance Clients` | Total clients that have routed traffic through security appliances (MX series). |
-| `sensor`    | `Organization Client Types`      | A breakdown of client counts by type (SSID, Appliance, Wireless).               |
-
 ### Camera Entities & Sensors
 
 For each Meraki camera (MV series), a `camera` entity is created.
@@ -225,7 +213,6 @@ These sensors are linked to specific physical Meraki hardware devices.
 These sensors are linked to Meraki Network "devices" in Home Assistant.
 
 - **`[Network Name] Clients`**: Shows the number of clients active on a specific Meraki network.
-- **Note:** For accurate organization-level total client counts, please use the `Organization ... Clients` sensors.
 - **`[Network Name] Network Information`**: Provides detailed information about the network as attributes (notes, tags, time zone).
 - **`[Network Name] Network Identity`**: Provides basic identity information about the network as attributes (ID, type).
 
@@ -273,12 +260,19 @@ For each port on a Meraki MX security appliance, a sensor is created to monitor 
 
 For each Meraki environmental sensor (MT series), entities are created to monitor real-time conditions.
 
-| Entity Type     | Name                            | Description                          | Availability |
-| :-------------- | :------------------------------ | :----------------------------------- | :----------- |
-| `sensor`        | `[Sensor Name] Temperature`     | The ambient temperature.             | MT10, MT12   |
-| `sensor`        | `[Sensor Name] Humidity`        | The relative humidity.               | MT10, MT12   |
-| `sensor`        | `[Sensor Name] Water Detection` | Whether water has been detected.     | MT12         |
-| `binary_sensor` | `[Sensor Name] Door`            | The state of the door (open/closed). | MT20         |
+| Entity Type     | Name                            | Description                                        | Availability                             |
+| :-------------- | :------------------------------ | :------------------------------------------------- | :--------------------------------------- |
+| `sensor`        | `[Sensor Name] Temperature`     | The ambient temperature.                           | MT10, MT11, MT14, MT15                   |
+| `sensor`        | `[Sensor Name] Humidity`        | The relative humidity.                             | MT10, MT14, MT15                         |
+| `sensor`        | `[Sensor Name] Water Detection` | Whether water has been detected.                   | MT12                                     |
+| `sensor`        | `[Sensor Name] PM2.5`           | Particulate Matter 2.5 concentration.              | MT14, MT15                               |
+| `sensor`        | `[Sensor Name] TVOC`            | Total Volatile Organic Compounds concentration.    | MT14, MT15                               |
+| `sensor`        | `[Sensor Name] CO2`             | Carbon Dioxide concentration.                      | MT15                                     |
+| `sensor`        | `[Sensor Name] Ambient Noise`   | Ambient noise level.                               | MT15                                     |
+| `sensor`        | `[Sensor Name] Power`           | Power consumption.                                 | MT40                                     |
+| `sensor`        | `[Sensor Name] Voltage`         | Voltage level.                                     | MT40                                     |
+| `sensor`        | `[Sensor Name] Current`         | Current level.                                     | MT40                                     |
+| `binary_sensor` | `[Sensor Name] Door`            | The state of the door (open/closed).               | MT20                                     |
 
 ## Automation Examples 🚀
 
