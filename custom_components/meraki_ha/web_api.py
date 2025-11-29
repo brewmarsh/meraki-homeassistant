@@ -103,6 +103,7 @@ def async_setup_api(hass: HomeAssistant) -> None:
                 Required("network_id"): str,
                 Optional("per_page", default=10): int,
                 Optional("starting_after"): str,
+                Optional("product_type"): str,
             },
             extra=ALLOW_EXTRA,
         ),
@@ -326,6 +327,7 @@ async def handle_get_network_events(
     network_id = msg["network_id"]
     per_page = msg.get("per_page", 10)
     starting_after = msg.get("starting_after")
+    product_type = msg.get("product_type")
 
     if config_entry_id not in hass.data[DOMAIN]:
         connection.send_error(msg["id"], "not_found", "Config entry not found")
@@ -338,6 +340,7 @@ async def handle_get_network_events(
     try:
         events = await coordinator.api.get_network_events(
             network_id=network_id,
+            product_type=product_type,
             per_page=per_page,
             starting_after=starting_after,
         )
