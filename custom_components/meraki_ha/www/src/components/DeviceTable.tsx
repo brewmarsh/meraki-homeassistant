@@ -79,7 +79,11 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
               // Determine status from HA entity if available
               const haState =
                 device.entity_id && hass?.states?.[device.entity_id];
-              const displayStatus = haState ? haState.state : (device.status || 'N/A');
+
+              let displayStatus = device.status || 'N/A';
+              if (haState && haState.state !== 'unavailable' && haState.state !== 'unknown') {
+                  displayStatus = haState.state;
+              }
 
               return (
                 <tr
