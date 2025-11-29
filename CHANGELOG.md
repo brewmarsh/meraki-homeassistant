@@ -1,3 +1,9 @@
+# [2.2.0-beta.23](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.22...v2.2.0-beta.23) (2025-11-29)
+
+
+### Bug Fixes
+
+* **test:** Apply ruff formatting to e2e test ([7088053](https://github.com/brewmarsh/meraki-homeassistant/commit/70880538bc9452cf1b5b6f0fcd376c0ef9e5578e))* **test:** Resolve mypy and ruff linting errors in e2e test ([0995dc2](https://github.com/brewmarsh/meraki-homeassistant/commit/0995dc24ca8f2d458b111fb6896b7bd80169cb5d))* **ui:** Fallback to Meraki status when HA entity is unavailable ([1d6b635](https://github.com/brewmarsh/meraki-homeassistant/commit/1d6b635697eb07070f5d1c963ff8c0ebaf029faf))* **ui:** prevent frequent page refreshes by optimizing useEffect dependencies ([31844e0](https://github.com/brewmarsh/meraki-homeassistant/commit/31844e02d73ceb5e43e5d4d22c23a8995e46cb39))
 # [2.2.0-beta.22](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.21...v2.2.0-beta.22) (2025-11-27)
 
 
