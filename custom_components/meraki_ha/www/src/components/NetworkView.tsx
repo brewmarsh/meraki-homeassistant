@@ -16,6 +16,7 @@ interface Network {
   name: string;
   ssids: SSID[];
   is_enabled: boolean;
+  productTypes?: string[];
 }
 
 interface Device {
@@ -137,6 +138,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({
                   hass={hass}
                   networkId={network.id}
                   configEntryId={configEntryId}
+                  productTypes={network.productTypes}
                 />
               </div>
             )}

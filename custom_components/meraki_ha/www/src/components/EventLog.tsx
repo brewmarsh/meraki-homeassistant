@@ -4,6 +4,7 @@ interface EventLogProps {
   hass: any;
   networkId?: string;
   configEntryId: string;
+  productTypes?: string[];
 }
 
 interface MerakiEvent {
@@ -16,19 +17,11 @@ interface MerakiEvent {
   deviceName?: string;
 }
 
-interface MerakiEventsResponse {
-  events: MerakiEvent[];
-  pageLink?: string; // Meraki API returns pagination links in headers, client wrapper might handle this differently.
-  // But for now let's assume the standard response body structure or just the list.
-  // Wait, the API returns a dict with 'events' and 'pageLink' usually if wrapper processes it,
-  // or just the list if using meraki library directly?
-  // The `getNetworkEvents` method in meraki library returns a dict.
-}
-
 const EventLog: React.FC<EventLogProps> = ({
   hass,
   networkId,
   configEntryId,
+  productTypes,
 }) => {
   const [events, setEvents] = useState<MerakiEvent[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -37,6 +30,13 @@ const EventLog: React.FC<EventLogProps> = ({
   useEffect(() => {
     const fetchEvents = async () => {
       if (!networkId) return;
+
+      // Determine product type to use
+      const productType =
+        productTypes && productTypes.length > 0 ? productTypes[0] : undefined;
+
+      // If no product type, and meraki api requires it, we might skip fetching or try without it.
+      // But given the error, let's try to send it if available.
 
       setLoading(true);
       setError(null);
@@ -71,6 +71,7 @@ const EventLog: React.FC<EventLogProps> = ({
           config_entry_id: configEntryId,
           network_id: networkId,
           per_page: 10,
+          product_type: productType,
         });
 
         if (response && response.events) {
@@ -87,7 +88,7 @@ const EventLog: React.FC<EventLogProps> = ({
     };
 
     fetchEvents();
-  }, [hass, networkId, configEntryId]);
+  }, [hass, networkId, configEntryId, productTypes]);
 
   if (!networkId) {
     return (
