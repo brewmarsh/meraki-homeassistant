@@ -1,4 +1,3 @@
-
 from unittest.mock import MagicMock
 
 from custom_components.meraki_ha.camera import MerakiCamera
@@ -44,6 +43,7 @@ async def test_camera_rtsp_enabled_via_fallback(mock_coordinator, mock_config_en
     # Verify no status message added
     mock_coordinator.add_status_message.assert_not_called()
 
+
 async def test_camera_rtsp_disabled_when_no_ip(mock_coordinator, mock_config_entry):
     """Test RTSP disabled message shown when flag is False and no IP available."""
     device_data = {
@@ -52,7 +52,7 @@ async def test_camera_rtsp_disabled_when_no_ip(mock_coordinator, mock_config_ent
         "model": "MV33",
         "networkId": "N_12345",
         "productType": "camera",
-        "lanIp": None, # No IP
+        "lanIp": None,  # No IP
         "status": "online",
         "video_settings": {
             "rtspServerEnabled": False,
