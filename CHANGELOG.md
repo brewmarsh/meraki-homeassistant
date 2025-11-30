@@ -1,3 +1,9 @@
+# [2.2.0-beta.24](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.23...v2.2.0-beta.24) (2025-11-30)
+
+
+### Bug Fixes
+
+* **camera:** improve RTSP stream availability check ([00d33b3](https://github.com/brewmarsh/meraki-homeassistant/commit/00d33b31f3dc79681999d8e8dd7d6e365d59758b))* **tests:** resolve ruff linting errors in camera tests ([d687d50](https://github.com/brewmarsh/meraki-homeassistant/commit/d687d50d2f5b267a5b1d5917994df7cee95b392b))
 # [2.2.0-beta.23](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.22...v2.2.0-beta.23) (2025-11-29)
 
 
