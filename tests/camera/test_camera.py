@@ -1,12 +1,11 @@
 
-import pytest
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import MagicMock
+
 from custom_components.meraki_ha.camera import MerakiCamera
-from custom_components.meraki_ha.const import DOMAIN
+
 
 async def test_camera_rtsp_enabled_via_fallback(mock_coordinator, mock_config_entry):
-    """Test that RTSP is enabled via fallback when flag is False but LAN IP is present."""
-
+    """Test RTSP enabled via fallback when flag is False but LAN IP is present."""
     device_data = {
         "serial": "Q234-ABCD-CAM1",
         "name": "Test Camera",
@@ -46,8 +45,7 @@ async def test_camera_rtsp_enabled_via_fallback(mock_coordinator, mock_config_en
     mock_coordinator.add_status_message.assert_not_called()
 
 async def test_camera_rtsp_disabled_when_no_ip(mock_coordinator, mock_config_entry):
-    """Test that RTSP disabled message is shown when flag is False and no IP available."""
-
+    """Test RTSP disabled message shown when flag is False and no IP available."""
     device_data = {
         "serial": "Q234-ABCD-CAM2",
         "name": "Test Camera 2",
