@@ -1,3 +1,9 @@
+# [2.2.0-beta.25](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.24...v2.2.0-beta.25) (2025-12-01)
+
+
+### Bug Fixes
+
+* **frontend:** improve camera status display logic in DeviceTable ([6356056](https://github.com/brewmarsh/meraki-homeassistant/commit/635605613998ec2c2493b7a1786cfa9a5dc0afe3))
 # [2.2.0-beta.24](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.23...v2.2.0-beta.24) (2025-11-30)
 
 
