@@ -1,3 +1,9 @@
+# [2.2.0-beta.29](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.28...v2.2.0-beta.29) (2025-12-01)
+
+
+### Bug Fixes
+
+* **sensor:** ensure router entities remain available when uplink data is missing ([f72d1d2](https://github.com/brewmarsh/meraki-homeassistant/commit/f72d1d2954dc54fc9a1a032163dc805dc68b861a)), closes [#123](https://github.com/brewmarsh/meraki-homeassistant/issues/123)
 # [2.2.0-beta.28](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.27...v2.2.0-beta.28) (2025-12-01)
 
 
