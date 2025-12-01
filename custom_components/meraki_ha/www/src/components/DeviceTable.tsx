@@ -81,8 +81,23 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
                 device.entity_id && hass?.states?.[device.entity_id];
 
               let displayStatus = device.status || 'N/A';
-              if (haState && haState.state !== 'unavailable' && haState.state !== 'unknown') {
-                  displayStatus = haState.state;
+
+              // Fallback for cameras: if status is missing/unknown but we have a LAN IP, assume Online
+              if (
+                isCamera &&
+                (displayStatus === 'N/A' ||
+                  displayStatus.toLowerCase() === 'unknown') &&
+                device.lanIp
+              ) {
+                displayStatus = 'online';
+              }
+
+              if (
+                haState &&
+                haState.state !== 'unavailable' &&
+                haState.state !== 'unknown'
+              ) {
+                displayStatus = haState.state;
               }
 
               return (
