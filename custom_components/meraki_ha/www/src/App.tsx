@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+// Frontend version: 2.2.0-beta.28
 import NetworkView from './components/NetworkView';
 import DeviceView from './components/DeviceView';
 import Settings from './components/Settings';
@@ -99,20 +100,6 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
     };
 
     fetchData();
-
-    // Optional: Subscribe to updates if the backend supports it
-    // const unsubscribe = hass.connection.subscribeMessage(
-    //   (message) => {
-    //     console.log('Received update:', message);
-    //     // Update state based on the message
-    //   },
-    //   {
-    //     type: 'meraki_ha/subscribe_updates',
-    //     config_entry_id: configEntryId,
-    //   }
-    // );
-
-    // return () => unsubscribe();
   }, [configEntryId]); // Rerun if configEntryId changes
 
   if (loading) {
