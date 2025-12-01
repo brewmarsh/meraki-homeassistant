@@ -25,7 +25,7 @@ jobs:
       - name: Set up Python and Node.js
         uses: actions/setup-python@v6
         with:
-          python-version: '3.x'
+          python-version: '3.13'
       - uses: actions/setup-node@v6
         with:
           node-version: '20'
