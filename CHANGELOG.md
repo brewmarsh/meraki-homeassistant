@@ -1,3 +1,9 @@
+# [2.2.0-beta.28](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.27...v2.2.0-beta.28) (2025-12-01)
+
+
+### Bug Fixes
+
+* **ci:** pin python version to 3.13 for release workflows ([af4ca23](https://github.com/brewmarsh/meraki-homeassistant/commit/af4ca235bdaa3689420f72e0b5236eda28c41a64))* Clean frontend artifact by bumping version and rebuilding ([cad3002](https://github.com/brewmarsh/meraki-homeassistant/commit/cad3002f94592f1b4ab43b0e475102ea02f2eb47))* cleanup frontend code and force rebuild ([7f93e79](https://github.com/brewmarsh/meraki-homeassistant/commit/7f93e79ca4e10d08b15efac320a790c1ca16b5ad))
 # [2.2.0-beta.27](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.26...v2.2.0-beta.27) (2025-12-01)
 
 
