@@ -1,3 +1,9 @@
+# [2.2.0-beta.27](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.26...v2.2.0-beta.27) (2025-12-01)
+
+
+### Bug Fixes
+
+* **api:** add required productType to getNetworkEvents call ([d4b2016](https://github.com/brewmarsh/meraki-homeassistant/commit/d4b2016433c7e7888d92f24d57ca6717f8c3c5b8))
 # [2.2.0-beta.26](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.25...v2.2.0-beta.26) (2025-12-01)
 
 # [2.2.0-beta.25](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.24...v2.2.0-beta.25) (2025-12-01)
