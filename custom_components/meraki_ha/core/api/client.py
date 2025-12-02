@@ -536,8 +536,24 @@ class MerakiAPIClient:
                 if settings := detail_data.get(f"sense_settings_{device['serial']}"):
                     device["sense_settings"] = settings
             elif product_type == "switch":
-                if statuses := detail_data.get(f"ports_statuses_{device['serial']}"):
+                statuses_key = f"ports_statuses_{device['serial']}"
+                statuses = detail_data.get(statuses_key)
+                if isinstance(statuses, list):
                     device["ports_statuses"] = statuses
+                elif previous_data:
+                    # Try to retrieve from previous data based on serial
+                    prev_devices = previous_data.get("devices", [])
+                    prev_device = next(
+                        (
+                            d
+                            for d in prev_devices
+                            if d.get("serial") == device["serial"]
+                        ),
+                        None,
+                    )
+                    if prev_device and "ports_statuses" in prev_device:
+                        device["ports_statuses"] = prev_device["ports_statuses"]
+
             elif product_type == "appliance":
                 if settings := detail_data.get(
                     f"appliance_settings_{device['serial']}",

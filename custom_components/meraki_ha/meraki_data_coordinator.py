@@ -294,6 +294,18 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     else:
                         device["entity_id"] = entities_for_device[0].entity_id
 
+                    # Add list of entities to device data for frontend
+                    device["entities"] = []
+                    for entity in entities_for_device:
+                        state_obj = self.hass.states.get(entity.entity_id)
+                        device["entities"].append(
+                            {
+                                "name": entity.name or entity.original_name,
+                                "entity_id": entity.entity_id,
+                                "state": state_obj.state if state_obj else "unknown",
+                            }
+                        )
+
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint and apply filters."""
         try:
