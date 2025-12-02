@@ -1,3 +1,9 @@
+# [2.2.0-beta.35](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.34...v2.2.0-beta.35) (2025-12-02)
+
+
+### Bug Fixes
+
+* **sensor:** fix linting errors in test files ([16dda77](https://github.com/brewmarsh/meraki-homeassistant/commit/16dda77a7895c363e7e7b27fad9e3c6af1e2cabc))* **sensor:** improve SSID sensors and add PSK ([ce35050](https://github.com/brewmarsh/meraki-homeassistant/commit/ce350500c344abdb6acc7511893af4261b96f91d))
 # [2.2.0-beta.34](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.33...v2.2.0-beta.34) (2025-12-02)
 
 
