@@ -43,7 +43,8 @@ async def test_discover_entities_creates_reboot_button_and_status_sensor(
 
     entities = await handler.discover_entities()
 
-    # Should have Reboot Button and Device Status Sensor (uplink disabled by default/mock)
+    # Should have Reboot Button and Device Status Sensor
+    # (uplink disabled by default/mock)
     # The default mock config might enable device status.
     assert len(entities) >= 2
     assert any(isinstance(e, MerakiRebootButton) for e in entities)
