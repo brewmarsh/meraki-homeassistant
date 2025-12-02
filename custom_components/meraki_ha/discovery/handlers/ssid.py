@@ -16,7 +16,6 @@ from ...sensor.network.ssid_auth_mode import MerakiSSIDAuthModeSensor
 # Import the specific sensor classes
 from ...sensor.network.ssid_availability import MerakiSSIDAvailabilitySensor
 from ...sensor.network.ssid_band_selection import MerakiSSIDBandSelectionSensor
-from ...sensor.network.ssid_channel import MerakiSSIDChannelSensor
 from ...sensor.network.ssid_client_count import MerakiSSIDClientCountSensor
 from ...sensor.network.ssid_details import (
     MerakiSSIDMandatoryDhcpSensor,
@@ -34,6 +33,7 @@ from ...sensor.network.ssid_per_client_bandwidth_limit import (
 from ...sensor.network.ssid_per_ssid_bandwidth_limit import (
     MerakiSSIDPerSsidBandwidthLimitSensor,
 )
+from ...sensor.network.ssid_psk import MerakiSSIDPSKSensor
 from ...sensor.network.ssid_splash_page import MerakiSSIDSplashPageSensor
 from ...sensor.network.ssid_visible import MerakiSSIDVisibleSensor
 from ...sensor.network.ssid_wpa_encryption_mode import MerakiSSIDWPAEncryptionModeSensor
@@ -130,9 +130,6 @@ class SSIDHandler(BaseHandler):
                     MerakiSSIDAvailabilitySensor(
                         self._coordinator, self._config_entry, ssid
                     ),
-                    MerakiSSIDChannelSensor(
-                        self._coordinator, self._config_entry, ssid
-                    ),
                     MerakiSSIDClientCountSensor(
                         self._coordinator, self._config_entry, ssid
                     ),
@@ -142,6 +139,7 @@ class SSIDHandler(BaseHandler):
                     MerakiSSIDAuthModeSensor(
                         self._coordinator, self._config_entry, ssid
                     ),
+                    MerakiSSIDPSKSensor(self._coordinator, self._config_entry, ssid),
                     MerakiSSIDEncryptionModeSensor(
                         self._coordinator, self._config_entry, ssid
                     ),
