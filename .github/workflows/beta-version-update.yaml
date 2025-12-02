@@ -55,30 +55,16 @@ jobs:
         run: |
           npm run build --prefix custom_components/meraki_ha/www
 
-      - name: Generate Changelog
-        if: steps.increment.outputs.new_version != ''
-        run: |
-          npx conventional-changelog -p angular -i CHANGELOG.md -s
-          # Generate release notes for the current version
-          npx conventional-changelog -p angular -r 1 > RELEASE_NOTES.md
-
       - name: Commit and push changes
         if: steps.increment.outputs.new_version != ''
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
-          commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }} and CHANGELOG'
+          commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }} [skip ci]'
           file_pattern: 'custom_components/meraki_ha/manifest.json CHANGELOG.md package.json .bumpversion.cfg package-lock.json custom_components/meraki_ha/www/meraki-panel.js'
           commit_user_name: 'github-actions[bot]'
           commit_user_email: 'github-actions[bot]@users.noreply.github.com'
           commit_author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
           branch: 'beta'
-
-      - name: Upload Release Notes
-        if: steps.increment.outputs.new_version != ''
-        uses: actions/upload-artifact@v5
-        with:
-          name: release-notes
-          path: RELEASE_NOTES.md
 
   release:
     runs-on: ubuntu-latest
@@ -86,19 +72,15 @@ jobs:
     if: needs.version.outputs.new_version != ''
     permissions:
       contents: write
+      pull-requests: read
     steps:
-      - name: Download Release Notes
-        uses: actions/download-artifact@v6
-        with:
-          name: release-notes
-
       - name: Create Release
-        uses: actions/create-release@v1
+        uses: release-drafter/release-drafter@v6
+        with:
+          tag: 'v${{ needs.version.outputs.new_version }}'
+          name: 'Release v${{ needs.version.outputs.new_version }}'
+          version: 'v${{ needs.version.outputs.new_version }}'
+          publish: true
+          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: 'v${{ needs.version.outputs.new_version }}'
-          release_name: 'Release v${{ needs.version.outputs.new_version }}'
-          body_path: 'RELEASE_NOTES.md'
-          draft: false
-          prerelease: true
