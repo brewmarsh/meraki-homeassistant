@@ -564,8 +564,17 @@ class MerakiAPIClient:
                     wireless_settings_key
                 ]
 
+        # Pre-process previous devices for faster lookup
+        previous_devices_by_serial = {}
+        if previous_data and "devices" in previous_data:
+            for d in previous_data["devices"]:
+                if "serial" in d:
+                    previous_devices_by_serial[d["serial"]] = d
+
         for device in devices:
             product_type = device.get("productType")
+            prev_device = previous_devices_by_serial.get(device["serial"])
+
             if product_type == "camera":
                 if settings := detail_data.get(f"video_settings_{device['serial']}"):
                     device["video_settings"] = settings
@@ -574,17 +583,29 @@ class MerakiAPIClient:
                         device["rtsp_url"] = settings.get("rtsp_url")
                     else:
                         device["rtsp_url"] = None
+                elif prev_device and "video_settings" in prev_device:
+                    device["video_settings"] = prev_device["video_settings"]
+                    device["rtsp_url"] = prev_device.get("rtsp_url")
+
                 if settings := detail_data.get(f"sense_settings_{device['serial']}"):
                     device["sense_settings"] = settings
+                elif prev_device and "sense_settings" in prev_device:
+                    device["sense_settings"] = prev_device["sense_settings"]
+
             elif product_type == "switch":
                 if statuses := detail_data.get(f"ports_statuses_{device['serial']}"):
                     device["ports_statuses"] = statuses
+                elif prev_device and "ports_statuses" in prev_device:
+                    device["ports_statuses"] = prev_device["ports_statuses"]
+
             elif product_type == "appliance":
                 if settings := detail_data.get(
                     f"appliance_settings_{device['serial']}",
                 ):
                     if isinstance(settings.get("dynamicDns"), dict):
                         device["dynamicDns"] = settings["dynamicDns"]
+                elif prev_device and "dynamicDns" in prev_device:
+                    device["dynamicDns"] = prev_device["dynamicDns"]
 
         return {
             "ssids": ssids,
