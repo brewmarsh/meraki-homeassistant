@@ -305,12 +305,31 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         ]:
                             primary_entity = entity
 
+                        # If we haven't found a preferred platform entity yet,
+                        # check if this is the dedicated device status sensor.
+                        # This ensures we prefer a "clean" status sensor over
+                        # random other sensors if available.
+                        elif (
+                            not primary_entity
+                            and entity.unique_id
+                            and entity.unique_id.endswith("_device_status")
+                        ):
+                            primary_entity = entity
+
                     device["entities"] = device_entities
 
                     if primary_entity:
                         device["entity_id"] = primary_entity.entity_id
                     else:
-                        device["entity_id"] = entities_for_device[0].entity_id
+                        # Fallback: Pick the first non-button entity if possible.
+                        # Button entities often have a timestamp state (last pressed),
+                        # which is confusing for a "status" display.
+                        fallback_entity = entities_for_device[0]
+                        for entity in entities_for_device:
+                            if entity.platform != "button":
+                                fallback_entity = entity
+                                break
+                        device["entity_id"] = fallback_entity.entity_id
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint and apply filters."""
