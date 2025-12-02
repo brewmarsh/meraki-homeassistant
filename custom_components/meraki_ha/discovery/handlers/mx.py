@@ -107,9 +107,8 @@ class MXHandler(BaseDeviceHandler):
                 for ent in reg_entities:
                     # Check if it looks like an uplink sensor
                     # Format: {serial}_uplink_{interface}
-                    if (
-                        ent.unique_id
-                        and ent.unique_id.startswith(f"{self.device['serial']}_uplink_")
+                    if ent.unique_id and ent.unique_id.startswith(
+                        f"{self.device['serial']}_uplink_"
                     ):
                         interface = ent.unique_id.replace(
                             f"{self.device['serial']}_uplink_", ""

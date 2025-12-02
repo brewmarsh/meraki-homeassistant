@@ -19,9 +19,7 @@ async def test_ssid_psk_sensor() -> None:
         "psk": "secret123",
     }
 
-    coordinator.data = {
-        "ssids": [ssid_data_psk]
-    }
+    coordinator.data = {"ssids": [ssid_data_psk]}
 
     sensor = MerakiSSIDPSKSensor(coordinator, config_entry, ssid_data_psk)
     assert sensor.name == "PSK"
