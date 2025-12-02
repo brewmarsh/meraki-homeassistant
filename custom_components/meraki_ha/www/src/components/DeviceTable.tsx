@@ -22,6 +22,9 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
     if (m.startsWith('MG')) return 'mdi:signal-cellular-outline';
     if (m.startsWith('MT')) return 'mdi:thermometer';
     if (m.startsWith('Z')) return 'mdi:router-wireless';
+    if (m.startsWith('GS')) return 'mdi:lan';
+    if (m.startsWith('GR')) return 'mdi:wifi';
+    if (m.startsWith('GX')) return 'mdi:shield-check';
     return 'mdi:help-circle';
   };
 

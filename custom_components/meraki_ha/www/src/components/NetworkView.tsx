@@ -99,20 +99,41 @@ const NetworkView: React.FC<NetworkViewProps> = ({
         const networkDevices = devices.filter(
           (d) => d.networkId === network.id
         );
-        const wirelessDevices = networkDevices.filter((d) =>
-          d.model?.toUpperCase().startsWith('MR')
+        const wirelessDevices = networkDevices.filter(
+          (d) =>
+            d.model?.toUpperCase().startsWith('MR') ||
+            d.model?.toUpperCase().startsWith('GR')
         );
-        const switchDevices = networkDevices.filter((d) =>
-          d.model?.toUpperCase().startsWith('MS')
+        const switchDevices = networkDevices.filter(
+          (d) =>
+            d.model?.toUpperCase().startsWith('MS') ||
+            d.model?.toUpperCase().startsWith('GS')
         );
         const cameraDevices = networkDevices.filter((d) =>
           d.model?.toUpperCase().startsWith('MV')
         );
+        const sensorDevices = networkDevices.filter((d) =>
+          d.model?.toUpperCase().startsWith('MT')
+        );
+        const applianceDevices = networkDevices.filter(
+          (d) =>
+            d.model?.toUpperCase().startsWith('MX') ||
+            d.model?.toUpperCase().startsWith('Z') ||
+            d.model?.toUpperCase().startsWith('MG') ||
+            d.model?.toUpperCase().startsWith('GX')
+        );
         const otherDevices = networkDevices.filter(
           (d) =>
             !d.model?.toUpperCase().startsWith('MR') &&
+            !d.model?.toUpperCase().startsWith('GR') &&
             !d.model?.toUpperCase().startsWith('MS') &&
-            !d.model?.toUpperCase().startsWith('MV')
+            !d.model?.toUpperCase().startsWith('GS') &&
+            !d.model?.toUpperCase().startsWith('MV') &&
+            !d.model?.toUpperCase().startsWith('MT') &&
+            !d.model?.toUpperCase().startsWith('MX') &&
+            !d.model?.toUpperCase().startsWith('Z') &&
+            !d.model?.toUpperCase().startsWith('MG') &&
+            !d.model?.toUpperCase().startsWith('GX')
         );
 
         const groups = [
@@ -130,6 +151,16 @@ const NetworkView: React.FC<NetworkViewProps> = ({
             label: 'Cameras',
             devices: cameraDevices,
             icon: 'mdi:cctv',
+          },
+          {
+            label: 'Sensors',
+            devices: sensorDevices,
+            icon: 'mdi:thermometer',
+          },
+          {
+            label: 'Appliances',
+            devices: applianceDevices,
+            icon: 'mdi:shield-check',
           },
           {
             label: 'Other Devices',
