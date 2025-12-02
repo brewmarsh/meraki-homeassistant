@@ -503,7 +503,8 @@ class MerakiAPIClient:
                 _LOGGER.info(str(network_vlans))
                 vlan_by_network[network["id"]] = []
             elif isinstance(network_vlans, MerakiInformationalError):
-                if "vlans are not enabled" in str(network_vlans).lower():
+                error_msg = str(network_vlans).lower()
+                if "vlans are not enabled" in error_msg:
                     self._disabled_features.add(network_vlans_key)
                     vlan_by_network[network["id"]] = []
             elif isinstance(network_vlans, list):
