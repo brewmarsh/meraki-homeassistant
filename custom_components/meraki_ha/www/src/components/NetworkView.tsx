@@ -65,6 +65,21 @@ const NetworkView: React.FC<NetworkViewProps> = ({
     );
   };
 
+  const isDeviceOnline = (device: Device) => {
+    const haState = device.entity_id && hass?.states?.[device.entity_id];
+    let status = device.status;
+    if (
+      haState &&
+      haState.state !== 'unavailable' &&
+      haState.state !== 'unknown'
+    ) {
+      status = haState.state;
+    }
+    return ['online', 'alerting', 'active', 'home', 'on'].includes(
+      status?.toLowerCase()
+    );
+  };
+
   const { networks, devices } = data;
 
   if (!networks || networks.length === 0) {
@@ -79,6 +94,49 @@ const NetworkView: React.FC<NetworkViewProps> = ({
           ? network.ssids.filter((s) => s.enabled).length
           : 0;
         const totalSsids = network.ssids ? network.ssids.length : 0;
+
+        // Group devices
+        const networkDevices = devices.filter(
+          (d) => d.networkId === network.id
+        );
+        const wirelessDevices = networkDevices.filter((d) =>
+          d.model?.toUpperCase().startsWith('MR')
+        );
+        const switchDevices = networkDevices.filter((d) =>
+          d.model?.toUpperCase().startsWith('MS')
+        );
+        const cameraDevices = networkDevices.filter((d) =>
+          d.model?.toUpperCase().startsWith('MV')
+        );
+        const otherDevices = networkDevices.filter(
+          (d) =>
+            !d.model?.toUpperCase().startsWith('MR') &&
+            !d.model?.toUpperCase().startsWith('MS') &&
+            !d.model?.toUpperCase().startsWith('MV')
+        );
+
+        const groups = [
+          {
+            label: 'Wireless APs',
+            devices: wirelessDevices,
+            icon: 'mdi:wifi',
+          },
+          {
+            label: 'Switches',
+            devices: switchDevices,
+            icon: 'mdi:lan',
+          },
+          {
+            label: 'Cameras',
+            devices: cameraDevices,
+            icon: 'mdi:cctv',
+          },
+          {
+            label: 'Other Devices',
+            devices: otherDevices,
+            icon: 'mdi:devices',
+          },
+        ];
 
         return (
           <ha-card key={network.id}>
@@ -117,16 +175,34 @@ const NetworkView: React.FC<NetworkViewProps> = ({
             </div>
             {isOpen && network.is_enabled && (
               <div className="card-content">
-                <DeviceTable
-                  hass={hass}
-                  devices={devices.filter((d) => d.networkId === network.id)}
-                  setActiveView={setActiveView}
-                />
+                {groups.map((group) => {
+                  if (group.devices.length === 0) return null;
+                  const onlineCount = group.devices.filter(isDeviceOnline).length;
+                  const totalCount = group.devices.length;
+
+                  return (
+                    <div key={group.label} style={{ marginBottom: '16px' }}>
+                      <div
+                        className="hero-indicator"
+                        style={{ padding: '0 16px 16px' }}
+                      >
+                        <ha-icon icon={group.icon}></ha-icon>
+                        {onlineCount} / {totalCount} {group.label} Online
+                      </div>
+                      <DeviceTable
+                        hass={hass}
+                        devices={group.devices}
+                        setActiveView={setActiveView}
+                      />
+                    </div>
+                  );
+                })}
+
                 {network.ssids && network.ssids.length > 0 && (
                   <>
                     <div
                       className="hero-indicator"
-                      style={{ padding: '0 16px 16px' }}
+                      style={{ padding: '16px' }}
                     >
                       <ha-icon icon="mdi:wifi"></ha-icon>
                       {enabledSsids} / {totalSsids} SSIDs Enabled
