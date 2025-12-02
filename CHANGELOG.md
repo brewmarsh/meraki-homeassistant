@@ -1,3 +1,9 @@
+# [2.2.0-beta.31](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.30...v2.2.0-beta.31) (2025-12-02)
+
+
+### Bug Fixes
+
+* **api:** prevent repetitive calls for disabled features ([f664202](https://github.com/brewmarsh/meraki-homeassistant/commit/f6642023564175594127fa60e648d5ac6294f962))* **sensor:** improve SSID sensors and add PSK ([3c31027](https://github.com/brewmarsh/meraki-homeassistant/commit/3c3102700f9bae83b50784ad99c28d04e166f0ae))
 # [2.2.0-beta.30](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.29...v2.2.0-beta.30) (2025-12-02)
 
 
