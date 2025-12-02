@@ -99,11 +99,15 @@ const NetworkView: React.FC<NetworkViewProps> = ({
         const networkDevices = devices.filter(
           (d) => d.networkId === network.id
         );
-        const wirelessDevices = networkDevices.filter((d) =>
-          d.model?.toUpperCase().startsWith('MR')
+        const wirelessDevices = networkDevices.filter(
+          (d) =>
+            d.model?.toUpperCase().startsWith('MR') ||
+            d.model?.toUpperCase().startsWith('GR')
         );
-        const switchDevices = networkDevices.filter((d) =>
-          d.model?.toUpperCase().startsWith('MS')
+        const switchDevices = networkDevices.filter(
+          (d) =>
+            d.model?.toUpperCase().startsWith('MS') ||
+            d.model?.toUpperCase().startsWith('GS')
         );
         const cameraDevices = networkDevices.filter((d) =>
           d.model?.toUpperCase().startsWith('MV')
@@ -111,7 +115,9 @@ const NetworkView: React.FC<NetworkViewProps> = ({
         const otherDevices = networkDevices.filter(
           (d) =>
             !d.model?.toUpperCase().startsWith('MR') &&
+            !d.model?.toUpperCase().startsWith('GR') &&
             !d.model?.toUpperCase().startsWith('MS') &&
+            !d.model?.toUpperCase().startsWith('GS') &&
             !d.model?.toUpperCase().startsWith('MV')
         );
 
