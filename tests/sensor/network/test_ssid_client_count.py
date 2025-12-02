@@ -59,7 +59,8 @@ async def test_ssid_client_count_sensor() -> None:
     assert sensor.native_unit_of_measurement == "clients"
 
     # Check initial calculation
-    assert sensor.native_value == 2  # One "Online" and one "online" for this SSID/Network
+    # One "Online" and one "online" for this SSID/Network
+    assert sensor.native_value == 2
 
     # Test update
     coordinator.data["clients"].append(
