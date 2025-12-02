@@ -1,3 +1,9 @@
+# [2.2.0-beta.34](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.33...v2.2.0-beta.34) (2025-12-02)
+
+
+### Bug Fixes
+
+* **lint:** re-verify and commit changes ([8435f8f](https://github.com/brewmarsh/meraki-homeassistant/commit/8435f8f09f426397ee7a59df910cad081a2a7c41))* **lint:** shorten line in client.py ([a0635d2](https://github.com/brewmarsh/meraki-homeassistant/commit/a0635d218d10a94cad826f7b7f88ccff8dfc070f))* remove [Camera] prefix from camera entities ([04b7a68](https://github.com/brewmarsh/meraki-homeassistant/commit/04b7a683f0338435fd883eb1eaee24837287de16))* resolve AttributeError by renaming register_update_pending ([97a2a81](https://github.com/brewmarsh/meraki-homeassistant/commit/97a2a81cf49ea21a52ebb6ddfa84d3e3a3b8b2df))
 # [2.2.0-beta.33](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.32...v2.2.0-beta.33) (2025-12-02)
 
 
