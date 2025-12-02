@@ -263,7 +263,7 @@ async def test_e2e_panel_comprehensive(
             await expand_button.click()
 
             # Check if devices are displayed in the table
-            device_table = page.locator("table")
+            device_table = page.locator("table").first
             await expect(device_table).to_be_visible()
 
             # Check for specific devices from MOCK_ALL_DATA
