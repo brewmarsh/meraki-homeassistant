@@ -504,7 +504,7 @@ class MerakiAPIClient:
                 vlan_by_network[network["id"]] = []
             elif isinstance(network_vlans, MerakiInformationalError):
                 if "vlans are not enabled" in str(network_vlans).lower():
-                    # Fallback for generic handling if needed, though specific error catches first
+                    # Fallback for generic handling if needed
                     self._disabled_features.add(network_vlans_key)
                     vlan_by_network[network["id"]] = []
             elif isinstance(network_vlans, list):
