@@ -9,8 +9,9 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
 from ...button.reboot import MerakiRebootButton
-from ...const import CONF_ENABLE_PORT_SENSORS, DOMAIN
+from ...const import CONF_ENABLE_DEVICE_STATUS, CONF_ENABLE_PORT_SENSORS, DOMAIN
 from ...sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
+from ...sensor.device.device_status import MerakiDeviceStatusSensor
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
@@ -70,6 +71,14 @@ class MXHandler(BaseDeviceHandler):
         entities.append(
             MerakiRebootButton(self._control_service, self.device, self._config_entry)
         )
+
+        # Check if device status sensor is enabled
+        if self._config_entry.options.get(CONF_ENABLE_DEVICE_STATUS, True):
+            entities.append(
+                MerakiDeviceStatusSensor(
+                    self._coordinator, self.device, self._config_entry
+                )
+            )
 
         # Check if port/uplink sensors are enabled
         if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
