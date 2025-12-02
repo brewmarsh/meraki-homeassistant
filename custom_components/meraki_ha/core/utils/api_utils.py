@@ -17,6 +17,7 @@ from ..errors import (
     MerakiDeviceError,
     MerakiNetworkError,
     MerakiTrafficAnalysisError,
+    MerakiVlanError,
 )
 
 # Type variable for generic function return type
@@ -66,11 +67,10 @@ def handle_meraki_errors(
                     "https://documentation.meraki.com/MX/Design_and_Configure/Configuration_Guides/Firewall_and_Traffic_Shaping/Traffic_Analysis_and_Classification"
                 ) from err
             if _is_vlan_error(err):
-                _LOGGER.info(
+                raise MerakiVlanError(
                     "VLANs are not enabled for this network. To enable VLANs, see "
-                    "https://documentation.meraki.com/SASE_and_SD-WAN/MX/Design_and_Configure/Configuration_Guides/Networks_and_Routing/Configuring_VLANs_on_the_MX_Security_Appliance",
-                )
-                return cast(T, [])
+                    "https://documentation.meraki.com/SASE_and_SD-WAN/MX/Design_and_Configure/Configuration_Guides/Networks_and_Routing/Configuring_VLANs_on_the_MX_Security_Appliance"
+                ) from err
             if _is_informational_error(err):
                 _LOGGER.warning(
                     "Meraki API informational error: %s (%s)",

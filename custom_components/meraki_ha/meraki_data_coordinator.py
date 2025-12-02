@@ -70,7 +70,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=timedelta(seconds=scan_interval),
         )
 
-    def register_update_pending(
+    def register_pending_update(
         self,
         unique_id: str,
         expiry_seconds: int = 150,
@@ -156,7 +156,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             expiry_seconds: The duration of the cooldown period.
 
         """
-        self.register_update_pending(unique_id, expiry_seconds)
+        self.register_pending_update(unique_id, expiry_seconds)
 
     def _filter_enabled_networks(self, data: dict[str, Any]) -> None:
         """

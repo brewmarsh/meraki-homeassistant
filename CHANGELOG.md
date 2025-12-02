@@ -1,3 +1,27 @@
+# [2.2.0-beta.34](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.33...v2.2.0-beta.34) (2025-12-02)
+
+
+### Bug Fixes
+
+* **lint:** re-verify and commit changes ([8435f8f](https://github.com/brewmarsh/meraki-homeassistant/commit/8435f8f09f426397ee7a59df910cad081a2a7c41))* **lint:** shorten line in client.py ([a0635d2](https://github.com/brewmarsh/meraki-homeassistant/commit/a0635d218d10a94cad826f7b7f88ccff8dfc070f))* remove [Camera] prefix from camera entities ([04b7a68](https://github.com/brewmarsh/meraki-homeassistant/commit/04b7a683f0338435fd883eb1eaee24837287de16))* resolve AttributeError by renaming register_update_pending ([97a2a81](https://github.com/brewmarsh/meraki-homeassistant/commit/97a2a81cf49ea21a52ebb6ddfa84d3e3a3b8b2df))
+# [2.2.0-beta.33](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.32...v2.2.0-beta.33) (2025-12-02)
+
+
+### Bug Fixes
+
+* **discovery:** restore uplink sensors from registry if API data is missing ([9ce3543](https://github.com/brewmarsh/meraki-homeassistant/commit/9ce3543b32b12adb39824c5313662934c4458f5c))
+# [2.2.0-beta.32](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.31...v2.2.0-beta.32) (2025-12-02)
+
+
+### Bug Fixes
+
+* robust fallback for detailed device data to prevent unavailable entities ([d344cc2](https://github.com/brewmarsh/meraki-homeassistant/commit/d344cc266860d95f3f13136012012a7739fa673a))* **sensor:** improve SSID sensors and add PSK ([3c31027](https://github.com/brewmarsh/meraki-homeassistant/commit/3c3102700f9bae83b50784ad99c28d04e166f0ae))
+# [2.2.0-beta.31](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.30...v2.2.0-beta.31) (2025-12-02)
+
+
+### Bug Fixes
+
+* **api:** prevent repetitive calls for disabled features ([f664202](https://github.com/brewmarsh/meraki-homeassistant/commit/f6642023564175594127fa60e648d5ac6294f962))* **sensor:** improve SSID sensors and add PSK ([3c31027](https://github.com/brewmarsh/meraki-homeassistant/commit/3c3102700f9bae83b50784ad99c28d04e166f0ae))
 # [2.2.0-beta.30](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.29...v2.2.0-beta.30) (2025-12-02)
 
 
