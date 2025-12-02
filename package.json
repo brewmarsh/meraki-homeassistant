@@ -1,6 +1,6 @@
 {
   "name": "meraki-homeassistant",
-  "version": "2.2.0-beta.29",
+  "version": "2.2.0-beta.30",
   "description": "Meraki Home Assistant Integration",
   "scripts": {
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",

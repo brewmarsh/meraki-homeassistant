@@ -1,3 +1,9 @@
+# [2.2.0-beta.30](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.29...v2.2.0-beta.30) (2025-12-02)
+
+
+### Bug Fixes
+
+* **frontend:** Rebuild meraki-panel.js to resolve SyntaxError ([7b6bb81](https://github.com/brewmarsh/meraki-homeassistant/commit/7b6bb812e95289b704508b47097256d5a4309cfe))
 # [2.2.0-beta.29](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.28...v2.2.0-beta.29) (2025-12-01)
 
 
