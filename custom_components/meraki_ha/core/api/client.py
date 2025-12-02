@@ -22,6 +22,7 @@ from ...core.errors import (
     ApiClientCommunicationError,
     MerakiInformationalError,
     MerakiTrafficAnalysisError,
+    MerakiVlanError,
 )
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
@@ -80,6 +81,9 @@ class MerakiAPIClient:
 
         # Semaphore to limit concurrent API calls
         self._semaphore = asyncio.Semaphore(2)
+
+        # Set of disabled features to prevent repetitive API calls
+        self._disabled_features: set[str] = set()
 
     async def async_setup(self) -> None:
         """Perform asynchronous setup of the API client."""
@@ -370,12 +374,16 @@ class MerakiAPIClient:
                     )
                 )
             if "appliance" in product_types:
-                detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
-                    self.network.get_network_traffic(network["id"], "appliance"),
-                )
-                detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
-                    self.appliance.get_network_vlans(network["id"]),
-                )
+                if f"traffic_{network['id']}" not in self._disabled_features:
+                    detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
+                        self.network.get_network_traffic(network["id"], "appliance"),
+                    )
+
+                if f"vlans_{network['id']}" not in self._disabled_features:
+                    detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
+                        self.appliance.get_network_vlans(network["id"]),
+                    )
+
                 detail_tasks[f"l3_firewall_rules_{network['id']}"] = (
                     self._run_with_semaphore(
                         self.appliance.get_l3_firewall_rules(network["id"]),
@@ -473,6 +481,7 @@ class MerakiAPIClient:
             network_traffic_key = f"traffic_{network['id']}"
             network_traffic = detail_data.get(network_traffic_key)
             if isinstance(network_traffic, MerakiTrafficAnalysisError):
+                self._disabled_features.add(network_traffic_key)
                 _LOGGER.info(
                     "Traffic analysis is not enabled for network %s. To enable it, "
                     "see https://documentation.meraki.com/MX/Design_and_Configure/Configuration_Guides/Firewall_and_Traffic_Shaping/Traffic_Analysis_and_Classification",
@@ -489,8 +498,14 @@ class MerakiAPIClient:
 
             network_vlans_key = f"vlans_{network['id']}"
             network_vlans = detail_data.get(network_vlans_key)
-            if isinstance(network_vlans, MerakiInformationalError):
+            if isinstance(network_vlans, MerakiVlanError):
+                self._disabled_features.add(network_vlans_key)
+                _LOGGER.info(str(network_vlans))
+                vlan_by_network[network["id"]] = []
+            elif isinstance(network_vlans, MerakiInformationalError):
                 if "vlans are not enabled" in str(network_vlans).lower():
+                    # Fallback for generic handling if needed, though specific error catches first
+                    self._disabled_features.add(network_vlans_key)
                     vlan_by_network[network["id"]] = []
             elif isinstance(network_vlans, list):
                 vlan_by_network[network["id"]] = network_vlans
