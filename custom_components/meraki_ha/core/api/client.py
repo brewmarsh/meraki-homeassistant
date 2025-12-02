@@ -22,6 +22,7 @@ from ...core.errors import (
     ApiClientCommunicationError,
     MerakiInformationalError,
     MerakiTrafficAnalysisError,
+    MerakiVlanError,
 )
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
@@ -80,6 +81,9 @@ class MerakiAPIClient:
 
         # Semaphore to limit concurrent API calls
         self._semaphore = asyncio.Semaphore(2)
+
+        # Set of disabled features to prevent repetitive API calls
+        self._disabled_features: set[str] = set()
 
     async def async_setup(self) -> None:
         """Perform asynchronous setup of the API client."""
@@ -370,12 +374,16 @@ class MerakiAPIClient:
                     )
                 )
             if "appliance" in product_types:
-                detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
-                    self.network.get_network_traffic(network["id"], "appliance"),
-                )
-                detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
-                    self.appliance.get_network_vlans(network["id"]),
-                )
+                if f"traffic_{network['id']}" not in self._disabled_features:
+                    detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
+                        self.network.get_network_traffic(network["id"], "appliance"),
+                    )
+
+                if f"vlans_{network['id']}" not in self._disabled_features:
+                    detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
+                        self.appliance.get_network_vlans(network["id"]),
+                    )
+
                 detail_tasks[f"l3_firewall_rules_{network['id']}"] = (
                     self._run_with_semaphore(
                         self.appliance.get_l3_firewall_rules(network["id"]),
@@ -473,6 +481,7 @@ class MerakiAPIClient:
             network_traffic_key = f"traffic_{network['id']}"
             network_traffic = detail_data.get(network_traffic_key)
             if isinstance(network_traffic, MerakiTrafficAnalysisError):
+                self._disabled_features.add(network_traffic_key)
                 _LOGGER.info(
                     "Traffic analysis is not enabled for network %s. To enable it, "
                     "see https://documentation.meraki.com/MX/Design_and_Configure/Configuration_Guides/Firewall_and_Traffic_Shaping/Traffic_Analysis_and_Classification",
@@ -489,9 +498,13 @@ class MerakiAPIClient:
 
             network_vlans_key = f"vlans_{network['id']}"
             network_vlans = detail_data.get(network_vlans_key)
-            if isinstance(network_vlans, MerakiInformationalError):
+            if isinstance(network_vlans, MerakiVlanError):
+                self._disabled_features.add(network_vlans_key)
+                _LOGGER.info(str(network_vlans))
+                vlan_by_network[network["id"]] = []
+            elif isinstance(network_vlans, MerakiInformationalError):
                 if "vlans are not enabled" in str(network_vlans).lower():
-                    # Fallback for generic handling if needed
+                    self._disabled_features.add(network_vlans_key)
                     vlan_by_network[network["id"]] = []
             elif isinstance(network_vlans, list):
                 vlan_by_network[network["id"]] = network_vlans
@@ -550,8 +563,17 @@ class MerakiAPIClient:
                     wireless_settings_key
                 ]
 
+        # Pre-process previous devices for faster lookup
+        previous_devices_by_serial = {}
+        if previous_data and "devices" in previous_data:
+            for d in previous_data["devices"]:
+                if "serial" in d:
+                    previous_devices_by_serial[d["serial"]] = d
+
         for device in devices:
             product_type = device.get("productType")
+            prev_device = previous_devices_by_serial.get(device["serial"])
+
             if product_type == "camera":
                 if settings := detail_data.get(f"video_settings_{device['serial']}"):
                     device["video_settings"] = settings
@@ -560,17 +582,29 @@ class MerakiAPIClient:
                         device["rtsp_url"] = settings.get("rtsp_url")
                     else:
                         device["rtsp_url"] = None
+                elif prev_device and "video_settings" in prev_device:
+                    device["video_settings"] = prev_device["video_settings"]
+                    device["rtsp_url"] = prev_device.get("rtsp_url")
+
                 if settings := detail_data.get(f"sense_settings_{device['serial']}"):
                     device["sense_settings"] = settings
+                elif prev_device and "sense_settings" in prev_device:
+                    device["sense_settings"] = prev_device["sense_settings"]
+
             elif product_type == "switch":
                 if statuses := detail_data.get(f"ports_statuses_{device['serial']}"):
                     device["ports_statuses"] = statuses
+                elif prev_device and "ports_statuses" in prev_device:
+                    device["ports_statuses"] = prev_device["ports_statuses"]
+
             elif product_type == "appliance":
                 if settings := detail_data.get(
                     f"appliance_settings_{device['serial']}",
                 ):
                     if isinstance(settings.get("dynamicDns"), dict):
                         device["dynamicDns"] = settings["dynamicDns"]
+                elif prev_device and "dynamicDns" in prev_device:
+                    device["dynamicDns"] = prev_device["dynamicDns"]
 
         return {
             "ssids": ssids,
