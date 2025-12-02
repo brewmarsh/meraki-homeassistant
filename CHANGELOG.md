@@ -1,3 +1,9 @@
+# [2.2.0-beta.33](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.32...v2.2.0-beta.33) (2025-12-02)
+
+
+### Bug Fixes
+
+* **discovery:** restore uplink sensors from registry if API data is missing ([9ce3543](https://github.com/brewmarsh/meraki-homeassistant/commit/9ce3543b32b12adb39824c5313662934c4458f5c))
 # [2.2.0-beta.32](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.31...v2.2.0-beta.32) (2025-12-02)
 
 
