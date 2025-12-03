@@ -298,7 +298,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                             }
                         )
 
-                        if not primary_entity and entity.platform in [
+                        if not primary_entity and entity.domain in [
                             "switch",
                             "camera",
                             "binary_sensor",
@@ -326,7 +326,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         # which is confusing for a "status" display.
                         fallback_entity = entities_for_device[0]
                         for entity in entities_for_device:
-                            if entity.platform != "button":
+                            if entity.domain != "button":
                                 fallback_entity = entity
                                 break
                         device["entity_id"] = fallback_entity.entity_id
