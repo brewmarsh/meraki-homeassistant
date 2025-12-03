@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DeviceTable from './DeviceTable';
 import SSIDView from './SSIDView';
 import EventLog from './EventLog';
+import HaSwitch from './HaSwitch';
 
 // Define the types for our data
 interface SSID {
@@ -205,10 +206,10 @@ const NetworkView: React.FC<NetworkViewProps> = ({
                   icon="hass:home-assistant"
                   style={{ color: 'var(--primary-color)', marginRight: '8px' }}
                 ></ha-icon>
-                <ha-switch
+                <HaSwitch
                   checked={network.is_enabled}
-                  onchange={(e: any) => onToggle(network.id, e.target.checked)}
-                ></ha-switch>
+                  onChange={(checked) => onToggle(network.id, checked)}
+                />
               </div>
             </div>
             {isOpen && network.is_enabled && (

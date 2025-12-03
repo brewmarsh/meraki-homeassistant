@@ -30,9 +30,6 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
   useEffect(() => {
     if (window.location.hostname === 'localhost') {
       setData({
-        networks: [
-          { id: 'N_12345', name: 'Main Office', is_enabled: true, ssids: [] },
-        ],
         devices: [
           {
             name: 'Living Room AP',
