@@ -61,6 +61,29 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
           },
         ],
         ssids: [],
+        networks: [
+          {
+            id: 'N_12345',
+            name: 'Main Office',
+            is_enabled: true,
+            ssids: [
+              {
+                number: 0,
+                name: 'Main WiFi',
+                enabled: true,
+                networkId: 'N_12345',
+                entity_id: 'switch.main_wifi',
+              },
+              {
+                number: 1,
+                name: 'Guest WiFi',
+                enabled: false,
+                networkId: 'N_12345',
+                entity_id: 'switch.guest_wifi',
+              },
+            ],
+          },
+        ],
         options: {
           enable_device_status: true,
           enable_org_sensors: true,
