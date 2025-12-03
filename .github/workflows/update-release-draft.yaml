@@ -5,6 +5,9 @@ on:
     branches:
       - main
       - beta
+  # pull_request event is required only for autolabeler
+  pull_request:
+    types: [opened, reopened, synchronize]
 
 jobs:
   update_release_draft:
@@ -14,8 +17,5 @@ jobs:
       pull-requests: read
     steps:
       - uses: release-drafter/release-drafter@v6
-        with:
-          # (Optional) specify config name to use, relative to .github/. Default: release-drafter.yml
-          config-name: release-drafter.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
