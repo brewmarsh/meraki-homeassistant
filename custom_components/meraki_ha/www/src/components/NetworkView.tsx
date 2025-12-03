@@ -9,6 +9,7 @@ interface SSID {
   name: string;
   enabled: boolean;
   networkId: string;
+  entity_id?: string;
 }
 
 interface Network {
@@ -91,7 +92,13 @@ const NetworkView: React.FC<NetworkViewProps> = ({
       {networks.map((network) => {
         const isOpen = openNetworkIds.includes(network.id);
         const enabledSsids = network.ssids
-          ? network.ssids.filter((s) => s.enabled).length
+          ? network.ssids.filter((s) => {
+              // Check entity state if available, else fallback to s.enabled
+              if (s.entity_id && hass?.states?.[s.entity_id]) {
+                return hass.states[s.entity_id].state === 'on';
+              }
+              return s.enabled;
+            }).length
           : 0;
         const totalSsids = network.ssids ? network.ssids.length : 0;
 

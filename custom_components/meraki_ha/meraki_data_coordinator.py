@@ -257,6 +257,48 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     ent_reg.async_remove(entity.entity_id)
                 dev_reg.async_remove_device(device.id)
 
+    def _populate_ssid_entities(self, data: dict[str, Any]) -> None:
+        """
+        Populate SSID data with associated Home Assistant entities.
+
+        Args:
+        ----
+            data: The data dictionary to populate.
+
+        """
+        if not (data and "ssids" in data):
+            return
+
+        ent_reg = er.async_get(self.hass)
+        dev_reg = dr.async_get(self.hass)
+
+        for ssid in data["ssids"]:
+            network_id = ssid.get("networkId")
+            ssid_number = ssid.get("number")
+            if network_id and ssid_number is not None:
+                # Construct the device identifier for the SSID
+                # Note: This must match the identifier logic in device_info_helpers.py
+                identifier = f"{network_id}_{ssid_number}"
+
+                ha_device = dev_reg.async_get_device(
+                    identifiers={(DOMAIN, identifier)},
+                )
+
+                if ha_device:
+                    entities_for_device = er.async_entries_for_device(
+                        ent_reg,
+                        ha_device.id,
+                    )
+
+                    # Find the enabled switch
+                    for entity in entities_for_device:
+                        if entity.domain == "switch" and (
+                            "enabled" in (entity.unique_id or "")
+                            or "Enabled Control" in (entity.original_name or "")
+                        ):
+                            ssid["entity_id"] = entity.entity_id
+                            break
+
     def _populate_device_entities(self, data: dict[str, Any]) -> None:
         """
         Populate device data with associated Home Assistant entities.
@@ -385,6 +427,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     ]
 
             self._populate_device_entities(data)
+            self._populate_ssid_entities(data)
 
             _LOGGER.info("Meraki networks: %s", data.get("networks"))
 
