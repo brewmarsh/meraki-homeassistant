@@ -1,4 +1,5 @@
 import React from 'react';
+import HaSwitch from './HaSwitch';
 
 interface SSID {
   number: number;
@@ -18,10 +19,9 @@ const SSIDView: React.FC<SSIDViewProps> = ({ hass, ssids }) => {
     return null;
   }
 
-  const handleToggle = (e: any, ssid: SSID) => {
-    e.stopPropagation();
+  const handleToggle = (checked: boolean, ssid: SSID) => {
     if (ssid.entity_id) {
-      hass.callService('switch', e.target.checked ? 'turn_on' : 'turn_off', {
+      hass.callService('switch', checked ? 'turn_on' : 'turn_off', {
         entity_id: ssid.entity_id,
       });
     }
@@ -43,42 +43,38 @@ const SSIDView: React.FC<SSIDViewProps> = ({ hass, ssids }) => {
         }
 
         return (
-          <ha-card key={ssid.number}>
+          <div
+            key={ssid.number}
+            className="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-sm border border-light-border dark:border-dark-border flex flex-col gap-2"
+          >
             <div
-              className="card-content"
-              style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <span style={{ fontWeight: 'bold' }}>{ssid.name}</span>
-                <ha-switch
-                  checked={isOn}
-                  onchange={(e: any) => handleToggle(e, ssid)}
-                  disabled={!ssid.entity_id}
-                ></ha-switch>
-              </div>
-              <div
-                style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
-              >
-                <ha-icon
-                  icon={isOn ? 'mdi:wifi' : 'mdi:wifi-off'}
-                  style={{
-                    width: '16px',
-                    height: '16px',
-                    color: isOn
-                      ? 'var(--primary-color)'
-                      : 'var(--disabled-text-color)',
-                  }}
-                ></ha-icon>
-                <span>{isOn ? 'Enabled' : 'Disabled'}</span>
-              </div>
+              <span style={{ fontWeight: 'bold' }}>{ssid.name}</span>
+              <HaSwitch
+                checked={isOn}
+                onChange={(checked) => handleToggle(checked, ssid)}
+                disabled={!ssid.entity_id}
+              />
             </div>
-          </ha-card>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <ha-icon
+                icon={isOn ? 'mdi:wifi' : 'mdi:wifi-off'}
+                style={{
+                  width: '16px',
+                  height: '16px',
+                  color: isOn
+                    ? 'var(--primary-color)'
+                    : 'var(--disabled-text-color)',
+                }}
+              ></ha-icon>
+              <span>{isOn ? 'Enabled' : 'Disabled'}</span>
+            </div>
+          </div>
         );
       })}
     </div>

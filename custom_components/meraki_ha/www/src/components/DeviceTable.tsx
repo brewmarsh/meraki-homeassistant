@@ -84,18 +84,8 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
                 device.entity_id && hass?.states?.[device.entity_id];
 
               let displayStatus = device.status || 'N/A';
-              if (
-                haState &&
-                haState.state !== 'unavailable' &&
-                haState.state !== 'unknown'
-              ) {
-                if (haState.state === 'idle') {
-                  displayStatus = 'Online';
-                } else if (haState.state === 'streaming') {
-                  displayStatus = 'Streaming';
-                } else {
+              if (haState && haState.state !== 'unavailable' && haState.state !== 'unknown') {
                   displayStatus = haState.state;
-                }
               }
 
               return (
