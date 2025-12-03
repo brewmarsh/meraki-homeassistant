@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// Frontend version: 2.2.0-beta.28
+// Frontend version: 2.2.0-beta.29
 import NetworkView from './components/NetworkView';
 import DeviceView from './components/DeviceView';
 import Settings from './components/Settings';
@@ -30,9 +30,6 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
   useEffect(() => {
     if (window.location.hostname === 'localhost') {
       setData({
-        networks: [
-          { id: 'N_12345', name: 'Main Office', is_enabled: true, ssids: [] },
-        ],
         devices: [
           {
             name: 'Living Room AP',

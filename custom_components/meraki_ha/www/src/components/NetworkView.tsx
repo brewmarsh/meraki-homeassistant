@@ -76,9 +76,15 @@ const NetworkView: React.FC<NetworkViewProps> = ({
     ) {
       status = haState.state;
     }
-    return ['online', 'alerting', 'active', 'home', 'on'].includes(
-      status?.toLowerCase()
-    );
+    return [
+      'online',
+      'alerting',
+      'active',
+      'home',
+      'on',
+      'idle',
+      'streaming',
+    ].includes(status?.toLowerCase());
   };
 
   const { networks, devices } = data;
