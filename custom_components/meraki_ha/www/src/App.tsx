@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// Frontend version: 2.2.0-beta.28
+// Frontend version: 2.2.0-beta.29
 import NetworkView from './components/NetworkView';
 import DeviceView from './components/DeviceView';
 import Settings from './components/Settings';
