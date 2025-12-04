@@ -4,7 +4,11 @@ import App from './App';
 import style from './index.css?inline';
 import { version } from '../package.json';
 
-console.info(`Meraki Panel Version: ${version}`);
+console.info(
+  `%c 🌐 Meraki HA 🌐 %c ${version} `,
+  'color: white; background: #2E7D32; font-weight: 700;',
+  'color: #2E7D32; background: white; font-weight: 700;'
+);
 
 class MerakiPanel extends HTMLElement {
   private _root: ReactDOM.Root | null = null;
