@@ -7,9 +7,9 @@ from homeassistant.components.sensor import SensorDeviceClass
 
 from custom_components.meraki_ha.sensor.device.meraki_mt_base import MerakiMtSensor
 from custom_components.meraki_ha.sensor_defs.mt_sensors import (
-    MT_TEMPERATURE_DESCRIPTION,
     MT_BATTERY_DESCRIPTION,
     MT_BUTTON_DESCRIPTION,
+    MT_TEMPERATURE_DESCRIPTION,
 )
 
 
@@ -35,7 +35,7 @@ def mock_coordinator_mt_sensor(mock_coordinator: MagicMock) -> MagicMock:
                     {
                         "metric": "battery",
                         "battery": {"percentage": 95},
-                    }
+                    },
                 ],
             },
             {
@@ -51,7 +51,7 @@ def mock_coordinator_mt_sensor(mock_coordinator: MagicMock) -> MagicMock:
                     {
                         "metric": "button",
                         "button": {"pressType": "short"},
-                    }
+                    },
                 ],
             },
         ]
@@ -89,6 +89,7 @@ def test_mt10_battery_sensor(
     assert sensor.native_value == 95
     assert sensor.device_class == SensorDeviceClass.BATTERY
     assert sensor.available is True
+
 
 def test_mt30_button_sensor(
     mock_coordinator_mt_sensor: MagicMock,

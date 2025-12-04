@@ -31,7 +31,6 @@ from .network.vlan import (
     MerakiVLANIPv6UplinkSensor,
 )
 from .network.vlans_list import VlansListSensor
-from .setup_mt_sensors import async_setup_mt_sensors
 
 if TYPE_CHECKING:
     from ..services.camera_service import CameraService
@@ -99,10 +98,6 @@ def _setup_device_sensors(
                         MerakiAppliancePortSensor(coordinator, device_info, port)  # type: ignore[call-arg]
                     )
                     added_entities.add(unique_id)
-
-        # MT sensor setup
-        if product_type == "sensor":
-            entities.extend(async_setup_mt_sensors(coordinator, device_info))
 
     return entities
 

@@ -1,22 +1,27 @@
 """Tests for the MTHandler."""
 
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import MagicMock
 
 import pytest
 
+from custom_components.meraki_ha.binary_sensor.device.meraki_mt_binary_base import (
+    MerakiMtBinarySensor,
+)
 from custom_components.meraki_ha.discovery.handlers.mt import MTHandler
 from custom_components.meraki_ha.sensor.device.meraki_mt_base import MerakiMtSensor
-from custom_components.meraki_ha.binary_sensor.device.meraki_mt_binary_base import MerakiMtBinarySensor
+
 
 @pytest.fixture
 def mock_coordinator_mt_handler(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataCoordinator."""
     return mock_coordinator
 
+
 @pytest.fixture
 def mock_control_service() -> MagicMock:
     """Fixture for a mocked DeviceControlService."""
     return MagicMock()
+
 
 async def test_mt_handler_discover_entities_mt10(
     mock_coordinator_mt_handler: MagicMock,
@@ -73,8 +78,8 @@ async def test_mt_handler_discover_entities_mt12(
     sensors = [e for e in entities if isinstance(e, MerakiMtSensor)]
     binary_sensors = [e for e in entities if isinstance(e, MerakiMtBinarySensor)]
 
-    assert len(sensors) == 2 # Temp, Battery
-    assert len(binary_sensors) == 1 # Water
+    assert len(sensors) == 2  # Temp, Battery
+    assert len(binary_sensors) == 1  # Water
 
     assert any(e.entity_description.key == "temperature" for e in sensors)
     assert any(e.entity_description.key == "battery" for e in sensors)
@@ -102,14 +107,15 @@ async def test_mt_handler_discover_entities_mt20(
 
     entities = await handler.discover_entities()
 
-    # MT20 has Battery, Temperature (Sensors) + Door (Binary Sensor) = 3 total
-    assert len(entities) == 3
+    # MT20 has Battery, Temperature, Humidity (Sensors) + Door (Binary Sensor) = 4 total
+    assert len(entities) == 4
     sensors = [e for e in entities if isinstance(e, MerakiMtSensor)]
     binary_sensors = [e for e in entities if isinstance(e, MerakiMtBinarySensor)]
 
-    assert len(sensors) == 2 # Battery, Temperature
-    assert len(binary_sensors) == 1 # Door
+    assert len(sensors) == 3  # Battery, Temperature, Humidity
+    assert len(binary_sensors) == 1  # Door
 
     assert any(e.entity_description.key == "battery" for e in sensors)
     assert any(e.entity_description.key == "temperature" for e in sensors)
+    assert any(e.entity_description.key == "humidity" for e in sensors)
     assert binary_sensors[0].entity_description.key == "door"
