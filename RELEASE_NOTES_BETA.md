@@ -23,4 +23,4 @@ This beta release cycle has focused on expanding hardware support (Meraki Go, MT
 
 ---
 **Testing Instructions:**
-Please verify that your Meraki Go devices (if any) are now discovered correctly. Check the new SSID layout in the Meraki Panel and ensure MT40 sensors allow control as expected.
+Check the new SSID layout in the Meraki Panel and ensure MT40 sensors allow control as expected.
