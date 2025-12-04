@@ -45,7 +45,25 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Meraki from a config entry."""
+    """
+    Set up Meraki from a config entry.
+
+    This function initializes the API client, data coordinator, and various
+    services/repositories required for the integration. It also handles the
+    setup of the optional local web server and the custom frontend panel.
+
+    Args:
+        hass: The Home Assistant instance.
+        entry: The configuration entry.
+
+    Returns
+    -------
+        True if setup is successful, False otherwise.
+
+    Raises
+    ------
+        ConfigEntryNotReady: If the coordinator fails to fetch initial data.
+    """
     hass.data.setdefault(DOMAIN, {})
     entry_data = hass.data.setdefault(DOMAIN, {}).setdefault(entry.entry_id, {})
 
