@@ -1,9 +1,12 @@
-"""Base class for Meraki MT sensor entities."""
+"""Base class for Meraki MT binary sensor entities."""
 
 import logging
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.components.binary_sensor import (
+    BinarySensorEntity,
+    BinarySensorEntityDescription,
+)
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -15,16 +18,16 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMtSensor(CoordinatorEntity, SensorEntity):
-    """Representation of a Meraki MT sensor."""
+class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
+    """Representation of a Meraki MT binary sensor."""
 
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
         device: dict[str, Any],
-        entity_description: SensorEntityDescription,
+        entity_description: BinarySensorEntityDescription,
     ) -> None:
-        """Initialize the sensor."""
+        """Initialize the binary sensor."""
         super().__init__(coordinator)
         self._device = device
         self.entity_description = entity_description
@@ -53,8 +56,8 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
                 return
 
     @property
-    def native_value(self) -> str | float | bool | None:
-        """Return the state of the sensor."""
+    def is_on(self) -> bool | None:
+        """Return true if the binary sensor is on."""
         readings = self._device.get("readings")
         if not readings or not isinstance(readings, list):
             return None
@@ -62,34 +65,24 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
         for reading in readings:
             if reading.get("metric") == self.entity_description.key:
                 metric_data = reading.get(self.entity_description.key)
+
                 if isinstance(metric_data, dict):
                     # Map metric to the key holding its value
                     key_map = {
-                        "temperature": "celsius",
-                        "humidity": "relativePercentage",
-                        "pm25": "concentration",
-                        "tvoc": "concentration",
-                        "co2": "concentration",
-                        "noise": "ambient",
                         "water": "present",
-                        "power": "draw",
-                        "voltage": "level",
-                        "current": "draw",
-                        "battery": "percentage",
-                        "button": "pressType",
+                        "door": "open",
                     }
                     value_key = key_map.get(self.entity_description.key)
                     if value_key:
-                        if value_key == "ambient":
-                            return metric_data.get("ambient", {}).get("level")
-                        return metric_data.get(value_key)
+                        val = metric_data.get(value_key)
+                        if isinstance(val, bool):
+                            return val
         return None
 
     @property
     def available(self) -> bool:
         """Return if the sensor is available."""
         # The sensor is available if there is a reading for its metric.
-        # This prevents creating sensors for metrics that a device doesn't support.
         readings = self._device.get("readings")
         if not readings or not isinstance(readings, list):
             return False

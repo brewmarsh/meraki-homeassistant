@@ -6,6 +6,9 @@ import logging
 from typing import TYPE_CHECKING
 
 from .base import BaseDeviceHandler
+from ...sensor_defs.mt_sensors import MT_SENSOR_MODELS, MT_BINARY_SENSOR_MODELS
+from ...sensor.device.meraki_mt_base import MerakiMtSensor
+from ...binary_sensor.device.meraki_mt_binary_base import MerakiMtBinarySensor
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -54,4 +57,23 @@ class MTHandler(BaseDeviceHandler):
     async def discover_entities(self) -> list[Entity]:
         """Discover entities for the device."""
         entities: list[Entity] = []
+        model = self.device.get("model")
+        if not model:
+            return []
+
+        # Look up supported sensors for this model
+        sensor_descriptions = MT_SENSOR_MODELS.get(model)
+        if sensor_descriptions:
+             for description in sensor_descriptions:
+                entities.append(MerakiMtSensor(self._coordinator, self.device, description))
+
+        # Look up supported binary sensors for this model
+        binary_sensor_descriptions = MT_BINARY_SENSOR_MODELS.get(model)
+        if binary_sensor_descriptions:
+            for description in binary_sensor_descriptions:
+                entities.append(MerakiMtBinarySensor(self._coordinator, self.device, description))
+
+        # If model is not explicitly mapped but starts with MT, we could try to discover dynamic capabilities,
+        # but for now we stick to the defined models as requested.
+
         return entities
