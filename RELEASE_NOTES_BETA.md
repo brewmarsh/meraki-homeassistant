@@ -1,6 +1,6 @@
 # Meraki HA Beta Release Notes (v2.2.x)
 
-This beta release cycle has focused on expanding hardware support (Meraki Go, MT40) and refining the custom frontend panel.
+This beta release cycle has focused on expanding hardware support (MT40) and refining the custom frontend panel.
 
 ## 🚀 New Features
 
