@@ -4,10 +4,6 @@ This beta release cycle has focused on expanding hardware support (Meraki Go, MT
 
 ## 🚀 New Features
 
-*   **Meraki Go Support:** We now support the full line of Meraki Go devices!
-    *   **GS:** Switches (Port control, monitoring).
-    *   **GR:** Access Points (SSID visibility, client counts).
-    *   **GX:** Security Gateways (Uplink status).
 *   **MT40 Smart Power Controller:** Added dedicated support for the MT40 sensor, allowing for power monitoring and control directly from Home Assistant.
 *   **Frontend Panel Improvements:**
     *   **SSID Layout:** Completely redesigned the SSID section for better readability.
