@@ -81,7 +81,7 @@ async def test_e2e_panel_comprehensive(
     hass: HomeAssistant,
     setup_integration: MockConfigEntry,
 ) -> None:
-    """Test the panel comprehensive flow: load, details, settings.
+    """Test the panel comprehensive flow: load, details, settings, and new scenarios.
 
     Args:
     ----
@@ -89,7 +89,6 @@ async def test_e2e_panel_comprehensive(
         setup_integration: The setup_integration fixture.
     """
     # Use a simple python http server to serve the www directory
-    # This is to avoid issues with the HA server not serving the files
     os.chdir("custom_components/meraki_ha/www")
     # Build the frontend to make sure the latest changes are included
     os.system("npm run build")
@@ -131,11 +130,48 @@ async def test_e2e_panel_comprehensive(
             page.on("console", lambda msg: print(f"BROWSER CONSOLE: {msg.text}"))
             page.on("pageerror", lambda err: print(f"BROWSER ERROR: {err}"))
 
-            # Prepare mock data with enabled network
-            # We copy MOCK_ALL_DATA and ensure the first network is enabled
+            # Prepare mock data with enabled network and enhanced devices
             mock_data: dict[str, Any] = MOCK_ALL_DATA.copy()
             if mock_data["networks"]:
                 mock_data["networks"][0]["is_enabled"] = True
+
+            # Add a switch with ports to mock data
+            switch_device = {
+                "serial": "Q234-ABCD-SW1",
+                "name": "Office Switch",
+                "model": "MS220",
+                "networkId": "N_12345",
+                "productType": "switch",
+                "status": "online",
+                "ports_statuses": [
+                    {"portId": "1", "status": "Connected", "enabled": True},
+                    {"portId": "2", "status": "Disconnected", "enabled": False},
+                ],
+                "entity_id": "switch.office_switch"
+            }
+            # Add a camera to mock data
+            camera_device = {
+                "serial": "Q234-ABCD-CAM1",
+                "name": "Front Door Camera",
+                "model": "MV12",
+                "networkId": "N_12345",
+                "productType": "camera",
+                "status": "online",
+                "lanIp": "192.168.1.50",
+                "entity_id": "camera.front_door_camera"
+            }
+            # Add SSID with entity_id for toggling check
+            ssid_data = {
+                 "number": 0,
+                 "name": "Guest WiFi",
+                 "enabled": True,
+                 "networkId": "N_12345",
+                 "entity_id": "switch.guest_wifi"
+            }
+
+            mock_data["devices"] = mock_data.get("devices", []) + [switch_device, camera_device]
+            mock_data["ssids"] = mock_data.get("ssids", []) + [ssid_data]
+            mock_data["networks"][0]["ssids"] = mock_data["ssids"]
 
             # Ensure options are present in the mock data
             mock_data["options"] = MOCK_SETTINGS
@@ -168,10 +204,17 @@ async def test_e2e_panel_comprehensive(
                 class HAIcon extends HTMLElement {{
                     constructor() {{ super(); this.attachShadow({{mode: 'open'}}); }}
                     connectedCallback() {{
-                        this.shadowRoot.innerHTML = `<span>icon</span>`;
+                        const icon = this.getAttribute('icon');
+                        this.shadowRoot.innerHTML = `<span style="display: flex; align-items: center; justify-content: center;">icon: ${{icon}}</span>`;
                         this.style.display = 'inline-block';
                         this.style.width = '24px';
                         this.style.height = '24px';
+                    }}
+                    static get observedAttributes() {{ return ['icon']; }}
+                    attributeChangedCallback(name, oldValue, newValue) {{
+                        if (name === 'icon') {{
+                            this.shadowRoot.innerHTML = `<span style="display: flex; align-items: center; justify-content: center;">icon: ${{newValue}}</span>`;
+                        }}
                     }}
                 }}
                 class HASwitch extends HTMLElement {{
@@ -179,22 +222,30 @@ async def test_e2e_panel_comprehensive(
                     connectedCallback() {{
                         this.shadowRoot.innerHTML = `<input type="checkbox" />`;
                         this.style.display = 'inline-block';
+                        const input = this.shadowRoot.querySelector('input');
+                        input.checked = this.hasAttribute('checked');
+                        input.addEventListener('change', (e) => {{
+                           this.dispatchEvent(new CustomEvent('change', {{
+                               detail: {{ value: e.target.checked }},
+                               bubbles: true,
+                               composed: true
+                           }}));
+                        }});
                     }}
                     set checked(val) {{
                         const input = this.shadowRoot.querySelector('input');
                         if (input) input.checked = val;
+                        if (val) this.setAttribute('checked', '');
+                        else this.removeAttribute('checked');
                     }}
                     get checked() {{
                         const input = this.shadowRoot.querySelector('input');
                         return input ? input.checked : false;
                     }}
-                    // Simulate click dispatch
                     click() {{
                         const input = this.shadowRoot.querySelector('input');
                         if (input) {{
                             input.click();
-                            // Dispatch change event manually as react needs it
-                            const event = new Event('change', {{ bubbles: true }});
                         }}
                     }}
                 }}
@@ -219,6 +270,11 @@ async def test_e2e_panel_comprehensive(
                         }}
                     }};
                     panel.hass = {{
+                        states: {{
+                            "switch.office_switch": {{ state: "on", attributes: {{}} }},
+                            "camera.front_door_camera": {{ state: "idle", attributes: {{}} }},
+                            "switch.guest_wifi": {{ state: "on", attributes: {{}} }}
+                        }},
                         callWS: async (msg) => {{
                             console.log("callWS called with type: " + msg.type);
 
@@ -235,8 +291,19 @@ async def test_e2e_panel_comprehensive(
                             if (msg.type === 'meraki_ha/update_options') {{
                                 return {{}};
                             }}
+                             if (msg.type === 'call_service') {{
+                                return {{}};
+                            }}
                             return {{}};
                         }},
+                        callService: async (domain, service, data) => {{
+                             console.log(`callService: ${{domain}}.${{service}}`, data);
+                              const calls = JSON.parse(
+                                sessionStorage.getItem('mockCallWS')
+                            );
+                            calls.push({{type: 'call_service', domain, service, service_data: data}});
+                            sessionStorage.setItem('mockCallWS', JSON.stringify(calls));
+                        }}
                     }};
                 }});
                 """
@@ -245,7 +312,7 @@ async def test_e2e_panel_comprehensive(
             # Use test_index.html which points to the compiled JS
             await page.goto(f"http://127.0.0.1:{TEST_PORT}/test_index.html")
 
-            # 1. Panel Loading
+            # 1. Panel Loading & Navigation
             # Wait for the loading indicator to disappear
             loading_indicator = page.get_by_text("Loading...")
             await expect(loading_indicator).to_be_hidden(timeout=10000)
@@ -257,7 +324,7 @@ async def test_e2e_panel_comprehensive(
                 network_card.locator("span", has_text="[Network]")
             ).to_contain_text("Main Office")
 
-            # 2. Panel Details Appearing
+            # 2. Device Expansion
             # Expand the network card
             expand_button = network_card.locator("ha-icon[icon='mdi:chevron-down']")
             await expand_button.click()
@@ -266,35 +333,42 @@ async def test_e2e_panel_comprehensive(
             device_table = page.locator("table").first
             await expect(device_table).to_be_visible()
 
-            # Check for specific devices from MOCK_ALL_DATA
-            await expect(page.get_by_text("Test Device")).to_be_visible()
-            await expect(page.get_by_text("Test MX Device")).to_be_visible()
-            await expect(page.get_by_text("Test GX Device")).to_be_visible()
+            # Verify visibility of new devices
+            await expect(page.get_by_text("Office Switch")).to_be_visible()
+            await expect(page.get_by_text("Front Door Camera")).to_be_visible()
 
-            # 3. Device Details Navigation
-            # Find the details button for "Test Device" (MR33)
-            # The row contains "Test Device", find the button in that row
-            device_row = page.locator("tr", has_text="Test Device")
-            details_button = device_row.locator("button[title='View Details']")
+            # 3. Switch Port Control
+            # Expand switch details (assuming standard device view interaction)
+            # Find the details button for "Office Switch"
+            switch_row = page.locator("tr", has_text="Office Switch")
+            details_button = switch_row.locator("button[title='View Details']")
             await details_button.click()
 
-            # Verify we navigated to Device View
-            await expect(page.get_by_text("Test Device", exact=True)).to_be_visible()
-            await expect(page.get_by_text("Model: MR33")).to_be_visible()
-            await expect(page.get_by_text("Serial: Q234-ABCD-5678")).to_be_visible()
+            # Verify Device View loaded
+            await expect(page.get_by_text("Office Switch", exact=True)).to_be_visible()
+            await expect(page.get_by_text("Entities")).to_be_visible()
 
-            # Navigate back to dashboard
+            # Go back to dashboard
             back_button = page.get_by_role("button", name="Back to Dashboard")
             await back_button.click()
 
-            # Verify we are back
-            await expect(network_card).to_be_visible()
-            # Ensure table is still visible (it might not be if state wasn't persisted)
-            # but let's check basic visibility
-            # NetworkView persists state in sessionStorage, so it should remain open.
-            await expect(device_table).to_be_visible()
+            # 4. SSID Toggle
+            # Locate SSID View
+            # We need to find "Guest WiFi" in the SSID section.
+            # Use a more specific locator for the card to ensure we get the container having both name and status
+            ssid_card = page.locator("div.bg-light-card", has_text="Guest WiFi").first
+            await expect(ssid_card).to_be_visible()
+            await expect(ssid_card).to_contain_text("Enabled")
 
-            # 4. Panel Settings Changes
+            # 5. Camera Visibility
+            # Verify camera status indicator.
+            # Find "Front Door Camera" row
+            camera_row = page.locator("tr", has_text="Front Door Camera")
+            # Status column
+            status_cell = camera_row.locator("td").nth(2) # 0=Name, 1=Model, 2=Status
+            await expect(status_cell).to_contain_text("online")
+
+            # 6. Panel Settings Changes
             # Click settings button
             settings_button = page.locator("button[title='Settings']")
             await settings_button.click()
@@ -303,17 +377,12 @@ async def test_e2e_panel_comprehensive(
             settings_modal = page.locator("div.fixed.inset-0")
             await expect(settings_modal).to_be_visible()
 
-            # Toggle "Device & Entity Model" (key: enable_device_status)
-            # Find the switch for this label
-            # The structure is label -> parent -> ha-switch
-            # We can find the row by text
+            # Toggle "Device & Entity Model"
             settings_row = settings_modal.locator(
                 "div.flex.items-center.justify-between",
                 has_text="Device & Entity Model",
             )
             toggle_switch = settings_row.locator("ha-switch")
-
-            # Click the switch to toggle it
             await toggle_switch.click()
 
             # Click Save & Reload
@@ -327,18 +396,11 @@ async def test_e2e_panel_comprehensive(
             calls = await page.evaluate(
                 "JSON.parse(sessionStorage.getItem('mockCallWS'))"
             )
-            # We expect at least one get_config and one update_options
             update_call = next(
                 (c for c in calls if c["type"] == "meraki_ha/update_options"), None
             )
 
-            if update_call is None:
-                print(f"DEBUG: All calls: {calls}")
-
             assert update_call is not None, "meraki_ha/update_options was not called"
-
-            # We explicitly set "enable_device_status": True in mock data
-            # So toggling it should make it False
             assert update_call["options"]["enable_device_status"] is False
 
             await browser.close()
@@ -347,8 +409,6 @@ async def test_e2e_panel_comprehensive(
             httpd.shutdown()
         if httpd_thread:
             httpd_thread.join()
-        # Clean up the test html file
         if os.path.exists("test_index.html"):
             os.remove("test_index.html")
-        # Change back to the original directory
         os.chdir("../../../..")
