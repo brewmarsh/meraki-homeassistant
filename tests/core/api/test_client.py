@@ -62,7 +62,9 @@ def api_client(hass, mock_dashboard, coordinator):
     client.appliance.get_l3_firewall_rules = AsyncMock(return_value=[])
     client.appliance.get_traffic_shaping = AsyncMock(return_value={})
     client.appliance.get_vpn_status = AsyncMock(return_value={})
-    client.appliance.get_network_appliance_content_filtering = AsyncMock(return_value={})
+    client.appliance.get_network_appliance_content_filtering = AsyncMock(
+        return_value={}
+    )
     client.appliance.get_network_appliance_settings = AsyncMock(return_value={})
 
     client.network.get_network_traffic = AsyncMock(return_value={})
