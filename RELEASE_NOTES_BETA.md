@@ -15,8 +15,6 @@ This beta release cycle has focused on expanding hardware support (Meraki Go, MT
 
 *   **Camera Status:** Fixed an issue where cameras would incorrectly report their online/offline status or client counts.
 *   **UI Layout:** Resolved an overlap issue in the SSID panel layout.
-*   **Timestamps:** Fixed status display formatting (date/time) for GR devices.
-*   **CI/CD:** Fixed the Release Drafter workflow to ensure accurate changelogs.
 
 ## 🔧 Under the Hood
 
