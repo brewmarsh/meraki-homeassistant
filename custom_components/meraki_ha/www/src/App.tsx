@@ -46,6 +46,7 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
             status: 'online',
             entity_id: 'switch.office_switch',
             networkId: 'N_12345',
+            ports_statuses: [{status: 'Connected'}, {status: 'Connected'}, {status: 'Disconnected'}, {status: 'Disconnected'}], // 2/4 in use
           },
           {
             name: 'Front Door Camera',
@@ -56,8 +57,48 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
             entity_id: 'camera.front_door_camera',
             networkId: 'N_12345',
           },
+          {
+            name: 'Server Room Sensor',
+            model: 'MT10',
+            serial: 'Q2MT-XXXX-XXXX',
+            status: 'online',
+            networkId: 'N_12345',
+          },
+          {
+            name: 'Main Gateway',
+            model: 'MX68',
+            serial: 'Q2MX-XXXX-XXXX',
+            status: 'online',
+            networkId: 'N_12345',
+            wan1Ip: '203.0.113.1',
+            wan2Ip: '198.51.100.1',
+          }
         ],
-        ssids: [],
+        ssids: [
+            {
+                number: 0,
+                name: 'Main WiFi',
+                enabled: true,
+                networkId: 'N_12345',
+                entity_id: 'switch.main_wifi',
+            }
+        ],
+        vlans: {
+            'N_12345': [
+                {
+                    id: '1',
+                    name: 'Management',
+                    subnet: '192.168.1.0/24',
+                    applianceIp: '192.168.1.1'
+                },
+                {
+                    id: '10',
+                    name: 'IoT',
+                    subnet: '192.168.10.0/24',
+                    applianceIp: '192.168.10.1'
+                }
+            ]
+        },
         networks: [
           {
             id: 'N_12345',
@@ -71,14 +112,8 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
                 networkId: 'N_12345',
                 entity_id: 'switch.main_wifi',
               },
-              {
-                number: 1,
-                name: 'Guest WiFi',
-                enabled: false,
-                networkId: 'N_12345',
-                entity_id: 'switch.guest_wifi',
-              },
             ],
+            productTypes: ['wireless', 'switch', 'camera', 'sensor', 'appliance'],
           },
         ],
         options: {
