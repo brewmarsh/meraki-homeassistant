@@ -31,7 +31,7 @@ def mock_coordinator_mt_binary(mock_coordinator: MagicMock) -> MagicMock:
                     {
                         "metric": "temperature",
                         "temperature": {"celsius": 20.0},
-                    }
+                    },
                 ],
             },
             {
@@ -46,7 +46,7 @@ def mock_coordinator_mt_binary(mock_coordinator: MagicMock) -> MagicMock:
                     },  # Water detected
                 ],
             },
-             {
+            {
                 "serial": "mt12-2",
                 "name": "MT12 Sensor Dry",
                 "model": "MT12",
@@ -107,6 +107,7 @@ def test_mt12_dry_sensor(
     assert sensor.is_on is False
     assert sensor.available is True
 
+
 def test_sensor_availability(
     mock_coordinator_mt_binary: MagicMock,
 ):
@@ -124,7 +125,7 @@ def test_sensor_availability(
     # Test with readings but missing specific metric
     device_info_missing_metric = device_info.copy()
     device_info_missing_metric["readings"] = [
-         {
+        {
             "metric": "temperature",
             "temperature": {"celsius": 20.0},
         }
