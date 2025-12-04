@@ -1,5 +1,4 @@
 import React from 'react';
-import HaSwitch from './HaSwitch';
 
 interface SSID {
   number: number;
@@ -18,14 +17,6 @@ const SSIDView: React.FC<SSIDViewProps> = ({ hass, ssids }) => {
   if (!ssids || ssids.length === 0) {
     return null;
   }
-
-  const handleToggle = (checked: boolean, ssid: SSID) => {
-    if (ssid.entity_id) {
-      hass.callService('switch', checked ? 'turn_on' : 'turn_off', {
-        entity_id: ssid.entity_id,
-      });
-    }
-  };
 
   return (
     <div
@@ -55,11 +46,6 @@ const SSIDView: React.FC<SSIDViewProps> = ({ hass, ssids }) => {
               }}
             >
               <span style={{ fontWeight: 'bold' }}>{ssid.name}</span>
-              <HaSwitch
-                checked={isOn}
-                onChange={(checked) => handleToggle(checked, ssid)}
-                disabled={!ssid.entity_id}
-              />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <ha-icon

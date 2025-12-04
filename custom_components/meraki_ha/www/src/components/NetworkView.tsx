@@ -3,6 +3,7 @@ import DeviceTable from './DeviceTable';
 import SSIDView from './SSIDView';
 import EventLog from './EventLog';
 import HaSwitch from './HaSwitch';
+import VlanTable from './VlanTable';
 
 // Define the types for our data
 interface SSID {
@@ -11,6 +12,13 @@ interface SSID {
   enabled: boolean;
   networkId: string;
   entity_id?: string;
+}
+
+interface Vlan {
+  id: string;
+  name: string;
+  subnet?: string;
+  applianceIp?: string;
 }
 
 interface Network {
@@ -30,6 +38,9 @@ interface Device {
   lanIp?: string;
   mac?: string;
   networkId?: string;
+  ports_statuses?: any[];
+  wan1Ip?: string;
+  wan2Ip?: string;
 }
 
 interface NetworkViewProps {
@@ -37,6 +48,7 @@ interface NetworkViewProps {
   data: {
     networks: Network[];
     devices: Device[];
+    vlans?: { [key: string]: Vlan[] };
   };
   onToggle: (networkId: string, enabled: boolean) => void;
   setActiveView: (view: { view: string; deviceId?: string }) => void;
@@ -68,6 +80,11 @@ const NetworkView: React.FC<NetworkViewProps> = ({
   };
 
   const isDeviceOnline = (device: Device) => {
+    // For cameras, prioritize device status from API
+    if (device.model?.toUpperCase().startsWith('MV')) {
+       return device.status === 'online';
+    }
+
     const haState = device.entity_id && hass?.states?.[device.entity_id];
     let status = device.status;
     if (
@@ -82,7 +99,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({
     );
   };
 
-  const { networks, devices } = data;
+  const { networks, devices, vlans } = data;
 
   if (!networks || networks.length === 0) {
     return <p>No networks found.</p>;
@@ -146,36 +163,44 @@ const NetworkView: React.FC<NetworkViewProps> = ({
 
         const groups = [
           {
-            label: 'Wireless APs',
-            devices: wirelessDevices,
-            icon: 'mdi:wifi',
+            label: 'Appliances',
+            devices: applianceDevices,
+            icon: 'mdi:shield-check',
+            type: 'appliance',
           },
           {
             label: 'Switches',
             devices: switchDevices,
             icon: 'mdi:lan',
+            type: 'switch',
           },
           {
             label: 'Cameras',
             devices: cameraDevices,
             icon: 'mdi:cctv',
+            type: 'camera',
           },
           {
             label: 'Sensors',
             devices: sensorDevices,
             icon: 'mdi:thermometer',
+            type: 'sensor',
           },
           {
-            label: 'Appliances',
-            devices: applianceDevices,
-            icon: 'mdi:shield-check',
+            label: 'Wireless APs',
+            devices: wirelessDevices,
+            icon: 'mdi:wifi',
+            type: 'wireless',
           },
           {
             label: 'Other Devices',
             devices: otherDevices,
             icon: 'mdi:devices',
+            type: 'other',
           },
         ];
+
+        const networkVlans = vlans ? vlans[network.id] : undefined;
 
         return (
           <ha-card key={network.id}>
@@ -232,10 +257,17 @@ const NetworkView: React.FC<NetworkViewProps> = ({
                         hass={hass}
                         devices={group.devices}
                         setActiveView={setActiveView}
+                        deviceType={group.type}
                       />
                     </div>
                   );
                 })}
+
+                {networkVlans && networkVlans.length > 0 && (
+                    <div style={{ marginBottom: '16px' }}>
+                        <VlanTable vlans={networkVlans} />
+                    </div>
+                )}
 
                 {network.ssids && network.ssids.length > 0 && (
                   <>
