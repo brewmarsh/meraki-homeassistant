@@ -14,7 +14,7 @@ Keep an eye on things with robust camera integration.
 *   **Streaming:** View RTSP streams directly in your dashboard (requires local access).
 *   **Motion Detection:** (Where supported) trigger automations based on camera activity.
 
-### 🔌 Switches (MS & Meraki Go GS)
+### 🔌 Switches (MS)
 Manage your wired network like a pro.
 *   **Port Control:** Cycle power to PoE ports to reboot sticky devices remotely.
 *   **Monitoring:** Track power usage (PoE) and connectivity status per port.
@@ -25,12 +25,12 @@ Environmental monitoring made easy.
 *   **Complete Range:** Support for MT10 (Temp/Humidity), MT11 (Temp/Probe), MT12 (Water Leak), MT14 (Air Quality), and MT20 (Door Open/Close).
 *   **MT40:** Full support for the MT40 Smart Power Controller (new!).
 
-### 📶 Wireless (MR & Meraki Go GR)
+### 📶 Wireless (MR)
 Control your Wi-Fi experience.
 *   **SSID Management:** Toggle SSIDs on or off dynamically.
 *   **Client Counts:** See how many devices are connected to each network in real-time.
 
-### 🛡️ Gateways (MX & Meraki Go GX)
+### 🛡️ Gateways (MX)
 *   **Uplink Status:** Monitor your internet connection health and failover status.
 
 ## 🖥️ The Dashboard
