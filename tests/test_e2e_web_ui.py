@@ -388,7 +388,7 @@ async def test_e2e_panel_comprehensive(
             camera_row = page.locator("tr", has_text="Front Door Camera")
             # Status column
             status_cell = camera_row.locator("td").nth(2)  # 0=Name, 1=Model, 2=Status
-            await expect(status_cell).to_contain_text("online")
+            await expect(status_cell).to_contain_text("Online")
 
             # 6. Panel Settings Changes
             # Click settings button
