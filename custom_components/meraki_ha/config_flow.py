@@ -12,10 +12,9 @@ from homeassistant.config_entries import (
 )
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
-
-from .authentication import validate_meraki_credentials
 from homeassistant.helpers import selector
 
+from .authentication import validate_meraki_credentials
 from .const import (
     CONF_ENABLED_NETWORKS,
     CONF_INTEGRATION_TITLE,

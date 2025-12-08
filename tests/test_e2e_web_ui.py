@@ -147,7 +147,7 @@ async def test_e2e_panel_comprehensive(
                     {"portId": "1", "status": "Connected", "enabled": True},
                     {"portId": "2", "status": "Disconnected", "enabled": False},
                 ],
-                "entity_id": "switch.office_switch"
+                "entity_id": "switch.office_switch",
             }
             # Add a camera to mock data
             camera_device = {
@@ -158,18 +158,21 @@ async def test_e2e_panel_comprehensive(
                 "productType": "camera",
                 "status": "online",
                 "lanIp": "192.168.1.50",
-                "entity_id": "camera.front_door_camera"
+                "entity_id": "camera.front_door_camera",
             }
             # Add SSID with entity_id for toggling check
             ssid_data = {
-                 "number": 0,
-                 "name": "Guest WiFi",
-                 "enabled": True,
-                 "networkId": "N_12345",
-                 "entity_id": "switch.guest_wifi"
+                "number": 0,
+                "name": "Guest WiFi",
+                "enabled": True,
+                "networkId": "N_12345",
+                "entity_id": "switch.guest_wifi",
             }
 
-            mock_data["devices"] = mock_data.get("devices", []) + [switch_device, camera_device]
+            mock_data["devices"] = mock_data.get("devices", []) + [
+                switch_device,
+                camera_device,
+            ]
             mock_data["ssids"] = mock_data.get("ssids", []) + [ssid_data]
             mock_data["networks"][0]["ssids"] = mock_data["ssids"]
 
@@ -205,7 +208,12 @@ async def test_e2e_panel_comprehensive(
                     constructor() {{ super(); this.attachShadow({{mode: 'open'}}); }}
                     connectedCallback() {{
                         const icon = this.getAttribute('icon');
-                        this.shadowRoot.innerHTML = `<span style="display: flex; align-items: center; justify-content: center;">icon: ${{icon}}</span>`;
+                        this.shadowRoot.innerHTML = `
+                            <span style="display: flex; align-items: center;
+                                         justify-content: center;">
+                                icon: ${{icon}}
+                            </span>
+                        `;
                         this.style.display = 'inline-block';
                         this.style.width = '24px';
                         this.style.height = '24px';
@@ -213,7 +221,12 @@ async def test_e2e_panel_comprehensive(
                     static get observedAttributes() {{ return ['icon']; }}
                     attributeChangedCallback(name, oldValue, newValue) {{
                         if (name === 'icon') {{
-                            this.shadowRoot.innerHTML = `<span style="display: flex; align-items: center; justify-content: center;">icon: ${{newValue}}</span>`;
+                            this.shadowRoot.innerHTML = `
+                                <span style="display: flex; align-items: center;
+                                             justify-content: center;">
+                                    icon: ${{newValue}}
+                                </span>
+                            `;
                         }}
                     }}
                 }}
@@ -272,7 +285,10 @@ async def test_e2e_panel_comprehensive(
                     panel.hass = {{
                         states: {{
                             "switch.office_switch": {{ state: "on", attributes: {{}} }},
-                            "camera.front_door_camera": {{ state: "idle", attributes: {{}} }},
+                            "camera.front_door_camera": {{
+                                state: "idle",
+                                attributes: {{}}
+                            }},
                             "switch.guest_wifi": {{ state: "on", attributes: {{}} }}
                         }},
                         callWS: async (msg) => {{
@@ -301,7 +317,12 @@ async def test_e2e_panel_comprehensive(
                               const calls = JSON.parse(
                                 sessionStorage.getItem('mockCallWS')
                             );
-                            calls.push({{type: 'call_service', domain, service, service_data: data}});
+                            calls.push({{
+                                type: 'call_service',
+                                domain,
+                                service,
+                                service_data: data
+                            }});
                             sessionStorage.setItem('mockCallWS', JSON.stringify(calls));
                         }}
                     }};
@@ -355,7 +376,8 @@ async def test_e2e_panel_comprehensive(
             # 4. SSID Toggle
             # Locate SSID View
             # We need to find "Guest WiFi" in the SSID section.
-            # Use a more specific locator for the card to ensure we get the container having both name and status
+            # Use a more specific locator for the card to ensure we get the container
+            # having both name and status
             ssid_card = page.locator("div.bg-light-card", has_text="Guest WiFi").first
             await expect(ssid_card).to_be_visible()
             await expect(ssid_card).to_contain_text("Enabled")
@@ -365,7 +387,7 @@ async def test_e2e_panel_comprehensive(
             # Find "Front Door Camera" row
             camera_row = page.locator("tr", has_text="Front Door Camera")
             # Status column
-            status_cell = camera_row.locator("td").nth(2) # 0=Name, 1=Model, 2=Status
+            status_cell = camera_row.locator("td").nth(2)  # 0=Name, 1=Model, 2=Status
             await expect(status_cell).to_contain_text("online")
 
             # 6. Panel Settings Changes
