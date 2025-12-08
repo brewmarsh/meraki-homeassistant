@@ -60,60 +60,140 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
     setActiveView({ view: 'device', deviceId: serial });
   };
 
-  const renderStatus = (device: any) => {
-      // Prioritize API status for Cameras
-      if (deviceType === 'camera') {
-          return device.status ? device.status : 'N/A';
-      }
+  const capitalizeFirst = (s: string) => {
+    if (!s) return '';
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  };
 
-      // Default logic: Prioritize HA entity state
-      const haState = device.entity_id && hass?.states?.[device.entity_id];
-      if (haState && haState.state !== 'unavailable' && haState.state !== 'unknown') {
-          return haState.state;
+  const getSensorHeroMetric = (device: any) => {
+    // If device is not online, fallback to device.status (which is handled in renderStatus)
+    if (device.status !== 'online') return null;
+
+    const model = device.model || '';
+    const readings = device.readings || [];
+
+    // MT40: Power status (on / off)
+    if (model.startsWith('MT40')) {
+      const switchEntity = device.entities?.find((e: any) =>
+        e.entity_id.startsWith('switch.')
+      );
+      if (switchEntity) {
+        return switchEntity.state === 'on' ? 'On' : 'Off';
       }
-      return device.status || 'N/A';
+      return 'Online';
+    }
+
+    // MT10, MT11: Temperature
+    if (model.startsWith('MT10') || model.startsWith('MT11')) {
+      const r = readings.find((r: any) => r.metric === 'temperature');
+      if (r?.temperature?.celsius !== undefined) {
+        return `${r.temperature.celsius.toFixed(1)} °C`;
+      }
+    }
+
+    // MT12: Status (wet / dry)
+    if (model.startsWith('MT12')) {
+      const r = readings.find((r: any) => r.metric === 'water');
+      if (r?.water?.present !== undefined) {
+        return r.water.present ? 'Wet' : 'Dry';
+      }
+    }
+
+    // MT14, MT15: TVOC
+    if (model.startsWith('MT14') || model.startsWith('MT15')) {
+      const r = readings.find((r: any) => r.metric === 'tvoc');
+      if (r?.tvoc?.concentration !== undefined) {
+        return `${r.tvoc.concentration} μg/m³`;
+      }
+    }
+
+    // MT20: Door status (open / closed)
+    if (model.startsWith('MT20')) {
+      const r = readings.find((r: any) => r.metric === 'door');
+      if (r?.door?.open !== undefined) {
+        return r.door.open ? 'Open' : 'Closed';
+      }
+    }
+
+    return null;
+  };
+
+  const renderStatus = (device: any) => {
+    // Prioritize API status for Cameras
+    if (deviceType === 'camera') {
+      return device.status ? capitalizeFirst(device.status) : 'N/A';
+    }
+
+    // MT Sensors Logic
+    if (device.model?.startsWith('MT')) {
+      const status = device.status || 'N/A';
+      if (status !== 'online') {
+        return capitalizeFirst(status);
+      }
+      // Device is online
+      const hero = getSensorHeroMetric(device);
+      if (hero) return hero;
+
+      return 'Online';
+    }
+
+    // Default logic: Prioritize HA entity state
+    const haState = device.entity_id && hass?.states?.[device.entity_id];
+    if (
+      haState &&
+      haState.state !== 'unavailable' &&
+      haState.state !== 'unknown'
+    ) {
+      return capitalizeFirst(haState.state);
+    }
+    const status = device.status || 'N/A';
+    return capitalizeFirst(status);
   };
 
   const renderExtraColumnHeader = () => {
-      if (deviceType === 'switch') return 'Ports';
-      if (deviceType === 'appliance') return 'External IP';
-      if (deviceType === 'camera') return 'RTSP';
-      return null;
+    if (deviceType === 'switch') return 'Ports';
+    if (deviceType === 'appliance') return 'External IP';
+    if (deviceType === 'camera') return 'RTSP';
+    return null;
   };
 
   const renderExtraColumnCell = (device: any) => {
-      if (deviceType === 'switch') {
-          // Calculate ports in use
-          if (device.ports_statuses && Array.isArray(device.ports_statuses)) {
-              const total = device.ports_statuses.length;
-              const inUse = device.ports_statuses.filter((p: any) => p.status === 'Connected').length;
-              return `${inUse} / ${total}`;
-          }
-          return '-';
+    if (deviceType === 'switch') {
+      // Calculate ports in use
+      if (device.ports_statuses && Array.isArray(device.ports_statuses)) {
+        const total = device.ports_statuses.length;
+        const inUse = device.ports_statuses.filter(
+          (p: any) => p.status === 'Connected'
+        ).length;
+        return `${inUse} / ${total}`;
       }
-      if (deviceType === 'appliance') {
-          const wan1 = device.wan1Ip;
-          const wan2 = device.wan2Ip;
-          if (wan1 && wan2) return `${wan1}, ${wan2}`;
-          return wan1 || wan2 || '-';
-      }
-      if (deviceType === 'camera') {
-          const rtspUrl = device.lanIp ? `rtsp://${device.lanIp}:9000/live` : null;
-          return rtspUrl ? (
-            <a
-              href={rtspUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 hover:text-blue-700 underline"
-              onClick={(e) => e.stopPropagation()}
-            >
-              Stream Link
-            </a>
-          ) : (
-            <span className="text-gray-400">-</span>
-          );
-      }
-      return null;
+      return '-';
+    }
+    if (deviceType === 'appliance') {
+      const wan1 = device.wan1Ip;
+      const wan2 = device.wan2Ip;
+      if (wan1 && wan2) return `${wan1}, ${wan2}`;
+      return wan1 || wan2 || '-';
+    }
+    if (deviceType === 'camera') {
+      const rtspUrl = device.lanIp
+        ? `rtsp://${device.lanIp}:9000/live`
+        : null;
+      return rtspUrl ? (
+        <a
+          href={rtspUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-500 hover:text-blue-700 underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          Stream Link
+        </a>
+      ) : (
+        <span className="text-gray-400">-</span>
+      );
+    }
+    return null;
   };
 
   const hasExtraColumn = ['switch', 'appliance', 'camera'].includes(deviceType);
@@ -135,7 +215,9 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
               <th className="text-left p-4 font-semibold">Model</th>
               <th className="text-left p-4 font-semibold">Status</th>
               {hasExtraColumn && (
-                  <th className="text-left p-4 font-semibold">{renderExtraColumnHeader()}</th>
+                <th className="text-left p-4 font-semibold">
+                  {renderExtraColumnHeader()}
+                </th>
               )}
               <th className="text-center p-4 font-semibold w-16">Details</th>
             </tr>
@@ -163,11 +245,9 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
                   </div>
                 </td>
                 <td className="p-4">{device.model || 'N/A'}</td>
-                <td className="p-4 capitalize">{renderStatus(device)}</td>
+                <td className="p-4">{renderStatus(device)}</td>
                 {hasExtraColumn && (
-                    <td className="p-4">
-                        {renderExtraColumnCell(device)}
-                    </td>
+                  <td className="p-4">{renderExtraColumnCell(device)}</td>
                 )}
                 <td className="p-4 text-center">
                   <button

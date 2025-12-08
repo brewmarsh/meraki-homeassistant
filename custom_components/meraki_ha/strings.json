@@ -14,14 +14,14 @@
         }
       },
       "init": {
-        "title": "Step 2 of 2: Settings",
-        "description": "Configure settings for the Meraki integration.",
+        "title": "Step 2 of 2: General Settings",
+        "description": "Configure general settings for the Meraki integration.",
         "data": {
           "scan_interval": "Scan Interval (seconds)",
           "enable_device_tracker": "Enable Client Tracker",
           "enable_vlan_management": "Enable VLAN Management",
-          "enable_device_status": "Enable Device Status",
-          "enable_org_sensors": "Enable Org Sensors",
+          "enable_device_status": "Enable Device Status Entities",
+          "enable_org_sensors": "Enable Organization Sensors",
           "enable_camera_entities": "Enable Camera Entities",
           "enable_device_sensors": "Enable Device Sensors",
           "enable_network_sensors": "Enable Network Sensors",
@@ -32,8 +32,17 @@
         },
         "data_description": {
           "scan_interval": "How often to poll the Meraki API for updates, in seconds.",
-          "enable_device_tracker": "Enable tracking of clients connected to the network.",
-          "enabled_networks": "Select which networks to include."
+          "enable_device_tracker": "Track devices connected to your Meraki networks.",
+          "enable_vlan_management": "Allow management of VLANs.",
+          "enable_device_status": "Create binary sensors for device online/offline status.",
+          "enable_org_sensors": "Create sensors for organization-wide metrics.",
+          "enable_camera_entities": "Create entities for Meraki cameras.",
+          "enable_device_sensors": "Create sensors for device-specific metrics.",
+          "enable_network_sensors": "Create sensors for network-specific metrics.",
+          "enable_vlan_sensors": "Create sensors for VLAN metrics.",
+          "enable_port_sensors": "Create sensors for switch port metrics.",
+          "enable_ssid_sensors": "Create sensors for SSID metrics.",
+          "enabled_networks": "Select which Meraki networks to include in Home Assistant."
         }
       }
     },
@@ -52,13 +61,13 @@
     "step": {
       "init": {
         "title": "Meraki Options",
-        "description": "Configure settings for the Meraki integration.",
+        "description": "Configure the Meraki integration settings.",
         "data": {
           "scan_interval": "Scan Interval (seconds)",
           "enable_device_tracker": "Enable Client Tracker",
           "enable_vlan_management": "Enable VLAN Management",
-          "enable_device_status": "Enable Device Status",
-          "enable_org_sensors": "Enable Org Sensors",
+          "enable_device_status": "Enable Device Status Entities",
+          "enable_org_sensors": "Enable Organization Sensors",
           "enable_camera_entities": "Enable Camera Entities",
           "enable_device_sensors": "Enable Device Sensors",
           "enable_network_sensors": "Enable Network Sensors",
@@ -69,8 +78,17 @@
         },
         "data_description": {
           "scan_interval": "How often to poll the Meraki API for updates, in seconds.",
-          "enable_device_tracker": "Enable tracking of clients connected to the network.",
-          "enabled_networks": "Select which networks to include."
+          "enable_device_tracker": "Track devices connected to your Meraki networks.",
+          "enable_vlan_management": "Allow management of VLANs.",
+          "enable_device_status": "Create binary sensors for device online/offline status.",
+          "enable_org_sensors": "Create sensors for organization-wide metrics.",
+          "enable_camera_entities": "Create entities for Meraki cameras.",
+          "enable_device_sensors": "Create sensors for device-specific metrics.",
+          "enable_network_sensors": "Create sensors for network-specific metrics.",
+          "enable_vlan_sensors": "Create sensors for VLAN metrics.",
+          "enable_port_sensors": "Create sensors for switch port metrics.",
+          "enable_ssid_sensors": "Create sensors for SSID metrics.",
+          "enabled_networks": "Select which Meraki networks to include in Home Assistant."
         }
       }
     }
