@@ -208,10 +208,11 @@ async def test_e2e_panel_comprehensive(
                     constructor() {{ super(); this.attachShadow({{mode: 'open'}}); }}
                     connectedCallback() {{
                         const icon = this.getAttribute('icon');
-                        // eslint-disable-next-line
-                        const style = "display: flex; align-items: center;" +
-                             "justify-content: center;";
-                        this.shadowRoot.innerHTML = `<span style="${{style}}">
+                        this.shadowRoot.innerHTML = `<span style="
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        ">
                             icon: ${{icon}}
                         </span>`;
                         this.style.display = 'inline-block';
@@ -221,10 +222,11 @@ async def test_e2e_panel_comprehensive(
                     static get observedAttributes() {{ return ['icon']; }}
                     attributeChangedCallback(name, oldValue, newValue) {{
                         if (name === 'icon') {{
-                            // eslint-disable-next-line
-                            const style = "display: flex; align-items: center;" +
-                                 "justify-content: center;";
-                            this.shadowRoot.innerHTML = `<span style="${{style}}">
+                            this.shadowRoot.innerHTML = `<span style="
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                            ">
                                 icon: ${{newValue}}
                             </span>`;
                         }}
@@ -382,8 +384,8 @@ async def test_e2e_panel_comprehensive(
             # 4. SSID Toggle
             # Locate SSID View
             # We need to find "Guest WiFi" in the SSID section.
-            # Use a more specific locator for the card to ensure we get the
-            # container having both name and status
+            # Use a more specific locator for the card to ensure we get the container
+            # having both name and status
             ssid_card = page.locator("div.bg-light-card", has_text="Guest WiFi").first
             await expect(ssid_card).to_be_visible()
             await expect(ssid_card).to_contain_text("Enabled")
