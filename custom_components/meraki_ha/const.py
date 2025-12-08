@@ -27,12 +27,6 @@ CONF_MERAKI_ORG_ID: Final = "meraki_org_id"
 CONF_SCAN_INTERVAL: Final = "scan_interval"
 """Configuration key for the scan interval in seconds."""
 
-CONF_ENABLE_WEB_UI: Final = "enable_web_ui"
-"""Configuration key for enabling the web UI."""
-
-CONF_WEB_UI_PORT: Final = "web_ui_port"
-"""Configuration key for the web UI port."""
-
 DATA_CLIENT: Final = "client"
 """Key for storing the Meraki API client in Home Assistant's data."""
 
@@ -89,12 +83,6 @@ MERAKI_API_CLIENT: Final = "meraki_api_client"
 """Key for storing the MerakiAPIClient instance in hass.data."""
 
 DEFAULT_SCAN_INTERVAL: Final = 300
-"""Default scan interval in seconds for the Meraki API data."""
-
-DEFAULT_ENABLE_WEB_UI: Final = False
-"""Default value for enabling the web UI."""
-
-DEFAULT_WEB_UI_PORT: Final = 8080
 """Default scan interval in seconds for the Meraki API data."""
 
 # Defaults for new options

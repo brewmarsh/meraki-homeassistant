@@ -9,15 +9,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
 from .const import (
-    CONF_ENABLE_WEB_UI,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
-    CONF_WEB_UI_PORT,
     DATA_CLIENT,
-    DEFAULT_ENABLE_WEB_UI,
     DEFAULT_SCAN_INTERVAL,
-    DEFAULT_WEB_UI_PORT,
     DOMAIN,
     PLATFORMS,
 )
@@ -35,7 +31,6 @@ from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .services.network_control_service import NetworkControlService
 from .web_api import async_setup_api
-from .web_server import MerakiWebServer
 from .webhook import (
     async_register_webhook,
     async_unregister_webhook,
@@ -110,28 +105,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry_data["meraki_repository"] = MerakiRepository(api_client)
     meraki_repository = entry_data["meraki_repository"]
 
-    # Handle web server
-    web_ui_enabled = entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI)
-    web_server = entry_data.get("web_server")
-    if web_ui_enabled:
-        if not web_server:
-            port = entry.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
-            server = MerakiWebServer(hass, coordinator, port)
-            await server.start()
-            entry_data["web_server"] = server
-        else:
-            # Check if port changed
-            new_port = entry.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
-            if web_server.port != new_port:
-                await web_server.stop()
-                server = MerakiWebServer(hass, coordinator, new_port)
-                await server.start()
-                entry_data["web_server"] = server
-    elif web_server:
-        # Web UI was disabled
-        await web_server.stop()
-        entry_data.pop("web_server", None)
-
     # Initialize repositories and services for the new architecture
     if "control_service" not in entry_data:
         entry_data["control_service"] = DeviceControlService(meraki_repository)
@@ -203,9 +176,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             api_client = entry_data[DATA_CLIENT]
             await async_unregister_webhook(hass, entry.entry_id, api_client)
 
-        if "web_server" in entry_data:
-            server = entry_data["web_server"]
-            await server.stop()
         async_unregister_frontend(hass)
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
