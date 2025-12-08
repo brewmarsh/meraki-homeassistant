@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Step 1 of 4: Meraki Credentials",
+        "title": "Step 1 of 2: Meraki Credentials",
         "description": "Enter your Meraki API Key and Organization ID.",
         "data": {
           "meraki_api_key": "Meraki API Key",
@@ -13,48 +13,36 @@
           "meraki_org_id": "The ID of the Meraki Organization you want to add."
         }
       },
-      "general": {
-        "title": "Step 2 of 4: General Settings",
+      "init": {
+        "title": "Step 2 of 2: General Settings",
         "description": "Configure general settings for the Meraki integration.",
         "data": {
           "scan_interval": "Scan Interval (seconds)",
-          "device_name_format": "Device Name Format"
+          "enable_device_tracker": "Enable Client Tracker",
+          "enable_vlan_management": "Enable VLAN Management",
+          "enable_device_status": "Enable Device Status Entities",
+          "enable_org_sensors": "Enable Organization Sensors",
+          "enable_camera_entities": "Enable Camera Entities",
+          "enable_device_sensors": "Enable Device Sensors",
+          "enable_network_sensors": "Enable Network Sensors",
+          "enable_vlan_sensors": "Enable VLAN Sensors",
+          "enable_port_sensors": "Enable Port Sensors",
+          "enable_ssid_sensors": "Enable SSID Sensors",
+          "enabled_networks": "Enabled Networks"
         },
         "data_description": {
           "scan_interval": "How often to poll the Meraki API for updates, in seconds.",
-          "device_name_format": "Choose how devices should be named in Home Assistant."
-        }
-      },
-      "features": {
-        "title": "Step 3 of 4: Feature Settings",
-        "description": "Enable or disable specific features of the integration.",
-        "data": {
-          "auto_enable_rtsp": "Auto-enable RTSP camera streams",
-          "use_lan_ip_for_rtsp": "Use LAN IP for RTSP stream",
-          "enable_device_tracker": "Enable Client Tracker",
-          "enable_web_ui": "Enable Web UI",
-          "web_ui_port": "Web UI Port",
-          "hide_unconfigured_ssids": "Hide Unconfigured SSIDs"
-        },
-        "data_description": {
-          "auto_enable_rtsp": "Automatically enable the RTSP stream for compatible cameras.",
-          "use_lan_ip_for_rtsp": "Use the camera's LAN IP address for the RTSP stream. Requires local network access.",
-          "enable_device_tracker": "Enable tracking of clients connected to the network.",
-          "enable_web_ui": "Enable the self-hosted web interface for advanced controls.",
-          "web_ui_port": "The port for the self-hosted web interface.",
-          "hide_unconfigured_ssids": "Hide SSIDs that are not fully configured."
-        }
-      },
-      "advanced": {
-        "title": "Step 4 of 4: Advanced Settings",
-        "description": "Configure advanced settings for the Meraki integration.",
-        "data": {
-          "webhook_url": "Webhook URL (optional)",
-          "ignored_networks": "Ignored Networks (comma-separated)"
-        },
-        "data_description": {
-          "webhook_url": "The publicly accessible URL for Meraki webhooks. Leave empty to use Home Assistant's cloud link.",
-          "ignored_networks": "A comma-separated list of network IDs to ignore."
+          "enable_device_tracker": "Track devices connected to your Meraki networks.",
+          "enable_vlan_management": "Allow management of VLANs.",
+          "enable_device_status": "Create binary sensors for device online/offline status.",
+          "enable_org_sensors": "Create sensors for organization-wide metrics.",
+          "enable_camera_entities": "Create entities for Meraki cameras.",
+          "enable_device_sensors": "Create sensors for device-specific metrics.",
+          "enable_network_sensors": "Create sensors for network-specific metrics.",
+          "enable_vlan_sensors": "Create sensors for VLAN metrics.",
+          "enable_port_sensors": "Create sensors for switch port metrics.",
+          "enable_ssid_sensors": "Create sensors for SSID metrics.",
+          "enabled_networks": "Select which Meraki networks to include in Home Assistant."
         }
       }
     },
@@ -73,46 +61,34 @@
     "step": {
       "init": {
         "title": "Meraki Options",
-        "description": "Step 1 of 3: General Settings",
+        "description": "Configure the Meraki integration settings.",
         "data": {
           "scan_interval": "Scan Interval (seconds)",
-          "device_name_format": "Device Name Format"
+          "enable_device_tracker": "Enable Client Tracker",
+          "enable_vlan_management": "Enable VLAN Management",
+          "enable_device_status": "Enable Device Status Entities",
+          "enable_org_sensors": "Enable Organization Sensors",
+          "enable_camera_entities": "Enable Camera Entities",
+          "enable_device_sensors": "Enable Device Sensors",
+          "enable_network_sensors": "Enable Network Sensors",
+          "enable_vlan_sensors": "Enable VLAN Sensors",
+          "enable_port_sensors": "Enable Port Sensors",
+          "enable_ssid_sensors": "Enable SSID Sensors",
+          "enabled_networks": "Enabled Networks"
         },
         "data_description": {
           "scan_interval": "How often to poll the Meraki API for updates, in seconds.",
-          "device_name_format": "Choose how devices should be named in Home Assistant."
-        }
-      },
-      "features": {
-        "title": "Meraki Options",
-        "description": "Step 2 of 3: Feature Settings\n\n[Open Web UI]({web_ui_url})",
-        "data": {
-          "auto_enable_rtsp": "Auto-enable RTSP camera streams",
-          "use_lan_ip_for_rtsp": "Use LAN IP for RTSP stream",
-          "enable_device_tracker": "Enable Client Tracker",
-          "enable_web_ui": "Enable Web UI",
-          "web_ui_port": "Web UI Port",
-          "hide_unconfigured_ssids": "Hide Unconfigured SSIDs"
-        },
-        "data_description": {
-          "auto_enable_rtsp": "Automatically enable the RTSP stream for compatible cameras.",
-          "use_lan_ip_for_rtsp": "Use the camera's LAN IP address for the RTSP stream. Requires local network access.",
-          "enable_device_tracker": "Enable tracking of clients connected to the network.",
-          "enable_web_ui": "Enable the self-hosted web interface for advanced controls.",
-          "web_ui_port": "The port for the self-hosted web interface.",
-          "hide_unconfigured_ssids": "Hide SSIDs that are not fully configured."
-        }
-      },
-      "advanced": {
-        "title": "Meraki Options",
-        "description": "Step 3 of 3: Advanced Settings",
-        "data": {
-          "webhook_url": "Webhook URL (optional)",
-          "ignored_networks": "Ignored Networks (comma-separated)"
-        },
-        "data_description": {
-          "webhook_url": "The publicly accessible URL for Meraki webhooks. Leave empty to use Home Assistant's cloud link.",
-          "ignored_networks": "A comma-separated list of network IDs to ignore."
+          "enable_device_tracker": "Track devices connected to your Meraki networks.",
+          "enable_vlan_management": "Allow management of VLANs.",
+          "enable_device_status": "Create binary sensors for device online/offline status.",
+          "enable_org_sensors": "Create sensors for organization-wide metrics.",
+          "enable_camera_entities": "Create entities for Meraki cameras.",
+          "enable_device_sensors": "Create sensors for device-specific metrics.",
+          "enable_network_sensors": "Create sensors for network-specific metrics.",
+          "enable_vlan_sensors": "Create sensors for VLAN metrics.",
+          "enable_port_sensors": "Create sensors for switch port metrics.",
+          "enable_ssid_sensors": "Create sensors for SSID metrics.",
+          "enabled_networks": "Select which Meraki networks to include in Home Assistant."
         }
       }
     }
