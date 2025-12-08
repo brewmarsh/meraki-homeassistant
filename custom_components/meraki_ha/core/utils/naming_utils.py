@@ -38,7 +38,7 @@ def format_device_name(device: dict[str, Any], config: Mapping[str, Any]) -> str
     elif product_type == "appliance":
         product_type_str = "Appliance"
     elif product_type == "camera":
-        return name
+        product_type_str = "Camera"
     elif product_type == "ssid":
         product_type_str = "SSID"
     elif product_type == "vlan":
