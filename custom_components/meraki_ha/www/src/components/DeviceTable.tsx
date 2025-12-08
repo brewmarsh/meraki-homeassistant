@@ -22,7 +22,14 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
     if (m.startsWith('MV')) return 'mdi:cctv';
     if (m.startsWith('MX')) return 'mdi:shield-check';
     if (m.startsWith('MG')) return 'mdi:signal-cellular-outline';
+
+    // MT Series Specifics
+    if (m.startsWith('MT40')) return 'mdi:power-plug';
+    if (m.startsWith('MT12')) return 'mdi:water';
+    if (m.startsWith('MT20')) return 'mdi:door';
+    if (m.startsWith('MT30')) return 'mdi:gesture-tap-button';
     if (m.startsWith('MT')) return 'mdi:thermometer';
+
     if (m.startsWith('Z')) return 'mdi:router-wireless';
     if (m.startsWith('GS')) return 'mdi:lan';
     if (m.startsWith('GR')) return 'mdi:wifi';
