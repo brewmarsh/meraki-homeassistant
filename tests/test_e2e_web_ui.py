@@ -208,13 +208,12 @@ async def test_e2e_panel_comprehensive(
                     constructor() {{ super(); this.attachShadow({{mode: 'open'}}); }}
                     connectedCallback() {{
                         const icon = this.getAttribute('icon');
-                        this.shadowRoot.innerHTML = `<span style="
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        ">
-                            icon: ${{icon}}
-                        </span>`;
+                        this.shadowRoot.innerHTML = `
+                            <span style="display: flex; align-items: center;
+                                         justify-content: center;">
+                                icon: ${{icon}}
+                            </span>
+                        `;
                         this.style.display = 'inline-block';
                         this.style.width = '24px';
                         this.style.height = '24px';
@@ -222,13 +221,12 @@ async def test_e2e_panel_comprehensive(
                     static get observedAttributes() {{ return ['icon']; }}
                     attributeChangedCallback(name, oldValue, newValue) {{
                         if (name === 'icon') {{
-                            this.shadowRoot.innerHTML = `<span style="
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                            ">
-                                icon: ${{newValue}}
-                            </span>`;
+                            this.shadowRoot.innerHTML = `
+                                <span style="display: flex; align-items: center;
+                                             justify-content: center;">
+                                    icon: ${{newValue}}
+                                </span>
+                            `;
                         }}
                     }}
                 }}
@@ -286,18 +284,12 @@ async def test_e2e_panel_comprehensive(
                     }};
                     panel.hass = {{
                         states: {{
-                            "switch.office_switch": {{
-                                state: "on",
-                                attributes: {{}}
-                            }},
+                            "switch.office_switch": {{ state: "on", attributes: {{}} }},
                             "camera.front_door_camera": {{
                                 state: "idle",
                                 attributes: {{}}
                             }},
-                            "switch.guest_wifi": {{
-                                state: "on",
-                                attributes: {{}}
-                            }}
+                            "switch.guest_wifi": {{ state: "on", attributes: {{}} }}
                         }},
                         callWS: async (msg) => {{
                             console.log("callWS called with type: " + msg.type);
