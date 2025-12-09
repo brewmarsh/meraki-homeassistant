@@ -32,7 +32,6 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self,
         hass: "HomeAssistant",
         api_client: ApiClient,
-        scan_interval: int,
         entry: ConfigEntry,
     ) -> None:
         """
