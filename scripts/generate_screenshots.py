@@ -340,9 +340,7 @@ def generate_screenshots() -> None:
         page.wait_for_timeout(2000)
 
         # Take Device Detail Screenshot
-        page.screenshot(
-            path=os.path.join(SCREENSHOT_DIR, "device_detail_view.png")
-        )
+        page.screenshot(path=os.path.join(SCREENSHOT_DIR, "device_detail_view.png"))
         print(f"Saved {os.path.join(SCREENSHOT_DIR, 'device_detail_view.png')}")
 
         browser.close()
