@@ -6,15 +6,11 @@ This document provides a comprehensive guide for developers who want to contribu
 
 ### 1.1. Local Development Environment
 
-This project uses [Poetry](https://python-poetry.org/) for dependency management.
+This project uses standard `pip` for dependency management.
 
 1.  **Install dependencies:**
     ```bash
-    poetry install
-    ```
-2.  **Activate the virtual environment:**
-    ```bash
-    poetry shell
+    pip install -r requirements_dev.txt
     ```
 
 ### 1.2. Docker Test Environment
@@ -38,31 +34,31 @@ Before submitting, you **must** run all quality checks. These are also enforced 
 1.  **Linting & Formatting (Ruff):**
 
     ```bash
-    poetry run ruff check --fix .
-    poetry run ruff format .
+    ruff check --fix .
+    ruff format .
     ```
 
 2.  **Type Checking (mypy):**
 
     ```bash
-    poetry run mypy .
+    mypy custom_components/meraki_ha/ tests/
     ```
 
 3.  **Security Analysis (bandit):**
 
     ```bash
-    poetry run bandit -r custom_components/meraki_ha/
+    bandit -c .bandit.yaml -r .
     ```
 
 4.  **Run Tests (pytest):**
 
     ```bash
-    poetry run pytest
+    pytest
     ```
 
 5.  **Home Assistant Validation (hassfest):**
     ```bash
-    poetry run python -m script.hassfest
+    docker run --rm -v "$(pwd)":/github/workspace ghcr.io/home-assistant/hassfest
     ```
 
 ## 3. Frontend Development
