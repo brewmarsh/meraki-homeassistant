@@ -137,25 +137,27 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
       return;
     }
 
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const result: MerakiData = await hass.callWS({
-          type: 'meraki_ha/get_config',
-          config_entry_id: configEntryId,
-        });
-        setData(result);
-        setError(null);
-      } catch (err: any) {
-        console.error('Error fetching Meraki data:', err);
-        setError(err.message || 'An unknown error occurred.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, [configEntryId]); // Rerun if configEntryId changes
+
+  const fetchData = async () => {
+    if (!hass || !configEntryId) return;
+
+    try {
+      setLoading(true);
+      const result: MerakiData = await hass.callWS({
+        type: 'meraki_ha/get_config',
+        config_entry_id: configEntryId,
+      });
+      setData(result);
+      setError(null);
+    } catch (err: any) {
+      console.error('Error fetching Meraki data:', err);
+      setError(err.message || 'An unknown error occurred.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return <div className="p-4">Loading...</div>;
@@ -174,13 +176,22 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
     <div className="p-4 relative bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Cisco Meraki Integration</h1>
-        <button
-          onClick={() => setShowSettings(true)}
-          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-          title="Settings"
-        >
-          <ha-icon icon="mdi:cog"></ha-icon>
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={fetchData}
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+            title="Refresh Data"
+          >
+            <ha-icon icon="mdi:refresh"></ha-icon>
+          </button>
+          <button
+            onClick={() => setShowSettings(true)}
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+            title="Settings"
+          >
+            <ha-icon icon="mdi:cog"></ha-icon>
+          </button>
+        </div>
       </div>
 
       {activeView.view === 'dashboard' ? (

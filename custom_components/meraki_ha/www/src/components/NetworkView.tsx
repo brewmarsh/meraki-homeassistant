@@ -67,6 +67,8 @@ const NetworkView: React.FC<NetworkViewProps> = ({
     return saved ? JSON.parse(saved) : [];
   });
 
+  const { networks, devices, vlans } = data;
+
   useEffect(() => {
     sessionStorage.setItem('openNetworkIds', JSON.stringify(openNetworkIds));
   }, [openNetworkIds]);
@@ -99,7 +101,95 @@ const NetworkView: React.FC<NetworkViewProps> = ({
     );
   };
 
-  const { networks, devices, vlans } = data;
+  const networkGroups = React.useMemo(() => {
+    if (!networks || !devices) return {};
+
+    const result: Record<string, any[]> = {};
+
+    networks.forEach((network) => {
+      // Group devices
+      const networkDevices = devices.filter(
+        (d) => d.networkId === network.id
+      );
+      const wirelessDevices = networkDevices.filter(
+        (d) =>
+          d.model?.toUpperCase().startsWith('MR') ||
+          d.model?.toUpperCase().startsWith('GR')
+      );
+      const switchDevices = networkDevices.filter(
+        (d) =>
+          d.model?.toUpperCase().startsWith('MS') ||
+          d.model?.toUpperCase().startsWith('GS')
+      );
+      const cameraDevices = networkDevices.filter((d) =>
+        d.model?.toUpperCase().startsWith('MV')
+      );
+      const sensorDevices = networkDevices.filter((d) =>
+        d.model?.toUpperCase().startsWith('MT')
+      );
+      const applianceDevices = networkDevices.filter(
+        (d) =>
+          d.model?.toUpperCase().startsWith('MX') ||
+          d.model?.toUpperCase().startsWith('Z') ||
+          d.model?.toUpperCase().startsWith('MG') ||
+          d.model?.toUpperCase().startsWith('GX')
+      );
+      const otherDevices = networkDevices.filter(
+        (d) =>
+          !d.model?.toUpperCase().startsWith('MR') &&
+          !d.model?.toUpperCase().startsWith('GR') &&
+          !d.model?.toUpperCase().startsWith('MS') &&
+          !d.model?.toUpperCase().startsWith('GS') &&
+          !d.model?.toUpperCase().startsWith('MV') &&
+          !d.model?.toUpperCase().startsWith('MT') &&
+          !d.model?.toUpperCase().startsWith('MX') &&
+          !d.model?.toUpperCase().startsWith('Z') &&
+          !d.model?.toUpperCase().startsWith('MG') &&
+          !d.model?.toUpperCase().startsWith('GX')
+      );
+
+      result[network.id] = [
+        {
+          label: 'Appliances',
+          devices: applianceDevices,
+          icon: 'mdi:shield-check',
+          type: 'appliance',
+        },
+        {
+          label: 'Switches',
+          devices: switchDevices,
+          icon: 'mdi:lan',
+          type: 'switch',
+        },
+        {
+          label: 'Cameras',
+          devices: cameraDevices,
+          icon: 'mdi:cctv',
+          type: 'camera',
+        },
+        {
+          label: 'Sensors',
+          devices: sensorDevices,
+          icon: 'mdi:thermometer',
+          type: 'sensor',
+        },
+        {
+          label: 'Wireless APs',
+          devices: wirelessDevices,
+          icon: 'mdi:wifi',
+          type: 'wireless',
+        },
+        {
+          label: 'Other Devices',
+          devices: otherDevices,
+          icon: 'mdi:devices',
+          type: 'other',
+        },
+      ];
+    });
+
+    return result;
+  }, [networks, devices]);
 
   if (!networks || networks.length === 0) {
     return <p>No networks found.</p>;
@@ -120,86 +210,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({
           : 0;
         const totalSsids = network.ssids ? network.ssids.length : 0;
 
-        // Group devices
-        const networkDevices = devices.filter(
-          (d) => d.networkId === network.id
-        );
-        const wirelessDevices = networkDevices.filter(
-          (d) =>
-            d.model?.toUpperCase().startsWith('MR') ||
-            d.model?.toUpperCase().startsWith('GR')
-        );
-        const switchDevices = networkDevices.filter(
-          (d) =>
-            d.model?.toUpperCase().startsWith('MS') ||
-            d.model?.toUpperCase().startsWith('GS')
-        );
-        const cameraDevices = networkDevices.filter((d) =>
-          d.model?.toUpperCase().startsWith('MV')
-        );
-        const sensorDevices = networkDevices.filter((d) =>
-          d.model?.toUpperCase().startsWith('MT')
-        );
-        const applianceDevices = networkDevices.filter(
-          (d) =>
-            d.model?.toUpperCase().startsWith('MX') ||
-            d.model?.toUpperCase().startsWith('Z') ||
-            d.model?.toUpperCase().startsWith('MG') ||
-            d.model?.toUpperCase().startsWith('GX')
-        );
-        const otherDevices = networkDevices.filter(
-          (d) =>
-            !d.model?.toUpperCase().startsWith('MR') &&
-            !d.model?.toUpperCase().startsWith('GR') &&
-            !d.model?.toUpperCase().startsWith('MS') &&
-            !d.model?.toUpperCase().startsWith('GS') &&
-            !d.model?.toUpperCase().startsWith('MV') &&
-            !d.model?.toUpperCase().startsWith('MT') &&
-            !d.model?.toUpperCase().startsWith('MX') &&
-            !d.model?.toUpperCase().startsWith('Z') &&
-            !d.model?.toUpperCase().startsWith('MG') &&
-            !d.model?.toUpperCase().startsWith('GX')
-        );
-
-        const groups = [
-          {
-            label: 'Appliances',
-            devices: applianceDevices,
-            icon: 'mdi:shield-check',
-            type: 'appliance',
-          },
-          {
-            label: 'Switches',
-            devices: switchDevices,
-            icon: 'mdi:lan',
-            type: 'switch',
-          },
-          {
-            label: 'Cameras',
-            devices: cameraDevices,
-            icon: 'mdi:cctv',
-            type: 'camera',
-          },
-          {
-            label: 'Sensors',
-            devices: sensorDevices,
-            icon: 'mdi:thermometer',
-            type: 'sensor',
-          },
-          {
-            label: 'Wireless APs',
-            devices: wirelessDevices,
-            icon: 'mdi:wifi',
-            type: 'wireless',
-          },
-          {
-            label: 'Other Devices',
-            devices: otherDevices,
-            icon: 'mdi:devices',
-            type: 'other',
-          },
-        ];
-
+        const groups = networkGroups[network.id] || [];
         const networkVlans = vlans ? vlans[network.id] : undefined;
 
         return (
