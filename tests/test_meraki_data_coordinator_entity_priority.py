@@ -20,9 +20,7 @@ def coordinator(hass, mock_api_client):
     """Fixture for a MerakiDataCoordinator instance."""
     entry = MagicMock()
     entry.options = {}
-    return MerakiDataCoordinator(
-        hass=hass, api_client=mock_api_client, entry=entry
-    )
+    return MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
 
 
 async def test_populate_device_entities_picks_camera(coordinator, hass):
