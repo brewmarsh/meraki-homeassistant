@@ -89,7 +89,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry_data["coordinator"] = MerakiDataCoordinator(
             hass=hass,
             api_client=api_client,
-            scan_interval=scan_interval,
             entry=entry,
         )
         try:
