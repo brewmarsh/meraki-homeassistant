@@ -33,7 +33,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install bump2version
+          pip install bump2version playwright
           npm install
           npm install --prefix custom_components/meraki_ha/www
 
@@ -55,12 +55,22 @@ jobs:
         run: |
           npm run build --prefix custom_components/meraki_ha/www
 
+      - name: Install Playwright Browsers
+        if: steps.increment.outputs.new_version != ''
+        run: |
+          playwright install chromium
+
+      - name: Generate Screenshots
+        if: steps.increment.outputs.new_version != ''
+        run: |
+          python scripts/generate_screenshots.py
+
       - name: Commit and push changes
         if: steps.increment.outputs.new_version != ''
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }} [skip ci]'
-          file_pattern: 'custom_components/meraki_ha/manifest.json CHANGELOG.md package.json .bumpversion.cfg package-lock.json custom_components/meraki_ha/www/meraki-panel.js'
+          file_pattern: 'custom_components/meraki_ha/manifest.json CHANGELOG.md package.json .bumpversion.cfg package-lock.json custom_components/meraki_ha/www/meraki-panel.js docs/images/network_view.png docs/images/device_detail_view.png'
           commit_user_name: 'github-actions[bot]'
           commit_user_email: 'github-actions[bot]@users.noreply.github.com'
           commit_author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
