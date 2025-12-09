@@ -227,13 +227,7 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
               <tr
                 key={device.serial}
                 className="border-b border-light-border dark:border-dark-border hover:bg-light-hover dark:hover:bg-dark-hover cursor-pointer"
-                onClick={(e) => {
-                  if (device.entity_id) {
-                    handleDeviceClick(e, device.entity_id);
-                  } else {
-                    handleDetailsClick(e, device.serial);
-                  }
-                }}
+                onClick={(e) => handleDetailsClick(e, device.serial)}
               >
                 <td className="p-4">
                   <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -241,7 +235,16 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
                       icon={getDeviceIcon(device.model)}
                       style={{ marginRight: '8px' }}
                     ></ha-icon>
-                    <span className="font-medium">{device.name || 'N/A'}</span>
+                    {device.entity_id ? (
+                      <span
+                        className="font-medium text-blue-500 hover:underline"
+                        onClick={(e) => handleDeviceClick(e, device.entity_id)}
+                      >
+                        {device.name || 'N/A'}
+                      </span>
+                    ) : (
+                      <span className="font-medium">{device.name || 'N/A'}</span>
+                    )}
                   </div>
                 </td>
                 <td className="p-4">{device.model || 'N/A'}</td>
