@@ -1,8 +1,11 @@
 """Tests for the Wireless Endpoints."""
 
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
+
 from custom_components.meraki_ha.core.api.endpoints.wireless import WirelessEndpoints
+
 
 @pytest.fixture
 def mock_client():

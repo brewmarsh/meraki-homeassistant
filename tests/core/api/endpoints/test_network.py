@@ -1,8 +1,11 @@
 """Tests for the Network Endpoints."""
 
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
+
 from custom_components.meraki_ha.core.api.endpoints.network import NetworkEndpoints
+
 
 @pytest.fixture
 def mock_client():

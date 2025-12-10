@@ -8,13 +8,13 @@ import secrets
 import string
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import storage
 from homeassistant.util import dt as dt_util
 
-from ..const import DOMAIN, DATA_CLIENT
+from ..const import DATA_CLIENT, DOMAIN
 
 if TYPE_CHECKING:
     from .api.client import MerakiAPIClient
@@ -97,7 +97,12 @@ class TimedAccessManager:
 
     async def _remove_key_task(self, key: TimedAccessKey) -> None:
         """Task wrapper to remove a key."""
-        await self.delete_key(key.identity_psk_id, key.network_id, key.ssid_number, key.config_entry_id)
+        await self.delete_key(
+            key.identity_psk_id,
+            key.network_id,
+            key.ssid_number,
+            key.config_entry_id,
+        )
 
     async def create_key(
         self,
@@ -205,7 +210,9 @@ class TimedAccessManager:
             except Exception as e:
                 _LOGGER.error("Failed to delete Identity PSK from Meraki: %s", e)
         else:
-             _LOGGER.warning("Meraki Client not available to delete PSK %s", identity_psk_id)
+            _LOGGER.warning(
+                "Meraki Client not available to delete PSK %s", identity_psk_id
+            )
 
         # Remove from list and save
         self._keys.remove(key_to_remove)

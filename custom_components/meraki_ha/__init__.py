@@ -154,7 +154,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         network_id = call.data.get("network_id")
 
         if not network_id:
-            _LOGGER.error("Missing required parameter 'network_id' for timed access creation")
+            _LOGGER.error(
+                "Missing required parameter 'network_id' for timed access creation"
+            )
             return
 
         manager = entry_data["timed_access_manager"]
@@ -168,7 +170,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             group_policy_id=group_policy_id,
         )
 
-    hass.services.async_register(DOMAIN, "create_timed_access", handle_create_timed_access)
+    hass.services.async_register(
+        DOMAIN, "create_timed_access", handle_create_timed_access
+    )
 
     discovered_entities = await discovery_service.discover_entities()
     entry_data["entities"] = discovered_entities

@@ -1,18 +1,17 @@
 """Tests for the TimedAccessManager."""
 
-import asyncio
 from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.util import dt as dt_util
 
-from custom_components.meraki_ha.const import DOMAIN, DATA_CLIENT
+from custom_components.meraki_ha.const import DATA_CLIENT, DOMAIN
 from custom_components.meraki_ha.core.timed_access_manager import (
-    TimedAccessManager,
     TimedAccessKey,
-    STORAGE_KEY,
+    TimedAccessManager,
 )
+
 
 @pytest.fixture
 def mock_client():
