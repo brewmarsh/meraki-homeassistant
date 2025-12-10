@@ -268,6 +268,33 @@ class NetworkEndpoints:
                 await self.delete_webhook(network_id, webhook_to_delete["id"])
 
     @handle_meraki_errors
+    @async_timed_cache(timeout=300)
+    async def get_group_policies(self, network_id: str) -> list[dict[str, Any]]:
+        """
+        Get group policies for a network.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+
+        Returns
+        -------
+            A list of group policies.
+
+        """
+        if self._api_client.dashboard is None:
+            return []
+        policies = await self._api_client.run_sync(
+            self._api_client.dashboard.networks.getNetworkGroupPolicies,
+            networkId=network_id,
+        )
+        validated = validate_response(policies)
+        if not isinstance(validated, list):
+            _LOGGER.warning("get_group_policies did not return a list")
+            return []
+        return validated
+
+    @handle_meraki_errors
     @async_timed_cache(timeout=60)
     async def get_network_camera_analytics_history(
         self, network_id: str, object_type: str

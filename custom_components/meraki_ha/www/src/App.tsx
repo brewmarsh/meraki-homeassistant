@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import NetworkView from './components/NetworkView';
 import DeviceView from './components/DeviceView';
 import Settings from './components/Settings';
+import TimedAccess from './components/TimedAccess';
 
 // Define the types for our data
 interface MerakiData {
@@ -24,6 +25,7 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
     deviceId: undefined,
   });
   const [showSettings, setShowSettings] = useState(false);
+  const [showTimedAccess, setShowTimedAccess] = useState(false);
 
   const configEntryId = panel?.config?.config_entry_id;
 
@@ -178,6 +180,13 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
         <h1 className="text-2xl font-bold">Cisco Meraki Integration</h1>
         <div className="flex gap-2">
           <button
+              onClick={() => setShowTimedAccess(true)}
+              className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+              title="Timed Guest Access"
+          >
+              <ha-icon icon="mdi:clock-outline"></ha-icon>
+          </button>
+          <button
             onClick={fetchData}
             className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
             title="Refresh Data"
@@ -216,6 +225,14 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
           options={data.options || {}}
           configEntryId={configEntryId}
           onClose={() => setShowSettings(false)}
+        />
+      )}
+      {showTimedAccess && data && (
+        <TimedAccess
+          hass={hass}
+          configEntryId={configEntryId}
+          data={data}
+          onClose={() => setShowTimedAccess(false)}
         />
       )}
       {data?.version && (

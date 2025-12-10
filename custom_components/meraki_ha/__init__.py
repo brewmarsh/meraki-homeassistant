@@ -20,6 +20,7 @@ from .const import (
 from .core.api.client import MerakiAPIClient
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
+from .core.timed_access_manager import TimedAccessManager
 from .discovery.service import DeviceDiscoveryService
 from .frontend import (
     async_register_panel,
@@ -136,6 +137,42 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             network_control_service=network_control_service,
         )
     discovery_service = entry_data["discovery_service"]
+
+    # Initialize Timed Access Manager
+    if "timed_access_manager" not in entry_data:
+        manager = TimedAccessManager(hass)
+        await manager.async_setup()
+        entry_data["timed_access_manager"] = manager
+
+    # Register service
+    async def handle_create_timed_access(call):
+        ssid_number = call.data["ssid_number"]
+        duration = call.data["duration"]
+        name = call.data.get("name")
+        passphrase = call.data.get("passphrase")
+        group_policy_id = call.data.get("group_policy_id")
+        network_id = call.data.get("network_id")
+
+        if not network_id:
+            _LOGGER.error(
+                "Missing required parameter 'network_id' for timed access creation"
+            )
+            return
+
+        manager = entry_data["timed_access_manager"]
+        await manager.create_key(
+            config_entry_id=entry.entry_id,
+            network_id=network_id,
+            ssid_number=str(ssid_number),
+            duration_minutes=duration,
+            name=name,
+            passphrase=passphrase,
+            group_policy_id=group_policy_id,
+        )
+
+    hass.services.async_register(
+        DOMAIN, "create_timed_access", handle_create_timed_access
+    )
 
     discovered_entities = await discovery_service.discover_entities()
     entry_data["entities"] = discovered_entities

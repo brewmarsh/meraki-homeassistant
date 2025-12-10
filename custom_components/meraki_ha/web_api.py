@@ -12,7 +12,7 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 from voluptuous import ALLOW_EXTRA, All, Optional, Required, Schema
 
-from .const import CONF_ENABLED_NETWORKS, DOMAIN
+from .const import CONF_ENABLED_NETWORKS, DATA_CLIENT, DOMAIN
 from .meraki_data_coordinator import MerakiDataCoordinator
 from .services.camera_service import CameraService
 
@@ -104,6 +104,65 @@ def async_setup_api(hass: HomeAssistant) -> None:
                 Optional("per_page", default=10): int,
                 Optional("starting_after"): str,
                 Optional("product_type"): str,
+            },
+            extra=ALLOW_EXTRA,
+        ),
+    )
+    websocket_api.async_register_command(
+        hass,
+        "meraki_ha/timed_access/get_keys",
+        handle_get_timed_access_keys,
+        Schema(
+            {
+                Required("type"): All(str, "meraki_ha/timed_access/get_keys"),
+                Required("config_entry_id"): str,
+                Optional("network_id"): str,
+            },
+            extra=ALLOW_EXTRA,
+        ),
+    )
+    websocket_api.async_register_command(
+        hass,
+        "meraki_ha/timed_access/create",
+        handle_create_timed_access_key,
+        Schema(
+            {
+                Required("type"): All(str, "meraki_ha/timed_access/create"),
+                Required("config_entry_id"): str,
+                Required("network_id"): str,
+                Required("ssid_number"): str,
+                Required("duration"): int,
+                Optional("name"): str,
+                Optional("passphrase"): str,
+                Optional("group_policy_id"): str,
+            },
+            extra=ALLOW_EXTRA,
+        ),
+    )
+    websocket_api.async_register_command(
+        hass,
+        "meraki_ha/timed_access/delete",
+        handle_delete_timed_access_key,
+        Schema(
+            {
+                Required("type"): All(str, "meraki_ha/timed_access/delete"),
+                Required("config_entry_id"): str,
+                Required("identity_psk_id"): str,
+                Required("network_id"): str,
+                Required("ssid_number"): str,
+            },
+            extra=ALLOW_EXTRA,
+        ),
+    )
+    websocket_api.async_register_command(
+        hass,
+        "meraki_ha/timed_access/get_policies",
+        handle_get_group_policies,
+        Schema(
+            {
+                Required("type"): All(str, "meraki_ha/timed_access/get_policies"),
+                Required("config_entry_id"): str,
+                Required("network_id"): str,
             },
             extra=ALLOW_EXTRA,
         ),
@@ -347,4 +406,117 @@ async def handle_get_network_events(
         connection.send_result(msg["id"], events)
     except Exception as e:
         _LOGGER.error("Error fetching network events: %s", e)
+        connection.send_error(msg["id"], "fetch_error", str(e))
+
+
+@websocket_api.async_response
+async def handle_get_timed_access_keys(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Handle get_timed_access_keys command."""
+    config_entry_id = msg["config_entry_id"]
+    network_id = msg.get("network_id")
+
+    if config_entry_id not in hass.data[DOMAIN]:
+        connection.send_error(msg["id"], "not_found", "Config entry not found")
+        return
+
+    manager = hass.data[DOMAIN][config_entry_id].get("timed_access_manager")
+    if not manager:
+        connection.send_error(msg["id"], "not_found", "Manager not found")
+        return
+
+    keys = manager.get_keys(network_id)
+    connection.send_result(msg["id"], keys)
+
+
+@websocket_api.async_response
+async def handle_create_timed_access_key(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Handle create_timed_access_key command."""
+    config_entry_id = msg["config_entry_id"]
+    if config_entry_id not in hass.data[DOMAIN]:
+        connection.send_error(msg["id"], "not_found", "Config entry not found")
+        return
+
+    manager = hass.data[DOMAIN][config_entry_id].get("timed_access_manager")
+    if not manager:
+        connection.send_error(msg["id"], "not_found", "Manager not found")
+        return
+
+    try:
+        key = await manager.create_key(
+            config_entry_id=config_entry_id,
+            network_id=msg["network_id"],
+            ssid_number=msg["ssid_number"],
+            duration_minutes=msg["duration"],
+            name=msg.get("name"),
+            passphrase=msg.get("passphrase"),
+            group_policy_id=msg.get("group_policy_id"),
+        )
+        connection.send_result(msg["id"], key.__dict__)
+    except Exception as e:
+        _LOGGER.error("Error creating timed access key: %s", e)
+        connection.send_error(msg["id"], "create_error", str(e))
+
+
+@websocket_api.async_response
+async def handle_delete_timed_access_key(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Handle delete_timed_access_key command."""
+    config_entry_id = msg["config_entry_id"]
+    if config_entry_id not in hass.data[DOMAIN]:
+        connection.send_error(msg["id"], "not_found", "Config entry not found")
+        return
+
+    manager = hass.data[DOMAIN][config_entry_id].get("timed_access_manager")
+    if not manager:
+        connection.send_error(msg["id"], "not_found", "Manager not found")
+        return
+
+    try:
+        await manager.delete_key(
+            identity_psk_id=msg["identity_psk_id"],
+            network_id=msg["network_id"],
+            ssid_number=msg["ssid_number"],
+            config_entry_id=config_entry_id,
+        )
+        connection.send_result(msg["id"], {"success": True})
+    except Exception as e:
+        _LOGGER.error("Error deleting timed access key: %s", e)
+        connection.send_error(msg["id"], "delete_error", str(e))
+
+
+@websocket_api.async_response
+async def handle_get_group_policies(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Handle get_group_policies command."""
+    config_entry_id = msg["config_entry_id"]
+    network_id = msg["network_id"]
+
+    if config_entry_id not in hass.data[DOMAIN]:
+        connection.send_error(msg["id"], "not_found", "Config entry not found")
+        return
+
+    client = hass.data[DOMAIN][config_entry_id].get(DATA_CLIENT)
+    if not client:
+        connection.send_error(msg["id"], "not_found", "Client not found")
+        return
+
+    try:
+        policies = await client.network.get_group_policies(network_id)
+        connection.send_result(msg["id"], policies)
+    except Exception as e:
+        _LOGGER.error("Error fetching group policies: %s", e)
         connection.send_error(msg["id"], "fetch_error", str(e))
