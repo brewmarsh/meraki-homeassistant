@@ -15,10 +15,12 @@ def mock_client():
     client.run_sync = AsyncMock()
     return client
 
+
 @pytest.fixture
 def wireless(mock_client):
     """Fixture for the WirelessEndpoints."""
     return WirelessEndpoints(mock_client)
+
 
 async def test_create_identity_psk(wireless, mock_client):
     """Test create_identity_psk."""
@@ -40,6 +42,7 @@ async def test_create_identity_psk(wireless, mock_client):
     assert kwargs["name"] == "test"
     assert kwargs["groupPolicyId"] == "policy1"
     assert kwargs["passphrase"] == "pass"
+
 
 async def test_delete_identity_psk(wireless, mock_client):
     """Test delete_identity_psk."""

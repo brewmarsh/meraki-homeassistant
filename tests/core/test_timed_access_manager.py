@@ -21,10 +21,12 @@ def mock_client():
     client.wireless.delete_identity_psk = AsyncMock()
     return client
 
+
 @pytest.fixture
 def manager(hass):
     """Fixture for the TimedAccessManager."""
     return TimedAccessManager(hass)
+
 
 @pytest.fixture
 def mock_store(manager):
@@ -34,20 +36,23 @@ def mock_store(manager):
         mock.async_save = AsyncMock()
         yield mock
 
+
 async def test_load_keys(hass, manager, mock_store):
     """Test loading keys from storage."""
     now = dt_util.utcnow()
     expires_at = now + timedelta(hours=1)
 
-    mock_data = [{
-        "identity_psk_id": "psk1",
-        "network_id": "net1",
-        "ssid_number": "0",
-        "name": "Test Key",
-        "passphrase": "secret",
-        "expires_at": expires_at.isoformat(),
-        "config_entry_id": "entry1",
-    }]
+    mock_data = [
+        {
+            "identity_psk_id": "psk1",
+            "network_id": "net1",
+            "ssid_number": "0",
+            "name": "Test Key",
+            "passphrase": "secret",
+            "expires_at": expires_at.isoformat(),
+            "config_entry_id": "entry1",
+        }
+    ]
     mock_store.async_load.return_value = mock_data
 
     await manager.async_setup()
@@ -57,27 +62,26 @@ async def test_load_keys(hass, manager, mock_store):
     # Should have scheduled removal
     assert "psk1" in manager._scheduled_removals
 
+
 async def test_load_expired_keys(hass, manager, mock_store, mock_client):
     """Test loading keys that have expired."""
     now = dt_util.utcnow()
     expires_at = now - timedelta(hours=1)
 
-    mock_data = [{
-        "identity_psk_id": "psk1",
-        "network_id": "net1",
-        "ssid_number": "0",
-        "name": "Test Key",
-        "passphrase": "secret",
-        "expires_at": expires_at.isoformat(),
-        "config_entry_id": "entry1",
-    }]
+    mock_data = [
+        {
+            "identity_psk_id": "psk1",
+            "network_id": "net1",
+            "ssid_number": "0",
+            "name": "Test Key",
+            "passphrase": "secret",
+            "expires_at": expires_at.isoformat(),
+            "config_entry_id": "entry1",
+        }
+    ]
     mock_store.async_load.return_value = mock_data
 
-    hass.data[DOMAIN] = {
-        "entry1": {
-            DATA_CLIENT: mock_client
-        }
-    }
+    hass.data[DOMAIN] = {"entry1": {DATA_CLIENT: mock_client}}
 
     with patch.object(manager, "delete_key", new_callable=AsyncMock) as mock_delete:
         await manager.async_setup()
@@ -88,13 +92,10 @@ async def test_load_expired_keys(hass, manager, mock_store, mock_client):
         args = mock_delete.call_args[0]
         assert args[0] == "psk1"
 
+
 async def test_create_key(hass, manager, mock_store, mock_client):
     """Test creating a new key."""
-    hass.data[DOMAIN] = {
-        "entry1": {
-            DATA_CLIENT: mock_client
-        }
-    }
+    hass.data[DOMAIN] = {"entry1": {DATA_CLIENT: mock_client}}
 
     mock_client.wireless.create_identity_psk.return_value = {"id": "new_psk_id"}
 
@@ -116,13 +117,10 @@ async def test_create_key(hass, manager, mock_store, mock_client):
     )
     mock_store.async_save.assert_called_once()
 
+
 async def test_delete_key(hass, manager, mock_store, mock_client):
     """Test deleting a key."""
-    hass.data[DOMAIN] = {
-        "entry1": {
-            DATA_CLIENT: mock_client
-        }
-    }
+    hass.data[DOMAIN] = {"entry1": {DATA_CLIENT: mock_client}}
 
     now = dt_util.utcnow()
     key = TimedAccessKey(

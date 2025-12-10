@@ -15,10 +15,12 @@ def mock_client():
     client.run_sync = AsyncMock()
     return client
 
+
 @pytest.fixture
 def network(mock_client):
     """Fixture for the NetworkEndpoints."""
     return NetworkEndpoints(mock_client)
+
 
 async def test_get_group_policies(network, mock_client):
     """Test get_group_policies."""

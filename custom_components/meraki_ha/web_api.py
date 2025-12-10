@@ -425,8 +425,8 @@ async def handle_get_timed_access_keys(
 
     manager = hass.data[DOMAIN][config_entry_id].get("timed_access_manager")
     if not manager:
-         connection.send_error(msg["id"], "not_found", "Manager not found")
-         return
+        connection.send_error(msg["id"], "not_found", "Manager not found")
+        return
 
     keys = manager.get_keys(network_id)
     connection.send_result(msg["id"], keys)
@@ -446,8 +446,8 @@ async def handle_create_timed_access_key(
 
     manager = hass.data[DOMAIN][config_entry_id].get("timed_access_manager")
     if not manager:
-         connection.send_error(msg["id"], "not_found", "Manager not found")
-         return
+        connection.send_error(msg["id"], "not_found", "Manager not found")
+        return
 
     try:
         key = await manager.create_key(
@@ -479,8 +479,8 @@ async def handle_delete_timed_access_key(
 
     manager = hass.data[DOMAIN][config_entry_id].get("timed_access_manager")
     if not manager:
-         connection.send_error(msg["id"], "not_found", "Manager not found")
-         return
+        connection.send_error(msg["id"], "not_found", "Manager not found")
+        return
 
     try:
         await manager.delete_key(
@@ -511,8 +511,8 @@ async def handle_get_group_policies(
 
     client = hass.data[DOMAIN][config_entry_id].get(DATA_CLIENT)
     if not client:
-         connection.send_error(msg["id"], "not_found", "Client not found")
-         return
+        connection.send_error(msg["id"], "not_found", "Client not found")
+        return
 
     try:
         policies = await client.network.get_group_policies(network_id)

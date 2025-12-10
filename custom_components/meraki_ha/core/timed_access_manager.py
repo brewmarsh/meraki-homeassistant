@@ -139,7 +139,7 @@ class TimedAccessManager:
             raise
 
         if not result or "id" not in result:
-             raise ValueError("Failed to create Identity PSK, invalid response")
+            raise ValueError("Failed to create Identity PSK, invalid response")
 
         expires_at = dt_util.utcnow() + timedelta(minutes=duration_minutes)
 
@@ -178,7 +178,7 @@ class TimedAccessManager:
         identity_psk_id: str,
         network_id: str | None = None,
         ssid_number: str | None = None,
-        config_entry_id: str | None = None
+        config_entry_id: str | None = None,
     ) -> None:
         """Delete a timed access key."""
         # Find key in memory
