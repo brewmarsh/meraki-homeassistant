@@ -298,7 +298,8 @@ class WirelessEndpoints:
         }
 
         # The API requires groupPolicyId to be an integer.
-        # If it is "Normal" (default) or None, we omit it to let the API use the default policy.
+        # If it is "Normal" (default) or None, we omit it to let the API use
+        # the default policy.
         if group_policy_id and group_policy_id != "Normal":
             try:
                 kwargs["groupPolicyId"] = int(group_policy_id)
