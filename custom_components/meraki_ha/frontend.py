@@ -60,6 +60,8 @@ async def async_register_panel(hass: HomeAssistant, entry: ConfigEntry) -> None:
             "config_entry_id": entry.entry_id,
         },
         require_admin=True,
+        # Allow updating the panel registration to prevent conflicts on reload
+        update=True,
     )
 
 

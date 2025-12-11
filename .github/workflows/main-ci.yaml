@@ -54,9 +54,8 @@ jobs:
         run: tar -xzf venv.tar.gz
       - name: Run ruff
         run: |
-          source .venv/bin/activate
-          python -m ruff check .
-          python -m ruff format --check .
+          .venv/bin/python -m ruff check .
+          .venv/bin/python -m ruff format --check .
 
   mypy:
     needs: setup
@@ -75,8 +74,7 @@ jobs:
         run: tar -xzf venv.tar.gz
       - name: Run mypy
         run: |
-          source .venv/bin/activate
-          python -m mypy custom_components/meraki_ha/ tests/
+          .venv/bin/python -m mypy custom_components/meraki_ha/ tests/
 
   bandit:
     needs: setup
@@ -95,8 +93,7 @@ jobs:
         run: tar -xzf venv.tar.gz
       - name: Run bandit
         run: |
-          source .venv/bin/activate
-          python -m bandit -r custom_components/meraki_ha/ -c .bandit.yaml
+          .venv/bin/python -m bandit -r custom_components/meraki_ha/ -c .bandit.yaml
 
   pip-audit:
     needs: setup
@@ -115,8 +112,7 @@ jobs:
         run: tar -xzf venv.tar.gz
       - name: Run pip-audit
         run: |
-          source .venv/bin/activate
-          python -m pip_audit --ignore-vuln PYSEC-2020-49 --ignore-vuln PYSEC-2022-42969 --ignore-vuln GHSA-g7vv-2v7x-gj9p
+          .venv/bin/python -m pip_audit --ignore-vuln PYSEC-2020-49 --ignore-vuln PYSEC-2022-42969 --ignore-vuln GHSA-g7vv-2v7x-gj9p
 
   hassfest:
     runs-on: ubuntu-latest
@@ -185,12 +181,10 @@ jobs:
         run: npm ci
       - name: Install Playwright browsers
         run: |
-          source .venv/bin/activate
-          playwright install --with-deps
+          .venv/bin/python -m playwright install --with-deps
       - name: Run tests
         run: |
-          source .venv/bin/activate
-          python -m pytest
+          .venv/bin/python -m pytest
 
   final-check:
     needs: [ruff, mypy, bandit, pip-audit, hassfest, frontend-build, test]
