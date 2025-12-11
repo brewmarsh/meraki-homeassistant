@@ -130,7 +130,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
       - name: Install dependencies
@@ -177,7 +177,7 @@ jobs:
       - name: Extract venv
         run: tar -xzf venv.tar.gz
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
       - name: Install npm dependencies
