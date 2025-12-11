@@ -40,7 +40,7 @@ async def test_create_identity_psk(wireless, mock_client):
     assert kwargs["networkId"] == "net1"
     assert kwargs["number"] == "0"
     assert kwargs["name"] == "test"
-    assert kwargs["groupPolicyId"] == 123
+    assert kwargs["groupPolicyId"] == "123"
     assert kwargs["passphrase"] == "pass"
 
 
