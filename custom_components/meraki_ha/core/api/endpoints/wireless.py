@@ -297,18 +297,8 @@ class WirelessEndpoints:
             "name": name,
         }
 
-        # The API requires groupPolicyId to be passed, even if default.
         if group_policy_id and group_policy_id != "Normal":
-            try:
-                kwargs["groupPolicyId"] = str(group_policy_id)
-            except ValueError:
-                _LOGGER.warning(
-                    "Invalid group_policy_id: %s. Defaulting to 'Normal'.",
-                    group_policy_id,
-                )
-                kwargs["groupPolicyId"] = "Normal"
-        else:
-            kwargs["groupPolicyId"] = "Normal"
+            kwargs["groupPolicyId"] = str(group_policy_id)
 
         if passphrase:
             kwargs["passphrase"] = passphrase
