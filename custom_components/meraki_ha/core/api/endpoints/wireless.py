@@ -297,8 +297,8 @@ class WirelessEndpoints:
             "name": name,
         }
 
-        if group_policy_id and group_policy_id != "Normal":
-            kwargs["groupPolicyId"] = str(group_policy_id)
+        # Ensure groupPolicyId is passed, default to "Normal" if None
+        kwargs["groupPolicyId"] = str(group_policy_id) if group_policy_id else "Normal"
 
         if passphrase:
             kwargs["passphrase"] = passphrase
