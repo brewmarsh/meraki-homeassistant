@@ -130,8 +130,8 @@ async def test_e2e_ipsk_flow_real_endpoints(hass, real_client_with_mock_dashboar
     kwargs = call_args[1]
     assert kwargs["networkId"] == "N_12345"
     assert kwargs["number"] == "1"
-    # CRITICAL: Confirm that 'groupPolicyId' is NOT present, as per our fix
-    assert "groupPolicyId" not in kwargs
+    # CRITICAL: Confirm that 'groupPolicyId' is passed as None, as per our fix
+    assert kwargs["groupPolicyId"] is None
 
     # 2. Create Key WITH Group Policy
     await manager.create_key(

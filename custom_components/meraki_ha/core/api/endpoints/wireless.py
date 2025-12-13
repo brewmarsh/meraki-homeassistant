@@ -297,16 +297,21 @@ class WirelessEndpoints:
             "name": name,
         }
 
-        if group_policy_id and group_policy_id != "Normal":
-            kwargs["groupPolicyId"] = group_policy_id
-
         if passphrase:
             kwargs["passphrase"] = passphrase
+
+        # groupPolicyId is a positional argument in the library, so it must be passed.
+        # However, passing "Normal" triggers a 400 error in the API (must be an integer).
+        # We handle this by passing None if no specific policy is requested (or "Normal").
+        policy_id_to_send = (
+            group_policy_id if group_policy_id and group_policy_id != "Normal" else None
+        )
 
         psk = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk,
             networkId=network_id,
             number=number,
+            groupPolicyId=policy_id_to_send,
             **kwargs,
         )
         validated = validate_response(psk)
