@@ -43,6 +43,7 @@ async def test_create_identity_psk(wireless, mock_client):
     assert kwargs["groupPolicyId"] == "123"
     assert kwargs["passphrase"] == "pass"
 
+
 async def test_create_identity_psk_no_group_policy(wireless, mock_client):
     """Test create_identity_psk without group policy."""
     mock_client.run_sync.return_value = {"id": "test_id"}
@@ -61,7 +62,7 @@ async def test_create_identity_psk_no_group_policy(wireless, mock_client):
     assert kwargs["networkId"] == "net1"
     assert kwargs["number"] == "0"
     assert kwargs["name"] == "test"
-    assert "groupPolicyId" not in kwargs
+    assert kwargs["groupPolicyId"] == "Normal"
     assert kwargs["passphrase"] == "pass"
 
 
