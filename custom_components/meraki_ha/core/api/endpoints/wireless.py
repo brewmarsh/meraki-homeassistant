@@ -295,8 +295,10 @@ class WirelessEndpoints:
 
         kwargs: dict[str, Any] = {
             "name": name,
-            "groupPolicyId": group_policy_id if group_policy_id else "Normal",
         }
+
+        if group_policy_id and group_policy_id != "Normal":
+            kwargs["groupPolicyId"] = group_policy_id
 
         if passphrase:
             kwargs["passphrase"] = passphrase
