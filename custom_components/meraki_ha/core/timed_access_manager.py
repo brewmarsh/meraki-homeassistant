@@ -50,10 +50,11 @@ class TimedAccessManager:
 
         if not group_policy_id:
             # Default to "Normal" policy if none is provided.
-            # This is required because the underlying API call expects a positional argument.
+            # This is required because the underlying API call expects a positional arg.
             group_policy_id = "Normal"
 
-        return await self._api_client.wireless.create_network_wireless_ssid_identity_psk(
+        wireless = self._api_client.wireless
+        return await wireless.create_network_wireless_ssid_identity_psk(
             network_id=network_id,
             number=ssid_number,
             name=name,

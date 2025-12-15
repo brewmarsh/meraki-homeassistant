@@ -10,8 +10,6 @@ from typing import Any
 import aiofiles  # type: ignore[import-untyped]
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
-from voluptuous import ALLOW_EXTRA, All, Required, Schema
-
 from voluptuous import ALLOW_EXTRA, All, Optional, Required, Schema
 
 from .const import CONF_ENABLED_NETWORKS, DATA_CLIENT, DOMAIN
