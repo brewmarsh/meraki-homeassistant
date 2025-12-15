@@ -235,16 +235,16 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
                       icon={getDeviceIcon(device.model)}
                       style={{ marginRight: '8px' }}
                     ></ha-icon>
-                    {device.entity_id ? (
-                      <span
-                        className="font-medium text-blue-500 hover:underline"
-                        onClick={(e) => handleDeviceClick(e, device.entity_id)}
-                      >
-                        {device.name || 'N/A'}
-                      </span>
-                    ) : (
-                      <span className="font-medium">{device.name || 'N/A'}</span>
-                    )}
+                    <span
+                      className="font-medium text-blue-500 hover:underline"
+                      onClick={(e) => {
+                        if (device.entity_id) {
+                          handleDeviceClick(e, device.entity_id);
+                        }
+                      }}
+                    >
+                      {device.name || 'N/A'}
+                    </span>
                   </div>
                 </td>
                 <td className="p-4">{device.model || 'N/A'}</td>

@@ -123,7 +123,8 @@ async def test_e2e_ipsk_flow_real_endpoints(hass, real_client_with_mock_dashboar
     # kwargs should contain the API parameters
     call_args = real_client_with_mock_dashboard.run_sync.call_args
 
-    expected_func = real_client_with_mock_dashboard.dashboard.wireless.createNetworkWirelessSsidIdentityPsk
+    wireless = real_client_with_mock_dashboard.dashboard.wireless
+    expected_func = wireless.createNetworkWirelessSsidIdentityPsk
     assert call_args[0][0] == expected_func
 
     # Check the keyword arguments passed to run_sync
