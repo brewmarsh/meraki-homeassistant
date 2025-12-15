@@ -260,3 +260,30 @@ class NetworkEndpoints:
             )
             return []
         return validated
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=300)
+    async def get_network_group_policies(self, network_id: str) -> list[dict[str, Any]]:
+        """
+        Get all group policies for a network.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+
+        Returns
+        -------
+            A list of group policies.
+
+        """
+        if self._api_client.dashboard is None:
+            return []
+        policies = await self._api_client.run_sync(
+            self._api_client.dashboard.networks.getNetworkGroupPolicies,
+            networkId=network_id,
+        )
+        validated = validate_response(policies)
+        if not isinstance(validated, list):
+            _LOGGER.warning("get_network_group_policies did not return a list.")
+            return []
+        return validated
