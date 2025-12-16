@@ -15,12 +15,12 @@ repos:
         args: [--fix=lf]
 
   # Python specific hooks
-  # - repo: https://github.com/astral-sh/ruff-pre-commit
-  #   rev: v0.3.7 # Updated rev
-  #   hooks:
-  #     - id: ruff
-  #       args: [--fix]
-  # Ruff will use pyproject.toml for configuration.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.7 # Updated rev
+    hooks:
+      - id: ruff
+        args: [--fix]
+        # Ruff will use pyproject.toml for configuration.
   # JavaScript/TypeScript/CSS/HTML formatting
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v3.0.1 # Updated rev to a stable version
