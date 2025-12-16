@@ -127,6 +127,15 @@ class TimedAccessManager:
 
         # Call API
         try:
+            _LOGGER.debug(
+                "Creating Identity PSK with params: network_id=%s, ssid_number=%s, "
+                "name=%s, group_policy_id=%s, passphrase=%s",
+                network_id,
+                ssid_number,
+                name,
+                group_policy_id,
+                "***" if passphrase else None,
+            )
             result = await client.wireless.create_identity_psk(
                 network_id,
                 ssid_number,

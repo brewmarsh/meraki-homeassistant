@@ -303,6 +303,14 @@ class WirelessEndpoints:
         if passphrase:
             kwargs["passphrase"] = passphrase
 
+        _LOGGER.debug(
+            "Calling createNetworkWirelessSsidIdentityPsk with networkId=%s, "
+            "number=%s, kwargs=%s",
+            network_id,
+            number,
+            {k: v if k != "passphrase" else "***" for k, v in kwargs.items()},
+        )
+
         psk = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk,
             networkId=network_id,
