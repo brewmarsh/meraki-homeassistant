@@ -104,6 +104,15 @@ class WirelessEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
+        _LOGGER.debug(
+            "Calling createNetworkWirelessSsidIdentityPsk with: "
+            "network_id=%s, number=%s, name=%s, group_policy_id=%s, kwargs=%s",
+            network_id,
+            number,
+            name,
+            group_policy_id,
+            kwargs,
+        )
         psk = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk,
             network_id,
