@@ -95,6 +95,11 @@ DEFAULT_ENABLE_VLAN_SENSORS: Final = True
 DEFAULT_ENABLE_PORT_SENSORS: Final = True
 DEFAULT_ENABLE_SSID_SENSORS: Final = True
 
+CONF_ENABLE_WEB_UI: Final = "enable_web_ui"
+DEFAULT_ENABLE_WEB_UI: Final = False
+CONF_WEB_UI_PORT: Final = "web_ui_port"
+DEFAULT_WEB_UI_PORT: Final = 9000
+
 # Platform types
 PLATFORM_BINARY_SENSOR: Final = "binary_sensor"
 """Represents the binary_sensor platform."""

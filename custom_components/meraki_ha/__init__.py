@@ -16,6 +16,10 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     PLATFORMS,
+    CONF_ENABLE_WEB_UI,
+    DEFAULT_ENABLE_WEB_UI,
+    CONF_WEB_UI_PORT,
+    DEFAULT_WEB_UI_PORT,
 )
 from .core.api.client import MerakiAPIClient
 from .core.repositories.camera_repository import CameraRepository
@@ -36,6 +40,12 @@ from .webhook import (
     async_register_webhook,
     async_unregister_webhook,
 )
+from .core.coordinators.switch_port_status_coordinator import (
+    SwitchPortStatusCoordinator,
+)
+from .core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
+from .web_server import MerakiWebServer
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -104,6 +114,43 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if "meraki_repository" not in entry_data:
         entry_data["meraki_repository"] = MerakiRepository(api_client)
     meraki_repository = entry_data["meraki_repository"]
+
+    # Create switch port status coordinator
+    switch_port_coordinator = SwitchPortStatusCoordinator(
+        hass=hass,
+        repository=meraki_repository,
+        main_coordinator=coordinator,
+        config_entry=entry,
+    )
+    await switch_port_coordinator.async_refresh()
+    entry_data["switch_port_coordinator"] = switch_port_coordinator
+
+    # Create content filtering and firewall coordinators
+    entry_data["ssid_firewall_coordinators"] = {}
+    if coordinator.data:
+        # Create per-SSID coordinators
+        for ssid in coordinator.data.get("ssids", []):
+            if "networkId" in ssid and "number" in ssid:
+                # L7 Firewall Coordinator
+                ssid_fw_coordinator = SsidFirewallCoordinator(
+                    hass=hass,
+                    api_client=api_client,
+                    scan_interval=scan_interval,
+                    network_id=ssid["networkId"],
+                    ssid_number=ssid["number"],
+                )
+                await ssid_fw_coordinator.async_refresh()
+                entry_data["ssid_firewall_coordinators"][
+                    f"{ssid['networkId']}_{ssid['number']}"
+                ] = ssid_fw_coordinator
+
+    # Start the web server if enabled
+    if entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI):
+        port = entry.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
+        server = MerakiWebServer(hass, coordinator, port)
+        await server.start()
+        entry_data["web_server"] = server
+
 
     # Initialize repositories and services for the new architecture
     if "control_service" not in entry_data:
@@ -208,6 +255,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Meraki config entry."""
     entry_data = hass.data[DOMAIN].get(entry.entry_id)
     if entry_data:
+        if "web_server" in entry_data:
+            server = entry_data["web_server"]
+            await server.stop()
+
         if "webhook_id" in entry.data:
             api_client = entry_data[DATA_CLIENT]
             await async_unregister_webhook(hass, entry.entry_id, api_client)
