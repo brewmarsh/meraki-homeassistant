@@ -19,24 +19,19 @@ from ..const import (
     DOMAIN,
 )
 from ..core.api.client import MerakiAPIClient
-from ..core.coordinators.device import MerakiDeviceCoordinator
-from ..core.coordinators.network import MerakiNetworkCoordinator
 from ..core.utils.naming_utils import format_device_name
+from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..sensor_registry import (
     COMMON_DEVICE_SENSORS,
     get_sensors_for_device_type,
 )
 from .device.appliance_port import MerakiAppliancePortSensor
-from .device.camera_settings import MerakiCameraRTSPUrlSensor
-from .network.meraki_network_info import MerakiNetworkInfoSensor
+from .device.rtsp_url import MerakiRtspUrlSensor as MerakiCameraRTSPUrlSensor
 from .network.network_clients import MerakiNetworkClientsSensor
-from .network.network_identity import MerakiNetworkIdentitySensor
 
 __all__ = [
     "async_setup_entry",
     "MerakiNetworkClientsSensor",
-    "MerakiNetworkIdentitySensor",
-    "MerakiNetworkInfoSensor",
     "MerakiAppliancePortSensor",
     "MerakiCameraRTSPUrlSensor",
 ]
@@ -58,10 +53,9 @@ async def async_setup_entry(
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
 
     # Get the main data coordinator for physical devices
-    device_coordinator: MerakiDeviceCoordinator = entry_data.get("device_coordinator")
-    network_coordinator: MerakiNetworkCoordinator = entry_data.get(
-        "network_coordinator"
-    )
+    device_coordinator: MerakiDataCoordinator = entry_data.get("coordinator")
+    # Network coordinator is no longer separate; use the main coordinator
+    network_coordinator: MerakiDataCoordinator = entry_data.get("coordinator")
 
     # Retrieve the MerakiAPIClient instance
     meraki_api_client: Optional[MerakiAPIClient] = entry_data.get(DATA_CLIENT)
@@ -189,38 +183,6 @@ async def async_setup_entry(
                 except Exception as e:
                     _LOGGER.error(
                         "Meraki HA: Error adding network clients sensor for %s (ID: %s): %s",
-                        network_name,
-                        network_id,
-                        e,
-                    )
-            unique_id = f"meraki_network_identity_{network_id}"
-            if unique_id not in added_entities:
-                try:
-                    entities.append(
-                        MerakiNetworkIdentitySensor(
-                            network_coordinator, network_data, config_entry
-                        )
-                    )
-                    added_entities.add(unique_id)
-                except Exception as e:
-                    _LOGGER.error(
-                        "Meraki HA: Error adding network identity sensor for %s (ID: %s): %s",
-                        network_name,
-                        network_id,
-                        e,
-                    )
-            unique_id = f"{network_id}_network_info"
-            if unique_id not in added_entities:
-                try:
-                    entities.append(
-                        MerakiNetworkInfoSensor(
-                            network_coordinator, network_data, config_entry
-                        )
-                    )
-                    added_entities.add(unique_id)
-                except Exception as e:
-                    _LOGGER.error(
-                        "Meraki HA: Error adding network info sensor for %s (ID: %s): %s",
                         network_name,
                         network_id,
                         e,
