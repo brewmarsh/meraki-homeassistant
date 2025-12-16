@@ -9,19 +9,23 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
 from .const import (
+    CONF_ENABLE_WEB_UI,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
+    CONF_WEB_UI_PORT,
     DATA_CLIENT,
+    DEFAULT_ENABLE_WEB_UI,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_WEB_UI_PORT,
     DOMAIN,
     PLATFORMS,
-    CONF_ENABLE_WEB_UI,
-    DEFAULT_ENABLE_WEB_UI,
-    CONF_WEB_UI_PORT,
-    DEFAULT_WEB_UI_PORT,
 )
 from .core.api.client import MerakiAPIClient
+from .core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
+from .core.coordinators.switch_port_status_coordinator import (
+    SwitchPortStatusCoordinator,
+)
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
 from .core.timed_access_manager import TimedAccessManager
@@ -36,16 +40,11 @@ from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .services.network_control_service import NetworkControlService
 from .web_api import async_setup_api
+from .web_server import MerakiWebServer
 from .webhook import (
     async_register_webhook,
     async_unregister_webhook,
 )
-from .core.coordinators.switch_port_status_coordinator import (
-    SwitchPortStatusCoordinator,
-)
-from .core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
-from .web_server import MerakiWebServer
-
 
 _LOGGER = logging.getLogger(__name__)
 
