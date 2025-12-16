@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 import aiohttp
 from homeassistant.components.camera import Camera, CameraEntityFeature
@@ -77,6 +77,13 @@ class MerakiCamera(CoordinatorEntity, Camera):
             "",
         )
         self._attr_model = self.device_data.get("model")
+        self._attr_supported_features = CameraEntityFeature.STREAM
+        self._rtsp_url: str | None = None
+        self._webrtc_provider = None
+        self.access_tokens = []
+        self._supports_native_async_webrtc = False
+        self._cache = {}
+        self._create_stream_lock = asyncio.Lock()
 
     @property
     def device_data(self) -> dict[str, Any]:
