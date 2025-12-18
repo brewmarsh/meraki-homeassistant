@@ -107,7 +107,6 @@ def test_process_initial_data_handles_errors(api_client, caplog):
     assert "Could not fetch Meraki devices" in caplog.text
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_wireless_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a wireless device."""
     # Arrange
@@ -119,7 +118,7 @@ def test_build_detail_tasks_for_wireless_device(api_client):
 
     # Assert
     assert f"ssids_{MOCK_NETWORK['id']}" in tasks
-    assert f"wireless_settings_{MOCK_DEVICE['serial']}" in tasks
+    assert f"wireless_settings_{MOCK_NETWORK['id']}" in tasks
     assert f"rf_profiles_{MOCK_NETWORK['id']}" in tasks
 
 
