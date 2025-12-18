@@ -123,7 +123,6 @@ def test_build_detail_tasks_for_wireless_device(api_client):
     assert f"rf_profiles_{MOCK_NETWORK['id']}" in tasks
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_switch_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a switch device."""
     # Arrange
@@ -131,11 +130,18 @@ def test_build_detail_tasks_for_switch_device(api_client):
     devices = [switch_device]
     networks = []
 
+    # Mock endpoints and semaphore wrapper to avoid unawaited coroutine warnings
+    api_client.switch = MagicMock()
+    api_client.switch.get_device_switch_ports_statuses.return_value = "mock_switch_coro"
+    api_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
+
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
 
     # Assert
     assert f"ports_statuses_{switch_device['serial']}" in tasks
+    assert tasks[f"ports_statuses_{switch_device['serial']}"] == "mock_switch_coro"
+    api_client.switch.get_device_switch_ports_statuses.assert_called_once_with("s123")
 
 
 @pytest.mark.skip(reason="TODO: Fix this test")
