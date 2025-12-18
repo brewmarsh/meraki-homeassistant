@@ -138,7 +138,6 @@ def test_build_detail_tasks_for_switch_device(api_client):
     assert f"ports_statuses_{switch_device['serial']}" in tasks
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_camera_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a camera device."""
     # Arrange
@@ -146,12 +145,19 @@ def test_build_detail_tasks_for_camera_device(api_client):
     devices = [camera_device]
     networks = []
 
+    # Mock dependencies to avoid unawaited coroutine warnings
+    api_client.camera = MagicMock()
+    api_client._run_with_semaphore = MagicMock()
+
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
 
     # Assert
     assert f"video_settings_{camera_device['serial']}" in tasks
     assert f"sense_settings_{camera_device['serial']}" in tasks
+
+    api_client.camera.get_camera_video_settings.assert_called_once_with("c123")
+    api_client.camera.get_camera_sense_settings.assert_called_once_with("c123")
 
 
 @pytest.mark.skip(reason="TODO: Fix this test")
