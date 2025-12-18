@@ -45,6 +45,16 @@ class MerakiAPIClient:
     the underlying API session and asynchronous execution.
     """
 
+    dashboard: meraki.DashboardAPI | None
+    appliance: ApplianceEndpoints
+    camera: CameraEndpoints
+    devices: DevicesEndpoints
+    network: NetworkEndpoints
+    organization: OrganizationEndpoints
+    switch: SwitchEndpoints
+    wireless: WirelessEndpoints
+    sensor: SensorEndpoints
+
     def __init__(
         self,
         hass: HomeAssistant,
@@ -67,7 +77,7 @@ class MerakiAPIClient:
         self._hass = hass
         self._base_url = base_url
 
-        self.dashboard: meraki.DashboardAPI | None = None
+        self.dashboard = None
 
         # Initialize endpoint handlers
         self.appliance = ApplianceEndpoints(self, self._hass)
