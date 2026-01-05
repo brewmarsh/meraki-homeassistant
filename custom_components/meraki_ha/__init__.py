@@ -187,9 +187,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Initialize Timed Access Manager
     if "timed_access_manager" not in entry_data:
-        manager = TimedAccessManager(hass)
-        await manager.async_setup()
-        entry_data["timed_access_manager"] = manager
+        entry_data["timed_access_manager"] = TimedAccessManager(api_client)
 
     # Register service
     async def handle_create_timed_access(call):

@@ -6,142 +6,83 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from homeassistant.util import dt as dt_util
 
-from custom_components.meraki_ha.const import DATA_CLIENT, DOMAIN
-from custom_components.meraki_ha.core.timed_access_manager import (
-    TimedAccessKey,
-    TimedAccessManager,
-)
+from custom_components.meraki_ha.core.timed_access_manager import TimedAccessManager
 
 
 @pytest.fixture
-def mock_client():
+def mock_api_client():
     """Mock the Meraki API client."""
     client = MagicMock()
-    client.wireless.create_identity_psk = AsyncMock()
-    client.wireless.delete_identity_psk = AsyncMock()
+    client.wireless = MagicMock()
+    client.wireless.create_network_wireless_ssid_identity_psk = AsyncMock(
+        return_value={"id": "new_psk_id", "name": "Test Key"}
+    )
     return client
 
 
 @pytest.fixture
-def manager(hass):
+def manager(mock_api_client):
     """Fixture for the TimedAccessManager."""
-    return TimedAccessManager(hass)
+    return TimedAccessManager(mock_api_client)
 
 
-@pytest.fixture
-def mock_store(manager):
-    """Mock the storage."""
-    with patch.object(manager, "_store") as mock:
-        mock.async_load = AsyncMock(return_value=None)
-        mock.async_save = AsyncMock()
-        yield mock
-
-
-async def test_load_keys(hass, manager, mock_store):
-    """Test loading keys from storage."""
-    now = dt_util.utcnow()
-    expires_at = now + timedelta(hours=1)
-
-    mock_data = [
-        {
-            "identity_psk_id": "psk1",
-            "network_id": "net1",
-            "ssid_number": "0",
-            "name": "Test Key",
-            "passphrase": "secret",
-            "expires_at": expires_at.isoformat(),
-            "config_entry_id": "entry1",
-        }
-    ]
-    mock_store.async_load.return_value = mock_data
-
-    await manager.async_setup()
-
-    assert len(manager._keys) == 1
-    assert manager._keys[0].identity_psk_id == "psk1"
-    # Should have scheduled removal
-    assert "psk1" in manager._scheduled_removals
-
-
-async def test_load_expired_keys(hass, manager, mock_store, mock_client):
-    """Test loading keys that have expired."""
-    now = dt_util.utcnow()
-    expires_at = now - timedelta(hours=1)
-
-    mock_data = [
-        {
-            "identity_psk_id": "psk1",
-            "network_id": "net1",
-            "ssid_number": "0",
-            "name": "Test Key",
-            "passphrase": "secret",
-            "expires_at": expires_at.isoformat(),
-            "config_entry_id": "entry1",
-        }
-    ]
-    mock_store.async_load.return_value = mock_data
-
-    hass.data[DOMAIN] = {"entry1": {DATA_CLIENT: mock_client}}
-
-    with patch.object(manager, "delete_key", new_callable=AsyncMock) as mock_delete:
-        await manager.async_setup()
-        await hass.async_block_till_done()
-
-        # Should call delete_key immediately
-        mock_delete.assert_called_once()
-        args = mock_delete.call_args[0]
-        assert args[0] == "psk1"
-
-
-async def test_create_key(hass, manager, mock_store, mock_client):
-    """Test creating a new key."""
-    hass.data[DOMAIN] = {"entry1": {DATA_CLIENT: mock_client}}
-
-    mock_client.wireless.create_identity_psk.return_value = {"id": "new_psk_id"}
-
-    key = await manager.create_key(
-        config_entry_id="entry1",
+async def test_create_timed_access_key(manager, mock_api_client):
+    """Test creating a new timed access key."""
+    result = await manager.create_timed_access_key(
         network_id="net1",
         ssid_number="0",
-        duration_minutes=60,
-        name="Guest",
+        name="Guest Key",
+        passphrase="secretpassword",
+        duration_hours=24,
     )
 
-    assert key.identity_psk_id == "new_psk_id"
-    assert key.name == "Guest"
-    assert len(manager._keys) == 1
-    assert "new_psk_id" in manager._scheduled_removals
-
-    mock_client.wireless.create_identity_psk.assert_called_once_with(
-        "net1", "0", "Guest", None, key.passphrase
+    assert result["id"] == "new_psk_id"
+    mock_api_client.wireless.create_network_wireless_ssid_identity_psk.assert_called_once()
+    call_kwargs = (
+        mock_api_client.wireless.create_network_wireless_ssid_identity_psk.call_args
     )
-    mock_store.async_save.assert_called_once()
+    assert call_kwargs.kwargs["network_id"] == "net1"
+    assert call_kwargs.kwargs["number"] == "0"
+    assert call_kwargs.kwargs["name"] == "Guest Key"
+    assert call_kwargs.kwargs["passphrase"] == "secretpassword"
+    assert call_kwargs.kwargs["group_policy_id"] == "Normal"
+    assert "expiresAt" in call_kwargs.kwargs
 
 
-async def test_delete_key(hass, manager, mock_store, mock_client):
-    """Test deleting a key."""
-    hass.data[DOMAIN] = {"entry1": {DATA_CLIENT: mock_client}}
-
-    now = dt_util.utcnow()
-    key = TimedAccessKey(
-        identity_psk_id="psk1",
+async def test_create_timed_access_key_with_group_policy(manager, mock_api_client):
+    """Test creating a timed access key with custom group policy."""
+    result = await manager.create_timed_access_key(
         network_id="net1",
-        ssid_number="0",
-        name="Test",
-        passphrase="pass",
-        expires_at=now.isoformat(),
-        config_entry_id="entry1",
+        ssid_number="1",
+        name="VIP Key",
+        passphrase="vippassword",
+        duration_hours=48,
+        group_policy_id="101",
     )
-    manager._keys.append(key)
 
-    # Mock a timer
-    manager._scheduled_removals["psk1"] = MagicMock()
-
-    await manager.delete_key("psk1")
-
-    assert len(manager._keys) == 0
-    assert "psk1" not in manager._scheduled_removals
-    mock_client.wireless.delete_identity_psk.assert_called_once_with(
-        "net1", "0", "psk1"
+    call_kwargs = (
+        mock_api_client.wireless.create_network_wireless_ssid_identity_psk.call_args
     )
-    mock_store.async_save.assert_called()
+    assert call_kwargs.kwargs["group_policy_id"] == "101"
+
+
+async def test_create_timed_access_key_expiration_time(manager, mock_api_client):
+    """Test that expiration time is calculated correctly."""
+    with patch.object(dt_util, "utcnow") as mock_now:
+        fixed_time = dt_util.parse_datetime("2025-01-05T12:00:00+00:00")
+        mock_now.return_value = fixed_time
+
+        await manager.create_timed_access_key(
+            network_id="net1",
+            ssid_number="0",
+            name="Test Key",
+            passphrase="password",
+            duration_hours=2,
+        )
+
+        call_kwargs = (
+            mock_api_client.wireless.create_network_wireless_ssid_identity_psk.call_args
+        )
+        # Should expire 2 hours from now
+        expected_expiry = (fixed_time + timedelta(hours=2)).isoformat()
+        assert call_kwargs.kwargs["expiresAt"] == expected_expiry

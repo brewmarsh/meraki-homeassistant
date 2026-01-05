@@ -53,6 +53,9 @@ COMMON_SENSORS_COORD_DEV_CONF: SensorClassList = [
     MerakiDeviceStatusSensor,
 ]
 
+# Alias for backwards compatibility
+COMMON_DEVICE_SENSORS = COMMON_SENSORS_COORD_DEV_CONF
+
 
 def get_sensors_for_device_type(
     product_type: str,

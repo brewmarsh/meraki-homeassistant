@@ -67,6 +67,9 @@ async def async_setup_entry(
     # Retrieve the MerakiAPIClient instance
     meraki_api_client: MerakiAPIClient | None = entry_data.get(DATA_CLIENT)
 
+    # Retrieve the NetworkControlService instance
+    network_control_service = entry_data.get("network_control_service")
+
     if not meraki_api_client:
         _LOGGER.error(
             "Meraki API client not found in entry_data. "
@@ -118,7 +121,7 @@ async def async_setup_entry(
             product_type = device_info.get("productType")
 
             if product_type:
-                sensors_for_type = get_sensors_for_device_type(product_type)
+                sensors_for_type = get_sensors_for_device_type(product_type, True)
                 # Redundant log removed: handled by empty list iteration
                 for sensor_class in sensors_for_type:
                     unique_id = f"{serial}_{sensor_class.__name__}"
@@ -180,11 +183,14 @@ async def async_setup_entry(
                 )
                 continue
             unique_id = f"meraki_network_clients_{network_id}"
-            if unique_id not in added_entities:
+            if unique_id not in added_entities and network_control_service:
                 try:
                     entities.append(
                         MerakiNetworkClientsSensor(
-                            network_coordinator, network_id, network_name
+                            network_coordinator,
+                            config_entry,
+                            network_data,
+                            network_control_service,
                         )
                     )
                     added_entities.add(unique_id)

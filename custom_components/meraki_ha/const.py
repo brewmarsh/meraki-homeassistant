@@ -170,6 +170,14 @@ ATTR_SSIDS: Final = "ssids"
 TAG_HA_DISABLED: Final = "ha-disabled"
 """Tag used to indirectly disable an SSID on an access point."""
 
+# Device name format options
+DEVICE_NAME_FORMAT_PREFIX: Final = "prefix"
+"""Format device name with type prefix."""
+DEVICE_NAME_FORMAT_SUFFIX: Final = "suffix"
+"""Format device name with type suffix."""
+DEVICE_NAME_FORMAT_NONE: Final = "none"
+"""Do not format device name."""
+
 ERASE_TAGS_WARNING: Final = (
     "Tag erasing is enabled! This will ERASE ALL TAGS on your Meraki devices. "
     "Proceed with extreme caution!"
