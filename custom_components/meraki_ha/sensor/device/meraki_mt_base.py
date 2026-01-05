@@ -53,7 +53,7 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
                 return
 
     @property
-    def native_value(self) -> float | bool | None:
+    def native_value(self) -> str | float | bool | None:
         """Return the state of the sensor."""
         readings = self._device.get("readings")
         if not readings or not isinstance(readings, list):
@@ -75,6 +75,8 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
                         "power": "draw",
                         "voltage": "level",
                         "current": "draw",
+                        "battery": "percentage",
+                        "button": "pressType",
                     }
                     value_key = key_map.get(self.entity_description.key)
                     if value_key:

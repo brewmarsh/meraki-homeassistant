@@ -31,8 +31,6 @@ from .network.vlan import (
     MerakiVLANIPv6UplinkSensor,
 )
 from .network.vlans_list import VlansListSensor
-from .setup_mt_sensors import async_setup_mt_sensors
-from .ssid.connected_clients import MerakiSsidConnectedClientsSensor
 
 if TYPE_CHECKING:
     from ..services.camera_service import CameraService
@@ -100,10 +98,6 @@ def _setup_device_sensors(
                         MerakiAppliancePortSensor(coordinator, device_info, port)  # type: ignore[call-arg]
                     )
                     added_entities.add(unique_id)
-
-        # MT sensor setup
-        if product_type == "sensor":
-            entities.extend(async_setup_mt_sensors(coordinator, device_info))
 
     return entities
 
@@ -232,38 +226,6 @@ def _setup_uplink_sensors(
     return entities
 
 
-def _setup_ssid_sensors(
-    config_entry: ConfigEntry,
-    coordinator: MerakiDataCoordinator,
-    added_entities: set[str],
-) -> list[Entity]:
-    """Set up SSID-specific sensors."""
-    _LOGGER.debug("Setting up SSID sensors")
-    entities: list[Entity] = []
-    ssids = coordinator.data.get("ssids", [])
-    _LOGGER.debug("SSIDs to set up: %s", ssids)
-    for ssid_data in ssids:
-        network_id = ssid_data.get("networkId")
-        ssid_number = ssid_data.get("number")
-        _LOGGER.debug(
-            "Processing SSID: network_id=%s, ssid_number=%s",
-            network_id,
-            ssid_number,
-        )
-        if not network_id or ssid_number is None:
-            continue
-
-        unique_id = f"{network_id}_{ssid_number}_connected_clients"
-        if unique_id not in added_entities:
-            entities.append(
-                MerakiSsidConnectedClientsSensor(
-                    coordinator, network_id, ssid_data, config_entry
-                )
-            )
-            added_entities.add(unique_id)
-    return entities
-
-
 def async_setup_sensors(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -286,6 +248,5 @@ def async_setup_sensors(
     entities.extend(_setup_client_tracker_sensors(config_entry, coordinator))
     entities.extend(_setup_vlan_sensors(config_entry, coordinator, added_entities))
     entities.extend(_setup_uplink_sensors(config_entry, coordinator, added_entities))
-    entities.extend(_setup_ssid_sensors(config_entry, coordinator, added_entities))
 
     return entities

@@ -34,7 +34,43 @@ def coordinator():
 @pytest.fixture
 def api_client(hass, mock_dashboard, coordinator):
     """Fixture for a MerakiAPIClient instance."""
-    return MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
+    client = MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
+    # Mock the internal endpoint handlers to avoid real API calls and semaphore issues
+    # during unit testing of _build_detail_tasks and logic flow.
+    # We use MagicMock for the classes, but we need instances.
+    # The client initializes them in __init__. We replace them here.
+    client.wireless = MagicMock()
+    client.switch = MagicMock()
+    client.camera = MagicMock()
+    client.appliance = MagicMock()
+    client.network = MagicMock()
+    client.devices = MagicMock()
+    client.organization = MagicMock()
+    client.sensor = MagicMock()
+
+    # Mock methods to return Coroutines/Awaitables as expected by _run_with_semaphore.
+    client.wireless.get_network_ssids = AsyncMock(return_value=[])
+    client.wireless.get_network_wireless_settings = AsyncMock(return_value={})
+    client.wireless.get_network_wireless_rf_profiles = AsyncMock(return_value=[])
+
+    client.switch.get_device_switch_ports_statuses = AsyncMock(return_value=[])
+
+    client.camera.get_camera_video_settings = AsyncMock(return_value={})
+    client.camera.get_camera_sense_settings = AsyncMock(return_value={})
+
+    client.appliance.get_network_vlans = AsyncMock(return_value=[])
+    client.appliance.get_l3_firewall_rules = AsyncMock(return_value=[])
+    client.appliance.get_traffic_shaping = AsyncMock(return_value={})
+    client.appliance.get_vpn_status = AsyncMock(return_value={})
+    client.appliance.get_network_appliance_content_filtering = AsyncMock(
+        return_value={}
+    )
+    client.appliance.get_network_appliance_settings = AsyncMock(return_value={})
+
+    client.network.get_network_traffic = AsyncMock(return_value={})
+
+    client.dashboard = MagicMock()
+    return client
 
 
 @pytest.mark.asyncio
@@ -107,7 +143,6 @@ def test_process_initial_data_handles_errors(api_client, caplog):
     assert "Could not fetch Meraki devices" in caplog.text
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_wireless_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a wireless device."""
     # Arrange
@@ -119,11 +154,10 @@ def test_build_detail_tasks_for_wireless_device(api_client):
 
     # Assert
     assert f"ssids_{MOCK_NETWORK['id']}" in tasks
-    assert f"wireless_settings_{MOCK_DEVICE['serial']}" in tasks
+    assert f"wireless_settings_{MOCK_NETWORK['id']}" in tasks
     assert f"rf_profiles_{MOCK_NETWORK['id']}" in tasks
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_switch_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a switch device."""
     # Arrange
@@ -138,7 +172,6 @@ def test_build_detail_tasks_for_switch_device(api_client):
     assert f"ports_statuses_{switch_device['serial']}" in tasks
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_camera_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a camera device."""
     # Arrange
@@ -154,7 +187,6 @@ def test_build_detail_tasks_for_camera_device(api_client):
     assert f"sense_settings_{camera_device['serial']}" in tasks
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_appliance_device(api_client):
     """Test that _build_detail_tasks creates tasks for an appliance device."""
     # Arrange
@@ -176,17 +208,55 @@ def test_build_detail_tasks_for_appliance_device(api_client):
     assert f"vlans_{network_with_appliance['id']}" in tasks
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
 def test_process_detailed_data_merges_device_info(api_client):
     """Test that _process_detailed_data merges details into device objects."""
     # Arrange
-    device = MOCK_DEVICE.copy()
-    radio_settings = {"five_ghz_settings": {"channel": 149}}
-    detail_data = {f"wireless_settings_{device['serial']}": radio_settings}
+    device = {"serial": "c123", "productType": "camera"}
+    video_settings = {"rtsp_url": "rtsp://test"}
+    detail_data = {f"video_settings_{device['serial']}": video_settings}
 
     # Act
     api_client._process_detailed_data(detail_data, [], [device], previous_data={})
 
     # Assert
-    assert "radio_settings" in device
-    assert device["radio_settings"]["five_ghz_settings"]["channel"] == 149
+    assert "video_settings" in device
+    assert device["video_settings"] == video_settings
+    assert device["rtsp_url"] == "rtsp://test"
+
+
+@pytest.mark.asyncio
+async def test_get_network_events_filters_none(api_client):
+    """Test that get_network_events filters out None values from arguments."""
+    # Arrange
+    api_client.dashboard.networks.getNetworkEvents.return_value = {"events": []}
+    network_id = "N_123"
+
+    # Act
+    await api_client.get_network_events(network_id)
+
+    # Assert
+    api_client.dashboard.networks.getNetworkEvents.assert_called_once()
+    args, kwargs = api_client.dashboard.networks.getNetworkEvents.call_args
+    assert network_id in args
+    # Ensure no None values in kwargs
+    for key, value in kwargs.items():
+        assert value is not None, f"Found None value for key: {key}"
+    # Specifically check that productType is not in kwargs (since it defaults to None)
+    assert "productType" not in kwargs
+
+
+@pytest.mark.asyncio
+async def test_get_network_events_passes_values(api_client):
+    """Test that get_network_events passes non-None values correctly."""
+    # Arrange
+    api_client.dashboard.networks.getNetworkEvents.return_value = {"events": []}
+    network_id = "N_123"
+    product_type = "appliance"
+
+    # Act
+    await api_client.get_network_events(network_id, product_type=product_type)
+
+    # Assert
+    api_client.dashboard.networks.getNetworkEvents.assert_called_once()
+    args, kwargs = api_client.dashboard.networks.getNetworkEvents.call_args
+    assert kwargs.get("productType") == product_type
