@@ -267,13 +267,21 @@ class MerakiAPIClient:
             A list of clients.
 
         """
+        # Only fetch clients for networks that have client-capable devices.
+        # Camera-only networks do not support the getNetworkClients API.
+        client_capable_types = {"wireless", "appliance", "switch", "cellularGateway"}
+        eligible_networks = [
+            network
+            for network in networks
+            if client_capable_types.intersection(network.get("productTypes", []))
+        ]
         client_tasks = [
             self._run_with_semaphore(self.network.get_network_clients(network["id"]))
-            for network in networks
+            for network in eligible_networks
         ]
         clients_results = await asyncio.gather(*client_tasks, return_exceptions=True)
         clients: list[dict[str, Any]] = []
-        for i, network in enumerate(networks):
+        for i, network in enumerate(eligible_networks):
             result = clients_results[i]
             if isinstance(result, list):
                 for client in result:

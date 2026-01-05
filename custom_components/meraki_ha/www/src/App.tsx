@@ -1,169 +1,280 @@
-import React, { useState, useEffect, useRef } from 'react';
+/**
+ * Meraki Home Assistant Panel - Main Application Component
+ *
+ * This component is the root of the React application. It receives the
+ * Home Assistant `hass` object from the Web Component wrapper and uses
+ * it to communicate with the backend via WebSocket.
+ */
+
+import React, { useState, useEffect, useCallback } from 'react';
 import NetworkView from './components/NetworkView';
 import DeviceView from './components/DeviceView';
+import type { HomeAssistant, PanelInfo, RouteInfo } from './types/hass';
 
-// Define the types for our data
-interface MerakiData {
-  [key: string]: any;
+// Data types
+interface SSID {
+  number: number;
+  name: string;
+  enabled: boolean;
+  networkId: string;
 }
 
-interface AppProps {}
+interface Network {
+  id: string;
+  name: string;
+  ssids: SSID[];
+  is_enabled: boolean;
+}
 
-const App: React.FC<AppProps> = () => {
+interface Device {
+  entity_id: string;
+  name: string;
+  model: string;
+  serial: string;
+  status: string;
+  lanIp?: string;
+  mac?: string;
+  networkId?: string;
+  firmware?: string;
+  status_messages?: string[];
+  entities?: Array<{ entity_id: string; name: string; state: string }>;
+}
+
+interface MerakiData {
+  networks: Network[];
+  devices: Device[];
+  ssids: SSID[];
+  enabled_networks: string[];
+  config_entry_id: string;
+  version?: string;
+  [key: string]: unknown;
+}
+
+interface AppProps {
+  hass: HomeAssistant | null;
+  panel: PanelInfo | null;
+  narrow: boolean;
+  route: RouteInfo | null;
+}
+
+/**
+ * Loading spinner component
+ */
+const LoadingSpinner: React.FC = () => (
+  <div className="flex items-center justify-center p-8">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+    <span className="ml-3 text-gray-600 dark:text-gray-300">Loading Meraki data...</span>
+  </div>
+);
+
+/**
+ * Error display component
+ */
+const ErrorDisplay: React.FC<{ message: string; onRetry?: () => void }> = ({
+  message,
+  onRetry,
+}) => (
+  <div className="p-6 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 rounded-lg">
+    <div className="flex items-center">
+      <svg
+        className="w-6 h-6 text-red-500 dark:text-red-400 mr-3"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+      <div>
+        <h3 className="text-lg font-semibold text-red-700 dark:text-red-300">
+          Error Loading Data
+        </h3>
+        <p className="text-red-600 dark:text-red-400">{message}</p>
+      </div>
+    </div>
+    {onRetry && (
+      <button
+        onClick={onRetry}
+        className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+      >
+        Retry
+      </button>
+    )}
+  </div>
+);
+
+/**
+ * Header component with version display
+ */
+const Header: React.FC<{ version?: string }> = ({ version }) => (
+  <div className="flex items-center justify-between mb-6">
+    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+      Meraki Dashboard
+    </h1>
+    {version && (
+      <span className="text-sm text-gray-500 dark:text-gray-400">
+        v{version}
+      </span>
+    )}
+  </div>
+);
+
+/**
+ * Main App Component
+ */
+const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState({
-    view: 'dashboard',
-    deviceId: undefined,
-  });
-  const socketRef = useRef<WebSocket | null>(null);
+  const [activeView, setActiveView] = useState<{
+    view: string;
+    deviceId?: string;
+  }>({ view: 'dashboard' });
 
-  useEffect(() => {
-    if (window.location.hostname === 'localhost') {
-        setData({
-          "networks": [
-            { "id": "N_12345", "name": "Main Office", "is_enabled": true, "ssids": [] }
-          ],
-          devices: [
-            { name: 'Living Room AP', model: 'MR33', serial: 'Q2JD-XXXX-XXXX', status: 'online', entity_id: 'switch.living_room_ap', networkId: 'N_12345' },
-            { name: 'Office Switch', model: 'MS220-8P', serial: 'Q2HD-XXXX-XXXX', status: 'online', entity_id: 'switch.office_switch', networkId: 'N_12345' },
-            { name: 'Front Door Camera', model: 'MV12', serial: 'Q2FD-XXXX-XXXX', status: 'online', entity_id: 'camera.front_door_camera', networkId: 'N_12345' },
-          ],
-          ssids: [],
-        });
-        setLoading(false);
-        return;
-    }
-    let accessToken = localStorage.getItem('meraki_ha_llat');
-    if (!accessToken) {
-      accessToken = prompt(
-        'Please enter your Home Assistant Long-Lived Access Token:'
-      );
-      if (accessToken) {
-        localStorage.setItem('meraki_ha_llat', accessToken);
-      } else {
-        setError('No access token provided.');
-        setLoading(false);
-        return;
-      }
+  // Get the config entry ID from panel config
+  const configEntryId = panel?.config?.config_entry_id;
+
+  /**
+   * Fetch data from the backend using Home Assistant's WebSocket API
+   */
+  const fetchData = useCallback(async () => {
+    if (!hass || !configEntryId) {
+      return;
     }
 
-    const haUrl = (window as any).HA_URL.replace(/^http/, 'ws');
-    const wsUrl = `${haUrl}/api/websocket`;
-    socketRef.current = new WebSocket(wsUrl);
-    const socket = socketRef.current;
-    let messageId = 1;
+    setLoading(true);
+    setError(null);
 
-    socket.onopen = () => {
-      console.log('WebSocket connection established');
-      socket.send(
-        JSON.stringify({
-          type: 'auth',
-          access_token: accessToken,
-        })
-      );
-    };
+    try {
+      // Use hass.callWS to call our WebSocket command
+      const result = await hass.callWS<MerakiData>({
+        type: 'meraki_ha/get_config',
+        config_entry_id: configEntryId,
+      });
 
-    socket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-
-      if (message.type === 'auth_ok') {
-        console.log('Authenticated successfully');
-        socket.send(
-          JSON.stringify({
-            id: messageId,
-            type: 'meraki_ha/get_config',
-            config_entry_id: (window as any).CONFIG_ENTRY_ID,
-          })
-        );
-      } else if (message.type === 'auth_invalid') {
-        console.error('Authentication failed:', message.message);
-        setError('Authentication failed. Please check your token.');
-        setLoading(false);
-        localStorage.removeItem('meraki_ha_llat');
-      } else if (message.id === messageId) {
-        if (message.type === 'result') {
-          if (message.success) {
-            const resultData = message.result;
-            const { networks, enabled_networks } = resultData;
-
-            if (networks && enabled_networks) {
-              const processedNetworks = networks.map((network: any) => ({
-                ...network,
-                is_enabled: enabled_networks.includes(network.id),
-              }));
-              resultData.networks = processedNetworks;
-            }
-            setData(resultData);
-          } else {
-            console.error('Failed to fetch Meraki data:', message.error);
-            setError(`Failed to fetch Meraki data: ${message.error.message}`);
-          }
-          setLoading(false);
-        }
+      // Process networks to add is_enabled flag
+      if (result.networks && result.enabled_networks) {
+        const processedNetworks = result.networks.map((network) => ({
+          ...network,
+          is_enabled: result.enabled_networks.includes(network.id),
+        }));
+        result.networks = processedNetworks;
       }
-    };
 
-    socket.onerror = (err) => {
-      console.error('WebSocket error:', err);
-      setError('WebSocket connection error. See console for details.');
+      setData(result);
+    } catch (err) {
+      console.error('Failed to fetch Meraki data:', err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to fetch data from Meraki integration'
+      );
+    } finally {
       setLoading(false);
-    };
-
-    socket.onclose = () => {
-      console.log('WebSocket connection closed');
-    };
-
-    return () => {
-      if (socket && socket.readyState === 1) {
-        socket.close();
-      }
-    };
-  }, []);
-
-  if (loading) {
-    return <div className="p-4">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="p-4 text-red-500">Error: {error}</div>;
-  }
-
-  const handleToggle = (networkId: string, enabled: boolean) => {
-    if (!data) return;
-
-    const updatedNetworks = data.networks.map((network: any) =>
-      network.id === networkId ? { ...network, is_enabled: enabled } : network
-    );
-
-    const updatedData = { ...data, networks: updatedNetworks };
-    setData(updatedData);
-
-    const enabledNetworkIds = updatedNetworks
-      .filter((network: any) => network.is_enabled)
-      .map((network: any) => network.id);
-
-    const socket = socketRef.current;
-    if (socket && socket.readyState === 1) {
-      socket.send(
-        JSON.stringify({
-          id: Date.now(),
-          type: 'meraki_ha/update_enabled_networks',
-          config_entry_id: (window as any).CONFIG_ENTRY_ID,
-          enabled_networks: enabledNetworkIds,
-        })
-      );
-    } else {
-      console.error('WebSocket is not connected.');
     }
-  };
+  }, [hass, configEntryId]);
 
+  // Fetch data when hass or configEntryId becomes available
+  useEffect(() => {
+    if (hass && configEntryId) {
+      fetchData();
+    }
+  }, [hass, configEntryId, fetchData]);
+
+  /**
+   * Handle network toggle (enable/disable tracking)
+   */
+  const handleNetworkToggle = useCallback(
+    async (networkId: string, enabled: boolean) => {
+      if (!hass || !data || !configEntryId) {
+        return;
+      }
+
+      // Optimistically update the UI
+      const updatedNetworks = data.networks.map((network) =>
+        network.id === networkId ? { ...network, is_enabled: enabled } : network
+      );
+      setData({ ...data, networks: updatedNetworks });
+
+      // Get the new list of enabled network IDs
+      const enabledNetworkIds = updatedNetworks
+        .filter((network) => network.is_enabled)
+        .map((network) => network.id);
+
+      try {
+        // Send the update to the backend
+        await hass.callWS({
+          type: 'meraki_ha/update_enabled_networks',
+          config_entry_id: configEntryId,
+          enabled_networks: enabledNetworkIds,
+        });
+      } catch (err) {
+        console.error('Failed to update enabled networks:', err);
+        // Revert on error
+        setData(data);
+        setError('Failed to update network settings');
+      }
+    },
+    [hass, data, configEntryId]
+  );
+
+  // Show loading state while waiting for hass
+  if (!hass) {
+    return (
+      <div className="p-4">
+        <LoadingSpinner />
+        <p className="text-center text-gray-500 mt-4">
+          Waiting for Home Assistant connection...
+        </p>
+      </div>
+    );
+  }
+
+  // Show loading state while fetching data
+  if (loading) {
+    return (
+      <div className="p-4">
+        <Header />
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="p-4">
+        <Header />
+        <ErrorDisplay message={error} onRetry={fetchData} />
+      </div>
+    );
+  }
+
+  // Show empty state
+  if (!data) {
+    return (
+      <div className="p-4">
+        <Header />
+        <p className="text-gray-500 dark:text-gray-400">No data available.</p>
+      </div>
+    );
+  }
+
+  // Render the appropriate view
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Meraki HA Web UI</h1>
+    <div className={`p-4 ${narrow ? 'max-w-full' : 'max-w-7xl mx-auto'}`}>
+      <Header version={data.version} />
+
       {activeView.view === 'dashboard' ? (
-        <NetworkView data={data} onToggle={handleToggle} setActiveView={setActiveView} />
+        <NetworkView
+          data={data}
+          onToggle={handleNetworkToggle}
+          setActiveView={setActiveView}
+        />
       ) : (
         <DeviceView
           activeView={activeView}

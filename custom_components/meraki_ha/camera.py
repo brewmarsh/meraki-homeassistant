@@ -110,16 +110,58 @@ class MerakiCamera(CoordinatorEntity, Camera):
             self.coordinator.add_status_message(self._device_serial, msg)
             return None
 
-        try:
-            session = async_get_clientsession(self.hass)
-            async with session.get(url) as response:
-                response.raise_for_status()
-                return await response.read()
-        except aiohttp.ClientError as e:
-            msg = f"Error fetching snapshot for {self.name}: {e}"
-            _LOGGER.error(msg)
-            self.coordinator.add_status_message(self._device_serial, msg)
-            return None
+        # Meraki snapshot generation is asynchronous. The API returns a URL
+        # immediately, but the snapshot may not be available for a few seconds.
+        # We retry fetching the snapshot with a delay to allow time for generation.
+        session = async_get_clientsession(self.hass)
+        max_retries = 3
+        retry_delay_seconds = 2
+
+        for attempt in range(max_retries):
+            try:
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        return await response.read()
+                    if response.status == 202:
+                        # 202 Accepted means snapshot is still being generated
+                        _LOGGER.debug(
+                            "Snapshot still generating for %s (attempt %d/%d)",
+                            self.name,
+                            attempt + 1,
+                            max_retries,
+                        )
+                    elif response.status == 400:
+                        # 400 may mean the snapshot isn't ready yet
+                        _LOGGER.debug(
+                            "Snapshot not ready for %s (attempt %d/%d), "
+                            "retrying after delay",
+                            self.name,
+                            attempt + 1,
+                            max_retries,
+                        )
+                    else:
+                        _LOGGER.warning(
+                            "Unexpected status %d fetching snapshot for %s",
+                            response.status,
+                            self.name,
+                        )
+            except aiohttp.ClientError as e:
+                _LOGGER.debug(
+                    "Network error fetching snapshot for %s (attempt %d/%d): %s",
+                    self.name,
+                    attempt + 1,
+                    max_retries,
+                    e,
+                )
+
+            # Wait before retrying (except on last attempt)
+            if attempt < max_retries - 1:
+                await asyncio.sleep(retry_delay_seconds)
+
+        msg = f"Failed to fetch snapshot for {self.name} after {max_retries} attempts"
+        _LOGGER.warning(msg)
+        self.coordinator.add_status_message(self._device_serial, msg)
+        return None
 
     async def stream_source(self) -> str | None:
         """Return the source of the stream, if enabled."""

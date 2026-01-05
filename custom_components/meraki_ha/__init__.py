@@ -34,6 +34,7 @@ from .meraki_data_coordinator import MerakiDataCoordinator
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .services.network_control_service import NetworkControlService
+from .api.websocket import async_setup_websocket_api
 from .web_api import async_setup_api
 from .web_server import MerakiWebServer
 from .webhook import (
@@ -151,10 +152,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     discovered_entities = await discovery_service.discover_entities()
     entry_data["entities"] = discovered_entities
 
-    # Register frontend panel
+    # Register frontend panel and WebSocket API
     await async_register_static_path(hass)
     await async_register_panel(hass, entry)
     async_setup_api(hass)
+    async_setup_websocket_api(hass)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
