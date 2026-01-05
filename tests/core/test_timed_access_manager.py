@@ -51,7 +51,7 @@ async def test_create_timed_access_key(manager, mock_api_client):
 
 async def test_create_timed_access_key_with_group_policy(manager, mock_api_client):
     """Test creating a timed access key with custom group policy."""
-    result = await manager.create_timed_access_key(
+    await manager.create_timed_access_key(
         network_id="net1",
         ssid_number="1",
         name="VIP Key",
