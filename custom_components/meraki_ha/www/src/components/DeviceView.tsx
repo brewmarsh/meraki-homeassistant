@@ -3,7 +3,19 @@ import React from 'react';
 interface DeviceViewProps {
   activeView: { view: string; deviceId?: string };
   setActiveView: (view: { view: string; deviceId?: string }) => void;
-  data: any;
+  data: {
+    devices: Array<{
+      name: string;
+      model: string;
+      serial: string;
+      firmware?: string;
+      status: string;
+      lanIp?: string;
+      mac?: string;
+      status_messages?: string[];
+      entities?: Array<{ entity_id: string; name: string; state: string }>;
+    }>;
+  };
 }
 
 const DeviceView: React.FC<DeviceViewProps> = ({
@@ -12,7 +24,7 @@ const DeviceView: React.FC<DeviceViewProps> = ({
   data,
 }) => {
   const device = data.devices.find(
-    (d: any) => d.serial === activeView.deviceId
+    (d) => d.serial === activeView.deviceId
   );
 
   if (!device) {
@@ -20,11 +32,14 @@ const DeviceView: React.FC<DeviceViewProps> = ({
       <div>
         <button
           onClick={() => setActiveView({ view: 'dashboard' })}
-          className="text-blue-500 mb-4"
+          className="back-button"
         >
-          &larr; Back to Dashboard
+          ← Back to Dashboard
         </button>
-        <p>Device not found.</p>
+        <div className="empty-state">
+          <ha-icon icon="mdi:help-circle"></ha-icon>
+          <p>Device not found.</p>
+        </div>
       </div>
     );
   }
@@ -35,79 +50,118 @@ const DeviceView: React.FC<DeviceViewProps> = ({
     serial,
     firmware,
     status,
+    lanIp,
+    mac,
     status_messages = [],
     entities = [],
   } = device;
+
+  const getStatusClass = (s: string) => {
+    const status = s?.toLowerCase();
+    if (status === 'online') return 'online';
+    if (status === 'offline' || status === 'dormant') return 'offline';
+    if (status === 'alerting') return 'alerting';
+    return '';
+  };
+
+  const handleEntityClick = (entityId: string) => {
+    const event = new CustomEvent('hass-more-info', {
+      bubbles: true,
+      composed: true,
+      detail: { entityId },
+    });
+    document.body.dispatchEvent(event);
+  };
 
   return (
     <div>
       <button
         onClick={() => setActiveView({ view: 'dashboard' })}
-        className="text-blue-500 mb-4 hover:underline"
+        className="back-button"
       >
-        &larr; Back to Dashboard
+        ← Back to Dashboard
       </button>
 
-      <div className="bg-light-card dark:bg-dark-card p-6 rounded-lg shadow-md mb-8">
-        <h2 className="text-2xl font-bold mb-2">{name}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div>
-            <strong>Model:</strong> {model}
+      <div className="device-detail-card">
+        <h2>{name || serial}</h2>
+        <div className="device-info-grid">
+          <div className="device-info-item">
+            <strong>Model</strong>
+            {model || '—'}
           </div>
-          <div>
-            <strong>Serial:</strong> {serial}
+          <div className="device-info-item">
+            <strong>Serial</strong>
+            {serial}
           </div>
-          <div>
-            <strong>Firmware:</strong> {firmware}
+          <div className="device-info-item">
+            <strong>Status</strong>
+            <span className={`device-status ${getStatusClass(status)}`}>
+              {status || 'Unknown'}
+            </span>
           </div>
-          <div>
-            <strong>Status:</strong>{' '}
-            <span className="capitalize">{status}</span>
-          </div>
+          {firmware && (
+            <div className="device-info-item">
+              <strong>Firmware</strong>
+              {firmware}
+            </div>
+          )}
+          {lanIp && (
+            <div className="device-info-item">
+              <strong>LAN IP</strong>
+              {lanIp}
+            </div>
+          )}
+          {mac && (
+            <div className="device-info-item">
+              <strong>MAC Address</strong>
+              {mac}
+            </div>
+          )}
         </div>
       </div>
 
       {status_messages.length > 0 && (
-        <div className="mb-8">
-          <h3 className="text-xl font-semibold mb-2">Status Messages</h3>
-          <div className="bg-yellow-100 dark:bg-yellow-900 border-l-4 border-yellow-500 text-yellow-700 dark:text-yellow-200 p-4 rounded-lg">
-            <ul>
-              {status_messages.map((msg: string, index: number) => (
-                <li key={index} className="mb-1">
-                  {msg}
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div className="device-detail-card" style={{ borderLeft: '4px solid #ff9800' }}>
+          <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Status Messages</h3>
+          <ul style={{ margin: 0, paddingLeft: '20px' }}>
+            {status_messages.map((msg: string, index: number) => (
+              <li key={index} style={{ marginBottom: '8px' }}>
+                {msg}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
-      <div>
-        <h3 className="text-xl font-semibold mb-4">Entities</h3>
-        <div className="overflow-x-auto bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md">
-          <table className="min-w-full">
+      {entities.length > 0 && (
+        <div className="device-detail-card">
+          <h3 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>Entities</h3>
+          <table className="device-table">
             <thead>
-              <tr className="border-b border-light-border dark:border-dark-border">
-                <th className="text-left p-4 font-semibold">Name</th>
-                <th className="text-left p-4 font-semibold">Entity ID</th>
-                <th className="text-left p-4 font-semibold">State</th>
+              <tr>
+                <th>Name</th>
+                <th>Entity ID</th>
+                <th>State</th>
               </tr>
             </thead>
             <tbody>
-              {entities.map((entity: any) => (
+              {entities.map((entity) => (
                 <tr
                   key={entity.entity_id}
-                  className="border-b border-light-border dark:border-dark-border last:border-b-0"
+                  className="device-row"
+                  onClick={() => handleEntityClick(entity.entity_id)}
                 >
-                  <td className="p-4">{entity.name}</td>
-                  <td className="p-4">{entity.entity_id}</td>
-                  <td className="p-4">{entity.state}</td>
+                  <td>{entity.name}</td>
+                  <td style={{ fontFamily: 'monospace', fontSize: '13px' }}>
+                    {entity.entity_id}
+                  </td>
+                  <td>{entity.state}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </div>
+      )}
     </div>
   );
 };

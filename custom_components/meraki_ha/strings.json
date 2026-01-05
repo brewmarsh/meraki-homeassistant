@@ -92,7 +92,9 @@
           "enable_device_tracker": "Enable Client Tracker",
           "enable_web_ui": "Enable Web UI",
           "web_ui_port": "Web UI Port",
-          "hide_unconfigured_ssids": "Hide Unconfigured SSIDs"
+          "hide_unconfigured_ssids": "Hide Unconfigured SSIDs",
+          "camera_stream_source": "Camera Stream Source",
+          "camera_snapshot_interval": "Camera Snapshot Refresh Interval"
         },
         "data_description": {
           "auto_enable_rtsp": "Automatically enable the RTSP stream for compatible cameras.",
@@ -100,7 +102,9 @@
           "enable_device_tracker": "Enable tracking of clients connected to the network.",
           "enable_web_ui": "Enable the self-hosted web interface for advanced controls.",
           "web_ui_port": "The port for the self-hosted web interface.",
-          "hide_unconfigured_ssids": "Hide SSIDs that are not fully configured."
+          "hide_unconfigured_ssids": "Hide SSIDs that are not fully configured.",
+          "camera_stream_source": "Choose RTSP for local network streaming or Cloud for Meraki Dashboard streaming.",
+          "camera_snapshot_interval": "How often to refresh camera snapshots on the dashboard (0 = only on demand)."
         }
       },
       "advanced": {

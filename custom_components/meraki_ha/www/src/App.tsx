@@ -61,9 +61,9 @@ interface AppProps {
  * Loading spinner component
  */
 const LoadingSpinner: React.FC = () => (
-  <div className="flex items-center justify-center p-8">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-    <span className="ml-3 text-gray-600 dark:text-gray-300">Loading Meraki data...</span>
+  <div className="loading-container">
+    <div className="loading-spinner"></div>
+    <span className="loading-text">Loading Meraki data...</span>
   </div>
 );
 
@@ -74,36 +74,17 @@ const ErrorDisplay: React.FC<{ message: string; onRetry?: () => void }> = ({
   message,
   onRetry,
 }) => (
-  <div className="p-6 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 rounded-lg">
-    <div className="flex items-center">
-      <svg
-        className="w-6 h-6 text-red-500 dark:text-red-400 mr-3"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-        />
-      </svg>
-      <div>
-        <h3 className="text-lg font-semibold text-red-700 dark:text-red-300">
-          Error Loading Data
-        </h3>
-        <p className="text-red-600 dark:text-red-400">{message}</p>
-      </div>
+  <div className="error-container">
+    <ha-icon icon="mdi:alert-circle"></ha-icon>
+    <div className="error-content">
+      <h3>Error Loading Data</h3>
+      <p>{message}</p>
+      {onRetry && (
+        <button onClick={onRetry} className="retry-button">
+          Retry
+        </button>
+      )}
     </div>
-    {onRetry && (
-      <button
-        onClick={onRetry}
-        className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-      >
-        Retry
-      </button>
-    )}
   </div>
 );
 
@@ -111,15 +92,9 @@ const ErrorDisplay: React.FC<{ message: string; onRetry?: () => void }> = ({
  * Header component with version display
  */
 const Header: React.FC<{ version?: string }> = ({ version }) => (
-  <div className="flex items-center justify-between mb-6">
-    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-      Meraki Dashboard
-    </h1>
-    {version && (
-      <span className="text-sm text-gray-500 dark:text-gray-400">
-        v{version}
-      </span>
-    )}
+  <div className="meraki-header">
+    <h1>Meraki Dashboard</h1>
+    {version && <span className="version">v{version}</span>}
   </div>
 );
 
@@ -185,49 +160,12 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
     }
   }, [hass, configEntryId, fetchData]);
 
-  /**
-   * Handle network toggle (enable/disable tracking)
-   */
-  const handleNetworkToggle = useCallback(
-    async (networkId: string, enabled: boolean) => {
-      if (!hass || !data || !configEntryId) {
-        return;
-      }
-
-      // Optimistically update the UI
-      const updatedNetworks = data.networks.map((network) =>
-        network.id === networkId ? { ...network, is_enabled: enabled } : network
-      );
-      setData({ ...data, networks: updatedNetworks });
-
-      // Get the new list of enabled network IDs
-      const enabledNetworkIds = updatedNetworks
-        .filter((network) => network.is_enabled)
-        .map((network) => network.id);
-
-      try {
-        // Send the update to the backend
-        await hass.callWS({
-          type: 'meraki_ha/update_enabled_networks',
-          config_entry_id: configEntryId,
-          enabled_networks: enabledNetworkIds,
-        });
-      } catch (err) {
-        console.error('Failed to update enabled networks:', err);
-        // Revert on error
-        setData(data);
-        setError('Failed to update network settings');
-      }
-    },
-    [hass, data, configEntryId]
-  );
-
   // Show loading state while waiting for hass
   if (!hass) {
     return (
-      <div className="p-4">
+      <div className="meraki-panel">
         <LoadingSpinner />
-        <p className="text-center text-gray-500 mt-4">
+        <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
           Waiting for Home Assistant connection...
         </p>
       </div>
@@ -237,7 +175,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
   // Show loading state while fetching data
   if (loading) {
     return (
-      <div className="p-4">
+      <div className="meraki-panel">
         <Header />
         <LoadingSpinner />
       </div>
@@ -247,7 +185,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
   // Show error state
   if (error) {
     return (
-      <div className="p-4">
+      <div className="meraki-panel">
         <Header />
         <ErrorDisplay message={error} onRetry={fetchData} />
       </div>
@@ -257,22 +195,24 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
   // Show empty state
   if (!data) {
     return (
-      <div className="p-4">
+      <div className="meraki-panel">
         <Header />
-        <p className="text-gray-500 dark:text-gray-400">No data available.</p>
+        <div className="empty-state">
+          <ha-icon icon="mdi:database-off"></ha-icon>
+          <p>No data available.</p>
+        </div>
       </div>
     );
   }
 
   // Render the appropriate view
   return (
-    <div className={`p-4 ${narrow ? 'max-w-full' : 'max-w-7xl mx-auto'}`}>
+    <div className="meraki-panel" style={{ maxWidth: narrow ? '100%' : '1200px', margin: '0 auto' }}>
       <Header version={data.version} />
 
       {activeView.view === 'dashboard' ? (
         <NetworkView
           data={data}
-          onToggle={handleNetworkToggle}
           setActiveView={setActiveView}
         />
       ) : (

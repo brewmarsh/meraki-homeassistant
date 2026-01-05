@@ -306,10 +306,37 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                             }
                         )
 
+    def _get_enabled_network_ids(self) -> set[str] | None:
+        """
+        Get the set of enabled network IDs from config options.
+
+        Returns
+        -------
+            A set of enabled network IDs, or None if all networks should be
+            enabled (e.g., when the option is not set or config is unavailable).
+
+        """
+        if not self.config_entry or not hasattr(self.config_entry, "options"):
+            return None
+
+        enabled_network_ids = self.config_entry.options.get(CONF_ENABLED_NETWORKS)
+
+        # If the option is not set or is empty, return None to poll all networks
+        if not enabled_network_ids:
+            return None
+
+        return set(enabled_network_ids)
+
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint and apply filters."""
         try:
-            data = await self.api.get_all_data(self.last_successful_data)
+            # Get enabled network IDs to filter API calls upfront
+            enabled_network_ids = self._get_enabled_network_ids()
+
+            data = await self.api.get_all_data(
+                self.last_successful_data,
+                enabled_network_ids=enabled_network_ids,
+            )
             if not data:
                 _LOGGER.warning("API call to get_all_data returned no data.")
                 raise UpdateFailed("API call returned no data.")

@@ -68,6 +68,39 @@ class CameraRepository:
             _LOGGER.error("Error fetching analytics data for %s: %s", serial, e)
             return None
 
+    async def async_get_cloud_video_url(self, serial: str) -> str | None:
+        """
+        Get the cloud video URL for a camera.
+
+        This returns a Meraki Dashboard video link URL (HTTPS) that can be
+        used to view the camera stream in a browser or compatible player.
+        """
+        try:
+            video_link_data = (
+                await self._api_client.camera.get_device_camera_video_link(serial)
+            )
+            url = video_link_data.get("url")
+
+            # Return any valid HTTPS URL (cloud video links)
+            if url and url.startswith("https://"):
+                return url
+
+            # Also accept HTTP URLs (less common but possible)
+            if url and url.startswith("http://"):
+                return url
+
+            return None
+        except MerakiInformationalError as e:
+            _LOGGER.debug(
+                "Could not retrieve cloud video URL for camera %s: %s",
+                serial,
+                e,
+            )
+            return None
+        except Exception as e:
+            _LOGGER.debug("Error fetching cloud video link for %s: %s", serial, e)
+            return None
+
     async def async_get_rtsp_stream_url(self, serial: str) -> str | None:
         """
         Get the RTSP video stream URL for a camera.
@@ -106,14 +139,14 @@ class CameraRepository:
             # If we get a non-RTSP URL, log it and return None
             if url:
                 _LOGGER.debug(
-                    "API returned a non-RTSP URL, assuming no stream available: %s",
+                    "API returned a non-RTSP URL, assuming no RTSP stream available: %s",
                     url,
                 )
             return None
         except MerakiInformationalError as e:
             # This can happen if the camera model doesn't support RTSP (e.g., MV2).
-            # Log it as a warning, not an error that will spam the user.
-            _LOGGER.warning(
+            # Log it as a debug, not an error that will spam the user.
+            _LOGGER.debug(
                 "Could not retrieve RTSP URL for camera %s "
                 "(this may be normal if the model does not support it): %s",
                 serial,
@@ -121,7 +154,7 @@ class CameraRepository:
             )
             return None
         except Exception as e:
-            _LOGGER.error("Error fetching video link for %s: %s", serial, e)
+            _LOGGER.debug("Error fetching video link for %s: %s", serial, e)
             return None
 
     async def get_analytics_history(
