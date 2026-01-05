@@ -17,7 +17,7 @@ def format_entity_name(
 ) -> str:
     """Format the entity name based on the user's selection."""
     _LOGGER.debug(
-        "Formatting entity name: device_name=%s, device_type=%s, name_format=%s, apply_prefix=%s",
+        "Formatting entity name: name=%s, type=%s, format=%s, prefix=%s",
         device_name,
         device_type,
         name_format,

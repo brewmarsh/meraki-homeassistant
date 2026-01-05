@@ -139,7 +139,7 @@ class CameraRepository:
             # If we get a non-RTSP URL, log it and return None
             if url:
                 _LOGGER.debug(
-                    "API returned a non-RTSP URL, assuming no RTSP stream available: %s",
+                    "API returned non-RTSP URL, no RTSP stream available: %s",
                     url,
                 )
             return None
