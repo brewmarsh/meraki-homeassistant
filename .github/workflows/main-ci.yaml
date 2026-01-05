@@ -20,7 +20,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ./.venv
-          key: ${{ runner.os }}-pip-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/requirements_dev.txt') }}
+          key: ${{ runner.os }}-pip-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/requirements_dev.txt') }}-v2
           restore-keys: |
             ${{ runner.os }}-pip-${{ steps.setup-python.outputs.python-version }}-
       - name: Install dependencies
