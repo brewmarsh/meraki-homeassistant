@@ -43,8 +43,7 @@ class MerakiDeviceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch device data from the API."""
         try:
-            devices = await self.api_client.devices.get_organization_devices()
+            devices = await self.api_client.organization.get_organization_devices()
             return {"devices": devices}
         except Exception as err:
             raise UpdateFailed(f"Error fetching device data: {err}") from err
-

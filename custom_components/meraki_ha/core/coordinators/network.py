@@ -43,8 +43,7 @@ class MerakiNetworkCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch network data from the API."""
         try:
-            networks = await self.api_client.network.get_organization_networks()
+            networks = await self.api_client.organization.get_organization_networks()
             return {"networks": networks}
         except Exception as err:
             raise UpdateFailed(f"Error fetching network data: {err}") from err
-

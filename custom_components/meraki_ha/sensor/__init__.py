@@ -28,7 +28,7 @@ from ..sensor_registry import (
     get_sensors_for_device_type,
 )
 from .device.appliance_port import MerakiAppliancePortSensor
-from .device.camera_settings import MerakiCameraRTSPUrlSensor
+from .device.rtsp_url import MerakiRtspUrlSensor as MerakiCameraRTSPUrlSensor
 from .network.meraki_network_info import MerakiNetworkInfoSensor
 from .network.network_clients import MerakiNetworkClientsSensor
 from .network.network_identity import MerakiNetworkIdentitySensor
@@ -58,9 +58,16 @@ async def async_setup_entry(
     # Get the entry specific data store
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
 
-    # Get the main data coordinator for physical devices
-    device_coordinator: MerakiDeviceCoordinator = entry_data.get("device_coordinator")
-    network_coordinator: MerakiNetworkCoordinator = entry_data.get(
+    # Get the main data coordinator
+    from ..meraki_data_coordinator import MerakiDataCoordinator
+
+    coordinator: MerakiDataCoordinator | None = entry_data.get("coordinator")
+
+    # Get the specialized coordinators for physical devices
+    device_coordinator: MerakiDeviceCoordinator | None = entry_data.get(
+        "device_coordinator"
+    )
+    network_coordinator: MerakiNetworkCoordinator | None = entry_data.get(
         "network_coordinator"
     )
 
@@ -183,11 +190,15 @@ async def async_setup_entry(
                 )
                 continue
             unique_id = f"meraki_network_clients_{network_id}"
-            if unique_id not in added_entities and network_control_service:
+            if (
+                unique_id not in added_entities
+                and network_control_service
+                and coordinator
+            ):
                 try:
                     entities.append(
                         MerakiNetworkClientsSensor(
-                            network_coordinator,
+                            coordinator,
                             config_entry,
                             network_data,
                             network_control_service,
@@ -202,11 +213,11 @@ async def async_setup_entry(
                         e,
                     )
             unique_id = f"meraki_network_identity_{network_id}"
-            if unique_id not in added_entities:
+            if unique_id not in added_entities and coordinator:
                 try:
                     entities.append(
                         MerakiNetworkIdentitySensor(
-                            network_coordinator, network_data, config_entry
+                            coordinator, network_data, config_entry
                         )
                     )
                     added_entities.add(unique_id)
@@ -218,12 +229,10 @@ async def async_setup_entry(
                         e,
                     )
             unique_id = f"{network_id}_network_info"
-            if unique_id not in added_entities:
+            if unique_id not in added_entities and coordinator:
                 try:
                     entities.append(
-                        MerakiNetworkInfoSensor(
-                            network_coordinator, network_data, config_entry
-                        )
+                        MerakiNetworkInfoSensor(coordinator, network_data, config_entry)
                     )
                     added_entities.add(unique_id)
                 except Exception as e:
@@ -243,8 +252,8 @@ async def async_setup_entry(
             "Main coordinator not available; skipping network-specific sensors."
         )
 
-    if device_coordinator and device_coordinator.data:
-        for device in device_coordinator.data.get("devices", []):
+    if coordinator and coordinator.data:
+        for device in coordinator.data.get("devices", []):
             if device.get("productType") == "appliance":
                 for port in device.get("ports", []):
                     if (
@@ -252,7 +261,7 @@ async def async_setup_entry(
                         not in added_entities
                     ):
                         entities.append(
-                            MerakiAppliancePortSensor(device_coordinator, device, port)
+                            MerakiAppliancePortSensor(coordinator, device, port)
                         )
                         added_entities.add(f"{device['serial']}_port_{port['number']}")
 
