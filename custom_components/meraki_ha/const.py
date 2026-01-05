@@ -158,6 +158,9 @@ ERASE_TAGS_WARNING: Final = (
 )
 """Warning message for the tag erasing feature."""
 
+DEVICE_NAME_FORMAT_PREFIX: Final = "prefix"
+DEVICE_NAME_FORMAT_SUFFIX: Final = "suffix"
+
 WEBHOOK_ID_FORMAT: Final = "meraki_ha_{entry_id}"
 
 MERAKI_CONTENT_FILTERING_CATEGORIES: Final[list[dict[str, str]]] = [

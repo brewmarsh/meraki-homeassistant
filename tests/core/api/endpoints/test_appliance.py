@@ -37,7 +37,7 @@ def coordinator():
 @pytest.fixture
 def api_client(hass, mock_dashboard):
     """Fixture for a MerakiAPIClient instance."""
-    client = MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
+    client = MerakiAPIClient(api_key="test-key", org_id="test-org")
     client.dashboard = mock_dashboard
     yield client
 
