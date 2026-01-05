@@ -9,7 +9,7 @@ pip-audit==2.7.3
 bandit[toml]==1.7.9
 mypy==1.11.0
 voluptuous==0.15.2
-pyyaml==6.0.3
+pyyaml==6.0.2
 playwright
 pytest-homeassistant-custom-component==0.13.190
 pytest==8.4.2
