@@ -613,9 +613,7 @@ class MerakiAPIClient:
         # Filter networks and devices based on enabled_network_ids setting.
         # This avoids making API calls for networks that the user has disabled.
         if enabled_network_ids is not None:
-            networks = [
-                n for n in all_networks if n.get("id") in enabled_network_ids
-            ]
+            networks = [n for n in all_networks if n.get("id") in enabled_network_ids]
             devices = [
                 d for d in all_devices if d.get("networkId") in enabled_network_ids
             ]

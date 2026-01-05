@@ -151,7 +151,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await server.start()
         entry_data["web_server"] = server
 
-
     # Initialize repositories and services for the new architecture
     if "control_service" not in entry_data:
         entry_data["control_service"] = DeviceControlService(meraki_repository)
