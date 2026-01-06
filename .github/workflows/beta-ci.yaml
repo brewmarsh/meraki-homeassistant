@@ -1,8 +1,6 @@
 name: Beta CI
 
 on:
-  push:
-    branches: ['beta']
   pull_request:
     branches: ['beta']
 
