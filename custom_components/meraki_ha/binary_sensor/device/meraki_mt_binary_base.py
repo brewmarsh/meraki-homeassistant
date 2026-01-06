@@ -62,7 +62,8 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         """Return true if the binary sensor is on."""
-        readings = self._device.get("readings")
+        # Use readings_raw (list format) for sensor entities
+        readings = self._device.get("readings_raw") or self._device.get("readings")
         if not readings or not isinstance(readings, list):
             return None
 

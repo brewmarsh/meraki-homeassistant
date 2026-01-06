@@ -6,7 +6,7 @@
  * it to communicate with the backend via WebSocket.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Dashboard from './components/Dashboard';
 import DeviceView from './components/DeviceView';
 import type { HomeAssistant, PanelInfo, RouteInfo } from './types/hass';
@@ -128,6 +128,14 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
     deviceId?: string;
   }>({ view: 'dashboard' });
 
+  // Use a ref for hass to avoid re-renders when hass object changes
+  // The hass object changes on every HA state update, which would cause constant refetches
+  const hassRef = useRef(hass);
+  hassRef.current = hass;
+
+  // Track if we've already loaded data to prevent duplicate fetches
+  const hasLoadedRef = useRef(false);
+
   // Get the config entry ID from panel config
   const configEntryId = panel?.config?.config_entry_id;
 
@@ -135,7 +143,8 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
    * Fetch data from the backend using Home Assistant's WebSocket API
    */
   const fetchData = useCallback(async () => {
-    if (!hass || !configEntryId) {
+    const currentHass = hassRef.current;
+    if (!currentHass || !configEntryId) {
       return;
     }
 
@@ -144,7 +153,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
 
     try {
       // Use hass.callWS to call our WebSocket command
-      const result = await hass.callWS<MerakiData>({
+      const result = await currentHass.callWS<MerakiData>({
         type: 'meraki_ha/get_config',
         config_entry_id: configEntryId,
       });
@@ -159,6 +168,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
       }
 
       setData(result);
+      hasLoadedRef.current = true;
     } catch (err) {
       console.error('Failed to fetch Meraki data:', err);
       setError(
@@ -169,11 +179,11 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
     } finally {
       setLoading(false);
     }
-  }, [hass, configEntryId]);
+  }, [configEntryId]);
 
-  // Fetch data when hass or configEntryId becomes available
+  // Fetch data only once when configEntryId becomes available and hass is connected
   useEffect(() => {
-    if (hass && configEntryId) {
+    if (hass && configEntryId && !hasLoadedRef.current) {
       fetchData();
     }
   }, [hass, configEntryId, fetchData]);
@@ -235,7 +245,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
 
   // Render the appropriate view
   return (
-    <div className="meraki-panel" style={{ maxWidth: narrow ? '100%' : '1200px', margin: '0 auto' }}>
+    <div className="meraki-panel" style={{ maxWidth: '100%', margin: '0 auto' }}>
       <Header version={data.version} />
 
       {activeView.view === 'dashboard' ? (

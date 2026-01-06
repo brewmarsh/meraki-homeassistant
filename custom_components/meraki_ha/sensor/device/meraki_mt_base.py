@@ -55,7 +55,9 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> str | float | bool | None:
         """Return the state of the sensor."""
-        readings = self._device.get("readings")
+        # Use readings_raw (list format) for sensor entities
+        # The flat "readings" dict is used by the frontend
+        readings = self._device.get("readings_raw") or self._device.get("readings")
         if not readings or not isinstance(readings, list):
             return None
 
@@ -90,7 +92,8 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
         """Return if the sensor is available."""
         # The sensor is available if there is a reading for its metric.
         # This prevents creating sensors for metrics that a device doesn't support.
-        readings = self._device.get("readings")
+        # Use readings_raw (list format) for sensor entities
+        readings = self._device.get("readings_raw") or self._device.get("readings")
         if not readings or not isinstance(readings, list):
             return False
 

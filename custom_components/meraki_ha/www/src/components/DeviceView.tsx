@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import SwitchPortVisualization from './SwitchPortVisualization';
 import SensorReading from './SensorReading';
 
@@ -70,6 +70,11 @@ const DeviceView: React.FC<DeviceViewProps> = ({
   const [linkedCameraId, setLinkedCameraId] = React.useState<string>('');
   const [showCameraConfig, setShowCameraConfig] = React.useState(false);
   const [viewLinkedCamera, setViewLinkedCamera] = React.useState(false);
+
+  // Use refs to avoid re-renders when hass object changes (happens on every HA state update)
+  const hassRef = useRef(hass);
+  hassRef.current = hass;
+  const hasLoadedCameraDataRef = useRef<string | null>(null);
 
   if (!device) {
     return (
@@ -167,10 +172,11 @@ const DeviceView: React.FC<DeviceViewProps> = ({
 
   // Fetch camera snapshot
   const fetchSnapshot = async () => {
-    if (!hass || !configEntryId || !device) return;
+    const currentHass = hassRef.current;
+    if (!currentHass || !configEntryId || !device) return;
     setSnapshotLoading(true);
     try {
-      const result = await hass.callWS({
+      const result = await currentHass.callWS({
         type: 'meraki_ha/get_camera_snapshot',
         config_entry_id: configEntryId,
         serial: device.serial,
@@ -187,9 +193,10 @@ const DeviceView: React.FC<DeviceViewProps> = ({
 
   // Fetch cloud video URL for "Open in Dashboard" button
   const fetchCloudVideoUrl = async () => {
-    if (!hass || !configEntryId || !device) return;
+    const currentHass = hassRef.current;
+    if (!currentHass || !configEntryId || !device) return;
     try {
-      const result = await hass.callWS({
+      const result = await currentHass.callWS({
         type: 'meraki_ha/get_camera_stream_url',
         config_entry_id: configEntryId,
         serial: device.serial,
@@ -212,9 +219,10 @@ const DeviceView: React.FC<DeviceViewProps> = ({
 
   // Fetch available cameras for linking
   const fetchAvailableCameras = async () => {
-    if (!hass) return;
+    const currentHass = hassRef.current;
+    if (!currentHass) return;
     try {
-      const result = await hass.callWS({
+      const result = await currentHass.callWS({
         type: 'meraki_ha/get_available_cameras',
       }) as { cameras?: Array<{entity_id: string; friendly_name: string}> };
       if (result?.cameras) {
@@ -227,9 +235,10 @@ const DeviceView: React.FC<DeviceViewProps> = ({
 
   // Fetch current camera mapping
   const fetchCameraMapping = async () => {
-    if (!hass || !configEntryId || !device) return;
+    const currentHass = hassRef.current;
+    if (!currentHass || !configEntryId || !device) return;
     try {
-      const result = await hass.callWS({
+      const result = await currentHass.callWS({
         type: 'meraki_ha/get_camera_mappings',
         config_entry_id: configEntryId,
       }) as { mappings?: Record<string, string> };
@@ -243,9 +252,10 @@ const DeviceView: React.FC<DeviceViewProps> = ({
 
   // Save camera mapping
   const saveCameraMapping = async (entityId: string) => {
-    if (!hass || !configEntryId || !device) return;
+    const currentHass = hassRef.current;
+    if (!currentHass || !configEntryId || !device) return;
     try {
-      await hass.callWS({
+      await currentHass.callWS({
         type: 'meraki_ha/set_camera_mapping',
         config_entry_id: configEntryId,
         serial: device.serial,
@@ -264,16 +274,22 @@ const DeviceView: React.FC<DeviceViewProps> = ({
     return `/api/camera_proxy_stream/${entityId}`;
   };
 
-  // Load camera data when viewing a camera device
+  // Load camera data when viewing a camera device - only fetch once per device
   React.useEffect(() => {
     const isCameraDevice = device && (device.model?.toUpperCase().startsWith('MV') || device.productType === 'camera');
-    if (isCameraDevice && hass && configEntryId) {
-      fetchSnapshot();
-      fetchCloudVideoUrl();
-      fetchCameraMapping();
-      fetchAvailableCameras();
+    const deviceSerial = device?.serial;
+    
+    // Only fetch if this is a new device we haven't loaded yet
+    if (isCameraDevice && deviceSerial && configEntryId && hassRef.current) {
+      if (hasLoadedCameraDataRef.current !== deviceSerial) {
+        hasLoadedCameraDataRef.current = deviceSerial;
+        fetchSnapshot();
+        fetchCloudVideoUrl();
+        fetchCameraMapping();
+        fetchAvailableCameras();
+      }
     }
-  }, [device?.serial, hass, configEntryId]);
+  }, [device?.serial, configEntryId]);
 
   // Calculate PoE stats for switches
   const poePorts = ports_statuses.filter((p) => p.poe?.isAllocated || p.poe?.enabled);

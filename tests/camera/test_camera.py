@@ -112,3 +112,87 @@ async def test_camera_rtsp_enabled(mock_coordinator, mock_config_entry):
     # RTSP is enabled
     assert attrs["stream_status"] == "RTSP Enabled"
     assert camera.is_streaming is True
+
+
+async def test_camera_async_turn_on(mock_coordinator, mock_config_entry):
+    """Test async_turn_on enables RTSP streaming."""
+    from unittest.mock import AsyncMock
+
+    device_data = {
+        "serial": "Q234-ABCD-CAM4",
+        "name": "Test Camera 4",
+        "model": "MV33",
+        "networkId": "N_12345",
+        "productType": "camera",
+        "lanIp": "192.168.1.100",
+        "status": "online",
+        "video_settings": {
+            "rtspServerEnabled": False,
+        },
+        "rtsp_url": None,
+    }
+
+    mock_coordinator.get_device.return_value = device_data
+    mock_coordinator.config_entry = mock_config_entry
+    mock_coordinator.async_request_refresh = AsyncMock()
+
+    camera_service = MagicMock()
+    camera_service.async_set_rtsp_stream_enabled = AsyncMock()
+
+    camera = MerakiCamera(
+        coordinator=mock_coordinator,
+        config_entry=mock_config_entry,
+        device=device_data,
+        camera_service=camera_service,
+    )
+
+    await camera.async_turn_on()
+
+    # Verify the camera service was called to enable RTSP
+    camera_service.async_set_rtsp_stream_enabled.assert_called_once_with(
+        "Q234-ABCD-CAM4", True
+    )
+    # Verify coordinator refresh was requested
+    mock_coordinator.async_request_refresh.assert_called_once()
+
+
+async def test_camera_async_turn_off(mock_coordinator, mock_config_entry):
+    """Test async_turn_off disables RTSP streaming."""
+    from unittest.mock import AsyncMock
+
+    device_data = {
+        "serial": "Q234-ABCD-CAM5",
+        "name": "Test Camera 5",
+        "model": "MV33",
+        "networkId": "N_12345",
+        "productType": "camera",
+        "lanIp": "192.168.1.100",
+        "status": "online",
+        "video_settings": {
+            "rtspServerEnabled": True,
+        },
+        "rtsp_url": "rtsp://192.168.1.100:9000/live",
+    }
+
+    mock_coordinator.get_device.return_value = device_data
+    mock_coordinator.config_entry = mock_config_entry
+    mock_coordinator.async_request_refresh = AsyncMock()
+
+    camera_service = MagicMock()
+    camera_service.async_set_rtsp_stream_enabled = AsyncMock()
+
+    camera = MerakiCamera(
+        coordinator=mock_coordinator,
+        config_entry=mock_config_entry,
+        device=device_data,
+        camera_service=camera_service,
+    )
+
+    await camera.async_turn_off()
+
+    # Verify the camera service was called to disable RTSP
+    camera_service.async_set_rtsp_stream_enabled.assert_called_once_with(
+        "Q234-ABCD-CAM5", False
+    )
+    # Verify coordinator refresh was requested
+    mock_coordinator.async_request_refresh.assert_called_once()

@@ -298,6 +298,64 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                             ssid["entity_id"] = entity.entity_id
                             break
 
+    def _process_sensor_readings_for_frontend(
+        self, readings: list[dict[str, Any]]
+    ) -> dict[str, Any]:
+        """
+        Process raw sensor readings into a flat format for the frontend.
+
+        The Meraki API returns readings as a list like:
+        [{"metric": "temperature", "temperature": {"celsius": 23.5}}, ...]
+
+        This converts it to:
+        {"temperature": 23.5, "humidity": 45, ...}
+
+        Args:
+        ----
+            readings: The raw readings list from the Meraki API.
+
+        Returns
+        -------
+            A flat dictionary with metric names as keys and values.
+
+        """
+        if not readings or not isinstance(readings, list):
+            return {}
+
+        result: dict[str, Any] = {}
+        key_map = {
+            "temperature": "celsius",
+            "humidity": "relativePercentage",
+            "pm25": "concentration",
+            "tvoc": "concentration",
+            "co2": "concentration",
+            "noise": "ambient",
+            "water": "present",
+            "power": "draw",
+            "voltage": "level",
+            "current": "draw",
+            "battery": "percentage",
+            "button": "pressType",
+        }
+
+        for reading in readings:
+            metric = reading.get("metric")
+            if not metric:
+                continue
+
+            metric_data = reading.get(metric)
+            if isinstance(metric_data, dict):
+                value_key = key_map.get(metric)
+                if value_key:
+                    if value_key == "ambient":
+                        value = metric_data.get("ambient", {}).get("level")
+                    else:
+                        value = metric_data.get(value_key)
+                    if value is not None:
+                        result[metric] = value
+
+        return result
+
     def _populate_device_entities(self, data: dict[str, Any]) -> None:
         """
         Populate device data with associated Home Assistant entities.
@@ -315,6 +373,17 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         for device in data["devices"]:
             device.setdefault("status_messages", [])
+
+            # Process raw sensor readings into frontend-friendly format.
+            # Keep original list for sensor entities, add flat dict for frontend.
+            raw_readings = device.get("readings")
+            if raw_readings and isinstance(raw_readings, list):
+                # Store flat readings for frontend consumption
+                device["readings"] = self._process_sensor_readings_for_frontend(
+                    raw_readings
+                )
+                # Keep original list for sensor entities under a different key
+                device["readings_raw"] = raw_readings
 
             ha_device = dev_reg.async_get_device(
                 identifiers={(DOMAIN, device["serial"])},

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import StatusCard from './StatusCard';
 
 interface Device {
@@ -46,6 +46,19 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data, hass }) => {
   const [expandedNetworks, setExpandedNetworks] = useState<Set<string>>(new Set());
+  const hasAutoExpandedRef = useRef(false);
+
+  // Auto-expand if there's only one network (or a few networks)
+  useEffect(() => {
+    if (!hasAutoExpandedRef.current && data?.networks) {
+      const networkIds = data.networks.map((n) => n.id);
+      // Auto-expand if 3 or fewer networks
+      if (networkIds.length > 0 && networkIds.length <= 3) {
+        setExpandedNetworks(new Set(networkIds));
+        hasAutoExpandedRef.current = true;
+      }
+    }
+  }, [data?.networks]);
 
   if (!data) {
     return (
