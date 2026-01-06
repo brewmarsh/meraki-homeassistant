@@ -3,26 +3,28 @@ name: Deploy MkDocs
 on:
   release:
     types: [published]
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yaml'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions: # Add this section to grant write permission
-      contents: write # This allows the action to write to the repository's contents
+    permissions:
+      contents: write
 
     steps:
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: 3.x
-      - uses: actions/checkout@v6
-
-      - name: Install dependencies
-        run: |
-          pip install mkdocs mkdocs-material
-          pip install -r requirements_dev.txt
+          cache: 'pip'
+      - name: Install MkDocs
+        run: pip install mkdocs mkdocs-material
       - name: Build docs
         run: mkdocs build -f mkdocs.yaml
-
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:

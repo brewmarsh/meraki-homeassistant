@@ -5,22 +5,16 @@ on:
     branches:
       - main
       - beta
-  # pull_request event is required only for autolabeler
-  # pull_request:
-  #   types: [opened, reopened, synchronize]
 
 jobs:
   update_release_draft:
     runs-on: ubuntu-latest
-    # Only run on the main repository, not forks
-    if: github.repository == 'liptonj/meraki-homeassistant'
     permissions:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6
+      # No checkout needed - release-drafter uses GitHub API
       - uses: release-drafter/release-drafter@v6
-        # Continue even if config not found (e.g., during initial setup)
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

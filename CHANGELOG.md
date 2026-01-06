@@ -2,14 +2,13 @@
 
 ### Features
 
-* **camera:** Add camera stream source option (RTSP vs Cloud)
-  - New `camera_stream_source` configuration option
-  - Choose between "RTSP (Local Network)" or "Cloud (Meraki Dashboard)"
-  - Cloud streaming works for all camera models, including those that don't support RTSP (e.g., MV2)
 * **camera:** Add configurable snapshot refresh interval
   - New `camera_snapshot_interval` configuration option (0-3600 seconds)
   - Set to 0 for on-demand snapshots only (default)
   - Cached snapshots are returned instantly within the interval, reducing API calls
+* **camera:** Expose cloud video URL as entity attribute
+  - Cloud URL available in `cloud_video_url` attribute for browser viewing
+  - Note: Streaming uses RTSP only (Meraki cloud URLs are Dashboard pages, not direct streams)
 * **api:** Filter networks before making API calls based on enabled networks setting
   - Only polls networks that are enabled in integration settings
   - Reduces unnecessary API calls and improves performance
@@ -26,9 +25,17 @@
 * **frontend:** Filter networks to only show enabled ones
   - Panel now only displays networks that are enabled in integration settings
   - Auto-expand single network when only one is enabled
+* **frontend:** Enhanced camera device view in web panel
+  - Live snapshot display with refresh button
+  - "Open in Meraki Dashboard" button for cloud video viewing
+  - Works even when RTSP is unavailable or in use by another client
+* **camera:** Link Meraki cameras to external NVR cameras (e.g., Blue Iris)
+  - New "Link Camera" configuration in web panel
+  - View linked camera streams directly in the panel
+  - Mappings stored in integration options
+  - Exposed as `linked_camera_entity` attribute on camera entity
 * **api:** Add stream_source parameter to camera stream URL websocket endpoint
-  - Web UI can now request specific stream type ("rtsp" or "cloud")
-  - Respects user preference for camera streaming
+  - Web UI can request "rtsp" for direct streaming or "cloud" for Dashboard viewing
 
 ### Bug Fixes
 
@@ -39,6 +46,10 @@
   - Added retry mechanism (3 attempts with 2-second delays)
   - Gracefully handles 202 (Accepted) and 400 responses during snapshot generation
   - Falls back to cached snapshot if new fetch fails
+* **camera:** Fix stream error with cloud video URLs
+  - Cloud video links from Meraki are Dashboard URLs, not direct video streams
+  - Streaming now correctly uses RTSP only when enabled in Meraki Dashboard
+  - Cloud URL exposed as attribute for "view in browser" functionality
 * **api:** Fix traffic analysis errors being logged at ERROR level
   - Informational errors (traffic analysis disabled, VLANs disabled) now propagate cleanly
   - No longer logged as "Unexpected error" at ERROR level

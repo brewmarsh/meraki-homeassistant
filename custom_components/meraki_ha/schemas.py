@@ -6,10 +6,7 @@ import voluptuous as vol
 from homeassistant.helpers import selector
 
 from .const import (
-    CAMERA_STREAM_SOURCE_CLOUD,
-    CAMERA_STREAM_SOURCE_RTSP,
     CONF_CAMERA_SNAPSHOT_INTERVAL,
-    CONF_CAMERA_STREAM_SOURCE,
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_ENABLE_VLAN_MANAGEMENT,
     CONF_ENABLED_NETWORKS,
@@ -17,7 +14,6 @@ from .const import (
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
     DEFAULT_CAMERA_SNAPSHOT_INTERVAL,
-    DEFAULT_CAMERA_STREAM_SOURCE,
     DEFAULT_ENABLE_VLAN_MANAGEMENT,
     DEFAULT_ENABLED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
@@ -54,23 +50,6 @@ OPTIONS_SCHEMA = vol.Schema(
                 options=[],
                 multiple=True,
                 custom_value=False,
-                mode=selector.SelectSelectorMode.DROPDOWN,
-            )
-        ),
-        vol.Required(
-            CONF_CAMERA_STREAM_SOURCE, default=DEFAULT_CAMERA_STREAM_SOURCE
-        ): selector.SelectSelector(
-            selector.SelectSelectorConfig(
-                options=[
-                    selector.SelectOptionDict(
-                        value=CAMERA_STREAM_SOURCE_RTSP,
-                        label="RTSP (Local Network)",
-                    ),
-                    selector.SelectOptionDict(
-                        value=CAMERA_STREAM_SOURCE_CLOUD,
-                        label="Cloud (Meraki Dashboard)",
-                    ),
-                ],
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
         ),
