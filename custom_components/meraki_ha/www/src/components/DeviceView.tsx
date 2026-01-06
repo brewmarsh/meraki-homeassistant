@@ -70,6 +70,8 @@ const DeviceView: React.FC<DeviceViewProps> = ({
   const [linkedCameraId, setLinkedCameraId] = React.useState<string>('');
   const [showCameraConfig, setShowCameraConfig] = React.useState(false);
   const [viewLinkedCamera, setViewLinkedCamera] = React.useState(false);
+  const [linkedCameraUrl, setLinkedCameraUrl] = React.useState<string | null>(null);
+  const [linkedCameraLoading, setLinkedCameraLoading] = React.useState(false);
 
   // Use refs to avoid re-renders when hass object changes (happens on every HA state update)
   const hassRef = useRef(hass);
@@ -264,15 +266,40 @@ const DeviceView: React.FC<DeviceViewProps> = ({
       });
       setLinkedCameraId(entityId);
       setShowCameraConfig(false);
+      // If viewing linked camera, fetch the new signed URL
+      if (viewLinkedCamera && entityId) {
+        setLinkedCameraUrl(null);
+        // Delay slightly to ensure state is updated
+        setTimeout(() => fetchLinkedCameraUrl(), 100);
+      }
     } catch (err) {
       console.error('Failed to save camera mapping:', err);
     }
   };
 
-  // Get the HA camera proxy URL for a linked camera
-  const getLinkedCameraStreamUrl = (entityId: string): string => {
-    // HA camera proxy URL format
-    return `/api/camera_proxy_stream/${entityId}`;
+  // Fetch signed camera URL from Home Assistant
+  const fetchLinkedCameraUrl = async () => {
+    const currentHass = hassRef.current;
+    if (!currentHass || !linkedCameraId) return;
+    
+    setLinkedCameraLoading(true);
+    try {
+      // Use Home Assistant's auth/sign_path to get a properly authenticated URL
+      const result = await currentHass.callWS({
+        type: 'auth/sign_path',
+        path: `/api/camera_proxy/${linkedCameraId}`,
+        expires: 30, // URL valid for 30 seconds
+      }) as { path?: string };
+      
+      if (result?.path) {
+        setLinkedCameraUrl(result.path);
+      }
+    } catch (err) {
+      console.error('Failed to get signed camera URL:', err);
+      setLinkedCameraUrl(null);
+    } finally {
+      setLinkedCameraLoading(false);
+    }
   };
 
   // Load camera data when viewing a camera device - only fetch once per device
@@ -291,6 +318,13 @@ const DeviceView: React.FC<DeviceViewProps> = ({
       }
     }
   }, [device?.serial, configEntryId]);
+
+  // Fetch signed URL when viewing linked camera
+  React.useEffect(() => {
+    if (viewLinkedCamera && linkedCameraId && hassRef.current) {
+      fetchLinkedCameraUrl();
+    }
+  }, [viewLinkedCamera, linkedCameraId]);
 
   // Calculate PoE stats for switches
   const poePorts = ports_statuses.filter((p) => p.poe?.isAllocated || p.poe?.enabled);
@@ -617,15 +651,29 @@ const DeviceView: React.FC<DeviceViewProps> = ({
             {viewLinkedCamera && linkedCameraId ? (
               /* Linked Camera Stream (e.g., Blue Iris) */
               <div>
-                <img
-                  src={`/api/camera_proxy/${linkedCameraId}?token=${Date.now()}`}
-                  alt={`Linked camera: ${linkedCameraId}`}
-                  style={{
-                    maxWidth: '100%',
-                    borderRadius: 'var(--radius-md)',
-                    marginBottom: '12px'
-                  }}
-                />
+                {linkedCameraLoading ? (
+                  <div style={{ padding: '40px', color: 'var(--text-muted)' }}>
+                    ⏳ Loading camera...
+                  </div>
+                ) : linkedCameraUrl ? (
+                  <img
+                    src={linkedCameraUrl}
+                    alt={`Linked camera: ${linkedCameraId}`}
+                    style={{
+                      maxWidth: '100%',
+                      borderRadius: 'var(--radius-md)',
+                      marginBottom: '12px'
+                    }}
+                    onError={() => {
+                      console.error('Failed to load linked camera image');
+                      setLinkedCameraUrl(null);
+                    }}
+                  />
+                ) : (
+                  <div style={{ padding: '40px', color: 'var(--text-muted)' }}>
+                    📹 Unable to load camera feed
+                  </div>
+                )}
                 <div style={{ 
                   display: 'flex', 
                   gap: '12px', 
@@ -634,22 +682,19 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                   marginTop: '12px'
                 }}>
                   <button
-                    onClick={() => {
-                      // Force refresh by updating the image src
-                      const img = document.querySelector(`img[alt="Linked camera: ${linkedCameraId}"]`) as HTMLImageElement;
-                      if (img) img.src = `/api/camera_proxy/${linkedCameraId}?token=${Date.now()}`;
-                    }}
+                    onClick={() => fetchLinkedCameraUrl()}
+                    disabled={linkedCameraLoading}
                     style={{
                       padding: '10px 20px',
                       borderRadius: 'var(--radius-md)',
                       border: 'none',
                       background: 'var(--primary)',
                       color: 'white',
-                      cursor: 'pointer',
+                      cursor: linkedCameraLoading ? 'wait' : 'pointer',
                       fontWeight: 500
                     }}
                   >
-                    🔄 Refresh
+                    {linkedCameraLoading ? '⏳ Loading...' : '🔄 Refresh'}
                   </button>
                   <button
                     onClick={() => handleEntityClick(linkedCameraId)}
