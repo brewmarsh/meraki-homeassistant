@@ -295,11 +295,17 @@ class WirelessEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        rules = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.getNetworkWirelessSsidL7FirewallRules,
-            networkId=network_id,
-            number=number,
-        )
+        # Method name includes "Firewall" in the path
+        wireless = self._api_client.dashboard.wireless
+        try:
+            rules = await self._api_client.run_sync(
+                wireless.getNetworkWirelessSsidFirewallL7FirewallRules,
+                networkId=network_id,
+                number=number,
+            )
+        except AttributeError:
+            _LOGGER.debug("L7 firewall rules API not available")
+            return {}
         validated = validate_response(rules)
         if not isinstance(validated, dict):
             _LOGGER.warning(
@@ -416,7 +422,7 @@ class WirelessEndpoints:
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.updateNetworkWirelessSsidL7FirewallRules,
+            self._api_client.dashboard.wireless.updateNetworkWirelessSsidFirewallL7FirewallRules,
             networkId=network_id,
             number=number,
             **kwargs,

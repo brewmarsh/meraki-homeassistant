@@ -130,4 +130,7 @@ class MerakiPanelElement extends HTMLElement {
 }
 
 // Register the custom element with the name Home Assistant expects
-customElements.define('meraki-panel', MerakiPanelElement);
+// Guard against duplicate registration (can happen with HMR or cache issues)
+if (!customElements.get('meraki-panel')) {
+  customElements.define('meraki-panel', MerakiPanelElement);
+}
