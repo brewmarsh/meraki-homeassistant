@@ -95,23 +95,28 @@ jobs:
       contents: write
       pull-requests: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      # Fresh checkout gets the just-pushed commit with version bump
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: 'main'
+
       - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Use GitHub CLI for fast release creation
-          # --target main ensures the tag points to the just-pushed commit with the version bump
+          # Fresh checkout ensures we're on the commit with the version bump
           gh release create "v${{ needs.version.outputs.new_version }}" \
             --repo "${{ github.repository }}" \
             --title "Release v${{ needs.version.outputs.new_version }}" \
-            --generate-notes \
-            --target main
+            --generate-notes
 
-      # Deploy to local HA instance via HACS (if enabled)
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [version, release]
+    if: needs.version.outputs.new_version != '' && vars.ENABLE_HACS_DEPLOY == 'true'
+    steps:
       - name: Deploy via HACS
-        if: vars.ENABLE_HACS_DEPLOY == 'true'
         env:
           HA_URL: ${{ secrets.HA_URL }}
           HA_TOKEN: ${{ secrets.HA_TOKEN }}
@@ -167,9 +172,7 @@ jobs:
           echo "Waiting 30 seconds for HACS to download and install..."
           sleep 30
 
-      # Restart Home Assistant after update
       - name: Restart Home Assistant
-        if: vars.ENABLE_HACS_DEPLOY == 'true'
         env:
           HA_URL: ${{ secrets.HA_URL }}
           HA_TOKEN: ${{ secrets.HA_TOKEN }}
@@ -186,9 +189,7 @@ jobs:
           echo "Restart initiated. Waiting 90 seconds for HA to come back online..."
           sleep 90
 
-      # Verify correct version is installed
       - name: Verify Installation
-        if: vars.ENABLE_HACS_DEPLOY == 'true'
         env:
           HA_URL: ${{ secrets.HA_URL }}
           HA_TOKEN: ${{ secrets.HA_TOKEN }}
