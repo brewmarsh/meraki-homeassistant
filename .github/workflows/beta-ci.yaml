@@ -9,7 +9,7 @@ env:
   NODE_VERSION: '20'
 
 jobs:
-  # Fast linting checks with pip caching
+  # Fast linting checks
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -18,15 +18,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - name: Cache linter packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: lint-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-ruff-bandit
-          restore-keys: |
-            lint-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
       - name: Install linters
-        run: pip install ruff bandit
+        run: uv pip install --system ruff bandit
       - name: Run ruff check
         run: ruff check .
       - name: Run ruff format check
@@ -43,11 +38,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: requirements_dev.txt
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
       - name: Install dependencies
-        run: |
-          pip install -r requirements_dev.txt
+        run: uv pip install --system -r requirements_dev.txt
       - name: Run mypy
         run: mypy custom_components/meraki_ha/ tests/
       - name: Run pip-audit
@@ -74,8 +68,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: requirements_dev.txt
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -83,7 +77,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: custom_components/meraki_ha/www/package-lock.json
       - name: Install Python dependencies
-        run: pip install -r requirements_dev.txt
+        run: uv pip install --system -r requirements_dev.txt
       - name: Install npm dependencies
         working-directory: custom_components/meraki_ha/www
         run: npm ci
