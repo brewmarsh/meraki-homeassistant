@@ -1,6 +1,6 @@
-[![Beta Python Linting](https://github.com/brewmarsh/meraki-homeassistant/actions/workflows/beta-validation.yaml/badge.svg)](https://github.com/brewmarsh/meraki-homeassistant/actions/workflows/beta-validation.yaml)
-[![codecov](https://codecov.io/gh/brewmarsh/meraki-homeassistant/branch/main/graph/badge.svg)](https://codecov.io/gh/brewmarsh/meraki-homeassistant)
-[![Python Version](https://img.shields.io/badge/python-3.9-blue.svg)]()
+[![Beta CI](https://github.com/liptonj/meraki-homeassistant/actions/workflows/beta-ci.yaml/badge.svg)](https://github.com/liptonj/meraki-homeassistant/actions/workflows/beta-ci.yaml)
+[![Main CI](https://github.com/liptonj/meraki-homeassistant/actions/workflows/main-ci.yaml/badge.svg)](https://github.com/liptonj/meraki-homeassistant/actions/workflows/main-ci.yaml)
+[![Python Version](https://img.shields.io/badge/python-3.13-blue.svg)]()
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
 # Meraki Home Assistant Integration 🤖

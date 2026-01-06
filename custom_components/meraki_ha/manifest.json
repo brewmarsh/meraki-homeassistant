@@ -3,7 +3,7 @@
   "name": "Meraki for Home Assistant",
   "after_dependencies": [],
   "codeowners": [
-    "@brewmarsh"
+    "@liptonj"
   ],
   "config_flow": true,
   "dependencies": [
@@ -11,10 +11,10 @@
     "panel_custom",
     "http"
   ],
-  "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
+  "documentation": "https://github.com/liptonj/meraki-homeassistant",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/brewmarsh/meraki-homeassistant/issues",
+  "issue_tracker": "https://github.com/liptonj/meraki-homeassistant/issues",
   "loggers": [
     "meraki_ha"
   ],
