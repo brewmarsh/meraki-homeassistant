@@ -19,6 +19,7 @@ from .const import (
     DOMAIN,
 )
 from .core.api.client import MerakiAPIClient as ApiClient
+from .core.errors import ApiClientCommunicationError
 from .types import MerakiDevice, MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,7 +32,6 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self,
         hass: "HomeAssistant",
         api_client: ApiClient,
-        scan_interval: int,
         entry: ConfigEntry,
     ) -> None:
         """
@@ -69,7 +69,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=timedelta(seconds=scan_interval),
         )
 
-    def register_update_pending(
+    def register_pending_update(
         self,
         unique_id: str,
         expiry_seconds: int = 150,
@@ -155,7 +155,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             expiry_seconds: The duration of the cooldown period.
 
         """
-        self.register_update_pending(unique_id, expiry_seconds)
+        self.register_pending_update(unique_id, expiry_seconds)
 
     def _filter_enabled_networks(self, data: dict[str, Any]) -> None:
         """
@@ -256,6 +256,106 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     ent_reg.async_remove(entity.entity_id)
                 dev_reg.async_remove_device(device.id)
 
+    def _populate_ssid_entities(self, data: dict[str, Any]) -> None:
+        """
+        Populate SSID data with associated Home Assistant entities.
+
+        Args:
+        ----
+            data: The data dictionary to populate.
+
+        """
+        if not (data and "ssids" in data):
+            return
+
+        ent_reg = er.async_get(self.hass)
+        dev_reg = dr.async_get(self.hass)
+
+        for ssid in data["ssids"]:
+            network_id = ssid.get("networkId")
+            ssid_number = ssid.get("number")
+            if network_id and ssid_number is not None:
+                # Construct the device identifier for the SSID
+                # Note: This must match the identifier logic in device_info_helpers.py
+                identifier = f"{network_id}_{ssid_number}"
+
+                ha_device = dev_reg.async_get_device(
+                    identifiers={(DOMAIN, identifier)},
+                )
+
+                if ha_device:
+                    entities_for_device = er.async_entries_for_device(
+                        ent_reg,
+                        ha_device.id,
+                    )
+
+                    # Find the enabled switch
+                    for entity in entities_for_device:
+                        if entity.domain == "switch" and (
+                            "enabled" in (entity.unique_id or "")
+                            or "Enabled Control" in (entity.original_name or "")
+                        ):
+                            ssid["entity_id"] = entity.entity_id
+                            break
+
+    def _process_sensor_readings_for_frontend(
+        self, readings: list[dict[str, Any]]
+    ) -> dict[str, Any]:
+        """
+        Process raw sensor readings into a flat format for the frontend.
+
+        The Meraki API returns readings as a list like:
+        [{"metric": "temperature", "temperature": {"celsius": 23.5}}, ...]
+
+        This converts it to:
+        {"temperature": 23.5, "humidity": 45, ...}
+
+        Args:
+        ----
+            readings: The raw readings list from the Meraki API.
+
+        Returns
+        -------
+            A flat dictionary with metric names as keys and values.
+
+        """
+        if not readings or not isinstance(readings, list):
+            return {}
+
+        result: dict[str, Any] = {}
+        key_map = {
+            "temperature": "celsius",
+            "humidity": "relativePercentage",
+            "pm25": "concentration",
+            "tvoc": "concentration",
+            "co2": "concentration",
+            "noise": "ambient",
+            "water": "present",
+            "power": "draw",
+            "voltage": "level",
+            "current": "draw",
+            "battery": "percentage",
+            "button": "pressType",
+        }
+
+        for reading in readings:
+            metric = reading.get("metric")
+            if not metric:
+                continue
+
+            metric_data = reading.get(metric)
+            if isinstance(metric_data, dict):
+                value_key = key_map.get(metric)
+                if value_key:
+                    if value_key == "ambient":
+                        value = metric_data.get("ambient", {}).get("level")
+                    else:
+                        value = metric_data.get(value_key)
+                    if value is not None:
+                        result[metric] = value
+
+        return result
+
     def _populate_device_entities(self, data: dict[str, Any]) -> None:
         """
         Populate device data with associated Home Assistant entities.
@@ -274,6 +374,17 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         for device in data["devices"]:
             device.setdefault("status_messages", [])
 
+            # Process raw sensor readings into frontend-friendly format.
+            # Keep original list for sensor entities, add flat dict for frontend.
+            raw_readings = device.get("readings")
+            if raw_readings and isinstance(raw_readings, list):
+                # Store flat readings for frontend consumption
+                device["readings"] = self._process_sensor_readings_for_frontend(
+                    raw_readings
+                )
+                # Keep original list for sensor entities under a different key
+                device["readings_raw"] = raw_readings
+
             ha_device = dev_reg.async_get_device(
                 identifiers={(DOMAIN, device["serial"])},
             )
@@ -285,14 +396,50 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if entities_for_device:
                     # Prioritize more representative entities
                     primary_entity = None
+                    device_entities = []
                     for entity in entities_for_device:
-                        if entity.platform in ["switch", "camera", "binary_sensor"]:
+                        # Collect entity details for the frontend
+                        state = self.hass.states.get(entity.entity_id)
+                        device_entities.append(
+                            {
+                                "name": entity.name or entity.original_name,
+                                "entity_id": entity.entity_id,
+                                "state": state.state if state else "unknown",
+                            }
+                        )
+
+                        if not primary_entity and entity.domain in [
+                            "switch",
+                            "camera",
+                            "binary_sensor",
+                        ]:
                             primary_entity = entity
-                            break
+
+                        # If we haven't found a preferred platform entity yet,
+                        # check if this is the dedicated device status sensor.
+                        # This ensures we prefer a "clean" status sensor over
+                        # random other sensors if available.
+                        elif (
+                            not primary_entity
+                            and entity.unique_id
+                            and entity.unique_id.endswith("_device_status")
+                        ):
+                            primary_entity = entity
+
+                    device["entities"] = device_entities
+
                     if primary_entity:
                         device["entity_id"] = primary_entity.entity_id
                     else:
-                        device["entity_id"] = entities_for_device[0].entity_id
+                        # Fallback: Pick the first non-button entity if possible.
+                        # Button entities often have a timestamp state (last pressed),
+                        # which is confusing for a "status" display.
+                        fallback_entity = entities_for_device[0]
+                        for entity in entities_for_device:
+                            if entity.domain != "button":
+                                fallback_entity = entity
+                                break
+                        device["entity_id"] = fallback_entity.entity_id
 
                     # Add list of entities to device data for frontend
                     device["entities"] = []
@@ -306,10 +453,37 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                             }
                         )
 
+    def _get_enabled_network_ids(self) -> set[str] | None:
+        """
+        Get the set of enabled network IDs from config options.
+
+        Returns
+        -------
+            A set of enabled network IDs, or None if all networks should be
+            enabled (e.g., when the option is not set or config is unavailable).
+
+        """
+        if not self.config_entry or not hasattr(self.config_entry, "options"):
+            return None
+
+        enabled_network_ids = self.config_entry.options.get(CONF_ENABLED_NETWORKS)
+
+        # If the option is not set or is empty, return None to poll all networks
+        if not enabled_network_ids:
+            return None
+
+        return set(enabled_network_ids)
+
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint and apply filters."""
         try:
-            data = await self.api.get_all_data(self.last_successful_data)
+            # Get enabled network IDs to filter API calls upfront
+            enabled_network_ids = self._get_enabled_network_ids()
+
+            data = await self.api.get_all_data(
+                self.last_successful_data,
+                enabled_network_ids=enabled_network_ids,
+            )
             if not data:
                 _LOGGER.warning("API call to get_all_data returned no data.")
                 raise UpdateFailed("API call returned no data.")
@@ -360,20 +534,27 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     ]
 
             self._populate_device_entities(data)
+            self._populate_ssid_entities(data)
+
+            _LOGGER.info("Meraki networks: %s", data.get("networks"))
 
             self.last_successful_update = datetime.now()
             self.last_successful_data = data
             return data
-        except Exception as err:
-            if self.last_successful_update and (
-                datetime.now() - self.last_successful_update
-            ) < timedelta(minutes=30):
+        except ApiClientCommunicationError as err:
+            # If we have successfully fetched data before, log a warning and return
+            # the stale data. Otherwise, raise UpdateFailed to indicate that the
+            # integration cannot start.
+            if self.last_successful_data:
                 _LOGGER.warning(
-                    "Failed to fetch new data, using stale data. Error: %s",
+                    "Could not connect to Meraki API, using stale data. "
+                    "This is expected if the internet connection is down. "
+                    "Error: %s",
                     err,
                 )
-                return self.data
-
+                return self.last_successful_data
+            raise UpdateFailed(f"Could not connect to Meraki API: {err}") from err
+        except Exception as err:
             _LOGGER.error(
                 "Unexpected error fetching Meraki data: %s",
                 err,

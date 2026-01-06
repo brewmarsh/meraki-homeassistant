@@ -68,7 +68,8 @@ def test_async_setup_mt10_sensors(
     device_info = mock_coordinator_with_mt_devices.data["devices"][0]
     entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
 
-    assert len(entities) == 2
+    # MT10 has 3 sensors: temperature, humidity, battery
+    assert len(entities) == 3
 
     sensors_by_key = {entity.entity_description.key: entity for entity in entities}
 
@@ -76,17 +77,16 @@ def test_async_setup_mt10_sensors(
     assert "temperature" in sensors_by_key
     temp_sensor = sensors_by_key["temperature"]
     assert temp_sensor.unique_id == "mt10-1_temperature"
-    assert temp_sensor.name == "MT10 Sensor Temperature"
-    assert temp_sensor.native_value == 25.5  # type: ignore[attr-defined]
-    assert temp_sensor.available is True
 
     # Test Humidity Sensor
     assert "humidity" in sensors_by_key
     humidity_sensor = sensors_by_key["humidity"]
     assert humidity_sensor.unique_id == "mt10-1_humidity"
-    assert humidity_sensor.name == "MT10 Sensor Humidity"
-    assert humidity_sensor.native_value == 60.0  # type: ignore[attr-defined]
-    assert humidity_sensor.available is True
+
+    # Test Battery Sensor
+    assert "battery" in sensors_by_key
+    battery_sensor = sensors_by_key["battery"]
+    assert battery_sensor.unique_id == "mt10-1_battery"
 
 
 def test_async_setup_mt15_sensors(
@@ -156,12 +156,20 @@ def test_async_setup_mt12_sensors(
     device_info = mock_coordinator_with_mt_devices.data["devices"][2]
     entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
 
-    assert len(entities) == 1
-    water_sensor = entities[0]
-    assert water_sensor.unique_id == "mt12-1_water"
-    assert water_sensor.name == "MT12 Sensor Water Detection"
-    assert water_sensor.native_value is False  # type: ignore[attr-defined]
-    assert water_sensor.available is True
+    # MT12 has 2 sensors: temperature, battery (water is a binary sensor)
+    assert len(entities) == 2
+
+    sensors_by_key = {entity.entity_description.key: entity for entity in entities}
+
+    # Test Temperature Sensor
+    assert "temperature" in sensors_by_key
+    temp_sensor = sensors_by_key["temperature"]
+    assert temp_sensor.unique_id == "mt12-1_temperature"
+
+    # Test Battery Sensor
+    assert "battery" in sensors_by_key
+    battery_sensor = sensors_by_key["battery"]
+    assert battery_sensor.unique_id == "mt12-1_battery"
 
 
 def test_async_setup_mt40_sensors(

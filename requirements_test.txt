@@ -12,7 +12,7 @@ pip==23.3
 requests==2.31.0
 setuptools==78.1.1
 tqdm==4.66.1
-urllib3==1.26.18
+urllib3>=1.26.19,<2.0.0
 homeassistant==2023.12.0
 voluptuous==0.13.1
 ruff==0.1.6
@@ -30,3 +30,4 @@ psutil-home-assistant==0.0.1
 pillow==10.2.0
 fnv-hash-fast==0.4.0
 flake8==7.0.0
+home-assistant-frontend>=20231208.0

@@ -141,156 +141,34 @@ The Web UI provides a comprehensive overview of your Meraki network, including:
 
 This integration provides several ways to control your Meraki network directly from Home Assistant.
 
-### Parental Controls (Client Blocking)
+### 📶 Wireless (MR)
+Control your Wi-Fi experience.
+*   **SSID Management:** Toggle SSIDs on or off dynamically.
+*   **Client Counts:** See how many devices are connected to each network in real-time.
 
-For each client device that connects to your network, a `switch` entity is created. This switch allows you to block or unblock that specific client from accessing the network.
+### 🛡️ Gateways (MX)
+*   **Uplink Status:** Monitor your internet connection health and failover status.
 
-- **Entity ID:** `switch.<client_name>_internet_access`
-- **How it Works:** When you turn the switch `on`, the integration adds a firewall rule to the network to block the client's traffic. Turning it `off` removes the rule.
-- **Use Case:** Easily implement parental controls, such as turning off a child's internet access at bedtime through an automation.
+## 🖥️ The Dashboard
 
-### Content Filtering
+We've built a custom **Meraki Panel** right into Home Assistant. It gives you a bird's-eye view of your organization without needing to clutter your standard Lovelace dashboard with hundreds of entities.
 
-For each network, a `select` entity is created to manage Meraki's content filtering policies.
+![Network View](docs/images/network_view.png)
+*The Network View provides a quick summary of all your sites.*
 
-- **Entity ID:** `select.<network_name>_content_filtering_policy`
-- **How it Works:** This dropdown allows you to select the content filtering policy for the network from a list of available options ("topSites" or "fullList").
+![Device Detail](docs/images/device_detail_view.png)
+*Drill down into specific devices for detailed controls and metrics.*
 
-### SSID Control
+## 🚀 Getting Started
 
-You can enable or disable an entire SSID using a `switch` entity.
+1.  **Install:** Use HACS (recommended) to install "Meraki Home Assistant". Alternatively, copy the `custom_components/meraki_ha` folder to your HA `custom_components` directory.
+2.  **Configure:** Go to **Settings > Devices & Services > Add Integration** and search for "Meraki".
+3.  **API Key:** Enter your Meraki Dashboard API Key. The integration will discover your organizations.
+4.  **Enjoy:** Check out the new "Meraki" panel in your sidebar!
 
-- **Entity ID:** `switch.<ssid_name>_enabled_control`
-- **How it Works:** This switch directly enables or disables the SSID via the Meraki API.
+## 🤝 Contributing
 
-### Device Reboot
+We love contributions! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) and [DEVELOPMENT.md](DEVELOPMENT.md) guides to get started.
 
-A `reboot_device` service is available to reboot any Meraki device.
-
-- **Service:** `meraki_ha.reboot_device`
-- **Data:**
-  - `serial`: The serial number of the device to reboot.
-
-## Entities 🧩
-
-### Device & Entity Model
-
-The integration represents different aspects of your Meraki setup as devices within Home Assistant to create a logical hierarchy:
-
-- **Meraki Organization:** A single device entry representing your entire Meraki Organization. This acts as a parent for organization-wide sensors.
-- **Meraki Networks:** Each Meraki network is registered as a "device". Physical devices and SSIDs belonging to that network are parented by this device.
-- **Physical Meraki Devices:** Your actual hardware (APs, switches, cameras, etc.) are registered as devices.
-- **Meraki SSIDs:** Wireless SSIDs are registered as "devices," parented by their network.
-- **Meraki VLANs:** Each VLAN is registered as a "device" to group its associated sensors.
-
-### Organization-Wide Sensors
-
-These sensors provide aggregate client counts across your entire Meraki organization and are linked to the Organization device. The client data for these sensors is based on activity within the **last day**.
-
-| Entity Type | Name | Description |
-| :--- | :--- | :--- |
-| `sensor` | `Organization SSID Clients` | Total clients connected to all SSIDs across the organization. |
-| `sensor` | `Organization Wireless Clients` | Total clients connected to wireless Access Points (MR series). |
-| `sensor` | `Organization Appliance Clients` | Total clients that have routed traffic through security appliances (MX series). |
-| `sensor` | `Organization Client Types` | A breakdown of client counts by type (SSID, Appliance, Wireless). |
-
-### Camera Entities & Sensors
-
-For each Meraki camera (MV series), a `camera` entity is created.
-
-| Entity Type | Name | Description |
-| :--- | :--- | :--- |
-| `camera` | `[Camera Name]` | Provides a live video stream from the camera via RTSP. |
-| `sensor` | `RTSP Stream URL` | The RTSP URL for the camera's video stream. The URL is only available when RTSP is enabled. |
-
-**Note:** To view the camera stream, you must enable RTSP. You can do this by turning on the `camera` entity itself.
-
-### Physical Device Sensors
-
-These sensors are linked to specific physical Meraki hardware devices.
-
-| Entity Type | Name | Description | Availability |
-| :--- | :--- | :--- | :--- |
-| `sensor` | `[Device Name] Status` | The current operational status of the device (e.g., "online", "offline"). | All |
-| `sensor` | `[Device Name] Connected Clients` | The number of clients currently connected to the device. | Wireless APs, Switches, Appliances |
-| `sensor` | `[Device Name] Data Usage` | Total data usage for the device in the last day. | Appliances |
-| `sensor` | `[Device Name] Firmware Status` | Indicates if a firmware update is available. | All |
-| `sensor` | `[Device Name] PoE Usage` | The total PoE power being consumed by the device. | Switches |
-| `sensor` | `[Device Name] WAN 1 Connectivity` | The connectivity status of the WAN 1 port. | Appliances |
-| `sensor` | `[Device Name] WAN 2 Connectivity` | The connectivity status of the WAN 2 port. | Appliances |
-
-### Network Sensors
-
-These sensors are linked to Meraki Network "devices" in Home Assistant.
-
-- **`[Network Name] Clients`**: Shows the number of clients active on a specific Meraki network.
-- **Note:** For accurate organization-level total client counts, please use the `Organization ... Clients` sensors.
-- **`[Network Name] Network Information`**: Provides detailed information about the network as attributes (notes, tags, time zone).
-- **`[Network Name] Network Identity`**: Provides basic identity information about the network as attributes (ID, type).
-
-### VLAN Sensors
-
-For each VLAN configured in a network, the following sensors are created.
-
-| Entity Type | Name | Description |
-| :--- | :--- | :--- |
-| `sensor` | `[VLAN Name] Subnet` | The subnet of the VLAN. |
-| `sensor` | `[VLAN Name] Appliance IP` | The appliance IP address for the VLAN. |
-
-### Appliance Port Sensors
-
-For each port on a Meraki MX security appliance, a sensor is created to monitor its status.
-
-| Entity Type | Name | Description |
-| :--- | :--- | :--- |
-| `sensor` | `[Appliance Name] Port [Port Number]` | The status of a specific port on a Meraki appliance (e.g., "connected"). |
-
-### SSID Sensors
-
-| Entity Type | Name | Description |
-| :--- | :--- | :--- |
-| `sensor` | `[SSID Name] Splash Page` | The type of splash page for the SSID. |
-| `sensor` | `[SSID Name] Auth Mode` | The association control method for the SSID. |
-| `sensor` | `[SSID Name] Encryption Mode` | The psk encryption mode for the SSID. |
-| `sensor` | `[SSID Name] WPA Encryption Mode` | The types of WPA encryption. |
-| `sensor` | `[SSID Name] IP Assignment Mode` | The client IP assignment mode. |
-| `sensor` | `[SSID Name] Band Selection` | The client-serving radio frequencies of this SSID. |
-| `sensor` | `[SSID Name] Per-Client Bandwidth Limit Up` | The upload bandwidth limit in Kbps. |
-| `sensor` | `[SSID Name] Per-Client Bandwidth Limit Down` | The download bandwidth limit in Kbps. |
-| `sensor` | `[SSID Name] Per-SSID Bandwidth Limit Up` | The total upload bandwidth limit in Kbps. |
-| `sensor` | `[SSID Name] Per-SSID Bandwidth Limit Down` | The total download bandwidth limit in Kbps. |
-| `sensor` | `[SSID Name] Visible` | Whether the SSID is advertised or hidden. |
-| `sensor` | `[SSID Name] Availability` | Whether the SSID is enabled or disabled. |
-| `sensor` | `[SSID Name] Channel` | The current operational channel of the SSID. |
-| `sensor` | `[SSID Name] Client Count` | The number of clients connected to the SSID. |
-| `sensor` | `[SSID Name] Walled Garden` | Whether the walled garden is enabled or disabled. |
-| `sensor` | `[SSID Name] Mandatory DHCP` | Whether mandatory DHCP is enabled or disabled. |
-| `sensor` | `[SSID Name] Minimum Bitrate 2.4GHz` | The minimum bitrate for the 2.4GHz band. |
-| `sensor` | `[SSID Name] Minimum Bitrate 5GHz` | The minimum bitrate for the 5GHz band. |
-
-### Environmental Sensors (MT Series)
-
-For each Meraki environmental sensor (MT series), entities are created to monitor real-time conditions.
-
-| Entity Type | Name | Description | Availability |
-| :--- | :--- | :--- | :--- |
-| `sensor` | `[Sensor Name] Temperature` | The ambient temperature. | MT10, MT12 |
-| `sensor` | `[Sensor Name] Humidity` | The relative humidity. | MT10, MT12 |
-| `sensor` | `[Sensor Name] Water Detection` | Whether water has been detected. | MT12 |
-| `binary_sensor` | `[Sensor Name] Door` | The state of the door (open/closed). | MT20 |
-
-## Automation Examples 🚀
-
-### Notify when a device goes offline
-
-```yaml
-automation:
-  - alias: "Notify when Meraki device goes offline"
-    trigger:
-      - platform: state
-        entity_id: sensor.my_access_point_status
-        to: "offline"
-    action:
-      - service: notify.mobile_app_my_phone
-        data:
-          message: "{{ trigger.to_state.name }} has gone offline."
+---
+*Built with ❤️ by the Open Source Community.*

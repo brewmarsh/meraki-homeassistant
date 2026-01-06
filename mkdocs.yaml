@@ -1,8 +1,9 @@
 site_name: Meraki Home Assistant Integration
+docs_dir: docs
 theme:
-  name: material # Use the Material for MkDocs theme
+  name: material
 nav:
-  - Home: index.md # The main page
-  - Configuration: configuration.md
-  - Entities: entities.md
-  - Troubleshooting: troubleshooting.md
+  - Home: README.md
+  - Architecture: ARCHITECTURE.md
+  - Development: development.md
+  - Requirements: REQUIREMENTS.md

@@ -267,13 +267,21 @@ class MerakiAPIClient:
             A list of clients.
 
         """
+        # Only fetch clients for networks that have client-capable devices.
+        # Camera-only networks do not support the getNetworkClients API.
+        client_capable_types = {"wireless", "appliance", "switch", "cellularGateway"}
+        eligible_networks = [
+            network
+            for network in networks
+            if client_capable_types.intersection(network.get("productTypes", []))
+        ]
         client_tasks = [
             self._run_with_semaphore(self.network.get_network_clients(network["id"]))
-            for network in networks
+            for network in eligible_networks
         ]
         clients_results = await asyncio.gather(*client_tasks, return_exceptions=True)
         clients: list[dict[str, Any]] = []
-        for i, network in enumerate(networks):
+        for i, network in enumerate(eligible_networks):
             result = clients_results[i]
             if isinstance(result, list):
                 for client in result:
@@ -576,12 +584,16 @@ class MerakiAPIClient:
     async def get_all_data(
         self,
         previous_data: dict[str, Any] | None = None,
+        enabled_network_ids: set[str] | None = None,
     ) -> dict[str, Any]:
         """
         Fetch all data from the Meraki API concurrently, with caching.
 
         Args:
             previous_data: The previous data from the coordinator.
+            enabled_network_ids: Optional set of network IDs to poll. If None,
+                all networks are polled. If provided, only networks in this set
+                will have detailed API calls made for them.
 
         Returns
         -------
@@ -595,8 +607,24 @@ class MerakiAPIClient:
         initial_results = await self._async_fetch_initial_data()
         processed_initial_data = self._process_initial_data(initial_results)
 
-        networks = processed_initial_data["networks"]
-        devices = processed_initial_data["devices"]
+        all_networks = processed_initial_data["networks"]
+        all_devices = processed_initial_data["devices"]
+
+        # Filter networks and devices based on enabled_network_ids setting.
+        # This avoids making API calls for networks that the user has disabled.
+        if enabled_network_ids is not None:
+            networks = [n for n in all_networks if n.get("id") in enabled_network_ids]
+            devices = [
+                d for d in all_devices if d.get("networkId") in enabled_network_ids
+            ]
+            _LOGGER.debug(
+                "Filtered to %d enabled networks (out of %d total)",
+                len(networks),
+                len(all_networks),
+            )
+        else:
+            networks = all_networks
+            devices = all_devices
 
         network_clients, device_clients = await asyncio.gather(
             self._async_fetch_network_clients(networks),
@@ -619,7 +647,8 @@ class MerakiAPIClient:
         )
 
         return {
-            "networks": networks,
+            # Return all networks so the UI can show which are enabled/disabled
+            "networks": all_networks,
             "devices": devices,
             "clients": network_clients if isinstance(network_clients, list) else [],
             "clients_by_serial": (

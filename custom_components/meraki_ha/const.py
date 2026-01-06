@@ -27,12 +27,6 @@ CONF_MERAKI_ORG_ID: Final = "meraki_org_id"
 CONF_SCAN_INTERVAL: Final = "scan_interval"
 """Configuration key for the scan interval in seconds."""
 
-CONF_ENABLE_WEB_UI: Final = "enable_web_ui"
-"""Configuration key for enabling the web UI."""
-
-CONF_WEB_UI_PORT: Final = "web_ui_port"
-"""Configuration key for the web UI port."""
-
 DATA_CLIENT: Final = "client"
 """Key for storing the Meraki API client in Home Assistant's data."""
 
@@ -51,16 +45,45 @@ CONF_HIDE_UNCONFIGURED_SSIDS: Final = "hide_unconfigured_ssids"
 CONF_RTSP_STREAM_ENABLED: Final = "rtsp_stream_enabled"
 """Configuration key for enabling RTSP stream on a camera."""
 
+CONF_CAMERA_STREAM_SOURCE: Final = "camera_stream_source"
+"""Configuration key for camera stream source (rtsp or cloud)."""
+
+CONF_CAMERA_SNAPSHOT_INTERVAL: Final = "camera_snapshot_interval"
+"""Configuration key for camera snapshot refresh interval in seconds."""
+
+CAMERA_STREAM_SOURCE_RTSP: Final = "rtsp"
+"""Use RTSP for camera streaming."""
+
+CAMERA_STREAM_SOURCE_CLOUD: Final = "cloud"
+"""Use cloud video link for camera streaming."""
+
+DEFAULT_CAMERA_STREAM_SOURCE: Final = "rtsp"
+"""Default camera stream source."""
+
+DEFAULT_CAMERA_SNAPSHOT_INTERVAL: Final = 0
+"""Default camera snapshot interval (0 = disabled)."""
+
+CONF_CAMERA_ENTITY_MAPPINGS: Final = "camera_entity_mappings"
+"""Configuration key for camera entity mappings (Meraki serial -> HA entity_id)."""
+
 CONF_ENABLE_DEVICE_TRACKER: Final = "enable_device_tracker"
 """Configuration key for enabling device tracker."""
-
 
 CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
 """Configuration key for enabling vlan management."""
 
-
 CONF_ENABLED_NETWORKS: Final = "enabled_networks"
 """Configuration key for a list of network IDs to enable."""
+
+# New Configuration Options
+CONF_ENABLE_DEVICE_STATUS: Final = "enable_device_status"
+CONF_ENABLE_ORG_SENSORS: Final = "enable_org_sensors"
+CONF_ENABLE_CAMERA_ENTITIES: Final = "enable_camera_entities"
+CONF_ENABLE_DEVICE_SENSORS: Final = "enable_device_sensors"
+CONF_ENABLE_NETWORK_SENSORS: Final = "enable_network_sensors"
+CONF_ENABLE_VLAN_SENSORS: Final = "enable_vlan_sensors"
+CONF_ENABLE_PORT_SENSORS: Final = "enable_port_sensors"
+CONF_ENABLE_SSID_SENSORS: Final = "enable_ssid_sensors"
 
 DEFAULT_ENABLED_NETWORKS: Final[list[str]] = []
 """Default value for the ignored networks list."""
@@ -83,11 +106,20 @@ MERAKI_API_CLIENT: Final = "meraki_api_client"
 DEFAULT_SCAN_INTERVAL: Final = 300
 """Default scan interval in seconds for the Meraki API data."""
 
-DEFAULT_ENABLE_WEB_UI: Final = False
-"""Default value for enabling the web UI."""
+# Defaults for new options
+DEFAULT_ENABLE_DEVICE_STATUS: Final = True
+DEFAULT_ENABLE_ORG_SENSORS: Final = True
+DEFAULT_ENABLE_CAMERA_ENTITIES: Final = True
+DEFAULT_ENABLE_DEVICE_SENSORS: Final = True
+DEFAULT_ENABLE_NETWORK_SENSORS: Final = True
+DEFAULT_ENABLE_VLAN_SENSORS: Final = True
+DEFAULT_ENABLE_PORT_SENSORS: Final = True
+DEFAULT_ENABLE_SSID_SENSORS: Final = True
 
-DEFAULT_WEB_UI_PORT: Final = 8080
-"""Default scan interval in seconds for the Meraki API data."""
+CONF_ENABLE_WEB_UI: Final = "enable_web_ui"
+DEFAULT_ENABLE_WEB_UI: Final = False
+CONF_WEB_UI_PORT: Final = "web_ui_port"
+DEFAULT_WEB_UI_PORT: Final = 9000
 
 # Platform types
 PLATFORM_BINARY_SENSOR: Final = "binary_sensor"
@@ -140,6 +172,14 @@ ATTR_SSIDS: Final = "ssids"
 
 TAG_HA_DISABLED: Final = "ha-disabled"
 """Tag used to indirectly disable an SSID on an access point."""
+
+# Device name format options
+DEVICE_NAME_FORMAT_PREFIX: Final = "prefix"
+"""Format device name with type prefix."""
+DEVICE_NAME_FORMAT_SUFFIX: Final = "suffix"
+"""Format device name with type suffix."""
+DEVICE_NAME_FORMAT_NONE: Final = "none"
+"""Do not format device name."""
 
 ERASE_TAGS_WARNING: Final = (
     "Tag erasing is enabled! This will ERASE ALL TAGS on your Meraki devices. "

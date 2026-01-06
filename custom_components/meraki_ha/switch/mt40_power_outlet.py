@@ -76,7 +76,10 @@ class MerakiMt40PowerOutlet(
 
     def _get_power_state(self) -> bool | None:
         """Get the power state from the device's readings."""
-        readings = self._device_info.get("readings")
+        # Use readings_raw (list format) for sensor entities
+        readings = self._device_info.get("readings_raw") or self._device_info.get(
+            "readings"
+        )
         if not isinstance(readings, list):
             return None
         return next(

@@ -1,5 +1,6 @@
 homeassistant==2025.11.0
 uv==0.9.6
+urllib3>=2.6.0
 aiofiles==23.2.1
 types-aiofiles==25.1.0.20251011
 meraki==1.40.1
@@ -16,3 +17,4 @@ pytest==8.4.2
 pytest-cov==7.0.0
 pytest-asyncio==1.2.0
 codecov
+pycares==4.11.0
