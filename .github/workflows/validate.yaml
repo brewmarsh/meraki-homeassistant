@@ -17,4 +17,4 @@ jobs:
         with:
           category: 'integration'
           # Ignore repository settings that may differ on forks
-          ignore: 'topics,issues'
+          ignore: topics
