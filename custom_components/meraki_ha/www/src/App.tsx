@@ -245,7 +245,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
 
   // Render the appropriate view
   return (
-    <div className="meraki-panel" style={{ maxWidth: narrow ? '100%' : '1200px', margin: '0 auto' }}>
+    <div className="meraki-panel" style={{ maxWidth: '100%', margin: '0 auto' }}>
       <Header version={data.version} />
 
       {activeView.view === 'dashboard' ? (
