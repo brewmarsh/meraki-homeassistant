@@ -97,11 +97,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Use GitHub CLI for fast release creation (~3s vs ~60s with release-drafter)
+          # --target beta ensures the tag points to the just-pushed commit with the version bump
           gh release create "v${{ steps.increment.outputs.new_version }}" \
             --repo "${{ github.repository }}" \
             --title "v${{ steps.increment.outputs.new_version }}" \
             --generate-notes \
-            --prerelease
+            --prerelease \
+            --target beta
 
       # Deploy to local HA instance via HACS (if enabled)
       - name: Deploy via HACS

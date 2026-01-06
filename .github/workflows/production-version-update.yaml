@@ -95,19 +95,19 @@ jobs:
       contents: write
       pull-requests: read
     steps:
-      - name: Checkout for release-drafter config
+      - name: Checkout
         uses: actions/checkout@v6
       - name: Create Release
-        uses: release-drafter/release-drafter@v6
-        continue-on-error: true
-        with:
-          tag: 'v${{ needs.version.outputs.new_version }}'
-          name: 'Release v${{ needs.version.outputs.new_version }}'
-          version: 'v${{ needs.version.outputs.new_version }}'
-          publish: true
-          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Use GitHub CLI for fast release creation
+          # --target main ensures the tag points to the just-pushed commit with the version bump
+          gh release create "v${{ needs.version.outputs.new_version }}" \
+            --repo "${{ github.repository }}" \
+            --title "Release v${{ needs.version.outputs.new_version }}" \
+            --generate-notes \
+            --target main
 
       # Deploy to local HA instance via HACS (if enabled)
       - name: Deploy via HACS
