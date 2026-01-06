@@ -93,13 +93,12 @@ jobs:
 
       - name: Create Release
         if: steps.increment.outputs.new_version != ''
-        uses: release-drafter/release-drafter@v6
-        continue-on-error: true
-        with:
-          tag: 'v${{ steps.increment.outputs.new_version }}'
-          name: 'Release v${{ steps.increment.outputs.new_version }}'
-          version: 'v${{ steps.increment.outputs.new_version }}'
-          publish: true
-          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Use GitHub CLI for fast release creation (~3s vs ~60s with release-drafter)
+          gh release create "v${{ steps.increment.outputs.new_version }}" \
+            --repo "${{ github.repository }}" \
+            --title "v${{ steps.increment.outputs.new_version }}" \
+            --generate-notes \
+            --prerelease
