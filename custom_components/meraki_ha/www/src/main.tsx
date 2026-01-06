@@ -8,8 +8,20 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import './index.css';
+// Import CSS as string and inject it into the document
+import styles from './index.css?inline';
 import type { HomeAssistant, PanelInfo, RouteInfo } from './types/hass';
+
+// Inject CSS into document head (since HA only loads the JS file)
+const injectStyles = () => {
+  if (!document.getElementById('meraki-panel-styles')) {
+    const styleEl = document.createElement('style');
+    styleEl.id = 'meraki-panel-styles';
+    styleEl.textContent = styles;
+    document.head.appendChild(styleEl);
+  }
+};
+injectStyles();
 
 /**
  * MerakiPanel Web Component
@@ -130,4 +142,7 @@ class MerakiPanelElement extends HTMLElement {
 }
 
 // Register the custom element with the name Home Assistant expects
-customElements.define('meraki-panel', MerakiPanelElement);
+// Guard against duplicate registration (can happen with HMR or cache issues)
+if (!customElements.get('meraki-panel')) {
+  customElements.define('meraki-panel', MerakiPanelElement);
+}

@@ -16,8 +16,12 @@ jobs:
           python-version: 3.x
       - uses: actions/checkout@v6
 
-      - run: pip install -r requirements_dev.txt
-      - run: mkdocs build
+      - name: Install dependencies
+        run: |
+          pip install mkdocs mkdocs-material
+          pip install -r requirements_dev.txt
+      - name: Build docs
+        run: mkdocs build -f mkdocs.yaml
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
