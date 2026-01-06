@@ -51,8 +51,17 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
             for port in self._device.get("ports_statuses", []):
                 if port["portId"] == self._port["portId"]:
                     self._port = port
-                    self.async_write_ha_state()
-                    return
+                    break
+        self.async_write_ha_state()
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        if not self.coordinator.last_update_success:
+            return False
+        return get_device_from_coordinator(
+            self.coordinator, self._device["serial"]
+        ) is not None
 
     @property
     def is_on(self) -> bool:
