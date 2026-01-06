@@ -14,8 +14,16 @@ from homeassistant.core import HomeAssistant
 from voluptuous import ALLOW_EXTRA, All, Optional, Required, Schema
 
 from .const import (
+    CONF_CAMERA_LINK_INTEGRATION,
+    CONF_DASHBOARD_DEVICE_TYPE_FILTER,
+    CONF_DASHBOARD_STATUS_FILTER,
+    CONF_DASHBOARD_VIEW_MODE,
     CONF_ENABLED_NETWORKS,
     DATA_CLIENT,
+    DEFAULT_CAMERA_LINK_INTEGRATION,
+    DEFAULT_DASHBOARD_DEVICE_TYPE_FILTER,
+    DEFAULT_DASHBOARD_STATUS_FILTER,
+    DEFAULT_DASHBOARD_VIEW_MODE,
     DOMAIN,
 )
 from .core.errors import MerakiError
@@ -172,6 +180,7 @@ def async_setup_api(hass: HomeAssistant) -> None:
         Schema(
             {
                 Required("type"): All(str, "meraki_ha/get_available_cameras"),
+                Optional("integration_filter"): str,
             },
             extra=ALLOW_EXTRA,
         ),
@@ -218,6 +227,22 @@ async def handle_get_config(
     manifest = json.loads(contents)
     version = manifest.get("version")
 
+    # Get dashboard settings from options
+    dashboard_settings = {
+        "dashboard_view_mode": config_entry.options.get(
+            CONF_DASHBOARD_VIEW_MODE, DEFAULT_DASHBOARD_VIEW_MODE
+        ),
+        "dashboard_device_type_filter": config_entry.options.get(
+            CONF_DASHBOARD_DEVICE_TYPE_FILTER, DEFAULT_DASHBOARD_DEVICE_TYPE_FILTER
+        ),
+        "dashboard_status_filter": config_entry.options.get(
+            CONF_DASHBOARD_STATUS_FILTER, DEFAULT_DASHBOARD_STATUS_FILTER
+        ),
+        "camera_link_integration": config_entry.options.get(
+            CONF_CAMERA_LINK_INTEGRATION, DEFAULT_CAMERA_LINK_INTEGRATION
+        ),
+    }
+
     connection.send_result(
         msg["id"],
         {
@@ -225,6 +250,7 @@ async def handle_get_config(
             "enabled_networks": enabled_networks,
             "config_entry_id": config_entry_id,
             "version": version,
+            **dashboard_settings,
         },
     )
 
@@ -445,8 +471,16 @@ async def handle_get_available_cameras(
 
     Returns a list of camera entities that can be linked to Meraki cameras.
     Excludes Meraki cameras themselves to avoid circular links.
+
+    Args:
+        integration_filter: Optional integration domain to filter cameras by
+                           (e.g., 'blue_iris', 'generic'). Empty string shows all.
     """
+    integration_filter = msg.get("integration_filter", "").lower().strip()
     camera_entities = []
+
+    # Get entity registry to look up integration/platform
+    entity_registry = hass.helpers.entity_registry.async_get(hass)
 
     # Get all camera entities from the state machine
     for state in hass.states.async_all("camera"):
@@ -454,6 +488,18 @@ async def handle_get_available_cameras(
         # Skip Meraki cameras (they have our domain prefix pattern)
         if "meraki" in entity_id.lower():
             continue
+
+        # If integration filter is set, check if entity belongs to that integration
+        if integration_filter:
+            entity_entry = entity_registry.async_get(entity_id)
+            if entity_entry:
+                # Check platform (integration domain)
+                if integration_filter not in entity_entry.platform.lower():
+                    continue
+            else:
+                # No registry entry, try to match by entity_id pattern
+                if integration_filter not in entity_id.lower():
+                    continue
 
         friendly_name = state.attributes.get("friendly_name", entity_id)
         camera_entities.append(

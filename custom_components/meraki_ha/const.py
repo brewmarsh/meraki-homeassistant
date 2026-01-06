@@ -66,6 +66,38 @@ DEFAULT_CAMERA_SNAPSHOT_INTERVAL: Final = 0
 CONF_CAMERA_ENTITY_MAPPINGS: Final = "camera_entity_mappings"
 """Configuration key for camera entity mappings (Meraki serial -> HA entity_id)."""
 
+# Dashboard display settings
+CONF_DASHBOARD_VIEW_MODE: Final = "dashboard_view_mode"
+"""Configuration key for dashboard view mode (network or type)."""
+
+CONF_DASHBOARD_DEVICE_TYPE_FILTER: Final = "dashboard_device_type_filter"
+"""Configuration key for default device type filter on dashboard."""
+
+CONF_DASHBOARD_STATUS_FILTER: Final = "dashboard_status_filter"
+"""Configuration key for default device status filter on dashboard."""
+
+CONF_CAMERA_LINK_INTEGRATION: Final = "camera_link_integration"
+"""Configuration key for which integration to filter cameras for linking."""
+
+# Dashboard defaults
+DASHBOARD_VIEW_MODE_NETWORK: Final = "network"
+"""View devices grouped by network."""
+
+DASHBOARD_VIEW_MODE_TYPE: Final = "type"
+"""View devices grouped by device type."""
+
+DEFAULT_DASHBOARD_VIEW_MODE: Final = "network"
+"""Default dashboard view mode."""
+
+DEFAULT_DASHBOARD_DEVICE_TYPE_FILTER: Final = "all"
+"""Default device type filter (all = no filter)."""
+
+DEFAULT_DASHBOARD_STATUS_FILTER: Final = "all"
+"""Default device status filter (all = no filter)."""
+
+DEFAULT_CAMERA_LINK_INTEGRATION: Final = ""
+"""Default camera link integration (empty = show all cameras)."""
+
 CONF_ENABLE_DEVICE_TRACKER: Final = "enable_device_tracker"
 """Configuration key for enabling device tracker."""
 
