@@ -20,8 +20,6 @@ from ..const import (
     DOMAIN,
 )
 from ..core.api.client import MerakiAPIClient
-from ..core.coordinators.device import MerakiDeviceCoordinator
-from ..core.coordinators.network import MerakiNetworkCoordinator
 from ..core.utils.naming_utils import format_device_name
 from ..sensor_registry import (
     COMMON_DEVICE_SENSORS,
@@ -63,13 +61,11 @@ async def async_setup_entry(
 
     coordinator: MerakiDataCoordinator | None = entry_data.get("coordinator")
 
-    # Get the specialized coordinators for physical devices
-    device_coordinator: MerakiDeviceCoordinator | None = entry_data.get(
-        "device_coordinator"
-    )
-    network_coordinator: MerakiNetworkCoordinator | None = entry_data.get(
-        "network_coordinator"
-    )
+    # Note: device_coordinator and network_coordinator were planned but not implemented
+    # The main coordinator handles all data including devices and networks
+    # Use main coordinator for both device and network data
+    device_coordinator = coordinator  # Main coordinator has device data
+    network_coordinator = coordinator  # Main coordinator has network data
 
     # Retrieve the MerakiAPIClient instance
     meraki_api_client: MerakiAPIClient | None = entry_data.get(DATA_CLIENT)
