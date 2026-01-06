@@ -73,14 +73,22 @@
     "step": {
       "init": {
         "title": "Meraki Options",
-        "description": "Step 1 of 3: General Settings",
+        "description": "Configure your Meraki integration settings.",
         "data": {
           "scan_interval": "Scan Interval (seconds)",
-          "device_name_format": "Device Name Format"
+          "enable_device_tracker": "Enable Client Tracker",
+          "enable_vlan_management": "Enable VLAN Management",
+          "enabled_networks": "Enabled Networks",
+          "camera_stream_source": "Camera Stream Source",
+          "camera_snapshot_interval": "Camera Snapshot Refresh Interval (seconds)"
         },
         "data_description": {
           "scan_interval": "How often to poll the Meraki API for updates, in seconds.",
-          "device_name_format": "Choose how devices should be named in Home Assistant."
+          "enable_device_tracker": "Enable tracking of clients connected to the network.",
+          "enable_vlan_management": "Enable VLAN management features.",
+          "enabled_networks": "Select which networks to monitor. Leave empty for all networks.",
+          "camera_stream_source": "Choose RTSP for local network streaming or Cloud for Meraki Dashboard streaming.",
+          "camera_snapshot_interval": "How often to refresh camera snapshots on the dashboard (0 = only on demand)."
         }
       },
       "features": {

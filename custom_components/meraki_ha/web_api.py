@@ -50,6 +50,7 @@ def async_setup_api(hass: HomeAssistant) -> None:
                 Required("type"): All(str, "meraki_ha/get_camera_stream_url"),
                 Required("config_entry_id"): str,
                 Required("serial"): str,
+                Optional("stream_source"): str,  # "rtsp" or "cloud"
             },
             extra=ALLOW_EXTRA,
         ),
@@ -161,17 +162,30 @@ async def handle_get_camera_stream_url(
     ----
         hass: The Home Assistant instance.
         connection: The WebSocket connection.
-        msg: The WebSocket message.
+        msg: The WebSocket message containing:
+            - config_entry_id: The config entry ID
+            - serial: The camera serial number
+            - stream_source (optional): "rtsp" or "cloud" to specify the stream type
 
     """
     config_entry_id = msg["config_entry_id"]
     serial = msg["serial"]
+    stream_source = msg.get("stream_source")
     if config_entry_id not in hass.data[DOMAIN]:
         connection.send_error(msg["id"], "not_found", "Config entry not found")
         return
 
     camera_service: CameraService = hass.data[DOMAIN][config_entry_id]["camera_service"]
-    stream_url = await camera_service.get_video_stream_url(serial)
+
+    # If a specific stream source is requested, use that
+    if stream_source == "cloud":
+        stream_url = await camera_service.get_cloud_video_url(serial)
+    elif stream_source == "rtsp":
+        stream_url = await camera_service.get_rtsp_stream_url(serial)
+    else:
+        # Default: try cloud first, then fall back to RTSP
+        stream_url = await camera_service.get_video_stream_url(serial)
+
     connection.send_result(msg["id"], {"url": stream_url})
 
 

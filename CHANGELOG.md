@@ -1,3 +1,52 @@
+# [2.2.1-beta.1](https://github.com/liptonj/meraki-homeassistant/compare/v2.2.0-beta.36...v2.2.1-beta.1) (2025-01-06)
+
+### Features
+
+* **camera:** Add camera stream source option (RTSP vs Cloud)
+  - New `camera_stream_source` configuration option
+  - Choose between "RTSP (Local Network)" or "Cloud (Meraki Dashboard)"
+  - Cloud streaming works for all camera models, including those that don't support RTSP (e.g., MV2)
+* **camera:** Add configurable snapshot refresh interval
+  - New `camera_snapshot_interval` configuration option (0-3600 seconds)
+  - Set to 0 for on-demand snapshots only (default)
+  - Cached snapshots are returned instantly within the interval, reducing API calls
+* **api:** Filter networks before making API calls based on enabled networks setting
+  - Only polls networks that are enabled in integration settings
+  - Reduces unnecessary API calls and improves performance
+* **frontend:** Refactor panel to use proper HA custom panel architecture
+  - Implement Web Component wrapper that receives `hass` and `panel` from Home Assistant
+  - Replace manual WebSocket connections with `hass.callWS()` for authenticated API calls
+  - Register WebSocket subscription handler in `__init__.py`
+  - Remove token prompts - panel now uses HA's authenticated connection
+* **frontend:** Redesign panel UI with HA-compatible styling
+  - New clean card-based layout with proper CSS variables for light/dark theme support
+  - Device status badges with color coding (green=online, red=offline, orange=alerting)
+  - Device icons based on model type (MR, MS, MV, MX, MG, MT)
+  - SSID grid with visual enabled/disabled indicators
+* **frontend:** Filter networks to only show enabled ones
+  - Panel now only displays networks that are enabled in integration settings
+  - Auto-expand single network when only one is enabled
+* **api:** Add stream_source parameter to camera stream URL websocket endpoint
+  - Web UI can now request specific stream type ("rtsp" or "cloud")
+  - Respects user preference for camera streaming
+
+### Bug Fixes
+
+* **api:** Fix "Invalid device type" error in getNetworkClients (1,900+ occurrences)
+  - Filter networks to only query those with client-capable product types
+  - Camera-only networks are now skipped, preventing 400 Bad Request errors
+* **camera:** Fix camera snapshot 400 Bad Request errors
+  - Added retry mechanism (3 attempts with 2-second delays)
+  - Gracefully handles 202 (Accepted) and 400 responses during snapshot generation
+  - Falls back to cached snapshot if new fetch fails
+* **api:** Fix traffic analysis errors being logged at ERROR level
+  - Informational errors (traffic analysis disabled, VLANs disabled) now propagate cleanly
+  - No longer logged as "Unexpected error" at ERROR level
+* **frontend:** Fix click handling for device rows and entity links
+* **websocket:** Register `async_setup_websocket_api` to enable subscription handler
+
+---
+
 # [2.2.0-beta.35](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.34...v2.2.0-beta.35) (2025-12-02)
 
 ### Bug Fixes
