@@ -154,15 +154,16 @@ jobs:
           
           echo "Installed: $INSTALLED, Latest seen by HACS: $LATEST, Just released: $NEW_VERSION"
           
-          # Explicitly specify the version to ensure we install the just-released version
-          echo "Installing specific version: v$NEW_VERSION..."
+          # Use HACS repository service directly to download specific version
+          # This works even when HACS is tracking default branch instead of releases
+          echo "Downloading specific version v$NEW_VERSION via HACS repository service..."
           curl -sS -X POST \
             -H "Authorization: Bearer $CLEAN_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{\"entity_id\": \"$ENTITY_ID\", \"version\": \"v$NEW_VERSION\"}" \
-            "$HA_URL/api/services/update/install"
+            -d "{\"repository\": \"liptonj/meraki-homeassistant\", \"version\": \"v$NEW_VERSION\"}" \
+            "$HA_URL/api/services/hacs/repository"
           
-          echo "✅ Update triggered for version v$NEW_VERSION!"
+          echo "✅ Download triggered for version v$NEW_VERSION!"
           echo "Waiting 30 seconds for HACS to download and install..."
           sleep 30
 
