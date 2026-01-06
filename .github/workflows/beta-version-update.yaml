@@ -93,13 +93,138 @@ jobs:
 
       - name: Create Release
         if: steps.increment.outputs.new_version != ''
-        uses: release-drafter/release-drafter@v6
-        continue-on-error: true
-        with:
-          tag: 'v${{ steps.increment.outputs.new_version }}'
-          name: 'Release v${{ steps.increment.outputs.new_version }}'
-          version: 'v${{ steps.increment.outputs.new_version }}'
-          publish: true
-          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Use GitHub CLI for fast release creation (~3s vs ~60s with release-drafter)
+          gh release create "v${{ steps.increment.outputs.new_version }}" \
+            --repo "${{ github.repository }}" \
+            --title "v${{ steps.increment.outputs.new_version }}" \
+            --generate-notes \
+            --prerelease
+
+      # Deploy to local HA instance via HACS (if enabled)
+      - name: Deploy via HACS
+        if: steps.increment.outputs.new_version != '' && vars.ENABLE_HACS_DEPLOY == 'true'
+        env:
+          HA_URL: ${{ secrets.HA_URL }}
+          HA_TOKEN: ${{ secrets.HA_TOKEN }}
+          NEW_VERSION: ${{ steps.increment.outputs.new_version }}
+        run: |
+          echo "Waiting 30 seconds for release to propagate to GitHub CDN..."
+          sleep 30
+          
+          CLEAN_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
+          
+          # Force HACS to re-fetch this specific repository
+          echo "Refreshing HACS repository: liptonj/meraki-homeassistant..."
+          curl -sS -X POST \
+            -H "Authorization: Bearer $CLEAN_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"repository": "liptonj/meraki-homeassistant"}' \
+            "$HA_URL/api/services/hacs/repository" || true
+          
+          echo "Waiting 15 seconds for HACS to process..."
+          sleep 15
+          
+          # Find the update entity
+          echo "Discovering Meraki update entity..."
+          ENTITY_ID=$(curl -sS -H "Authorization: Bearer $CLEAN_TOKEN" \
+            "$HA_URL/api/states" | \
+            jq -r '.[] | select(.entity_id | startswith("update.") and contains("meraki")) | .entity_id' | head -1)
+          
+          if [[ -z "$ENTITY_ID" ]]; then
+            echo "⚠ Meraki update entity not found - skipping auto-deploy"
+            exit 0
+          fi
+          
+          echo "Found: $ENTITY_ID"
+          
+          # Check if HACS sees the new version
+          STATE=$(curl -sS -H "Authorization: Bearer $CLEAN_TOKEN" \
+            "$HA_URL/api/states/$ENTITY_ID")
+          INSTALLED=$(echo "$STATE" | jq -r '.attributes.installed_version // "unknown"')
+          LATEST=$(echo "$STATE" | jq -r '.attributes.latest_version // "unknown"')
+          
+          echo "Installed: $INSTALLED, Latest seen by HACS: $LATEST, Just released: $NEW_VERSION"
+          
+          # For beta releases, we must specify the exact version since HACS
+          # may only track stable releases by default
+          echo "Installing specific version: v$NEW_VERSION (beta)..."
+          curl -sS -X POST \
+            -H "Authorization: Bearer $CLEAN_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"entity_id\": \"$ENTITY_ID\", \"version\": \"v$NEW_VERSION\"}" \
+            "$HA_URL/api/services/update/install"
+          
+          echo "✅ Update triggered for beta version v$NEW_VERSION!"
+          echo "Waiting 30 seconds for HACS to download and install..."
+          sleep 30
+
+      # Restart Home Assistant after update
+      - name: Restart Home Assistant
+        if: steps.increment.outputs.new_version != '' && vars.ENABLE_HACS_DEPLOY == 'true'
+        env:
+          HA_URL: ${{ secrets.HA_URL }}
+          HA_TOKEN: ${{ secrets.HA_TOKEN }}
+        run: |
+          CLEAN_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
+          
+          echo "Restarting Home Assistant to load new version..."
+          # HA may not respond during restart, so we use --max-time and ignore errors
+          curl -sS --max-time 30 -X POST \
+            -H "Authorization: Bearer $CLEAN_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            "$HA_URL/api/services/homeassistant/restart" 2>/dev/null || true
+          
+          echo "Restart initiated. Waiting 90 seconds for HA to come back online..."
+          sleep 90
+
+      # Verify correct version is installed
+      - name: Verify Installation
+        if: steps.increment.outputs.new_version != '' && vars.ENABLE_HACS_DEPLOY == 'true'
+        env:
+          HA_URL: ${{ secrets.HA_URL }}
+          HA_TOKEN: ${{ secrets.HA_TOKEN }}
+          NEW_VERSION: ${{ steps.increment.outputs.new_version }}
+        run: |
+          CLEAN_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
+          
+          # Wait for HA to be ready
+          echo "Checking if Home Assistant is back online..."
+          for i in {1..6}; do
+            STATUS=$(curl -sS --max-time 10 -o /dev/null -w "%{http_code}" \
+              -H "Authorization: Bearer $CLEAN_TOKEN" \
+              "$HA_URL/api/" 2>/dev/null || echo "000")
+            if [[ "$STATUS" == "200" ]]; then
+              echo "✓ Home Assistant is online!"
+              break
+            fi
+            echo "  Attempt $i/6: HA not ready (HTTP $STATUS), waiting 15s..."
+            sleep 15
+          done
+          
+          # Verify installed version
+          echo "Verifying installed version..."
+          ENTITY_ID=$(curl -sS -H "Authorization: Bearer $CLEAN_TOKEN" \
+            "$HA_URL/api/states" | \
+            jq -r '.[] | select(.entity_id | startswith("update.") and contains("meraki")) | .entity_id' | head -1)
+          
+          if [[ -n "$ENTITY_ID" ]]; then
+            STATE=$(curl -sS -H "Authorization: Bearer $CLEAN_TOKEN" \
+              "$HA_URL/api/states/$ENTITY_ID")
+            INSTALLED=$(echo "$STATE" | jq -r '.attributes.installed_version // "unknown"')
+            
+            echo "Expected: v$NEW_VERSION"
+            echo "Installed: $INSTALLED"
+            
+            if [[ "$INSTALLED" == "$NEW_VERSION" || "$INSTALLED" == "v$NEW_VERSION" ]]; then
+              echo "✅ SUCCESS: Version v$NEW_VERSION is installed!"
+            else
+              echo "⚠ WARNING: Installed version ($INSTALLED) doesn't match expected (v$NEW_VERSION)"
+              echo "  This may be a timing issue - check HA manually"
+            fi
+          else
+            echo "⚠ Could not find update entity to verify version"
+          fi

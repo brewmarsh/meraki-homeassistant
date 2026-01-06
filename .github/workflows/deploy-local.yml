@@ -1,8 +1,15 @@
 name: Deploy via HACS
 
+# NOTE: This workflow does NOT auto-trigger when releases are created by other
+# workflows using GITHUB_TOKEN (GitHub limitation to prevent infinite loops).
+# The HACS deploy logic is now embedded directly in beta-version-update.yaml
+# and production-version-update.yaml for automatic deployment.
+#
+# Use this workflow manually via workflow_dispatch if needed.
+
 on:
   release:
-    types: [published]  # Trigger when release is actually published
+    types: [published]  # Only triggers for manual/external releases
   workflow_dispatch:  # Allow manual trigger
 
 jobs:

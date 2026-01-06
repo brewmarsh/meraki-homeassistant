@@ -139,13 +139,19 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
         """Return a still image from the camera."""
-        # If we have a linked camera, always use its image
+        # If we have a linked camera, ONLY use its image (no fallback to Meraki)
         linked_entity_id = await self._get_linked_camera_entity()
         if linked_entity_id:
             linked_image = await self._get_linked_camera_image(linked_entity_id)
             if linked_image:
                 return linked_image
-            # Fall through to Meraki snapshot if linked camera fails
+            # Return cached snapshot if linked camera fails, but don't fetch from Meraki
+            _LOGGER.debug(
+                "Linked camera %s failed, returning cached snapshot for %s",
+                linked_entity_id,
+                self.name,
+            )
+            return self._cached_snapshot
 
         if self.device_data.get("status") != "online":
             _LOGGER.debug("Skipping snapshot for offline camera: %s", self.name)
@@ -242,10 +248,20 @@ class MerakiCamera(CoordinatorEntity, Camera):
 
     async def stream_source(self) -> str | None:
         """Return the source of the stream, if enabled."""
-        # If we have a linked camera, use its stream source
+        # If we have a linked camera, ONLY use its stream (no fallback to Meraki RTSP)
         linked_entity_id = await self._get_linked_camera_entity()
         if linked_entity_id:
-            return await self._get_linked_camera_stream(linked_entity_id)
+            stream = await self._get_linked_camera_stream(linked_entity_id)
+            if stream:
+                return stream
+            # Don't fall back to Meraki RTSP when linked - the linked camera
+            # is the authoritative source (e.g., Blue Iris already has RTSP)
+            _LOGGER.debug(
+                "Linked camera %s has no stream source for %s",
+                linked_entity_id,
+                self.name,
+            )
+            return None
 
         if not self.is_streaming:
             return None
@@ -304,35 +320,43 @@ class MerakiCamera(CoordinatorEntity, Camera):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        video_settings = self.device_data.get("video_settings", {})
-        rtsp_enabled = video_settings.get("rtspServerEnabled", False)
-        rtsp_url = self.device_data.get("rtsp_url")
-
-        # Determine stream status
-        if rtsp_enabled and rtsp_url:
-            stream_status = "RTSP Enabled"
-        elif not rtsp_enabled:
-            stream_status = "RTSP Disabled in Dashboard"
-        else:
-            stream_status = "RTSP URL Not Available"
-
         attrs: dict[str, Any] = {
             "snapshot_interval": self._snapshot_interval,
-            "stream_status": stream_status,
         }
+
+        # Check if camera is linked to an external NVR
+        linked_entity = (
+            self._cached_linked_entity
+            if hasattr(self, "_cached_linked_entity")
+            else None
+        )
+
+        if linked_entity:
+            # Linked camera - show linked status
+            attrs["stream_status"] = f"Linked to {linked_entity}"
+            attrs["linked_camera_entity"] = linked_entity
+            attrs["stream_source"] = "linked_camera"
+        else:
+            # Not linked - show Meraki RTSP status
+            video_settings = self.device_data.get("video_settings", {})
+            rtsp_enabled = video_settings.get("rtspServerEnabled", False)
+            rtsp_url = self.device_data.get("rtsp_url")
+
+            if rtsp_enabled and rtsp_url:
+                attrs["stream_status"] = "RTSP Enabled"
+                attrs["stream_source"] = "meraki_rtsp"
+            elif not rtsp_enabled:
+                attrs["stream_status"] = "RTSP Disabled in Dashboard"
+                attrs["stream_source"] = "none"
+            else:
+                attrs["stream_status"] = "RTSP URL Not Available"
+                attrs["stream_source"] = "none"
 
         # Include cloud video URL for "view in browser" functionality
         # Note: This is a Meraki Dashboard URL, not a direct video stream
         cloud_url = self.device_data.get("cloud_video_url")
         if cloud_url:
             attrs["cloud_video_url"] = cloud_url
-
-        # Include linked camera entity if configured
-        # This allows linking to external NVR cameras (e.g., Blue Iris)
-        # Note: We cache this to avoid async in a sync property
-        # The actual linking is handled in async_camera_image and stream_source
-        if hasattr(self, "_cached_linked_entity"):
-            attrs["linked_camera_entity"] = self._cached_linked_entity
 
         return attrs
 
@@ -355,9 +379,17 @@ class MerakiCamera(CoordinatorEntity, Camera):
         """
         Return true if the camera can stream.
 
-        Meraki cameras only support RTSP for direct streaming in Home Assistant.
-        The cloud video link is a Dashboard URL (not a direct stream).
+        When a camera is linked to an external NVR (e.g., Blue Iris), we assume
+        streaming is available through the linked camera. Otherwise, Meraki cameras
+        only support RTSP for direct streaming in Home Assistant.
         """
+        # If we have a linked camera configured, streaming is handled by it
+        # Note: We use the cached value here since this is a sync property
+        if hasattr(self, "_cached_linked_entity") and self._cached_linked_entity:
+            # Check if the linked camera entity exists and is available
+            state = self.hass.states.get(self._cached_linked_entity)
+            return state is not None and state.state != "unavailable"
+
         if self.device_data.get("status") != "online":
             return False
 

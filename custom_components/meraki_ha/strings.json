@@ -94,7 +94,7 @@
           "dashboard_view_mode": "Choose how devices are grouped on the dashboard (by network or by device type).",
           "dashboard_device_type_filter": "Default filter for device types on the dashboard.",
           "dashboard_status_filter": "Default filter for device status on the dashboard.",
-          "camera_link_integration": "Enter an integration domain (e.g., 'blue_iris' or 'generic') to filter cameras when linking. Leave empty to show all cameras."
+          "camera_link_integration": "Select an integration to filter which cameras are shown when linking Meraki cameras. Choose 'All Cameras' to see all available camera entities."
         }
       },
       "features": {
