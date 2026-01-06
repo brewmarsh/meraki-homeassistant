@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from pathlib import Path
 from typing import Any
 
 import aiofiles  # type: ignore[import-untyped]
@@ -13,7 +14,6 @@ from homeassistant.core import HomeAssistant
 from voluptuous import ALLOW_EXTRA, All, Optional, Required, Schema
 
 from .const import (
-    CONF_CAMERA_ENTITY_MAPPINGS,
     CONF_ENABLED_NETWORKS,
     DATA_CLIENT,
     DOMAIN,
@@ -24,6 +24,40 @@ from .meraki_data_coordinator import MerakiDataCoordinator
 from .services.camera_service import CameraService
 
 _LOGGER = logging.getLogger(__name__)
+
+# Storage file for camera mappings (avoids config entry reload on update)
+CAMERA_MAPPINGS_STORAGE = "meraki_camera_mappings.json"
+
+
+async def _get_camera_mappings_path(hass: HomeAssistant) -> Path:
+    """Get the path to the camera mappings storage file."""
+    return Path(hass.config.path(".storage")) / CAMERA_MAPPINGS_STORAGE
+
+
+async def _load_camera_mappings(hass: HomeAssistant) -> dict[str, dict[str, str]]:
+    """Load camera mappings from storage file."""
+    storage_path = await _get_camera_mappings_path(hass)
+    if not storage_path.exists():
+        return {}
+    try:
+        async with aiofiles.open(storage_path) as f:
+            content = await f.read()
+            return json.loads(content) if content else {}
+    except (json.JSONDecodeError, OSError) as e:
+        _LOGGER.warning("Failed to load camera mappings: %s", e)
+        return {}
+
+
+async def _save_camera_mappings(
+    hass: HomeAssistant, mappings: dict[str, dict[str, str]]
+) -> None:
+    """Save camera mappings to storage file."""
+    storage_path = await _get_camera_mappings_path(hass)
+    try:
+        async with aiofiles.open(storage_path, "w") as f:
+            await f.write(json.dumps(mappings, indent=2))
+    except OSError as e:
+        _LOGGER.error("Failed to save camera mappings: %s", e)
 
 
 def async_setup_api(hass: HomeAssistant) -> None:
@@ -358,12 +392,8 @@ async def handle_get_camera_mappings(
     (e.g., Blue Iris cameras that receive the RTSP stream).
     """
     config_entry_id = msg["config_entry_id"]
-    config_entry = hass.config_entries.async_get_entry(config_entry_id)
-    if not config_entry:
-        connection.send_error(msg["id"], "not_found", "Config entry not found")
-        return
-
-    mappings = config_entry.options.get(CONF_CAMERA_ENTITY_MAPPINGS, {})
+    all_mappings = await _load_camera_mappings(hass)
+    mappings = all_mappings.get(config_entry_id, {})
     connection.send_result(msg["id"], {"mappings": mappings})
 
 
@@ -385,13 +415,11 @@ async def handle_set_camera_mapping(
     serial = msg["serial"]
     linked_entity_id = msg["linked_entity_id"]
 
-    config_entry = hass.config_entries.async_get_entry(config_entry_id)
-    if not config_entry:
-        connection.send_error(msg["id"], "not_found", "Config entry not found")
-        return
+    # Load all mappings from storage
+    all_mappings = await _load_camera_mappings(hass)
 
-    # Get existing mappings
-    mappings = dict(config_entry.options.get(CONF_CAMERA_ENTITY_MAPPINGS, {}))
+    # Get mappings for this config entry
+    mappings = dict(all_mappings.get(config_entry_id, {}))
 
     # Update or remove mapping
     if linked_entity_id:
@@ -399,14 +427,9 @@ async def handle_set_camera_mapping(
     elif serial in mappings:
         del mappings[serial]
 
-    # Save updated mappings
-    hass.config_entries.async_update_entry(
-        config_entry,
-        options={
-            **config_entry.options,
-            CONF_CAMERA_ENTITY_MAPPINGS: mappings,
-        },
-    )
+    # Save updated mappings to storage (not config entry - avoids reload!)
+    all_mappings[config_entry_id] = mappings
+    await _save_camera_mappings(hass, all_mappings)
 
     connection.send_result(msg["id"], {"success": True, "mappings": mappings})
 
