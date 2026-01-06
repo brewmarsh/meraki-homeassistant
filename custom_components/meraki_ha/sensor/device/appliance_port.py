@@ -48,16 +48,32 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
             manufacturer="Cisco Meraki",
         )
 
+    def _get_current_device_data(self) -> dict[str, Any] | None:
+        """Retrieve the latest data for this device from the coordinator."""
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            for dev_data in self.coordinator.data["devices"]:
+                if dev_data.get("serial") == self._device["serial"]:
+                    return dev_data
+        return None
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        for device in self.coordinator.data.get("devices", []):
-            if device["serial"] == self._device["serial"]:
-                for port in device.get("ports", []):
-                    if port["number"] == self._port["number"]:
-                        self._port = port
-                        self.async_write_ha_state()
-                        return
+        current_device = self._get_current_device_data()
+        if current_device:
+            self._device = current_device
+            for port in current_device.get("ports", []):
+                if port["number"] == self._port["number"]:
+                    self._port = port
+                    break
+        self.async_write_ha_state()
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        if not self.coordinator.last_update_success:
+            return False
+        return self._get_current_device_data() is not None
 
     @property
     def native_value(self) -> str:

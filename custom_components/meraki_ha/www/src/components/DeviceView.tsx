@@ -62,8 +62,6 @@ const DeviceView: React.FC<DeviceViewProps> = ({
   const [snapshotUrl, setSnapshotUrl] = React.useState<string | null>(null);
   const [snapshotLoading, setSnapshotLoading] = React.useState(false);
   const [cloudVideoUrl, setCloudVideoUrl] = React.useState<string | null>(null);
-  const [showLiveVideo, setShowLiveVideo] = React.useState(false);
-  const [iframeError, setIframeError] = React.useState(false);
   
   // Linked camera state
   const [availableCameras, setAvailableCameras] = React.useState<Array<{entity_id: string; friendly_name: string}>>([]);
@@ -560,52 +558,34 @@ const DeviceView: React.FC<DeviceViewProps> = ({
             </div>
           )}
           
-          {/* View Toggle */}
-          <div style={{ 
-            display: 'flex', 
-            gap: '4px', 
-            marginBottom: '16px',
-            background: 'var(--bg-primary)',
-            borderRadius: 'var(--radius-md)',
-            padding: '4px'
-          }}>
-            <button
-              onClick={() => { setShowLiveVideo(false); setViewLinkedCamera(false); }}
-              style={{
-                flex: 1,
-                padding: '8px 16px',
-                borderRadius: 'var(--radius-sm)',
-                border: 'none',
-                background: (!showLiveVideo && !viewLinkedCamera) ? 'var(--primary)' : 'transparent',
-                color: (!showLiveVideo && !viewLinkedCamera) ? 'white' : 'var(--text-secondary)',
-                cursor: 'pointer',
-                fontWeight: 500,
-                transition: 'all 0.2s'
-              }}
-            >
-              📷 Snapshot
-            </button>
-            {cloudVideoUrl && (
+          {/* View Toggle - only show if linked camera is configured */}
+          {linkedCameraId && (
+            <div style={{ 
+              display: 'flex', 
+              gap: '4px', 
+              marginBottom: '16px',
+              background: 'var(--bg-primary)',
+              borderRadius: 'var(--radius-md)',
+              padding: '4px'
+            }}>
               <button
-                onClick={() => { setShowLiveVideo(true); setViewLinkedCamera(false); setIframeError(false); }}
+                onClick={() => setViewLinkedCamera(false)}
                 style={{
                   flex: 1,
                   padding: '8px 16px',
                   borderRadius: 'var(--radius-sm)',
                   border: 'none',
-                  background: (showLiveVideo && !viewLinkedCamera) ? 'var(--primary)' : 'transparent',
-                  color: (showLiveVideo && !viewLinkedCamera) ? 'white' : 'var(--text-secondary)',
+                  background: !viewLinkedCamera ? 'var(--primary)' : 'transparent',
+                  color: !viewLinkedCamera ? 'white' : 'var(--text-secondary)',
                   cursor: 'pointer',
                   fontWeight: 500,
                   transition: 'all 0.2s'
                 }}
               >
-                🌐 Dashboard
+                📷 Meraki Snapshot
               </button>
-            )}
-            {linkedCameraId && (
               <button
-                onClick={() => { setViewLinkedCamera(true); setShowLiveVideo(false); }}
+                onClick={() => setViewLinkedCamera(true)}
                 style={{
                   flex: 1,
                   padding: '8px 16px',
@@ -620,8 +600,8 @@ const DeviceView: React.FC<DeviceViewProps> = ({
               >
                 🎬 Linked Camera
               </button>
-            )}
-          </div>
+            </div>
+          )}
           
           {/* Content Area */}
           <div style={{ 
@@ -691,75 +671,6 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                 }}>
                   Viewing: {linkedCameraId}
                 </p>
-              </div>
-            ) : showLiveVideo && cloudVideoUrl ? (
-              /* Meraki Dashboard iframe */
-              <div>
-                {iframeError ? (
-                  <div style={{ 
-                    padding: '40px 20px', 
-                    color: 'var(--text-muted)'
-                  }}>
-                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚫</div>
-                    <p style={{ marginBottom: '16px' }}>
-                      <strong>Iframe blocked by Meraki</strong>
-                    </p>
-                    <p style={{ fontSize: '13px', marginBottom: '16px' }}>
-                      Meraki's security settings prevent embedding. Use the button below to open in a new tab.
-                    </p>
-                    <button
-                      onClick={openInDashboard}
-                      style={{
-                        padding: '10px 20px',
-                        borderRadius: 'var(--radius-md)',
-                        border: 'none',
-                        background: 'var(--primary)',
-                        color: 'white',
-                        cursor: 'pointer',
-                        fontWeight: 500
-                      }}
-                    >
-                      🌐 Open in New Tab
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <iframe
-                      src={cloudVideoUrl}
-                      style={{
-                        width: '100%',
-                        height: '400px',
-                        border: 'none',
-                        borderRadius: 'var(--radius-md)'
-                      }}
-                      allow="autoplay; fullscreen"
-                      onError={() => setIframeError(true)}
-                      title={`${name || serial} live video`}
-                    />
-                    <p style={{ 
-                      fontSize: '12px', 
-                      color: 'var(--text-muted)', 
-                      marginTop: '8px',
-                      marginBottom: '0'
-                    }}>
-                      If video doesn't load, Meraki may block embedding.{' '}
-                      <button 
-                        onClick={openInDashboard}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: 'var(--primary)',
-                          cursor: 'pointer',
-                          textDecoration: 'underline',
-                          padding: 0,
-                          font: 'inherit'
-                        }}
-                      >
-                        Open in new tab
-                      </button>
-                    </p>
-                  </div>
-                )}
               </div>
             ) : (
               /* Snapshot View */

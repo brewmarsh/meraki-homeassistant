@@ -9,6 +9,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Dashboard from './components/Dashboard';
 import DeviceView from './components/DeviceView';
+import ClientsView from './components/ClientsView';
 import type { HomeAssistant, PanelInfo, RouteInfo } from './types/hass';
 
 // Data types
@@ -57,10 +58,32 @@ interface Device {
   };
 }
 
+interface Client {
+  id: string;
+  mac: string;
+  description?: string;
+  ip?: string;
+  ip6?: string;
+  user?: string;
+  firstSeen?: string;
+  lastSeen?: string;
+  manufacturer?: string;
+  os?: string;
+  recentDeviceSerial?: string;
+  recentDeviceName?: string;
+  ssid?: string;
+  vlan?: number;
+  switchport?: string;
+  status?: string;
+  usage?: { sent: number; recv: number };
+  networkId?: string;
+}
+
 interface MerakiData {
   networks: Network[];
   devices: Device[];
   ssids: SSID[];
+  clients: Client[];
   enabled_networks: string[];
   config_entry_id: string;
   version?: string;
@@ -244,25 +267,41 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
   };
 
   // Render the appropriate view
+  const renderView = () => {
+    switch (activeView.view) {
+      case 'clients':
+        return (
+          <ClientsView
+            clients={data.clients || []}
+            setActiveView={setActiveView}
+            onBack={() => setActiveView({ view: 'dashboard' })}
+          />
+        );
+      case 'device':
+        return (
+          <DeviceView
+            activeView={activeView}
+            setActiveView={setActiveView}
+            data={data}
+            hass={hass}
+            configEntryId={configEntryId}
+          />
+        );
+      default:
+        return (
+          <Dashboard
+            data={processedData}
+            setActiveView={setActiveView}
+            hass={hass}
+          />
+        );
+    }
+  };
+
   return (
     <div className="meraki-panel" style={{ maxWidth: '100%', margin: '0 auto' }}>
       <Header version={data.version} />
-
-      {activeView.view === 'dashboard' ? (
-        <Dashboard
-          data={processedData}
-          setActiveView={setActiveView}
-          hass={hass}
-        />
-      ) : (
-        <DeviceView
-          activeView={activeView}
-          setActiveView={setActiveView}
-          data={data}
-          hass={hass}
-          configEntryId={configEntryId}
-        />
-      )}
+      {renderView()}
     </div>
   );
 };

@@ -263,6 +263,15 @@ class MerakiCamera(CoordinatorEntity, Camera):
         return attrs
 
     @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        # Check coordinator is working
+        if not self.coordinator.last_update_success:
+            return False
+        # Check device exists in coordinator data
+        return self.coordinator.get_device(self._device_serial) is not None
+
+    @property
     def supported_features(self) -> CameraEntityFeature:
         """Return supported features."""
         return CameraEntityFeature.STREAM

@@ -54,6 +54,14 @@ class MTHandler(BaseDeviceHandler):
             control_service,
         )
 
+    def _get_model_prefix(self, model: str) -> str | None:
+        """Extract the MT model prefix (e.g., 'MT15' from 'MT15-HW')."""
+        # Check for known MT model prefixes
+        for known_model in MT_SENSOR_MODELS:
+            if model.upper().startswith(known_model):
+                return known_model
+        return None
+
     async def discover_entities(self) -> list[Entity]:
         """Discover entities for the device."""
         entities: list[Entity] = []
@@ -61,8 +69,14 @@ class MTHandler(BaseDeviceHandler):
         if not model:
             return []
 
+        # Get the model prefix for lookup (e.g., MT15-HW -> MT15)
+        model_prefix = self._get_model_prefix(model)
+        if not model_prefix:
+            _LOGGER.debug("Unknown MT sensor model: %s", model)
+            return []
+
         # Look up supported sensors for this model
-        sensor_descriptions = MT_SENSOR_MODELS.get(model)
+        sensor_descriptions = MT_SENSOR_MODELS.get(model_prefix)
         if sensor_descriptions:
             for description in sensor_descriptions:
                 entities.append(
@@ -70,7 +84,7 @@ class MTHandler(BaseDeviceHandler):
                 )
 
         # Look up supported binary sensors for this model
-        binary_sensor_descriptions = MT_BINARY_SENSOR_MODELS.get(model)
+        binary_sensor_descriptions = MT_BINARY_SENSOR_MODELS.get(model_prefix)
         if binary_sensor_descriptions:
             for binary_description in binary_sensor_descriptions:
                 entities.append(
@@ -78,9 +92,5 @@ class MTHandler(BaseDeviceHandler):
                         self._coordinator, self.device, binary_description
                     )
                 )
-
-        # If model is not explicitly mapped but starts with MT, we could try
-        # to discover dynamic capabilities, but for now we stick to the
-        # defined models as requested.
 
         return entities
