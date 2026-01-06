@@ -10,7 +10,7 @@ if [ -z "$RUNNER_TOKEN" ]; then
     exit 1
 fi
 if [ -z "$RUNNER_REPO" ]; then
-    echo "FATAL: RUNNER_REPO environment variable must be set (e.g., brewmarsh/meraki-homeassistant)."
+    echo "FATAL: RUNNER_REPO environment variable must be set (e.g., liptonj/meraki-homeassistant)."
     exit 1
 fi
 
