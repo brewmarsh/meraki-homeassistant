@@ -116,16 +116,16 @@ jobs:
           
           CLEAN_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
           
-          # Force HACS to re-fetch this specific repository
+          # Force HACS to re-fetch this specific repository from GitHub
           echo "Refreshing HACS repository: liptonj/meraki-homeassistant..."
           curl -sS -X POST \
             -H "Authorization: Bearer $CLEAN_TOKEN" \
             -H "Content-Type: application/json" \
-            -d '{"repository": "liptonj/meraki-homeassistant"}' \
+            -d '{"action": "reload", "repository": "liptonj/meraki-homeassistant"}' \
             "$HA_URL/api/services/hacs/repository" || true
           
-          echo "Waiting 15 seconds for HACS to process..."
-          sleep 15
+          echo "Waiting 20 seconds for HACS to refresh from GitHub..."
+          sleep 20
           
           # Find the update entity
           echo "Discovering Meraki update entity..."
