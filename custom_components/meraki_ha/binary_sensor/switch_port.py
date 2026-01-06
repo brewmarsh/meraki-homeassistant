@@ -59,9 +59,10 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
         """Return True if entity is available."""
         if not self.coordinator.last_update_success:
             return False
-        return get_device_from_coordinator(
-            self.coordinator, self._device["serial"]
-        ) is not None
+        return (
+            get_device_from_coordinator(self.coordinator, self._device["serial"])
+            is not None
+        )
 
     @property
     def is_on(self) -> bool:
