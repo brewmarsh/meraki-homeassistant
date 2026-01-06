@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import NetworkView from './components/NetworkView';
+import Dashboard from './components/Dashboard';
 import DeviceView from './components/DeviceView';
 import type { HomeAssistant, PanelInfo, RouteInfo } from './types/hass';
 
@@ -17,6 +17,7 @@ interface SSID {
   name: string;
   enabled: boolean;
   networkId: string;
+  entity_id?: string;
 }
 
 interface Network {
@@ -35,9 +36,25 @@ interface Device {
   lanIp?: string;
   mac?: string;
   networkId?: string;
+  productType?: string;
   firmware?: string;
   status_messages?: string[];
   entities?: Array<{ entity_id: string; name: string; state: string }>;
+  ports_statuses?: Array<{
+    portId: string;
+    status: string;
+    enabled: boolean;
+    speed?: string;
+    poe?: { isAllocated?: boolean; enabled?: boolean };
+    powerUsageInWh?: number;
+    clientName?: string;
+    clientMac?: string;
+  }>;
+  readings?: {
+    temperature?: number;
+    humidity?: number;
+    battery?: number;
+  };
 }
 
 interface MerakiData {
@@ -75,7 +92,7 @@ const ErrorDisplay: React.FC<{ message: string; onRetry?: () => void }> = ({
   onRetry,
 }) => (
   <div className="error-container">
-    <ha-icon icon="mdi:alert-circle"></ha-icon>
+    <span className="error-icon">⚠️</span>
     <div className="error-content">
       <h3>Error Loading Data</h3>
       <p>{message}</p>
@@ -89,10 +106,11 @@ const ErrorDisplay: React.FC<{ message: string; onRetry?: () => void }> = ({
 );
 
 /**
- * Header component with version display
+ * Header component with logo and version
  */
 const Header: React.FC<{ version?: string }> = ({ version }) => (
   <div className="meraki-header">
+    <div className="logo">🌐</div>
     <h1>Meraki Dashboard</h1>
     {version && <span className="version">v{version}</span>}
   </div>
@@ -165,7 +183,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
     return (
       <div className="meraki-panel">
         <LoadingSpinner />
-        <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+        <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '16px' }}>
           Waiting for Home Assistant connection...
         </p>
       </div>
@@ -198,12 +216,22 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
       <div className="meraki-panel">
         <Header />
         <div className="empty-state">
-          <ha-icon icon="mdi:database-off"></ha-icon>
-          <p>No data available.</p>
+          <div className="icon">📡</div>
+          <h3>No Data Available</h3>
+          <p>Could not load Meraki data. Please try again.</p>
         </div>
       </div>
     );
   }
+
+  // Filter to only show enabled networks
+  const enabledNetworks = data.networks?.filter((network) => network.is_enabled) || [];
+  
+  // Create processed data with only enabled networks
+  const processedData = {
+    ...data,
+    networks: enabledNetworks,
+  };
 
   // Render the appropriate view
   return (
@@ -211,9 +239,10 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
       <Header version={data.version} />
 
       {activeView.view === 'dashboard' ? (
-        <NetworkView
-          data={data}
+        <Dashboard
+          data={processedData}
           setActiveView={setActiveView}
+          hass={hass}
         />
       ) : (
         <DeviceView

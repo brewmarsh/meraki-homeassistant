@@ -157,7 +157,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: brewmarsh/meraki-homeassistant
+          slug: liptonj/meraki-homeassistant
           files: ./coverage.xml
 
   hassfest:

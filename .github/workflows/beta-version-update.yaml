@@ -80,7 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: version
     # Only run on main repo and when version is available
-    if: needs.version.outputs.new_version != '' && github.repository == 'brewmarsh/meraki-homeassistant'
+    if: needs.version.outputs.new_version != '' && github.repository == 'liptonj/meraki-homeassistant'
     permissions:
       contents: write
       pull-requests: read

@@ -6,7 +6,7 @@ Thank you for your interest in contributing to this integration! We welcome all 
 
 ### Reporting Bugs
 
-If you find a bug, please [open an issue](https://github.com/brewmarsh/meraki-homeassistant/issues) on our GitHub repository. Please include the following information in your bug report:
+If you find a bug, please [open an issue](https://github.com/liptonj/meraki-homeassistant/issues) on our GitHub repository. Please include the following information in your bug report:
 
 - A clear and concise description of the bug.
 - Steps to reproduce the bug.
@@ -15,7 +15,7 @@ If you find a bug, please [open an issue](https://github.com/brewmarsh/meraki-ho
 
 ### Proposing New Features
 
-If you have an idea for a new feature, please [open an issue](https://github.com/brewmarsh/meraki-homeassistant/issues) to discuss it. This will allow us to provide feedback and ensure that the feature is a good fit for the integration.
+If you have an idea for a new feature, please [open an issue](https://github.com/liptonj/meraki-homeassistant/issues) to discuss it. This will allow us to provide feedback and ensure that the feature is a good fit for the integration.
 
 ### Submitting Pull Requests
 
@@ -30,6 +30,6 @@ If you would like to contribute code to the integration, please follow these ste
 
 If you have any questions or need help with the integration, please feel free to:
 
-- [Open an issue](https://github.com/brewmarsh/meraki-homeassistant/issues) on our GitHub repository.
+- [Open an issue](https://github.com/liptonj/meraki-homeassistant/issues) on our GitHub repository.
 - Ask a question on the [Home Assistant Community Forums](https://community.home-assistant.io/).
 - Join the [Home Assistant Discord server](https://discord.gg/home-assistant).
