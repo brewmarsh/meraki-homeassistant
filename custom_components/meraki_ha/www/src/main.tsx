@@ -8,20 +8,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-// Import CSS as string and inject it into the document
+// Import CSS as string for injection
 import styles from './index.css?inline';
 import type { HomeAssistant, PanelInfo, RouteInfo } from './types/hass';
-
-// Inject CSS into document head (since HA only loads the JS file)
-const injectStyles = () => {
-  if (!document.getElementById('meraki-panel-styles')) {
-    const styleEl = document.createElement('style');
-    styleEl.id = 'meraki-panel-styles';
-    styleEl.textContent = styles;
-    document.head.appendChild(styleEl);
-  }
-};
-injectStyles();
 
 /**
  * MerakiPanel Web Component
@@ -37,11 +26,25 @@ class MerakiPanelElement extends HTMLElement {
   private _route: RouteInfo | null = null;
   private _root: ReactDOM.Root | null = null;
   private _mountPoint: HTMLDivElement | null = null;
+  private _styleEl: HTMLStyleElement | null = null;
 
   /**
    * Called when the element is added to the DOM.
    */
   connectedCallback(): void {
+    // Inject styles INSIDE this element (works even if HA uses shadow DOM isolation)
+    this._styleEl = document.createElement('style');
+    this._styleEl.textContent = styles;
+    this.appendChild(this._styleEl);
+
+    // Also inject into document.head as fallback
+    if (!document.getElementById('meraki-panel-styles')) {
+      const globalStyleEl = document.createElement('style');
+      globalStyleEl.id = 'meraki-panel-styles';
+      globalStyleEl.textContent = styles;
+      document.head.appendChild(globalStyleEl);
+    }
+
     // Create a mount point for React
     this._mountPoint = document.createElement('div');
     this._mountPoint.id = 'meraki-panel-root';
@@ -67,6 +70,10 @@ class MerakiPanelElement extends HTMLElement {
     if (this._mountPoint) {
       this._mountPoint.remove();
       this._mountPoint = null;
+    }
+    if (this._styleEl) {
+      this._styleEl.remove();
+      this._styleEl = null;
     }
   }
 

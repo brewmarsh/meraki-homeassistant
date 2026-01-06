@@ -35,6 +35,8 @@ interface Device {
   };
   uptime?: number;
   lastReportedAt?: string;
+  cloud_video_url?: string;
+  rtsp_url?: string;
 }
 
 interface DeviceViewProps {
@@ -43,14 +45,31 @@ interface DeviceViewProps {
   data: {
     devices: Device[];
   };
+  hass?: {
+    callWS: (params: Record<string, unknown>) => Promise<unknown>;
+  };
+  configEntryId?: string;
 }
 
 const DeviceView: React.FC<DeviceViewProps> = ({
   activeView,
   setActiveView,
   data,
+  hass,
+  configEntryId,
 }) => {
   const device = data.devices.find((d) => d.serial === activeView.deviceId);
+  const [snapshotUrl, setSnapshotUrl] = React.useState<string | null>(null);
+  const [snapshotLoading, setSnapshotLoading] = React.useState(false);
+  const [cloudVideoUrl, setCloudVideoUrl] = React.useState<string | null>(null);
+  const [showLiveVideo, setShowLiveVideo] = React.useState(false);
+  const [iframeError, setIframeError] = React.useState(false);
+  
+  // Linked camera state
+  const [availableCameras, setAvailableCameras] = React.useState<Array<{entity_id: string; friendly_name: string}>>([]);
+  const [linkedCameraId, setLinkedCameraId] = React.useState<string>('');
+  const [showCameraConfig, setShowCameraConfig] = React.useState(false);
+  const [viewLinkedCamera, setViewLinkedCamera] = React.useState(false);
 
   if (!device) {
     return (
@@ -145,6 +164,116 @@ const DeviceView: React.FC<DeviceViewProps> = ({
     });
     document.body.dispatchEvent(event);
   };
+
+  // Fetch camera snapshot
+  const fetchSnapshot = async () => {
+    if (!hass || !configEntryId || !device) return;
+    setSnapshotLoading(true);
+    try {
+      const result = await hass.callWS({
+        type: 'meraki_ha/get_camera_snapshot',
+        config_entry_id: configEntryId,
+        serial: device.serial,
+      }) as { url?: string };
+      if (result?.url) {
+        setSnapshotUrl(result.url);
+      }
+    } catch (err) {
+      console.error('Failed to fetch snapshot:', err);
+    } finally {
+      setSnapshotLoading(false);
+    }
+  };
+
+  // Fetch cloud video URL for "Open in Dashboard" button
+  const fetchCloudVideoUrl = async () => {
+    if (!hass || !configEntryId || !device) return;
+    try {
+      const result = await hass.callWS({
+        type: 'meraki_ha/get_camera_stream_url',
+        config_entry_id: configEntryId,
+        serial: device.serial,
+        stream_source: 'cloud',
+      }) as { url?: string };
+      if (result?.url) {
+        setCloudVideoUrl(result.url);
+      }
+    } catch (err) {
+      console.error('Failed to fetch cloud video URL:', err);
+    }
+  };
+
+  // Open cloud video in new browser tab
+  const openInDashboard = () => {
+    if (cloudVideoUrl) {
+      window.open(cloudVideoUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  // Fetch available cameras for linking
+  const fetchAvailableCameras = async () => {
+    if (!hass) return;
+    try {
+      const result = await hass.callWS({
+        type: 'meraki_ha/get_available_cameras',
+      }) as { cameras?: Array<{entity_id: string; friendly_name: string}> };
+      if (result?.cameras) {
+        setAvailableCameras(result.cameras);
+      }
+    } catch (err) {
+      console.error('Failed to fetch available cameras:', err);
+    }
+  };
+
+  // Fetch current camera mapping
+  const fetchCameraMapping = async () => {
+    if (!hass || !configEntryId || !device) return;
+    try {
+      const result = await hass.callWS({
+        type: 'meraki_ha/get_camera_mappings',
+        config_entry_id: configEntryId,
+      }) as { mappings?: Record<string, string> };
+      if (result?.mappings && result.mappings[device.serial]) {
+        setLinkedCameraId(result.mappings[device.serial]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch camera mappings:', err);
+    }
+  };
+
+  // Save camera mapping
+  const saveCameraMapping = async (entityId: string) => {
+    if (!hass || !configEntryId || !device) return;
+    try {
+      await hass.callWS({
+        type: 'meraki_ha/set_camera_mapping',
+        config_entry_id: configEntryId,
+        serial: device.serial,
+        linked_entity_id: entityId,
+      });
+      setLinkedCameraId(entityId);
+      setShowCameraConfig(false);
+    } catch (err) {
+      console.error('Failed to save camera mapping:', err);
+    }
+  };
+
+  // Get the HA camera proxy URL for a linked camera
+  const getLinkedCameraStreamUrl = (entityId: string): string => {
+    // HA camera proxy URL format
+    return `/api/camera_proxy_stream/${entityId}`;
+  };
+
+  // Load camera data when viewing a camera device
+  React.useEffect(() => {
+    const isCameraDevice = device && (device.model?.toUpperCase().startsWith('MV') || device.productType === 'camera');
+    if (isCameraDevice && hass && configEntryId) {
+      fetchSnapshot();
+      fetchCloudVideoUrl();
+      fetchCameraMapping();
+      fetchAvailableCameras();
+    }
+  }, [device?.serial, hass, configEntryId]);
 
   // Calculate PoE stats for switches
   const poePorts = ports_statuses.filter((p) => p.poe?.isAllocated || p.poe?.enabled);
@@ -336,18 +465,371 @@ const DeviceView: React.FC<DeviceViewProps> = ({
       {/* Camera-specific View */}
       {isCamera && (
         <div className="info-card">
-          <h3>📹 Camera</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ margin: 0 }}>📹 Camera</h3>
+            <button
+              onClick={() => setShowCameraConfig(!showCameraConfig)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border)',
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                fontSize: '13px'
+              }}
+            >
+              ⚙️ Link Camera
+            </button>
+          </div>
+
+          {/* Camera Linking Configuration */}
+          {showCameraConfig && (
+            <div style={{
+              background: 'var(--bg-primary)',
+              borderRadius: 'var(--radius-md)',
+              padding: '16px',
+              marginBottom: '16px',
+              border: '1px solid var(--border)'
+            }}>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
+                🔗 Link to External Camera (e.g., Blue Iris)
+              </h4>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                Link this Meraki camera to another camera entity in Home Assistant. 
+                Useful when RTSP goes to an NVR (like Blue Iris) first.
+              </p>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <select
+                  value={linkedCameraId}
+                  onChange={(e) => setLinkedCameraId(e.target.value)}
+                  style={{
+                    flex: 1,
+                    minWidth: '200px',
+                    padding: '8px 12px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--border)',
+                    background: 'var(--bg-secondary)',
+                    color: 'var(--text-primary)',
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="">-- No linked camera --</option>
+                  {availableCameras.map((cam) => (
+                    <option key={cam.entity_id} value={cam.entity_id}>
+                      {cam.friendly_name} ({cam.entity_id})
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => saveCameraMapping(linkedCameraId)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: 'none',
+                    background: 'var(--primary)',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontWeight: 500
+                  }}
+                >
+                  Save
+                </button>
+              </div>
+              {linkedCameraId && (
+                <p style={{ fontSize: '12px', color: 'var(--success)', marginTop: '8px', marginBottom: 0 }}>
+                  ✓ Linked to: {linkedCameraId}
+                </p>
+              )}
+            </div>
+          )}
+          
+          {/* View Toggle */}
+          <div style={{ 
+            display: 'flex', 
+            gap: '4px', 
+            marginBottom: '16px',
+            background: 'var(--bg-primary)',
+            borderRadius: 'var(--radius-md)',
+            padding: '4px'
+          }}>
+            <button
+              onClick={() => { setShowLiveVideo(false); setViewLinkedCamera(false); }}
+              style={{
+                flex: 1,
+                padding: '8px 16px',
+                borderRadius: 'var(--radius-sm)',
+                border: 'none',
+                background: (!showLiveVideo && !viewLinkedCamera) ? 'var(--primary)' : 'transparent',
+                color: (!showLiveVideo && !viewLinkedCamera) ? 'white' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                fontWeight: 500,
+                transition: 'all 0.2s'
+              }}
+            >
+              📷 Snapshot
+            </button>
+            {cloudVideoUrl && (
+              <button
+                onClick={() => { setShowLiveVideo(true); setViewLinkedCamera(false); setIframeError(false); }}
+                style={{
+                  flex: 1,
+                  padding: '8px 16px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: 'none',
+                  background: (showLiveVideo && !viewLinkedCamera) ? 'var(--primary)' : 'transparent',
+                  color: (showLiveVideo && !viewLinkedCamera) ? 'white' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                  transition: 'all 0.2s'
+                }}
+              >
+                🌐 Dashboard
+              </button>
+            )}
+            {linkedCameraId && (
+              <button
+                onClick={() => { setViewLinkedCamera(true); setShowLiveVideo(false); }}
+                style={{
+                  flex: 1,
+                  padding: '8px 16px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: 'none',
+                  background: viewLinkedCamera ? 'var(--primary)' : 'transparent',
+                  color: viewLinkedCamera ? 'white' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                  transition: 'all 0.2s'
+                }}
+              >
+                🎬 Linked Camera
+              </button>
+            )}
+          </div>
+          
+          {/* Content Area */}
           <div style={{ 
             background: 'var(--bg-primary)', 
             borderRadius: 'var(--radius-md)',
-            padding: '40px',
+            padding: '16px',
             textAlign: 'center',
-            color: 'var(--text-muted)'
+            marginBottom: '16px'
           }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📹</div>
-            <p>Camera stream available through Home Assistant's camera entity</p>
-            <p style={{ fontSize: '13px', marginTop: '8px' }}>
-              Click on the camera entity to view live stream
+            {viewLinkedCamera && linkedCameraId ? (
+              /* Linked Camera Stream (e.g., Blue Iris) */
+              <div>
+                <img
+                  src={`/api/camera_proxy/${linkedCameraId}?token=${Date.now()}`}
+                  alt={`Linked camera: ${linkedCameraId}`}
+                  style={{
+                    maxWidth: '100%',
+                    borderRadius: 'var(--radius-md)',
+                    marginBottom: '12px'
+                  }}
+                />
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '12px', 
+                  justifyContent: 'center',
+                  flexWrap: 'wrap',
+                  marginTop: '12px'
+                }}>
+                  <button
+                    onClick={() => {
+                      // Force refresh by updating the image src
+                      const img = document.querySelector(`img[alt="Linked camera: ${linkedCameraId}"]`) as HTMLImageElement;
+                      if (img) img.src = `/api/camera_proxy/${linkedCameraId}?token=${Date.now()}`;
+                    }}
+                    style={{
+                      padding: '10px 20px',
+                      borderRadius: 'var(--radius-md)',
+                      border: 'none',
+                      background: 'var(--primary)',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontWeight: 500
+                    }}
+                  >
+                    🔄 Refresh
+                  </button>
+                  <button
+                    onClick={() => handleEntityClick(linkedCameraId)}
+                    style={{
+                      padding: '10px 20px',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--border)',
+                      background: 'var(--bg-secondary)',
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      fontWeight: 500
+                    }}
+                  >
+                    📺 Open Camera Entity
+                  </button>
+                </div>
+                <p style={{ 
+                  fontSize: '12px', 
+                  color: 'var(--text-muted)', 
+                  marginTop: '12px',
+                  marginBottom: 0 
+                }}>
+                  Viewing: {linkedCameraId}
+                </p>
+              </div>
+            ) : showLiveVideo && cloudVideoUrl ? (
+              /* Meraki Dashboard iframe */
+              <div>
+                {iframeError ? (
+                  <div style={{ 
+                    padding: '40px 20px', 
+                    color: 'var(--text-muted)'
+                  }}>
+                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚫</div>
+                    <p style={{ marginBottom: '16px' }}>
+                      <strong>Iframe blocked by Meraki</strong>
+                    </p>
+                    <p style={{ fontSize: '13px', marginBottom: '16px' }}>
+                      Meraki's security settings prevent embedding. Use the button below to open in a new tab.
+                    </p>
+                    <button
+                      onClick={openInDashboard}
+                      style={{
+                        padding: '10px 20px',
+                        borderRadius: 'var(--radius-md)',
+                        border: 'none',
+                        background: 'var(--primary)',
+                        color: 'white',
+                        cursor: 'pointer',
+                        fontWeight: 500
+                      }}
+                    >
+                      🌐 Open in New Tab
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <iframe
+                      src={cloudVideoUrl}
+                      style={{
+                        width: '100%',
+                        height: '400px',
+                        border: 'none',
+                        borderRadius: 'var(--radius-md)'
+                      }}
+                      allow="autoplay; fullscreen"
+                      onError={() => setIframeError(true)}
+                      title={`${name || serial} live video`}
+                    />
+                    <p style={{ 
+                      fontSize: '12px', 
+                      color: 'var(--text-muted)', 
+                      marginTop: '8px',
+                      marginBottom: '0'
+                    }}>
+                      If video doesn't load, Meraki may block embedding.{' '}
+                      <button 
+                        onClick={openInDashboard}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--primary)',
+                          cursor: 'pointer',
+                          textDecoration: 'underline',
+                          padding: 0,
+                          font: 'inherit'
+                        }}
+                      >
+                        Open in new tab
+                      </button>
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Snapshot View */
+              <>
+                {snapshotUrl ? (
+                  <img 
+                    src={snapshotUrl} 
+                    alt={`${name || serial} snapshot`}
+                    style={{ 
+                      maxWidth: '100%', 
+                      borderRadius: 'var(--radius-md)',
+                      marginBottom: '12px'
+                    }}
+                  />
+                ) : (
+                  <div style={{ 
+                    padding: '40px', 
+                    color: 'var(--text-muted)',
+                    fontSize: '48px'
+                  }}>
+                    📹
+                  </div>
+                )}
+                
+                {/* Action Buttons */}
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '12px', 
+                  justifyContent: 'center',
+                  flexWrap: 'wrap',
+                  marginTop: '12px'
+                }}>
+                  <button
+                    onClick={fetchSnapshot}
+                    disabled={snapshotLoading}
+                    style={{
+                      padding: '10px 20px',
+                      borderRadius: 'var(--radius-md)',
+                      border: 'none',
+                      background: 'var(--primary)',
+                      color: 'white',
+                      cursor: snapshotLoading ? 'wait' : 'pointer',
+                      fontWeight: 500,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    {snapshotLoading ? '⏳ Loading...' : '📷 Refresh Snapshot'}
+                  </button>
+                  
+                  {cloudVideoUrl && (
+                    <button
+                      onClick={openInDashboard}
+                      style={{
+                        padding: '10px 20px',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--border)',
+                        background: 'var(--bg-secondary)',
+                        color: 'var(--text-primary)',
+                        cursor: 'pointer',
+                        fontWeight: 500,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      🌐 Open in Meraki Dashboard
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+          
+          {/* Stream Info */}
+          <div style={{ 
+            fontSize: '13px', 
+            color: 'var(--text-muted)',
+            textAlign: 'center'
+          }}>
+            <p style={{ margin: '0 0 8px 0' }}>
+              💡 <strong>RTSP Streaming:</strong> Enable in Meraki Dashboard → Camera Settings → External RTSP
+            </p>
+            <p style={{ margin: 0 }}>
+              For live streaming in Home Assistant dashboards, use the camera entity
             </p>
           </div>
         </div>

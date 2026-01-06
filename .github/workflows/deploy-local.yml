@@ -7,9 +7,8 @@ on:
 
 jobs:
   deploy-via-hacs:
-    # Runs on GitHub-hosted cloud runner (no self-hosted needed!)
     runs-on: ubuntu-latest
-    # Only run if HA secrets are configured and it's a prerelease (beta)
+    # Only run if HACS deploy is enabled via repository variable
     if: ${{ vars.ENABLE_HACS_DEPLOY == 'true' }}
     
     steps:

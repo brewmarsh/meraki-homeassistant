@@ -79,7 +79,6 @@
           "enable_device_tracker": "Enable Client Tracker",
           "enable_vlan_management": "Enable VLAN Management",
           "enabled_networks": "Enabled Networks",
-          "camera_stream_source": "Camera Stream Source",
           "camera_snapshot_interval": "Camera Snapshot Refresh Interval (seconds)"
         },
         "data_description": {
@@ -87,8 +86,7 @@
           "enable_device_tracker": "Enable tracking of clients connected to the network.",
           "enable_vlan_management": "Enable VLAN management features.",
           "enabled_networks": "Select which networks to monitor. Leave empty for all networks.",
-          "camera_stream_source": "Choose RTSP for local network streaming or Cloud for Meraki Dashboard streaming.",
-          "camera_snapshot_interval": "How often to refresh camera snapshots on the dashboard (0 = only on demand)."
+          "camera_snapshot_interval": "How often to refresh camera snapshots on the dashboard (0 = only on demand). Camera streaming uses RTSP and requires the RTSP server to be enabled in the Meraki Dashboard."
         }
       },
       "features": {
@@ -101,7 +99,6 @@
           "enable_web_ui": "Enable Web UI",
           "web_ui_port": "Web UI Port",
           "hide_unconfigured_ssids": "Hide Unconfigured SSIDs",
-          "camera_stream_source": "Camera Stream Source",
           "camera_snapshot_interval": "Camera Snapshot Refresh Interval"
         },
         "data_description": {
@@ -111,7 +108,6 @@
           "enable_web_ui": "Enable the self-hosted web interface for advanced controls.",
           "web_ui_port": "The port for the self-hosted web interface.",
           "hide_unconfigured_ssids": "Hide SSIDs that are not fully configured.",
-          "camera_stream_source": "Choose RTSP for local network streaming or Cloud for Meraki Dashboard streaming.",
           "camera_snapshot_interval": "How often to refresh camera snapshots on the dashboard (0 = only on demand)."
         }
       },

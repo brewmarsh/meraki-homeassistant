@@ -63,6 +63,9 @@ DEFAULT_CAMERA_STREAM_SOURCE: Final = "rtsp"
 DEFAULT_CAMERA_SNAPSHOT_INTERVAL: Final = 0
 """Default camera snapshot interval (0 = disabled)."""
 
+CONF_CAMERA_ENTITY_MAPPINGS: Final = "camera_entity_mappings"
+"""Configuration key for camera entity mappings (Meraki serial -> HA entity_id)."""
+
 CONF_ENABLE_DEVICE_TRACKER: Final = "enable_device_tracker"
 """Configuration key for enabling device tracker."""
 

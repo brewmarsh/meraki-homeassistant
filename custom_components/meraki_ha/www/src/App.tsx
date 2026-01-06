@@ -249,6 +249,8 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
           activeView={activeView}
           setActiveView={setActiveView}
           data={data}
+          hass={hass}
+          configEntryId={configEntryId}
         />
       )}
     </div>

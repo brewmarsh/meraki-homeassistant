@@ -14,11 +14,9 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    CAMERA_STREAM_SOURCE_CLOUD,
+    CONF_CAMERA_ENTITY_MAPPINGS,
     CONF_CAMERA_SNAPSHOT_INTERVAL,
-    CONF_CAMERA_STREAM_SOURCE,
     DEFAULT_CAMERA_SNAPSHOT_INTERVAL,
-    DEFAULT_CAMERA_STREAM_SOURCE,
     DOMAIN,
 )
 from .core.utils.naming_utils import format_device_name
@@ -96,13 +94,6 @@ class MerakiCamera(CoordinatorEntity, Camera):
         return self.coordinator.get_device(self._device_serial) or {}
 
     @property
-    def _stream_source_setting(self) -> str:
-        """Return the configured stream source (rtsp or cloud)."""
-        return self._config_entry.options.get(
-            CONF_CAMERA_STREAM_SOURCE, DEFAULT_CAMERA_STREAM_SOURCE
-        )
-
-    @property
     def _snapshot_interval(self) -> int:
         """Return the configured snapshot refresh interval in seconds."""
         return int(
@@ -110,11 +101,6 @@ class MerakiCamera(CoordinatorEntity, Camera):
                 CONF_CAMERA_SNAPSHOT_INTERVAL, DEFAULT_CAMERA_SNAPSHOT_INTERVAL
             )
         )
-
-    @property
-    def _use_cloud_stream(self) -> bool:
-        """Return True if cloud streaming should be used instead of RTSP."""
-        return self._stream_source_setting == CAMERA_STREAM_SOURCE_CLOUD
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -230,31 +216,49 @@ class MerakiCamera(CoordinatorEntity, Camera):
         if not self.is_streaming:
             return None
 
-        if self._use_cloud_stream:
-            # Use cloud video link from Meraki Dashboard
-            return await self._camera_service.get_video_stream_url(self._device_serial)
-
-        # Use RTSP stream
+        # Meraki cameras only support RTSP for direct streaming.
+        # The "cloud video link" is a Meraki Dashboard web page URL,
+        # not a direct video stream that Home Assistant can process.
+        # We always use RTSP when available.
         return self.device_data.get("rtsp_url")
+
+    @property
+    def _linked_camera_entity(self) -> str | None:
+        """Get the linked camera entity ID from config options."""
+        mappings = self._config_entry.options.get(CONF_CAMERA_ENTITY_MAPPINGS, {})
+        return mappings.get(self._device_serial)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        attrs = {
-            "stream_source": self._stream_source_setting,
+        video_settings = self.device_data.get("video_settings", {})
+        rtsp_enabled = video_settings.get("rtspServerEnabled", False)
+        rtsp_url = self.device_data.get("rtsp_url")
+
+        # Determine stream status
+        if rtsp_enabled and rtsp_url:
+            stream_status = "RTSP Enabled"
+        elif not rtsp_enabled:
+            stream_status = "RTSP Disabled in Dashboard"
+        else:
+            stream_status = "RTSP URL Not Available"
+
+        attrs: dict[str, Any] = {
             "snapshot_interval": self._snapshot_interval,
+            "stream_status": stream_status,
         }
 
-        if self._use_cloud_stream:
-            attrs["stream_status"] = "Cloud"
-        else:
-            video_settings = self.device_data.get("video_settings", {})
-            if not video_settings.get("rtspServerEnabled", False):
-                attrs["stream_status"] = "RTSP Disabled in Dashboard"
-            elif not self.device_data.get("rtsp_url"):
-                attrs["stream_status"] = "RTSP URL Not Available"
-            else:
-                attrs["stream_status"] = "RTSP Enabled"
+        # Include cloud video URL for "view in browser" functionality
+        # Note: This is a Meraki Dashboard URL, not a direct video stream
+        cloud_url = self.device_data.get("cloud_video_url")
+        if cloud_url:
+            attrs["cloud_video_url"] = cloud_url
+
+        # Include linked camera entity if configured
+        # This allows linking to external NVR cameras (e.g., Blue Iris)
+        linked_camera = self._linked_camera_entity
+        if linked_camera:
+            attrs["linked_camera_entity"] = linked_camera
 
         return attrs
 
@@ -268,15 +272,11 @@ class MerakiCamera(CoordinatorEntity, Camera):
         """
         Return true if the camera can stream.
 
-        For cloud streaming, this checks if the camera is online.
-        For RTSP streaming, this requires rtspServerEnabled and a valid RTSP URL.
+        Meraki cameras only support RTSP for direct streaming in Home Assistant.
+        The cloud video link is a Dashboard URL (not a direct stream).
         """
         if self.device_data.get("status") != "online":
             return False
-
-        if self._use_cloud_stream:
-            # Cloud streaming is available if the camera is online
-            return True
 
         # RTSP streaming requires the server to be enabled and a valid URL
         video_settings = self.device_data.get("video_settings", {})
