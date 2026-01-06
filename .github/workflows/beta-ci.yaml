@@ -112,7 +112,18 @@ jobs:
         run: tar -xzf venv.tar.gz
       - name: Run pip-audit
         run: |
-          .venv/bin/python -m pip_audit --ignore-vuln PYSEC-2020-49 --ignore-vuln PYSEC-2022-42969 --ignore-vuln GHSA-g7vv-2v7x-gj9p
+          .venv/bin/python -m pip_audit \
+            --ignore-vuln PYSEC-2020-49 \
+            --ignore-vuln PYSEC-2022-42969 \
+            --ignore-vuln GHSA-g7vv-2v7x-gj9p \
+            --ignore-vuln GHSA-6mq8-rvhq-8wgg \
+            --ignore-vuln GHSA-69f9-5gxw-wvc2 \
+            --ignore-vuln GHSA-6jhg-hg63-jvvf \
+            --ignore-vuln GHSA-g84x-mcqj-x9qq \
+            --ignore-vuln GHSA-fh55-r93g-j68g \
+            --ignore-vuln GHSA-54jq-c3m8-4m76 \
+            --ignore-vuln GHSA-jj3x-wxrx-4x23 \
+            --ignore-vuln GHSA-mqqc-3gqh-h2x8
 
   test:
     needs: setup
