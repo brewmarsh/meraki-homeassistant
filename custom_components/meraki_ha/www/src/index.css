@@ -162,22 +162,29 @@
 }
 
 .stat-card .label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
+  font-weight: 500;
+  opacity: 0.7;
 }
 
 .stat-card .value {
   font-size: 32px;
   font-weight: 700;
+  /* Use primary color for numbers to stand out */
   color: var(--primary);
+  /* Fallback for themes where primary might be dark */
+  text-shadow: 0 0 1px currentColor;
 }
 
-.stat-card .value.success { color: var(--success); }
-.stat-card .value.warning { color: var(--warning); }
-.stat-card .value.error { color: var(--error); }
+.stat-card .value.success { color: var(--success) !important; }
+.stat-card .value.warning { color: var(--warning) !important; }
+.stat-card .value.error { color: var(--error) !important; }
+/* Default text color variant for when we want high contrast text */
+.stat-card .value.default { color: var(--text-primary) !important; font-weight: 600; }
 
 /* Network Card */
 .network-card {
@@ -559,23 +566,28 @@
 }
 
 .info-item .label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+  opacity: 0.7;
 }
 
 .info-item .value {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
+  /* Ensure value stands out with higher contrast */
+  opacity: 1;
 }
 
-.info-item .value.primary { color: var(--primary); }
-.info-item .value.success { color: var(--success); }
-.info-item .value.warning { color: var(--warning); }
-.info-item .value.mono { font-family: monospace; }
+.info-item .value.primary { color: var(--primary) !important; }
+.info-item .value.success { color: var(--success) !important; }
+.info-item .value.warning { color: var(--warning) !important; }
+.info-item .value.error { color: var(--error) !important; }
+.info-item .value.mono { font-family: 'SF Mono', 'Monaco', 'Consolas', monospace; font-size: 14px; }
 
 /* Switch Port Visualization */
 .port-visualization {
@@ -965,6 +977,32 @@
 .font-medium { font-weight: 500; }
 .font-semibold { font-weight: 600; }
 .font-bold { font-weight: 700; }
+
+/* Light Theme Support - HA sets data-theme on body or html */
+/* When background is light, increase contrast for labels/values */
+@media (prefers-color-scheme: light) {
+  :root {
+    --text-muted: var(--disabled-text-color, #6b7280);
+  }
+  
+  .info-item .label {
+    color: var(--secondary-text-color, #6b7280);
+    opacity: 0.8;
+  }
+  
+  .info-item .value {
+    color: var(--primary-text-color, #1f2937);
+  }
+  
+  .stat-card .label {
+    color: var(--secondary-text-color, #6b7280);
+    opacity: 0.8;
+  }
+  
+  .stat-card .value {
+    text-shadow: none;
+  }
+}
 
 /* Responsive */
 @media (max-width: 768px) {
