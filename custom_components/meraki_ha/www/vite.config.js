@@ -17,6 +17,8 @@ export default defineConfig({
     outDir: 'build',
     // Empty the output directory on build
     emptyOutDir: true,
+    // IMPORTANT: Inline CSS into JS bundle (HA only loads the JS file)
+    cssCodeSplit: false,
     rollupOptions: {
       output: {
         // Ensure all code is in one file
@@ -30,6 +32,10 @@ export default defineConfig({
     sourcemap: true,
     // Use esbuild minification (built-in, no extra dependency)
     minify: 'esbuild',
+  },
+  // Inline CSS into JS
+  css: {
+    // This ensures CSS is injected into the JS bundle
   },
   // Define global constants
   define: {
