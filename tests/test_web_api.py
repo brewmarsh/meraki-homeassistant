@@ -630,9 +630,7 @@ class TestHandleGetCameraMappings:
         mock_config_entry_with_options.add_to_hass(hass)
 
         # Mock the file-based storage
-        mock_mappings = {
-            "test_entry_id": {"Q234-CAM1": "camera.blue_iris_front"}
-        }
+        mock_mappings = {"test_entry_id": {"Q234-CAM1": "camera.blue_iris_front"}}
 
         msg = {
             "id": 1,
@@ -705,9 +703,7 @@ class TestHandleSetCameraMapping:
         mock_config_entry_with_options.add_to_hass(hass)
 
         # Mock existing mappings
-        existing_mappings = {
-            "test_entry_id": {"Q234-CAM1": "camera.blue_iris_front"}
-        }
+        existing_mappings = {"test_entry_id": {"Q234-CAM1": "camera.blue_iris_front"}}
 
         msg = {
             "id": 1,
@@ -746,9 +742,7 @@ class TestHandleSetCameraMapping:
         mock_config_entry_with_options.add_to_hass(hass)
 
         # Mock existing mappings
-        existing_mappings = {
-            "test_entry_id": {"Q234-CAM1": "camera.blue_iris_front"}
-        }
+        existing_mappings = {"test_entry_id": {"Q234-CAM1": "camera.blue_iris_front"}}
 
         msg = {
             "id": 1,
