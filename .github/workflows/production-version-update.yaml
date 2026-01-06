@@ -108,3 +108,43 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Deploy to local HA instance via HACS (if enabled)
+      - name: Deploy via HACS
+        if: vars.ENABLE_HACS_DEPLOY == 'true'
+        env:
+          HA_URL: ${{ secrets.HA_URL }}
+          HA_TOKEN: ${{ secrets.HA_TOKEN }}
+        run: |
+          echo "Waiting 10 seconds for release to propagate..."
+          sleep 10
+          
+          echo "Refreshing HACS repository data..."
+          CLEAN_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
+          
+          # Refresh HACS
+          curl -sS -X POST \
+            -H "Authorization: Bearer $CLEAN_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            "$HA_URL/api/services/hacs/reload" || true
+          
+          sleep 10
+          
+          # Find and trigger update
+          echo "Discovering Meraki update entity..."
+          ENTITY_ID=$(curl -sS -H "Authorization: Bearer $CLEAN_TOKEN" \
+            "$HA_URL/api/states" | \
+            jq -r '.[] | select(.entity_id | startswith("update.") and contains("meraki")) | .entity_id' | head -1)
+          
+          if [[ -n "$ENTITY_ID" ]]; then
+            echo "Found: $ENTITY_ID - triggering update..."
+            curl -sS -X POST \
+              -H "Authorization: Bearer $CLEAN_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"entity_id\": \"$ENTITY_ID\"}" \
+              "$HA_URL/api/services/update/install"
+            echo "✅ Update triggered!"
+          else
+            echo "⚠ Meraki update entity not found - skipping auto-deploy"
+          fi
