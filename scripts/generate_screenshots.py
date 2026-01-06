@@ -18,6 +18,7 @@ WWW_DIR = os.path.join(REPO_ROOT, "custom_components", "meraki_ha", "www")
 
 # Mock Data designed to produce a nice looking screenshot
 MOCK_DATA = {
+    "enabled_networks": ["N_12345"],
     "networks": [
         {
             "id": "N_12345",
@@ -309,39 +310,33 @@ def generate_screenshots() -> None:
 
         page.goto(f"http://127.0.0.1:{TEST_PORT}/screenshot_index.html")
 
-        # Wait for content
-        page.wait_for_selector("ha-card")
+        # Wait for content - the React component uses .network-card class
+        page.wait_for_selector(".network-card", timeout=30000)
         page.wait_for_timeout(3000)  # Wait for animations/rendering
 
-        # Expand Network
-        network_card = page.locator("ha-card").first
-        expand_button = network_card.locator("ha-icon[icon='mdi:chevron-down']")
-        if expand_button.is_visible():
-            expand_button.click()
-
-        page.wait_for_timeout(1000)
-
         # Take Network View Screenshot
-        # We want to capture the main area
         os.makedirs(SCREENSHOT_DIR, exist_ok=True)
         page.screenshot(path=os.path.join(SCREENSHOT_DIR, "network_view.png"))
         print(f"Saved {os.path.join(SCREENSHOT_DIR, 'network_view.png')}")
 
-        # Navigate to Device Detail
-        switch_row = page.locator("tr", has_text="Office Switch")
-        details_button = switch_row.locator("button[title='View Details']")
-        if details_button.count() > 0:
-            details_button.click()
+        # Try to expand network details if expand button exists
+        expand_button = page.locator(".network-card .expand-button").first
+        if expand_button.is_visible():
+            expand_button.click()
+            page.wait_for_timeout(1000)
+
+        # Try to navigate to device detail view
+        # Look for device rows or device cards
+        device_element = page.locator(".device-row, .device-card", has_text="Office Switch")
+        if device_element.count() > 0:
+            device_element.first.click()
+            page.wait_for_timeout(2000)
+            # Take Device Detail Screenshot
+            page.screenshot(path=os.path.join(SCREENSHOT_DIR, "device_detail_view.png"))
+            print(f"Saved {os.path.join(SCREENSHOT_DIR, 'device_detail_view.png')}")
         else:
-            # Fallback: click the row cell that is NOT the name
-            switch_row.locator("td").nth(2).click()
-
-        page.wait_for_selector("text=Entities")
-        page.wait_for_timeout(2000)
-
-        # Take Device Detail Screenshot
-        page.screenshot(path=os.path.join(SCREENSHOT_DIR, "device_detail_view.png"))
-        print(f"Saved {os.path.join(SCREENSHOT_DIR, 'device_detail_view.png')}")
+            # If no device detail navigation, just take another screenshot
+            print("No device detail navigation found, skipping device_detail_view.png")
 
         browser.close()
 
