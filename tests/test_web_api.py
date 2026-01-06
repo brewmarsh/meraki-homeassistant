@@ -494,9 +494,7 @@ class TestHandleCreateTimedAccessKey:
             )
             mock_manager_class.return_value = mock_manager
 
-            await handle_create_timed_access_key.__wrapped__(
-                hass, mock_connection, msg
-            )
+            await handle_create_timed_access_key.__wrapped__(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once_with(
             1, {"id": "key123", "name": "Guest Key"}
@@ -554,9 +552,7 @@ class TestHandleCreateTimedAccessKey:
             )
             mock_manager_class.return_value = mock_manager
 
-            await handle_create_timed_access_key.__wrapped__(
-                hass, mock_connection, msg
-            )
+            await handle_create_timed_access_key.__wrapped__(hass, mock_connection, msg)
 
         mock_connection.send_error.assert_called_once_with(
             1, "invalid_input", "Invalid passphrase"
@@ -591,9 +587,7 @@ class TestHandleCreateTimedAccessKey:
             )
             mock_manager_class.return_value = mock_manager
 
-            await handle_create_timed_access_key.__wrapped__(
-                hass, mock_connection, msg
-            )
+            await handle_create_timed_access_key.__wrapped__(hass, mock_connection, msg)
 
         mock_connection.send_error.assert_called_once_with(
             1, "api_error", "API rate limit exceeded"
