@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable, Coroutine
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from homeassistant.components.websocket_api import ActiveConnection
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -30,6 +33,23 @@ from custom_components.meraki_ha.web_api import (
 )
 
 from .const import MOCK_ALL_DATA
+
+# Type alias for websocket handler functions
+WebSocketHandler = Callable[
+    [HomeAssistant, ActiveConnection, dict[str, Any]],
+    Coroutine[Any, Any, None],
+]
+
+
+def get_wrapped(
+    func: Callable[[HomeAssistant, ActiveConnection, dict[str, Any]], None],
+) -> WebSocketHandler:
+    """Get the wrapped async function from a websocket handler.
+
+    The @websocket_api.async_response decorator wraps the function,
+    and we need to access __wrapped__ to call the underlying coroutine directly.
+    """
+    return func.__wrapped__  # type: ignore[attr-defined]
 
 
 @pytest.fixture
@@ -162,7 +182,7 @@ class TestHandleGetConfig:
             mock_aiofiles_open.return_value = mock_file
 
             # Call the underlying async function via __wrapped__
-            await handle_get_config.__wrapped__(hass, mock_connection, msg)
+            await get_wrapped(handle_get_config)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once()
         result = mock_connection.send_result.call_args[0][1]
@@ -184,7 +204,7 @@ class TestHandleGetConfig:
             "config_entry_id": "nonexistent_entry",
         }
 
-        await handle_get_config.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_get_config)(hass, mock_connection, msg)
 
         mock_connection.send_error.assert_called_once_with(
             1, "not_found", "Config entry not found"
@@ -226,7 +246,7 @@ class TestHandleGetConfig:
             mock_file.__aexit__ = AsyncMock(return_value=None)
             mock_aiofiles_open.return_value = mock_file
 
-            await handle_get_config.__wrapped__(hass, mock_connection, msg)
+            await get_wrapped(handle_get_config)(hass, mock_connection, msg)
 
         result = mock_connection.send_result.call_args[0][1]
         # Should default to all network IDs from coordinator data
@@ -252,7 +272,7 @@ class TestHandleGetConfig:
             "config_entry_id": "orphan_entry_id",
         }
 
-        await handle_get_config.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_get_config)(hass, mock_connection, msg)
 
         mock_connection.send_error.assert_called_once_with(
             1, "not_found", "Config entry not found"
@@ -276,7 +296,7 @@ class TestHandleGetCameraStreamUrl:
             "serial": "Q234-CAM1",
         }
 
-        await handle_get_camera_stream_url.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_get_camera_stream_url)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once_with(
             1, {"url": "https://stream.url/video"}
@@ -297,7 +317,7 @@ class TestHandleGetCameraStreamUrl:
             "stream_source": "cloud",
         }
 
-        await handle_get_camera_stream_url.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_get_camera_stream_url)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once_with(
             1, {"url": "https://cloud.url/video"}
@@ -318,7 +338,7 @@ class TestHandleGetCameraStreamUrl:
             "stream_source": "rtsp",
         }
 
-        await handle_get_camera_stream_url.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_get_camera_stream_url)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once_with(
             1, {"url": "rtsp://192.168.1.100:9000/live"}
@@ -339,7 +359,7 @@ class TestHandleGetCameraStreamUrl:
             "serial": "Q234-CAM1",
         }
 
-        await handle_get_camera_stream_url.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_get_camera_stream_url)(hass, mock_connection, msg)
 
         mock_connection.send_error.assert_called_once_with(
             1, "not_found", "Config entry not found"
@@ -363,7 +383,7 @@ class TestHandleGetCameraSnapshot:
             "serial": "Q234-CAM1",
         }
 
-        await handle_get_camera_snapshot.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_get_camera_snapshot)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once_with(
             1, {"url": "https://snapshot.url/image"}
@@ -384,7 +404,7 @@ class TestHandleGetCameraSnapshot:
             "serial": "Q234-CAM1",
         }
 
-        await handle_get_camera_snapshot.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_get_camera_snapshot)(hass, mock_connection, msg)
 
         mock_connection.send_error.assert_called_once_with(
             1, "not_found", "Config entry not found"
@@ -411,7 +431,7 @@ class TestHandleUpdateEnabledNetworks:
             "enabled_networks": ["N_12345", "N_67890"],
         }
 
-        await handle_update_enabled_networks.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_update_enabled_networks)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once_with(1, {"success": True})
 
@@ -434,7 +454,7 @@ class TestHandleUpdateEnabledNetworks:
             "enabled_networks": ["N_12345"],
         }
 
-        await handle_update_enabled_networks.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_update_enabled_networks)(hass, mock_connection, msg)
 
         mock_connection.send_error.assert_called_once_with(
             1, "not_found", "Config entry not found"
@@ -456,7 +476,7 @@ class TestHandleUpdateEnabledNetworks:
             "enabled_networks": ["N_12345"],
         }
 
-        await handle_update_enabled_networks.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_update_enabled_networks)(hass, mock_connection, msg)
 
         mock_connection.send_error.assert_called_once_with(
             1, "not_found", "Config entry not found"
@@ -494,7 +514,8 @@ class TestHandleCreateTimedAccessKey:
             )
             mock_manager_class.return_value = mock_manager
 
-            await handle_create_timed_access_key.__wrapped__(hass, mock_connection, msg)
+            handler = get_wrapped(handle_create_timed_access_key)
+            await handler(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once_with(
             1, {"id": "key123", "name": "Guest Key"}
@@ -519,7 +540,7 @@ class TestHandleCreateTimedAccessKey:
             "duration_hours": 24,
         }
 
-        await handle_create_timed_access_key.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_create_timed_access_key)(hass, mock_connection, msg)
 
         mock_connection.send_error.assert_called_once_with(
             1, "not_found", "Config entry not found"
@@ -552,7 +573,8 @@ class TestHandleCreateTimedAccessKey:
             )
             mock_manager_class.return_value = mock_manager
 
-            await handle_create_timed_access_key.__wrapped__(hass, mock_connection, msg)
+            handler = get_wrapped(handle_create_timed_access_key)
+            await handler(hass, mock_connection, msg)
 
         mock_connection.send_error.assert_called_once_with(
             1, "invalid_input", "Invalid passphrase"
@@ -587,7 +609,8 @@ class TestHandleCreateTimedAccessKey:
             )
             mock_manager_class.return_value = mock_manager
 
-            await handle_create_timed_access_key.__wrapped__(hass, mock_connection, msg)
+            handler = get_wrapped(handle_create_timed_access_key)
+            await handler(hass, mock_connection, msg)
 
         mock_connection.send_error.assert_called_once_with(
             1, "api_error", "API rate limit exceeded"
@@ -612,7 +635,7 @@ class TestHandleGetCameraMappings:
             "config_entry_id": "test_entry_id",
         }
 
-        await handle_get_camera_mappings.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_get_camera_mappings)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once_with(
             1, {"mappings": {"Q234-CAM1": "camera.blue_iris_front"}}
@@ -638,7 +661,7 @@ class TestHandleGetCameraMappings:
             "config_entry_id": "test_entry_id",
         }
 
-        await handle_get_camera_mappings.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_get_camera_mappings)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once_with(1, {"mappings": {}})
 
@@ -654,7 +677,7 @@ class TestHandleGetCameraMappings:
             "config_entry_id": "nonexistent",
         }
 
-        await handle_get_camera_mappings.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_get_camera_mappings)(hass, mock_connection, msg)
 
         mock_connection.send_error.assert_called_once_with(
             1, "not_found", "Config entry not found"
@@ -681,7 +704,7 @@ class TestHandleSetCameraMapping:
             "linked_entity_id": "camera.blue_iris_back",
         }
 
-        await handle_set_camera_mapping.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_set_camera_mapping)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once()
         result = mock_connection.send_result.call_args[0][1]
@@ -707,7 +730,7 @@ class TestHandleSetCameraMapping:
             "linked_entity_id": "",  # Empty string removes mapping
         }
 
-        await handle_set_camera_mapping.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_set_camera_mapping)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once()
         result = mock_connection.send_result.call_args[0][1]
@@ -728,7 +751,7 @@ class TestHandleSetCameraMapping:
             "linked_entity_id": "camera.test",
         }
 
-        await handle_set_camera_mapping.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_set_camera_mapping)(hass, mock_connection, msg)
 
         mock_connection.send_error.assert_called_once_with(
             1, "not_found", "Config entry not found"
@@ -766,7 +789,7 @@ class TestHandleGetAvailableCameras:
             "type": "meraki_ha/get_available_cameras",
         }
 
-        await handle_get_available_cameras.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_get_available_cameras)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once()
         result = mock_connection.send_result.call_args[0][1]
@@ -800,7 +823,7 @@ class TestHandleGetAvailableCameras:
             "type": "meraki_ha/get_available_cameras",
         }
 
-        await handle_get_available_cameras.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_get_available_cameras)(hass, mock_connection, msg)
 
         result = mock_connection.send_result.call_args[0][1]
         cameras = result["cameras"]
@@ -820,7 +843,7 @@ class TestHandleGetAvailableCameras:
             "type": "meraki_ha/get_available_cameras",
         }
 
-        await handle_get_available_cameras.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_get_available_cameras)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once_with(1, {"cameras": []})
 
@@ -841,7 +864,7 @@ class TestHandleGetAvailableCameras:
             "type": "meraki_ha/get_available_cameras",
         }
 
-        await handle_get_available_cameras.__wrapped__(hass, mock_connection, msg)
+        await get_wrapped(handle_get_available_cameras)(hass, mock_connection, msg)
 
         result = mock_connection.send_result.call_args[0][1]
         cameras = result["cameras"]
