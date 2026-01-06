@@ -12,7 +12,13 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 from voluptuous import ALLOW_EXTRA, All, Optional, Required, Schema
 
-from .const import CONF_CAMERA_ENTITY_MAPPINGS, CONF_ENABLED_NETWORKS, DATA_CLIENT, DOMAIN
+from .const import (
+    CONF_CAMERA_ENTITY_MAPPINGS,
+    CONF_ENABLED_NETWORKS,
+    DATA_CLIENT,
+    DOMAIN,
+)
+from .core.errors import MerakiError
 from .core.timed_access_manager import TimedAccessManager
 from .meraki_data_coordinator import MerakiDataCoordinator
 from .services.camera_service import CameraService
@@ -163,6 +169,9 @@ async def handle_get_config(
         "coordinator"
     ]
     config_entry = hass.config_entries.async_get_entry(config_entry_id)
+    if not config_entry:
+        connection.send_error(msg["id"], "not_found", "Config entry not found")
+        return
     enabled_networks = config_entry.options.get(CONF_ENABLED_NETWORKS)
     if enabled_networks is None:
         enabled_networks = [
@@ -328,9 +337,12 @@ async def handle_create_timed_access_key(
             group_policy_id=msg.get("group_policy_id"),
         )
         connection.send_result(msg["id"], result)
-    except Exception as e:
-        _LOGGER.exception("Error creating timed access key: %s", e)
-        connection.send_error(msg["id"], "error", str(e))
+    except (ValueError, KeyError, TypeError) as e:
+        _LOGGER.error("Invalid input for timed access key: %s", e)
+        connection.send_error(msg["id"], "invalid_input", str(e))
+    except MerakiError as e:
+        _LOGGER.error("Meraki API error creating timed access key: %s", e)
+        connection.send_error(msg["id"], "api_error", str(e))
 
 
 @websocket_api.async_response
@@ -421,11 +433,13 @@ async def handle_get_available_cameras(
             continue
 
         friendly_name = state.attributes.get("friendly_name", entity_id)
-        camera_entities.append({
-            "entity_id": entity_id,
-            "friendly_name": friendly_name,
-            "state": state.state,
-        })
+        camera_entities.append(
+            {
+                "entity_id": entity_id,
+                "friendly_name": friendly_name,
+                "state": state.state,
+            }
+        )
 
     # Sort by friendly name
     camera_entities.sort(key=lambda x: x["friendly_name"].lower())
