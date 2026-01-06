@@ -11,6 +11,7 @@ from typing import Any
 import aiofiles  # type: ignore[import-untyped]
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from voluptuous import ALLOW_EXTRA, All, Optional, Required, Schema
 
 from .const import (
@@ -480,7 +481,7 @@ async def handle_get_available_cameras(
     camera_entities = []
 
     # Get entity registry to look up integration/platform
-    entity_registry = hass.helpers.entity_registry.async_get(hass)
+    entity_registry = er.async_get(hass)
 
     # Get all camera entities from the state machine
     for state in hass.states.async_all("camera"):

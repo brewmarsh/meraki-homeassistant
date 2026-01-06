@@ -629,13 +629,22 @@ class TestHandleGetCameraMappings:
         """Test successful get camera mappings."""
         mock_config_entry_with_options.add_to_hass(hass)
 
+        # Mock the file-based storage
+        mock_mappings = {
+            "test_entry_id": {"Q234-CAM1": "camera.blue_iris_front"}
+        }
+
         msg = {
             "id": 1,
             "type": "meraki_ha/get_camera_mappings",
             "config_entry_id": "test_entry_id",
         }
 
-        await get_wrapped(handle_get_camera_mappings)(hass, mock_connection, msg)
+        with patch(
+            "custom_components.meraki_ha.web_api._load_camera_mappings",
+            return_value=mock_mappings,
+        ):
+            await get_wrapped(handle_get_camera_mappings)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once_with(
             1, {"mappings": {"Q234-CAM1": "camera.blue_iris_front"}}
@@ -647,41 +656,40 @@ class TestHandleGetCameraMappings:
         mock_connection: MagicMock,
     ) -> None:
         """Test get camera mappings when none configured."""
-        config_entry = MockConfigEntry(
-            domain=DOMAIN,
-            entry_id="test_entry_id",
-            data={CONF_MERAKI_API_KEY: "test-key", CONF_MERAKI_ORG_ID: "test-org"},
-            options={},  # No mappings
-        )
-        config_entry.add_to_hass(hass)
-
         msg = {
             "id": 1,
             "type": "meraki_ha/get_camera_mappings",
             "config_entry_id": "test_entry_id",
         }
 
-        await get_wrapped(handle_get_camera_mappings)(hass, mock_connection, msg)
+        with patch(
+            "custom_components.meraki_ha.web_api._load_camera_mappings",
+            return_value={},
+        ):
+            await get_wrapped(handle_get_camera_mappings)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once_with(1, {"mappings": {}})
 
-    async def test_get_camera_mappings_not_found(
+    async def test_get_camera_mappings_nonexistent_entry(
         self,
         hass: HomeAssistant,
         mock_connection: MagicMock,
     ) -> None:
-        """Test get camera mappings when entry not found."""
+        """Test get camera mappings for nonexistent entry returns empty."""
         msg = {
             "id": 1,
             "type": "meraki_ha/get_camera_mappings",
             "config_entry_id": "nonexistent",
         }
 
-        await get_wrapped(handle_get_camera_mappings)(hass, mock_connection, msg)
+        with patch(
+            "custom_components.meraki_ha.web_api._load_camera_mappings",
+            return_value={"other_entry": {"Q234-CAM1": "camera.test"}},
+        ):
+            await get_wrapped(handle_get_camera_mappings)(hass, mock_connection, msg)
 
-        mock_connection.send_error.assert_called_once_with(
-            1, "not_found", "Config entry not found"
-        )
+        # Returns empty mappings for nonexistent entry (file-based storage)
+        mock_connection.send_result.assert_called_once_with(1, {"mappings": {}})
 
 
 class TestHandleSetCameraMapping:
@@ -696,6 +704,11 @@ class TestHandleSetCameraMapping:
         """Test adding a new camera mapping."""
         mock_config_entry_with_options.add_to_hass(hass)
 
+        # Mock existing mappings
+        existing_mappings = {
+            "test_entry_id": {"Q234-CAM1": "camera.blue_iris_front"}
+        }
+
         msg = {
             "id": 1,
             "type": "meraki_ha/set_camera_mapping",
@@ -704,7 +717,17 @@ class TestHandleSetCameraMapping:
             "linked_entity_id": "camera.blue_iris_back",
         }
 
-        await get_wrapped(handle_set_camera_mapping)(hass, mock_connection, msg)
+        with (
+            patch(
+                "custom_components.meraki_ha.web_api._load_camera_mappings",
+                return_value=existing_mappings.copy(),
+            ),
+            patch(
+                "custom_components.meraki_ha.web_api._save_camera_mappings",
+                new_callable=AsyncMock,
+            ),
+        ):
+            await get_wrapped(handle_set_camera_mapping)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once()
         result = mock_connection.send_result.call_args[0][1]
@@ -722,6 +745,11 @@ class TestHandleSetCameraMapping:
         """Test removing a camera mapping."""
         mock_config_entry_with_options.add_to_hass(hass)
 
+        # Mock existing mappings
+        existing_mappings = {
+            "test_entry_id": {"Q234-CAM1": "camera.blue_iris_front"}
+        }
+
         msg = {
             "id": 1,
             "type": "meraki_ha/set_camera_mapping",
@@ -730,32 +758,53 @@ class TestHandleSetCameraMapping:
             "linked_entity_id": "",  # Empty string removes mapping
         }
 
-        await get_wrapped(handle_set_camera_mapping)(hass, mock_connection, msg)
+        with (
+            patch(
+                "custom_components.meraki_ha.web_api._load_camera_mappings",
+                return_value=existing_mappings.copy(),
+            ),
+            patch(
+                "custom_components.meraki_ha.web_api._save_camera_mappings",
+                new_callable=AsyncMock,
+            ),
+        ):
+            await get_wrapped(handle_set_camera_mapping)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once()
         result = mock_connection.send_result.call_args[0][1]
         assert result["success"] is True
         assert "Q234-CAM1" not in result["mappings"]
 
-    async def test_set_camera_mapping_not_found(
+    async def test_set_camera_mapping_new_entry(
         self,
         hass: HomeAssistant,
         mock_connection: MagicMock,
     ) -> None:
-        """Test set camera mapping when entry not found."""
+        """Test set camera mapping for new entry creates mapping."""
         msg = {
             "id": 1,
             "type": "meraki_ha/set_camera_mapping",
-            "config_entry_id": "nonexistent",
+            "config_entry_id": "new_entry_id",
             "serial": "Q234-CAM1",
             "linked_entity_id": "camera.test",
         }
 
-        await get_wrapped(handle_set_camera_mapping)(hass, mock_connection, msg)
+        with (
+            patch(
+                "custom_components.meraki_ha.web_api._load_camera_mappings",
+                return_value={},
+            ),
+            patch(
+                "custom_components.meraki_ha.web_api._save_camera_mappings",
+                new_callable=AsyncMock,
+            ),
+        ):
+            await get_wrapped(handle_set_camera_mapping)(hass, mock_connection, msg)
 
-        mock_connection.send_error.assert_called_once_with(
-            1, "not_found", "Config entry not found"
-        )
+        mock_connection.send_result.assert_called_once()
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["success"] is True
+        assert result["mappings"]["Q234-CAM1"] == "camera.test"
 
 
 class TestHandleGetAvailableCameras:
@@ -789,7 +838,15 @@ class TestHandleGetAvailableCameras:
             "type": "meraki_ha/get_available_cameras",
         }
 
-        await get_wrapped(handle_get_available_cameras)(hass, mock_connection, msg)
+        # Mock the entity registry
+        mock_registry = MagicMock()
+        mock_registry.async_get.return_value = None
+
+        with patch(
+            "custom_components.meraki_ha.web_api.er.async_get",
+            return_value=mock_registry,
+        ):
+            await get_wrapped(handle_get_available_cameras)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once()
         result = mock_connection.send_result.call_args[0][1]
@@ -823,7 +880,14 @@ class TestHandleGetAvailableCameras:
             "type": "meraki_ha/get_available_cameras",
         }
 
-        await get_wrapped(handle_get_available_cameras)(hass, mock_connection, msg)
+        mock_registry = MagicMock()
+        mock_registry.async_get.return_value = None
+
+        with patch(
+            "custom_components.meraki_ha.web_api.er.async_get",
+            return_value=mock_registry,
+        ):
+            await get_wrapped(handle_get_available_cameras)(hass, mock_connection, msg)
 
         result = mock_connection.send_result.call_args[0][1]
         cameras = result["cameras"]
@@ -843,7 +907,14 @@ class TestHandleGetAvailableCameras:
             "type": "meraki_ha/get_available_cameras",
         }
 
-        await get_wrapped(handle_get_available_cameras)(hass, mock_connection, msg)
+        mock_registry = MagicMock()
+        mock_registry.async_get.return_value = None
+
+        with patch(
+            "custom_components.meraki_ha.web_api.er.async_get",
+            return_value=mock_registry,
+        ):
+            await get_wrapped(handle_get_available_cameras)(hass, mock_connection, msg)
 
         mock_connection.send_result.assert_called_once_with(1, {"cameras": []})
 
@@ -864,7 +935,14 @@ class TestHandleGetAvailableCameras:
             "type": "meraki_ha/get_available_cameras",
         }
 
-        await get_wrapped(handle_get_available_cameras)(hass, mock_connection, msg)
+        mock_registry = MagicMock()
+        mock_registry.async_get.return_value = None
+
+        with patch(
+            "custom_components.meraki_ha.web_api.er.async_get",
+            return_value=mock_registry,
+        ):
+            await get_wrapped(handle_get_available_cameras)(hass, mock_connection, msg)
 
         result = mock_connection.send_result.call_args[0][1]
         cameras = result["cameras"]

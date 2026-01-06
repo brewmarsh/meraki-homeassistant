@@ -80,8 +80,12 @@ OPTIONS_SCHEMA = vol.Schema(
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=[
-                    {"value": DASHBOARD_VIEW_MODE_NETWORK, "label": "By Network"},
-                    {"value": DASHBOARD_VIEW_MODE_TYPE, "label": "By Device Type"},
+                    selector.SelectOptionDict(
+                        value=DASHBOARD_VIEW_MODE_NETWORK, label="By Network"
+                    ),
+                    selector.SelectOptionDict(
+                        value=DASHBOARD_VIEW_MODE_TYPE, label="By Device Type"
+                    ),
                 ],
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
@@ -92,12 +96,12 @@ OPTIONS_SCHEMA = vol.Schema(
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=[
-                    {"value": "all", "label": "All Types"},
-                    {"value": "switch", "label": "Switches"},
-                    {"value": "camera", "label": "Cameras"},
-                    {"value": "wireless", "label": "Wireless APs"},
-                    {"value": "sensor", "label": "Sensors"},
-                    {"value": "appliance", "label": "Appliances"},
+                    selector.SelectOptionDict(value="all", label="All Types"),
+                    selector.SelectOptionDict(value="switch", label="Switches"),
+                    selector.SelectOptionDict(value="camera", label="Cameras"),
+                    selector.SelectOptionDict(value="wireless", label="Wireless APs"),
+                    selector.SelectOptionDict(value="sensor", label="Sensors"),
+                    selector.SelectOptionDict(value="appliance", label="Appliances"),
                 ],
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
@@ -107,11 +111,11 @@ OPTIONS_SCHEMA = vol.Schema(
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=[
-                    {"value": "all", "label": "All Statuses"},
-                    {"value": "online", "label": "Online"},
-                    {"value": "offline", "label": "Offline"},
-                    {"value": "alerting", "label": "Alerting"},
-                    {"value": "dormant", "label": "Dormant"},
+                    selector.SelectOptionDict(value="all", label="All Statuses"),
+                    selector.SelectOptionDict(value="online", label="Online"),
+                    selector.SelectOptionDict(value="offline", label="Offline"),
+                    selector.SelectOptionDict(value="alerting", label="Alerting"),
+                    selector.SelectOptionDict(value="dormant", label="Dormant"),
                 ],
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
