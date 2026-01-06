@@ -7,12 +7,13 @@ on:
       - beta
 
 jobs:
-  version-and-release:
+  version:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
     permissions:
       contents: write
-      pull-requests: read
+    outputs:
+      new_version: ${{ steps.increment.outputs.new_version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -91,41 +92,57 @@ jobs:
           commit_author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
           branch: 'beta'
 
+  release:
+    runs-on: ubuntu-latest
+    needs: version
+    if: needs.version.outputs.new_version != ''
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      # Fresh checkout gets the just-pushed commit with version bump
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: 'beta'
+
       - name: Create Release
-        if: steps.increment.outputs.new_version != ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Use GitHub CLI for fast release creation (~3s vs ~60s with release-drafter)
-          gh release create "v${{ steps.increment.outputs.new_version }}" \
+          # Fresh checkout ensures we're on the commit with the version bump
+          gh release create "v${{ needs.version.outputs.new_version }}" \
             --repo "${{ github.repository }}" \
-            --title "v${{ steps.increment.outputs.new_version }}" \
+            --title "v${{ needs.version.outputs.new_version }}" \
             --generate-notes \
             --prerelease
 
-      # Deploy to local HA instance via HACS (if enabled)
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [version, release]
+    if: needs.version.outputs.new_version != '' && vars.ENABLE_HACS_DEPLOY == 'true'
+    steps:
       - name: Deploy via HACS
-        if: steps.increment.outputs.new_version != '' && vars.ENABLE_HACS_DEPLOY == 'true'
         env:
           HA_URL: ${{ secrets.HA_URL }}
           HA_TOKEN: ${{ secrets.HA_TOKEN }}
-          NEW_VERSION: ${{ steps.increment.outputs.new_version }}
+          NEW_VERSION: ${{ needs.version.outputs.new_version }}
         run: |
           echo "Waiting 30 seconds for release to propagate to GitHub CDN..."
           sleep 30
           
           CLEAN_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
           
-          # Force HACS to re-fetch this specific repository
+          # Force HACS to re-fetch this specific repository from GitHub
           echo "Refreshing HACS repository: liptonj/meraki-homeassistant..."
           curl -sS -X POST \
             -H "Authorization: Bearer $CLEAN_TOKEN" \
             -H "Content-Type: application/json" \
-            -d '{"repository": "liptonj/meraki-homeassistant"}' \
+            -d '{"action": "reload", "repository": "liptonj/meraki-homeassistant"}' \
             "$HA_URL/api/services/hacs/repository" || true
           
-          echo "Waiting 15 seconds for HACS to process..."
-          sleep 15
+          echo "Waiting 20 seconds for HACS to refresh from GitHub..."
+          sleep 20
           
           # Find the update entity
           echo "Discovering Meraki update entity..."
@@ -148,22 +165,20 @@ jobs:
           
           echo "Installed: $INSTALLED, Latest seen by HACS: $LATEST, Just released: $NEW_VERSION"
           
-          # For beta releases, we must specify the exact version since HACS
-          # may only track stable releases by default
-          echo "Installing specific version: v$NEW_VERSION (beta)..."
+          # Use HACS repository service directly to download specific version
+          # This works even when HACS is tracking default branch instead of releases
+          echo "Downloading specific version v$NEW_VERSION via HACS repository service..."
           curl -sS -X POST \
             -H "Authorization: Bearer $CLEAN_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{\"entity_id\": \"$ENTITY_ID\", \"version\": \"v$NEW_VERSION\"}" \
-            "$HA_URL/api/services/update/install"
+            -d "{\"action\": \"download\", \"repository\": \"liptonj/meraki-homeassistant\", \"version\": \"v$NEW_VERSION\"}" \
+            "$HA_URL/api/services/hacs/repository"
           
-          echo "✅ Update triggered for beta version v$NEW_VERSION!"
+          echo "✅ Download triggered for beta version v$NEW_VERSION!"
           echo "Waiting 30 seconds for HACS to download and install..."
           sleep 30
 
-      # Restart Home Assistant after update
       - name: Restart Home Assistant
-        if: steps.increment.outputs.new_version != '' && vars.ENABLE_HACS_DEPLOY == 'true'
         env:
           HA_URL: ${{ secrets.HA_URL }}
           HA_TOKEN: ${{ secrets.HA_TOKEN }}
@@ -181,13 +196,11 @@ jobs:
           echo "Restart initiated. Waiting 90 seconds for HA to come back online..."
           sleep 90
 
-      # Verify correct version is installed
       - name: Verify Installation
-        if: steps.increment.outputs.new_version != '' && vars.ENABLE_HACS_DEPLOY == 'true'
         env:
           HA_URL: ${{ secrets.HA_URL }}
           HA_TOKEN: ${{ secrets.HA_TOKEN }}
-          NEW_VERSION: ${{ steps.increment.outputs.new_version }}
+          NEW_VERSION: ${{ needs.version.outputs.new_version }}
         run: |
           CLEAN_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
           
