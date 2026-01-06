@@ -32,20 +32,54 @@ interface SSID {
   entity_id?: string;
 }
 
+interface Client {
+  id: string;
+  mac: string;
+  description?: string;
+  ip?: string;
+  networkId?: string;
+}
+
 interface DashboardProps {
   setActiveView: (view: { view: string; deviceId?: string }) => void;
   data: {
     devices?: Device[];
     networks?: Network[];
     ssids?: SSID[];
+    clients?: Client[];
   };
   hass?: {
     callService?: (domain: string, service: string, data: object) => Promise<void>;
   };
 }
 
+type DeviceTypeFilter = 'all' | 'switch' | 'camera' | 'wireless' | 'sensor' | 'appliance';
+type StatusFilter = 'all' | 'online' | 'offline' | 'alerting' | 'dormant';
+type ViewMode = 'network' | 'type';
+
+const DEVICE_TYPES: { value: DeviceTypeFilter; label: string; icon: string }[] = [
+  { value: 'all', label: 'All Types', icon: '📱' },
+  { value: 'switch', label: 'Switches', icon: '⚡' },
+  { value: 'camera', label: 'Cameras', icon: '📹' },
+  { value: 'wireless', label: 'Wireless', icon: '📶' },
+  { value: 'sensor', label: 'Sensors', icon: '🌡️' },
+  { value: 'appliance', label: 'Appliances', icon: '🔒' },
+];
+
+const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
+  { value: 'all', label: 'All Status' },
+  { value: 'online', label: 'Online' },
+  { value: 'offline', label: 'Offline' },
+  { value: 'alerting', label: 'Alerting' },
+  { value: 'dormant', label: 'Dormant' },
+];
+
 const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data, hass }) => {
   const [expandedNetworks, setExpandedNetworks] = useState<Set<string>>(new Set());
+  const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set(['switch', 'camera', 'wireless', 'sensor', 'appliance']));
+  const [deviceTypeFilter, setDeviceTypeFilter] = useState<DeviceTypeFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [viewMode, setViewMode] = useState<ViewMode>('network');
   const hasAutoExpandedRef = useRef(false);
 
   // Auto-expand if there's only one network (or a few networks)
@@ -69,15 +103,41 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data, hass }) => {
     );
   }
 
-  const { devices = [], networks = [], ssids = [] } = data;
+  const { devices = [], networks = [], ssids = [], clients = [] } = data;
+
+  // Get device type
+  const getDeviceType = (device: Device): DeviceTypeFilter => {
+    const model = device.model?.toUpperCase() || '';
+    const productType = device.productType?.toLowerCase() || '';
+    
+    if (model.startsWith('MS') || productType === 'switch') return 'switch';
+    if (model.startsWith('MV') || productType === 'camera') return 'camera';
+    if (model.startsWith('MR') || productType === 'wireless') return 'wireless';
+    if (model.startsWith('MT') || productType === 'sensor') return 'sensor';
+    if (model.startsWith('MX') || model.startsWith('Z') || productType === 'appliance') return 'appliance';
+    return 'all';
+  };
+
+  // Filter devices based on current filters
+  const filterDevices = (deviceList: Device[]): Device[] => {
+    return deviceList.filter((device) => {
+      // Type filter
+      if (deviceTypeFilter !== 'all' && getDeviceType(device) !== deviceTypeFilter) {
+        return false;
+      }
+      // Status filter
+      if (statusFilter !== 'all' && device.status?.toLowerCase() !== statusFilter) {
+        return false;
+      }
+      return true;
+    });
+  };
+
+  const filteredDevices = filterDevices(devices);
 
   // Calculate metrics
   const onlineDevices = devices.filter((d) => d.status?.toLowerCase() === 'online').length;
-  const totalClients = devices.reduce((acc, d) => {
-    // Estimate clients from AP or switch port data
-    if (d.productType === 'wireless') return acc + 10; // Placeholder
-    return acc;
-  }, 0);
+  const totalClients = clients.length || 0;
   const activeSSIDs = ssids.filter((s) => s.enabled).length;
 
   const toggleNetwork = (networkId: string) => {
@@ -92,47 +152,51 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data, hass }) => {
     });
   };
 
+  const toggleType = (type: string) => {
+    setExpandedTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) {
+        next.delete(type);
+      } else {
+        next.add(type);
+      }
+      return next;
+    });
+  };
+
   const getDeviceIcon = (device: Device): string => {
-    const model = device.model?.toUpperCase() || '';
-    const productType = device.productType?.toLowerCase() || '';
-    
-    if (model.startsWith('MS') || productType === 'switch') return '⚡';
-    if (model.startsWith('MV') || productType === 'camera') return '📹';
-    if (model.startsWith('MR') || productType === 'wireless') return '📶';
-    if (model.startsWith('MT') || productType === 'sensor') return '🌡️';
-    if (model.startsWith('MX') || model.startsWith('Z') || productType === 'appliance') return '🔒';
-    return '📱';
+    const type = getDeviceType(device);
+    const icons: Record<DeviceTypeFilter, string> = {
+      switch: '⚡',
+      camera: '📹',
+      wireless: '📶',
+      sensor: '🌡️',
+      appliance: '🔒',
+      all: '📱',
+    };
+    return icons[type];
   };
 
   const getDeviceTypeClass = (device: Device): string => {
-    const model = device.model?.toUpperCase() || '';
-    const productType = device.productType?.toLowerCase() || '';
-    
-    if (model.startsWith('MS') || productType === 'switch') return 'switch';
-    if (model.startsWith('MV') || productType === 'camera') return 'camera';
-    if (model.startsWith('MR') || productType === 'wireless') return 'wireless';
-    if (model.startsWith('MT') || productType === 'sensor') return 'sensor';
-    if (model.startsWith('MX') || model.startsWith('Z') || productType === 'appliance') return 'appliance';
-    return '';
+    return getDeviceType(device);
   };
 
   const getDeviceDetail = (device: Device): string => {
-    const model = device.model?.toUpperCase() || '';
-    const productType = device.productType?.toLowerCase() || '';
+    const type = getDeviceType(device);
     
-    if (model.startsWith('MS') || productType === 'switch') {
+    if (type === 'switch') {
       const activePorts = device.ports_statuses?.filter((p) => 
         p.status?.toLowerCase() === 'connected'
       ).length || 0;
       return `${activePorts} ports active`;
     }
-    if (model.startsWith('MV') || productType === 'camera') {
-      return 'Recording';
+    if (type === 'camera') {
+      return device.status?.toLowerCase() === 'online' ? 'Recording' : 'Offline';
     }
-    if (model.startsWith('MR') || productType === 'wireless') {
-      return '— clients'; // Would need actual client data
+    if (type === 'wireless') {
+      return '— clients';
     }
-    if (model.startsWith('MT') || productType === 'sensor') {
+    if (type === 'sensor') {
       if (device.readings?.temperature != null) {
         const temp = device.readings.temperature;
         const humidity = device.readings.humidity ?? '--';
@@ -144,11 +208,15 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data, hass }) => {
   };
 
   const getDevicesForNetwork = (networkId: string): Device[] => {
-    return devices.filter((d) => d.networkId === networkId);
+    return filteredDevices.filter((d) => d.networkId === networkId);
   };
 
   const getSSIDsForNetwork = (networkId: string): SSID[] => {
     return ssids.filter((s) => s.networkId === networkId);
+  };
+
+  const getDevicesByType = (type: DeviceTypeFilter): Device[] => {
+    return filteredDevices.filter((d) => getDeviceType(d) === type);
   };
 
   const handleSSIDToggle = async (ssid: SSID) => {
@@ -163,18 +231,191 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data, hass }) => {
     }
   };
 
+  const renderDeviceTable = (deviceList: Device[]) => (
+    <table className="device-table">
+      <thead>
+        <tr>
+          <th>Device</th>
+          <th>Model</th>
+          <th>Status</th>
+          <th>IP Address</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {deviceList.map((device) => (
+          <tr
+            key={device.serial}
+            className="device-row"
+            onClick={() => setActiveView({ 
+              view: 'device', 
+              deviceId: device.serial 
+            })}
+          >
+            <td>
+              <div className="device-name-cell">
+                <div className={`device-icon ${getDeviceTypeClass(device)}`}>
+                  {getDeviceIcon(device)}
+                </div>
+                <span className="name">{device.name || device.serial}</span>
+              </div>
+            </td>
+            <td className="device-model">{device.model || '—'}</td>
+            <td>
+              <div className={`status-badge ${device.status?.toLowerCase()}`}>
+                <div className="status-dot"></div>
+                <span>{device.status || 'Unknown'}</span>
+              </div>
+            </td>
+            <td className="device-model">{device.lanIp || '—'}</td>
+            <td>
+              <span className="detail-badge">
+                {getDeviceDetail(device) || '—'}
+              </span>
+            </td>
+          </tr>
+        ))}
+        {deviceList.length === 0 && (
+          <tr>
+            <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+              No devices match your filters
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  );
+
   return (
     <div>
       {/* Stats Grid */}
       <div className="stats-grid">
         <StatusCard title="Total Devices" value={devices.length} />
         <StatusCard title="Online" value={onlineDevices} variant="success" />
-        <StatusCard title="Connected Clients" value={totalClients || 47} />
+        <StatusCard 
+          title="Connected Clients" 
+          value={totalClients}
+          onClick={() => setActiveView({ view: 'clients' })}
+          clickable
+        />
         <StatusCard title="Active SSIDs" value={activeSSIDs} />
       </div>
 
-      {/* Network Cards */}
-      {networks.map((network) => {
+      {/* Filters and View Toggle */}
+      <div style={{ 
+        display: 'flex', 
+        gap: '12px', 
+        marginBottom: '20px',
+        flexWrap: 'wrap',
+        alignItems: 'center'
+      }}>
+        {/* View Mode Toggle */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '4px',
+          background: 'var(--bg-secondary)',
+          borderRadius: 'var(--radius-md)',
+          padding: '4px'
+        }}>
+          <button
+            onClick={() => setViewMode('network')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 'var(--radius-sm)',
+              border: 'none',
+              background: viewMode === 'network' ? 'var(--primary)' : 'transparent',
+              color: viewMode === 'network' ? 'white' : 'var(--text-secondary)',
+              cursor: 'pointer',
+              fontWeight: 500,
+              fontSize: '13px'
+            }}
+          >
+            🌐 By Network
+          </button>
+          <button
+            onClick={() => setViewMode('type')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 'var(--radius-sm)',
+              border: 'none',
+              background: viewMode === 'type' ? 'var(--primary)' : 'transparent',
+              color: viewMode === 'type' ? 'white' : 'var(--text-secondary)',
+              cursor: 'pointer',
+              fontWeight: 500,
+              fontSize: '13px'
+            }}
+          >
+            📦 By Type
+          </button>
+        </div>
+
+        {/* Device Type Filter */}
+        <select
+          value={deviceTypeFilter}
+          onChange={(e) => setDeviceTypeFilter(e.target.value as DeviceTypeFilter)}
+          style={{
+            padding: '8px 12px',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border)',
+            background: 'var(--bg-secondary)',
+            color: 'var(--text-primary)',
+            fontSize: '13px',
+            cursor: 'pointer'
+          }}
+        >
+          {DEVICE_TYPES.map((type) => (
+            <option key={type.value} value={type.value}>
+              {type.icon} {type.label}
+            </option>
+          ))}
+        </select>
+
+        {/* Status Filter */}
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+          style={{
+            padding: '8px 12px',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border)',
+            background: 'var(--bg-secondary)',
+            color: 'var(--text-primary)',
+            fontSize: '13px',
+            cursor: 'pointer'
+          }}
+        >
+          {STATUS_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
+        {/* Filter indicator */}
+        {(deviceTypeFilter !== 'all' || statusFilter !== 'all') && (
+          <button
+            onClick={() => {
+              setDeviceTypeFilter('all');
+              setStatusFilter('all');
+            }}
+            style={{
+              padding: '8px 12px',
+              borderRadius: 'var(--radius-md)',
+              border: 'none',
+              background: 'var(--warning)',
+              color: 'white',
+              fontSize: '12px',
+              cursor: 'pointer',
+              fontWeight: 500
+            }}
+          >
+            ✕ Clear Filters ({filteredDevices.length}/{devices.length})
+          </button>
+        )}
+      </div>
+
+      {/* View by Network */}
+      {viewMode === 'network' && networks.map((network) => {
         const networkDevices = getDevicesForNetwork(network.id);
         const networkSSIDs = getSSIDsForNetwork(network.id);
         const onlineCount = networkDevices.filter((d) => 
@@ -191,7 +432,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data, hass }) => {
               <div className="title">
                 <span className="network-icon">🌐</span>
                 <h2>{network.name}</h2>
-                <span className="badge">{onlineCount} devices online</span>
+                <span className="badge">{onlineCount}/{networkDevices.length} online</span>
               </div>
               <span className={`expand-icon ${isExpanded ? 'expanded' : ''}`}>
                 ▼
@@ -200,59 +441,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data, hass }) => {
 
             {isExpanded && (
               <>
-                {/* Device Table */}
-                <table className="device-table">
-                  <thead>
-                    <tr>
-                      <th>Device</th>
-                      <th>Model</th>
-                      <th>Status</th>
-                      <th>IP Address</th>
-                      <th>Details</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {networkDevices.map((device) => (
-                      <tr
-                        key={device.serial}
-                        className="device-row"
-                        onClick={() => setActiveView({ 
-                          view: 'device', 
-                          deviceId: device.serial 
-                        })}
-                      >
-                        <td>
-                          <div className="device-name-cell">
-                            <div className={`device-icon ${getDeviceTypeClass(device)}`}>
-                              {getDeviceIcon(device)}
-                            </div>
-                            <span className="name">{device.name || device.serial}</span>
-                          </div>
-                        </td>
-                        <td className="device-model">{device.model || '—'}</td>
-                        <td>
-                          <div className={`status-badge ${device.status?.toLowerCase()}`}>
-                            <div className="status-dot"></div>
-                            <span>{device.status || 'Unknown'}</span>
-                          </div>
-                        </td>
-                        <td className="device-model">{device.lanIp || '—'}</td>
-                        <td>
-                          <span className="detail-badge">
-                            {getDeviceDetail(device) || '—'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                    {networkDevices.length === 0 && (
-                      <tr>
-                        <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                          No devices in this network
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                {renderDeviceTable(networkDevices)}
 
                 {/* SSID Section */}
                 {networkSSIDs.length > 0 && (
@@ -287,8 +476,39 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data, hass }) => {
         );
       })}
 
-      {/* Fallback: Show all devices if no networks */}
-      {networks.length === 0 && devices.length > 0 && (
+      {/* View by Type */}
+      {viewMode === 'type' && DEVICE_TYPES.filter(t => t.value !== 'all').map((type) => {
+        const typeDevices = getDevicesByType(type.value);
+        if (typeDevices.length === 0 && deviceTypeFilter !== 'all') return null;
+        
+        const onlineCount = typeDevices.filter((d) => 
+          d.status?.toLowerCase() === 'online'
+        ).length;
+        const isExpanded = expandedTypes.has(type.value);
+
+        return (
+          <div key={type.value} className="network-card">
+            <div 
+              className="network-header"
+              onClick={() => toggleType(type.value)}
+            >
+              <div className="title">
+                <span className="network-icon">{type.icon}</span>
+                <h2>{type.label}</h2>
+                <span className="badge">{onlineCount}/{typeDevices.length} online</span>
+              </div>
+              <span className={`expand-icon ${isExpanded ? 'expanded' : ''}`}>
+                ▼
+              </span>
+            </div>
+
+            {isExpanded && renderDeviceTable(typeDevices)}
+          </div>
+        );
+      })}
+
+      {/* Fallback: Show all devices if no networks and network view */}
+      {viewMode === 'network' && networks.length === 0 && filteredDevices.length > 0 && (
         <div className="network-card">
           <div className="network-header">
             <div className="title">
@@ -297,60 +517,20 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data, hass }) => {
               <span className="badge">{onlineDevices} online</span>
             </div>
           </div>
-          <table className="device-table">
-            <thead>
-              <tr>
-                <th>Device</th>
-                <th>Model</th>
-                <th>Status</th>
-                <th>IP Address</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {devices.map((device) => (
-                <tr
-                  key={device.serial}
-                  className="device-row"
-                  onClick={() => setActiveView({ 
-                    view: 'device', 
-                    deviceId: device.serial 
-                  })}
-                >
-                  <td>
-                    <div className="device-name-cell">
-                      <div className={`device-icon ${getDeviceTypeClass(device)}`}>
-                        {getDeviceIcon(device)}
-                      </div>
-                      <span className="name">{device.name || device.serial}</span>
-                    </div>
-                  </td>
-                  <td className="device-model">{device.model || '—'}</td>
-                  <td>
-                    <div className={`status-badge ${device.status?.toLowerCase()}`}>
-                      <div className="status-dot"></div>
-                      <span>{device.status || 'Unknown'}</span>
-                    </div>
-                  </td>
-                  <td className="device-model">{device.lanIp || '—'}</td>
-                  <td>
-                    <span className="detail-badge">
-                      {getDeviceDetail(device) || '—'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {renderDeviceTable(filteredDevices)}
         </div>
       )}
 
       {/* Empty State */}
-      {devices.length === 0 && (
+      {filteredDevices.length === 0 && (
         <div className="empty-state">
           <div className="icon">📡</div>
           <h3>No Devices Found</h3>
-          <p>Your Meraki devices will appear here once discovered.</p>
+          <p>
+            {deviceTypeFilter !== 'all' || statusFilter !== 'all' 
+              ? 'No devices match your current filters.'
+              : 'Your Meraki devices will appear here once discovered.'}
+          </p>
         </div>
       )}
     </div>
