@@ -1,3 +1,388 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Meraki HA Panel Styles */
+
+/* Base styles that work with HA's theming */
+:host {
+  --card-background: var(--ha-card-background, var(--card-background-color, #fff));
+  --text-primary: var(--primary-text-color, #212121);
+  --text-secondary: var(--secondary-text-color, #727272);
+  --border-color: var(--divider-color, #e0e0e0);
+  --hover-color: var(--table-row-background-color, rgba(0, 0, 0, 0.04));
+  --accent-color: var(--primary-color, #03a9f4);
+}
+
+/* Panel container */
+.meraki-panel {
+  padding: 16px;
+  font-family: var(--paper-font-body1_-_font-family, 'Roboto', sans-serif);
+  color: var(--text-primary);
+}
+
+/* Header */
+.meraki-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.meraki-header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.meraki-header .version {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Network cards */
+.network-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.network-card {
+  background: var(--card-background);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--ha-card-box-shadow, 0 2px 2px rgba(0, 0, 0, 0.14));
+}
+
+.network-header {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.network-header:hover {
+  background: var(--hover-color);
+}
+
+.network-header .network-icon {
+  color: var(--accent-color);
+  margin-right: 12px;
+  --mdc-icon-size: 24px;
+}
+
+.network-header .network-name {
+  font-size: 16px;
+  font-weight: 500;
+  flex: 1;
+}
+
+.network-header .device-count {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-right: 12px;
+}
+
+.network-header .expand-icon {
+  color: var(--text-secondary);
+  --mdc-icon-size: 20px;
+}
+
+.network-content {
+  border-top: 1px solid var(--border-color);
+  padding: 16px;
+}
+
+/* Device table */
+.device-table-container {
+  margin-bottom: 16px;
+}
+
+.device-search {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--card-background);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.device-search:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.device-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.device-table th {
+  text-align: left;
+  padding: 12px;
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.device-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 14px;
+}
+
+.device-table tr:last-child td {
+  border-bottom: none;
+}
+
+.device-table tr:hover td {
+  background: var(--hover-color);
+}
+
+.device-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.device-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.device-name-cell ha-icon {
+  color: var(--text-secondary);
+  --mdc-icon-size: 20px;
+}
+
+.device-name-link {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.device-name-link:hover {
+  text-decoration: underline;
+}
+
+.device-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.device-status.online {
+  background: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+}
+
+.device-status.offline {
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+}
+
+.device-status.alerting {
+  background: rgba(255, 152, 0, 0.15);
+  color: #ff9800;
+}
+
+/* SSID section */
+.ssid-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 12px 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.ssid-header ha-icon {
+  --mdc-icon-size: 18px;
+}
+
+.ssid-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.ssid-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: var(--hover-color);
+  border-radius: 8px;
+}
+
+.ssid-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.ssid-status-icon {
+  --mdc-icon-size: 20px;
+}
+
+.ssid-status-icon.enabled {
+  color: var(--accent-color);
+}
+
+.ssid-status-icon.disabled {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.empty-state ha-icon {
+  --mdc-icon-size: 64px;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  margin-bottom: 16px;
+}
+
+.empty-state p {
+  margin: 8px 0;
+  color: var(--text-secondary);
+}
+
+.empty-state .hint {
+  font-size: 13px;
+}
+
+/* Loading & Error states */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 16px;
+  color: var(--text-secondary);
+}
+
+.error-container {
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.error-container ha-icon {
+  color: #f44336;
+  --mdc-icon-size: 24px;
+  flex-shrink: 0;
+}
+
+.error-content h3 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  color: #f44336;
+}
+
+.error-content p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.retry-button {
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.retry-button:hover {
+  background: #d32f2f;
+}
+
+/* Device View */
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+  margin-bottom: 16px;
+  color: var(--accent-color);
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.back-button:hover {
+  text-decoration: underline;
+}
+
+.device-detail-card {
+  background: var(--card-background);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--ha-card-box-shadow, 0 2px 2px rgba(0, 0, 0, 0.14));
+}
+
+.device-detail-card h2 {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+}
+
+.device-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.device-info-item {
+  font-size: 14px;
+}
+
+.device-info-item strong {
+  display: block;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

@@ -42,8 +42,21 @@ class CameraService:
         return await self._repository.get_analytics_data(serial, object_type)
 
     async def get_video_stream_url(self, serial: str) -> str | None:
-        """Get the video stream URL for a camera."""
+        """Get the video stream URL for a camera (RTSP or cloud)."""
+        # First try to get cloud video link (works for more camera models)
+        cloud_url = await self._repository.async_get_cloud_video_url(serial)
+        if cloud_url:
+            return cloud_url
+        # Fall back to RTSP URL
         return await self._repository.async_get_rtsp_stream_url(serial)
+
+    async def get_rtsp_stream_url(self, serial: str) -> str | None:
+        """Get the RTSP stream URL for a camera."""
+        return await self._repository.async_get_rtsp_stream_url(serial)
+
+    async def get_cloud_video_url(self, serial: str) -> str | None:
+        """Get the cloud video URL for a camera."""
+        return await self._repository.async_get_cloud_video_url(serial)
 
     async def get_camera_snapshot(self, serial: str) -> str | None:
         """Get a camera snapshot URL."""

@@ -8,6 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
+from .api.websocket import async_setup_websocket_api
 from .const import (
     CONF_ENABLE_WEB_UI,
     CONF_MERAKI_API_KEY,
@@ -150,7 +151,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await server.start()
         entry_data["web_server"] = server
 
-
     # Initialize repositories and services for the new architecture
     if "control_service" not in entry_data:
         entry_data["control_service"] = DeviceControlService(meraki_repository)
@@ -186,9 +186,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Initialize Timed Access Manager
     if "timed_access_manager" not in entry_data:
-        manager = TimedAccessManager(hass)
-        await manager.async_setup()
-        entry_data["timed_access_manager"] = manager
+        entry_data["timed_access_manager"] = TimedAccessManager(api_client)
 
     # Register service
     async def handle_create_timed_access(call):
@@ -223,10 +221,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     discovered_entities = await discovery_service.discover_entities()
     entry_data["entities"] = discovered_entities
 
-    # Register frontend panel
+    # Register frontend panel and WebSocket API
     await async_register_static_path(hass)
     await async_register_panel(hass, entry)
     async_setup_api(hass)
+    async_setup_websocket_api(hass)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

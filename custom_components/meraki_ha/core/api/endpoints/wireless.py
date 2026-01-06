@@ -78,6 +78,49 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
+    async def create_network_wireless_ssid_identity_psk(
+        self,
+        network_id: str,
+        number: str,
+        name: str,
+        group_policy_id: str,
+        **kwargs: dict[str, Any],
+    ) -> dict[str, Any]:
+        """
+        Create an Identity PSK for an SSID.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+            number: The SSID number.
+            name: The name of the Identity PSK.
+            group_policy_id: The group policy ID.
+            **kwargs: Additional arguments.
+
+        Returns
+        -------
+            The created Identity PSK.
+
+        """
+        if self._api_client.dashboard is None:
+            return {}
+        psk = await self._api_client.run_sync(
+            self._api_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk,
+            network_id,
+            number,
+            name,
+            group_policy_id,
+            **kwargs,
+        )
+        validated = validate_response(psk)
+        if not isinstance(validated, dict):
+            _LOGGER.warning(
+                "create_network_wireless_ssid_identity_psk did not return a dict"
+            )
+            return {}
+        return validated
+
+    @handle_meraki_errors
     @async_timed_cache()
     async def get_network_wireless_ssid(
         self,

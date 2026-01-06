@@ -45,6 +45,24 @@ CONF_HIDE_UNCONFIGURED_SSIDS: Final = "hide_unconfigured_ssids"
 CONF_RTSP_STREAM_ENABLED: Final = "rtsp_stream_enabled"
 """Configuration key for enabling RTSP stream on a camera."""
 
+CONF_CAMERA_STREAM_SOURCE: Final = "camera_stream_source"
+"""Configuration key for camera stream source (rtsp or cloud)."""
+
+CONF_CAMERA_SNAPSHOT_INTERVAL: Final = "camera_snapshot_interval"
+"""Configuration key for camera snapshot refresh interval in seconds."""
+
+CAMERA_STREAM_SOURCE_RTSP: Final = "rtsp"
+"""Use RTSP for camera streaming."""
+
+CAMERA_STREAM_SOURCE_CLOUD: Final = "cloud"
+"""Use cloud video link for camera streaming."""
+
+DEFAULT_CAMERA_STREAM_SOURCE: Final = "rtsp"
+"""Default camera stream source."""
+
+DEFAULT_CAMERA_SNAPSHOT_INTERVAL: Final = 0
+"""Default camera snapshot interval (0 = disabled)."""
+
 CONF_ENABLE_DEVICE_TRACKER: Final = "enable_device_tracker"
 """Configuration key for enabling device tracker."""
 
@@ -151,6 +169,14 @@ ATTR_SSIDS: Final = "ssids"
 
 TAG_HA_DISABLED: Final = "ha-disabled"
 """Tag used to indirectly disable an SSID on an access point."""
+
+# Device name format options
+DEVICE_NAME_FORMAT_PREFIX: Final = "prefix"
+"""Format device name with type prefix."""
+DEVICE_NAME_FORMAT_SUFFIX: Final = "suffix"
+"""Format device name with type suffix."""
+DEVICE_NAME_FORMAT_NONE: Final = "none"
+"""Do not format device name."""
 
 ERASE_TAGS_WARNING: Final = (
     "Tag erasing is enabled! This will ERASE ALL TAGS on your Meraki devices. "

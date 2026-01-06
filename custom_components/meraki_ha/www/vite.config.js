@@ -1,25 +1,38 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  esbuild: {
-    keepNames: true, // Keep original names for better debugging
-  },
   build: {
-    // Build directly to the current directory (www)
-    outDir: '.',
-    // Prevent Vite from emptying the directory and deleting source files
-    emptyOutDir: false,
+    // Output a single IIFE bundle for Home Assistant panel
+    lib: {
+      entry: resolve(__dirname, 'src/main.tsx'),
+      name: 'MerakiPanel',
+      fileName: () => 'meraki-panel.js',
+      formats: ['iife'],
+    },
+    // Output to a build directory, then we'll copy to root
+    outDir: 'build',
+    // Empty the output directory on build
+    emptyOutDir: true,
     rollupOptions: {
       output: {
-        // Force the output filename to be meraki-panel.js
+        // Ensure all code is in one file
+        inlineDynamicImports: true,
+        // Don't add hash to filename
         entryFileNames: 'meraki-panel.js',
-        // Ensure assets don't clutter the root
-        assetFileNames: 'assets/[name]-[hash].[ext]',
-        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'style.css',
       },
     },
+    // Generate sourcemaps for debugging
+    sourcemap: true,
+    // Use esbuild minification (built-in, no extra dependency)
+    minify: 'esbuild',
+  },
+  // Define global constants
+  define: {
+    'process.env.NODE_ENV': JSON.stringify('production'),
   },
 });

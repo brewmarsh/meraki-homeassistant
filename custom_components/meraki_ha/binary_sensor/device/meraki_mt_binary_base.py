@@ -1,5 +1,7 @@
 """Base class for Meraki MT binary sensor entities."""
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 
@@ -31,8 +33,8 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
         super().__init__(coordinator)
         self._device = device
         self.entity_description = entity_description
-        self._attr_unique_id = f"{self._device['serial']}_{self.entity_description.key}"
-        self._attr_name = f"{self._device['name']} {self.entity_description.name}"
+        self._attr_unique_id = f"{self._device['serial']}_{entity_description.key}"
+        self._attr_name = f"{self._device['name']} {entity_description.name}"
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -42,15 +44,17 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
             name=format_device_name(
                 self._device, self.coordinator.config_entry.options
             ),
-            model=self._device["model"],
+            model=self._device.get("model", "MT Sensor"),
             manufacturer="Cisco Meraki",
         )
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if not self.coordinator.data:
+            return
         for device in self.coordinator.data.get("devices", []):
-            if device["serial"] == self._device["serial"]:
+            if device.get("serial") == self._device.get("serial"):
                 self._device = device
                 self.async_write_ha_state()
                 return
@@ -63,31 +67,11 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
             return None
 
         for reading in readings:
-            if reading.get("metric") == self.entity_description.key:
-                metric_data = reading.get(self.entity_description.key)
-
-                if isinstance(metric_data, dict):
-                    # Map metric to the key holding its value
-                    key_map = {
-                        "water": "present",
-                        "door": "open",
-                    }
-                    value_key = key_map.get(self.entity_description.key)
-                    if value_key:
-                        val = metric_data.get(value_key)
-                        if isinstance(val, bool):
-                            return val
+            metric = reading.get("metric")
+            if metric == self.entity_description.key:
+                value = reading.get("value")
+                if isinstance(value, bool):
+                    return value
+                if isinstance(value, str):
+                    return value.lower() in ("true", "1", "on", "open")
         return None
-
-    @property
-    def available(self) -> bool:
-        """Return if the sensor is available."""
-        # The sensor is available if there is a reading for its metric.
-        readings = self._device.get("readings")
-        if not readings or not isinstance(readings, list):
-            return False
-
-        for reading in readings:
-            if reading.get("metric") == self.entity_description.key:
-                return True
-        return False

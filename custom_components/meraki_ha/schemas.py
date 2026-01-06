@@ -6,29 +6,19 @@ import voluptuous as vol
 from homeassistant.helpers import selector
 
 from .const import (
-    CONF_ENABLE_CAMERA_ENTITIES,
-    CONF_ENABLE_DEVICE_SENSORS,
-    CONF_ENABLE_DEVICE_STATUS,
+    CAMERA_STREAM_SOURCE_CLOUD,
+    CAMERA_STREAM_SOURCE_RTSP,
+    CONF_CAMERA_SNAPSHOT_INTERVAL,
+    CONF_CAMERA_STREAM_SOURCE,
     CONF_ENABLE_DEVICE_TRACKER,
-    CONF_ENABLE_NETWORK_SENSORS,
-    CONF_ENABLE_ORG_SENSORS,
-    CONF_ENABLE_PORT_SENSORS,
-    CONF_ENABLE_SSID_SENSORS,
     CONF_ENABLE_VLAN_MANAGEMENT,
-    CONF_ENABLE_VLAN_SENSORS,
     CONF_ENABLED_NETWORKS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
-    DEFAULT_ENABLE_CAMERA_ENTITIES,
-    DEFAULT_ENABLE_DEVICE_SENSORS,
-    DEFAULT_ENABLE_DEVICE_STATUS,
-    DEFAULT_ENABLE_NETWORK_SENSORS,
-    DEFAULT_ENABLE_ORG_SENSORS,
-    DEFAULT_ENABLE_PORT_SENSORS,
-    DEFAULT_ENABLE_SSID_SENSORS,
+    DEFAULT_CAMERA_SNAPSHOT_INTERVAL,
+    DEFAULT_CAMERA_STREAM_SOURCE,
     DEFAULT_ENABLE_VLAN_MANAGEMENT,
-    DEFAULT_ENABLE_VLAN_SENSORS,
     DEFAULT_ENABLED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
 )
@@ -57,30 +47,6 @@ OPTIONS_SCHEMA = vol.Schema(
         vol.Required(
             CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
         ): selector.BooleanSelector(),
-        vol.Required(
-            CONF_ENABLE_DEVICE_STATUS, default=DEFAULT_ENABLE_DEVICE_STATUS
-        ): selector.BooleanSelector(),
-        vol.Required(
-            CONF_ENABLE_ORG_SENSORS, default=DEFAULT_ENABLE_ORG_SENSORS
-        ): selector.BooleanSelector(),
-        vol.Required(
-            CONF_ENABLE_CAMERA_ENTITIES, default=DEFAULT_ENABLE_CAMERA_ENTITIES
-        ): selector.BooleanSelector(),
-        vol.Required(
-            CONF_ENABLE_DEVICE_SENSORS, default=DEFAULT_ENABLE_DEVICE_SENSORS
-        ): selector.BooleanSelector(),
-        vol.Required(
-            CONF_ENABLE_NETWORK_SENSORS, default=DEFAULT_ENABLE_NETWORK_SENSORS
-        ): selector.BooleanSelector(),
-        vol.Required(
-            CONF_ENABLE_VLAN_SENSORS, default=DEFAULT_ENABLE_VLAN_SENSORS
-        ): selector.BooleanSelector(),
-        vol.Required(
-            CONF_ENABLE_PORT_SENSORS, default=DEFAULT_ENABLE_PORT_SENSORS
-        ): selector.BooleanSelector(),
-        vol.Required(
-            CONF_ENABLE_SSID_SENSORS, default=DEFAULT_ENABLE_SSID_SENSORS
-        ): selector.BooleanSelector(),
         vol.Optional(
             CONF_ENABLED_NETWORKS, default=DEFAULT_ENABLED_NETWORKS
         ): selector.SelectSelector(
@@ -89,6 +55,34 @@ OPTIONS_SCHEMA = vol.Schema(
                 multiple=True,
                 custom_value=False,
                 mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Required(
+            CONF_CAMERA_STREAM_SOURCE, default=DEFAULT_CAMERA_STREAM_SOURCE
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[
+                    selector.SelectOptionDict(
+                        value=CAMERA_STREAM_SOURCE_RTSP,
+                        label="RTSP (Local Network)",
+                    ),
+                    selector.SelectOptionDict(
+                        value=CAMERA_STREAM_SOURCE_CLOUD,
+                        label="Cloud (Meraki Dashboard)",
+                    ),
+                ],
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Required(
+            CONF_CAMERA_SNAPSHOT_INTERVAL, default=DEFAULT_CAMERA_SNAPSHOT_INTERVAL
+        ): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0,
+                max=3600,
+                step=10,
+                unit_of_measurement="seconds",
+                mode=selector.NumberSelectorMode.BOX,
             )
         ),
     }

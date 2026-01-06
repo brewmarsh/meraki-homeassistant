@@ -15,9 +15,10 @@ from ..errors import (
     MerakiAuthenticationError,
     MerakiConnectionError,
     MerakiDeviceError,
+    MerakiInformationalError,
     MerakiNetworkError,
     MerakiTrafficAnalysisError,
-    MerakiVlanError,
+    MerakiVlansDisabledError,
 )
 
 # Type variable for generic function return type
@@ -50,7 +51,7 @@ def handle_meraki_errors(
                 func.__name__,
                 err,
             )
-            # Inspect return type to provide a safe empty value
+            # Inspect the wrapped function's return type to return a safe empty value
             sig = inspect.signature(func)
             return_type = sig.return_annotation
             if return_type is list or getattr(return_type, "__origin__", None) in (
@@ -60,32 +61,7 @@ def handle_meraki_errors(
                 return cast(T, [])
             return cast(T, {})
         except APIError as err:
-            if _is_traffic_analysis_error(err):
-                raise MerakiTrafficAnalysisError(
-                    "Traffic Analysis with Hostname Visibility must be enabled on this "
-                    "network to retrieve traffic data. See "
-                    "https://documentation.meraki.com/MX/Design_and_Configure/Configuration_Guides/Firewall_and_Traffic_Shaping/Traffic_Analysis_and_Classification"
-                ) from err
-            if _is_vlan_error(err):
-                raise MerakiVlanError(
-                    "VLANs are not enabled for this network. To enable VLANs, see "
-                    "https://documentation.meraki.com/SASE_and_SD-WAN/MX/Design_and_Configure/Configuration_Guides/Networks_and_Routing/Configuring_VLANs_on_the_MX_Security_Appliance"
-                ) from err
-            if _is_informational_error(err):
-                _LOGGER.warning(
-                    "Meraki API informational error: %s (%s)",
-                    err,
-                    func.__name__,
-                )
-                # Inspect return type to provide a safe empty value
-                sig = inspect.signature(func)
-                return_type = sig.return_annotation
-                if return_type is list or getattr(return_type, "__origin__", None) in (
-                    list,
-                    list,
-                ):
-                    return cast(T, [])
-                return cast(T, {})
+            _raise_if_informational_error(err)
 
             _LOGGER.error("Meraki API error: %s", err)
             if _is_auth_error(err):
@@ -106,6 +82,11 @@ def handle_meraki_errors(
         except ClientError as err:
             _LOGGER.error("Connection error: %s", err)
             raise MerakiConnectionError(f"Connection error: {err}") from err
+        except MerakiInformationalError:
+            # Allow informational errors (traffic analysis disabled, VLANs disabled,
+            # etc.) to propagate without logging as errors - they are handled
+            # gracefully upstream.
+            raise
         except Exception as err:
             _LOGGER.error("Unexpected error: %s", err)
             raise MerakiConnectionError(f"Unexpected error: {err}") from err
@@ -157,20 +138,26 @@ def _is_network_error(err: APIError) -> bool:
     )
 
 
-def _is_informational_error(err: APIError) -> bool:
-    """Check if error is informational (e.g., feature not enabled)."""
+def _raise_if_informational_error(err: APIError) -> None:
+    """
+    Check if an API error is informational and raise a specific exception.
+
+    Args:
+        err: The APIError instance.
+
+    Raises
+    ------
+        MerakiVlansDisabledError: If VLANs are not enabled.
+        MerakiTrafficAnalysisError: If traffic analysis is not enabled.
+        MerakiInformationalError: For other informational errors.
+    """
     error_str = str(err).lower()
-    return "historical viewing is not supported" in error_str
-
-
-def _is_traffic_analysis_error(err: APIError) -> bool:
-    """Check if the error is due to traffic analysis not being enabled."""
-    return "traffic analysis" in str(err).lower()
-
-
-def _is_vlan_error(err: APIError) -> bool:
-    """Check if the error is due to VLANs not being enabled."""
-    return "vlans are not enabled" in str(err).lower()
+    if "vlans are not enabled" in error_str:
+        raise MerakiVlansDisabledError(str(err)) from err
+    if "traffic analysis" in error_str:
+        raise MerakiTrafficAnalysisError(str(err)) from err
+    if "historical viewing is not supported" in error_str:
+        raise MerakiInformationalError(str(err)) from err
 
 
 def validate_response(response: Any) -> dict[str, Any] | list[Any]:
