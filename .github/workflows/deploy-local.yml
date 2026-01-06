@@ -1,23 +1,24 @@
 name: Deploy via HACS
 
 on:
-  push:
-    branches:
-      - beta
+  release:
+    types: [published]  # Trigger when release is actually published
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
   deploy-via-hacs:
     # Runs on GitHub-hosted cloud runner (no self-hosted needed!)
     runs-on: ubuntu-latest
-    # Only run if HA secrets are configured
+    # Only run if HA secrets are configured and it's a prerelease (beta)
     if: ${{ vars.ENABLE_HACS_DEPLOY == 'true' }}
     
     steps:
-      - name: Wait for release to be available
+      - name: Release info
         run: |
-          echo "Waiting 30 seconds for GitHub release to propagate..."
-          sleep 30
+          echo "Release tag: ${{ github.event.release.tag_name }}"
+          echo "Prerelease: ${{ github.event.release.prerelease }}"
+          echo "Waiting 10 seconds for release to propagate..."
+          sleep 10
 
       - name: Refresh HACS repositories
         env:
@@ -44,33 +45,62 @@ jobs:
           # Wait for HACS to process
           sleep 10
 
-      - name: Trigger HACS update for Meraki integration
+      - name: Discover and trigger HACS update
         env:
           HA_URL: ${{ secrets.HA_URL }}
           HA_TOKEN: ${{ secrets.HA_TOKEN }}
         run: |
-          echo "Triggering update for Meraki HA integration..."
+          echo "Discovering Meraki update entity..."
           CLEAN_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
           
-          # The update entity ID follows the pattern: update.{integration_name}_update
-          # Try common entity ID patterns
-          for ENTITY_ID in "update.meraki_ha_update" "update.meraki_homeassistant_update" "update.hacs_meraki_ha"; do
-            echo "Trying entity: $ENTITY_ID"
-            
-            RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST \
-              -H "Authorization: Bearer $CLEAN_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d "{\"entity_id\": \"$ENTITY_ID\"}" \
-              "$HA_URL/api/services/update/install")
-            
-            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-            if [[ "$HTTP_CODE" -ge 200 && "$HTTP_CODE" -lt 300 ]]; then
-              echo "Update triggered successfully for $ENTITY_ID!"
-              break
-            else
-              echo "Entity $ENTITY_ID not found or update failed (HTTP $HTTP_CODE)"
-            fi
-          done
+          # Auto-discover the update entity ID by querying HA API
+          ENTITY_ID=$(curl -sS -H "Authorization: Bearer $CLEAN_TOKEN" \
+            "$HA_URL/api/states" | \
+            jq -r '.[] | select(.entity_id | startswith("update.") and (contains("meraki") or contains("Meraki"))) | .entity_id' | head -1)
+          
+          if [[ -z "$ENTITY_ID" ]]; then
+            echo "⚠ Could not auto-discover Meraki update entity. Trying known patterns..."
+            # Fallback to known patterns
+            for TRY_ENTITY in "update.meraki_home_assistant_integration_update" "update.meraki_for_home_assistant_update" "update.meraki_ha_update"; do
+              CHECK=$(curl -sS -o /dev/null -w "%{http_code}" \
+                -H "Authorization: Bearer $CLEAN_TOKEN" \
+                "$HA_URL/api/states/$TRY_ENTITY")
+              if [[ "$CHECK" == "200" ]]; then
+                ENTITY_ID="$TRY_ENTITY"
+                echo "Found entity: $ENTITY_ID"
+                break
+              fi
+            done
+          fi
+          
+          if [[ -z "$ENTITY_ID" ]]; then
+            echo "❌ Could not find Meraki update entity!"
+            exit 1
+          fi
+          
+          echo "✓ Found update entity: $ENTITY_ID"
+          
+          # Get current state
+          STATE=$(curl -sS -H "Authorization: Bearer $CLEAN_TOKEN" \
+            "$HA_URL/api/states/$ENTITY_ID" | jq -r '.')
+          echo "Current state:"
+          echo "$STATE" | jq '{installed_version, latest_version, in_progress}'
+          
+          # Trigger the update
+          echo "Triggering update..."
+          RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST \
+            -H "Authorization: Bearer $CLEAN_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"entity_id\": \"$ENTITY_ID\"}" \
+            "$HA_URL/api/services/update/install")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          if [[ "$HTTP_CODE" -ge 200 && "$HTTP_CODE" -lt 300 ]]; then
+            echo "✅ Update triggered successfully!"
+          else
+            echo "⚠ Update service returned HTTP $HTTP_CODE"
+            echo "Response: $(echo "$RESPONSE" | head -n -1)"
+          fi
 
       - name: Clear Home Assistant Frontend Cache
         shell: bash
