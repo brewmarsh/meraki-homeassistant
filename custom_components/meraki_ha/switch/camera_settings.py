@@ -92,6 +92,13 @@ class MerakiCameraSettingSwitchBase(
         """Return the current state of the switch."""
         return self._attr_is_on
 
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        if not self.coordinator.last_update_success:
+            return False
+        return self.coordinator.get_device(self._device_data["serial"]) is not None
+
     async def async_turn_on(self, **kwargs: Any) -> None:
         """
         Turn the setting on.

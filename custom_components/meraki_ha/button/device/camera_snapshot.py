@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -42,6 +43,29 @@ class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
     def device_info(self) -> DeviceInfo | None:
         """Return device information."""
         return resolve_device_info(self._device, self._config_entry)
+
+    def _get_current_device_data(self) -> dict[str, Any] | None:
+        """Retrieve the latest data for this device from the coordinator."""
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            for dev_data in self.coordinator.data["devices"]:
+                if dev_data.get("serial") == self._device["serial"]:
+                    return dev_data
+        return None
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        current_data = self._get_current_device_data()
+        if current_data:
+            self._device = current_data
+        self.async_write_ha_state()
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        if not super().available:
+            return False
+        return self._get_current_device_data() is not None
 
     async def async_press(self) -> None:
         """Handle the button press."""
