@@ -78,6 +78,8 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
+<<<<<<< HEAD
+<<<<<<< HEAD
     async def create_network_wireless_ssid_identity_psk(
         self,
         network_id: str,
@@ -121,6 +123,10 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
+=======
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
     @async_timed_cache()
     async def get_network_wireless_ssid(
         self,
@@ -309,6 +315,108 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+    async def create_identity_psk(
+        self,
+        network_id: str,
+        number: str,
+        name: str,
+        group_policy_id: str | None = None,
+        passphrase: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Create an Identity PSK.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+            number: The SSID number.
+            name: The name of the Identity PSK.
+            group_policy_id: The ID of the group policy to apply.
+            passphrase: The passphrase for the Identity PSK.
+
+        Returns
+        -------
+            The created Identity PSK.
+
+        """
+        if self._api_client.dashboard is None:
+            return {}
+
+<<<<<<< HEAD
+        kwargs: dict[str, Any] = {
+            "name": name,
+        }
+
+        if group_policy_id and group_policy_id != "Normal":
+            kwargs["groupPolicyId"] = group_policy_id
+
+=======
+        # Prepare kwargs for the library call
+        kwargs: dict[str, Any] = {
+            "name": name,
+            "groupPolicyId": group_policy_id or "Normal",
+        }
+
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+        if passphrase:
+            kwargs["passphrase"] = passphrase
+
+        _LOGGER.debug(
+            "Calling createNetworkWirelessSsidIdentityPsk with networkId=%s, "
+            "number=%s, kwargs=%s",
+            network_id,
+            number,
+            {k: v if k != "passphrase" else "***" for k, v in kwargs.items()},
+        )
+
+        psk = await self._api_client.run_sync(
+            self._api_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk,
+            networkId=network_id,
+            number=number,
+            **kwargs,
+        )
+        validated = validate_response(psk)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("create_identity_psk did not return a dict")
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    async def delete_identity_psk(
+        self,
+        network_id: str,
+        number: str,
+        identity_psk_id: str,
+    ) -> None:
+        """
+        Delete an Identity PSK.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+            number: The SSID number.
+            identity_psk_id: The ID of the Identity PSK to delete.
+
+        """
+        if self._api_client.dashboard is None:
+            return
+        await self._api_client.run_sync(
+            self._api_client.dashboard.wireless.deleteNetworkWirelessSsidIdentityPsk,
+            networkId=network_id,
+            number=number,
+            identityPskId=identity_psk_id,
+        )
+
+    @handle_meraki_errors
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
     async def update_network_wireless_ssid_l7_firewall_rules(
         self,
         network_id: str,

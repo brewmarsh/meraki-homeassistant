@@ -1,5 +1,18 @@
 """Sensor entity descriptions for Meraki MT sensors."""
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass,
+    BinarySensorEntityDescription,
+)
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntityDescription,
@@ -33,12 +46,18 @@ MT_HUMIDITY_DESCRIPTION = SensorEntityDescription(
     native_unit_of_measurement=PERCENTAGE,
 )
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 MT_WATER_DESCRIPTION = SensorEntityDescription(
     key="water",
     name="Water Detection",
     device_class=SensorDeviceClass.MOISTURE,
 )
 
+=======
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 MT_PM25_DESCRIPTION = SensorEntityDescription(
     key="pm25",
     name="PM2.5",
@@ -71,7 +90,13 @@ MT_NOISE_DESCRIPTION = SensorEntityDescription(
     native_unit_of_measurement=UnitOfSoundPressure.WEIGHTED_DECIBEL_A,
 )
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 MT_POWER_DESCRIPTION = SensorEntityDescription(
     key="power",
     name="Power",
@@ -96,17 +121,73 @@ MT_CURRENT_DESCRIPTION = SensorEntityDescription(
     native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
 )
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 
 # Mapping of MT models to their supported sensor descriptions
 MT_SENSOR_MODELS = {
     "MT10": [MT_TEMPERATURE_DESCRIPTION, MT_HUMIDITY_DESCRIPTION],
     "MT11": [MT_TEMPERATURE_DESCRIPTION],  # Assuming MT11 is a temperature sensor
     "MT12": [MT_WATER_DESCRIPTION],
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+MT_BATTERY_DESCRIPTION = SensorEntityDescription(
+    key="battery",
+    name="Battery",
+    device_class=SensorDeviceClass.BATTERY,
+    state_class=SensorStateClass.MEASUREMENT,
+    native_unit_of_measurement=PERCENTAGE,
+)
+
+MT_BUTTON_DESCRIPTION = SensorEntityDescription(
+    key="button",
+    name="Last Button Press",
+    icon="mdi:gesture-tap-button",
+    # No device class for enum/string
+)
+
+# Binary Sensors
+MT_WATER_DESCRIPTION = BinarySensorEntityDescription(
+    key="water",
+    name="Water Leak",
+    device_class=BinarySensorDeviceClass.MOISTURE,
+)
+
+MT_DOOR_DESCRIPTION = BinarySensorEntityDescription(
+    key="door",
+    name="Door",
+    device_class=BinarySensorDeviceClass.DOOR,
+)
+
+# Mapping of MT models to their supported sensor descriptions
+MT_SENSOR_MODELS = {
+    "MT10": [
+        MT_TEMPERATURE_DESCRIPTION,
+        MT_HUMIDITY_DESCRIPTION,
+        MT_BATTERY_DESCRIPTION,
+    ],
+    "MT11": [MT_TEMPERATURE_DESCRIPTION, MT_BATTERY_DESCRIPTION],
+    "MT12": [MT_TEMPERATURE_DESCRIPTION, MT_BATTERY_DESCRIPTION],
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
     "MT14": [
         MT_PM25_DESCRIPTION,
         MT_TVOC_DESCRIPTION,
         MT_TEMPERATURE_DESCRIPTION,
         MT_HUMIDITY_DESCRIPTION,
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+        MT_NOISE_DESCRIPTION,
+        MT_BATTERY_DESCRIPTION,
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+        MT_NOISE_DESCRIPTION,
+        MT_BATTERY_DESCRIPTION,
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
     ],
     "MT15": [
         MT_CO2_DESCRIPTION,
@@ -116,11 +197,47 @@ MT_SENSOR_MODELS = {
         MT_HUMIDITY_DESCRIPTION,
         MT_NOISE_DESCRIPTION,
     ],
+<<<<<<< HEAD
+<<<<<<< HEAD
     "MT20": [],  # MT20 is a binary sensor, no standard sensors
     "MT30": [],  # Smart Automation Button, no standard sensors
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+    "MT20": [
+        MT_TEMPERATURE_DESCRIPTION,
+        MT_HUMIDITY_DESCRIPTION,
+        MT_BATTERY_DESCRIPTION,
+    ],
+    "MT30": [MT_BATTERY_DESCRIPTION, MT_BUTTON_DESCRIPTION],
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
     "MT40": [
         MT_POWER_DESCRIPTION,
         MT_VOLTAGE_DESCRIPTION,
         MT_CURRENT_DESCRIPTION,
     ],
 }
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+
+# Mapping of MT models to their supported binary sensor descriptions
+MT_BINARY_SENSOR_MODELS = {
+    "MT10": [],
+    "MT11": [],
+    "MT12": [MT_WATER_DESCRIPTION],
+    "MT14": [],
+    "MT15": [],
+    "MT20": [MT_DOOR_DESCRIPTION],
+    "MT30": [],
+    "MT40": [],
+}
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129

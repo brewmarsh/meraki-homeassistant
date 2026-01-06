@@ -142,7 +142,15 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
             return
 
         # Register a pending update to prevent overwriting the optimistic state
+<<<<<<< HEAD
+<<<<<<< HEAD
         self.coordinator.register_update_pending(self.unique_id)
+=======
+        self.coordinator.register_pending_update(self.unique_id)
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+        self.coordinator.register_pending_update(self.unique_id)
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""

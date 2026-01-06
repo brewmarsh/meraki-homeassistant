@@ -10,12 +10,26 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+from ...const import CONF_ENABLE_SSID_SENSORS
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+from ...const import CONF_ENABLE_SSID_SENSORS
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 from ...sensor.network.ssid_auth_mode import MerakiSSIDAuthModeSensor
 
 # Import the specific sensor classes
 from ...sensor.network.ssid_availability import MerakiSSIDAvailabilitySensor
 from ...sensor.network.ssid_band_selection import MerakiSSIDBandSelectionSensor
+<<<<<<< HEAD
+<<<<<<< HEAD
 from ...sensor.network.ssid_channel import MerakiSSIDChannelSensor
+=======
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 from ...sensor.network.ssid_client_count import MerakiSSIDClientCountSensor
 from ...sensor.network.ssid_details import (
     MerakiSSIDMandatoryDhcpSensor,
@@ -33,6 +47,14 @@ from ...sensor.network.ssid_per_client_bandwidth_limit import (
 from ...sensor.network.ssid_per_ssid_bandwidth_limit import (
     MerakiSSIDPerSsidBandwidthLimitSensor,
 )
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+from ...sensor.network.ssid_psk import MerakiSSIDPSKSensor
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+from ...sensor.network.ssid_psk import MerakiSSIDPSKSensor
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 from ...sensor.network.ssid_splash_page import MerakiSSIDSplashPageSensor
 from ...sensor.network.ssid_visible import MerakiSSIDVisibleSensor
 from ...sensor.network.ssid_wpa_encryption_mode import MerakiSSIDWPAEncryptionModeSensor
@@ -89,6 +111,19 @@ class SSIDHandler(BaseHandler):
         if not self._coordinator.data or "ssids" not in self._coordinator.data:
             return entities
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+        # Check if SSID sensors/entities are enabled
+        if not self._config_entry.options.get(CONF_ENABLE_SSID_SENSORS, True):
+            return entities
+
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
         for ssid in self._coordinator.data["ssids"]:
             if "networkId" not in ssid or "number" not in ssid:
                 continue
@@ -125,9 +160,15 @@ class SSIDHandler(BaseHandler):
                     MerakiSSIDAvailabilitySensor(
                         self._coordinator, self._config_entry, ssid
                     ),
+<<<<<<< HEAD
+<<<<<<< HEAD
                     MerakiSSIDChannelSensor(
                         self._coordinator, self._config_entry, ssid
                     ),
+=======
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
                     MerakiSSIDClientCountSensor(
                         self._coordinator, self._config_entry, ssid
                     ),
@@ -137,6 +178,14 @@ class SSIDHandler(BaseHandler):
                     MerakiSSIDAuthModeSensor(
                         self._coordinator, self._config_entry, ssid
                     ),
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+                    MerakiSSIDPSKSensor(self._coordinator, self._config_entry, ssid),
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+                    MerakiSSIDPSKSensor(self._coordinator, self._config_entry, ssid),
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
                     MerakiSSIDEncryptionModeSensor(
                         self._coordinator, self._config_entry, ssid
                     ),

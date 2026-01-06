@@ -5,6 +5,14 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+from ...const import CONF_ENABLE_PORT_SENSORS
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+from ...const import CONF_ENABLE_PORT_SENSORS
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
@@ -61,7 +69,29 @@ class MSHandler(BaseDeviceHandler):
         from ...binary_sensor.switch_port import SwitchPortSensor
 
         entities: list[Entity] = []
+<<<<<<< HEAD
+<<<<<<< HEAD
         if self.device and self.device.get("ports_statuses"):
             for port in self.device["ports_statuses"]:
                 entities.append(SwitchPortSensor(self._coordinator, self.device, port))
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+
+        # Check if port sensors are enabled
+        if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
+            if self.device and self.device.get("ports_statuses"):
+                for port in self.device["ports_statuses"]:
+                    entities.append(
+                        SwitchPortSensor(self._coordinator, self.device, port)
+                    )
+        else:
+            _LOGGER.debug(
+                "Port sensors disabled for device %s", self.device.get("serial")
+            )
+
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
         return entities

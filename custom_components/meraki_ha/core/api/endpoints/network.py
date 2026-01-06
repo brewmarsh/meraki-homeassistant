@@ -5,9 +5,15 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 import meraki
 
 from custom_components.meraki_ha.core.errors import MerakiTrafficAnalysisError
+=======
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
     validate_response,
@@ -84,6 +90,8 @@ class NetworkEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
+<<<<<<< HEAD
+<<<<<<< HEAD
         try:
             traffic = await self._api_client.run_sync(
                 self._api_client.dashboard.networks.getNetworkTraffic,
@@ -103,6 +111,19 @@ class NetworkEndpoints:
                     f"Traffic analysis not enabled for network {network_id}"
                 ) from e
             raise
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+        traffic = await self._api_client.run_sync(
+            self._api_client.dashboard.networks.getNetworkTraffic,
+            networkId=network_id,
+            deviceType=device_type,
+            timespan=86400,  # 24 hours
+        )
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
         validated = validate_response(traffic)
         if not isinstance(validated, list):
             _LOGGER.warning("get_network_traffic did not return a list.")
@@ -179,7 +200,66 @@ class NetworkEndpoints:
         return None
 
     @handle_meraki_errors
+<<<<<<< HEAD
+<<<<<<< HEAD
     async def register_webhook(self, webhook_url: str, secret: str) -> None:
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+    async def find_webhook_by_name(
+        self, network_id: str, name: str
+    ) -> dict[str, Any] | None:
+        """
+        Find a webhook by its name.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+            name: The name of the webhook.
+
+        Returns
+        -------
+            The webhook details, or None if not found.
+
+        """
+        webhooks = await self.get_webhooks(network_id)
+        for webhook in webhooks:
+            if webhook.get("name") == name:
+                return webhook
+        return None
+
+    @handle_meraki_errors
+    async def find_webhook_by_name_and_url(
+        self, network_id: str, name: str, url: str
+    ) -> dict[str, Any] | None:
+        """
+        Find a webhook by its name and URL.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+            name: The name of the webhook.
+            url: The URL of the webhook.
+
+        Returns
+        -------
+            The webhook details, or None if not found.
+
+        """
+        webhooks = await self.get_webhooks(network_id)
+        for webhook in webhooks:
+            if webhook.get("name") == name and webhook.get("url") == url:
+                return webhook
+        return None
+
+    @handle_meraki_errors
+    async def register_webhook(
+        self, webhook_url: str, secret: str, config_entry_id: str
+    ) -> None:
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
         """
         Register a webhook with the Meraki API.
 
@@ -192,7 +272,20 @@ class NetworkEndpoints:
         networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
             network_id = network["id"]
+<<<<<<< HEAD
+<<<<<<< HEAD
             existing_webhook = await self.find_webhook_by_url(network_id, webhook_url)
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+            webhook_name = f"Home Assistant Webhook - {config_entry_id}"
+            existing_webhook = await self.find_webhook_by_name_and_url(
+                network_id, webhook_name, webhook_url
+            )
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
             if existing_webhook:
                 await self.delete_webhook(network_id, existing_webhook["id"])
 
@@ -203,11 +296,25 @@ class NetworkEndpoints:
                 networkId=network_id,
                 url=webhook_url,
                 sharedSecret=secret,
+<<<<<<< HEAD
+<<<<<<< HEAD
                 name=f"Home Assistant Integration - {network.get('name', 'Unknown')}",
             )
 
     @handle_meraki_errors
     async def unregister_webhook(self, webhook_url: str) -> None:
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+                name=webhook_name,
+            )
+
+    @handle_meraki_errors
+    async def unregister_webhook(self, config_entry_id: str) -> None:
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
         """
         Unregister a webhook with the Meraki API.
 
@@ -216,10 +323,26 @@ class NetworkEndpoints:
             webhook_url: The URL of the webhook to unregister.
 
         """
+<<<<<<< HEAD
+<<<<<<< HEAD
         networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
             network_id = network["id"]
             webhook_to_delete = await self.find_webhook_by_url(network_id, webhook_url)
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+        webhook_name = f"Home Assistant Webhook - {config_entry_id}"
+        networks = await self._api_client.organization.get_organization_networks()
+        for network in networks:
+            network_id = network["id"]
+            webhook_to_delete = await self.find_webhook_by_name(
+                network_id, webhook_name
+            )
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
             if webhook_to_delete and "id" in webhook_to_delete:
                 _LOGGER.debug(
                     "Deleting webhook %s from network %s",
@@ -229,6 +352,42 @@ class NetworkEndpoints:
                 await self.delete_webhook(network_id, webhook_to_delete["id"])
 
     @handle_meraki_errors
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+    @async_timed_cache(timeout=300)
+    async def get_group_policies(self, network_id: str) -> list[dict[str, Any]]:
+        """
+        Get group policies for a network.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+
+        Returns
+        -------
+            A list of group policies.
+
+        """
+        if self._api_client.dashboard is None:
+            return []
+        policies = await self._api_client.run_sync(
+            self._api_client.dashboard.networks.getNetworkGroupPolicies,
+            networkId=network_id,
+        )
+        validated = validate_response(policies)
+        if not isinstance(validated, list):
+            _LOGGER.warning("get_group_policies did not return a list")
+            return []
+        return validated
+
+    @handle_meraki_errors
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
     @async_timed_cache(timeout=60)
     async def get_network_camera_analytics_history(
         self, network_id: str, object_type: str
@@ -260,6 +419,8 @@ class NetworkEndpoints:
             )
             return []
         return validated
+<<<<<<< HEAD
+<<<<<<< HEAD
 
     @handle_meraki_errors
     @async_timed_cache(timeout=300)
@@ -287,3 +448,7 @@ class NetworkEndpoints:
             _LOGGER.warning("get_network_group_policies did not return a list.")
             return []
         return validated
+=======
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129

@@ -2,6 +2,8 @@
   "domain": "meraki_ha",
   "name": "Meraki for Home Assistant",
   "after_dependencies": [],
+<<<<<<< HEAD
+<<<<<<< HEAD
   "codeowners": [
     "@brewmarsh"
   ],
@@ -11,13 +13,31 @@
     "panel_custom",
     "http"
   ],
+=======
+  "codeowners": ["@brewmarsh"],
+  "config_flow": true,
+  "dependencies": ["frontend", "panel_custom", "http"],
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+  "codeowners": ["@brewmarsh"],
+  "config_flow": true,
+  "dependencies": ["frontend", "panel_custom", "http"],
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
   "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/brewmarsh/meraki-homeassistant/issues",
+<<<<<<< HEAD
+<<<<<<< HEAD
   "loggers": [
     "meraki_ha"
   ],
+=======
+  "loggers": ["meraki_ha"],
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+  "loggers": ["meraki_ha"],
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
   "quality_scale": "platinum",
   "requirements": [
     "meraki>=1.36.0",
@@ -25,5 +45,13 @@
     "diskcache==5.6.3",
     "aiofiles"
   ],
+<<<<<<< HEAD
+<<<<<<< HEAD
 "version": "2.0.0-beta.69"
+=======
+  "version": "2.2.1-beta.32"
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+  "version": "2.2.1-beta.32"
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 }

@@ -6,13 +6,50 @@ import voluptuous as vol
 from homeassistant.helpers import selector
 
 from .const import (
+<<<<<<< HEAD
+<<<<<<< HEAD
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_ENABLE_VLAN_MANAGEMENT,
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+    CONF_ENABLE_CAMERA_ENTITIES,
+    CONF_ENABLE_DEVICE_SENSORS,
+    CONF_ENABLE_DEVICE_STATUS,
+    CONF_ENABLE_DEVICE_TRACKER,
+    CONF_ENABLE_NETWORK_SENSORS,
+    CONF_ENABLE_ORG_SENSORS,
+    CONF_ENABLE_PORT_SENSORS,
+    CONF_ENABLE_SSID_SENSORS,
+    CONF_ENABLE_VLAN_MANAGEMENT,
+    CONF_ENABLE_VLAN_SENSORS,
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
     CONF_ENABLED_NETWORKS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
+<<<<<<< HEAD
+<<<<<<< HEAD
     DEFAULT_ENABLE_VLAN_MANAGEMENT,
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+    DEFAULT_ENABLE_CAMERA_ENTITIES,
+    DEFAULT_ENABLE_DEVICE_SENSORS,
+    DEFAULT_ENABLE_DEVICE_STATUS,
+    DEFAULT_ENABLE_NETWORK_SENSORS,
+    DEFAULT_ENABLE_ORG_SENSORS,
+    DEFAULT_ENABLE_PORT_SENSORS,
+    DEFAULT_ENABLE_SSID_SENSORS,
+    DEFAULT_ENABLE_VLAN_MANAGEMENT,
+    DEFAULT_ENABLE_VLAN_SENSORS,
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
     DEFAULT_ENABLED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
 )
@@ -41,6 +78,39 @@ OPTIONS_SCHEMA = vol.Schema(
         vol.Required(
             CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
         ): selector.BooleanSelector(),
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+        vol.Required(
+            CONF_ENABLE_DEVICE_STATUS, default=DEFAULT_ENABLE_DEVICE_STATUS
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_ORG_SENSORS, default=DEFAULT_ENABLE_ORG_SENSORS
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_CAMERA_ENTITIES, default=DEFAULT_ENABLE_CAMERA_ENTITIES
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_DEVICE_SENSORS, default=DEFAULT_ENABLE_DEVICE_SENSORS
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_NETWORK_SENSORS, default=DEFAULT_ENABLE_NETWORK_SENSORS
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_VLAN_SENSORS, default=DEFAULT_ENABLE_VLAN_SENSORS
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_PORT_SENSORS, default=DEFAULT_ENABLE_PORT_SENSORS
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_SSID_SENSORS, default=DEFAULT_ENABLE_SSID_SENSORS
+        ): selector.BooleanSelector(),
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
         vol.Optional(
             CONF_ENABLED_NETWORKS, default=DEFAULT_ENABLED_NETWORKS
         ): selector.SelectSelector(

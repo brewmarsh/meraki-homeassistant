@@ -17,33 +17,87 @@ This plan focuses on making device controls stateless and declarative by central
 #### Phase 1: API and Repository Updates
 
 1.  **Add `rebootDevice` to `MerakiApiClient`**:
+<<<<<<< HEAD
+<<<<<<< HEAD
     * Add a new asynchronous method, `async_reboot_device(serial)`, that calls the Meraki API's `rebootDevice` endpoint. This method will send the command to the Meraki cloud.
 
 2.  **Add `reboot_device` to `MerakiRepository`**:
     * Create a new method, `async_reboot_device(serial)`, in the `MerakiRepository`.
     * This method will accept the device serial and call the `MerakiApiClient`. It will handle any errors, logging them but not raising exceptions that would crash the integration.
     * Because this is a write action, it should not be cached.
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+
+    - Add a new asynchronous method, `async_reboot_device(serial)`, that calls the Meraki API's `rebootDevice` endpoint. This method will send the command to the Meraki cloud.
+
+2.  **Add `reboot_device` to `MerakiRepository`**:
+    - Create a new method, `async_reboot_device(serial)`, in the `MerakiRepository`.
+    - This method will accept the device serial and call the `MerakiApiClient`. It will handle any errors, logging them but not raising exceptions that would crash the integration.
+    - Because this is a write action, it should not be cached.
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
 #### Phase 2: Create a Dedicated Control Service
 
 1.  **Develop `DeviceControlService` (`meraki_ha/services/device_control_service.py`)**:
+<<<<<<< HEAD
+<<<<<<< HEAD
     * Create a new class, `DeviceControlService`, that is injected with the `MerakiRepository`.
     * This service will contain methods for device actions, such as:
         * `async_reboot(serial)`: A method that calls the repository's `async_reboot_device` method.
     * The separation of this logic into a service keeps the `DeviceHandlers` thin and focused on entity creation.
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+    - Create a new class, `DeviceControlService`, that is injected with the `MerakiRepository`.
+    - This service will contain methods for device actions, such as:
+      - `async_reboot(serial)`: A method that calls the repository's `async_reboot_device` method.
+    - The separation of this logic into a service keeps the `DeviceHandlers` thin and focused on entity creation.
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
 #### Phase 3: Update Device Handlers and Entities
 
 1.  **Refactor `MXHandler` and `GXHandler`**:
+<<<<<<< HEAD
+<<<<<<< HEAD
     * Update the handlers to accept the `DeviceControlService` via **Dependency Injection**.
     * Within the handler's entity creation logic, create new `homeassistant.components.button.ButtonEntity` or `switch` entities as appropriate.
     * The `async_press` method of the button entity or the `async_turn_on`/`async_turn_off` methods of the switch entity must call the corresponding method on the **injected `DeviceControlService`**. For example, the button's `async_press` will call `await self._control_service.async_reboot(self.device_serial)`. 
+=======
+    - Update the handlers to accept the `DeviceControlService` via **Dependency Injection**.
+    - Within the handler's entity creation logic, create new `homeassistant.components.button.ButtonEntity` or `switch` entities as appropriate.
+    - The `async_press` method of the button entity or the `async_turn_on`/`async_turn_off` methods of the switch entity must call the corresponding method on the **injected `DeviceControlService`**. For example, the button's `async_press` will call `await self._control_service.async_reboot(self.device_serial)`.
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+    - Update the handlers to accept the `DeviceControlService` via **Dependency Injection**.
+    - Within the handler's entity creation logic, create new `homeassistant.components.button.ButtonEntity` or `switch` entities as appropriate.
+    - The `async_press` method of the button entity or the `async_turn_on`/`async_turn_off` methods of the switch entity must call the corresponding method on the **injected `DeviceControlService`**. For example, the button's `async_press` will call `await self._control_service.async_reboot(self.device_serial)`.
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
 #### Phase 4: Testing and Cleanup
 
 1.  **Write Focused Unit Tests**:
+<<<<<<< HEAD
+<<<<<<< HEAD
     * Test the `DeviceControlService` by injecting a mock `MerakiRepository` and asserting that the `async_reboot` method is called correctly.
     * Test the `MXHandler` and `GXHandler` to ensure they correctly create the button or switch entities. Use a mock control service and verify that the entity's action method calls the service as expected.
 2.  **Remove Old Code**:
     * Delete any old, direct API calls for device control that may still exist in the `NetworkHub` or `DeviceHandlers`. Ensure all control actions are routed through the new service.
 
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+    - Test the `DeviceControlService` by injecting a mock `MerakiRepository` and asserting that the `async_reboot` method is called correctly.
+    - Test the `MXHandler` and `GXHandler` to ensure they correctly create the button or switch entities. Use a mock control service and verify that the entity's action method calls the service as expected.
+2.  **Remove Old Code**:
+    - Delete any old, direct API calls for device control that may still exist in the `NetworkHub` or `DeviceHandlers`. Ensure all control actions are routed through the new service.
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129

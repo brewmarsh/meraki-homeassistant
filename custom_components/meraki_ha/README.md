@@ -14,18 +14,43 @@ This integration includes parental control features that are automatically disco
 
 If you have a Meraki MX security appliance on your network, this integration will create a series of switches, one for each available content filtering category (e.g., "Block Social Media", "Block Gambling", "Block Adult and Pornography").
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 *   **Hardware Requirement:** Meraki MX Series Security Appliance.
 *   **Functionality:** Allows you to granularly block or allow specific categories of web content for your entire network.
 *   **Entities:** These will appear as `switch` entities in Home Assistant.
+=======
+- **Hardware Requirement:** Meraki MX Series Security Appliance.
+- **Functionality:** Allows you to granularly block or allow specific categories of web content for your entire network.
+- **Entities:** These will appear as `switch` entities in Home Assistant.
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+- **Hardware Requirement:** Meraki MX Series Security Appliance.
+- **Functionality:** Allows you to granularly block or allow specific categories of web content for your entire network.
+- **Entities:** These will appear as `switch` entities in Home Assistant.
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
 #### Adult Content Filtering (for Meraki MR Access Points)
 
 If you have Meraki MR wireless access points, the integration will create a switch for each SSID that is configured in "NAT mode". This switch controls Meraki's simple, one-click "Adult Content Filtering" feature.
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 *   **Hardware Requirement:** Meraki MR Series Wireless Access Point.
 *   **Configuration Requirement:** The SSID must be in "NAT mode".
 *   **Functionality:** A simple on/off toggle to block a predefined list of adult content.
 *   **Entities:** These will appear as `switch` entities, one for each eligible SSID (e.g., "Adult Content Filtering on Guest WiFi").
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+- **Hardware Requirement:** Meraki MR Series Wireless Access Point.
+- **Configuration Requirement:** The SSID must be in "NAT mode".
+- **Functionality:** A simple on/off toggle to block a predefined list of adult content.
+- **Entities:** These will appear as `switch` entities, one for each eligible SSID (e.g., "Adult Content Filtering on Guest WiFi").
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
 ### Note on Using Both MX and MR Filtering
 

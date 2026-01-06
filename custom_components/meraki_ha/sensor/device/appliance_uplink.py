@@ -83,4 +83,12 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
+<<<<<<< HEAD
+<<<<<<< HEAD
         return super().available and self._get_current_uplink_data() is not None
+=======
+        return super().available
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+        return super().available
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129

@@ -53,7 +53,15 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
                 return
 
     @property
+<<<<<<< HEAD
+<<<<<<< HEAD
     def native_value(self) -> float | bool | None:
+=======
+    def native_value(self) -> str | float | bool | None:
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+    def native_value(self) -> str | float | bool | None:
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
         """Return the state of the sensor."""
         readings = self._device.get("readings")
         if not readings or not isinstance(readings, list):
@@ -75,6 +83,16 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
                         "power": "draw",
                         "voltage": "level",
                         "current": "draw",
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+                        "battery": "percentage",
+                        "button": "pressType",
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+                        "battery": "percentage",
+                        "button": "pressType",
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
                     }
                     value_key = key_map.get(self.entity_description.key)
                     if value_key:

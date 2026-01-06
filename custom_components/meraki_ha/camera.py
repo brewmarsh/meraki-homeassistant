@@ -4,7 +4,15 @@ from __future__ import annotations
 
 import asyncio
 import logging
+<<<<<<< HEAD
+<<<<<<< HEAD
 from typing import TYPE_CHECKING, Any
+=======
+from typing import TYPE_CHECKING, Any, Optional
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+from typing import TYPE_CHECKING, Any
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
 import aiohttp
 from homeassistant.components.camera import Camera, CameraEntityFeature
@@ -77,6 +85,19 @@ class MerakiCamera(CoordinatorEntity, Camera):
             "",
         )
         self._attr_model = self.device_data.get("model")
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+        self._attr_supported_features = CameraEntityFeature.STREAM
+        self._rtsp_url: str | None = None
+        self._webrtc_provider = None
+        self.access_tokens = []
+        self._supports_native_async_webrtc = False
+        self._cache = {}
+        self._create_stream_lock = asyncio.Lock()
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
     @property
     def device_data(self) -> dict[str, Any]:
@@ -121,23 +142,77 @@ class MerakiCamera(CoordinatorEntity, Camera):
             self.coordinator.add_status_message(self._device_serial, msg)
             return None
 
+<<<<<<< HEAD
+<<<<<<< HEAD
     async def stream_source(self) -> str | None:
         """Return the source of the stream, if enabled."""
         if self.is_streaming:
             return self.device_data.get("rtsp_url")
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+    @property
+    def _rtsp_url(self) -> str | None:
+        """Return the RTSP URL, either from API or constructed."""
+        if url := self.device_data.get("rtsp_url"):
+            return url  # type: ignore[no-any-return]
+
+        # Fallback for MV cameras with LAN IP
+        # The rtspServerEnabled flag is unreliable, so we fallback to
+        # constructing the URL if the device is online and has a LAN IP.
+        model = self.device_data.get("model", "")
+        lan_ip = self.device_data.get("lanIp")
+        if model.startswith("MV") and lan_ip:
+            return f"rtsp://{lan_ip}:9000/live"
+
+        return None
+
+    async def stream_source(self) -> str | None:
+        """Return the source of the stream, if enabled."""
+        if self.is_streaming:
+            return self._rtsp_url
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
         return None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         attrs = {}
+<<<<<<< HEAD
+<<<<<<< HEAD
         video_settings = self.device_data.get("video_settings", {})
         if not video_settings.get("rtspServerEnabled", False):
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+        rtsp_url = self._rtsp_url
+        video_settings = self.device_data.get("video_settings", {})
+        rtsp_server_enabled = video_settings.get("rtspServerEnabled", False)
+
+        if rtsp_url:
+            attrs["stream_status"] = "Enabled"
+            attrs["rtsp_url"] = rtsp_url
+        elif not rtsp_server_enabled:
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
             attrs["stream_status"] = "Disabled in Meraki Dashboard"
             self.coordinator.add_status_message(
                 self._device_serial, "RTSP stream is disabled in the Meraki dashboard."
             )
+<<<<<<< HEAD
+<<<<<<< HEAD
         elif not self.device_data.get("rtsp_url"):
+=======
+        else:
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+        else:
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
             attrs["stream_status"] = (
                 "Stream URL not available. This may be because the camera does not"
                 " support cloud archival."
@@ -147,8 +222,14 @@ class MerakiCamera(CoordinatorEntity, Camera):
                 "RTSP stream URL is not available. The camera might not support cloud"
                 " archival.",
             )
+<<<<<<< HEAD
+<<<<<<< HEAD
         else:
             attrs["stream_status"] = "Enabled"
+=======
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
         return attrs
 
     @property
@@ -161,6 +242,8 @@ class MerakiCamera(CoordinatorEntity, Camera):
         """
         Return true if the camera is streaming.
 
+<<<<<<< HEAD
+<<<<<<< HEAD
         This requires both the rtspServerEnabled setting to be true and a
         valid rtsp:// URL to be available.
         """
@@ -170,6 +253,17 @@ class MerakiCamera(CoordinatorEntity, Camera):
 
         url = self.device_data.get("rtsp_url")
         return url is not None and isinstance(url, str) and url.startswith("rtsp://")
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+        We rely on the presence of a valid RTSP URL (either from API or constructed)
+        as the primary indicator, as the rtspServerEnabled flag can be unreliable.
+        """
+        return self._rtsp_url is not None
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
     async def async_turn_on(self) -> None:
         """Turn on the camera stream."""

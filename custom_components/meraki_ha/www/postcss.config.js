@@ -3,4 +3,12 @@ export default {
     tailwindcss: {},
     autoprefixer: {},
   },
+<<<<<<< HEAD
+<<<<<<< HEAD
 }
+=======
+};
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+};
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129

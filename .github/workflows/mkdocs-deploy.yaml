@@ -7,6 +7,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+<<<<<<< HEAD
+<<<<<<< HEAD
     permissions:  # Add this section to grant write permission
       contents: write  # This allows the action to write to the repository's contents
 
@@ -15,6 +17,21 @@ jobs:
       - uses: actions/checkout@v5
         with:
           python-version: 3.x
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+    permissions: # Add this section to grant write permission
+      contents: write # This allows the action to write to the repository's contents
+
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: 3.x
+      - uses: actions/checkout@v6
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
       - run: pip install -r requirements_dev.txt
       - run: mkdocs build

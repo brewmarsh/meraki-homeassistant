@@ -1,5 +1,13 @@
 # Use a stable, minimal Ubuntu base
+<<<<<<< HEAD
+<<<<<<< HEAD
 FROM ubuntu:22.04
+=======
+FROM ubuntu:24.04
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+FROM ubuntu:24.04
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
 # Define the official runner version (Check GitHub releases for latest)
 ARG RUNNER_VERSION="2.329.0"
@@ -24,7 +32,15 @@ RUN apt-get update && \
     # Clean up APT cache
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 # CRITICAL: Create the dedicated 'runner' user, as the GitHub Actions Runner software 
+=======
+# CRITICAL: Create the dedicated 'runner' user, as the GitHub Actions Runner software
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+# CRITICAL: Create the dedicated 'runner' user, as the GitHub Actions Runner software
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 # must NOT run as root for security reasons.
 RUN useradd -m runner
 
@@ -51,8 +67,18 @@ RUN mkdir -p /ha_config
 COPY entrypoint.sh /usr/local/bin/runner-entrypoint.sh
 RUN chmod +x /usr/local/bin/runner-entrypoint.sh
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 # FINAL PERMISSION FIX: The container runs as 'root' (default user) to allow 
 # write access to the Host OS volume. The entrypoint script uses 'sudo' to switch 
+=======
+# FINAL PERMISSION FIX: The container runs as 'root' (default user) to allow
+# write access to the Host OS volume. The entrypoint script uses 'sudo' to switch
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+# FINAL PERMISSION FIX: The container runs as 'root' (default user) to allow
+# write access to the Host OS volume. The entrypoint script uses 'sudo' to switch
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 # to the non-root 'runner' user for the final runner commands.
 # Do NOT set USER here.
 

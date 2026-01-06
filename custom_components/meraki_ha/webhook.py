@@ -93,6 +93,14 @@ async def async_register_webhook(
     secret: str,
     api_client: MerakiAPIClient,
     entry: ConfigEntry | None = None,
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    config_entry_id: str | None = None,
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+    config_entry_id: str | None = None,
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 ) -> None:
     """
     Register a webhook with the Meraki API.
@@ -109,14 +117,32 @@ async def async_register_webhook(
     try:
         webhook_url_from_entry = entry.data.get("webhook_url") if entry else None
         webhook_url = get_webhook_url(hass, webhook_id, webhook_url_from_entry)
+<<<<<<< HEAD
+<<<<<<< HEAD
         await api_client.register_webhook(webhook_url, secret)
+=======
+        if config_entry_id:
+            await api_client.register_webhook(webhook_url, secret, config_entry_id)
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+        if config_entry_id:
+            await api_client.register_webhook(webhook_url, secret, config_entry_id)
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
     except Exception as err:
         _LOGGER.error("Failed to register webhook: %s", err)
 
 
 async def async_unregister_webhook(
     hass: HomeAssistant,
+<<<<<<< HEAD
+<<<<<<< HEAD
     webhook_url: str,
+=======
+    config_entry_id: str,
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+    config_entry_id: str,
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
     api_client: MerakiAPIClient,
 ) -> None:
     """
@@ -129,7 +155,15 @@ async def async_unregister_webhook(
         api_client: The Meraki API client.
 
     """
+<<<<<<< HEAD
+<<<<<<< HEAD
     await api_client.unregister_webhook(webhook_url)
+=======
+    await api_client.unregister_webhook(config_entry_id)
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+    await api_client.unregister_webhook(config_entry_id)
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
 
 async def async_handle_webhook(

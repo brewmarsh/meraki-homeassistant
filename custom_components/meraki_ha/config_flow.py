@@ -12,12 +12,30 @@ from homeassistant.config_entries import (
 )
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
+<<<<<<< HEAD
+<<<<<<< HEAD
 
 from .authentication import validate_meraki_credentials
 from .const import (
     CONF_INTEGRATION_TITLE,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+from homeassistant.helpers import selector
+
+from .authentication import validate_meraki_credentials
+from .const import (
+    CONF_ENABLED_NETWORKS,
+    CONF_INTEGRATION_TITLE,
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+    DOMAIN,
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .options_flow import MerakiOptionsFlowHandler
@@ -108,8 +126,32 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
             await self.hass.config_entries.async_reload(entry.entry_id)
             return self.async_abort(reason="reconfigure_successful")
 
+<<<<<<< HEAD
+<<<<<<< HEAD
         schema_with_defaults = self._populate_schema_defaults(
             OPTIONS_SCHEMA, entry.options
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+        network_options = []
+        if (
+            DOMAIN in self.hass.data
+            and entry.entry_id in self.hass.data[DOMAIN]
+            and "coordinator" in self.hass.data[DOMAIN][entry.entry_id]
+        ):
+            coordinator = self.hass.data[DOMAIN][entry.entry_id]["coordinator"]
+            if coordinator.data and coordinator.data.get("networks"):
+                network_options = [
+                    {"label": network["name"], "value": network["id"]}
+                    for network in coordinator.data["networks"]
+                ]
+
+        schema_with_defaults = self._populate_schema_defaults(
+            OPTIONS_SCHEMA, entry.options, network_options
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
         )
 
         return self.async_show_form(
@@ -117,6 +159,8 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
         )
 
     def _populate_schema_defaults(
+<<<<<<< HEAD
+<<<<<<< HEAD
         self, schema: vol.Schema, defaults: dict[str, Any]
     ) -> vol.Schema:
         """Populate a schema with default values from a dictionary."""
@@ -127,4 +171,44 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
                 new_schema_keys[new_key] = value
             else:
                 new_schema_keys[key] = value
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+        self,
+        schema: vol.Schema,
+        defaults: dict[str, Any],
+        network_options: list[dict[str, str]] | None = None,
+    ) -> vol.Schema:
+        """Populate a schema with default values from a dictionary."""
+        new_schema_keys = {}
+        if network_options is None:
+            network_options = []
+
+        for key, value in schema.schema.items():
+            key_name = key.schema
+            target_key = key
+
+            if key_name in defaults:
+                target_key = type(key)(key.schema, default=defaults[key.schema])
+
+            if key_name == CONF_ENABLED_NETWORKS and isinstance(
+                value, selector.SelectSelector
+            ):
+                current_values = defaults.get(CONF_ENABLED_NETWORKS, [])
+                existing_option_values = {opt["value"] for opt in network_options}
+
+                combined_options = list(network_options)
+                for val in current_values:
+                    if val not in existing_option_values:
+                        combined_options.append({"label": val, "value": val})
+
+                new_config = value.config.copy()
+                new_config["options"] = combined_options
+                value = selector.SelectSelector(new_config)
+
+            new_schema_keys[target_key] = value
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
         return vol.Schema(new_schema_keys)

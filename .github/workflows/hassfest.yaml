@@ -6,8 +6,22 @@ on:
   pull_request:
 jobs:
   hassfest:
+<<<<<<< HEAD
+<<<<<<< HEAD
     name: "Hassfest"
     runs-on: ubuntu-latest
     steps:
       - uses: "actions/checkout@v5"
       - uses: "home-assistant/actions/hassfest@master"
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+    name: 'Hassfest'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: 'actions/checkout@v6'
+      - uses: 'home-assistant/actions/hassfest@master'
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129

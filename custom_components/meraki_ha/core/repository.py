@@ -10,6 +10,16 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+from .errors import ApiClientCommunicationError
+
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+from .errors import ApiClientCommunicationError
+
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 if TYPE_CHECKING:
     from .api.client import MerakiAPIClient
 
@@ -39,7 +49,15 @@ class MerakiRepository:
         try:
             response = await self._api_client.async_reboot_device(serial)
             return response
+<<<<<<< HEAD
+<<<<<<< HEAD
         except Exception as e:
+=======
+        except ApiClientCommunicationError as e:
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+        except ApiClientCommunicationError as e:
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
             _LOGGER.error("Failed to reboot device %s: %s", serial, e)
             return None
 
@@ -61,6 +79,14 @@ class MerakiRepository:
         try:
             response = await self._api_client.async_get_switch_port_statuses(serial)
             return response
+<<<<<<< HEAD
+<<<<<<< HEAD
         except Exception as e:
+=======
+        except ApiClientCommunicationError as e:
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+        except ApiClientCommunicationError as e:
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
             _LOGGER.error("Failed to get switch port statuses for %s: %s", serial, e)
             return None

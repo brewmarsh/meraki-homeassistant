@@ -13,6 +13,14 @@ from typing import TYPE_CHECKING
 from ...binary_sensor.device.camera_motion import MerakiMotionSensor
 from ...button.device.camera_snapshot import MerakiSnapshotButton
 from ...camera import MerakiCamera
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+from ...const import CONF_ENABLE_CAMERA_ENTITIES
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+from ...const import CONF_ENABLE_CAMERA_ENTITIES
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 from ...sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
@@ -81,6 +89,19 @@ class MVHandler(BaseDeviceHandler):
         entities: list[Entity] = []
         serial = self.device["serial"]
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+        # Check if camera entities are enabled
+        if not self._config_entry.options.get(CONF_ENABLE_CAMERA_ENTITIES, True):
+            return entities
+
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
         # Always create the base camera entity
         entities.append(
             MerakiCamera(

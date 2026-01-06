@@ -14,7 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
+<<<<<<< HEAD
+<<<<<<< HEAD
         uses: actions/checkout@v5
+=======
+        uses: actions/checkout@v6
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+        uses: actions/checkout@v6
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -31,5 +39,13 @@ jobs:
           context: ./docker-runner
           push: true
           tags: 80m1/meraki-runner:latest
+<<<<<<< HEAD
+<<<<<<< HEAD
           no-cache: true 
+=======
+          no-cache: true
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+          no-cache: true
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
           # ----------------------------------

@@ -31,8 +31,14 @@ from .network.vlan import (
     MerakiVLANIPv6UplinkSensor,
 )
 from .network.vlans_list import VlansListSensor
+<<<<<<< HEAD
+<<<<<<< HEAD
 from .setup_mt_sensors import async_setup_mt_sensors
 from .ssid.connected_clients import MerakiSsidConnectedClientsSensor
+=======
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
 if TYPE_CHECKING:
     from ..services.camera_service import CameraService
@@ -101,10 +107,16 @@ def _setup_device_sensors(
                     )
                     added_entities.add(unique_id)
 
+<<<<<<< HEAD
+<<<<<<< HEAD
         # MT sensor setup
         if product_type == "sensor":
             entities.extend(async_setup_mt_sensors(coordinator, device_info))
 
+=======
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
     return entities
 
 
@@ -232,6 +244,8 @@ def _setup_uplink_sensors(
     return entities
 
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 def _setup_ssid_sensors(
     config_entry: ConfigEntry,
     coordinator: MerakiDataCoordinator,
@@ -264,6 +278,10 @@ def _setup_ssid_sensors(
     return entities
 
 
+=======
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 def async_setup_sensors(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -286,6 +304,12 @@ def async_setup_sensors(
     entities.extend(_setup_client_tracker_sensors(config_entry, coordinator))
     entities.extend(_setup_vlan_sensors(config_entry, coordinator, added_entities))
     entities.extend(_setup_uplink_sensors(config_entry, coordinator, added_entities))
+<<<<<<< HEAD
+<<<<<<< HEAD
     entities.extend(_setup_ssid_sensors(config_entry, coordinator, added_entities))
+=======
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
     return entities

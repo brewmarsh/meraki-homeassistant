@@ -1,16 +1,39 @@
 name: Deploy Latest Code to Local Folder on Linux Runner
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 # This workflow will run on 'push' events to the specified branches.
 on:
   push:
     branches:
       - main
       - beta # Trigger deployment on pushes/merges to the beta branch
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+on:
+  push:
+    branches:
+      - beta
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
 jobs:
   deploy-to-linux-folder:
     # This job runs on the self-hosted runner.
     runs-on: self-hosted
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    permissions:
+      contents: read # Explicitly grant read permission for the GITHUB_TOKEN
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+    permissions:
+      contents: read # Explicitly grant read permission for the GITHUB_TOKEN
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
     # Define environment variables
     env:
@@ -20,7 +43,15 @@ jobs:
     steps:
       - name: Checkout repository
         # Checks out your repository code into $GITHUB_WORKSPACE.
+<<<<<<< HEAD
+<<<<<<< HEAD
         uses: actions/checkout@v5
+=======
+        uses: actions/checkout@v6
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+        uses: actions/checkout@v6
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
       - name: Copy files to destination folder (rsync)
         # Use 'bash' and 'sudo rsync' to bypass symlink and permission issues.
@@ -42,7 +73,15 @@ jobs:
           sudo mkdir -p "${DestinationPath}"
 
           # 2. Copy files using rsync for robustness
+<<<<<<< HEAD
+<<<<<<< HEAD
           # rsync -ah --delete: 
+=======
+          # rsync -ah --delete:
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+          # rsync -ah --delete:
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
           #   -a: archive mode (preserves permissions, timestamps, etc.)
           #   -h: human-readable output
           #   --delete: removes files from destination that aren't in source (ensures clean state)
@@ -54,7 +93,13 @@ jobs:
             --exclude 'tests' \
             --exclude '*.log' \
             --exclude 'docker-runner' \
+<<<<<<< HEAD
+<<<<<<< HEAD
             --exclude 'custom_components' \
+=======
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
             "${SourceComponentDir}" "${DestinationPath}"
 
           echo "Successfully copied latest code to ${DestinationPath}."
@@ -63,6 +108,33 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+      - name: Clear Home Assistant Frontend Cache
+        shell: bash
+        env:
+          HA_URL: ${{ secrets.HA_URL }}
+          HA_TOKEN: ${{ secrets.HA_TOKEN }}
+        run: |
+          echo "Clearing Home Assistant frontend cache..."
+          CLEAN_HA_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
+          API_STATUS=$(curl -sS -o /dev/null -w "%{http_code}" -X POST \
+              -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{}" \
+              "$HA_URL/api/services/frontend/reload_themes")
+          if [[ "$API_STATUS" -ne 200 ]]; then
+              echo "Warning: Failed to clear frontend cache. HTTP status code: $API_STATUS."
+          else
+              echo "Home Assistant frontend cache cleared."
+          fi
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
       - name: Restart Home Assistant
         shell: bash
         env:
@@ -136,6 +208,8 @@ jobs:
 
           # Step 1b: Trigger Restart
           echo "Triggering Home Assistant restart..."
+<<<<<<< HEAD
+<<<<<<< HEAD
           RESTART_STATUS=$(curl -sS -o /dev/null -w "%{http_code}" -X POST \
               -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
               -H "Content-Type: application/json" \
@@ -144,6 +218,25 @@ jobs:
 
           if [[ "$RESTART_STATUS" -lt 200 || "$RESTART_STATUS" -ge 300 ]]; then
               echo "Error: API call to restart failed with HTTP status code $RESTART_STATUS."
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+          RESTART_RESPONSE_FILE=$(mktemp)
+          RESTART_STATUS=$(curl -sS -o "$RESTART_RESPONSE_FILE" -w "%{http_code}" -X POST \
+              -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{}" \
+              "$HA_URL/api/services/homeassistant/restart")
+          RESTART_RESPONSE=$(cat "$RESTART_RESPONSE_FILE")
+          rm "$RESTART_RESPONSE_FILE"
+
+          if [[ "$RESTART_STATUS" -lt 200 || "$RESTART_STATUS" -ge 300 ]]; then
+              echo "Error: API call to restart failed with HTTP status code $RESTART_STATUS."
+              echo "Response: $RESTART_RESPONSE"
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
               exit 1
           fi
 

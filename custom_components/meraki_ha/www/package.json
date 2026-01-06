@@ -1,17 +1,39 @@
 {
   "name": "meraki-ha-www",
   "private": true,
+<<<<<<< HEAD
+<<<<<<< HEAD
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+  "version": "2.2.0-beta.29",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "./build.sh",
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    "react-qr-code": "^2.0.18",
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+    "react-qr-code": "^2.0.18",
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
     "react-router-dom": "^6.22.3"
   },
   "devDependencies": {
@@ -19,9 +41,21 @@
     "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.19",
+<<<<<<< HEAD
+<<<<<<< HEAD
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.1",
     "eslint-plugin-react-hooks": "^4.6.0",
+=======
+    "eslint": "^9.39.1",
+    "eslint-plugin-react": "^7.34.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+    "eslint": "^9.39.1",
+    "eslint-plugin-react": "^7.34.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
     "eslint-plugin-react-refresh": "^0.4.6",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",

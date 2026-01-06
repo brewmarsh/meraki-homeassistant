@@ -31,7 +31,15 @@ def mock_coordinator() -> MagicMock:
     coordinator.async_request_refresh = AsyncMock()
     coordinator.async_write_ha_state = MagicMock()
     coordinator.is_update_pending = MagicMock(return_value=False)
+<<<<<<< HEAD
+<<<<<<< HEAD
     coordinator.register_update_pending = MagicMock()
+=======
+    coordinator.register_pending_update = MagicMock()
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+    coordinator.register_pending_update = MagicMock()
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
     coordinator.async_request_refresh = AsyncMock()
     return coordinator
 

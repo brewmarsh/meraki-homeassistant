@@ -102,11 +102,25 @@ class MerakiAuthentication:
             return {"valid": True, "org_name": fetched_org_name}
 
         except MerakiAuthenticationError as e:
+<<<<<<< HEAD
+<<<<<<< HEAD
             _LOGGER.error("Authentication failed: %s", e.message)
             raise ConfigEntryAuthFailed(f"Authentication failed: {e.message}") from e
         except MerakiConnectionError as e:
             _LOGGER.error("Connection error: %s", e.message)
             raise MerakiConnectionError(f"Connection error: {e.message}") from e
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+            _LOGGER.error("Authentication failed: %s", e)
+            raise ConfigEntryAuthFailed(f"Authentication failed: {e}") from e
+        except MerakiConnectionError as e:
+            _LOGGER.error("Connection error: %s", e)
+            raise MerakiConnectionError(f"Connection error: {e}") from e
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
         except MerakiSDKAPIError as e:
             if e.status == 401:
                 _LOGGER.error(

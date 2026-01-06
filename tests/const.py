@@ -14,7 +14,15 @@ MOCK_CONFIG_ENTRY.entry_id = MOCK_CONFIG_ENTRY_ID
 MOCK_NETWORK: MerakiNetwork = {
     "id": "N_12345",
     "organizationId": "test-org",
+<<<<<<< HEAD
+<<<<<<< HEAD
     "name": "Test Network",
+=======
+    "name": "Main Office",
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+    "name": "Main Office",
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
     "productTypes": ["appliance", "switch", "wireless", "cellularGateway"],
     "tags": "e2e-test",
     "clientCount": 5,

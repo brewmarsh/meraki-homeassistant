@@ -53,6 +53,15 @@ COMMON_SENSORS_COORD_DEV_CONF: SensorClassList = [
     MerakiDeviceStatusSensor,
 ]
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+# Alias for backward compatibility or clarity if needed
+COMMON_DEVICE_SENSORS = COMMON_SENSORS_COORD_DEV_CONF
+
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 
 def get_sensors_for_device_type(
     product_type: str,

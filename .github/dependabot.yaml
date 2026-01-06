@@ -7,6 +7,8 @@ updates:
       time: '06:00'
     commit-message:
       prefix: '[patch]'
+<<<<<<< HEAD
+<<<<<<< HEAD
     target-branch: "beta"
   - package-ecosystem: "docker"
     # Location of the Dockerfile
@@ -21,5 +23,26 @@ updates:
     labels:
       - "runner-update"
       - "dependencies"
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+    target-branch: 'beta'
+  - package-ecosystem: 'docker'
+    # Location of the Dockerfile
+    directory: '/docker-runner'
+    # Check for updates every week
+    schedule:
+      interval: 'weekly'
+    # The image to monitor for new releases.
+    # Dependabot tracks the versions of the 'actions/runner' on GitHub.
+    # It detects that the ARG is tied to this dependency.
+    target-branch: 'beta'
+    labels:
+      - 'runner-update'
+      - 'dependencies'
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
     commit-message:
       prefix: '[patch]'

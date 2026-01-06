@@ -126,7 +126,15 @@ class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
                 name=value,
             )
             # Register a pending update to prevent overwriting the optimistic state
+<<<<<<< HEAD
+<<<<<<< HEAD
             self.coordinator.register_update_pending(self.unique_id)
+=======
+            self.coordinator.register_pending_update(self.unique_id)
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+            self.coordinator.register_pending_update(self.unique_id)
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
             await self.coordinator.async_request_refresh()
         except Exception as e:
             _LOGGER.error(

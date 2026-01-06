@@ -27,12 +27,18 @@ CONF_MERAKI_ORG_ID: Final = "meraki_org_id"
 CONF_SCAN_INTERVAL: Final = "scan_interval"
 """Configuration key for the scan interval in seconds."""
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 CONF_ENABLE_WEB_UI: Final = "enable_web_ui"
 """Configuration key for enabling the web UI."""
 
 CONF_WEB_UI_PORT: Final = "web_ui_port"
 """Configuration key for the web UI port."""
 
+=======
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 DATA_CLIENT: Final = "client"
 """Key for storing the Meraki API client in Home Assistant's data."""
 
@@ -54,6 +60,8 @@ CONF_RTSP_STREAM_ENABLED: Final = "rtsp_stream_enabled"
 CONF_ENABLE_DEVICE_TRACKER: Final = "enable_device_tracker"
 """Configuration key for enabling device tracker."""
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 
 CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
 """Configuration key for enabling vlan management."""
@@ -62,6 +70,29 @@ CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
 CONF_ENABLED_NETWORKS: Final = "enabled_networks"
 """Configuration key for a list of network IDs to enable."""
 
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
+"""Configuration key for enabling vlan management."""
+
+CONF_ENABLED_NETWORKS: Final = "enabled_networks"
+"""Configuration key for a list of network IDs to enable."""
+
+# New Configuration Options
+CONF_ENABLE_DEVICE_STATUS: Final = "enable_device_status"
+CONF_ENABLE_ORG_SENSORS: Final = "enable_org_sensors"
+CONF_ENABLE_CAMERA_ENTITIES: Final = "enable_camera_entities"
+CONF_ENABLE_DEVICE_SENSORS: Final = "enable_device_sensors"
+CONF_ENABLE_NETWORK_SENSORS: Final = "enable_network_sensors"
+CONF_ENABLE_VLAN_SENSORS: Final = "enable_vlan_sensors"
+CONF_ENABLE_PORT_SENSORS: Final = "enable_port_sensors"
+CONF_ENABLE_SSID_SENSORS: Final = "enable_ssid_sensors"
+
+<<<<<<< HEAD
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 DEFAULT_ENABLED_NETWORKS: Final[list[str]] = []
 """Default value for the ignored networks list."""
 
@@ -83,12 +114,35 @@ MERAKI_API_CLIENT: Final = "meraki_api_client"
 DEFAULT_SCAN_INTERVAL: Final = 300
 """Default scan interval in seconds for the Meraki API data."""
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 DEFAULT_ENABLE_WEB_UI: Final = False
 """Default value for enabling the web UI."""
 
 DEFAULT_WEB_UI_PORT: Final = 8080
 """Default scan interval in seconds for the Meraki API data."""
+=======
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
+# Defaults for new options
+DEFAULT_ENABLE_DEVICE_STATUS: Final = True
+DEFAULT_ENABLE_ORG_SENSORS: Final = True
+DEFAULT_ENABLE_CAMERA_ENTITIES: Final = True
+DEFAULT_ENABLE_DEVICE_SENSORS: Final = True
+DEFAULT_ENABLE_NETWORK_SENSORS: Final = True
+DEFAULT_ENABLE_VLAN_SENSORS: Final = True
+DEFAULT_ENABLE_PORT_SENSORS: Final = True
+DEFAULT_ENABLE_SSID_SENSORS: Final = True
 
+<<<<<<< HEAD
+CONF_ENABLE_WEB_UI: Final = "enable_web_ui"
+DEFAULT_ENABLE_WEB_UI: Final = False
+CONF_WEB_UI_PORT: Final = "web_ui_port"
+DEFAULT_WEB_UI_PORT: Final = 9000
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 # Platform types
 PLATFORM_BINARY_SENSOR: Final = "binary_sensor"
 """Represents the binary_sensor platform."""
@@ -147,6 +201,15 @@ ERASE_TAGS_WARNING: Final = (
 )
 """Warning message for the tag erasing feature."""
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+DEVICE_NAME_FORMAT_PREFIX: Final = "prefix"
+DEVICE_NAME_FORMAT_SUFFIX: Final = "suffix"
+
+>>>>>>> origin/fix/meraki-load-fail-cleanup-7732058548349983668
+=======
+>>>>>>> origin/fix/wireless-ipsk-crash-14368601733312930129
 WEBHOOK_ID_FORMAT: Final = "meraki_ha_{entry_id}"
 
 MERAKI_CONTENT_FILTERING_CATEGORIES: Final[list[dict[str, str]]] = [
