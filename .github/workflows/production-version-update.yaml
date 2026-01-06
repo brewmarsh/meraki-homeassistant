@@ -115,36 +115,56 @@ jobs:
         env:
           HA_URL: ${{ secrets.HA_URL }}
           HA_TOKEN: ${{ secrets.HA_TOKEN }}
+          NEW_VERSION: ${{ needs.version.outputs.new_version }}
         run: |
-          echo "Waiting 10 seconds for release to propagate..."
-          sleep 10
+          echo "Waiting 30 seconds for release to propagate to GitHub CDN..."
+          sleep 30
           
-          echo "Refreshing HACS repository data..."
           CLEAN_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
           
-          # Refresh HACS
+          # Force HACS to re-fetch this specific repository
+          echo "Refreshing HACS repository: liptonj/meraki-homeassistant..."
           curl -sS -X POST \
             -H "Authorization: Bearer $CLEAN_TOKEN" \
             -H "Content-Type: application/json" \
-            -d '{}' \
-            "$HA_URL/api/services/hacs/reload" || true
+            -d '{"repository": "liptonj/meraki-homeassistant"}' \
+            "$HA_URL/api/services/hacs/repository" || true
           
-          sleep 10
+          echo "Waiting 15 seconds for HACS to process..."
+          sleep 15
           
-          # Find and trigger update
+          # Find the update entity
           echo "Discovering Meraki update entity..."
           ENTITY_ID=$(curl -sS -H "Authorization: Bearer $CLEAN_TOKEN" \
             "$HA_URL/api/states" | \
             jq -r '.[] | select(.entity_id | startswith("update.") and contains("meraki")) | .entity_id' | head -1)
           
-          if [[ -n "$ENTITY_ID" ]]; then
-            echo "Found: $ENTITY_ID - triggering update..."
-            curl -sS -X POST \
-              -H "Authorization: Bearer $CLEAN_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d "{\"entity_id\": \"$ENTITY_ID\"}" \
-              "$HA_URL/api/services/update/install"
-            echo "✅ Update triggered!"
-          else
+          if [[ -z "$ENTITY_ID" ]]; then
             echo "⚠ Meraki update entity not found - skipping auto-deploy"
+            exit 0
+          fi
+          
+          echo "Found: $ENTITY_ID"
+          
+          # Check if HACS sees the new version
+          STATE=$(curl -sS -H "Authorization: Bearer $CLEAN_TOKEN" \
+            "$HA_URL/api/states/$ENTITY_ID")
+          INSTALLED=$(echo "$STATE" | jq -r '.attributes.installed_version // "unknown"')
+          LATEST=$(echo "$STATE" | jq -r '.attributes.latest_version // "unknown"')
+          
+          echo "Installed: $INSTALLED, Latest seen by HACS: $LATEST, Just released: $NEW_VERSION"
+          
+          # Explicitly specify the version to ensure we install the just-released version
+          echo "Installing specific version: v$NEW_VERSION..."
+          curl -sS -X POST \
+            -H "Authorization: Bearer $CLEAN_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"entity_id\": \"$ENTITY_ID\", \"version\": \"v$NEW_VERSION\"}" \
+            "$HA_URL/api/services/update/install"
+          
+          RESULT=$?
+          if [[ $RESULT -eq 0 ]]; then
+            echo "✅ Update triggered for version v$NEW_VERSION!"
+          else
+            echo "⚠ Update command returned non-zero. Check HA logs."
           fi
