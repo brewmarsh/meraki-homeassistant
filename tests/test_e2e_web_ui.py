@@ -23,6 +23,14 @@ from custom_components.meraki_ha.const import (
 
 from .const import MOCK_ALL_DATA
 
+# Check if hass_frontend is available (required for this test)
+try:
+    import hass_frontend  # noqa: F401
+
+    HAS_FRONTEND = True
+except ImportError:
+    HAS_FRONTEND = False
+
 TEST_PORT = 9988
 MOCK_SETTINGS = {"scan_interval": 300, "enable_device_status": True}
 
@@ -77,6 +85,8 @@ async def setup_integration_fixture(
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(not HAS_FRONTEND, reason="hass_frontend not installed")
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
 async def test_e2e_panel_comprehensive(
     hass: HomeAssistant,
     setup_integration: MockConfigEntry,
@@ -341,23 +351,23 @@ async def test_e2e_panel_comprehensive(
             loading_indicator = page.get_by_text("Loading...")
             await expect(loading_indicator).to_be_hidden(timeout=10000)
 
-            # Check for the network card (uses .network-card class, not ha-card)
+            # Check for the network card (uses .network-card class)
             network_card = page.locator(".network-card").first
             await expect(network_card).to_be_visible(timeout=10000)
-            await expect(network_card.locator(".network-name")).to_contain_text(
+            # Network name is in h2 inside .title
+            await expect(network_card.locator(".title h2")).to_contain_text(
                 "Main Office"
             )
 
             # 2. Device Expansion
             # Expand the network card (click the header to expand if collapsed)
             network_header = network_card.locator(".network-header")
-            # Check if network is already expanded (single network auto-expands)
-            network_content = network_card.locator(".network-content")
-            if not await network_content.is_visible():
+            # Check if network is already expanded (device table visible)
+            device_table = page.locator(".device-table").first
+            if not await device_table.is_visible():
                 await network_header.click()
 
             # Check if devices are displayed in the table
-            device_table = page.locator(".device-table").first
             await expect(device_table).to_be_visible(timeout=10000)
 
             # Verify visibility of devices in table
@@ -369,8 +379,8 @@ async def test_e2e_panel_comprehensive(
             switch_row = page.locator("tr.device-row", has_text="Office Switch")
             await switch_row.click()
 
-            # Verify Device View loaded (shows device name prominently)
-            device_name = page.locator(".device-header h2, h2").first
+            # Verify Device View loaded (shows device name in h1)
+            device_name = page.locator(".device-header h1, .device-info h1").first
             await expect(device_name).to_contain_text("Office Switch")
 
             # Go back to dashboard using the back button
@@ -380,20 +390,27 @@ async def test_e2e_panel_comprehensive(
             # Verify we're back on the network view
             await expect(network_card).to_be_visible()
 
+            # Re-expand network (state is lost when Dashboard remounts)
+            device_table = page.locator(".device-table").first
+            if not await device_table.is_visible():
+                network_header = network_card.locator(".network-header")
+                await network_header.click()
+                await expect(device_table).to_be_visible(timeout=5000)
+
             # 4. Camera Visibility in Device Table
             # Verify camera is shown in device table with status
             camera_row = page.locator("tr.device-row", has_text="Front Door Camera")
-            await expect(camera_row).to_be_visible()
-            # Status is shown in the row
-            await expect(camera_row.locator(".device-status")).to_contain_text("online")
+            await expect(camera_row).to_be_visible(timeout=5000)
+            # Status is shown in the row with .status-badge class
+            await expect(camera_row.locator(".status-badge")).to_contain_text("online")
 
             # 5. SSID Visibility (if shown in expanded network)
-            # Check if SSID grid is visible
-            ssid_grid = page.locator(".ssid-grid")
-            if await ssid_grid.count() > 0:
-                # Find Guest WiFi SSID card
-                ssid_card = page.locator(".ssid-card", has_text="Guest WiFi")
-                await expect(ssid_card).to_be_visible()
+            # Check if SSID list is visible (new class name)
+            ssid_list = page.locator(".ssid-list")
+            if await ssid_list.count() > 0:
+                # Find Guest WiFi SSID item (new class name)
+                ssid_item = page.locator(".ssid-item", has_text="Guest WiFi")
+                await expect(ssid_item).to_be_visible()
 
             await browser.close()
     finally:

@@ -30,3 +30,4 @@ psutil-home-assistant==0.0.1
 pillow==10.2.0
 fnv-hash-fast==0.4.0
 flake8==7.0.0
+home-assistant-frontend>=20231208.0

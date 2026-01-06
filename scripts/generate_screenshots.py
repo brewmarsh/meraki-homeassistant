@@ -1,11 +1,9 @@
 """Script to generate screenshots for the README."""
+# ruff: noqa: E501
 
 import http.server
-import json
 import os
 import socketserver
-import threading
-import time
 from functools import partial
 
 from playwright.sync_api import sync_playwright
@@ -201,16 +199,16 @@ class ReuseAddrTCPServer(socketserver.TCPServer):
 def create_network_view_html() -> str:
     """Create a beautiful network view mockup HTML."""
     return """
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
     <title>Meraki Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <style>
+                <style>
         :root {
             --primary: #00b4d8;
             --primary-dark: #0096c7;
@@ -225,7 +223,7 @@ def create_network_view_html() -> str:
             --radius: 16px;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
+                    body {
             font-family: 'Inter', -apple-system, sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
             min-height: 100vh;
@@ -431,10 +429,10 @@ def create_network_view_html() -> str:
             top: 2px;
             right: 2px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-    </style>
-</head>
-<body>
+                    }
+                </style>
+            </head>
+            <body>
     <div class="container">
         <div class="header">
             <div class="logo">
@@ -583,8 +581,8 @@ def create_network_view_html() -> str:
             </div>
         </div>
     </div>
-</body>
-</html>
+            </body>
+            </html>
 """
 
 
@@ -993,7 +991,7 @@ def create_sensor_detail_html() -> str:
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <style>
+                        <style>
         :root {
             --primary: #00b4d8;
             --success: #10b981;
@@ -1116,7 +1114,7 @@ def create_sensor_detail_html() -> str:
         .reading-card.temp .value { color: var(--temp); }
         .reading-card.humidity .value { color: var(--humidity); }
         .reading-card .unit {
-            font-size: 24px;
+                                font-size: 24px;
             font-weight: 400;
             opacity: 0.7;
         }
@@ -1199,7 +1197,7 @@ def create_sensor_detail_html() -> str:
             color: var(--text-muted);
         }
         .history-note .material-icons-round { color: var(--primary); }
-    </style>
+                        </style>
 </head>
 <body>
     <div class="container">

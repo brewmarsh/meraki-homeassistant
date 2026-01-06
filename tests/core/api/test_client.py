@@ -143,6 +143,16 @@ def test_process_initial_data_handles_errors(api_client, caplog):
     assert "Could not fetch Meraki devices" in caplog.text
 
 
+def _close_coroutines(tasks: dict) -> None:
+    """Close unawaited coroutines to prevent warnings."""
+    import asyncio
+
+    for task in tasks.values():
+        if asyncio.iscoroutine(task):
+            task.close()
+
+
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_build_detail_tasks_for_wireless_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a wireless device."""
     # Arrange
@@ -157,7 +167,11 @@ def test_build_detail_tasks_for_wireless_device(api_client):
     assert f"wireless_settings_{MOCK_NETWORK['id']}" in tasks
     assert f"rf_profiles_{MOCK_NETWORK['id']}" in tasks
 
+    # Cleanup: close unawaited coroutines
+    _close_coroutines(tasks)
 
+
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_build_detail_tasks_for_switch_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a switch device."""
     # Arrange
@@ -171,7 +185,11 @@ def test_build_detail_tasks_for_switch_device(api_client):
     # Assert
     assert f"ports_statuses_{switch_device['serial']}" in tasks
 
+    # Cleanup: close unawaited coroutines
+    _close_coroutines(tasks)
 
+
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_build_detail_tasks_for_camera_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a camera device."""
     # Arrange
@@ -186,7 +204,11 @@ def test_build_detail_tasks_for_camera_device(api_client):
     assert f"video_settings_{camera_device['serial']}" in tasks
     assert f"sense_settings_{camera_device['serial']}" in tasks
 
+    # Cleanup: close unawaited coroutines
+    _close_coroutines(tasks)
 
+
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_build_detail_tasks_for_appliance_device(api_client):
     """Test that _build_detail_tasks creates tasks for an appliance device."""
     # Arrange
@@ -206,6 +228,9 @@ def test_build_detail_tasks_for_appliance_device(api_client):
     assert f"appliance_settings_{appliance_device['serial']}" in tasks
     assert f"traffic_{network_with_appliance['id']}" in tasks
     assert f"vlans_{network_with_appliance['id']}" in tasks
+
+    # Cleanup: close unawaited coroutines
+    _close_coroutines(tasks)
 
 
 def test_process_detailed_data_merges_device_info(api_client):
