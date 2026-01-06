@@ -122,9 +122,24 @@ OPTIONS_SCHEMA = vol.Schema(
         ),
         vol.Optional(
             CONF_CAMERA_LINK_INTEGRATION, default=DEFAULT_CAMERA_LINK_INTEGRATION
-        ): selector.TextSelector(
-            selector.TextSelectorConfig(
-                type=selector.TextSelectorType.TEXT,
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[
+                    selector.SelectOptionDict(value="", label="All Cameras"),
+                    selector.SelectOptionDict(value="blue_iris", label="Blue Iris"),
+                    selector.SelectOptionDict(value="generic", label="Generic Camera"),
+                    selector.SelectOptionDict(value="onvif", label="ONVIF"),
+                    selector.SelectOptionDict(value="frigate", label="Frigate"),
+                    selector.SelectOptionDict(value="unifi", label="UniFi Protect"),
+                    selector.SelectOptionDict(value="ring", label="Ring"),
+                    selector.SelectOptionDict(value="nest", label="Nest"),
+                    selector.SelectOptionDict(value="amcrest", label="Amcrest"),
+                    selector.SelectOptionDict(value="reolink", label="Reolink"),
+                    selector.SelectOptionDict(value="hikvision", label="Hikvision"),
+                    selector.SelectOptionDict(value="dahua", label="Dahua"),
+                ],
+                mode=selector.SelectSelectorMode.DROPDOWN,
+                custom_value=True,  # Allow typing custom integration names
             )
         ),
     }
