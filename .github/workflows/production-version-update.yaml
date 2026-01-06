@@ -160,7 +160,7 @@ jobs:
           curl -sS -X POST \
             -H "Authorization: Bearer $CLEAN_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{\"repository\": \"liptonj/meraki-homeassistant\", \"version\": \"v$NEW_VERSION\"}" \
+            -d "{\"action\": \"download\", \"repository\": \"liptonj/meraki-homeassistant\", \"version\": \"v$NEW_VERSION\"}" \
             "$HA_URL/api/services/hacs/repository"
           
           echo "✅ Download triggered for version v$NEW_VERSION!"
