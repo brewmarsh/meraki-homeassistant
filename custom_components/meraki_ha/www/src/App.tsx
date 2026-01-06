@@ -87,6 +87,11 @@ interface MerakiData {
   enabled_networks: string[];
   config_entry_id: string;
   version?: string;
+  // Dashboard settings from integration options
+  dashboard_view_mode?: 'network' | 'type';
+  dashboard_device_type_filter?: string;
+  dashboard_status_filter?: string;
+  camera_link_integration?: string;
   [key: string]: unknown;
 }
 
@@ -285,6 +290,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
             data={data}
             hass={hass}
             configEntryId={configEntryId}
+            cameraLinkIntegration={data.camera_link_integration}
           />
         );
       default:
@@ -293,6 +299,9 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
             data={processedData}
             setActiveView={setActiveView}
             hass={hass}
+            defaultViewMode={data.dashboard_view_mode}
+            defaultDeviceTypeFilter={data.dashboard_device_type_filter}
+            defaultStatusFilter={data.dashboard_status_filter}
           />
         );
     }

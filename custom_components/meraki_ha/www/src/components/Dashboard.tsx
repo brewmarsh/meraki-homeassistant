@@ -51,6 +51,10 @@ interface DashboardProps {
   hass?: {
     callService?: (domain: string, service: string, data: object) => Promise<void>;
   };
+  // Default settings from integration options
+  defaultViewMode?: 'network' | 'type';
+  defaultDeviceTypeFilter?: string;
+  defaultStatusFilter?: string;
 }
 
 type DeviceTypeFilter = 'all' | 'switch' | 'camera' | 'wireless' | 'sensor' | 'appliance';
@@ -74,12 +78,23 @@ const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'dormant', label: 'Dormant' },
 ];
 
-const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data, hass }) => {
+const Dashboard: React.FC<DashboardProps> = ({ 
+  setActiveView, 
+  data, 
+  hass,
+  defaultViewMode = 'network',
+  defaultDeviceTypeFilter = 'all',
+  defaultStatusFilter = 'all',
+}) => {
   const [expandedNetworks, setExpandedNetworks] = useState<Set<string>>(new Set());
   const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set(['switch', 'camera', 'wireless', 'sensor', 'appliance']));
-  const [deviceTypeFilter, setDeviceTypeFilter] = useState<DeviceTypeFilter>('all');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [viewMode, setViewMode] = useState<ViewMode>('network');
+  const [deviceTypeFilter, setDeviceTypeFilter] = useState<DeviceTypeFilter>(
+    (defaultDeviceTypeFilter as DeviceTypeFilter) || 'all'
+  );
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(
+    (defaultStatusFilter as StatusFilter) || 'all'
+  );
+  const [viewMode, setViewMode] = useState<ViewMode>(defaultViewMode || 'network');
   const hasAutoExpandedRef = useRef(false);
 
   // Auto-expand if there's only one network (or a few networks)

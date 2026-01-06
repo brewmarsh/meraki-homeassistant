@@ -49,6 +49,7 @@ interface DeviceViewProps {
     callWS: (params: Record<string, unknown>) => Promise<unknown>;
   };
   configEntryId?: string;
+  cameraLinkIntegration?: string;
 }
 
 const DeviceView: React.FC<DeviceViewProps> = ({
@@ -57,6 +58,7 @@ const DeviceView: React.FC<DeviceViewProps> = ({
   data,
   hass,
   configEntryId,
+  cameraLinkIntegration,
 }) => {
   const device = data.devices.find((d) => d.serial === activeView.deviceId);
   const [snapshotUrl, setSnapshotUrl] = React.useState<string | null>(null);
@@ -215,13 +217,14 @@ const DeviceView: React.FC<DeviceViewProps> = ({
     }
   };
 
-  // Fetch available cameras for linking
+  // Fetch available cameras for linking (filtered by integration if configured)
   const fetchAvailableCameras = async () => {
     const currentHass = hassRef.current;
     if (!currentHass) return;
     try {
       const result = await currentHass.callWS({
         type: 'meraki_ha/get_available_cameras',
+        integration_filter: cameraLinkIntegration || '',
       }) as { cameras?: Array<{entity_id: string; friendly_name: string}> };
       if (result?.cameras) {
         setAvailableCameras(result.cameras);

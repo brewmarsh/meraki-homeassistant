@@ -79,14 +79,22 @@
           "enable_device_tracker": "Enable Client Tracker",
           "enable_vlan_management": "Enable VLAN Management",
           "enabled_networks": "Enabled Networks",
-          "camera_snapshot_interval": "Camera Snapshot Refresh Interval (seconds)"
+          "camera_snapshot_interval": "Camera Snapshot Refresh Interval (seconds)",
+          "dashboard_view_mode": "Default Dashboard View",
+          "dashboard_device_type_filter": "Default Device Type Filter",
+          "dashboard_status_filter": "Default Status Filter",
+          "camera_link_integration": "Camera Link Integration"
         },
         "data_description": {
           "scan_interval": "How often to poll the Meraki API for updates, in seconds.",
           "enable_device_tracker": "Enable tracking of clients connected to the network.",
           "enable_vlan_management": "Enable VLAN management features.",
           "enabled_networks": "Select which networks to monitor. Leave empty for all networks.",
-          "camera_snapshot_interval": "How often to refresh camera snapshots on the dashboard (0 = only on demand). Camera streaming uses RTSP and requires the RTSP server to be enabled in the Meraki Dashboard."
+          "camera_snapshot_interval": "How often to refresh camera snapshots on the dashboard (0 = only on demand). Camera streaming uses RTSP and requires the RTSP server to be enabled in the Meraki Dashboard.",
+          "dashboard_view_mode": "Choose how devices are grouped on the dashboard (by network or by device type).",
+          "dashboard_device_type_filter": "Default filter for device types on the dashboard.",
+          "dashboard_status_filter": "Default filter for device status on the dashboard.",
+          "camera_link_integration": "Enter an integration domain (e.g., 'blue_iris' or 'generic') to filter cameras when linking. Leave empty to show all cameras."
         }
       },
       "features": {

@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import time
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import aiofiles  # type: ignore[import-untyped]
 import aiohttp
 from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -14,7 +17,6 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    CONF_CAMERA_ENTITY_MAPPINGS,
     CONF_CAMERA_SNAPSHOT_INTERVAL,
     DEFAULT_CAMERA_SNAPSHOT_INTERVAL,
     DOMAIN,
@@ -32,6 +34,23 @@ if TYPE_CHECKING:
 
 
 _LOGGER = logging.getLogger(__name__)
+
+# Storage file for camera mappings (shared with web_api.py)
+CAMERA_MAPPINGS_STORAGE = "meraki_camera_mappings.json"
+
+
+async def _load_camera_mappings(hass: HomeAssistant) -> dict[str, dict[str, str]]:
+    """Load camera mappings from storage file."""
+    storage_path = Path(hass.config.path(".storage")) / CAMERA_MAPPINGS_STORAGE
+    if not storage_path.exists():
+        return {}
+    try:
+        async with aiofiles.open(storage_path) as f:
+            content = await f.read()
+            return json.loads(content) if content else {}
+    except (json.JSONDecodeError, OSError) as e:
+        _LOGGER.warning("Failed to load camera mappings: %s", e)
+        return {}
 
 
 async def async_setup_entry(
@@ -87,6 +106,8 @@ class MerakiCamera(CoordinatorEntity, Camera):
         # Snapshot caching for configurable refresh interval
         self._cached_snapshot: bytes | None = None
         self._snapshot_timestamp: float = 0
+        # Cached linked camera entity for sync property access
+        self._cached_linked_entity: str | None = None
 
     @property
     def device_data(self) -> dict[str, Any]:
@@ -118,6 +139,14 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
         """Return a still image from the camera."""
+        # If we have a linked camera, always use its image
+        linked_entity_id = await self._get_linked_camera_entity()
+        if linked_entity_id:
+            linked_image = await self._get_linked_camera_image(linked_entity_id)
+            if linked_image:
+                return linked_image
+            # Fall through to Meraki snapshot if linked camera fails
+
         if self.device_data.get("status") != "online":
             _LOGGER.debug("Skipping snapshot for offline camera: %s", self.name)
             return self._cached_snapshot  # Return cached image if available
@@ -213,6 +242,11 @@ class MerakiCamera(CoordinatorEntity, Camera):
 
     async def stream_source(self) -> str | None:
         """Return the source of the stream, if enabled."""
+        # If we have a linked camera, use its stream source
+        linked_entity_id = await self._get_linked_camera_entity()
+        if linked_entity_id:
+            return await self._get_linked_camera_stream(linked_entity_id)
+
         if not self.is_streaming:
             return None
 
@@ -222,11 +256,50 @@ class MerakiCamera(CoordinatorEntity, Camera):
         # We always use RTSP when available.
         return self.device_data.get("rtsp_url")
 
-    @property
-    def _linked_camera_entity(self) -> str | None:
-        """Get the linked camera entity ID from config options."""
-        mappings = self._config_entry.options.get(CONF_CAMERA_ENTITY_MAPPINGS, {})
-        return mappings.get(self._device_serial)
+    async def _get_linked_camera_entity(self) -> str | None:
+        """Get the linked camera entity ID from storage file."""
+        all_mappings = await _load_camera_mappings(self.hass)
+        entry_mappings = all_mappings.get(self._config_entry.entry_id, {})
+        linked_entity = entry_mappings.get(self._device_serial)
+        # Cache for sync property access in extra_state_attributes
+        self._cached_linked_entity = linked_entity
+        return linked_entity
+
+    async def _get_linked_camera_stream(self, entity_id: str) -> str | None:
+        """Get the stream source from a linked camera entity."""
+        # Get the linked camera's state
+        state = self.hass.states.get(entity_id)
+        if not state:
+            _LOGGER.debug("Linked camera %s not found", entity_id)
+            return None
+
+        # Try to get the stream source from the linked camera
+        # First check if the linked camera has stream support
+        camera_component = self.hass.data.get("camera")
+        if camera_component:
+            linked_camera = camera_component.get_entity(entity_id)
+            if linked_camera and hasattr(linked_camera, "stream_source"):
+                try:
+                    return await linked_camera.stream_source()
+                except Exception as e:
+                    _LOGGER.debug("Error getting stream from %s: %s", entity_id, e)
+
+        return None
+
+    async def _get_linked_camera_image(self, entity_id: str) -> bytes | None:
+        """Get an image from the linked camera entity."""
+        camera_component = self.hass.data.get("camera")
+        if not camera_component:
+            return None
+
+        linked_camera = camera_component.get_entity(entity_id)
+        if linked_camera and hasattr(linked_camera, "async_camera_image"):
+            try:
+                return await linked_camera.async_camera_image()
+            except Exception as e:
+                _LOGGER.debug("Error getting image from %s: %s", entity_id, e)
+
+        return None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -256,9 +329,10 @@ class MerakiCamera(CoordinatorEntity, Camera):
 
         # Include linked camera entity if configured
         # This allows linking to external NVR cameras (e.g., Blue Iris)
-        linked_camera = self._linked_camera_entity
-        if linked_camera:
-            attrs["linked_camera_entity"] = linked_camera
+        # Note: We cache this to avoid async in a sync property
+        # The actual linking is handled in async_camera_image and stream_source
+        if hasattr(self, "_cached_linked_entity"):
+            attrs["linked_camera_entity"] = self._cached_linked_entity
 
         return attrs
 
