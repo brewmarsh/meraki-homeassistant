@@ -4,10 +4,16 @@ project_context:
   development_branch: beta
   coding_standards: "Follow Home Assistant Core integration standards (PEP8, async/await)."
   ignored_errors: "Ignore all errors not related to the meraki_ha integration."
+  # Instructions stay inside project_context
+  instructions: |
+    1. Always check ROADMAP.md before starting a task.
+    2. Link all PRs to the active Milestone: "v2.3.0 (2026.1 Infrastructure Update)".
+    3. Ignore all errors not related to the meraki_ha integration.
+    4. Follow Home Assistant Core standards (Sentence case, async/await).
 
-# This section tells Jules to wake up when specific events happen
+# Triggers stay at the root level
 triggers:
   on_label:
-    - "jules-work"        # Wake up when this label is added
-    - "ai-refactor"      # (Optional) additional trigger labels
-  on_mention: true       # Also wake up when tagged as @jules
+    - "jules-work"
+    - "ai-refactor"
+  on_mention: true
