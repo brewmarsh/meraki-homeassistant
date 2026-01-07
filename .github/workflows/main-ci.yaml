@@ -32,7 +32,7 @@ jobs:
       - name: Run ruff format check
         run: ruff format --check .
       - name: Run bandit
-        run: bandit -r custom_components/meraki_ha/ -c .bandit.yaml
+        run: bandit -r custom_components/meraki_ha/ -c pyproject.toml
 
   # Type checking and security audit
   type-check:

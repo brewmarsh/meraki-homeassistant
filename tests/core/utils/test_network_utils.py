@@ -304,7 +304,7 @@ def test_is_private_ip_private_class_c() -> None:
 def test_is_private_ip_public() -> None:
     """Test detects public IP as not private."""
     assert is_private_ip("8.8.8.8") is False
-    assert is_private_ip("203.0.113.1") is False
+    assert is_private_ip("1.1.1.1") is False
 
 
 def test_is_private_ip_from_url() -> None:

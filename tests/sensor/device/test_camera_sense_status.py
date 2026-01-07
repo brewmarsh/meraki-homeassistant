@@ -58,7 +58,7 @@ def test_sensor_initialization(
         == f"{mock_camera_device_sense_enabled['serial']}_camera_sense_status"
     )
     assert sensor.entity_description.key == "camera_sense_status"
-    assert sensor.entity_description.name == "Sense Status"
+    assert sensor.entity_description.name == "Sense Enabled"
 
 
 def test_sensor_enabled_state(

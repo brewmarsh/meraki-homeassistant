@@ -451,7 +451,9 @@ def build_frontend() -> bool:
         # Check if source is newer than build
         src_dir = WWW_DIR / "src"
         if src_dir.exists():
-            src_mtime = max(f.stat().st_mtime for f in src_dir.rglob("*") if f.is_file())
+            src_mtime = max(
+                f.stat().st_mtime for f in src_dir.rglob("*") if f.is_file()
+            )
             if panel_js.stat().st_mtime >= src_mtime:
                 print("Frontend is up to date, skipping build")
                 return True
@@ -547,7 +549,9 @@ def generate_screenshots() -> None:
             page.click(".port.connected >> nth=0")
             page.wait_for_timeout(500)
             page.screenshot(path=str(SCREENSHOT_DIR / "switch_detail_view.png"))
-            print(f"  Updated: {SCREENSHOT_DIR / 'switch_detail_view.png'} (with port details)")
+            print(
+                f"  Updated: {SCREENSHOT_DIR / 'switch_detail_view.png'} (with port details)"
+            )
 
             # Screenshot 3: Sensor Detail View
             print("Capturing Sensor detail view...")

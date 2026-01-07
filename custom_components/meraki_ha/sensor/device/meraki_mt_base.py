@@ -8,6 +8,7 @@ from homeassistant.components.sensor import SensorEntity, SensorEntityDescriptio
 from homeassistant.const import UnitOfTemperature
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import (
@@ -22,8 +23,11 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMtSensor(CoordinatorEntity, SensorEntity):
-    """Representation of a Meraki MT sensor."""
+class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
+    """Representation of a Meraki MT sensor.
+
+    Uses RestoreEntity to preserve state across Home Assistant restarts.
+    """
 
     def __init__(
         self,
@@ -37,6 +41,19 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
         self.entity_description = entity_description
         self._attr_unique_id = f"{self._device['serial']}_{self.entity_description.key}"
         self._attr_name = f"{self._device['name']} {self.entity_description.name}"
+        self._restored_value: str | float | bool | None = None
+
+    async def async_added_to_hass(self) -> None:
+        """Restore state when entity is added to HA."""
+        await super().async_added_to_hass()
+
+        # Restore previous state on restart
+        if (last_state := await self.async_get_last_state()) is not None:
+            # Try to restore numeric value for sensors
+            try:
+                self._restored_value = float(last_state.state)
+            except (ValueError, TypeError):
+                self._restored_value = last_state.state
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -102,7 +119,8 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
         """Return the state of the sensor."""
         readings = self._get_readings()
         if not readings:
-            return None
+            # Return restored value if no fresh readings
+            return self._restored_value
 
         for reading in readings:
             if reading.get("metric") == self.entity_description.key:
@@ -135,7 +153,18 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
                         if value_key == "ambient":
                             return metric_data.get("ambient", {}).get("level")
                         return metric_data.get(value_key)
-        return None
+        # Fall back to restored value
+        return self._restored_value
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return entity state attributes with update timestamp."""
+        attrs: dict[str, Any] = {}
+        if self.coordinator.last_successful_update:
+            attrs["last_meraki_update"] = (
+                self.coordinator.last_successful_update.isoformat()
+            )
+        return attrs
 
     @property
     def available(self) -> bool:

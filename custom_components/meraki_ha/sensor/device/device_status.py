@@ -18,6 +18,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
@@ -27,7 +28,7 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
+class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
     """
     Representation of a Meraki Device Status sensor.
 
@@ -43,6 +44,8 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
     `suggested_display_precision`, and `last_reset` default to None behavior
     as they are not applicable or overridden by the base `SensorEntity` or
     `SensorEntityDescription` defaults for categorical sensors.
+
+    Uses RestoreEntity to preserve state across Home Assistant restarts.
     """
 
     _attr_has_entity_name = True
@@ -94,6 +97,17 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
 
         # Initial update of state and attributes
         self._update_sensor_data()
+
+    async def async_added_to_hass(self) -> None:
+        """Restore state when entity is added to HA."""
+        await super().async_added_to_hass()
+
+        # Restore previous state on restart if no fresh data
+        if self._attr_native_value is None:
+            if (last_state := await self.async_get_last_state()) is not None:
+                self._attr_native_value = last_state.state
+                if last_state.attributes:
+                    self._attr_extra_state_attributes = dict(last_state.attributes)
 
     @property
     def icon(self) -> str:
@@ -152,6 +166,12 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
         self._attr_extra_state_attributes = {
             k: v for k, v in self._attr_extra_state_attributes.items() if v is not None
         }
+
+        # Add coordinator update timestamp
+        if self.coordinator.last_successful_update:
+            self._attr_extra_state_attributes["last_meraki_update"] = (
+                self.coordinator.last_successful_update.isoformat()
+            )
 
         # If the device is an appliance, add uplink information as attributes
         if current_device_data.get("productType") == "appliance":

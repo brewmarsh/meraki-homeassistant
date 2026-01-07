@@ -16,11 +16,32 @@ repos:
 
   # Python specific hooks
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.7 # Updated rev
+    rev: v0.3.7
     hooks:
       - id: ruff
         args: [--fix]
-        # Ruff will use pyproject.toml for configuration.
+      - id: ruff-format
+
+  # Security linting (matches CI bandit check) - uses local venv bandit
+  - repo: local
+    hooks:
+      - id: bandit
+        name: bandit
+        entry: bandit -r custom_components/meraki_ha/ -c pyproject.toml
+        language: system
+        files: ^custom_components/meraki_ha/
+        exclude: ^custom_components/meraki_ha/core/utils/
+        pass_filenames: false
+
+  # Type checking (matches CI mypy check) - uses local venv mypy
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: mypy custom_components/meraki_ha tests --ignore-missing-imports
+        language: system
+        files: ^(custom_components/meraki_ha|tests)/
+        pass_filenames: false
   # JavaScript/TypeScript/CSS/HTML formatting
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v3.0.1 # Updated rev to a stable version
