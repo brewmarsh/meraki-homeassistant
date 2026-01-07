@@ -156,7 +156,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     networks = [],
     ssids = [],
     clients = [],
-    scan_interval = 60,
+    scan_interval = 90,
     last_updated,
   } = data;
 
@@ -167,9 +167,18 @@ const Dashboard: React.FC<DashboardProps> = ({
   // Calculate and update countdown
   useEffect(() => {
     if (!last_updated || !scan_interval) {
+      console.log('[Meraki] Countdown disabled - missing data:', {
+        last_updated,
+        scan_interval,
+      });
       setCountdown(null);
       return;
     }
+
+    console.log('[Meraki] Countdown reset - new data received:', {
+      last_updated,
+      scan_interval,
+    });
 
     const updateCountdown = () => {
       const lastUpdate = new Date(last_updated).getTime();

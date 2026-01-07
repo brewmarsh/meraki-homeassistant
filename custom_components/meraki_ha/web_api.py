@@ -251,8 +251,12 @@ async def handle_get_config(
         ),
     }
 
-    # Get refresh timing info
-    scan_interval = config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    # Get refresh timing info - use coordinator's actual interval for accuracy
+    scan_interval = (
+        int(coordinator.update_interval.total_seconds())
+        if coordinator.update_interval
+        else config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    )
     last_updated = (
         coordinator.last_successful_update.isoformat()
         if coordinator.last_successful_update

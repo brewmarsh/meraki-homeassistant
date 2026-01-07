@@ -89,6 +89,12 @@ class TestWsSubscribeMerakiData:
         mock_coordinator: MagicMock,
     ) -> None:
         """Test successful subscription to Meraki data."""
+        # Set up mock config entry
+        mock_config_entry = MagicMock()
+        mock_config_entry.options = {}
+        mock_hass.config_entries.async_get_entry.return_value = mock_config_entry
+        mock_coordinator.last_successful_update = None
+
         mock_hass.data[DOMAIN]["test_entry_id"] = {"coordinator": mock_coordinator}
         msg = {
             "id": 1,
@@ -98,8 +104,18 @@ class TestWsSubscribeMerakiData:
 
         ws_subscribe_meraki_data(mock_hass, mock_connection, msg)
 
-        # Should send initial data
-        mock_connection.send_result.assert_called_once_with(1, mock_coordinator.data)
+        # Should send initial enriched data
+        mock_connection.send_result.assert_called_once()
+        call_args = mock_connection.send_result.call_args
+        assert call_args[0][0] == 1
+        result_data = call_args[0][1]
+        # Verify enriched data contains expected keys
+        assert "networks" in result_data
+        assert "devices" in result_data
+        assert "enabled_networks" in result_data
+        assert "config_entry_id" in result_data
+        assert "scan_interval" in result_data
+        assert result_data["config_entry_id"] == "test_entry_id"
 
         # Should register listener
         mock_coordinator.async_add_listener.assert_called_once()
@@ -116,6 +132,13 @@ class TestWsSubscribeMerakiData:
         """Test that subscription registers update listener."""
         cancel_func = MagicMock()
         mock_coordinator.async_add_listener.return_value = cancel_func
+        mock_coordinator.last_successful_update = None
+
+        # Set up mock config entry
+        mock_config_entry = MagicMock()
+        mock_config_entry.options = {}
+        mock_hass.config_entries.async_get_entry.return_value = mock_config_entry
+
         mock_hass.data[DOMAIN]["test_entry_id"] = {"coordinator": mock_coordinator}
         msg = {
             "id": 1,

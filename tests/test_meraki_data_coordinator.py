@@ -223,7 +223,7 @@ def test_coordinator_invalid_scan_interval(hass, mock_api_client):
     coord = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
 
     # Default is 300 seconds
-    assert coord.update_interval == timedelta(seconds=300)
+    assert coord.update_interval == timedelta(seconds=90)  # DEFAULT_SCAN_INTERVAL
 
 
 def test_coordinator_negative_scan_interval(hass, mock_api_client):
@@ -235,7 +235,7 @@ def test_coordinator_negative_scan_interval(hass, mock_api_client):
     coord = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
 
     # Default is 300 seconds
-    assert coord.update_interval == timedelta(seconds=300)
+    assert coord.update_interval == timedelta(seconds=90)  # DEFAULT_SCAN_INTERVAL
 
 
 def test_register_pending_update(coordinator):

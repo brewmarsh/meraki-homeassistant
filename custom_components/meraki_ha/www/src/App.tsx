@@ -218,9 +218,16 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
     ssidNumber?: number;
   }>({ view: 'dashboard' });
   const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [retryCount, setRetryCount] = useState<number>(0);
 
   // Apply HA theme variables to the panel
   const { style: themeStyle } = useHaTheme(hass);
+
+  // Retry connection by incrementing retry count to trigger re-subscription
+  const retryConnection = useCallback(() => {
+    hasLoadedRef.current = false;
+    setRetryCount((c) => c + 1);
+  }, []);
 
   // Use a ref for hass to avoid re-renders when hass object changes
   // The hass object changes on every HA state update, which would cause constant refetches
@@ -234,53 +241,79 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
   const configEntryId = panel?.config?.config_entry_id;
 
   /**
-   * Fetch data from the backend using Home Assistant's WebSocket API
+   * Process incoming data to add is_enabled flag to networks
    */
-  const fetchData = useCallback(async () => {
-    const currentHass = hassRef.current;
-    if (!currentHass || !configEntryId) {
+  const processData = useCallback((result: MerakiData): MerakiData => {
+    if (result.networks && result.enabled_networks) {
+      const processedNetworks = result.networks.map((network) => ({
+        ...network,
+        is_enabled: result.enabled_networks.includes(network.id),
+      }));
+      return { ...result, networks: processedNetworks };
+    }
+    return result;
+  }, []);
+
+  /**
+   * Subscribe to real-time Meraki data updates via WebSocket
+   */
+  useEffect(() => {
+    if (!hass || !configEntryId) {
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    let unsubscribe: (() => void) | null = null;
+    let isSubscribed = true;
 
-    try {
-      // Use hass.callWS to call our WebSocket command
-      const result = await currentHass.callWS<MerakiData>({
-        type: 'meraki_ha/get_config',
-        config_entry_id: configEntryId,
-      });
+    const setupSubscription = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      // Process networks to add is_enabled flag
-      if (result.networks && result.enabled_networks) {
-        const processedNetworks = result.networks.map((network) => ({
-          ...network,
-          is_enabled: result.enabled_networks.includes(network.id),
-        }));
-        result.networks = processedNetworks;
+        // Subscribe to meraki data updates - this sends initial data and pushes updates
+        unsubscribe = await hass.connection.subscribeMessage<MerakiData>(
+          (message: MerakiData) => {
+            if (isSubscribed && message) {
+              console.log('[Meraki] Received data update:', {
+                last_updated: message.last_updated,
+                scan_interval: message.scan_interval,
+                networks: message.networks?.length,
+                devices: message.devices?.length,
+              });
+              const processed = processData(message);
+              setData(processed);
+              setLoading(false);
+              hasLoadedRef.current = true;
+            }
+          },
+          {
+            type: 'meraki_ha/subscribe_meraki_data',
+            config_entry_id: configEntryId,
+          }
+        );
+      } catch (err) {
+        console.error('Failed to subscribe to Meraki data:', err);
+        if (isSubscribed) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : 'Failed to connect to Meraki integration'
+          );
+          setLoading(false);
+        }
       }
+    };
 
-      setData(result);
-      hasLoadedRef.current = true;
-    } catch (err) {
-      console.error('Failed to fetch Meraki data:', err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Failed to fetch data from Meraki integration'
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [configEntryId]);
+    setupSubscription();
 
-  // Fetch data only once when configEntryId becomes available and hass is connected
-  useEffect(() => {
-    if (hass && configEntryId && !hasLoadedRef.current) {
-      fetchData();
-    }
-  }, [hass, configEntryId, fetchData]);
+    // Cleanup subscription on unmount or when dependencies change
+    return () => {
+      isSubscribed = false;
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [hass, configEntryId, processData, retryCount]);
 
   // Show loading state while waiting for hass
   if (!hass) {
@@ -309,7 +342,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
     return (
       <div className="meraki-panel" style={themeStyle}>
         <Header />
-        <ErrorDisplay message={error} onRetry={fetchData} />
+        <ErrorDisplay message={error} onRetry={retryConnection} />
       </div>
     );
   }
