@@ -75,7 +75,7 @@ async def test_populate_ssid_entities(coordinator, hass):
             # Assert
             assert ssid_data["entity_id"] == "switch.ssid_enabled"
 
-            # Verify correct device lookup
+            # Verify correct device lookup - SSID identifiers use ssid_ prefix
             mock_dev_reg.async_get_device.assert_called_with(
-                identifiers={(DOMAIN, "N_123_0")}
+                identifiers={(DOMAIN, "ssid_N_123_0")}
             )

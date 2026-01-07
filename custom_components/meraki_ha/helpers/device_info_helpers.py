@@ -38,7 +38,8 @@ def resolve_device_info(
         network_id = effective_data.get("networkId")
         ssid_number = effective_data.get("number")
         if network_id:
-            identifier = (DOMAIN, f"{network_id}_{ssid_number}")
+            # Use ssid_ prefix to prevent collisions with other entity types
+            identifier = (DOMAIN, f"ssid_{network_id}_{ssid_number}")
             device_data_for_naming = {**effective_data, "productType": "ssid"}
             formatted_name = format_device_name(
                 device=device_data_for_naming,
@@ -56,7 +57,8 @@ def resolve_device_info(
     parent_serial = entity_data.get("recentDeviceSerial")
     if client_mac and parent_serial:
         return DeviceInfo(
-            identifiers={(DOMAIN, client_mac)},
+            # Use client_ prefix to prevent collisions with other entity types
+            identifiers={(DOMAIN, f"client_{client_mac}")},
             name=str(entity_data.get("description") or client_mac),
             manufacturer=str(entity_data.get("manufacturer") or "Unknown"),
             via_device=(DOMAIN, parent_serial),
