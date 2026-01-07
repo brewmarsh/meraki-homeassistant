@@ -38,7 +38,8 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, setActiveView }) => {
   const { networks, devices } = data;
 
   // Filter to only show networks that are enabled in settings
-  const enabledNetworks = networks?.filter((network) => network.is_enabled) || [];
+  const enabledNetworks =
+    networks?.filter((network) => network.is_enabled) || [];
 
   // If there's only one network, expand it by default
   const [openNetworkId, setOpenNetworkId] = useState<string | null>(
@@ -55,7 +56,8 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, setActiveView }) => {
         <ha-icon icon="mdi:network-off"></ha-icon>
         <p>No networks are enabled for this integration.</p>
         <p className="hint">
-          Go to Settings → Devices & Services → Meraki → Configure to enable networks.
+          Go to Settings → Devices & Services → Meraki → Configure to enable
+          networks.
         </p>
       </div>
     );
@@ -65,7 +67,9 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, setActiveView }) => {
     <div className="network-list">
       {enabledNetworks.map((network) => {
         const isOpen = openNetworkId === network.id;
-        const networkDevices = devices.filter((d) => d.networkId === network.id);
+        const networkDevices = devices.filter(
+          (d) => d.networkId === network.id
+        );
         const enabledSsids = network.ssids
           ? network.ssids.filter((s) => s.enabled).length
           : 0;
@@ -80,7 +84,8 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, setActiveView }) => {
               <ha-icon icon="mdi:lan" className="network-icon"></ha-icon>
               <span className="network-name">{network.name}</span>
               <span className="device-count">
-                {networkDevices.length} device{networkDevices.length !== 1 ? 's' : ''}
+                {networkDevices.length} device
+                {networkDevices.length !== 1 ? 's' : ''}
               </span>
               <ha-icon
                 icon={isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}
@@ -109,7 +114,9 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, setActiveView }) => {
                           <span className="ssid-name">{ssid.name}</span>
                           <ha-icon
                             icon={ssid.enabled ? 'mdi:wifi' : 'mdi:wifi-off'}
-                            className={`ssid-status-icon ${ssid.enabled ? 'enabled' : 'disabled'}`}
+                            className={`ssid-status-icon ${
+                              ssid.enabled ? 'enabled' : 'disabled'
+                            }`}
                           ></ha-icon>
                         </div>
                       ))}
@@ -131,7 +138,10 @@ interface DeviceTableProps {
   setActiveView: (view: { view: string; deviceId?: string }) => void;
 }
 
-const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => {
+const DeviceTable: React.FC<DeviceTableProps> = ({
+  devices,
+  setActiveView,
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const getDeviceIcon = (model: string) => {
@@ -166,7 +176,7 @@ const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => 
   const handleEntityClick = (e: React.MouseEvent, entityId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Dispatch Home Assistant's more-info event
     const event = new CustomEvent('hass-more-info', {
       bubbles: true,
@@ -178,7 +188,13 @@ const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => 
 
   if (devices.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-secondary)' }}>
+      <div
+        style={{
+          textAlign: 'center',
+          padding: '24px',
+          color: 'var(--text-secondary)',
+        }}
+      >
         No devices in this network.
       </div>
     );
@@ -229,7 +245,9 @@ const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => 
               </td>
               <td>{device.model || '—'}</td>
               <td>
-                <span className={`device-status ${getStatusClass(device.status)}`}>
+                <span
+                  className={`device-status ${getStatusClass(device.status)}`}
+                >
                   {device.status || 'Unknown'}
                 </span>
               </td>

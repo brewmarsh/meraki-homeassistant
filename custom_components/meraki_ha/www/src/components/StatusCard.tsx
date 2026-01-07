@@ -19,12 +19,12 @@ const StatusCard: React.FC<StatusCardProps> = ({
 }) => {
   const valueClass = variant === 'default' ? '' : variant;
   const isClickable = onClick || clickable;
-  
+
   return (
     <div
       className={`stat-card ${isClickable ? 'clickable' : ''}`}
       onClick={onClick}
-      style={{ 
+      style={{
         cursor: isClickable ? 'pointer' : 'default',
         transition: 'transform 0.2s, box-shadow 0.2s',
       }}

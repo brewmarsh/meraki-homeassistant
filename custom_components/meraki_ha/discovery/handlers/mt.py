@@ -94,13 +94,10 @@ class MTHandler(BaseDeviceHandler):
                 )
 
         # Look up supported binary sensors for this model
-        binary_sensor_descriptions = MT_BINARY_SENSOR_MODELS.get(model_prefix)
-        if binary_sensor_descriptions:
-            for binary_description in binary_sensor_descriptions:
-                entities.append(
-                    MerakiMtBinarySensor(
-                        self._coordinator, self.device, binary_description
-                    )
-                )
+        binary_sensor_descriptions = MT_BINARY_SENSOR_MODELS.get(model_prefix, [])
+        for binary_description in binary_sensor_descriptions:
+            entities.append(
+                MerakiMtBinarySensor(self._coordinator, self.device, binary_description)
+            )
 
         return entities

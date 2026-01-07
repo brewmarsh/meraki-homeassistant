@@ -10,6 +10,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Dashboard from './components/Dashboard';
 import DeviceView from './components/DeviceView';
 import ClientsView from './components/ClientsView';
+import SSIDsListView from './components/SSIDsListView';
+import SSIDView from './components/SSIDView';
+import Settings from './components/Settings';
 import { useHaTheme } from './hooks/useHaTheme';
 import type { HomeAssistant, PanelInfo, RouteInfo } from './types/hass';
 
@@ -177,13 +180,40 @@ const ErrorDisplay: React.FC<{ message: string; onRetry?: () => void }> = ({
 );
 
 /**
- * Header component with logo and version
+ * Header component with logo, version, and settings button
  */
-const Header: React.FC<{ version?: string }> = ({ version }) => (
+const Header: React.FC<{
+  version?: string;
+  onSettingsClick?: () => void;
+}> = ({ version, onSettingsClick }) => (
   <div className="meraki-header">
     <div className="logo">🌐</div>
     <h1>Meraki Dashboard</h1>
     {version && <span className="version">v{version}</span>}
+    <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+      {onSettingsClick && (
+        <button
+          onClick={onSettingsClick}
+          className="settings-btn"
+          title="Settings"
+          style={{
+            background: 'var(--bg-tertiary)',
+            border: '1px solid var(--card-border)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '8px 12px',
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            fontSize: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            transition: 'var(--transition)',
+          }}
+        >
+          ⚙️ Settings
+        </button>
+      )}
+    </div>
   </div>
 );
 
@@ -197,7 +227,10 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
   const [activeView, setActiveView] = useState<{
     view: string;
     deviceId?: string;
+    ssidNetworkId?: string;
+    ssidNumber?: number;
   }>({ view: 'dashboard' });
+  const [showSettings, setShowSettings] = useState<boolean>(false);
 
   // Apply HA theme variables to the panel
   const { style: themeStyle } = useHaTheme(hass);
@@ -267,7 +300,13 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
     return (
       <div className="meraki-panel" style={themeStyle}>
         <LoadingSpinner />
-        <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '16px' }}>
+        <p
+          style={{
+            textAlign: 'center',
+            color: 'var(--text-secondary)',
+            marginTop: '16px',
+          }}
+        >
           Waiting for Home Assistant connection...
         </p>
       </div>
@@ -309,8 +348,9 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
   }
 
   // Filter to only show enabled networks
-  const enabledNetworks = data.networks?.filter((network) => network.is_enabled) || [];
-  
+  const enabledNetworks =
+    data.networks?.filter((network) => network.is_enabled) || [];
+
   // Create processed data with only enabled networks
   const processedData = {
     ...data,
@@ -342,6 +382,59 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
             }}
           />
         );
+      case 'ssids':
+        return (
+          <SSIDsListView
+            ssids={data.ssids || []}
+            clients={data.clients || []}
+            networks={data.networks || []}
+            onBack={() => setActiveView({ view: 'dashboard' })}
+            onSSIDClick={(ssid) =>
+              setActiveView({
+                view: 'ssid',
+                ssidNetworkId: ssid.networkId,
+                ssidNumber: ssid.number,
+              })
+            }
+          />
+        );
+      case 'ssid': {
+        // Find the SSID from data
+        const selectedSSID = data.ssids?.find(
+          (s) =>
+            s.networkId === activeView.ssidNetworkId &&
+            s.number === activeView.ssidNumber
+        );
+        if (!selectedSSID) {
+          return (
+            <div className="error-container">
+              <span className="error-icon">⚠️</span>
+              <p>SSID not found</p>
+              <button
+                onClick={() => setActiveView({ view: 'ssids' })}
+                className="retry-button"
+              >
+                Back to SSIDs
+              </button>
+            </div>
+          );
+        }
+        const ssidNetwork = data.networks?.find(
+          (n) => n.id === selectedSSID.networkId
+        );
+        return (
+          <SSIDView
+            ssid={selectedSSID}
+            clients={data.clients || []}
+            network={ssidNetwork}
+            hass={hass}
+            onBack={() => setActiveView({ view: 'ssids' })}
+            onClientClick={(clientId) =>
+              setActiveView({ view: 'clients', deviceId: clientId })
+            }
+          />
+        );
+      }
       default:
         return (
           <Dashboard
@@ -358,9 +451,22 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
   };
 
   return (
-    <div className="meraki-panel" style={{ ...themeStyle, maxWidth: '100%', margin: '0 auto' }}>
-      <Header version={data.version} />
+    <div className="meraki-panel" style={themeStyle}>
+      <Header
+        version={data.version}
+        onSettingsClick={() => setShowSettings(true)}
+      />
       {renderView()}
+
+      {/* Settings Modal */}
+      {showSettings && configEntryId && (
+        <Settings
+          hass={hass}
+          options={data}
+          configEntryId={configEntryId}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
     </div>
   );
 };

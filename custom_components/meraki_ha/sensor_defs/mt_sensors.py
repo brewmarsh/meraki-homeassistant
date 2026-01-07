@@ -131,7 +131,7 @@ MT_DOOR_DESCRIPTION = BinarySensorEntityDescription(
 )
 
 # Mapping of MT models to their supported sensor descriptions
-MT_SENSOR_MODELS = {
+MT_SENSOR_MODELS: dict[str, list[SensorEntityDescription]] = {
     "MT10": [
         MT_TEMPERATURE_DESCRIPTION,
         MT_HUMIDITY_DESCRIPTION,
@@ -170,7 +170,7 @@ MT_SENSOR_MODELS = {
 }
 
 # Mapping of MT models to their supported binary sensor descriptions
-MT_BINARY_SENSOR_MODELS = {
+MT_BINARY_SENSOR_MODELS: dict[str, list[BinarySensorEntityDescription]] = {
     "MT10": [],
     "MT11": [],
     "MT12": [MT_WATER_DESCRIPTION],

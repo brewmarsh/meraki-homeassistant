@@ -27,7 +27,7 @@ jobs:
       - name: Run ruff format check
         run: ruff format --check .
       - name: Run bandit
-        run: bandit -r custom_components/meraki_ha/ -c .bandit.yaml
+        run: bandit -r custom_components/meraki_ha/ -c pyproject.toml
 
   # Type checking and security audit
   type-check:
@@ -41,7 +41,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v4
       - name: Install dependencies
-        run: uv pip install --system -r requirements_dev.txt
+        run: uv pip install --system -e ".[dev]"
       - name: Cache mypy
         uses: actions/cache@v4
         with:
@@ -84,7 +84,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: custom_components/meraki_ha/www/package-lock.json
       - name: Install Python dependencies
-        run: uv pip install --system -r requirements_dev.txt
+        run: uv pip install --system -e ".[dev]"
       - name: Install npm dependencies
         working-directory: custom_components/meraki_ha/www
         run: npm ci
@@ -93,7 +93,7 @@ jobs:
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('requirements_dev.txt') }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
       - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: playwright install --with-deps chromium

@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import SwitchPortVisualization from './SwitchPortVisualization';
 import SensorReading from './SensorReading';
+import MetricCard from './MetricCard';
 
 interface PortStatus {
   portId: string;
@@ -102,13 +103,20 @@ interface Device {
 
 interface DeviceViewProps {
   activeView: { view: string; deviceId?: string; clientId?: string };
-  setActiveView: (view: { view: string; deviceId?: string; clientId?: string }) => void;
+  setActiveView: (view: {
+    view: string;
+    deviceId?: string;
+    clientId?: string;
+  }) => void;
   data: {
     devices: Device[];
     clients?: Client[];
   };
   hass?: {
-    callWS: <T = unknown>(params: { type: string; [key: string]: unknown }) => Promise<T>;
+    callWS: <T = unknown>(params: {
+      type: string;
+      [key: string]: unknown;
+    }) => Promise<T>;
   };
   configEntryId?: string;
   cameraLinkIntegration?: string;
@@ -129,21 +137,27 @@ const DeviceView: React.FC<DeviceViewProps> = ({
 }) => {
   const temperatureUnit = configEntryOptions?.temperature_unit || 'celsius';
   const device = data.devices.find((d) => d.serial === activeView.deviceId);
-  
+
   // Get clients connected to this device
   const deviceClients = (data.clients || []).filter(
     (client) => client.recentDeviceSerial === device?.serial
   );
   const [snapshotUrl, setSnapshotUrl] = React.useState<string | null>(null);
   const [snapshotLoading, setSnapshotLoading] = React.useState(false);
-  const [cloudVideoUrl, setCloudVideoUrl] = React.useState<string | null>(null);
-  
+  const [cloudVideoUrl, setCloudVideoUrl] = React.useState<string | null>(
+    null
+  );
+
   // Linked camera state
-  const [availableCameras, setAvailableCameras] = React.useState<Array<{entity_id: string; friendly_name: string}>>([]);
+  const [availableCameras, setAvailableCameras] = React.useState<
+    Array<{ entity_id: string; friendly_name: string }>
+  >([]);
   const [linkedCameraId, setLinkedCameraId] = React.useState<string>('');
   const [showCameraConfig, setShowCameraConfig] = React.useState(false);
   const [viewLinkedCamera, setViewLinkedCamera] = React.useState(false);
-  const [linkedCameraUrl, setLinkedCameraUrl] = React.useState<string | null>(null);
+  const [linkedCameraUrl, setLinkedCameraUrl] = React.useState<string | null>(
+    null
+  );
   const [linkedCameraLoading, setLinkedCameraLoading] = React.useState(false);
 
   // Use refs to avoid re-renders when hass object changes (happens on every HA state update)
@@ -189,50 +203,114 @@ const DeviceView: React.FC<DeviceViewProps> = ({
   const getDeviceIcon = (): string => {
     const modelUpper = model.toUpperCase();
     const type = productType?.toLowerCase() || '';
-    
-    if (modelUpper.startsWith('MS') || type === 'switch') return '⚡';
+
+    // Network switches
+    if (modelUpper.startsWith('MS') || type === 'switch') return '🔀';
+    // Cameras
     if (modelUpper.startsWith('MV') || type === 'camera') return '📹';
+    // Wireless APs
     if (modelUpper.startsWith('MR') || type === 'wireless') return '📶';
-    if (modelUpper.startsWith('MT') || type === 'sensor') return '🌡️';
-    if (modelUpper.startsWith('MX') || modelUpper.startsWith('Z') || type === 'appliance') return '🔒';
+    // Sensors - different icons based on model
+    if (modelUpper.startsWith('MT') || type === 'sensor') {
+      if (
+        modelUpper.startsWith('MT10') ||
+        modelUpper.startsWith('MT11') ||
+        modelUpper.startsWith('MT15')
+      ) {
+        return '🌡️'; // Temperature sensor
+      }
+      if (modelUpper.startsWith('MT12')) {
+        return '🚪'; // Door/open-close sensor
+      }
+      if (modelUpper.startsWith('MT14')) {
+        return '💨'; // Air quality sensor
+      }
+      if (modelUpper.startsWith('MT20')) {
+        return '🔘'; // Button sensor
+      }
+      if (modelUpper.startsWith('MT30')) {
+        return '⚡'; // Power meter
+      }
+      return '📡'; // Default sensor
+    }
+    // Security appliances/firewalls
+    if (
+      modelUpper.startsWith('MX') ||
+      modelUpper.startsWith('Z') ||
+      type === 'appliance'
+    )
+      return '🛡️';
     return '📱';
   };
 
   const getDeviceTypeClass = (): string => {
     const modelUpper = model.toUpperCase();
     const type = productType?.toLowerCase() || '';
-    
+
     if (modelUpper.startsWith('MS') || type === 'switch') return 'switch';
     if (modelUpper.startsWith('MV') || type === 'camera') return 'camera';
     if (modelUpper.startsWith('MR') || type === 'wireless') return 'wireless';
     if (modelUpper.startsWith('MT') || type === 'sensor') return 'sensor';
-    if (modelUpper.startsWith('MX') || modelUpper.startsWith('Z') || type === 'appliance') return 'appliance';
+    if (
+      modelUpper.startsWith('MX') ||
+      modelUpper.startsWith('Z') ||
+      type === 'appliance'
+    )
+      return 'appliance';
     return '';
   };
 
-  const isSwitch = model.toUpperCase().startsWith('MS') || productType === 'switch';
-  const isSensor = model.toUpperCase().startsWith('MT') || productType === 'sensor';
-  const isCamera = model.toUpperCase().startsWith('MV') || productType === 'camera';
-  const isWireless = model.toUpperCase().startsWith('MR') || productType === 'wireless';
+  const isSwitch =
+    model.toUpperCase().startsWith('MS') || productType === 'switch';
+  const isSensor =
+    model.toUpperCase().startsWith('MT') || productType === 'sensor';
+  const isCamera =
+    model.toUpperCase().startsWith('MV') || productType === 'camera';
+  const isWireless =
+    model.toUpperCase().startsWith('MR') || productType === 'wireless';
+  const isAppliance =
+    model.toUpperCase().startsWith('MX') ||
+    model.toUpperCase().startsWith('Z') ||
+    productType === 'appliance';
 
   // Filter out entities that are already shown as hero sensor readings
   const heroEntityPatterns = [
-    'temperature', 'humidity', 'battery', 'tvoc', 'pm25', 'pm2_5', 'co2',
-    'noise', 'indoor_air_quality', 'air_quality', 'voc'
+    'temperature',
+    'humidity',
+    'battery',
+    'tvoc',
+    'pm25',
+    'pm2_5',
+    'co2',
+    'noise',
+    'indoor_air_quality',
+    'air_quality',
+    'voc',
   ];
   const filteredEntities = entities.filter((entity) => {
     const lowerName = entity.name.toLowerCase();
     const lowerEntityId = entity.entity_id.toLowerCase();
-    return !heroEntityPatterns.some(pattern => 
-      lowerName.includes(pattern) || lowerEntityId.includes(pattern)
+    return !heroEntityPatterns.some(
+      (pattern) =>
+        lowerName.includes(pattern) || lowerEntityId.includes(pattern)
     );
   });
 
-  const formatUptime = (seconds?: number): string => {
-    if (!seconds) return '—';
+  const formatUptime = (seconds?: number): string | null => {
+    if (!seconds) return null;
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);
-    return `${days} days, ${hours} hours`;
+    if (days > 0) {
+      return `${days}d ${hours}h`;
+    }
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return `${hours}h ${minutes}m`;
+  };
+
+  // Format uptime for display in metric cards (returns days as number)
+  const getUptimeDays = (seconds?: number): number => {
+    if (!seconds) return 0;
+    return Math.floor(seconds / 86400);
   };
 
   const formatLastSeen = (timestamp?: string): string => {
@@ -240,15 +318,19 @@ const DeviceView: React.FC<DeviceViewProps> = ({
     const date = new Date(timestamp);
     const now = new Date();
     const isToday = date.toDateString() === now.toDateString();
-    
+
     if (isToday) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      return date.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
     }
-    return date.toLocaleString([], { 
-      month: 'short', 
-      day: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return date.toLocaleString([], {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -267,11 +349,11 @@ const DeviceView: React.FC<DeviceViewProps> = ({
     if (!currentHass || !configEntryId || !device) return;
     setSnapshotLoading(true);
     try {
-      const result = await currentHass.callWS({
+      const result = (await currentHass.callWS({
         type: 'meraki_ha/get_camera_snapshot',
         config_entry_id: configEntryId,
         serial: device.serial,
-      }) as { url?: string };
+      })) as { url?: string };
       if (result?.url) {
         setSnapshotUrl(result.url);
       }
@@ -287,12 +369,12 @@ const DeviceView: React.FC<DeviceViewProps> = ({
     const currentHass = hassRef.current;
     if (!currentHass || !configEntryId || !device) return;
     try {
-      const result = await currentHass.callWS({
+      const result = (await currentHass.callWS({
         type: 'meraki_ha/get_camera_stream_url',
         config_entry_id: configEntryId,
         serial: device.serial,
         stream_source: 'cloud',
-      }) as { url?: string };
+      })) as { url?: string };
       if (result?.url) {
         setCloudVideoUrl(result.url);
       }
@@ -313,10 +395,10 @@ const DeviceView: React.FC<DeviceViewProps> = ({
     const currentHass = hassRef.current;
     if (!currentHass) return;
     try {
-      const result = await currentHass.callWS({
+      const result = (await currentHass.callWS({
         type: 'meraki_ha/get_available_cameras',
         integration_filter: cameraLinkIntegration || '',
-      }) as { cameras?: Array<{entity_id: string; friendly_name: string}> };
+      })) as { cameras?: Array<{ entity_id: string; friendly_name: string }> };
       if (result?.cameras) {
         setAvailableCameras(result.cameras);
       }
@@ -330,10 +412,10 @@ const DeviceView: React.FC<DeviceViewProps> = ({
     const currentHass = hassRef.current;
     if (!currentHass || !configEntryId || !device) return;
     try {
-      const result = await currentHass.callWS({
+      const result = (await currentHass.callWS({
         type: 'meraki_ha/get_camera_mappings',
         config_entry_id: configEntryId,
-      }) as { mappings?: Record<string, string> };
+      })) as { mappings?: Record<string, string> };
       if (result?.mappings && result.mappings[device.serial]) {
         setLinkedCameraId(result.mappings[device.serial]);
       }
@@ -370,16 +452,16 @@ const DeviceView: React.FC<DeviceViewProps> = ({
   const fetchLinkedCameraUrl = async () => {
     const currentHass = hassRef.current;
     if (!currentHass || !linkedCameraId) return;
-    
+
     setLinkedCameraLoading(true);
     try {
       // Use Home Assistant's auth/sign_path to get a properly authenticated URL
-      const result = await currentHass.callWS({
+      const result = (await currentHass.callWS({
         type: 'auth/sign_path',
         path: `/api/camera_proxy/${linkedCameraId}`,
         expires: 30, // URL valid for 30 seconds
-      }) as { path?: string };
-      
+      })) as { path?: string };
+
       if (result?.path) {
         setLinkedCameraUrl(result.path);
       }
@@ -393,9 +475,12 @@ const DeviceView: React.FC<DeviceViewProps> = ({
 
   // Load camera data when viewing a camera device - only fetch once per device
   React.useEffect(() => {
-    const isCameraDevice = device && (device.model?.toUpperCase().startsWith('MV') || device.productType === 'camera');
+    const isCameraDevice =
+      device &&
+      (device.model?.toUpperCase().startsWith('MV') ||
+        device.productType === 'camera');
     const deviceSerial = device?.serial;
-    
+
     // Only fetch if this is a new device we haven't loaded yet
     if (isCameraDevice && deviceSerial && configEntryId && hassRef.current) {
       if (hasLoadedCameraDataRef.current !== deviceSerial) {
@@ -416,9 +501,14 @@ const DeviceView: React.FC<DeviceViewProps> = ({
   }, [viewLinkedCamera, linkedCameraId]);
 
   // Calculate PoE stats for switches
-  const poePorts = ports_statuses.filter((p) => p.poe?.isAllocated || p.poe?.enabled);
-  const totalPoeEnergy = ports_statuses.reduce((acc, p) => acc + (p.powerUsageInWh || 0), 0);
-  const totalConnectedClients = ports_statuses.reduce((acc, p) => acc + (p.clientCount || 0), 0);
+  const totalPoeEnergy = ports_statuses.reduce(
+    (acc, p) => acc + (p.powerUsageInWh || 0),
+    0
+  );
+  const totalConnectedClients = ports_statuses.reduce(
+    (acc, p) => acc + (p.clientCount || 0),
+    0
+  );
 
   return (
     <div>
@@ -437,10 +527,55 @@ const DeviceView: React.FC<DeviceViewProps> = ({
         <div className="device-info">
           <h1>{name || serial}</h1>
           <div className="meta">
-            <span><strong>Model:</strong> {model}</span>
-            <span><strong>Serial:</strong> {serial}</span>
-            {firmware && <span><strong>Firmware:</strong> {firmware}</span>}
+            <span>
+              <strong>Model:</strong> {model}
+            </span>
+            <span>
+              <strong>Serial:</strong> {serial}
+            </span>
+            {firmware && (
+              <span>
+                <strong>Firmware:</strong> {firmware}
+              </span>
+            )}
+            {lanIp && (
+              <span>
+                <strong>IP:</strong> {lanIp}
+              </span>
+            )}
+            {mac && (
+              <span>
+                <strong>MAC:</strong>{' '}
+                <span style={{ fontFamily: 'monospace' }}>{mac}</span>
+              </span>
+            )}
+            {/* Sensor-specific: Battery in header */}
+            {isSensor && readings?.battery != null && (
+              <span>
+                <strong>Battery:</strong>{' '}
+                <span
+                  style={{
+                    color:
+                      readings.battery > 20
+                        ? 'var(--success)'
+                        : 'var(--warning)',
+                  }}
+                >
+                  {readings.battery}%
+                </span>
+              </span>
+            )}
           </div>
+          {lastReportedAt && (
+            <div
+              className="meta"
+              style={{ marginTop: '4px', fontSize: '12px' }}
+            >
+              <span style={{ color: 'var(--text-muted)' }}>
+                Last updated: {formatLastSeen(lastReportedAt)}
+              </span>
+            </div>
+          )}
         </div>
         <div className={`status-pill ${status?.toLowerCase()}`}>
           <div className="dot"></div>
@@ -448,78 +583,198 @@ const DeviceView: React.FC<DeviceViewProps> = ({
         </div>
       </div>
 
+      {/* Switch Metric Cards */}
+      {isSwitch && ports_statuses.length > 0 && (
+        <div className="metric-cards-grid">
+          <MetricCard
+            icon="⚡"
+            label="PoE Energy"
+            value={totalPoeEnergy}
+            unit="Wh"
+            gauge={{ min: 0, max: 500, color: 'warning' }}
+            status="normal"
+            statusMessage="Active"
+          />
+          <MetricCard
+            icon="👥"
+            label="Connected Clients"
+            value={totalConnectedClients}
+            gauge={{
+              min: 0,
+              max: Math.max(50, totalConnectedClients),
+              color: 'info',
+            }}
+            status="normal"
+          />
+          {uptime != null && (
+            <MetricCard
+              icon="⏱️"
+              label="Uptime"
+              value={getUptimeDays(uptime)}
+              unit=" days"
+              secondaryValue={formatUptime(uptime) || undefined}
+              status="normal"
+              statusMessage="Running"
+            />
+          )}
+          <MetricCard
+            icon="🔌"
+            label="Connected Ports"
+            value={
+              ports_statuses.filter(
+                (p) => p.status?.toLowerCase() === 'connected'
+              ).length
+            }
+            secondaryValue={`of ${ports_statuses.length} total`}
+            gauge={{
+              min: 0,
+              max: ports_statuses.length,
+              color: 'success',
+            }}
+            status="normal"
+          />
+        </div>
+      )}
+
+      {/* Wireless AP Metric Cards */}
+      {isWireless && (
+        <div className="metric-cards-grid">
+          <MetricCard
+            icon="👥"
+            label="Connected Clients"
+            value={deviceClients.length}
+            gauge={{
+              min: 0,
+              max: Math.max(50, deviceClients.length),
+              color: 'info',
+            }}
+            status="normal"
+          />
+          {device.basicServiceSets && (
+            <MetricCard
+              icon="📶"
+              label="Active SSIDs"
+              value={device.basicServiceSets.filter((b) => b.enabled).length}
+              secondaryValue={`of ${device.basicServiceSets.length} total`}
+              gauge={{
+                min: 0,
+                max: device.basicServiceSets.length || 1,
+                color: 'success',
+              }}
+              status="normal"
+            />
+          )}
+          {uptime != null && (
+            <MetricCard
+              icon="⏱️"
+              label="Uptime"
+              value={getUptimeDays(uptime)}
+              unit=" days"
+              secondaryValue={formatUptime(uptime) || undefined}
+              status="normal"
+              statusMessage="Running"
+            />
+          )}
+        </div>
+      )}
+
+      {/* Appliance Metric Cards */}
+      {isAppliance && (
+        <div className="metric-cards-grid">
+          <MetricCard
+            icon="🌐"
+            label="WAN Status"
+            value={status === 'online' ? 'Online' : 'Offline'}
+            status={status === 'online' ? 'normal' : 'critical'}
+            statusMessage={status === 'online' ? 'Connected' : 'Disconnected'}
+          />
+          {uptime != null && (
+            <MetricCard
+              icon="⏱️"
+              label="Uptime"
+              value={getUptimeDays(uptime)}
+              unit=" days"
+              secondaryValue={formatUptime(uptime) || undefined}
+              status="normal"
+              statusMessage="Running"
+            />
+          )}
+        </div>
+      )}
+
+      {/* Camera Metric Cards */}
+      {isCamera && (
+        <div className="metric-cards-grid">
+          <MetricCard
+            icon="🔴"
+            label="Recording"
+            value={status === 'online' ? 'Active' : 'Inactive'}
+            status={status === 'online' ? 'normal' : 'inactive'}
+            statusMessage={
+              status === 'online' ? 'Recording to cloud' : 'Camera offline'
+            }
+          />
+          <MetricCard
+            icon="👁️"
+            label="Motion Detection"
+            value="Enabled"
+            status="normal"
+            statusMessage="Monitoring"
+          />
+        </div>
+      )}
+
       {/* Info Cards Grid */}
       <div className="cards-grid">
-        <div className="info-card">
-          <h3>ℹ️ Device Information</h3>
-          <div className="info-grid">
-            <div className="info-item">
-              <div className="label">LAN IP</div>
-              <div className="value">{lanIp || '—'}</div>
-            </div>
-            <div className="info-item">
-              <div className="label">MAC Address</div>
-              <div className="value mono">{mac || '—'}</div>
-            </div>
-            <div className="info-item">
-              <div className="label">Uptime</div>
-              <div className="value">{formatUptime(uptime)}</div>
-            </div>
-            <div className="info-item">
-              <div className="label">Last Seen</div>
-              <div className="value">{formatLastSeen(lastReportedAt)}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Switch-specific Power Summary */}
-        {isSwitch && ports_statuses.length > 0 && (
+        {/* Device Information card - hidden for switches, sensors, and wireless since info is in header */}
+        {!isSwitch && !isSensor && !isWireless && (
           <div className="info-card">
-            <h3>⚡ Power &amp; Ports</h3>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px',
+              }}
+            >
+              <h3 style={{ margin: 0 }}>ℹ️ Device Information</h3>
+              {lastReportedAt && (
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: 'var(--text-muted)',
+                    fontWeight: 400,
+                  }}
+                >
+                  Updated: {formatLastSeen(lastReportedAt)}
+                </span>
+              )}
+            </div>
             <div className="info-grid">
-              <div className="info-item">
-                <div className="label">PoE Energy Used</div>
-                <div className="value warning">{totalPoeEnergy.toFixed(1)} Wh</div>
-              </div>
-              <div className="info-item">
-                <div className="label">Connected Clients</div>
-                <div className="value primary">{totalConnectedClients}</div>
-              </div>
-              <div className="info-item">
-                <div className="label">Active PoE Ports</div>
-                <div className="value">{poePorts.length} of {ports_statuses.length}</div>
-              </div>
-              <div className="info-item">
-                <div className="label">Connected Ports</div>
-                <div className="value success">
-                  {ports_statuses.filter(p => p.status?.toLowerCase() === 'connected').length}
+              {lanIp && (
+                <div className="info-item">
+                  <div className="label">LAN IP</div>
+                  <div className="value">{lanIp}</div>
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Sensor-specific Battery Info */}
-        {isSensor && readings && (
-          <div className="info-card">
-            <h3>🔋 Sensor Status</h3>
-            <div className="info-grid">
-              <div className="info-item">
-                <div className="label">Battery</div>
-                <div className="value success">{readings.battery || 98}%</div>
-              </div>
-              <div className="info-item">
-                <div className="label">Last Update</div>
-                <div className="value">{formatLastSeen(lastReportedAt)}</div>
-              </div>
-              <div className="info-item">
-                <div className="label">Network</div>
-                <div className="value">Main Office</div>
-              </div>
-              <div className="info-item">
-                <div className="label">Uptime</div>
-                <div className="value">{formatUptime(uptime)}</div>
-              </div>
+              )}
+              {mac && (
+                <div className="info-item">
+                  <div className="label">MAC Address</div>
+                  <div className="value mono">{mac}</div>
+                </div>
+              )}
+              {firmware && (
+                <div className="info-item">
+                  <div className="label">Firmware</div>
+                  <div className="value">{firmware}</div>
+                </div>
+              )}
+              {uptime != null && !isWireless && !isAppliance && (
+                <div className="info-item">
+                  <div className="label">Uptime</div>
+                  <div className="value">{formatUptime(uptime)}</div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -556,35 +811,65 @@ const DeviceView: React.FC<DeviceViewProps> = ({
             <SensorReading
               type="indoorAirQuality"
               value={readings.indoorAirQuality}
-              status={readings.indoorAirQuality >= 70 ? 'normal' : readings.indoorAirQuality >= 50 ? 'warning' : 'critical'}
+              status={
+                readings.indoorAirQuality >= 70
+                  ? 'normal'
+                  : readings.indoorAirQuality >= 50
+                  ? 'warning'
+                  : 'critical'
+              }
             />
           )}
           {readings.tvoc != null && (
             <SensorReading
               type="tvoc"
               value={readings.tvoc}
-              status={readings.tvoc <= 400 ? 'normal' : readings.tvoc <= 800 ? 'warning' : 'critical'}
+              status={
+                readings.tvoc <= 400
+                  ? 'normal'
+                  : readings.tvoc <= 800
+                  ? 'warning'
+                  : 'critical'
+              }
             />
           )}
           {readings.pm25 != null && (
             <SensorReading
               type="pm25"
               value={readings.pm25}
-              status={readings.pm25 <= 35 ? 'normal' : readings.pm25 <= 75 ? 'warning' : 'critical'}
+              status={
+                readings.pm25 <= 35
+                  ? 'normal'
+                  : readings.pm25 <= 75
+                  ? 'warning'
+                  : 'critical'
+              }
             />
           )}
           {readings.co2 != null && (
             <SensorReading
               type="co2"
               value={readings.co2}
-              status={readings.co2 <= 1000 ? 'normal' : readings.co2 <= 2000 ? 'warning' : 'critical'}
+              status={
+                readings.co2 <= 1000
+                  ? 'normal'
+                  : readings.co2 <= 2000
+                  ? 'warning'
+                  : 'critical'
+              }
             />
           )}
           {readings.noise != null && (
             <SensorReading
               type="noise"
               value={readings.noise}
-              status={readings.noise <= 60 ? 'normal' : readings.noise <= 80 ? 'warning' : 'critical'}
+              status={
+                readings.noise <= 60
+                  ? 'normal'
+                  : readings.noise <= 80
+                  ? 'warning'
+                  : 'critical'
+              }
             />
           )}
         </div>
@@ -592,9 +877,18 @@ const DeviceView: React.FC<DeviceViewProps> = ({
 
       {/* Status Messages */}
       {status_messages.length > 0 && (
-        <div className="info-card" style={{ borderLeft: '4px solid var(--warning)' }}>
+        <div
+          className="info-card"
+          style={{ borderLeft: '4px solid var(--warning)' }}
+        >
           <h3>⚠️ Status Messages</h3>
-          <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--text-secondary)' }}>
+          <ul
+            style={{
+              margin: 0,
+              paddingLeft: '20px',
+              color: 'var(--text-secondary)',
+            }}
+          >
             {status_messages.map((msg: string, index: number) => (
               <li key={index} style={{ marginBottom: '8px' }}>
                 {msg}
@@ -624,7 +918,13 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                   onClick={() => handleEntityClick(entity.entity_id)}
                 >
                   <td>{entity.name}</td>
-                  <td style={{ fontFamily: 'monospace', fontSize: '13px', color: 'var(--text-muted)' }}>
+                  <td
+                    style={{
+                      fontFamily: 'monospace',
+                      fontSize: '13px',
+                      color: 'var(--text-muted)',
+                    }}
+                  >
                     {entity.entity_id}
                   </td>
                   <td>
@@ -654,35 +954,70 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                 <tr
                   key={client.id || client.mac}
                   className="device-row"
-                  onClick={() => setActiveView({ view: 'clients', clientId: client.id })}
+                  onClick={() =>
+                    setActiveView({ view: 'clients', clientId: client.id })
+                  }
                   style={{ cursor: 'pointer' }}
                 >
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                      }}
+                    >
                       <span style={{ fontSize: '18px' }}>
-                        {client.os?.toLowerCase().includes('ios') || client.manufacturer?.toLowerCase().includes('apple') ? '📱' : 
-                         client.os?.toLowerCase().includes('windows') ? '💻' : '🔌'}
+                        {client.os?.toLowerCase().includes('ios') ||
+                        client.manufacturer?.toLowerCase().includes('apple')
+                          ? '📱'
+                          : client.os?.toLowerCase().includes('windows')
+                          ? '💻'
+                          : '🔌'}
                       </span>
                       <div>
-                        <div style={{ fontWeight: 500 }}>{client.description || client.mac}</div>
+                        <div style={{ fontWeight: 500 }}>
+                          {client.description || client.mac}
+                        </div>
                         {client.manufacturer && (
-                          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{client.manufacturer}</div>
+                          <div
+                            style={{
+                              fontSize: '12px',
+                              color: 'var(--text-muted)',
+                            }}
+                          >
+                            {client.manufacturer}
+                          </div>
                         )}
                       </div>
                     </div>
                   </td>
-                  <td style={{ fontFamily: 'monospace', fontSize: '13px' }}>{client.ip || '—'}</td>
+                  {client.ip && (
+                    <td style={{ fontFamily: 'monospace', fontSize: '13px' }}>
+                      {client.ip}
+                    </td>
+                  )}
+                  {!client.ip && <td></td>}
                   <td>
-                    <span className="detail-badge">
-                      {client.ssid || client.switchport || '—'}
-                    </span>
+                    {(client.ssid || client.switchport) && (
+                      <span className="detail-badge">
+                        {client.ssid || client.switchport}
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
           {deviceClients.length > 10 && (
-            <div style={{ textAlign: 'center', padding: '12px', color: 'var(--text-muted)', fontSize: '13px' }}>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '12px',
+                color: 'var(--text-muted)',
+                fontSize: '13px',
+              }}
+            >
               Showing 10 of {deviceClients.length} clients •{' '}
               <button
                 onClick={() => setActiveView({ view: 'clients' })}
@@ -692,7 +1027,7 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                   color: 'var(--primary)',
                   cursor: 'pointer',
                   fontWeight: 500,
-                  fontSize: '13px'
+                  fontSize: '13px',
                 }}
               >
                 View All Clients
@@ -705,7 +1040,14 @@ const DeviceView: React.FC<DeviceViewProps> = ({
       {/* Camera-specific View */}
       {isCamera && (
         <div className="info-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '16px',
+            }}
+          >
             <h3 style={{ margin: 0 }}>📹 Camera</h3>
             <button
               onClick={() => setShowCameraConfig(!showCameraConfig)}
@@ -716,7 +1058,7 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                 background: 'var(--bg-secondary)',
                 color: 'var(--text-secondary)',
                 cursor: 'pointer',
-                fontSize: '13px'
+                fontSize: '13px',
               }}
             >
               ⚙️ Link Camera
@@ -725,19 +1067,28 @@ const DeviceView: React.FC<DeviceViewProps> = ({
 
           {/* Camera Linking Configuration */}
           {showCameraConfig && (
-            <div style={{
-              background: 'var(--bg-primary)',
-              borderRadius: 'var(--radius-md)',
-              padding: '16px',
-              marginBottom: '16px',
-              border: '1px solid var(--border)'
-            }}>
+            <div
+              style={{
+                background: 'var(--bg-primary)',
+                borderRadius: 'var(--radius-md)',
+                padding: '16px',
+                marginBottom: '16px',
+                border: '1px solid var(--border)',
+              }}
+            >
               <h4 style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
                 🔗 Link to External Camera (e.g., Blue Iris)
               </h4>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                Link this Meraki camera to another camera entity in Home Assistant. 
-                Useful when RTSP goes to an NVR (like Blue Iris) first.
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: 'var(--text-muted)',
+                  marginBottom: '12px',
+                }}
+              >
+                Link this Meraki camera to another camera entity in Home
+                Assistant. Useful when RTSP goes to an NVR (like Blue Iris)
+                first.
               </p>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <select
@@ -751,7 +1102,7 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                     border: '1px solid var(--border)',
                     background: 'var(--bg-secondary)',
                     color: 'var(--text-primary)',
-                    fontSize: '14px'
+                    fontSize: '14px',
                   }}
                 >
                   <option value="">-- No linked camera --</option>
@@ -770,30 +1121,39 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                     background: 'var(--primary)',
                     color: 'white',
                     cursor: 'pointer',
-                    fontWeight: 500
+                    fontWeight: 500,
                   }}
                 >
                   Save
                 </button>
               </div>
               {linkedCameraId && (
-                <p style={{ fontSize: '12px', color: 'var(--success)', marginTop: '8px', marginBottom: 0 }}>
+                <p
+                  style={{
+                    fontSize: '12px',
+                    color: 'var(--success)',
+                    marginTop: '8px',
+                    marginBottom: 0,
+                  }}
+                >
                   ✓ Linked to: {linkedCameraId}
                 </p>
               )}
             </div>
           )}
-          
+
           {/* View Toggle - only show if linked camera is configured */}
           {linkedCameraId && (
-            <div style={{ 
-              display: 'flex', 
-              gap: '4px', 
-              marginBottom: '16px',
-              background: 'var(--bg-primary)',
-              borderRadius: 'var(--radius-md)',
-              padding: '4px'
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: '4px',
+                marginBottom: '16px',
+                background: 'var(--bg-primary)',
+                borderRadius: 'var(--radius-md)',
+                padding: '4px',
+              }}
+            >
               <button
                 onClick={() => setViewLinkedCamera(false)}
                 style={{
@@ -801,11 +1161,13 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                   padding: '8px 16px',
                   borderRadius: 'var(--radius-sm)',
                   border: 'none',
-                  background: !viewLinkedCamera ? 'var(--primary)' : 'transparent',
+                  background: !viewLinkedCamera
+                    ? 'var(--primary)'
+                    : 'transparent',
                   color: !viewLinkedCamera ? 'white' : 'var(--text-secondary)',
                   cursor: 'pointer',
                   fontWeight: 500,
-                  transition: 'all 0.2s'
+                  transition: 'all 0.2s',
                 }}
               >
                 📷 Meraki Snapshot
@@ -817,26 +1179,30 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                   padding: '8px 16px',
                   borderRadius: 'var(--radius-sm)',
                   border: 'none',
-                  background: viewLinkedCamera ? 'var(--primary)' : 'transparent',
+                  background: viewLinkedCamera
+                    ? 'var(--primary)'
+                    : 'transparent',
                   color: viewLinkedCamera ? 'white' : 'var(--text-secondary)',
                   cursor: 'pointer',
                   fontWeight: 500,
-                  transition: 'all 0.2s'
+                  transition: 'all 0.2s',
                 }}
               >
                 🎬 Linked Camera
               </button>
             </div>
           )}
-          
+
           {/* Content Area */}
-          <div style={{ 
-            background: 'var(--bg-primary)', 
-            borderRadius: 'var(--radius-md)',
-            padding: '16px',
-            textAlign: 'center',
-            marginBottom: '16px'
-          }}>
+          <div
+            style={{
+              background: 'var(--bg-primary)',
+              borderRadius: 'var(--radius-md)',
+              padding: '16px',
+              textAlign: 'center',
+              marginBottom: '16px',
+            }}
+          >
             {viewLinkedCamera && linkedCameraId ? (
               /* Linked Camera Stream (e.g., Blue Iris) */
               <div>
@@ -851,7 +1217,7 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                     style={{
                       maxWidth: '100%',
                       borderRadius: 'var(--radius-md)',
-                      marginBottom: '12px'
+                      marginBottom: '12px',
                     }}
                     onError={() => {
                       console.error('Failed to load linked camera image');
@@ -863,13 +1229,15 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                     📹 Unable to load camera feed
                   </div>
                 )}
-                <div style={{ 
-                  display: 'flex', 
-                  gap: '12px', 
-                  justifyContent: 'center',
-                  flexWrap: 'wrap',
-                  marginTop: '12px'
-                }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '12px',
+                    justifyContent: 'center',
+                    flexWrap: 'wrap',
+                    marginTop: '12px',
+                  }}
+                >
                   <button
                     onClick={() => fetchLinkedCameraUrl()}
                     disabled={linkedCameraLoading}
@@ -880,7 +1248,7 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                       background: 'var(--primary)',
                       color: 'white',
                       cursor: linkedCameraLoading ? 'wait' : 'pointer',
-                      fontWeight: 500
+                      fontWeight: 500,
                     }}
                   >
                     {linkedCameraLoading ? '⏳ Loading...' : '🔄 Refresh'}
@@ -894,18 +1262,20 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                       background: 'var(--bg-secondary)',
                       color: 'var(--text-primary)',
                       cursor: 'pointer',
-                      fontWeight: 500
+                      fontWeight: 500,
                     }}
                   >
                     📺 Open Camera Entity
                   </button>
                 </div>
-                <p style={{ 
-                  fontSize: '12px', 
-                  color: 'var(--text-muted)', 
-                  marginTop: '12px',
-                  marginBottom: 0 
-                }}>
+                <p
+                  style={{
+                    fontSize: '12px',
+                    color: 'var(--text-muted)',
+                    marginTop: '12px',
+                    marginBottom: 0,
+                  }}
+                >
                   Viewing: {linkedCameraId}
                 </p>
               </div>
@@ -913,33 +1283,37 @@ const DeviceView: React.FC<DeviceViewProps> = ({
               /* Snapshot View */
               <>
                 {snapshotUrl ? (
-                  <img 
-                    src={snapshotUrl} 
+                  <img
+                    src={snapshotUrl}
                     alt={`${name || serial} snapshot`}
-                    style={{ 
-                      maxWidth: '100%', 
+                    style={{
+                      maxWidth: '100%',
                       borderRadius: 'var(--radius-md)',
-                      marginBottom: '12px'
+                      marginBottom: '12px',
                     }}
                   />
                 ) : (
-                  <div style={{ 
-                    padding: '40px', 
-                    color: 'var(--text-muted)',
-                    fontSize: '48px'
-                  }}>
+                  <div
+                    style={{
+                      padding: '40px',
+                      color: 'var(--text-muted)',
+                      fontSize: '48px',
+                    }}
+                  >
                     📹
                   </div>
                 )}
-                
+
                 {/* Action Buttons */}
-                <div style={{ 
-                  display: 'flex', 
-                  gap: '12px', 
-                  justifyContent: 'center',
-                  flexWrap: 'wrap',
-                  marginTop: '12px'
-                }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '12px',
+                    justifyContent: 'center',
+                    flexWrap: 'wrap',
+                    marginTop: '12px',
+                  }}
+                >
                   <button
                     onClick={fetchSnapshot}
                     disabled={snapshotLoading}
@@ -953,12 +1327,12 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                       fontWeight: 500,
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px'
+                      gap: '8px',
                     }}
                   >
                     {snapshotLoading ? '⏳ Loading...' : '📷 Refresh Snapshot'}
                   </button>
-                  
+
                   {cloudVideoUrl && (
                     <button
                       onClick={openInDashboard}
@@ -972,7 +1346,7 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                         fontWeight: 500,
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '8px'
+                        gap: '8px',
                       }}
                     >
                       🌐 Open in Meraki Dashboard
@@ -982,18 +1356,22 @@ const DeviceView: React.FC<DeviceViewProps> = ({
               </>
             )}
           </div>
-          
+
           {/* Stream Info */}
-          <div style={{ 
-            fontSize: '13px', 
-            color: 'var(--text-muted)',
-            textAlign: 'center'
-          }}>
+          <div
+            style={{
+              fontSize: '13px',
+              color: 'var(--text-muted)',
+              textAlign: 'center',
+            }}
+          >
             <p style={{ margin: '0 0 8px 0' }}>
-              💡 <strong>RTSP Streaming:</strong> Enable in Meraki Dashboard → Camera Settings → External RTSP
+              💡 <strong>RTSP Streaming:</strong> Enable in Meraki Dashboard →
+              Camera Settings → External RTSP
             </p>
             <p style={{ margin: 0 }}>
-              For live streaming in Home Assistant dashboards, use the camera entity
+              For live streaming in Home Assistant dashboards, use the camera
+              entity
             </p>
           </div>
         </div>
@@ -1017,51 +1395,91 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {device.basicServiceSets.filter(bss => bss.enabled).map((bss, idx) => (
-                    <tr key={`bss-${idx}`}>
-                      <td>
-                        <div style={{ fontWeight: 500 }}>{bss.ssidName || `SSID ${bss.ssidNumber}`}</div>
-                        {bss.bssid && (
-                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
-                            {bss.bssid}
+                  {device.basicServiceSets
+                    .filter((bss) => bss.enabled)
+                    .map((bss, idx) => (
+                      <tr key={`bss-${idx}`}>
+                        <td>
+                          <div style={{ fontWeight: 500 }}>
+                            {bss.ssidName || `SSID ${bss.ssidNumber}`}
                           </div>
-                        )}
-                      </td>
-                      <td>
-                        <span className="detail-badge" style={{
-                          background: bss.band?.includes('2.4') ? 'rgba(245, 158, 11, 0.15)' : 'rgba(6, 182, 212, 0.15)',
-                          color: bss.band?.includes('2.4') ? 'var(--warning)' : 'var(--primary)'
-                        }}>
-                          {bss.band || '—'}
-                        </span>
-                      </td>
-                      <td>{bss.channel || '—'}</td>
-                      <td>{bss.channelWidth || '—'}</td>
-                      <td style={{ color: 'var(--warning)' }}>{bss.power || '—'}</td>
-                      <td>
-                        <span style={{ 
-                          display: 'inline-flex', 
-                          alignItems: 'center', 
-                          gap: '6px',
-                          color: bss.broadcasting ? 'var(--success)' : 'var(--text-muted)'
-                        }}>
-                          <span style={{ 
-                            width: '8px', 
-                            height: '8px', 
-                            borderRadius: '50%', 
-                            background: bss.broadcasting ? 'var(--success)' : 'var(--text-muted)',
-                            boxShadow: bss.broadcasting ? '0 0 8px var(--success)' : 'none'
-                          }}></span>
-                          {bss.broadcasting ? 'Broadcasting' : 'Off'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                          {bss.bssid && (
+                            <div
+                              style={{
+                                fontSize: '11px',
+                                color: 'var(--text-muted)',
+                                fontFamily: 'monospace',
+                              }}
+                            >
+                              {bss.bssid}
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          <span
+                            className="detail-badge"
+                            style={{
+                              background: bss.band?.includes('2.4')
+                                ? 'rgba(245, 158, 11, 0.15)'
+                                : 'rgba(6, 182, 212, 0.15)',
+                              color: bss.band?.includes('2.4')
+                                ? 'var(--warning)'
+                                : 'var(--primary)',
+                            }}
+                          >
+                            {bss.band}
+                          </span>
+                        </td>
+                        <td>{bss.channel}</td>
+                        <td>{bss.channelWidth}</td>
+                        <td style={{ color: 'var(--warning)' }}>
+                          {bss.power}
+                        </td>
+                        <td>
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              color: bss.broadcasting
+                                ? 'var(--success)'
+                                : 'var(--text-muted)',
+                            }}
+                          >
+                            <span
+                              style={{
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                background: bss.broadcasting
+                                  ? 'var(--success)'
+                                  : 'var(--text-muted)',
+                                boxShadow: bss.broadcasting
+                                  ? '0 0 8px var(--success)'
+                                  : 'none',
+                              }}
+                            ></span>
+                            {bss.broadcasting ? 'Broadcasting' : 'Off'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
-              {device.basicServiceSets.filter(bss => !bss.enabled).length > 0 && (
-                <div style={{ marginTop: '12px', fontSize: '13px', color: 'var(--text-muted)' }}>
-                  {device.basicServiceSets.filter(bss => !bss.enabled).length} disabled SSIDs not shown
+              {device.basicServiceSets.filter((bss) => !bss.enabled).length >
+                0 && (
+                <div
+                  style={{
+                    marginTop: '12px',
+                    fontSize: '13px',
+                    color: 'var(--text-muted)',
+                  }}
+                >
+                  {
+                    device.basicServiceSets.filter((bss) => !bss.enabled)
+                      .length
+                  }{' '}
+                  disabled SSIDs not shown
                 </div>
               )}
             </div>
@@ -1069,10 +1487,10 @@ const DeviceView: React.FC<DeviceViewProps> = ({
             <div className="info-grid">
               <div className="info-item">
                 <div className="label">Connected Clients</div>
-                <div className="value primary">—</div>
+                <div className="value primary">{deviceClients.length}</div>
               </div>
               <div className="info-item">
-                <div className="label">Radio Channels</div>
+                <div className="label">Radio Bands</div>
                 <div className="value">2.4 GHz / 5 GHz</div>
               </div>
             </div>

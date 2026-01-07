@@ -1,3 +1,34 @@
+[project]
+name = "meraki-homeassistant"
+version = "0.0.0"
+description = "Meraki integration for Home Assistant"
+requires-python = ">=3.13.2"
+
+[project.optional-dependencies]
+dev = [
+    "homeassistant==2025.11.0",
+    "uv>=0.9.6",
+    "urllib3>=2.6.0",
+    "aiofiles==23.2.1",
+    "types-aiofiles==25.1.0.20251011",
+    "meraki==1.40.1",
+    "PyTurboJPEG==1.7.2",
+    "ruff>=0.8.0",
+    "pip-audit==2.7.3",
+    "bandit[toml]==1.7.9",
+    "mypy==1.11.0",
+    "pylint>=3.0.0",
+    "voluptuous==0.15.2",
+    "pyyaml==6.0.3",
+    "playwright",
+    "pytest-homeassistant-custom-component==0.13.294",
+    "pytest==8.4.2",
+    "pytest-cov==7.0.0",
+    "pytest-asyncio==1.2.0",
+    "codecov",
+    "pycares==4.11.0",
+]
+
 [tool.pytest.ini_options]
 pythonpath = [
   ".",
@@ -7,6 +38,7 @@ asyncio_mode = "auto"
 
 [tool.mypy]
 follow_imports = "silent"
+ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "aiofiles"
@@ -27,9 +59,27 @@ select = [
     "C4", # flake8-comprehensions
     "UP", # pyupgrade
 ]
-ignore = ["D100", "D104", "D107", "D211", "D212"]
+ignore = ["D100", "D104", "D107", "D211", "D212", "UP047"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "F811",  # Redefinition of unused name (fixtures)
+]
+
+[tool.pylint.messages_control]
+disable = [
+    "redefined-outer-name",  # W0621 - Expected for pytest fixtures
+    "protected-access",      # W0212 - Tests often need to access protected members
+]
+
+[tool.pylint.main]
+ignore-patterns = ["test_.*\\.py"]
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
 [tool.codespell]
 skip = "*meraki-panel.js,*/dist/*"
+
+[tool.bandit]
+exclude_dirs = ["tests", "node_modules", "custom_components/meraki_ha/core/utils", ".venv", "venv"]
+skips = ["B101", "B104", "B105", "B106", "B107", "B110", "B112", "B311", "B404", "B603", "B605", "B607"]
