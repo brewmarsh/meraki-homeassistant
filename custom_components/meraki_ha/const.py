@@ -163,6 +163,9 @@ DEVICE_NAME_FORMAT_SUFFIX: Final = "suffix"
 
 WEBHOOK_ID_FORMAT: Final = "meraki_ha_{entry_id}"
 
+DEVICE_NAME_FORMAT_PREFIX: Final = "prefix"
+DEVICE_NAME_FORMAT_SUFFIX: Final = "suffix"
+
 MERAKI_CONTENT_FILTERING_CATEGORIES: Final[list[dict[str, str]]] = [
     {
         "id": "meraki:contentFiltering/category/1",

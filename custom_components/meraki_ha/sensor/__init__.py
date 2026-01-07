@@ -8,7 +8,7 @@ fetch and manage data from the Meraki API.
 
 import inspect
 import logging
-from typing import Optional  # Added Optional
+from typing import Any  # noqa: F401
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -22,18 +22,18 @@ from ..core.api.client import MerakiAPIClient
 from ..core.utils.naming_utils import format_device_name
 from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..sensor_registry import (
-    COMMON_DEVICE_SENSORS,
+    COMMON_SENSORS_COORD_DEV_CONF,
     get_sensors_for_device_type,
 )
 from .device.appliance_port import MerakiAppliancePortSensor
-from .device.rtsp_url import MerakiRtspUrlSensor as MerakiCameraRTSPUrlSensor
+from .device.rtsp_url import MerakiRtspUrlSensor
 from .network.network_clients import MerakiNetworkClientsSensor
 
 __all__ = [
     "async_setup_entry",
     "MerakiNetworkClientsSensor",
     "MerakiAppliancePortSensor",
-    "MerakiCameraRTSPUrlSensor",
+    "MerakiRtspUrlSensor",
 ]
 
 
@@ -55,14 +55,15 @@ async def async_setup_entry(
     # Get the main data coordinator for physical devices
     device_coordinator: MerakiDataCoordinator = entry_data.get("coordinator")
     # Network coordinator is no longer separate; use the main coordinator
-    network_coordinator: MerakiDataCoordinator = entry_data.get("coordinator")
 
     # Retrieve the MerakiAPIClient instance
-    meraki_api_client: Optional[MerakiAPIClient] = entry_data.get(DATA_CLIENT)
+    meraki_api_client: MerakiAPIClient | None = entry_data.get(DATA_CLIENT)
+    coordinator: MerakiDataCoordinator = entry_data.get("coordinator")
 
     if not meraki_api_client:
         _LOGGER.error(
-            "Meraki API client not found in entry_data. Cannot set up network client sensors."
+            "Meraki API client not found in entry_data. Cannot set up "
+            "network client sensors."
         )
 
     # --- Physical Device Sensor Setup ---
@@ -72,7 +73,8 @@ async def async_setup_entry(
             serial = device_info.get("serial")
             if not serial:
                 _LOGGER.warning(
-                    f"Skipping device with missing serial: {device_info.get('name', 'Unnamed Device with no Serial')}"
+                    f"Skipping device with missing serial: "
+                    f"{device_info.get('name', 'Unnamed Device with no Serial')}"
                 )
                 continue
 
@@ -85,7 +87,7 @@ async def async_setup_entry(
             formatted_name = format_device_name(device_info, config_entry.options)
             device_info_with_formatted_name = device_info.copy()
             device_info_with_formatted_name["name"] = formatted_name
-            for sensor_class in COMMON_DEVICE_SENSORS:
+            for sensor_class in COMMON_SENSORS_COORD_DEV_CONF:
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
                     try:
@@ -110,7 +112,8 @@ async def async_setup_entry(
 
             if product_type:
                 sensors_for_type = get_sensors_for_device_type(product_type)
-                # if not sensors_for_type: # Removed: Redundant log, handled by empty list iteration
+                # if not sensors_for_type: # Removed: Redundant log,
+                # handled by empty list iteration
                 #   pass
                 for sensor_class in sensors_for_type:
                     unique_id = f"{serial}_{sensor_class.__name__}"
@@ -135,7 +138,8 @@ async def async_setup_entry(
                             added_entities.add(unique_id)
                         except Exception as e:
                             _LOGGER.error(
-                                "Meraki HA: Error adding sensor %s for %s (productType: %s): %s",
+                                "Meraki HA: Error adding sensor %s for %s "
+                                "(productType: %s): %s",
                                 sensor_class.__name__,
                                 device_info.get("name", serial),
                                 product_type,
@@ -143,22 +147,25 @@ async def async_setup_entry(
                             )
 
                 # Camera-specific sensors are now handled by the SENSOR_REGISTRY.
-                # The generic loop for `sensors_for_type` will add them if product_type is "camera".
+                # The generic loop for `sensors_for_type` will add them if
+                # product_type is "camera".
             else:
                 _LOGGER.warning(  # Changed to warning as this might be unexpected
-                    "Meraki HA: No productType found for device %s (Serial: %s), skipping productType-specific sensors.",
+                    "Meraki HA: No productType found for device %s (Serial: %s), "
+                    "skipping productType-specific sensors.",
                     device_info.get("name"),  # Use guaranteed name
                     serial,
                 )
 
     else:
         _LOGGER.warning(
-            "Main coordinator not available or has no data; skipping physical device sensors."
+            "Main coordinator not available or has no data; skipping physical "
+            "device sensors."
         )
 
     # --- Network-specific Sensor Setup ---
-    if network_coordinator and network_coordinator.data and meraki_api_client:
-        networks = network_coordinator.data.get("networks", [])
+    if coordinator and coordinator.data and meraki_api_client:
+        networks = coordinator.data.get("networks", [])
         for network_data in networks:
             network_id = network_data.get("id")
             network_name = network_data.get("name", f"Unnamed Network {network_id}")
@@ -176,13 +183,14 @@ async def async_setup_entry(
                 try:
                     entities.append(
                         MerakiNetworkClientsSensor(
-                            network_coordinator, network_id, network_name
+                            coordinator, network_id, network_name
                         )
                     )
                     added_entities.add(unique_id)
                 except Exception as e:
                     _LOGGER.error(
-                        "Meraki HA: Error adding network clients sensor for %s (ID: %s): %s",
+                        "Meraki HA: Error adding network clients sensor for %s "
+                        "(ID: %s): %s",
                         network_name,
                         network_id,
                         e,
@@ -190,11 +198,13 @@ async def async_setup_entry(
 
     elif not meraki_api_client:
         _LOGGER.warning(
-            "Meraki API client not available; skipping MerakiNetworkClientsSensor setup."
+            "Meraki API client not available; skipping "
+            "MerakiNetworkClientsSensor setup."
         )
-    elif not network_coordinator or not network_coordinator.data:
+    elif not coordinator or not coordinator.data:
         _LOGGER.warning(
-            "Main coordinator not available or has no data; skipping all network-specific sensors."
+            "Main coordinator not available or has no data; skipping all "
+            "network-specific sensors."
         )
 
     if device_coordinator and device_coordinator.data:

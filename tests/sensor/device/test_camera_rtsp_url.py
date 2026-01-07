@@ -4,9 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.meraki_ha.sensor.device.camera_settings import (
-    MerakiCameraRTSPUrlSensor,
-)
+from custom_components.meraki_ha.sensor.device.rtsp_url import MerakiRtspUrlSensor
 
 
 @pytest.fixture
@@ -44,12 +42,12 @@ def test_camera_rtsp_url_sensor(mock_device_coordinator):
     device1 = mock_device_coordinator.data['devices'][0]
     device2 = mock_device_coordinator.data['devices'][1]
 
-    sensor1 = MerakiCameraRTSPUrlSensor(mock_device_coordinator, device1)
+    sensor1 = MerakiRtspUrlSensor(mock_device_coordinator, device1)
     assert sensor1.unique_id == 'cam1_rtsp_url'
     assert sensor1.name == 'Camera RTSP URL'
     assert sensor1.state == 'rtsp://...'
 
-    sensor2 = MerakiCameraRTSPUrlSensor(mock_device_coordinator, device2)
+    sensor2 = MerakiRtspUrlSensor(mock_device_coordinator, device2)
     assert sensor2.unique_id == 'cam2_rtsp_url'
     assert sensor2.name == 'Camera 2 RTSP URL'
     assert sensor2.state == 'disabled'

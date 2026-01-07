@@ -8,11 +8,10 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
 )
 from homeassistant.core import callback
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..helpers.device_info_helpers import resolve_device_info
-from ..helpers.entity_helpers import get_device_from_coordinator
 from ..meraki_data_coordinator import MerakiDataCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -45,7 +44,7 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        device = get_device_from_coordinator(self.coordinator, self._device["serial"])
+        device = self.coordinator.get_device(self._device["serial"])
         if device:
             self._device = device
             for port in self._device.get("ports_statuses", []):
