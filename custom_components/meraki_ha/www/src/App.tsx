@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Dashboard from './components/Dashboard';
 import DeviceView from './components/DeviceView';
 import ClientsView from './components/ClientsView';
+import { useHaTheme } from './hooks/useHaTheme';
 import type { HomeAssistant, PanelInfo, RouteInfo } from './types/hass';
 
 // Data types
@@ -156,6 +157,9 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
     deviceId?: string;
   }>({ view: 'dashboard' });
 
+  // Apply HA theme variables to the panel
+  const { style: themeStyle } = useHaTheme(hass);
+
   // Use a ref for hass to avoid re-renders when hass object changes
   // The hass object changes on every HA state update, which would cause constant refetches
   const hassRef = useRef(hass);
@@ -219,7 +223,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
   // Show loading state while waiting for hass
   if (!hass) {
     return (
-      <div className="meraki-panel">
+      <div className="meraki-panel" style={themeStyle}>
         <LoadingSpinner />
         <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '16px' }}>
           Waiting for Home Assistant connection...
@@ -231,7 +235,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
   // Show loading state while fetching data
   if (loading) {
     return (
-      <div className="meraki-panel">
+      <div className="meraki-panel" style={themeStyle}>
         <Header />
         <LoadingSpinner />
       </div>
@@ -241,7 +245,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
   // Show error state
   if (error) {
     return (
-      <div className="meraki-panel">
+      <div className="meraki-panel" style={themeStyle}>
         <Header />
         <ErrorDisplay message={error} onRetry={fetchData} />
       </div>
@@ -251,7 +255,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
   // Show empty state
   if (!data) {
     return (
-      <div className="meraki-panel">
+      <div className="meraki-panel" style={themeStyle}>
         <Header />
         <div className="empty-state">
           <div className="icon">📡</div>
@@ -308,7 +312,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
   };
 
   return (
-    <div className="meraki-panel" style={{ maxWidth: '100%', margin: '0 auto' }}>
+    <div className="meraki-panel" style={{ ...themeStyle, maxWidth: '100%', margin: '0 auto' }}>
       <Header version={data.version} />
       {renderView()}
     </div>

@@ -68,17 +68,24 @@ async def test_discover_entities_delegates_to_handler(
 ):
     """Test that discover_entities delegates to the correct handlers."""
     # We must mock the handlers directly to assert their instantiation arguments
-    MockMRHandler = MagicMock()
-    MockMRHandler.__name__ = "MRHandler"
-
+    # The service uses the constructor directly, not create()
     mock_mr_handler_instance = MagicMock()
     mock_mr_handler_instance.discover_entities = AsyncMock(return_value=["mr_entity"])
-    MockMRHandler.return_value = mock_mr_handler_instance
+
+    MockMRHandler = MagicMock(return_value=mock_mr_handler_instance)
+    MockMRHandler.__name__ = "MRHandler"
+
+    # Also mock MV handler since we have an MV device in the fixture
+    mock_mv_handler_instance = MagicMock()
+    mock_mv_handler_instance.discover_entities = AsyncMock(return_value=["mv_entity"])
+
+    MockMVHandler = MagicMock(return_value=mock_mv_handler_instance)
+    MockMVHandler.__name__ = "MVHandler"
 
     with (
         patch.dict(
             "custom_components.meraki_ha.discovery.service.HANDLER_MAPPING",
-            {"MR": MockMRHandler},
+            {"MR": MockMRHandler, "MV": MockMVHandler},
         ),
         patch(
             "custom_components.meraki_ha.discovery.handlers.network.NetworkHandler"
@@ -103,8 +110,9 @@ async def test_discover_entities_delegates_to_handler(
 
         # Assert
         assert "mr_entity" in entities
+        assert "mv_entity" in entities
 
-        # Assert correct services are passed to each handler
+        # Assert correct services are passed to each handler via constructor
         MockMRHandler.assert_called_once_with(
             mock_coordinator_with_devices,
             mock_coordinator_with_devices.data["devices"][0],

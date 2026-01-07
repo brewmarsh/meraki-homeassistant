@@ -20,11 +20,13 @@ from .const import (
     CONF_DASHBOARD_STATUS_FILTER,
     CONF_DASHBOARD_VIEW_MODE,
     CONF_ENABLED_NETWORKS,
+    CONF_SCAN_INTERVAL,
     DATA_CLIENT,
     DEFAULT_CAMERA_LINK_INTEGRATION,
     DEFAULT_DASHBOARD_DEVICE_TYPE_FILTER,
     DEFAULT_DASHBOARD_STATUS_FILTER,
     DEFAULT_DASHBOARD_VIEW_MODE,
+    DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
 from .core.errors import MerakiError
@@ -244,6 +246,14 @@ async def handle_get_config(
         ),
     }
 
+    # Get refresh timing info
+    scan_interval = config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    last_updated = (
+        coordinator.last_update_success_time.isoformat()
+        if coordinator.last_update_success_time
+        else None
+    )
+
     connection.send_result(
         msg["id"],
         {
@@ -251,6 +261,8 @@ async def handle_get_config(
             "enabled_networks": enabled_networks,
             "config_entry_id": config_entry_id,
             "version": version,
+            "scan_interval": scan_interval,
+            "last_updated": last_updated,
             **dashboard_settings,
         },
     )

@@ -17,6 +17,7 @@ from .const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
+    CONF_TEMPERATURE_UNIT,
     DASHBOARD_VIEW_MODE_NETWORK,
     DASHBOARD_VIEW_MODE_TYPE,
     DEFAULT_CAMERA_LINK_INTEGRATION,
@@ -27,6 +28,9 @@ from .const import (
     DEFAULT_ENABLE_VLAN_MANAGEMENT,
     DEFAULT_ENABLED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_TEMPERATURE_UNIT,
+    TEMPERATURE_UNIT_CELSIUS,
+    TEMPERATURE_UNIT_FAHRENHEIT,
 )
 
 CONFIG_SCHEMA = vol.Schema(
@@ -140,6 +144,22 @@ OPTIONS_SCHEMA = vol.Schema(
                 ],
                 mode=selector.SelectSelectorMode.DROPDOWN,
                 custom_value=True,  # Allow typing custom integration names
+            )
+        ),
+        # Sensor display settings
+        vol.Required(
+            CONF_TEMPERATURE_UNIT, default=DEFAULT_TEMPERATURE_UNIT
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[
+                    selector.SelectOptionDict(
+                        value=TEMPERATURE_UNIT_CELSIUS, label="Celsius (°C)"
+                    ),
+                    selector.SelectOptionDict(
+                        value=TEMPERATURE_UNIT_FAHRENHEIT, label="Fahrenheit (°F)"
+                    ),
+                ],
+                mode=selector.SelectSelectorMode.DROPDOWN,
             )
         ),
     }

@@ -5,7 +5,11 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from ...const import CONF_ENABLE_PORT_SENSORS
+from ...button.reboot import MerakiRebootButton
+from ...const import CONF_ENABLE_DEVICE_STATUS, CONF_ENABLE_PORT_SENSORS
+from ...sensor.device.connected_clients import MerakiDeviceConnectedClientsSensor
+from ...sensor.device.device_status import MerakiDeviceStatusSensor
+from ...sensor.device.poe_usage import MerakiPoeUsageSensor
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
@@ -62,6 +66,29 @@ class MSHandler(BaseDeviceHandler):
         from ...binary_sensor.switch_port import SwitchPortSensor
 
         entities: list[Entity] = []
+
+        # Reboot button
+        entities.append(
+            MerakiRebootButton(self._control_service, self.device, self._config_entry)
+        )
+
+        # Device status sensor
+        if self._config_entry.options.get(CONF_ENABLE_DEVICE_STATUS, True):
+            entities.append(
+                MerakiDeviceStatusSensor(
+                    self._coordinator, self.device, self._config_entry
+                )
+            )
+
+        # Connected clients sensor
+        entities.append(
+            MerakiDeviceConnectedClientsSensor(
+                self._coordinator, self.device, self._config_entry
+            )
+        )
+
+        # PoE usage sensor (switches support PoE)
+        entities.append(MerakiPoeUsageSensor(self._coordinator, self.device))
 
         # Check if port sensors are enabled
         if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):

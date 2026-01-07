@@ -56,6 +56,17 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
                     return dev_data
         return None
 
+    def _get_readings(self) -> list[dict[str, Any]] | None:
+        """Get the readings list from the current device data."""
+        device = self._get_current_device_data()
+        if not device:
+            return None
+        # Use readings_raw (list format) for sensor entities
+        readings = device.get("readings_raw") or device.get("readings")
+        if isinstance(readings, list):
+            return readings
+        return None
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -74,9 +85,9 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         """Return true if the binary sensor is on."""
-        # Use readings_raw (list format) for sensor entities
-        readings = self._device.get("readings_raw") or self._device.get("readings")
-        if not readings or not isinstance(readings, list):
+        # Always get fresh data from coordinator
+        readings = self._get_readings()
+        if not readings:
             return None
 
         for reading in readings:

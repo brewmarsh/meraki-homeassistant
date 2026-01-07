@@ -10,8 +10,14 @@ from homeassistant.helpers import entity_registry as er
 
 from ...button.reboot import MerakiRebootButton
 from ...const import CONF_ENABLE_DEVICE_STATUS, CONF_ENABLE_PORT_SENSORS, DOMAIN
+from ...sensor.device.appliance_port import MerakiAppliancePortSensor
 from ...sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
+from ...sensor.device.connected_clients import MerakiDeviceConnectedClientsSensor
+from ...sensor.device.data_usage import MerakiDataUsageSensor
 from ...sensor.device.device_status import MerakiDeviceStatusSensor
+from ...sensor.device.meraki_firmware_status import MerakiFirmwareStatusSensor
+from ...sensor.device.meraki_wan1_connectivity import MerakiWAN1ConnectivitySensor
+from ...sensor.device.meraki_wan2_connectivity import MerakiWAN2ConnectivitySensor
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
@@ -80,6 +86,37 @@ class MXHandler(BaseDeviceHandler):
                 )
             )
 
+        # Connected clients sensor
+        entities.append(
+            MerakiDeviceConnectedClientsSensor(
+                self._coordinator, self.device, self._config_entry
+            )
+        )
+
+        # WAN connectivity sensors
+        entities.append(
+            MerakiWAN1ConnectivitySensor(
+                self._coordinator, self.device, self._config_entry
+            )
+        )
+        entities.append(
+            MerakiWAN2ConnectivitySensor(
+                self._coordinator, self.device, self._config_entry
+            )
+        )
+
+        # Firmware status sensor
+        entities.append(
+            MerakiFirmwareStatusSensor(
+                self._coordinator, self.device, self._config_entry
+            )
+        )
+
+        # Data usage sensor
+        entities.append(
+            MerakiDataUsageSensor(self._coordinator, self.device, self._config_entry)
+        )
+
         # Check if port/uplink sensors are enabled
         if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
             # Collect data from API
@@ -130,6 +167,16 @@ class MXHandler(BaseDeviceHandler):
                         device_data=self.device,
                         config_entry=self._config_entry,
                         uplink_data=uplink_data,
+                    )
+                )
+
+            # Add appliance port sensors (LAN ports)
+            for port in self.device.get("ports", []):
+                entities.append(
+                    MerakiAppliancePortSensor(
+                        coordinator=self._coordinator,
+                        device=self.device,
+                        port=port,
                     )
                 )
         else:

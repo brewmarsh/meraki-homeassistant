@@ -92,7 +92,12 @@ class MerakiPoeUsageSensor(
     @property
     def native_value(self) -> float | None:
         """Return the state of the sensor."""
-        ports_statuses = self._device.get("ports_statuses")
+        # Always get fresh data from coordinator
+        device = self._get_current_device_data()
+        if not device:
+            return None
+
+        ports_statuses = device.get("ports_statuses")
         if not isinstance(ports_statuses, list):
             return None
 
@@ -109,7 +114,12 @@ class MerakiPoeUsageSensor(
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        ports_statuses = self._device.get("ports_statuses")
+        # Always get fresh data from coordinator
+        device = self._get_current_device_data()
+        if not device:
+            return {}
+
+        ports_statuses = device.get("ports_statuses")
         if not isinstance(ports_statuses, list):
             return {}
 

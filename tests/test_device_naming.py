@@ -52,7 +52,8 @@ def test_org_device_naming(mock_coordinator: MagicMock) -> None:
     sensor = MerakiOrganizationSSIDClientsSensor(mock_coordinator, org_id, org_name)
     device_info = sensor.device_info
     assert device_info is not None
-    assert device_info["name"] == "[Organization] Test Organization"
+    # Organization devices use [Org] prefix
+    assert device_info["name"] == "[Org] Test Organization"
 
 
 def test_network_device_naming(mock_coordinator: MagicMock) -> None:
