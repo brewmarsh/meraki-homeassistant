@@ -43,22 +43,39 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
             manufacturer="Cisco Meraki",
         )
 
+    def _get_current_device(self) -> dict[str, Any] | None:
+        """Get the current device data from the coordinator."""
+        if not self.coordinator.data:
+            return None
+        for device in self.coordinator.data.get("devices", []):
+            if device.get("serial") == self._device.get("serial"):
+                return device
+        return None
+
+    def _get_readings(self) -> list[dict[str, Any]] | None:
+        """Get the readings list from the current device data."""
+        device = self._get_current_device()
+        if not device:
+            return None
+        # Use readings_raw (list format) for sensor entities
+        readings = device.get("readings_raw") or device.get("readings")
+        if isinstance(readings, list):
+            return readings
+        return None
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        for device in self.coordinator.data.get("devices", []):
-            if device["serial"] == self._device["serial"]:
-                self._device = device
-                self.async_write_ha_state()
-                return
+        current = self._get_current_device()
+        if current:
+            self._device = current
+        self.async_write_ha_state()
 
     @property
     def native_value(self) -> str | float | bool | None:
         """Return the state of the sensor."""
-        # Use readings_raw (list format) for sensor entities
-        # The flat "readings" dict is used by the frontend
-        readings = self._device.get("readings_raw") or self._device.get("readings")
-        if not readings or not isinstance(readings, list):
+        readings = self._get_readings()
+        if not readings:
             return None
 
         for reading in readings:
@@ -90,11 +107,12 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return if the sensor is available."""
-        # The sensor is available if there is a reading for its metric.
-        # This prevents creating sensors for metrics that a device doesn't support.
-        # Use readings_raw (list format) for sensor entities
-        readings = self._device.get("readings_raw") or self._device.get("readings")
-        if not readings or not isinstance(readings, list):
+        # Sensor is available if coordinator has data and there's a reading
+        if not self.coordinator.last_update_success:
+            return False
+
+        readings = self._get_readings()
+        if not readings:
             return False
 
         for reading in readings:
