@@ -47,6 +47,8 @@ interface DashboardProps {
     networks?: Network[];
     ssids?: SSID[];
     clients?: Client[];
+    scan_interval?: number;
+    last_updated?: string;
   };
   hass?: {
     callService?: (domain: string, service: string, data: object) => Promise<void>;
@@ -118,7 +120,55 @@ const Dashboard: React.FC<DashboardProps> = ({
     );
   }
 
-  const { devices = [], networks = [], ssids = [], clients = [] } = data;
+  const { devices = [], networks = [], ssids = [], clients = [], scan_interval = 60, last_updated } = data;
+
+  // Countdown state for next refresh
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Calculate and update countdown
+  useEffect(() => {
+    if (!last_updated || !scan_interval) {
+      setCountdown(null);
+      return;
+    }
+
+    const updateCountdown = () => {
+      const lastUpdate = new Date(last_updated).getTime();
+      const nextUpdate = lastUpdate + scan_interval * 1000;
+      const now = Date.now();
+      const remaining = Math.max(0, Math.floor((nextUpdate - now) / 1000));
+      setCountdown(remaining);
+    };
+
+    updateCountdown();
+    countdownRef.current = setInterval(updateCountdown, 1000);
+
+    return () => {
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+      }
+    };
+  }, [last_updated, scan_interval]);
+
+  // Format time ago
+  const formatTimeAgo = (isoString: string): string => {
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    
+    if (diffSec < 60) return `${diffSec}s ago`;
+    if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Format countdown
+  const formatCountdown = (seconds: number): string => {
+    if (seconds <= 0) return 'refreshing...';
+    if (seconds < 60) return `${seconds}s`;
+    return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+  };
 
   // Get device type
   const getDeviceType = (device: Device): DeviceTypeFilter => {
@@ -303,6 +353,31 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div>
+      {/* Refresh Indicator */}
+      {last_updated && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          gap: '16px',
+          marginBottom: '12px',
+          fontSize: '12px',
+          color: 'var(--text-muted)',
+          opacity: 0.8,
+        }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ fontSize: '10px' }}>🔄</span>
+            Last: {formatTimeAgo(last_updated)}
+          </span>
+          {countdown !== null && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ fontSize: '10px' }}>⏱️</span>
+              Next: {formatCountdown(countdown)}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="stats-grid">
         <StatusCard title="Total Devices" value={devices.length} />
