@@ -80,8 +80,11 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
 
     def _update_state(self) -> None:
         """Update the sensor's state based on the latest device data."""
-        video_settings = self._device_data.get("video_settings", {})
-        lan_ip = self._device_data.get("lanIp")
+        # Always get fresh data from coordinator
+        device_data = self._get_current_device_data() or self._device_data
+
+        video_settings = device_data.get("video_settings", {})
+        lan_ip = device_data.get("lanIp")
         if lan_ip:
             self._attr_native_value = construct_rtsp_url(lan_ip)
             return
