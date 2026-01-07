@@ -24,26 +24,10 @@ const StatusCard: React.FC<StatusCardProps> = ({
     <div
       className={`stat-card ${isClickable ? 'clickable' : ''}`}
       onClick={onClick}
-      style={{
-        cursor: isClickable ? 'pointer' : 'default',
-        transition: 'transform 0.2s, box-shadow 0.2s',
-      }}
-      onMouseEnter={(e) => {
-        if (isClickable) {
-          e.currentTarget.style.transform = 'translateY(-2px)';
-          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (isClickable) {
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = '';
-        }
-      }}
     >
       <div className="label">{title}</div>
       <div className={`value ${valueClass}`}>
-        {icon && <span style={{ marginRight: '8px' }}>{icon}</span>}
+        {icon && <span className="stat-icon">{icon}</span>}
         {value}
       </div>
     </div>

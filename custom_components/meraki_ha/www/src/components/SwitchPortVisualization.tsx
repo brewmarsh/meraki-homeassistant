@@ -43,18 +43,93 @@ interface PortStatus {
   };
 }
 
+interface Client {
+  id: string;
+  mac: string;
+  description?: string;
+  ip?: string;
+  manufacturer?: string;
+  os?: string;
+  status?: string;
+  usage?: { sent: number; recv: number };
+  vlan?: number;
+  switchport?: string;
+}
+
 interface SwitchPortVisualizationProps {
   deviceName: string;
   model: string;
   ports: PortStatus[];
+  clients?: Client[];
+  onClientClick?: (clientId: string) => void;
 }
 
 const SwitchPortVisualization: React.FC<SwitchPortVisualizationProps> = ({
   deviceName: _deviceName,
   model,
   ports,
+  clients = [],
+  onClientClick,
 }) => {
   const [selectedPort, setSelectedPort] = useState<PortStatus | null>(null);
+
+  // Get clients connected to a specific port
+  // Handles various switchport formats:
+  // - Simple: "4", "24", "Port 4"
+  // - Stacked: "1/0/1", "2/0/24", "1/1/1"
+  // - Mixed: "Port 1/0/1"
+  // - Cisco style: "TenGigabitEthernet1/1/1", "GigabitEthernet1/0/24", "Gi1/0/1"
+  const normalizePortId = (port: string): string => {
+    let cleaned = port.trim();
+
+    // Remove common prefixes like "Port ", "port", etc.
+    cleaned = cleaned.replace(/^port\s*/i, '');
+
+    // Remove Cisco-style speed/interface prefixes
+    // Matches: TenGigabitEthernet, GigabitEthernet, FastEthernet, Ethernet
+    // Also short forms: Te, Gi, Fa, Eth, etc.
+    cleaned = cleaned.replace(
+      /^(TenGigabit|Gigabit|Fast|Hundred)?Ethernet/i,
+      ''
+    );
+    // Handle abbreviated forms: Te1/1/1, Gi1/0/24, Fa0/1
+    cleaned = cleaned.replace(/^(Te|Gi|Fa|Eth?)\s*/i, '');
+
+    // Return the cleaned value (preserves formats like "1/0/1")
+    return cleaned.toLowerCase();
+  };
+
+  const getPortClients = (portId: string): Client[] => {
+    const normalizedPortId = normalizePortId(portId);
+
+    return clients.filter((client) => {
+      if (!client.switchport) return false;
+      const normalizedClientPort = normalizePortId(client.switchport);
+
+      // Direct match (handles "1/0/1" == "1/0/1")
+      if (normalizedClientPort === normalizedPortId) return true;
+
+      // For stacked switches, also try matching just the last segment
+      // e.g., portId "24" should match client.switchport "1/0/24"
+      const portIdParts = normalizedPortId.split('/');
+      const clientPortParts = normalizedClientPort.split('/');
+
+      // If portId is simple (no slashes) and client has stacked format,
+      // match the last segment
+      if (portIdParts.length === 1 && clientPortParts.length > 1) {
+        return (
+          clientPortParts[clientPortParts.length - 1] === normalizedPortId
+        );
+      }
+
+      // If both have same number of segments, compare directly
+      if (portIdParts.length === clientPortParts.length) {
+        return normalizedClientPort === normalizedPortId;
+      }
+
+      return false;
+    });
+  };
 
   const formatBytes = (kb: number): string => {
     if (kb >= 1000000) return `${(kb / 1000000).toFixed(1)} GB`;
@@ -126,84 +201,109 @@ const SwitchPortVisualization: React.FC<SwitchPortVisualizationProps> = ({
 
       {selectedPort && (
         <div className="port-details">
-          <h4>
+          <h4 className="port-details-header">
             <span
-              style={{
-                color: isConnected(selectedPort)
-                  ? 'var(--success)'
-                  : 'var(--text-muted)',
-              }}
+              className={`port-status-icon ${
+                isConnected(selectedPort) ? 'connected' : 'disconnected'
+              }`}
             >
               🔌
             </span>
             Port {selectedPort.portId} - {selectedPort.status || 'Unknown'}
             {selectedPort.isUplink && (
-              <span
-                style={{
-                  marginLeft: '8px',
-                  fontSize: '12px',
-                  color: 'var(--primary)',
-                }}
-              >
-                ↑ Uplink
-              </span>
+              <span className="port-uplink-badge">↑ Uplink</span>
             )}
           </h4>
 
           {/* Errors and Warnings */}
           {(selectedPort.errors?.length || selectedPort.warnings?.length) && (
-            <div style={{ marginBottom: '12px' }}>
+            <div className="port-alerts">
               {selectedPort.errors?.map((err, i) => (
-                <div
-                  key={`err-${i}`}
-                  style={{
-                    color: 'var(--error)',
-                    fontSize: '13px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                  }}
-                >
+                <div key={`err-${i}`} className="port-alert error">
                   <span>🚨</span> {err}
                 </div>
               ))}
               {selectedPort.warnings?.map((warn, i) => (
-                <div
-                  key={`warn-${i}`}
-                  style={{
-                    color: 'var(--warning)',
-                    fontSize: '13px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                  }}
-                >
+                <div key={`warn-${i}`} className="port-alert warning">
                   <span>⚠️</span> {warn}
                 </div>
               ))}
             </div>
           )}
 
-          {/* Client Info - show for connected ports with any client data */}
+          {/* Connected Clients for this port */}
           {isConnected(selectedPort) &&
-            (selectedPort.clientName ||
-              selectedPort.clientMac ||
-              (selectedPort.clientCount && selectedPort.clientCount > 0)) && (
-              <div className="client-info">
-                <div className="client-avatar">💻</div>
-                <div className="client-details">
-                  <div className="name">
-                    {selectedPort.clientName ||
-                      (selectedPort.clientCount && selectedPort.clientCount > 1
-                        ? `${selectedPort.clientCount} clients`
-                        : 'Connected Device')}
+            (() => {
+              const portClients = getPortClients(selectedPort.portId);
+              if (portClients.length === 0) {
+                // Fallback to legacy port-level client data if no clients found
+                if (selectedPort.clientName || selectedPort.clientMac) {
+                  return (
+                    <div className="client-info">
+                      <div className="client-avatar">💻</div>
+                      <div className="client-details">
+                        <div className="name">
+                          {selectedPort.clientName || 'Connected Device'}
+                        </div>
+                        {selectedPort.clientMac && (
+                          <div className="mac">{selectedPort.clientMac}</div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }
+              return (
+                <div className="port-clients">
+                  <h5 className="port-clients-header">
+                    👥 Connected Clients ({portClients.length})
+                  </h5>
+                  <div className="port-clients-list">
+                    {portClients.map((client) => (
+                      <div
+                        key={client.id || client.mac}
+                        className={`port-client-item ${
+                          onClientClick ? 'clickable' : ''
+                        }`}
+                        onClick={() => onClientClick?.(client.id)}
+                      >
+                        <div className="port-client-icon">
+                          {client.os?.toLowerCase().includes('ios') ||
+                          client.manufacturer?.toLowerCase().includes('apple')
+                            ? '📱'
+                            : client.os?.toLowerCase().includes('windows')
+                            ? '💻'
+                            : '🔌'}
+                        </div>
+                        <div className="port-client-info">
+                          <div className="port-client-name">
+                            {client.description || client.mac}
+                          </div>
+                          <div className="port-client-meta">
+                            {client.ip && (
+                              <span className="port-client-ip">
+                                {client.ip}
+                              </span>
+                            )}
+                            {client.manufacturer && (
+                              <span className="port-client-manufacturer">
+                                {client.manufacturer}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {client.vlan != null && (
+                          <div className="port-client-vlan">
+                            VLAN {client.vlan}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  {selectedPort.clientMac && (
-                    <div className="mac">{selectedPort.clientMac}</div>
-                  )}
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
           {/* Port Stats - only show fields with data */}
           <div className="port-stats">
@@ -251,7 +351,7 @@ const SwitchPortVisualization: React.FC<SwitchPortVisualizationProps> = ({
             {hasPoe(selectedPort) && (
               <div className="port-stat">
                 <div className="label">PoE Energy</div>
-                <div className="value" style={{ color: 'var(--warning)' }}>
+                <div className="value value-poe">
                   {selectedPort.powerUsageInWh != null
                     ? `${selectedPort.powerUsageInWh.toFixed(1)} Wh`
                     : 'Active'}
@@ -262,17 +362,7 @@ const SwitchPortVisualization: React.FC<SwitchPortVisualizationProps> = ({
 
           {/* Message for disconnected ports */}
           {!isConnected(selectedPort) && (
-            <div
-              style={{
-                padding: '16px',
-                background: 'var(--bg-primary)',
-                borderRadius: 'var(--radius-sm)',
-                textAlign: 'center',
-                color: 'var(--text-muted)',
-                fontSize: '14px',
-                marginTop: '8px',
-              }}
-            >
+            <div className="port-empty-state">
               {selectedPort.enabled === false
                 ? '🔒 Port is disabled'
                 : '📴 No device connected to this port'}
@@ -281,104 +371,48 @@ const SwitchPortVisualization: React.FC<SwitchPortVisualizationProps> = ({
 
           {/* LLDP/CDP Neighbor Info */}
           {(selectedPort.lldp?.systemName || selectedPort.cdp?.deviceId) && (
-            <div
-              style={{
-                marginTop: '16px',
-                padding: '12px',
-                background: 'var(--bg-primary)',
-                borderRadius: 'var(--radius-sm)',
-              }}
-            >
-              <h5
-                style={{
-                  margin: '0 0 8px 0',
-                  fontSize: '13px',
-                  color: 'var(--text-muted)',
-                }}
-              >
+            <div className="neighbor-discovery">
+              <h5 className="neighbor-discovery-header">
                 🔗 Neighbor Discovery
               </h5>
               {selectedPort.lldp?.systemName && (
-                <div style={{ marginBottom: '8px' }}>
-                  <div
-                    style={{
-                      fontSize: '11px',
-                      color: 'var(--text-muted)',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    LLDP
-                  </div>
-                  <div style={{ fontSize: '14px', fontWeight: 500 }}>
+                <div className="neighbor-protocol">
+                  <div className="neighbor-protocol-label">LLDP</div>
+                  <div className="neighbor-protocol-name">
                     {selectedPort.lldp.systemName}
                   </div>
                   {selectedPort.lldp.portId && (
-                    <div
-                      style={{
-                        fontSize: '12px',
-                        color: 'var(--text-secondary)',
-                      }}
-                    >
+                    <div className="neighbor-protocol-detail">
                       Port: {selectedPort.lldp.portId}{' '}
                       {selectedPort.lldp.portDescription &&
                         `(${selectedPort.lldp.portDescription})`}
                     </div>
                   )}
                   {selectedPort.lldp.managementAddress && (
-                    <div
-                      style={{
-                        fontSize: '12px',
-                        color: 'var(--text-secondary)',
-                        fontFamily: 'monospace',
-                      }}
-                    >
+                    <div className="neighbor-protocol-address">
                       {selectedPort.lldp.managementAddress}
                     </div>
                   )}
                 </div>
               )}
               {selectedPort.cdp?.deviceId && (
-                <div>
-                  <div
-                    style={{
-                      fontSize: '11px',
-                      color: 'var(--text-muted)',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    CDP
-                  </div>
-                  <div style={{ fontSize: '14px', fontWeight: 500 }}>
+                <div className="neighbor-protocol">
+                  <div className="neighbor-protocol-label">CDP</div>
+                  <div className="neighbor-protocol-name">
                     {selectedPort.cdp.deviceId}
                   </div>
                   {selectedPort.cdp.platform && (
-                    <div
-                      style={{
-                        fontSize: '12px',
-                        color: 'var(--text-secondary)',
-                      }}
-                    >
+                    <div className="neighbor-protocol-detail">
                       {selectedPort.cdp.platform}
                     </div>
                   )}
                   {selectedPort.cdp.portId && (
-                    <div
-                      style={{
-                        fontSize: '12px',
-                        color: 'var(--text-secondary)',
-                      }}
-                    >
+                    <div className="neighbor-protocol-detail">
                       Port: {selectedPort.cdp.portId}
                     </div>
                   )}
                   {selectedPort.cdp.managementAddress && (
-                    <div
-                      style={{
-                        fontSize: '12px',
-                        color: 'var(--text-secondary)',
-                        fontFamily: 'monospace',
-                      }}
-                    >
+                    <div className="neighbor-protocol-address">
                       {selectedPort.cdp.managementAddress}
                     </div>
                   )}
@@ -390,22 +424,12 @@ const SwitchPortVisualization: React.FC<SwitchPortVisualizationProps> = ({
           {/* SecurePort Status */}
           {selectedPort.securePort?.enabled && (
             <div
-              style={{
-                marginTop: '12px',
-                fontSize: '13px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-              }}
+              className={`secure-port-status ${
+                selectedPort.securePort.active ? 'active' : 'inactive'
+              }`}
             >
               <span>🔒</span>
-              <span
-                style={{
-                  color: selectedPort.securePort.active
-                    ? 'var(--success)'
-                    : 'var(--text-muted)',
-                }}
-              >
+              <span>
                 SecurePort:{' '}
                 {selectedPort.securePort.authenticationStatus ||
                   (selectedPort.securePort.active ? 'Active' : 'Inactive')}
@@ -416,16 +440,7 @@ const SwitchPortVisualization: React.FC<SwitchPortVisualizationProps> = ({
       )}
 
       {!selectedPort && (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '20px',
-            color: 'var(--text-muted)',
-            fontSize: '14px',
-          }}
-        >
-          Click a port to view details
-        </div>
+        <div className="port-select-prompt">Click a port to view details</div>
       )}
     </div>
   );

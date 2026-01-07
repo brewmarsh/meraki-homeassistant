@@ -99,9 +99,7 @@ const ClientsView: React.FC<ClientsViewProps> = ({
             <div className="meta">
               <span>
                 <strong>MAC:</strong>{' '}
-                <span style={{ fontFamily: 'monospace' }}>
-                  {selectedClient.mac}
-                </span>
+                <span className="text-mono">{selectedClient.mac}</span>
               </span>
               {selectedClient.ip && (
                 <span>
@@ -130,13 +128,8 @@ const ClientsView: React.FC<ClientsViewProps> = ({
               )}
             </div>
             {selectedClient.lastSeen && (
-              <div
-                className="meta"
-                style={{ marginTop: '4px', fontSize: '12px' }}
-              >
-                <span style={{ color: 'var(--text-muted)' }}>
-                  Last seen: {formatDate(selectedClient.lastSeen)}
-                </span>
+              <div className="meta meta-info">
+                <span>Last seen: {formatDate(selectedClient.lastSeen)}</span>
               </div>
             )}
           </div>
@@ -151,90 +144,29 @@ const ClientsView: React.FC<ClientsViewProps> = ({
         </div>
 
         {/* Single comprehensive session card */}
-        <div className="info-card" style={{ marginBottom: '20px' }}>
+        <div className="info-card mb-5">
           <h3>📊 Session Details</h3>
 
           {/* Usage Stats Row */}
           {selectedClient.usage && (
-            <div
-              style={{
-                display: 'flex',
-                gap: '32px',
-                marginBottom: '20px',
-                padding: '16px',
-                background: 'var(--bg-primary)',
-                borderRadius: 'var(--radius-md)',
-              }}
-            >
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <div
-                  style={{
-                    fontSize: '12px',
-                    color: 'var(--text-muted)',
-                    marginBottom: '4px',
-                  }}
-                >
-                  UPLOADED
-                </div>
-                <div
-                  style={{
-                    fontSize: '24px',
-                    fontWeight: 600,
-                    color: 'var(--success)',
-                  }}
-                >
+            <div className="usage-stats-row">
+              <div className="usage-stat">
+                <div className="usage-stat-label">UPLOADED</div>
+                <div className="usage-stat-value upload">
                   ↑ {formatBytes(selectedClient.usage.sent)}
                 </div>
               </div>
-              <div
-                style={{
-                  width: '1px',
-                  background: 'var(--card-border)',
-                }}
-              />
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <div
-                  style={{
-                    fontSize: '12px',
-                    color: 'var(--text-muted)',
-                    marginBottom: '4px',
-                  }}
-                >
-                  DOWNLOADED
-                </div>
-                <div
-                  style={{
-                    fontSize: '24px',
-                    fontWeight: 600,
-                    color: 'var(--primary)',
-                  }}
-                >
+              <div className="usage-divider" />
+              <div className="usage-stat">
+                <div className="usage-stat-label">DOWNLOADED</div>
+                <div className="usage-stat-value download">
                   ↓ {formatBytes(selectedClient.usage.recv)}
                 </div>
               </div>
-              <div
-                style={{
-                  width: '1px',
-                  background: 'var(--card-border)',
-                }}
-              />
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <div
-                  style={{
-                    fontSize: '12px',
-                    color: 'var(--text-muted)',
-                    marginBottom: '4px',
-                  }}
-                >
-                  TOTAL
-                </div>
-                <div
-                  style={{
-                    fontSize: '24px',
-                    fontWeight: 600,
-                    color: 'var(--text-primary)',
-                  }}
-                >
+              <div className="usage-divider" />
+              <div className="usage-stat">
+                <div className="usage-stat-label">TOTAL</div>
+                <div className="usage-stat-value total">
                   {formatBytes(
                     selectedClient.usage.sent + selectedClient.usage.recv
                   )}
@@ -287,7 +219,7 @@ const ClientsView: React.FC<ClientsViewProps> = ({
             {selectedClient.ip6 && (
               <div className="info-item">
                 <div className="label">IPv6 Address</div>
-                <div className="value mono" style={{ fontSize: '11px' }}>
+                <div className="value text-mono text-xs">
                   {selectedClient.ip6}
                 </div>
               </div>
@@ -341,19 +273,7 @@ const ClientsView: React.FC<ClientsViewProps> = ({
                   deviceId: selectedClient.recentDeviceSerial,
                 })
               }
-              style={{
-                marginTop: '16px',
-                padding: '10px 20px',
-                borderRadius: 'var(--radius-md)',
-                border: 'none',
-                background: 'var(--primary)',
-                color: 'white',
-                cursor: 'pointer',
-                fontWeight: 500,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
+              className="btn-primary mt-4"
             >
               🔗 View Connected Device
             </button>
@@ -370,12 +290,7 @@ const ClientsView: React.FC<ClientsViewProps> = ({
       </button>
 
       <div className="device-header">
-        <div
-          className="device-icon"
-          style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}
-        >
-          👥
-        </div>
+        <div className="device-icon device-icon-gradient">👥</div>
         <div className="device-info">
           <h1>Connected Clients</h1>
           <div className="meta">
@@ -385,21 +300,13 @@ const ClientsView: React.FC<ClientsViewProps> = ({
       </div>
 
       {/* Search Bar */}
-      <div style={{ marginBottom: '20px' }}>
+      <div className="mb-5">
         <input
           type="text"
           placeholder="Search clients by name, MAC, IP, manufacturer..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '12px 16px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border)',
-            background: 'var(--bg-secondary)',
-            color: 'var(--text-primary)',
-            fontSize: '14px',
-          }}
+          className="search-input"
         />
       </div>
 
@@ -425,7 +332,7 @@ const ClientsView: React.FC<ClientsViewProps> = ({
               >
                 <td>
                   <div className="device-name-cell">
-                    <div className="device-icon" style={{ fontSize: '20px' }}>
+                    <div className="device-icon text-xl">
                       {getClientIcon(client)}
                     </div>
                     <div>
@@ -433,23 +340,13 @@ const ClientsView: React.FC<ClientsViewProps> = ({
                         {client.description || client.mac}
                       </span>
                       {client.os && (
-                        <div
-                          style={{
-                            fontSize: '12px',
-                            color: 'var(--text-muted)',
-                          }}
-                        >
-                          {client.os}
-                        </div>
+                        <div className="text-sm text-muted">{client.os}</div>
                       )}
                     </div>
                   </div>
                 </td>
                 <td className="device-model">{client.ip || '—'}</td>
-                <td
-                  className="device-model"
-                  style={{ fontFamily: 'monospace', fontSize: '12px' }}
-                >
+                <td className="device-model text-mono text-sm">
                   {client.mac}
                 </td>
                 <td className="device-model">{client.manufacturer || '—'}</td>
@@ -460,7 +357,7 @@ const ClientsView: React.FC<ClientsViewProps> = ({
                 </td>
                 <td>
                   {client.usage ? (
-                    <span style={{ fontSize: '12px' }}>
+                    <span className="text-sm">
                       ↑{formatBytes(client.usage.sent)} ↓
                       {formatBytes(client.usage.recv)}
                     </span>
@@ -472,14 +369,7 @@ const ClientsView: React.FC<ClientsViewProps> = ({
             ))}
             {filteredClients.length === 0 && (
               <tr>
-                <td
-                  colSpan={6}
-                  style={{
-                    textAlign: 'center',
-                    color: 'var(--text-muted)',
-                    padding: '40px',
-                  }}
-                >
+                <td colSpan={6} className="empty-state-message">
                   {searchTerm
                     ? 'No clients match your search'
                     : 'No clients found'}

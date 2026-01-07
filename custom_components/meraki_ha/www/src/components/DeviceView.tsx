@@ -724,61 +724,345 @@ const DeviceView: React.FC<DeviceViewProps> = ({
         </div>
       )}
 
-      {/* Info Cards Grid */}
-      <div className="cards-grid">
-        {/* Device Information card - hidden for switches, sensors, and wireless since info is in header */}
-        {!isSwitch && !isSensor && !isWireless && (
-          <div className="info-card">
-            <div
+      {/* Camera Live Video Stream - positioned after metric cards, before entities */}
+      {isCamera && (
+        <div className="info-card" style={{ marginTop: '24px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '16px',
+            }}
+          >
+            <h3 style={{ margin: 0 }}>📹 Live View</h3>
+            <button
+              onClick={() => setShowCameraConfig(!showCameraConfig)}
               style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '16px',
+                padding: '6px 12px',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--card-border)',
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                fontSize: '13px',
               }}
             >
-              <h3 style={{ margin: 0 }}>ℹ️ Device Information</h3>
-              {lastReportedAt && (
-                <span
+              ⚙️ Configure
+            </button>
+          </div>
+
+          {/* Camera Linking Configuration */}
+          {showCameraConfig && (
+            <div
+              style={{
+                background: 'var(--bg-tertiary)',
+                borderRadius: 'var(--radius-md)',
+                padding: '16px',
+                marginBottom: '16px',
+                border: '1px solid var(--card-border)',
+              }}
+            >
+              <h4 style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
+                🔗 Link to Camera Stream
+              </h4>
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: 'var(--text-secondary)',
+                  marginBottom: '12px',
+                }}
+              >
+                Select a camera entity to display live video. This can be the
+                Meraki camera&apos;s RTSP stream via an NVR (like Blue Iris) or
+                any other camera in Home Assistant.
+              </p>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <select
+                  value={linkedCameraId}
+                  onChange={(e) => setLinkedCameraId(e.target.value)}
                   style={{
-                    fontSize: '11px',
-                    color: 'var(--text-muted)',
-                    fontWeight: 400,
+                    flex: 1,
+                    minWidth: '200px',
+                    padding: '8px 12px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--card-border)',
+                    background: 'var(--bg-secondary)',
+                    color: 'var(--text-primary)',
+                    fontSize: '14px',
                   }}
                 >
-                  Updated: {formatLastSeen(lastReportedAt)}
-                </span>
+                  <option value="">-- Select camera entity --</option>
+                  {availableCameras.map((cam) => (
+                    <option key={cam.entity_id} value={cam.entity_id}>
+                      {cam.friendly_name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => saveCameraMapping(linkedCameraId)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: 'none',
+                    background: 'var(--primary)',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontWeight: 500,
+                  }}
+                >
+                  Save
+                </button>
+              </div>
+              {linkedCameraId && (
+                <p
+                  style={{
+                    fontSize: '12px',
+                    color: 'var(--success)',
+                    marginTop: '8px',
+                    marginBottom: 0,
+                  }}
+                >
+                  ✓ Linked to: {linkedCameraId}
+                </p>
+              )}
+              {device.rtsp_url && (
+                <div
+                  style={{
+                    marginTop: '12px',
+                    padding: '8px 12px',
+                    background: 'var(--bg-secondary)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '12px',
+                  }}
+                >
+                  <strong>RTSP URL:</strong>{' '}
+                  <code
+                    style={{
+                      fontFamily: 'monospace',
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    {device.rtsp_url}
+                  </code>
+                </div>
               )}
             </div>
-            <div className="info-grid">
-              {lanIp && (
-                <div className="info-item">
-                  <div className="label">LAN IP</div>
-                  <div className="value">{lanIp}</div>
+          )}
+
+          {/* Live Video Area - responsive 16:9 aspect ratio */}
+          <div
+            style={{
+              background: '#000',
+              borderRadius: 'var(--radius-md)',
+              overflow: 'hidden',
+              position: 'relative',
+              width: '100%',
+              maxWidth: '100%',
+              aspectRatio: '16/9',
+              marginBottom: '16px',
+            }}
+          >
+            {linkedCameraId ? (
+              /* Live stream from linked camera entity */
+              linkedCameraLoading ? (
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--text-muted)',
+                  }}
+                >
+                  ⏳ Loading stream...
                 </div>
-              )}
-              {mac && (
-                <div className="info-item">
-                  <div className="label">MAC Address</div>
-                  <div className="value mono">{mac}</div>
+              ) : linkedCameraUrl ? (
+                <img
+                  src={linkedCameraUrl}
+                  alt={`Live view: ${name || serial}`}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                  }}
+                  onError={() => {
+                    console.error('Failed to load camera stream');
+                    setLinkedCameraUrl(null);
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--text-muted)',
+                    gap: '8px',
+                  }}
+                >
+                  <span style={{ fontSize: '48px' }}>📹</span>
+                  <span>Unable to load stream</span>
+                  <button
+                    onClick={() => fetchLinkedCameraUrl()}
+                    style={{
+                      marginTop: '8px',
+                      padding: '8px 16px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: 'none',
+                      background: 'var(--primary)',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                    }}
+                  >
+                    Retry
+                  </button>
                 </div>
-              )}
-              {firmware && (
-                <div className="info-item">
-                  <div className="label">Firmware</div>
-                  <div className="value">{firmware}</div>
-                </div>
-              )}
-              {uptime != null && !isWireless && !isAppliance && (
-                <div className="info-item">
-                  <div className="label">Uptime</div>
-                  <div className="value">{formatUptime(uptime)}</div>
-                </div>
-              )}
-            </div>
+              )
+            ) : snapshotUrl ? (
+              /* Show snapshot if no linked camera */
+              <img
+                src={snapshotUrl}
+                alt={`${name || serial} snapshot`}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                }}
+              />
+            ) : (
+              /* No camera configured */
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--text-muted)',
+                  gap: '12px',
+                }}
+              >
+                <span style={{ fontSize: '48px' }}>📹</span>
+                <span>No live stream configured</span>
+                <button
+                  onClick={() => setShowCameraConfig(true)}
+                  style={{
+                    marginTop: '4px',
+                    padding: '8px 16px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: 'none',
+                    background: 'var(--primary)',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                  }}
+                >
+                  Link Camera Entity
+                </button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+
+          {/* Action Buttons */}
+          <div
+            style={{
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            {linkedCameraId ? (
+              <>
+                <button
+                  onClick={() => fetchLinkedCameraUrl()}
+                  disabled={linkedCameraLoading}
+                  style={{
+                    padding: '10px 20px',
+                    borderRadius: 'var(--radius-md)',
+                    border: 'none',
+                    background: 'var(--primary)',
+                    color: 'white',
+                    cursor: linkedCameraLoading ? 'wait' : 'pointer',
+                    fontWeight: 500,
+                  }}
+                >
+                  {linkedCameraLoading ? '⏳ Loading...' : '🔄 Refresh Stream'}
+                </button>
+                <button
+                  onClick={() => handleEntityClick(linkedCameraId)}
+                  style={{
+                    padding: '10px 20px',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--card-border)',
+                    background: 'var(--bg-secondary)',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer',
+                    fontWeight: 500,
+                  }}
+                >
+                  📺 Full Screen
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={fetchSnapshot}
+                  disabled={snapshotLoading}
+                  style={{
+                    padding: '10px 20px',
+                    borderRadius: 'var(--radius-md)',
+                    border: 'none',
+                    background: 'var(--primary)',
+                    color: 'white',
+                    cursor: snapshotLoading ? 'wait' : 'pointer',
+                    fontWeight: 500,
+                  }}
+                >
+                  {snapshotLoading ? '⏳ Loading...' : '📷 Get Snapshot'}
+                </button>
+              </>
+            )}
+            {cloudVideoUrl && (
+              <button
+                onClick={openInDashboard}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--card-border)',
+                  background: 'var(--bg-secondary)',
+                  color: 'var(--text-primary)',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                }}
+              >
+                🌐 Meraki Dashboard
+              </button>
+            )}
+          </div>
+
+          {/* Source indicator */}
+          {linkedCameraId && (
+            <div
+              style={{
+                marginTop: '12px',
+                textAlign: 'center',
+                fontSize: '12px',
+                color: 'var(--text-muted)',
+              }}
+            >
+              Streaming from: {linkedCameraId}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Switch Port Visualization */}
       {isSwitch && ports_statuses.length > 0 && (
@@ -786,6 +1070,10 @@ const DeviceView: React.FC<DeviceViewProps> = ({
           deviceName={name || serial}
           model={model}
           ports={ports_statuses}
+          clients={deviceClients}
+          onClientClick={(clientId) =>
+            setActiveView({ view: 'clients', clientId })
+          }
         />
       )}
 
@@ -898,8 +1186,8 @@ const DeviceView: React.FC<DeviceViewProps> = ({
         </div>
       )}
 
-      {/* Entities (filtered to exclude hero readings) */}
-      {filteredEntities.length > 0 && (
+      {/* Entities (filtered to exclude hero readings) - hidden for switches */}
+      {filteredEntities.length > 0 && !isSwitch && (
         <div className="info-card">
           <h3>🔗 Entities ({filteredEntities.length})</h3>
           <table className="device-table">
@@ -937,8 +1225,8 @@ const DeviceView: React.FC<DeviceViewProps> = ({
         </div>
       )}
 
-      {/* Connected Clients Section */}
-      {deviceClients.length > 0 && (
+      {/* Connected Clients Section - hidden for switches (shown per-port instead) */}
+      {deviceClients.length > 0 && !isSwitch && (
         <div className="info-card">
           <h3>👥 Connected Clients ({deviceClients.length})</h3>
           <table className="device-table">
@@ -1034,346 +1322,6 @@ const DeviceView: React.FC<DeviceViewProps> = ({
               </button>
             </div>
           )}
-        </div>
-      )}
-
-      {/* Camera-specific View */}
-      {isCamera && (
-        <div className="info-card">
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '16px',
-            }}
-          >
-            <h3 style={{ margin: 0 }}>📹 Camera</h3>
-            <button
-              onClick={() => setShowCameraConfig(!showCameraConfig)}
-              style={{
-                padding: '6px 12px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border)',
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-secondary)',
-                cursor: 'pointer',
-                fontSize: '13px',
-              }}
-            >
-              ⚙️ Link Camera
-            </button>
-          </div>
-
-          {/* Camera Linking Configuration */}
-          {showCameraConfig && (
-            <div
-              style={{
-                background: 'var(--bg-primary)',
-                borderRadius: 'var(--radius-md)',
-                padding: '16px',
-                marginBottom: '16px',
-                border: '1px solid var(--border)',
-              }}
-            >
-              <h4 style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
-                🔗 Link to External Camera (e.g., Blue Iris)
-              </h4>
-              <p
-                style={{
-                  fontSize: '13px',
-                  color: 'var(--text-muted)',
-                  marginBottom: '12px',
-                }}
-              >
-                Link this Meraki camera to another camera entity in Home
-                Assistant. Useful when RTSP goes to an NVR (like Blue Iris)
-                first.
-              </p>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <select
-                  value={linkedCameraId}
-                  onChange={(e) => setLinkedCameraId(e.target.value)}
-                  style={{
-                    flex: 1,
-                    minWidth: '200px',
-                    padding: '8px 12px',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--border)',
-                    background: 'var(--bg-secondary)',
-                    color: 'var(--text-primary)',
-                    fontSize: '14px',
-                  }}
-                >
-                  <option value="">-- No linked camera --</option>
-                  {availableCameras.map((cam) => (
-                    <option key={cam.entity_id} value={cam.entity_id}>
-                      {cam.friendly_name} ({cam.entity_id})
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={() => saveCameraMapping(linkedCameraId)}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: 'var(--radius-sm)',
-                    border: 'none',
-                    background: 'var(--primary)',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontWeight: 500,
-                  }}
-                >
-                  Save
-                </button>
-              </div>
-              {linkedCameraId && (
-                <p
-                  style={{
-                    fontSize: '12px',
-                    color: 'var(--success)',
-                    marginTop: '8px',
-                    marginBottom: 0,
-                  }}
-                >
-                  ✓ Linked to: {linkedCameraId}
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* View Toggle - only show if linked camera is configured */}
-          {linkedCameraId && (
-            <div
-              style={{
-                display: 'flex',
-                gap: '4px',
-                marginBottom: '16px',
-                background: 'var(--bg-primary)',
-                borderRadius: 'var(--radius-md)',
-                padding: '4px',
-              }}
-            >
-              <button
-                onClick={() => setViewLinkedCamera(false)}
-                style={{
-                  flex: 1,
-                  padding: '8px 16px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: 'none',
-                  background: !viewLinkedCamera
-                    ? 'var(--primary)'
-                    : 'transparent',
-                  color: !viewLinkedCamera ? 'white' : 'var(--text-secondary)',
-                  cursor: 'pointer',
-                  fontWeight: 500,
-                  transition: 'all 0.2s',
-                }}
-              >
-                📷 Meraki Snapshot
-              </button>
-              <button
-                onClick={() => setViewLinkedCamera(true)}
-                style={{
-                  flex: 1,
-                  padding: '8px 16px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: 'none',
-                  background: viewLinkedCamera
-                    ? 'var(--primary)'
-                    : 'transparent',
-                  color: viewLinkedCamera ? 'white' : 'var(--text-secondary)',
-                  cursor: 'pointer',
-                  fontWeight: 500,
-                  transition: 'all 0.2s',
-                }}
-              >
-                🎬 Linked Camera
-              </button>
-            </div>
-          )}
-
-          {/* Content Area */}
-          <div
-            style={{
-              background: 'var(--bg-primary)',
-              borderRadius: 'var(--radius-md)',
-              padding: '16px',
-              textAlign: 'center',
-              marginBottom: '16px',
-            }}
-          >
-            {viewLinkedCamera && linkedCameraId ? (
-              /* Linked Camera Stream (e.g., Blue Iris) */
-              <div>
-                {linkedCameraLoading ? (
-                  <div style={{ padding: '40px', color: 'var(--text-muted)' }}>
-                    ⏳ Loading camera...
-                  </div>
-                ) : linkedCameraUrl ? (
-                  <img
-                    src={linkedCameraUrl}
-                    alt={`Linked camera: ${linkedCameraId}`}
-                    style={{
-                      maxWidth: '100%',
-                      borderRadius: 'var(--radius-md)',
-                      marginBottom: '12px',
-                    }}
-                    onError={() => {
-                      console.error('Failed to load linked camera image');
-                      setLinkedCameraUrl(null);
-                    }}
-                  />
-                ) : (
-                  <div style={{ padding: '40px', color: 'var(--text-muted)' }}>
-                    📹 Unable to load camera feed
-                  </div>
-                )}
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: '12px',
-                    justifyContent: 'center',
-                    flexWrap: 'wrap',
-                    marginTop: '12px',
-                  }}
-                >
-                  <button
-                    onClick={() => fetchLinkedCameraUrl()}
-                    disabled={linkedCameraLoading}
-                    style={{
-                      padding: '10px 20px',
-                      borderRadius: 'var(--radius-md)',
-                      border: 'none',
-                      background: 'var(--primary)',
-                      color: 'white',
-                      cursor: linkedCameraLoading ? 'wait' : 'pointer',
-                      fontWeight: 500,
-                    }}
-                  >
-                    {linkedCameraLoading ? '⏳ Loading...' : '🔄 Refresh'}
-                  </button>
-                  <button
-                    onClick={() => handleEntityClick(linkedCameraId)}
-                    style={{
-                      padding: '10px 20px',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--border)',
-                      background: 'var(--bg-secondary)',
-                      color: 'var(--text-primary)',
-                      cursor: 'pointer',
-                      fontWeight: 500,
-                    }}
-                  >
-                    📺 Open Camera Entity
-                  </button>
-                </div>
-                <p
-                  style={{
-                    fontSize: '12px',
-                    color: 'var(--text-muted)',
-                    marginTop: '12px',
-                    marginBottom: 0,
-                  }}
-                >
-                  Viewing: {linkedCameraId}
-                </p>
-              </div>
-            ) : (
-              /* Snapshot View */
-              <>
-                {snapshotUrl ? (
-                  <img
-                    src={snapshotUrl}
-                    alt={`${name || serial} snapshot`}
-                    style={{
-                      maxWidth: '100%',
-                      borderRadius: 'var(--radius-md)',
-                      marginBottom: '12px',
-                    }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      padding: '40px',
-                      color: 'var(--text-muted)',
-                      fontSize: '48px',
-                    }}
-                  >
-                    📹
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: '12px',
-                    justifyContent: 'center',
-                    flexWrap: 'wrap',
-                    marginTop: '12px',
-                  }}
-                >
-                  <button
-                    onClick={fetchSnapshot}
-                    disabled={snapshotLoading}
-                    style={{
-                      padding: '10px 20px',
-                      borderRadius: 'var(--radius-md)',
-                      border: 'none',
-                      background: 'var(--primary)',
-                      color: 'white',
-                      cursor: snapshotLoading ? 'wait' : 'pointer',
-                      fontWeight: 500,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                    }}
-                  >
-                    {snapshotLoading ? '⏳ Loading...' : '📷 Refresh Snapshot'}
-                  </button>
-
-                  {cloudVideoUrl && (
-                    <button
-                      onClick={openInDashboard}
-                      style={{
-                        padding: '10px 20px',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--border)',
-                        background: 'var(--bg-secondary)',
-                        color: 'var(--text-primary)',
-                        cursor: 'pointer',
-                        fontWeight: 500,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                      }}
-                    >
-                      🌐 Open in Meraki Dashboard
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Stream Info */}
-          <div
-            style={{
-              fontSize: '13px',
-              color: 'var(--text-muted)',
-              textAlign: 'center',
-            }}
-          >
-            <p style={{ margin: '0 0 8px 0' }}>
-              💡 <strong>RTSP Streaming:</strong> Enable in Meraki Dashboard →
-              Camera Settings → External RTSP
-            </p>
-            <p style={{ margin: 0 }}>
-              For live streaming in Home Assistant dashboards, use the camera
-              entity
-            </p>
-          </div>
         </div>
       )}
 

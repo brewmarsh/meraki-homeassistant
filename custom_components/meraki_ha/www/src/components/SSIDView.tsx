@@ -109,274 +109,146 @@ const SSIDView: React.FC<SSIDViewProps> = ({
   return (
     <div className="ssid-view">
       {/* Header */}
-      <div className="view-header">
+      <div className="device-header">
         <button className="back-button" onClick={onBack}>
           ← Back
         </button>
-        <div style={{ flex: 1, marginLeft: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '24px' }}>📶</span>
-            <div>
-              <h2 style={{ margin: 0, fontSize: '20px' }}>{ssid.name}</h2>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  marginTop: '4px',
-                  color: 'var(--text-muted)',
-                  fontSize: '13px',
-                }}
-              >
-                {network && <span>Network: {network.name}</span>}
-                <span>SSID #{ssid.number}</span>
-                <span>•</span>
-                <span
-                  style={{
-                    color: ssid.enabled
-                      ? 'var(--success)'
-                      : 'var(--text-muted)',
-                  }}
-                >
-                  {ssid.enabled ? '● Broadcasting' : '○ Disabled'}
-                </span>
-              </div>
-            </div>
+        <div className="device-icon wireless">📶</div>
+        <div className="device-info">
+          <h1>{ssid.name}</h1>
+          <div className="meta">
+            {network && <span>Network: {network.name}</span>}
+            <span>SSID #{ssid.number}</span>
+            <span className={ssid.enabled ? 'text-success' : 'text-muted'}>
+              {ssid.enabled ? '● Broadcasting' : '○ Disabled'}
+            </span>
           </div>
         </div>
       </div>
 
       {/* SSID Status & Control Card */}
-      <div className="card" style={{ marginTop: '24px' }}>
-        <div className="card-header">
-          <h3>SSID Control</h3>
-        </div>
-        <div className="card-content">
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '16px 20px',
-              background: ssid.enabled
-                ? 'var(--success-light)'
-                : 'var(--bg-secondary)',
-              borderRadius: 'var(--radius-md)',
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: '16px',
-                  fontWeight: 500,
-                  color: ssid.enabled ? 'var(--success)' : 'var(--text-muted)',
-                }}
-              >
-                {ssid.enabled ? '● SSID is Enabled' : '○ SSID is Disabled'}
-              </div>
-              <div
-                style={{
-                  fontSize: '13px',
-                  color: 'var(--text-muted)',
-                  marginTop: '4px',
-                }}
-              >
-                {ssid.enabled
-                  ? 'Clients can connect to this wireless network'
-                  : 'This network is not broadcasting'}
-              </div>
-            </div>
+      <div className="info-card">
+        <h3>🎛️ SSID Control</h3>
+        <div className={`ssid-control-panel ${ssid.enabled ? 'enabled' : ''}`}>
+          <div className="ssid-control-info">
             <div
-              className={`toggle ${ssid.enabled ? 'active' : ''}`}
-              onClick={handleSSIDToggle}
-              title={
-                ssid.enabled ? 'Click to disable SSID' : 'Click to enable SSID'
-              }
-              style={{ cursor: 'pointer' }}
-            />
+              className={`ssid-control-status ${
+                ssid.enabled ? 'text-success' : 'text-muted'
+              }`}
+            >
+              {ssid.enabled ? '● SSID is Enabled' : '○ SSID is Disabled'}
+            </div>
+            <div className="ssid-control-desc text-muted text-sm">
+              {ssid.enabled
+                ? 'Clients can connect to this wireless network'
+                : 'This network is not broadcasting'}
+            </div>
           </div>
+          <div
+            className={`toggle ${ssid.enabled ? 'active' : ''} clickable`}
+            onClick={handleSSIDToggle}
+            title={
+              ssid.enabled ? 'Click to disable SSID' : 'Click to enable SSID'
+            }
+          />
         </div>
       </div>
 
       {/* SSID Statistics */}
-      <div className="card" style={{ marginTop: '16px' }}>
-        <div className="card-header">
-          <h3>Statistics</h3>
-        </div>
-        <div className="card-content">
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-              gap: '24px',
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: '11px',
-                  color: 'var(--text-muted)',
-                  textTransform: 'uppercase',
-                  marginBottom: '4px',
-                }}
-              >
-                Connected Clients
-              </div>
-              <div
-                style={{
-                  fontSize: '24px',
-                  fontWeight: 600,
-                  color: 'var(--primary)',
-                }}
-              >
-                {ssidClients.length}
-              </div>
-            </div>
-            <div>
-              <div
-                style={{
-                  fontSize: '11px',
-                  color: 'var(--text-muted)',
-                  textTransform: 'uppercase',
-                  marginBottom: '4px',
-                }}
-              >
-                Data Sent
-              </div>
-              <div style={{ fontSize: '24px', fontWeight: 600 }}>
-                {formatBytes(totalUsage.sent)}
-              </div>
-            </div>
-            <div>
-              <div
-                style={{
-                  fontSize: '11px',
-                  color: 'var(--text-muted)',
-                  textTransform: 'uppercase',
-                  marginBottom: '4px',
-                }}
-              >
-                Data Received
-              </div>
-              <div style={{ fontSize: '24px', fontWeight: 600 }}>
-                {formatBytes(totalUsage.recv)}
-              </div>
-            </div>
-            <div>
-              <div
-                style={{
-                  fontSize: '11px',
-                  color: 'var(--text-muted)',
-                  textTransform: 'uppercase',
-                  marginBottom: '4px',
-                }}
-              >
-                Total Traffic
-              </div>
-              <div style={{ fontSize: '24px', fontWeight: 600 }}>
-                {formatBytes(totalUsage.sent + totalUsage.recv)}
-              </div>
+      <div className="info-card">
+        <h3>📊 Statistics</h3>
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="label">Connected Clients</div>
+            <div className="value">{ssidClients.length}</div>
+          </div>
+          <div className="stat-card">
+            <div className="label">Data Sent</div>
+            <div className="value success">{formatBytes(totalUsage.sent)}</div>
+          </div>
+          <div className="stat-card">
+            <div className="label">Data Received</div>
+            <div className="value">{formatBytes(totalUsage.recv)}</div>
+          </div>
+          <div className="stat-card">
+            <div className="label">Total Traffic</div>
+            <div className="value">
+              {formatBytes(totalUsage.sent + totalUsage.recv)}
             </div>
           </div>
         </div>
       </div>
 
       {/* Connected Clients Table */}
-      <div className="card" style={{ marginTop: '16px' }}>
-        <div className="card-header">
-          <h3>Connected Clients ({ssidClients.length})</h3>
-        </div>
-        <div className="card-content">
-          {ssidClients.length > 0 ? (
-            <table className="device-table" style={{ width: '100%' }}>
-              <thead>
-                <tr>
-                  <th>Client</th>
-                  <th>IP Address</th>
-                  <th>Manufacturer</th>
-                  <th>Last Seen</th>
-                  <th>Usage</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ssidClients.map((client) => (
-                  <tr
-                    key={client.id || client.mac}
-                    onClick={() => onClientClick?.(client.id || client.mac)}
-                    style={{ cursor: onClientClick ? 'pointer' : 'default' }}
-                  >
-                    <td>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                        }}
-                      >
-                        <span style={{ fontSize: '18px' }}>
-                          {client.os?.toLowerCase().includes('android')
-                            ? '📱'
-                            : client.os?.toLowerCase().includes('ios') ||
-                              client.os?.toLowerCase().includes('apple')
-                            ? '🍎'
-                            : client.os?.toLowerCase().includes('windows')
-                            ? '💻'
-                            : '📱'}
-                        </span>
-                        <div>
-                          <div style={{ fontWeight: 500 }}>
-                            {client.description || client.mac}
-                          </div>
-                          {client.description && (
-                            <div
-                              style={{
-                                fontSize: '11px',
-                                color: 'var(--text-muted)',
-                                fontFamily: 'monospace',
-                              }}
-                            >
-                              {client.mac}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span
-                        style={{ fontFamily: 'monospace', fontSize: '13px' }}
-                      >
-                        {client.ip || '—'}
+      <div className="info-card">
+        <h3>👥 Connected Clients ({ssidClients.length})</h3>
+        {ssidClients.length > 0 ? (
+          <table className="device-table">
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>IP Address</th>
+                <th>Manufacturer</th>
+                <th>Last Seen</th>
+                <th>Usage</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ssidClients.map((client) => (
+                <tr
+                  key={client.id || client.mac}
+                  className={
+                    onClientClick ? 'device-row clickable' : 'device-row'
+                  }
+                  onClick={() => onClientClick?.(client.id || client.mac)}
+                >
+                  <td>
+                    <div className="device-name-cell">
+                      <span className="text-xl">
+                        {client.os?.toLowerCase().includes('android')
+                          ? '📱'
+                          : client.os?.toLowerCase().includes('ios') ||
+                            client.os?.toLowerCase().includes('apple')
+                          ? '🍎'
+                          : client.os?.toLowerCase().includes('windows')
+                          ? '💻'
+                          : '📱'}
                       </span>
-                    </td>
-                    <td>{client.manufacturer || '—'}</td>
-                    <td>{formatLastSeen(client.lastSeen)}</td>
-                    <td>
-                      {client.usage ? (
-                        <span>
-                          ↓{formatBytes(client.usage.recv)} ↑
-                          {formatBytes(client.usage.sent)}
-                        </span>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div
-              style={{
-                textAlign: 'center',
-                padding: '40px',
-                color: 'var(--text-muted)',
-              }}
-            >
-              <div style={{ fontSize: '32px', marginBottom: '8px' }}>📴</div>
-              <div>No clients connected to this SSID</div>
-            </div>
-          )}
-        </div>
+                      <div>
+                        <div className="name">
+                          {client.description || client.mac}
+                        </div>
+                        {client.description && (
+                          <div className="text-xs text-muted text-mono">
+                            {client.mac}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="text-mono text-sm">{client.ip || '—'}</td>
+                  <td>{client.manufacturer || '—'}</td>
+                  <td>{formatLastSeen(client.lastSeen)}</td>
+                  <td>
+                    {client.usage ? (
+                      <span className="text-sm">
+                        ↓{formatBytes(client.usage.recv)} ↑
+                        {formatBytes(client.usage.sent)}
+                      </span>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="empty-state">
+            <div className="icon">📴</div>
+            <p>No clients connected to this SSID</p>
+          </div>
+        )}
       </div>
     </div>
   );
