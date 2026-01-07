@@ -10,7 +10,6 @@ from custom_components.meraki_ha.core.utils._mappers import (
     validate_model_string,
 )
 
-
 # ===== map_meraki_model_to_device_type Tests =====
 
 
@@ -201,4 +200,3 @@ def test_get_prefixes_for_device_type_invalid() -> None:
 
     assert isinstance(prefixes, set)
     assert len(prefixes) == 0
-

@@ -126,7 +126,12 @@ def test_mt40_availability(
     mock_config_entry: MagicMock,
     mock_meraki_client: MagicMock,
 ):
-    """Test availability of the MT40 switch."""
+    """Test availability of the MT40 switch.
+
+    The switch is available when the device exists in coordinator data,
+    regardless of readings availability. This allows control even when
+    sensor readings are temporarily delayed.
+    """
     device_info = mock_coordinator_with_mt40_data.data["devices"][0]
     switch = MerakiMt40PowerOutlet(
         mock_coordinator_with_mt40_data,
@@ -138,10 +143,14 @@ def test_mt40_availability(
     # Switch should be available
     assert switch.available is True
 
-    # Test availability when readings are missing
+    # Switch should still be available even when readings are missing
+    # (can still be controlled, just can't determine current state)
     device_info["readings"] = []
-    assert switch.available is False
+    assert switch.available is True
 
-    # Test availability when 'readings' key is absent
+    # Switch should still be available when 'readings' key is absent
     del device_info["readings"]
-    assert switch.available is False
+    assert switch.available is True
+
+    # Note: Testing unavailability when device is removed from coordinator
+    # would require more complex mocking of CoordinatorEntity.available

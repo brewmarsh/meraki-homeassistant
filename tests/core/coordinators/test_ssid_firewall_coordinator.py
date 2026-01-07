@@ -66,7 +66,7 @@ async def test_async_update_data(
     mock_api_client: MagicMock,
 ) -> None:
     """Test update fetches firewall rules."""
-    mock_api_client.wireless.get_network_wireless_ssid_l7_firewall_rules.return_value = [
+    mock_api_client.wireless.get_network_wireless_ssid_l7_firewall_rules.return_value = [  # noqa: E501
         {"policy": "deny", "type": "ipRange", "value": "192.168.1.100"},
     ]
 

@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.meraki_ha.core.coordinators.switch_port_status_coordinator import (
+from custom_components.meraki_ha.core.coordinators.switch_port_status_coordinator import (  # noqa: E501
     SwitchPortStatusCoordinator,
 )
 

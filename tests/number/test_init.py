@@ -115,4 +115,3 @@ async def test_async_unload_entry(
 
     assert result is True
     mock_hass.config_entries.async_unload_platforms.assert_called_once()
-

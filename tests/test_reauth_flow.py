@@ -17,9 +17,7 @@ def mock_config_flow() -> MagicMock:
     flow.hass = MagicMock()
     flow.context = {"entry_id": "test_entry"}
     flow.async_abort = MagicMock(return_value={"type": "abort", "reason": "unknown"})
-    flow.async_show_form = MagicMock(
-        return_value={"type": "form", "step_id": "reauth"}
-    )
+    flow.async_show_form = MagicMock(return_value={"type": "form", "step_id": "reauth"})
     return flow
 
 
@@ -40,7 +38,7 @@ async def test_reauth_no_existing_entry(mock_config_flow: MagicMock) -> None:
     """Test reauth aborts when entry not found."""
     mock_config_flow.hass.config_entries.async_get_entry = MagicMock(return_value=None)
 
-    result = await async_step_reauth(mock_config_flow, None)
+    _result = await async_step_reauth(mock_config_flow, None)  # noqa: F841
 
     mock_config_flow.async_abort.assert_called_once_with(reason="unknown_entry")
 
@@ -81,7 +79,7 @@ async def test_reauth_success(
         "custom_components.meraki_ha.reauth_flow.validate_meraki_credentials",
         return_value={"org_name": "Test Org"},
     ):
-        result = await async_step_reauth(
+        _result = await async_step_reauth(  # noqa: F841
             mock_config_flow,
             {CONF_MERAKI_API_KEY: "new_key", CONF_MERAKI_ORG_ID: "123456"},
         )
@@ -104,7 +102,7 @@ async def test_reauth_invalid_auth(
         "custom_components.meraki_ha.reauth_flow.validate_meraki_credentials",
         side_effect=ConfigEntryAuthFailed("Invalid"),
     ):
-        result = await async_step_reauth(
+        _result = await async_step_reauth(  # noqa: F841
             mock_config_flow,
             {CONF_MERAKI_API_KEY: "bad_key", CONF_MERAKI_ORG_ID: "123456"},
         )
@@ -126,7 +124,7 @@ async def test_reauth_invalid_org_id(
         "custom_components.meraki_ha.reauth_flow.validate_meraki_credentials",
         side_effect=ValueError("Invalid org ID"),
     ):
-        result = await async_step_reauth(
+        _result = await async_step_reauth(  # noqa: F841
             mock_config_flow,
             {CONF_MERAKI_API_KEY: "key", CONF_MERAKI_ORG_ID: "invalid"},
         )
@@ -148,7 +146,7 @@ async def test_reauth_connection_error(
         "custom_components.meraki_ha.reauth_flow.validate_meraki_credentials",
         side_effect=aiohttp.ClientError("Connection failed"),
     ):
-        result = await async_step_reauth(
+        _result = await async_step_reauth(  # noqa: F841
             mock_config_flow,
             {CONF_MERAKI_API_KEY: "key", CONF_MERAKI_ORG_ID: "123456"},
         )
@@ -170,10 +168,9 @@ async def test_reauth_unknown_error(
         "custom_components.meraki_ha.reauth_flow.validate_meraki_credentials",
         side_effect=Exception("Unexpected error"),
     ):
-        result = await async_step_reauth(
+        _result = await async_step_reauth(  # noqa: F841
             mock_config_flow,
             {CONF_MERAKI_API_KEY: "key", CONF_MERAKI_ORG_ID: "123456"},
         )
 
     mock_config_flow.async_show_form.assert_called_once()
-

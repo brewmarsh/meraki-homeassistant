@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 import pytest
 from homeassistant.components.binary_sensor import BinarySensorEntity
 
-from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.binary_sensor import async_setup_entry
+from custom_components.meraki_ha.const import DOMAIN
 
 
 @pytest.fixture

@@ -68,4 +68,3 @@ def test_ssid_channel_sensor_no_channel(
     )
 
     assert sensor._attr_native_value is None
-

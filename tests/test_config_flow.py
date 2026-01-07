@@ -127,15 +127,13 @@ async def test_async_step_user_success(mock_hass: MagicMock) -> None:
     flow.hass = mock_hass
     object.__setattr__(flow, "async_set_unique_id", AsyncMock())
     object.__setattr__(flow, "_abort_if_unique_id_configured", MagicMock())
-    flow.async_show_form = MagicMock(
-        return_value={"type": "form", "step_id": "init"}
-    )
+    flow.async_show_form = MagicMock(return_value={"type": "form", "step_id": "init"})
 
     with patch(
         "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
         return_value={"org_name": "Test Org"},
     ):
-        result = await flow.async_step_user(
+        await flow.async_step_user(
             {CONF_MERAKI_API_KEY: "valid_key", CONF_MERAKI_ORG_ID: "123456"}
         )
 
@@ -148,9 +146,7 @@ async def test_async_step_user_success(mock_hass: MagicMock) -> None:
 async def test_async_step_init_no_input() -> None:
     """Test step init shows form when no input."""
     flow = MerakiConfigFlow()
-    flow.async_show_form = MagicMock(
-        return_value={"type": "form", "step_id": "init"}
-    )
+    flow.async_show_form = MagicMock(return_value={"type": "form", "step_id": "init"})
 
     result = await flow.async_step_init(None)
 
@@ -168,7 +164,7 @@ async def test_async_step_init_creates_entry() -> None:
         return_value={"type": "create_entry", "title": "Test Org"}
     )
 
-    result = await flow.async_step_init({"scan_interval": 60})
+    _result = await flow.async_step_init({"scan_interval": 60})  # noqa: F841
 
     assert flow.options["scan_interval"] == 60
     flow.async_create_entry.assert_called_once()
@@ -193,7 +189,7 @@ async def test_async_step_reconfigure_no_entry(mock_hass: MagicMock) -> None:
     flow.context = {"entry_id": "test_entry"}
     flow.async_abort = MagicMock(return_value={"type": "abort"})
 
-    result = await flow.async_step_reconfigure(None)
+    _result = await flow.async_step_reconfigure(None)  # noqa: F841
 
     flow.async_abort.assert_called_once_with(reason="unknown_entry")
 
@@ -215,7 +211,7 @@ async def test_async_step_reconfigure_with_input(mock_hass: MagicMock) -> None:
         return_value={"type": "abort", "reason": "reconfigure_successful"}
     )
 
-    result = await flow.async_step_reconfigure({"scan_interval": 60})
+    _result = await flow.async_step_reconfigure({"scan_interval": 60})  # noqa: F841
 
     flow.hass.config_entries.async_update_entry.assert_called_once()
     flow.async_abort.assert_called_with(reason="reconfigure_successful")
@@ -267,7 +263,6 @@ async def test_async_step_reconfigure_with_networks(mock_hass: MagicMock) -> Non
         return_value={"type": "form", "step_id": "reconfigure"}
     )
 
-    result = await flow.async_step_reconfigure(None)
+    _result = await flow.async_step_reconfigure(None)  # noqa: F841
 
     flow.async_show_form.assert_called_once()
-

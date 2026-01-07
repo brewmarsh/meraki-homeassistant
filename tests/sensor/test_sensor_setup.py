@@ -137,4 +137,3 @@ async def test_async_setup_entry_chunks_large_lists(
     assert result is True
     # Should be called twice (50 + 25)
     assert mock_add_entities.call_count == 2
-

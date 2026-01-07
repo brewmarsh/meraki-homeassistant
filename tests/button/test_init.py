@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 import pytest
 from homeassistant.components.button import ButtonEntity
 
-from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.button import async_setup_entry
+from custom_components.meraki_ha.const import DOMAIN
 
 
 @pytest.fixture

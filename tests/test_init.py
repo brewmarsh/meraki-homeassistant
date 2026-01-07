@@ -295,4 +295,3 @@ async def test_async_unload_entry_no_web_server(
         result = await async_unload_entry(mock_hass, mock_config_entry)
 
     assert result is True
-
