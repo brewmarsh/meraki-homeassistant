@@ -43,7 +43,12 @@ def _build_enriched_data(
             n["id"] for n in coordinator.data.get("networks", []) if "id" in n
         ]
 
-    scan_interval = config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    # Use the coordinator's actual update_interval to ensure frontend is in sync
+    scan_interval = (
+        int(coordinator.update_interval.total_seconds())
+        if coordinator.update_interval
+        else config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    )
     last_updated = (
         coordinator.last_successful_update.isoformat()
         if coordinator.last_successful_update

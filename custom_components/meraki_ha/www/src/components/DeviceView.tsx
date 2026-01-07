@@ -448,25 +448,25 @@ const DeviceView: React.FC<DeviceViewProps> = ({
     }
   };
 
-  // Fetch signed camera URL from Home Assistant
+  // Fetch signed camera stream URL from Home Assistant (MJPEG live stream)
   const fetchLinkedCameraUrl = async () => {
     const currentHass = hassRef.current;
     if (!currentHass || !linkedCameraId) return;
 
     setLinkedCameraLoading(true);
     try {
-      // Use Home Assistant's auth/sign_path to get a properly authenticated URL
+      // Use camera_proxy_stream for live MJPEG video (not camera_proxy which is snapshot)
       const result = (await currentHass.callWS({
         type: 'auth/sign_path',
-        path: `/api/camera_proxy/${linkedCameraId}`,
-        expires: 30, // URL valid for 30 seconds
+        path: `/api/camera_proxy_stream/${linkedCameraId}`,
+        expires: 300, // URL valid for 5 minutes for continuous streaming
       })) as { path?: string };
 
       if (result?.path) {
         setLinkedCameraUrl(result.path);
       }
     } catch (err) {
-      console.error('Failed to get signed camera URL:', err);
+      console.error('Failed to get signed camera stream URL:', err);
       setLinkedCameraUrl(null);
     } finally {
       setLinkedCameraLoading(false);

@@ -49,7 +49,11 @@ OPTIONS_SCHEMA_BASIC = vol.Schema(
             CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
         ): selector.NumberSelector(
             selector.NumberSelectorConfig(
-                min=30, max=86400, step=1, mode=selector.NumberSelectorMode.SLIDER
+                min=30,
+                max=300,
+                step=5,
+                unit_of_measurement="seconds",
+                mode=selector.NumberSelectorMode.SLIDER,
             )
         ),
         vol.Required(

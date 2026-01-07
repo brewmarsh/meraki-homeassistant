@@ -274,6 +274,12 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
         unsubscribe = await hass.connection.subscribeMessage<MerakiData>(
           (message: MerakiData) => {
             if (isSubscribed && message) {
+              console.log('[Meraki] Received data update:', {
+                last_updated: message.last_updated,
+                scan_interval: message.scan_interval,
+                networks: message.networks?.length,
+                devices: message.devices?.length,
+              });
               const processed = processData(message);
               setData(processed);
               setLoading(false);
