@@ -39,10 +39,16 @@ interface Client {
   ip?: string;
   networkId?: string;
   recentDeviceSerial?: string;
+  ssid?: string;
 }
 
 interface DashboardProps {
-  setActiveView: (view: { view: string; deviceId?: string }) => void;
+  setActiveView: (view: {
+    view: string;
+    deviceId?: string;
+    ssidNetworkId?: string;
+    ssidNumber?: number;
+  }) => void;
   data: {
     devices?: Device[];
     networks?: Network[];
@@ -82,11 +88,11 @@ const DEVICE_TYPES: {
   icon: string;
 }[] = [
   { value: 'all', label: 'All Types', icon: '📱' },
-  { value: 'switch', label: 'Switches', icon: '⚡' },
+  { value: 'switch', label: 'Switches', icon: '🔀' },
   { value: 'camera', label: 'Cameras', icon: '📹' },
   { value: 'wireless', label: 'Wireless', icon: '📶' },
-  { value: 'sensor', label: 'Sensors', icon: '🌡️' },
-  { value: 'appliance', label: 'Appliances', icon: '🔒' },
+  { value: 'sensor', label: 'Sensors', icon: '📡' },
+  { value: 'appliance', label: 'Firewalls', icon: '🛡️' },
 ];
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
@@ -100,7 +106,7 @@ const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
 const Dashboard: React.FC<DashboardProps> = ({
   setActiveView,
   data,
-  hass,
+  hass: _hass,
   defaultViewMode = 'network',
   defaultDeviceTypeFilter = 'all',
   defaultStatusFilter = 'all',
@@ -112,6 +118,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [expandedTypes, setExpandedTypes] = useState<Set<string>>(
     new Set(['switch', 'camera', 'wireless', 'sensor', 'appliance'])
   );
+  // expandedSSIDs removed - SSIDs now navigate to dedicated view
   const [deviceTypeFilter, setDeviceTypeFilter] = useState<DeviceTypeFilter>(
     (defaultDeviceTypeFilter as DeviceTypeFilter) || 'all'
   );
@@ -285,12 +292,38 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const getDeviceIcon = (device: Device): string => {
     const type = getDeviceType(device);
+    const model = device.model?.toUpperCase() || '';
+
+    // Sensor-specific icons based on model
+    if (type === 'sensor') {
+      if (
+        model.startsWith('MT10') ||
+        model.startsWith('MT11') ||
+        model.startsWith('MT15')
+      ) {
+        return '🌡️'; // Temperature sensor
+      }
+      if (model.startsWith('MT12')) {
+        return '🚪'; // Door/open-close sensor
+      }
+      if (model.startsWith('MT14')) {
+        return '💨'; // Air quality sensor
+      }
+      if (model.startsWith('MT20')) {
+        return '🔘'; // Button sensor
+      }
+      if (model.startsWith('MT30')) {
+        return '⚡'; // Power meter
+      }
+      return '📡'; // Default sensor
+    }
+
     const icons: Record<DeviceTypeFilter, string> = {
-      switch: '⚡',
-      camera: '📹',
-      wireless: '📶',
-      sensor: '🌡️',
-      appliance: '🔒',
+      switch: '🔀', // Network switch
+      camera: '📹', // Camera
+      wireless: '📶', // Wireless AP
+      sensor: '📡', // Default sensor (fallback)
+      appliance: '🛡️', // Security appliance/firewall
       all: '📱',
     };
     return icons[type];
@@ -342,25 +375,11 @@ const Dashboard: React.FC<DashboardProps> = ({
     return filteredDevices.filter((d) => d.networkId === networkId);
   };
 
-  const getSSIDsForNetwork = (networkId: string): SSID[] => {
-    return ssids.filter((s) => s.networkId === networkId);
-  };
-
   const getDevicesByType = (type: DeviceTypeFilter): Device[] => {
     return filteredDevices.filter((d) => getDeviceType(d) === type);
   };
 
-  const handleSSIDToggle = async (ssid: SSID) => {
-    if (!hass?.callService || !ssid.entity_id) return;
-
-    try {
-      await hass.callService('switch', ssid.enabled ? 'turn_off' : 'turn_on', {
-        entity_id: ssid.entity_id,
-      });
-    } catch (error) {
-      console.error('Failed to toggle SSID:', error);
-    }
-  };
+  // SSID toggle is now handled in SSIDView
 
   const renderDeviceTable = (deviceList: Device[]) => (
     <table className="device-table">
@@ -368,6 +387,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         <tr>
           <th>Device</th>
           <th>Model</th>
+          <th>Serial</th>
           <th>Status</th>
           <th>IP Address</th>
           <th>Details</th>
@@ -394,6 +414,12 @@ const Dashboard: React.FC<DashboardProps> = ({
               </div>
             </td>
             <td className="device-model">{device.model || '—'}</td>
+            <td
+              className="device-model"
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            >
+              {device.serial}
+            </td>
             <td>
               <div className={`status-badge ${device.status?.toLowerCase()}`}>
                 <div className="status-dot"></div>
@@ -411,7 +437,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         {deviceList.length === 0 && (
           <tr>
             <td
-              colSpan={5}
+              colSpan={6}
               style={{ textAlign: 'center', color: 'var(--text-muted)' }}
             >
               No devices match your filters
@@ -463,7 +489,12 @@ const Dashboard: React.FC<DashboardProps> = ({
           onClick={() => setActiveView({ view: 'clients' })}
           clickable
         />
-        <StatusCard title="Active SSIDs" value={activeSSIDs} />
+        <StatusCard
+          title="Active SSIDs"
+          value={activeSSIDs}
+          onClick={() => setActiveView({ view: 'ssids' })}
+          clickable
+        />
       </div>
 
       {/* Filters and View Toggle */}
@@ -585,7 +616,6 @@ const Dashboard: React.FC<DashboardProps> = ({
       {viewMode === 'network' &&
         networks.map((network) => {
           const networkDevices = getDevicesForNetwork(network.id);
-          const networkSSIDs = getSSIDsForNetwork(network.id);
           const onlineCount = networkDevices.filter(
             (d) => d.status?.toLowerCase() === 'online'
           ).length;
@@ -611,44 +641,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 </span>
               </div>
 
-              {isExpanded && (
-                <>
-                  {renderDeviceTable(networkDevices)}
-
-                  {/* SSID Section */}
-                  {networkSSIDs.length > 0 && (
-                    <div className="ssid-section">
-                      <h3>
-                        <span>📶</span>
-                        Wireless Networks
-                      </h3>
-                      <div className="ssid-list">
-                        {networkSSIDs.map((ssid) => (
-                          <div
-                            key={`${ssid.networkId}-${ssid.number}`}
-                            className="ssid-item"
-                          >
-                            <span className="icon">
-                              {ssid.enabled ? '🔒' : '📶'}
-                            </span>
-                            <span className="name">{ssid.name}</span>
-                            <span className="clients">— clients</span>
-                            <div
-                              className={`toggle ${
-                                ssid.enabled ? 'active' : ''
-                              }`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleSSIDToggle(ssid);
-                              }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
+              {isExpanded && renderDeviceTable(networkDevices)}
             </div>
           );
         })}

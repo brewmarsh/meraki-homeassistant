@@ -98,7 +98,10 @@ const ClientsView: React.FC<ClientsViewProps> = ({
             <h1>{selectedClient.description || selectedClient.mac}</h1>
             <div className="meta">
               <span>
-                <strong>MAC:</strong> {selectedClient.mac}
+                <strong>MAC:</strong>{' '}
+                <span style={{ fontFamily: 'monospace' }}>
+                  {selectedClient.mac}
+                </span>
               </span>
               {selectedClient.ip && (
                 <span>
@@ -110,7 +113,32 @@ const ClientsView: React.FC<ClientsViewProps> = ({
                   <strong>Manufacturer:</strong> {selectedClient.manufacturer}
                 </span>
               )}
+              {selectedClient.os && (
+                <span>
+                  <strong>OS:</strong> {selectedClient.os}
+                </span>
+              )}
+              {selectedClient.vlan && (
+                <span>
+                  <strong>VLAN:</strong> {selectedClient.vlan}
+                </span>
+              )}
+              {selectedClient.ssid && (
+                <span>
+                  <strong>SSID:</strong> {selectedClient.ssid}
+                </span>
+              )}
             </div>
+            {selectedClient.lastSeen && (
+              <div
+                className="meta"
+                style={{ marginTop: '4px', fontSize: '12px' }}
+              >
+                <span style={{ color: 'var(--text-muted)' }}>
+                  Last seen: {formatDate(selectedClient.lastSeen)}
+                </span>
+              </div>
+            )}
           </div>
           <div
             className={`status-pill ${
@@ -122,130 +150,214 @@ const ClientsView: React.FC<ClientsViewProps> = ({
           </div>
         </div>
 
-        <div className="cards-grid">
-          <div className="info-card">
-            <h3>📋 Client Information</h3>
-            <div className="info-grid">
-              <div className="info-item">
-                <div className="label">Description</div>
-                <div className="value">
-                  {selectedClient.description || '—'}
+        {/* Single comprehensive session card */}
+        <div className="info-card" style={{ marginBottom: '20px' }}>
+          <h3>📊 Session Details</h3>
+
+          {/* Usage Stats Row */}
+          {selectedClient.usage && (
+            <div
+              style={{
+                display: 'flex',
+                gap: '32px',
+                marginBottom: '20px',
+                padding: '16px',
+                background: 'var(--bg-primary)',
+                borderRadius: 'var(--radius-md)',
+              }}
+            >
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <div
+                  style={{
+                    fontSize: '12px',
+                    color: 'var(--text-muted)',
+                    marginBottom: '4px',
+                  }}
+                >
+                  UPLOADED
+                </div>
+                <div
+                  style={{
+                    fontSize: '24px',
+                    fontWeight: 600,
+                    color: 'var(--success)',
+                  }}
+                >
+                  ↑ {formatBytes(selectedClient.usage.sent)}
                 </div>
               </div>
-              <div className="info-item">
-                <div className="label">User</div>
-                <div className="value">{selectedClient.user || '—'}</div>
+              <div
+                style={{
+                  width: '1px',
+                  background: 'var(--card-border)',
+                }}
+              />
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <div
+                  style={{
+                    fontSize: '12px',
+                    color: 'var(--text-muted)',
+                    marginBottom: '4px',
+                  }}
+                >
+                  DOWNLOADED
+                </div>
+                <div
+                  style={{
+                    fontSize: '24px',
+                    fontWeight: 600,
+                    color: 'var(--primary)',
+                  }}
+                >
+                  ↓ {formatBytes(selectedClient.usage.recv)}
+                </div>
               </div>
-              <div className="info-item">
-                <div className="label">Operating System</div>
-                <div className="value">{selectedClient.os || '—'}</div>
-              </div>
-              <div className="info-item">
-                <div className="label">Manufacturer</div>
-                <div className="value">
-                  {selectedClient.manufacturer || '—'}
+              <div
+                style={{
+                  width: '1px',
+                  background: 'var(--card-border)',
+                }}
+              />
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <div
+                  style={{
+                    fontSize: '12px',
+                    color: 'var(--text-muted)',
+                    marginBottom: '4px',
+                  }}
+                >
+                  TOTAL
+                </div>
+                <div
+                  style={{
+                    fontSize: '24px',
+                    fontWeight: 600,
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  {formatBytes(
+                    selectedClient.usage.sent + selectedClient.usage.recv
+                  )}
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
-          <div className="info-card">
-            <h3>🌐 Network Information</h3>
-            <div className="info-grid">
-              <div className="info-item">
-                <div className="label">IP Address</div>
-                <div className="value mono">{selectedClient.ip || '—'}</div>
+          {/* Details Grid */}
+          <div className="info-grid">
+            {/* Connection Type */}
+            <div className="info-item">
+              <div className="label">Connection Type</div>
+              <div className="value">
+                {selectedClient.ssid ? '📶 Wireless' : '🔌 Wired'}
               </div>
+            </div>
+
+            {/* Connected Device */}
+            {(selectedClient.recentDeviceName ||
+              selectedClient.recentDeviceSerial) && (
+              <div className="info-item">
+                <div className="label">Connected To</div>
+                <div className="value">
+                  {selectedClient.recentDeviceName ||
+                    selectedClient.recentDeviceSerial}
+                  {selectedClient.switchport &&
+                    ` (Port ${selectedClient.switchport})`}
+                </div>
+              </div>
+            )}
+
+            {/* SSID for wireless */}
+            {selectedClient.ssid && (
+              <div className="info-item">
+                <div className="label">SSID</div>
+                <div className="value">{selectedClient.ssid}</div>
+              </div>
+            )}
+
+            {/* VLAN */}
+            {selectedClient.vlan && (
+              <div className="info-item">
+                <div className="label">VLAN</div>
+                <div className="value">{selectedClient.vlan}</div>
+              </div>
+            )}
+
+            {/* IPv6 if available */}
+            {selectedClient.ip6 && (
               <div className="info-item">
                 <div className="label">IPv6 Address</div>
                 <div className="value mono" style={{ fontSize: '11px' }}>
-                  {selectedClient.ip6 || '—'}
+                  {selectedClient.ip6}
                 </div>
               </div>
-              <div className="info-item">
-                <div className="label">VLAN</div>
-                <div className="value">{selectedClient.vlan || '—'}</div>
-              </div>
-              <div className="info-item">
-                <div className="label">SSID</div>
-                <div className="value">{selectedClient.ssid || '—'}</div>
-              </div>
-            </div>
-          </div>
+            )}
 
-          <div className="info-card">
-            <h3>📊 Usage Statistics</h3>
-            <div className="info-grid">
+            {/* User (802.1x) */}
+            {selectedClient.user && (
               <div className="info-item">
-                <div className="label">Data Sent</div>
-                <div className="value success">
-                  {selectedClient.usage
-                    ? formatBytes(selectedClient.usage.sent)
-                    : '—'}
-                </div>
+                <div className="label">User (802.1x)</div>
+                <div className="value">{selectedClient.user}</div>
               </div>
+            )}
+
+            {/* First Seen */}
+            {selectedClient.firstSeen && (
               <div className="info-item">
-                <div className="label">Data Received</div>
-                <div className="value primary">
-                  {selectedClient.usage
-                    ? formatBytes(selectedClient.usage.recv)
-                    : '—'}
-                </div>
-              </div>
-              <div className="info-item">
-                <div className="label">First Seen</div>
+                <div className="label">First Connected</div>
                 <div className="value">
                   {formatDate(selectedClient.firstSeen)}
                 </div>
               </div>
-              <div className="info-item">
-                <div className="label">Last Seen</div>
-                <div className="value">
-                  {formatDate(selectedClient.lastSeen)}
-                </div>
-              </div>
-            </div>
-          </div>
+            )}
 
-          <div className="info-card">
-            <h3>🔗 Connected To</h3>
-            <div className="info-grid">
+            {/* Session Duration - calculated if we have both dates */}
+            {selectedClient.firstSeen && selectedClient.lastSeen && (
               <div className="info-item">
-                <div className="label">Device</div>
+                <div className="label">Known For</div>
                 <div className="value">
-                  {selectedClient.recentDeviceName ||
-                    selectedClient.recentDeviceSerial ||
-                    '—'}
+                  {(() => {
+                    const first = new Date(selectedClient.firstSeen);
+                    const last = new Date(selectedClient.lastSeen);
+                    const days = Math.floor(
+                      (last.getTime() - first.getTime()) /
+                        (1000 * 60 * 60 * 24)
+                    );
+                    if (days > 30) return `${Math.floor(days / 30)} months`;
+                    if (days > 0) return `${days} days`;
+                    return 'Today';
+                  })()}
                 </div>
               </div>
-              <div className="info-item">
-                <div className="label">Switch Port</div>
-                <div className="value">{selectedClient.switchport || '—'}</div>
-              </div>
-            </div>
-            {selectedClient.recentDeviceSerial && (
-              <button
-                onClick={() =>
-                  setActiveView({
-                    view: 'device',
-                    deviceId: selectedClient.recentDeviceSerial,
-                  })
-                }
-                style={{
-                  marginTop: '12px',
-                  padding: '8px 16px',
-                  borderRadius: 'var(--radius-md)',
-                  border: 'none',
-                  background: 'var(--primary)',
-                  color: 'white',
-                  cursor: 'pointer',
-                  fontWeight: 500,
-                }}
-              >
-                View Device
-              </button>
             )}
           </div>
+
+          {/* View Device Button */}
+          {selectedClient.recentDeviceSerial && (
+            <button
+              onClick={() =>
+                setActiveView({
+                  view: 'device',
+                  deviceId: selectedClient.recentDeviceSerial,
+                })
+              }
+              style={{
+                marginTop: '16px',
+                padding: '10px 20px',
+                borderRadius: 'var(--radius-md)',
+                border: 'none',
+                background: 'var(--primary)',
+                color: 'white',
+                cursor: 'pointer',
+                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              🔗 View Connected Device
+            </button>
+          )}
         </div>
       </div>
     );

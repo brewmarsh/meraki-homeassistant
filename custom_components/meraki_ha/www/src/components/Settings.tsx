@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 
 interface SettingsProps {
-  hass: any; // Add hass to props
+  hass: any;
   options: Record<string, any>;
   configEntryId: string;
   onClose: () => void;
 }
 
 const Settings: React.FC<SettingsProps> = ({
-  hass, // Destructure hass from props
+  hass,
   options,
   configEntryId,
   onClose,
@@ -26,7 +26,6 @@ const Settings: React.FC<SettingsProps> = ({
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Use the hass prop directly
       if (hass) {
         await hass.callWS({
           type: 'meraki_ha/update_options',
@@ -34,7 +33,6 @@ const Settings: React.FC<SettingsProps> = ({
           options: localOptions,
         });
       } else {
-        // Fallback for dev/standalone mode
         console.log('Saving options (dev):', localOptions);
       }
     } catch (e) {
@@ -43,7 +41,6 @@ const Settings: React.FC<SettingsProps> = ({
     } finally {
       setSaving(false);
       onClose();
-      // Reload to apply changes
       window.location.reload();
     }
   };
@@ -94,7 +91,6 @@ const Settings: React.FC<SettingsProps> = ({
     },
   ];
 
-  // Sensor range options
   const handleRangeChange = (
     key: string,
     field: 'min' | 'max',
@@ -159,95 +155,255 @@ const Settings: React.FC<SettingsProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
-      <ha-card
-        class="p-6 w-full max-w-2xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-lg rounded-lg"
-        style={{ maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0, 0, 0, 0.7)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+        padding: '20px',
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: 'var(--card-bg)',
+          border: '1px solid var(--card-border)',
+          borderRadius: 'var(--radius-lg)',
+          width: '100%',
+          maxWidth: '800px',
+          maxHeight: '90vh',
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: 'var(--shadow-lg)',
+        }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className="card-header flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Integration Settings</h2>
+        {/* Header */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '20px 24px',
+            borderBottom: '1px solid var(--card-border)',
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
+            ⚙️ Integration Settings
+          </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '20px',
+              cursor: 'pointer',
+              color: 'var(--text-muted)',
+              padding: '4px 8px',
+            }}
           >
-            <ha-icon icon="mdi:close"></ha-icon>
+            ✕
           </button>
         </div>
-        <div className="card-content overflow-y-auto" style={{ flex: 1 }}>
+
+        {/* Content */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '24px',
+          }}
+        >
           {/* Entity Toggles Section */}
-          <h3 className="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300">
+          <h3
+            style={{
+              fontSize: '14px',
+              fontWeight: 600,
+              color: 'var(--text-muted)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              marginBottom: '16px',
+            }}
+          >
             Entity Settings
           </h3>
-          <div className="space-y-3 mb-6">
+          <div style={{ marginBottom: '32px' }}>
             {sections.map((section) => (
               <div
                 key={section.key}
-                className="flex items-center justify-between p-2 border-b border-gray-200 dark:border-gray-700"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 0',
+                  borderBottom: '1px solid var(--card-border)',
+                }}
               >
-                <div className="flex flex-col">
-                  <span className="font-medium">{section.label}</span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      fontWeight: 500,
+                      marginBottom: '2px',
+                      color: 'var(--text-primary)',
+                    }}
+                  >
+                    {section.label}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '12px',
+                      color: 'var(--text-muted)',
+                    }}
+                  >
                     {section.description}
-                  </span>
+                  </div>
                 </div>
-                <ha-switch
-                  checked={localOptions[section.key] !== false} // Default to true if undefined
-                  onClick={(e: any) => {
-                    e.stopPropagation();
-                    handleToggle(section.key);
+                <div
+                  onClick={() => handleToggle(section.key)}
+                  style={{
+                    width: '44px',
+                    height: '24px',
+                    borderRadius: '12px',
+                    background:
+                      localOptions[section.key] !== false
+                        ? 'var(--success)'
+                        : 'var(--bg-tertiary)',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    transition: 'background 0.2s',
+                    marginLeft: '16px',
+                    flexShrink: 0,
                   }}
-                ></ha-switch>
+                >
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '2px',
+                      left:
+                        localOptions[section.key] !== false ? '22px' : '2px',
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      background: 'white',
+                      transition: 'left 0.2s',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                    }}
+                  />
+                </div>
               </div>
             ))}
           </div>
 
           {/* Sensor Range Configuration */}
-          <h3 className="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300">
+          <h3
+            style={{
+              fontSize: '14px',
+              fontWeight: 600,
+              color: 'var(--text-muted)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              marginBottom: '8px',
+            }}
+          >
             Sensor Gauge Ranges
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          <p
+            style={{
+              fontSize: '12px',
+              color: 'var(--text-muted)',
+              marginBottom: '16px',
+            }}
+          >
             Customize the min/max values for sensor gauge displays. Leave empty
             for defaults.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '12px',
+            }}
+          >
             {sensorRanges.map((range) => {
               const currentRange =
                 localOptions.sensor_ranges?.[range.key] || {};
               return (
                 <div
                   key={range.key}
-                  className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                  style={{
+                    padding: '12px',
+                    background: 'var(--bg-secondary)',
+                    borderRadius: 'var(--radius-sm)',
+                  }}
                 >
-                  <div className="font-medium mb-2">
+                  <div
+                    style={{
+                      fontWeight: 500,
+                      marginBottom: '8px',
+                      fontSize: '13px',
+                    }}
+                  >
                     {range.label} ({range.unit})
                   </div>
-                  <div className="flex gap-3">
-                    <div className="flex-1">
-                      <label className="text-xs text-gray-500 dark:text-gray-400">
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label
+                        style={{
+                          fontSize: '10px',
+                          color: 'var(--text-muted)',
+                          textTransform: 'uppercase',
+                        }}
+                      >
                         Min
                       </label>
                       <input
                         type="number"
-                        className="w-full px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
                         placeholder={String(range.defaultMin)}
                         value={currentRange.min ?? ''}
                         onChange={(e) =>
                           handleRangeChange(range.key, 'min', e.target.value)
                         }
+                        style={{
+                          width: '100%',
+                          padding: '6px 8px',
+                          borderRadius: 'var(--radius-sm)',
+                          border: '1px solid var(--card-border)',
+                          background: 'var(--bg-primary)',
+                          color: 'var(--text-primary)',
+                          fontSize: '13px',
+                        }}
                       />
                     </div>
-                    <div className="flex-1">
-                      <label className="text-xs text-gray-500 dark:text-gray-400">
+                    <div style={{ flex: 1 }}>
+                      <label
+                        style={{
+                          fontSize: '10px',
+                          color: 'var(--text-muted)',
+                          textTransform: 'uppercase',
+                        }}
+                      >
                         Max
                       </label>
                       <input
                         type="number"
-                        className="w-full px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
                         placeholder={String(range.defaultMax)}
                         value={currentRange.max ?? ''}
                         onChange={(e) =>
                           handleRangeChange(range.key, 'max', e.target.value)
                         }
+                        style={{
+                          width: '100%',
+                          padding: '6px 8px',
+                          borderRadius: 'var(--radius-sm)',
+                          border: '1px solid var(--card-border)',
+                          background: 'var(--bg-primary)',
+                          color: 'var(--text-primary)',
+                          fontSize: '13px',
+                        }}
                       />
                     </div>
                   </div>
@@ -256,23 +412,52 @@ const Settings: React.FC<SettingsProps> = ({
             })}
           </div>
         </div>
-        <div className="card-actions flex justify-end mt-4 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+
+        {/* Footer */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '12px',
+            padding: '16px 24px',
+            borderTop: '1px solid var(--card-border)',
+          }}
+        >
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
             disabled={saving}
+            style={{
+              padding: '10px 20px',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--card-border)',
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              fontWeight: 500,
+              fontSize: '14px',
+            }}
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
             disabled={saving}
+            style={{
+              padding: '10px 20px',
+              borderRadius: 'var(--radius-md)',
+              border: 'none',
+              background: 'var(--primary)',
+              color: 'white',
+              cursor: 'pointer',
+              fontWeight: 500,
+              fontSize: '14px',
+              opacity: saving ? 0.7 : 1,
+            }}
           >
             {saving ? 'Saving...' : 'Save & Reload'}
           </button>
         </div>
-      </ha-card>
+      </div>
     </div>
   );
 };

@@ -204,16 +204,42 @@ const DeviceView: React.FC<DeviceViewProps> = ({
     const modelUpper = model.toUpperCase();
     const type = productType?.toLowerCase() || '';
 
-    if (modelUpper.startsWith('MS') || type === 'switch') return '⚡';
+    // Network switches
+    if (modelUpper.startsWith('MS') || type === 'switch') return '🔀';
+    // Cameras
     if (modelUpper.startsWith('MV') || type === 'camera') return '📹';
+    // Wireless APs
     if (modelUpper.startsWith('MR') || type === 'wireless') return '📶';
-    if (modelUpper.startsWith('MT') || type === 'sensor') return '🌡️';
+    // Sensors - different icons based on model
+    if (modelUpper.startsWith('MT') || type === 'sensor') {
+      if (
+        modelUpper.startsWith('MT10') ||
+        modelUpper.startsWith('MT11') ||
+        modelUpper.startsWith('MT15')
+      ) {
+        return '🌡️'; // Temperature sensor
+      }
+      if (modelUpper.startsWith('MT12')) {
+        return '🚪'; // Door/open-close sensor
+      }
+      if (modelUpper.startsWith('MT14')) {
+        return '💨'; // Air quality sensor
+      }
+      if (modelUpper.startsWith('MT20')) {
+        return '🔘'; // Button sensor
+      }
+      if (modelUpper.startsWith('MT30')) {
+        return '⚡'; // Power meter
+      }
+      return '📡'; // Default sensor
+    }
+    // Security appliances/firewalls
     if (
       modelUpper.startsWith('MX') ||
       modelUpper.startsWith('Z') ||
       type === 'appliance'
     )
-      return '🔒';
+      return '🛡️';
     return '📱';
   };
 
@@ -700,8 +726,8 @@ const DeviceView: React.FC<DeviceViewProps> = ({
 
       {/* Info Cards Grid */}
       <div className="cards-grid">
-        {/* Device Information card - hidden for switches and sensors since info is in header */}
-        {!isSwitch && !isSensor && (
+        {/* Device Information card - hidden for switches, sensors, and wireless since info is in header */}
+        {!isSwitch && !isSensor && !isWireless && (
           <div className="info-card">
             <div
               style={{

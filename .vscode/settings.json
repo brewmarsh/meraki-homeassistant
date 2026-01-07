@@ -23,6 +23,10 @@
   // Ruff integration (matches pyproject.toml)
   "ruff.path": ["${workspaceFolder}/.venv/bin/ruff"],
 
+  // Pylint integration - uses pyproject.toml for config
+  "pylint.path": ["${workspaceFolder}/.venv/bin/pylint"],
+  "pylint.args": ["--rcfile=${workspaceFolder}/pyproject.toml"],
+
   // Testing
   "python.testing.pytestEnabled": true,
   "python.testing.pytestPath": "${workspaceFolder}/.venv/bin/pytest",

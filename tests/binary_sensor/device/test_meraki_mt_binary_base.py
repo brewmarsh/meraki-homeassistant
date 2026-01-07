@@ -12,7 +12,6 @@ from custom_components.meraki_ha.binary_sensor.device.meraki_mt_binary_base impo
 from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.types import MerakiDevice
 
-
 MOCK_MT_DEVICE: MerakiDevice = cast(
     MerakiDevice,
     {
@@ -362,4 +361,3 @@ class TestMerakiMtBinarySensor:
         )
 
         assert sensor.is_on is True
-

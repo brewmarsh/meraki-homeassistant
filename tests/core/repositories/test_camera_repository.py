@@ -98,9 +98,7 @@ class TestCameraRepository:
         assert "vehicle_detection" in result
 
     @pytest.mark.asyncio
-    async def test_get_analytics_data_success(
-        self, mock_api_client: MagicMock
-    ) -> None:
+    async def test_get_analytics_data_success(self, mock_api_client: MagicMock) -> None:
         """Test get_analytics_data success."""
         analytics = [{"timestamp": "2024-01-01", "count": 5}]
         mock_api_client.camera.get_device_camera_analytics_recent.return_value = (
@@ -116,9 +114,7 @@ class TestCameraRepository:
         )
 
     @pytest.mark.asyncio
-    async def test_get_analytics_data_error(
-        self, mock_api_client: MagicMock
-    ) -> None:
+    async def test_get_analytics_data_error(self, mock_api_client: MagicMock) -> None:
         """Test get_analytics_data handles errors."""
         mock_api_client.camera.get_device_camera_analytics_recent.side_effect = (
             Exception("API Error")
@@ -302,9 +298,7 @@ class TestCameraRepository:
         assert result == []
 
     @pytest.mark.asyncio
-    async def test_generate_snapshot_success(
-        self, mock_api_client: MagicMock
-    ) -> None:
+    async def test_generate_snapshot_success(self, mock_api_client: MagicMock) -> None:
         """Test generate_snapshot success."""
         mock_api_client.camera.generate_device_camera_snapshot.return_value = {
             "url": "https://snapshot.meraki.com/image.jpg"
@@ -316,9 +310,7 @@ class TestCameraRepository:
         assert result == "https://snapshot.meraki.com/image.jpg"
 
     @pytest.mark.asyncio
-    async def test_generate_snapshot_error(
-        self, mock_api_client: MagicMock
-    ) -> None:
+    async def test_generate_snapshot_error(self, mock_api_client: MagicMock) -> None:
         """Test generate_snapshot handles errors."""
         mock_api_client.camera.generate_device_camera_snapshot.side_effect = Exception(
             "API Error"
@@ -343,9 +335,7 @@ class TestCameraRepository:
         )
 
     @pytest.mark.asyncio
-    async def test_set_rtsp_stream_disabled(
-        self, mock_api_client: MagicMock
-    ) -> None:
+    async def test_set_rtsp_stream_disabled(self, mock_api_client: MagicMock) -> None:
         """Test set_rtsp_stream_enabled to disable."""
         repo = CameraRepository(mock_api_client, "org_123")
 
@@ -367,4 +357,3 @@ class TestCameraRepository:
 
         # Should not raise, just log error
         await repo.set_rtsp_stream_enabled("CAM-1234", True)
-

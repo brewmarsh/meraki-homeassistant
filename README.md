@@ -18,8 +18,11 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
 - [Web UI Dashboard](#web-ui-dashboard)
   - [Dashboard Views](#dashboard-views)
   - [Switch Port Visualization](#switch-port-visualization)
+  - [Wireless AP Details](#wireless-ap-details)
+  - [SSID Management](#ssid-management)
   - [Camera Linking (NVR Integration)](#camera-linking-nvr-integration)
   - [Connected Clients](#connected-clients)
+  - [Settings Panel](#settings-panel)
 - [Entities](#entities)
 - [Services & Controls](#services--controls)
 - [Troubleshooting](#troubleshooting)
@@ -27,13 +30,69 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
 
 ## Screenshots
 
-|                  Dashboard View                   |                    Switch Detail View                     |
-| :-----------------------------------------------: | :-------------------------------------------------------: |
-| ![Dashboard View](docs/images/dashboard_view.png) | ![Switch Detail View](docs/images/switch_detail_view.png) |
+<details open>
+<summary><strong>📊 Dashboard View</strong></summary>
+<p align="center">
+  <img src="docs/images/dashboard_view.png" alt="Dashboard View" width="800">
+</p>
+<p><em>Main dashboard showing device overview organized by network with status indicators, filtering options, and quick stats.</em></p>
+</details>
 
-|                    Sensor Detail View                     |                 Clients View                  |
-| :-------------------------------------------------------: | :-------------------------------------------: |
-| ![Sensor Detail View](docs/images/sensor_detail_view.png) | ![Clients View](docs/images/clients_view.png) |
+<details>
+<summary><strong>🔀 Switch Port Visualization</strong></summary>
+<p align="center">
+  <img src="docs/images/switch_detail_view.png" alt="Switch Detail View" width="800">
+</p>
+<p><em>Interactive switch port diagram with PoE indicators, LLDP/CDP neighbor discovery, and per-port traffic statistics.</em></p>
+</details>
+
+<details>
+<summary><strong>📶 Wireless AP Details</strong></summary>
+<p align="center">
+  <img src="docs/images/ap_detail_view.png" alt="AP Detail View" width="800">
+</p>
+<p><em>Access point view showing BSS details per radio, connected clients, and SSID broadcasting status.</em></p>
+</details>
+
+<details>
+<summary><strong>🌡️ Sensor Gauges</strong></summary>
+<p align="center">
+  <img src="docs/images/sensor_detail_view.png" alt="Sensor Detail View" width="700">
+</p>
+<p><em>Environmental sensor display with temperature (°F) and humidity gauges, battery status, and customizable ranges.</em></p>
+</details>
+
+<details>
+<summary><strong>📡 SSID Management</strong></summary>
+<p align="center">
+  <img src="docs/images/ssid_view.png" alt="SSID View" width="800">
+</p>
+<p><em>SSID detail view with enable/disable toggle, traffic statistics, and connected client list.</em></p>
+</details>
+
+<details>
+<summary><strong>⚙️ Settings Panel</strong></summary>
+<p align="center">
+  <img src="docs/images/settings_view.png" alt="Settings View" width="700">
+</p>
+<p><em>Integration settings with entity toggles and customizable sensor gauge ranges.</em></p>
+</details>
+
+<details>
+<summary><strong>👥 Connected Clients</strong></summary>
+<p align="center">
+  <img src="docs/images/clients_view.png" alt="Clients View" width="800">
+</p>
+<p><em>Searchable client list with manufacturer, OS, connection type, and usage statistics.</em></p>
+</details>
+
+<details>
+<summary><strong>👤 Client Details</strong></summary>
+<p align="center">
+  <img src="docs/images/client_detail_view.png" alt="Client Detail View" width="800">
+</p>
+<p><em>Individual client view showing session details, bandwidth usage, and connected device information.</em></p>
+</details>
 
 ## Key Features
 
@@ -144,6 +203,27 @@ For Meraki switches, the device detail view includes an interactive port visuali
   - PoE power consumption
   - LLDP/CDP neighbor discovery data
 
+### Wireless AP Details
+
+For Meraki wireless access points (MR series), the device detail view shows:
+
+- **Connected Clients:** Real-time count of clients connected to this AP
+- **Active SSIDs:** Number of SSIDs currently broadcasting from this AP
+- **Device Information:** LAN IP, MAC address, and firmware version
+- **BSS Details:** Per-radio SSID information including channel, channel width, and power settings
+- **Client List:** Table of connected clients showing name, IP, manufacturer, and which SSID they're on
+
+### SSID Management
+
+The dashboard's Wireless Networks section allows you to manage your SSIDs directly:
+
+- **Quick Toggle:** Enable or disable SSIDs with a single click
+- **SSID Details:** Expand any SSID to see:
+  - SSID number and enabled status
+  - Connected client count
+  - List of connected devices with links to device details
+- **Real-time Updates:** Changes take effect immediately via the Meraki API
+
 ### Camera Linking (NVR Integration)
 
 **Why this feature exists:** Meraki cameras only support **one RTSP destination** at a time. If your RTSP stream goes to a local NVR (like Blue Iris, Frigate, or Synology Surveillance Station), you cannot also stream directly to Home Assistant.
@@ -164,6 +244,18 @@ Click on the **Connected Clients** stat card to view all clients on your network
 - **Search:** Filter by name, MAC, IP, manufacturer, or OS
 - **Client Details:** Click any client to see detailed information including usage stats, connection history, and the device they're connected to
 - **Navigation:** Click through to view the device a client is connected to
+
+### Settings Panel
+
+Click the **Settings** button in the top-right corner to access the Integration Settings:
+
+- **Entity Settings:** Toggle which entity types to create:
+  - Device & Entity Model, Organization-Wide Sensors, Camera Entities
+  - Physical Device Sensors, Network Sensors, VLAN Sensors
+  - Appliance Port Sensors, SSID Sensors
+- **Sensor Gauge Ranges:** Customize min/max values for gauge displays:
+  - Temperature (°F), Humidity (%), CO₂ (ppm)
+  - TVOC (ppb), PM2.5 (µg/m³), Noise (dB)
 
 ## Entities
 

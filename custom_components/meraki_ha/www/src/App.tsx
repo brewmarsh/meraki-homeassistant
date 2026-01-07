@@ -10,6 +10,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Dashboard from './components/Dashboard';
 import DeviceView from './components/DeviceView';
 import ClientsView from './components/ClientsView';
+import SSIDsListView from './components/SSIDsListView';
+import SSIDView from './components/SSIDView';
 import Settings from './components/Settings';
 import { useHaTheme } from './hooks/useHaTheme';
 import type { HomeAssistant, PanelInfo, RouteInfo } from './types/hass';
@@ -225,6 +227,8 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
   const [activeView, setActiveView] = useState<{
     view: string;
     deviceId?: string;
+    ssidNetworkId?: string;
+    ssidNumber?: number;
   }>({ view: 'dashboard' });
   const [showSettings, setShowSettings] = useState<boolean>(false);
 
@@ -378,6 +382,59 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
             }}
           />
         );
+      case 'ssids':
+        return (
+          <SSIDsListView
+            ssids={data.ssids || []}
+            clients={data.clients || []}
+            networks={data.networks || []}
+            onBack={() => setActiveView({ view: 'dashboard' })}
+            onSSIDClick={(ssid) =>
+              setActiveView({
+                view: 'ssid',
+                ssidNetworkId: ssid.networkId,
+                ssidNumber: ssid.number,
+              })
+            }
+          />
+        );
+      case 'ssid': {
+        // Find the SSID from data
+        const selectedSSID = data.ssids?.find(
+          (s) =>
+            s.networkId === activeView.ssidNetworkId &&
+            s.number === activeView.ssidNumber
+        );
+        if (!selectedSSID) {
+          return (
+            <div className="error-container">
+              <span className="error-icon">⚠️</span>
+              <p>SSID not found</p>
+              <button
+                onClick={() => setActiveView({ view: 'ssids' })}
+                className="retry-button"
+              >
+                Back to SSIDs
+              </button>
+            </div>
+          );
+        }
+        const ssidNetwork = data.networks?.find(
+          (n) => n.id === selectedSSID.networkId
+        );
+        return (
+          <SSIDView
+            ssid={selectedSSID}
+            clients={data.clients || []}
+            network={ssidNetwork}
+            hass={hass}
+            onBack={() => setActiveView({ view: 'ssids' })}
+            onClientClick={(clientId) =>
+              setActiveView({ view: 'clients', deviceId: clientId })
+            }
+          />
+        );
+      }
       default:
         return (
           <Dashboard

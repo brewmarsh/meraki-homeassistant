@@ -60,7 +60,7 @@ def is_meraki_entity(entity_id: str) -> bool:
 
 def find_orphaned_entities(states: list[dict]) -> dict[str, list[dict]]:
     """Find orphaned Meraki entities."""
-    orphaned = {
+    orphaned: dict[str, list[dict]] = {
         "restored": [],  # Entities with restored: true
         "unavailable": [],  # Unavailable Meraki entities
     }

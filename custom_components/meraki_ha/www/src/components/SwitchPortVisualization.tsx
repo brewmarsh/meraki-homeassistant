@@ -184,62 +184,100 @@ const SwitchPortVisualization: React.FC<SwitchPortVisualizationProps> = ({
             </div>
           )}
 
-          {/* Client Info */}
-          {isConnected(selectedPort) && selectedPort.clientName && (
-            <div className="client-info">
-              <div className="client-avatar">💻</div>
-              <div className="client-details">
-                <div className="name">{selectedPort.clientName}</div>
-                <div className="mac">
-                  {selectedPort.clientMac || 'Unknown MAC'}
+          {/* Client Info - show for connected ports with any client data */}
+          {isConnected(selectedPort) &&
+            (selectedPort.clientName ||
+              selectedPort.clientMac ||
+              (selectedPort.clientCount && selectedPort.clientCount > 0)) && (
+              <div className="client-info">
+                <div className="client-avatar">💻</div>
+                <div className="client-details">
+                  <div className="name">
+                    {selectedPort.clientName ||
+                      (selectedPort.clientCount && selectedPort.clientCount > 1
+                        ? `${selectedPort.clientCount} clients`
+                        : 'Connected Device')}
+                  </div>
+                  {selectedPort.clientMac && (
+                    <div className="mac">{selectedPort.clientMac}</div>
+                  )}
                 </div>
               </div>
+            )}
+
+          {/* Port Stats - only show fields with data */}
+          <div className="port-stats">
+            {selectedPort.vlan != null && (
+              <div className="port-stat">
+                <div className="label">VLAN</div>
+                <div className="value">{selectedPort.vlan}</div>
+              </div>
+            )}
+            {selectedPort.speed && (
+              <div className="port-stat">
+                <div className="label">Speed</div>
+                <div className="value">{selectedPort.speed}</div>
+              </div>
+            )}
+            {selectedPort.duplex && (
+              <div className="port-stat">
+                <div className="label">Duplex</div>
+                <div className="value">{selectedPort.duplex}</div>
+              </div>
+            )}
+            {selectedPort.clientCount != null &&
+              selectedPort.clientCount > 0 && (
+                <div className="port-stat">
+                  <div className="label">Clients</div>
+                  <div className="value">{selectedPort.clientCount}</div>
+                </div>
+              )}
+            {selectedPort.trafficInKbps?.total != null && (
+              <div className="port-stat">
+                <div className="label">Live Traffic</div>
+                <div className="value">
+                  {formatKbps(selectedPort.trafficInKbps.total)}
+                </div>
+              </div>
+            )}
+            {selectedPort.usageInKb?.total != null && (
+              <div className="port-stat">
+                <div className="label">Total Usage</div>
+                <div className="value">
+                  {formatBytes(selectedPort.usageInKb.total)}
+                </div>
+              </div>
+            )}
+            {hasPoe(selectedPort) && (
+              <div className="port-stat">
+                <div className="label">PoE Energy</div>
+                <div className="value" style={{ color: 'var(--warning)' }}>
+                  {selectedPort.powerUsageInWh != null
+                    ? `${selectedPort.powerUsageInWh.toFixed(1)} Wh`
+                    : 'Active'}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Message for disconnected ports */}
+          {!isConnected(selectedPort) && (
+            <div
+              style={{
+                padding: '16px',
+                background: 'var(--bg-primary)',
+                borderRadius: 'var(--radius-sm)',
+                textAlign: 'center',
+                color: 'var(--text-muted)',
+                fontSize: '14px',
+                marginTop: '8px',
+              }}
+            >
+              {selectedPort.enabled === false
+                ? '🔒 Port is disabled'
+                : '📴 No device connected to this port'}
             </div>
           )}
-
-          {/* Port Stats */}
-          <div className="port-stats">
-            <div className="port-stat">
-              <div className="label">Speed</div>
-              <div className="value">{selectedPort.speed || '—'}</div>
-            </div>
-            <div className="port-stat">
-              <div className="label">Duplex</div>
-              <div className="value">{selectedPort.duplex || '—'}</div>
-            </div>
-            <div className="port-stat">
-              <div className="label">Live Traffic</div>
-              <div className="value">
-                {selectedPort.trafficInKbps?.total != null
-                  ? formatKbps(selectedPort.trafficInKbps.total)
-                  : '—'}
-              </div>
-            </div>
-            <div className="port-stat">
-              <div className="label">Total Usage</div>
-              <div className="value">
-                {selectedPort.usageInKb?.total != null
-                  ? formatBytes(selectedPort.usageInKb.total)
-                  : '—'}
-              </div>
-            </div>
-            <div className="port-stat">
-              <div className="label">PoE Energy</div>
-              <div className="value" style={{ color: 'var(--warning)' }}>
-                {selectedPort.powerUsageInWh != null
-                  ? `${selectedPort.powerUsageInWh.toFixed(1)} Wh`
-                  : '—'}
-              </div>
-            </div>
-            <div className="port-stat">
-              <div className="label">VLAN</div>
-              <div className="value">{selectedPort.vlan || '—'}</div>
-            </div>
-            <div className="port-stat">
-              <div className="label">Clients</div>
-              <div className="value">{selectedPort.clientCount ?? '—'}</div>
-            </div>
-          </div>
 
           {/* LLDP/CDP Neighbor Info */}
           {(selectedPort.lldp?.systemName || selectedPort.cdp?.deviceId) && (

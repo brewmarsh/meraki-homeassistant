@@ -17,6 +17,7 @@ dev = [
     "pip-audit==2.7.3",
     "bandit[toml]==1.7.9",
     "mypy==1.11.0",
+    "pylint>=3.0.0",
     "voluptuous==0.15.2",
     "pyyaml==6.0.3",
     "playwright",
@@ -59,6 +60,20 @@ select = [
     "UP", # pyupgrade
 ]
 ignore = ["D100", "D104", "D107", "D211", "D212"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "F811",  # Redefinition of unused name (fixtures)
+]
+
+[tool.pylint.messages_control]
+disable = [
+    "redefined-outer-name",  # W0621 - Expected for pytest fixtures
+    "protected-access",      # W0212 - Tests often need to access protected members
+]
+
+[tool.pylint.main]
+ignore-patterns = ["test_.*\\.py"]
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 

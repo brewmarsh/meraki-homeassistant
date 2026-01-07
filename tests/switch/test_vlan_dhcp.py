@@ -1,5 +1,7 @@
 """Tests for the VLAN DHCP switch module."""
 
+# mypy: disable-error-code="method-assign"
+
 from typing import cast
 from unittest.mock import AsyncMock, MagicMock
 

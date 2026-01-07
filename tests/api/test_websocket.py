@@ -1,5 +1,7 @@
 """Tests for the WebSocket API module."""
 
+# mypy: disable-error-code="assignment"
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -125,4 +127,3 @@ class TestWsSubscribeMerakiData:
 
         # Verify cancel function is stored in subscriptions
         assert mock_connection.subscriptions[1] is cancel_func
-

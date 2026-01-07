@@ -35,7 +35,7 @@ MOCK_DATA = {
     "dashboard_view_mode": "network",
     "dashboard_device_type_filter": "all",
     "dashboard_status_filter": "all",
-    "temperature_unit": "celsius",
+    "temperature_unit": "fahrenheit",
     "networks": [
         {
             "id": "N_12345",
@@ -528,7 +528,7 @@ def generate_screenshots() -> None:
 
             # Screenshot 1: Dashboard View
             print("Capturing Dashboard view...")
-            page = browser.new_page(viewport={"width": 1280, "height": 900})
+            page = browser.new_page(viewport={"width": 1400, "height": 1000})
             page.goto(f"http://localhost:{TEST_PORT}/screenshot.html")
 
             # Wait for panel to be ready
@@ -538,12 +538,27 @@ def generate_screenshots() -> None:
             page.screenshot(path=str(SCREENSHOT_DIR / "dashboard_view.png"))
             print(f"  Saved: {SCREENSHOT_DIR / 'dashboard_view.png'}")
 
-            # Screenshot 2: Switch Detail View
+            # Screenshot 2: Settings View
+            print("Capturing Settings view...")
+            # Click on the Settings button
+            page.click("button:has-text('Settings')")
+            page.wait_for_timeout(1500)
+            # Set larger viewport to capture the full modal
+            page.set_viewport_size({"width": 1000, "height": 1400})
+            page.wait_for_timeout(500)
+            page.screenshot(path=str(SCREENSHOT_DIR / "settings_view.png"))
+            print(f"  Saved: {SCREENSHOT_DIR / 'settings_view.png'}")
+
+            # Close settings modal by clicking Cancel button
+            page.click("text=Cancel")
+            page.wait_for_timeout(500)
+
+            # Screenshot 3: Switch Detail View
             print("Capturing Switch detail view...")
             # Click on the switch device to open detail view
             page.click("text=Office Switch 1")
             page.wait_for_timeout(1500)
-            page.set_viewport_size({"width": 1280, "height": 1100})
+            page.set_viewport_size({"width": 1400, "height": 1300})
             page.screenshot(path=str(SCREENSHOT_DIR / "switch_detail_view.png"))
             print(f"  Saved: {SCREENSHOT_DIR / 'switch_detail_view.png'}")
 
@@ -555,7 +570,7 @@ def generate_screenshots() -> None:
                 f"  Updated: {SCREENSHOT_DIR / 'switch_detail_view.png'} (with port details)"
             )
 
-            # Screenshot 3: Sensor Detail View
+            # Screenshot 4: Sensor Detail View
             print("Capturing Sensor detail view...")
             # Go back to dashboard
             page.click("text=Back to Dashboard")
@@ -563,11 +578,23 @@ def generate_screenshots() -> None:
             # Click on the sensor device
             page.click("text=Server Room Sensor")
             page.wait_for_timeout(1500)
-            page.set_viewport_size({"width": 1100, "height": 900})
+            page.set_viewport_size({"width": 1200, "height": 1000})
             page.screenshot(path=str(SCREENSHOT_DIR / "sensor_detail_view.png"))
             print(f"  Saved: {SCREENSHOT_DIR / 'sensor_detail_view.png'}")
 
-            # Screenshot 4: Clients View
+            # Screenshot 5: AP Detail View
+            print("Capturing AP detail view...")
+            # Go back to dashboard
+            page.click("text=Back to Dashboard")
+            page.wait_for_timeout(1000)
+            # Click on the AP device
+            page.click("text=Lobby AP")
+            page.wait_for_timeout(1500)
+            page.set_viewport_size({"width": 1400, "height": 1200})
+            page.screenshot(path=str(SCREENSHOT_DIR / "ap_detail_view.png"))
+            print(f"  Saved: {SCREENSHOT_DIR / 'ap_detail_view.png'}")
+
+            # Screenshot 6: Clients View
             print("Capturing Clients view...")
             # Go back to dashboard
             page.click("text=Back to Dashboard")
@@ -575,9 +602,37 @@ def generate_screenshots() -> None:
             # Click on "Connected Clients" stat card
             page.click("text=Connected Clients")
             page.wait_for_timeout(1500)
-            page.set_viewport_size({"width": 1280, "height": 900})
+            page.set_viewport_size({"width": 1400, "height": 1000})
             page.screenshot(path=str(SCREENSHOT_DIR / "clients_view.png"))
             print(f"  Saved: {SCREENSHOT_DIR / 'clients_view.png'}")
+
+            # Screenshot 7: Client Detail View
+            print("Capturing Client detail view...")
+            # Click on a client to show details
+            page.click("text=John's MacBook Pro")
+            page.wait_for_timeout(1500)
+            page.set_viewport_size({"width": 1400, "height": 1100})
+            page.screenshot(path=str(SCREENSHOT_DIR / "client_detail_view.png"))
+            print(f"  Saved: {SCREENSHOT_DIR / 'client_detail_view.png'}")
+
+            # Screenshot 8: SSID View
+            print("Capturing SSID view...")
+            # Go back to clients view first
+            page.click("text=Back to Clients")
+            page.wait_for_timeout(500)
+            # Then back to dashboard
+            page.click("text=Back to Dashboard")
+            page.wait_for_timeout(1500)
+            # Set viewport
+            page.set_viewport_size({"width": 1400, "height": 1000})
+            # Click on "Active SSIDs" stat card to go to SSID view
+            page.click("text=Active SSIDs")
+            page.wait_for_timeout(1500)
+            # Click on Corporate WiFi to expand its details
+            page.click("text=Corporate WiFi")
+            page.wait_for_timeout(1000)
+            page.screenshot(path=str(SCREENSHOT_DIR / "ssid_view.png"))
+            print(f"  Saved: {SCREENSHOT_DIR / 'ssid_view.png'}")
 
             browser.close()
 
