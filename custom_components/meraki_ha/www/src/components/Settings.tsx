@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface SettingsProps {
   hass: any;
@@ -6,6 +6,10 @@ interface SettingsProps {
   configEntryId: string;
   onClose: () => void;
 }
+
+type ThemeMode = 'auto' | 'dark' | 'light';
+
+const THEME_STORAGE_KEY = 'meraki_ha_theme_mode';
 
 const Settings: React.FC<SettingsProps> = ({
   hass,
@@ -15,6 +19,24 @@ const Settings: React.FC<SettingsProps> = ({
 }) => {
   const [localOptions, setLocalOptions] = useState(options);
   const [saving, setSaving] = useState(false);
+  const [themeMode, setThemeMode] = useState<ThemeMode>('auto');
+
+  // Load theme preference from localStorage on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as ThemeMode;
+    if (savedTheme && ['auto', 'dark', 'light'].includes(savedTheme)) {
+      setThemeMode(savedTheme);
+    }
+  }, []);
+
+  const handleThemeModeChange = (mode: ThemeMode) => {
+    setThemeMode(mode);
+    localStorage.setItem(THEME_STORAGE_KEY, mode);
+    // Dispatch event so the theme hook can react immediately
+    window.dispatchEvent(
+      new CustomEvent('meraki-theme-change', { detail: mode })
+    );
+  };
 
   const handleToggle = (key: string) => {
     setLocalOptions((prev) => ({
@@ -155,211 +177,89 @@ const Settings: React.FC<SettingsProps> = ({
   ];
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0, 0, 0, 0.7)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        padding: '20px',
-      }}
-      onClick={onClose}
-    >
-      <div
-        style={{
-          background: 'var(--card-bg)',
-          border: '1px solid var(--card-border)',
-          borderRadius: 'var(--radius-lg)',
-          width: '100%',
-          maxWidth: '800px',
-          maxHeight: '90vh',
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: 'var(--shadow-lg)',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="settings-overlay" onClick={onClose}>
+      <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '20px 24px',
-            borderBottom: '1px solid var(--card-border)',
-          }}
-        >
-          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
-            ⚙️ Integration Settings
-          </h2>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '20px',
-              cursor: 'pointer',
-              color: 'var(--text-muted)',
-              padding: '4px 8px',
-            }}
-          >
+        <div className="settings-header">
+          <h2>⚙️ Integration Settings</h2>
+          <button className="settings-close-btn" onClick={onClose}>
             ✕
           </button>
         </div>
 
         {/* Content */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '24px',
-          }}
-        >
+        <div className="settings-content">
+          {/* Theme Mode Section */}
+          <h3 className="section-label">Appearance</h3>
+          <div className="settings-section">
+            <div className="settings-row">
+              <div className="settings-row-info">
+                <div className="settings-row-label">Theme Mode</div>
+                <div className="settings-row-description">
+                  Choose dark, light, or auto-detect from Home Assistant theme.
+                </div>
+              </div>
+              <div className="theme-toggle-group">
+                {(['auto', 'dark', 'light'] as ThemeMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => handleThemeModeChange(mode)}
+                    className={`theme-toggle-btn ${
+                      themeMode === mode ? 'active' : ''
+                    }`}
+                  >
+                    {mode === 'auto'
+                      ? '🔄 Auto'
+                      : mode === 'dark'
+                      ? '🌙 Dark'
+                      : '☀️ Light'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* Entity Toggles Section */}
-          <h3
-            style={{
-              fontSize: '14px',
-              fontWeight: 600,
-              color: 'var(--text-muted)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              marginBottom: '16px',
-            }}
-          >
-            Entity Settings
-          </h3>
-          <div style={{ marginBottom: '32px' }}>
+          <h3 className="section-label">Entity Settings</h3>
+          <div className="settings-section">
             {sections.map((section) => (
-              <div
-                key={section.key}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '12px 0',
-                  borderBottom: '1px solid var(--card-border)',
-                }}
-              >
-                <div style={{ flex: 1 }}>
-                  <div
-                    style={{
-                      fontWeight: 500,
-                      marginBottom: '2px',
-                      color: 'var(--text-primary)',
-                    }}
-                  >
-                    {section.label}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '12px',
-                      color: 'var(--text-muted)',
-                    }}
-                  >
+              <div key={section.key} className="settings-row">
+                <div className="settings-row-info">
+                  <div className="settings-row-label">{section.label}</div>
+                  <div className="settings-row-description">
                     {section.description}
                   </div>
                 </div>
                 <div
+                  className={`toggle-switch ${
+                    localOptions[section.key] !== false ? 'on' : 'off'
+                  }`}
                   onClick={() => handleToggle(section.key)}
-                  style={{
-                    width: '44px',
-                    height: '24px',
-                    borderRadius: '12px',
-                    background:
-                      localOptions[section.key] !== false
-                        ? 'var(--success)'
-                        : 'var(--bg-tertiary)',
-                    cursor: 'pointer',
-                    position: 'relative',
-                    transition: 'background 0.2s',
-                    marginLeft: '16px',
-                    flexShrink: 0,
-                  }}
                 >
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '2px',
-                      left:
-                        localOptions[section.key] !== false ? '22px' : '2px',
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '50%',
-                      background: 'white',
-                      transition: 'left 0.2s',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-                    }}
-                  />
+                  <div className="toggle-knob" />
                 </div>
               </div>
             ))}
           </div>
 
           {/* Sensor Range Configuration */}
-          <h3
-            style={{
-              fontSize: '14px',
-              fontWeight: 600,
-              color: 'var(--text-muted)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              marginBottom: '8px',
-            }}
-          >
-            Sensor Gauge Ranges
-          </h3>
-          <p
-            style={{
-              fontSize: '12px',
-              color: 'var(--text-muted)',
-              marginBottom: '16px',
-            }}
-          >
+          <h3 className="section-label">Sensor Gauge Ranges</h3>
+          <p className="description">
             Customize the min/max values for sensor gauge displays. Leave empty
             for defaults.
           </p>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '12px',
-            }}
-          >
+          <div className="sensor-ranges-grid">
             {sensorRanges.map((range) => {
               const currentRange =
                 localOptions.sensor_ranges?.[range.key] || {};
               return (
-                <div
-                  key={range.key}
-                  style={{
-                    padding: '12px',
-                    background: 'var(--bg-secondary)',
-                    borderRadius: 'var(--radius-sm)',
-                  }}
-                >
-                  <div
-                    style={{
-                      fontWeight: 500,
-                      marginBottom: '8px',
-                      fontSize: '13px',
-                    }}
-                  >
+                <div key={range.key} className="sensor-range-card">
+                  <div className="sensor-range-label">
                     {range.label} ({range.unit})
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <div style={{ flex: 1 }}>
-                      <label
-                        style={{
-                          fontSize: '10px',
-                          color: 'var(--text-muted)',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        Min
-                      </label>
+                  <div className="sensor-range-inputs">
+                    <div className="sensor-range-input">
+                      <label className="field-label">Min</label>
                       <input
                         type="number"
                         placeholder={String(range.defaultMin)}
@@ -367,27 +267,10 @@ const Settings: React.FC<SettingsProps> = ({
                         onChange={(e) =>
                           handleRangeChange(range.key, 'min', e.target.value)
                         }
-                        style={{
-                          width: '100%',
-                          padding: '6px 8px',
-                          borderRadius: 'var(--radius-sm)',
-                          border: '1px solid var(--card-border)',
-                          background: 'var(--bg-primary)',
-                          color: 'var(--text-primary)',
-                          fontSize: '13px',
-                        }}
                       />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <label
-                        style={{
-                          fontSize: '10px',
-                          color: 'var(--text-muted)',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        Max
-                      </label>
+                    <div className="sensor-range-input">
+                      <label className="field-label">Max</label>
                       <input
                         type="number"
                         placeholder={String(range.defaultMax)}
@@ -395,15 +278,6 @@ const Settings: React.FC<SettingsProps> = ({
                         onChange={(e) =>
                           handleRangeChange(range.key, 'max', e.target.value)
                         }
-                        style={{
-                          width: '100%',
-                          padding: '6px 8px',
-                          borderRadius: 'var(--radius-sm)',
-                          border: '1px solid var(--card-border)',
-                          background: 'var(--bg-primary)',
-                          color: 'var(--text-primary)',
-                          fontSize: '13px',
-                        }}
                       />
                     </div>
                   </div>
@@ -414,45 +288,18 @@ const Settings: React.FC<SettingsProps> = ({
         </div>
 
         {/* Footer */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: '12px',
-            padding: '16px 24px',
-            borderTop: '1px solid var(--card-border)',
-          }}
-        >
+        <div className="settings-footer">
           <button
+            className="btn btn-secondary"
             onClick={onClose}
             disabled={saving}
-            style={{
-              padding: '10px 20px',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--card-border)',
-              background: 'var(--bg-secondary)',
-              color: 'var(--text-primary)',
-              cursor: 'pointer',
-              fontWeight: 500,
-              fontSize: '14px',
-            }}
           >
             Cancel
           </button>
           <button
+            className="btn btn-primary"
             onClick={handleSave}
             disabled={saving}
-            style={{
-              padding: '10px 20px',
-              borderRadius: 'var(--radius-md)',
-              border: 'none',
-              background: 'var(--primary)',
-              color: 'white',
-              cursor: 'pointer',
-              fontWeight: 500,
-              fontSize: '14px',
-              opacity: saving ? 0.7 : 1,
-            }}
           >
             {saving ? 'Saving...' : 'Save & Reload'}
           </button>

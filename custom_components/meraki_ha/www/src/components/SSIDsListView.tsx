@@ -65,36 +65,20 @@ const SSIDsListView: React.FC<SSIDsListViewProps> = ({
   return (
     <div className="ssids-list-view">
       {/* Header */}
-      <div
-        className="view-header"
-        style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}
-      >
+      <div className="view-header">
         <button className="back-button" onClick={onBack}>
           ← Back
         </button>
-        <div style={{ flex: 1, marginLeft: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '24px' }}>📶</span>
+        <div className="view-header-content">
+          <div className="view-header-title">
+            <span className="view-header-icon">📶</span>
             <div>
-              <h2 style={{ margin: 0, fontSize: '20px' }}>
-                Wireless Networks
-              </h2>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  marginTop: '4px',
-                  color: 'var(--text-muted)',
-                  fontSize: '13px',
-                }}
-              >
+              <h2>Wireless Networks</h2>
+              <div className="meta-info view-header-stats">
                 <span>{ssids.length} SSIDs</span>
-                <span>•</span>
-                <span style={{ color: 'var(--success)' }}>
-                  {enabledCount} active
-                </span>
-                <span>•</span>
+                <span className="separator">•</span>
+                <span className="text-success">{enabledCount} active</span>
+                <span className="separator">•</span>
                 <span>{totalClients} connected clients</span>
               </div>
             </div>
@@ -104,24 +88,18 @@ const SSIDsListView: React.FC<SSIDsListViewProps> = ({
 
       {/* SSIDs by Network */}
       {Object.entries(ssidsByNetwork).map(([networkId, networkSSIDs]) => (
-        <div key={networkId} className="card" style={{ marginBottom: '16px' }}>
+        <div key={networkId} className="card ssid-network-card">
           <div className="card-header">
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3>
               <span>🌐</span>
               {getNetworkName(networkId)}
-              <span
-                style={{
-                  fontSize: '12px',
-                  color: 'var(--text-muted)',
-                  fontWeight: 400,
-                }}
-              >
+              <span className="text-muted ssid-count">
                 ({networkSSIDs.length} SSIDs)
               </span>
             </h3>
           </div>
-          <div className="card-content" style={{ padding: 0 }}>
-            <table className="device-table" style={{ width: '100%' }}>
+          <div className="card-content">
+            <table className="device-table">
               <thead>
                 <tr>
                   <th>SSID</th>
@@ -138,84 +116,41 @@ const SSIDsListView: React.FC<SSIDsListViewProps> = ({
                     <tr
                       key={`${ssid.networkId}-${ssid.number}`}
                       onClick={() => onSSIDClick(ssid)}
-                      style={{ cursor: 'pointer' }}
+                      className="device-row"
                     >
                       <td>
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                          }}
-                        >
-                          <span style={{ fontSize: '18px' }}>
+                        <div className="ssid-name-cell">
+                          <span className="ssid-icon">
                             {ssid.enabled ? '🔒' : '📶'}
                           </span>
-                          <span style={{ fontWeight: 500 }}>{ssid.name}</span>
+                          <span className="ssid-name">{ssid.name}</span>
                         </div>
                       </td>
                       <td>
-                        <span
-                          style={{
-                            background: 'var(--bg-tertiary)',
-                            padding: '2px 8px',
-                            borderRadius: 'var(--radius-sm)',
-                            fontSize: '12px',
-                          }}
-                        >
-                          #{ssid.number}
-                        </span>
+                        <span className="number-badge">#{ssid.number}</span>
                       </td>
                       <td>
                         <span
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            padding: '4px 12px',
-                            borderRadius: '20px',
-                            fontSize: '12px',
-                            fontWeight: 500,
-                            background: ssid.enabled
-                              ? 'var(--success-light)'
-                              : 'var(--bg-tertiary)',
-                            color: ssid.enabled
-                              ? 'var(--success)'
-                              : 'var(--text-muted)',
-                          }}
+                          className={`status-badge ${
+                            ssid.enabled ? 'enabled' : 'disabled'
+                          }`}
                         >
-                          <span
-                            style={{
-                              width: '6px',
-                              height: '6px',
-                              borderRadius: '50%',
-                              background: ssid.enabled
-                                ? 'var(--success)'
-                                : 'var(--text-muted)',
-                            }}
-                          />
+                          <span className="dot" />
                           {ssid.enabled ? 'Broadcasting' : 'Disabled'}
                         </span>
                       </td>
                       <td>
                         {clientCount > 0 ? (
-                          <span
-                            style={{
-                              color: 'var(--primary)',
-                              fontWeight: 500,
-                            }}
-                          >
+                          <span className="client-count text-primary">
                             {clientCount}{' '}
                             {clientCount === 1 ? 'client' : 'clients'}
                           </span>
                         ) : (
-                          <span style={{ color: 'var(--text-muted)' }}>
-                            No clients
-                          </span>
+                          <span className="text-muted">No clients</span>
                         )}
                       </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <span style={{ color: 'var(--text-muted)' }}>→</span>
+                      <td className="arrow-cell">
+                        <span className="arrow-indicator">→</span>
                       </td>
                     </tr>
                   );
@@ -227,15 +162,9 @@ const SSIDsListView: React.FC<SSIDsListViewProps> = ({
       ))}
 
       {ssids.length === 0 && (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '60px 20px',
-            color: 'var(--text-muted)',
-          }}
-        >
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📶</div>
-          <h3 style={{ marginBottom: '8px' }}>No SSIDs Found</h3>
+        <div className="empty-state-message">
+          <div className="empty-icon">📶</div>
+          <h3>No SSIDs Found</h3>
           <p>
             No wireless networks are configured in your Meraki organization.
           </p>

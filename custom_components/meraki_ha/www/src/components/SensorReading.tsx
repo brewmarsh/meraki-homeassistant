@@ -202,7 +202,7 @@ const SensorReading: React.FC<SensorReadingProps> = ({
   return (
     <div className={`reading-card ${type}`}>
       <div className="icon-wrapper">
-        <span style={{ fontSize: '36px' }}>{getIcon()}</span>
+        <span className="reading-icon">{getIcon()}</span>
       </div>
       <div className="reading-label">{getLabel()}</div>
       <div className="reading-value">

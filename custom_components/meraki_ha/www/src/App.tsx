@@ -190,27 +190,12 @@ const Header: React.FC<{
     <div className="logo">🌐</div>
     <h1>Meraki Dashboard</h1>
     {version && <span className="version">v{version}</span>}
-    <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+    <div className="header-actions">
       {onSettingsClick && (
         <button
           onClick={onSettingsClick}
           className="settings-btn"
           title="Settings"
-          style={{
-            background: 'var(--card-bg)',
-            border: '1px solid var(--card-border)',
-            borderRadius: 'var(--radius-sm)',
-            padding: '8px 16px',
-            color: 'var(--text-primary)',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 500,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            transition: 'var(--transition)',
-            boxShadow: 'var(--shadow-sm)',
-          }}
         >
           ⚙️ Settings
         </button>
@@ -302,13 +287,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
     return (
       <div className="meraki-panel" style={themeStyle}>
         <LoadingSpinner />
-        <p
-          style={{
-            textAlign: 'center',
-            color: 'var(--text-secondary)',
-            marginTop: '16px',
-          }}
-        >
+        <p className="loading-message">
           Waiting for Home Assistant connection...
         </p>
       </div>

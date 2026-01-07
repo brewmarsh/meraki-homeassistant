@@ -48,8 +48,6 @@ class MerakiPanelElement extends HTMLElement {
     // Create a mount point for React
     this._mountPoint = document.createElement('div');
     this._mountPoint.id = 'meraki-panel-root';
-    this._mountPoint.style.height = '100%';
-    this._mountPoint.style.width = '100%';
     this.appendChild(this._mountPoint);
 
     // Create React root

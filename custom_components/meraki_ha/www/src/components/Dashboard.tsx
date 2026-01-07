@@ -414,12 +414,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               </div>
             </td>
             <td className="device-model">{device.model || '—'}</td>
-            <td
-              className="device-model"
-              style={{ fontFamily: 'monospace', fontSize: '11px' }}
-            >
-              {device.serial}
-            </td>
+            <td className="device-model cell-mono">{device.serial}</td>
             <td>
               <div className={`status-badge ${device.status?.toLowerCase()}`}>
                 <div className="status-dot"></div>
@@ -436,10 +431,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         ))}
         {deviceList.length === 0 && (
           <tr>
-            <td
-              colSpan={6}
-              style={{ textAlign: 'center', color: 'var(--text-muted)' }}
-            >
+            <td colSpan={6} className="empty-table-message">
               No devices match your filters
             </td>
           </tr>
@@ -452,27 +444,14 @@ const Dashboard: React.FC<DashboardProps> = ({
     <div>
       {/* Refresh Indicator */}
       {last_updated && (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            gap: '16px',
-            marginBottom: '12px',
-            fontSize: '12px',
-            color: 'var(--text-muted)',
-            opacity: 0.8,
-          }}
-        >
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ fontSize: '10px' }}>🔄</span>
+        <div className="refresh-indicator">
+          <span className="refresh-indicator-item">
+            <span className="refresh-indicator-icon">🔄</span>
             Last: {formatTimestamp(last_updated)}
           </span>
           {countdown !== null && (
-            <span
-              style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
-            >
-              <span style={{ fontSize: '10px' }}>⏱️</span>
+            <span className="refresh-indicator-item">
+              <span className="refresh-indicator-icon">⏱️</span>
               Next: {formatCountdown(countdown)}
             </span>
           )}
@@ -500,46 +479,18 @@ const Dashboard: React.FC<DashboardProps> = ({
       {/* Filters and View Toggle */}
       <div className="filter-controls">
         {/* View Mode Toggle */}
-        <div
-          className="view-mode-toggle"
-          style={{
-            display: 'flex',
-            gap: '4px',
-            background: 'var(--card-bg)',
-            border: '1px solid var(--card-border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '4px',
-          }}
-        >
+        <div className="view-mode-toggle">
           <button
             onClick={() => setViewMode('network')}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              background:
-                viewMode === 'network' ? 'var(--primary)' : 'transparent',
-              color: viewMode === 'network' ? 'white' : 'var(--text-primary)',
-              cursor: 'pointer',
-              fontWeight: 500,
-              fontSize: '13px',
-            }}
+            className={`view-mode-btn ${
+              viewMode === 'network' ? 'active' : ''
+            }`}
           >
             🌐 By Network
           </button>
           <button
             onClick={() => setViewMode('type')}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              background:
-                viewMode === 'type' ? 'var(--primary)' : 'transparent',
-              color: viewMode === 'type' ? 'white' : 'var(--text-primary)',
-              cursor: 'pointer',
-              fontWeight: 500,
-              fontSize: '13px',
-            }}
+            className={`view-mode-btn ${viewMode === 'type' ? 'active' : ''}`}
           >
             📦 By Type
           </button>
@@ -551,15 +502,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           onChange={(e) =>
             setDeviceTypeFilter(e.target.value as DeviceTypeFilter)
           }
-          style={{
-            padding: '8px 12px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--card-border)',
-            background: 'var(--card-bg)',
-            color: 'var(--text-primary)',
-            fontSize: '13px',
-            cursor: 'pointer',
-          }}
+          className="filter-select"
         >
           {DEVICE_TYPES.map((type) => (
             <option key={type.value} value={type.value}>
@@ -572,15 +515,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-          style={{
-            padding: '8px 12px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--card-border)',
-            background: 'var(--card-bg)',
-            color: 'var(--text-primary)',
-            fontSize: '13px',
-            cursor: 'pointer',
-          }}
+          className="filter-select"
         >
           {STATUS_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -596,16 +531,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               setDeviceTypeFilter('all');
               setStatusFilter('all');
             }}
-            style={{
-              padding: '8px 12px',
-              borderRadius: 'var(--radius-md)',
-              border: 'none',
-              background: 'var(--warning)',
-              color: 'white',
-              fontSize: '12px',
-              cursor: 'pointer',
-              fontWeight: 500,
-            }}
+            className="clear-filters-btn"
           >
             ✕ Clear Filters ({filteredDevices.length}/{devices.length})
           </button>

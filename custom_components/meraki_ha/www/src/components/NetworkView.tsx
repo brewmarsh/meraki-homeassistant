@@ -188,15 +188,7 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
 
   if (devices.length === 0) {
     return (
-      <div
-        style={{
-          textAlign: 'center',
-          padding: '24px',
-          color: 'var(--text-secondary)',
-        }}
-      >
-        No devices in this network.
-      </div>
+      <div className="empty-state-message">No devices in this network.</div>
     );
   }
 
