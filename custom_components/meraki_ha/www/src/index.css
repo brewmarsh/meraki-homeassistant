@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.hero-indicator {
+  display: flex;
+  align-items: center;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--primary-text-color);
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--divider-color, #e0e0e0);
+  padding-bottom: 0.5rem;
+}
+
+.hero-indicator ha-icon {
+  margin-right: 0.5rem;
+  color: var(--primary-color);
+}
