@@ -512,7 +512,44 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                 <strong>Firmware:</strong> {firmware}
               </span>
             )}
+            {lanIp && (
+              <span>
+                <strong>IP:</strong> {lanIp}
+              </span>
+            )}
+            {mac && (
+              <span>
+                <strong>MAC:</strong>{' '}
+                <span style={{ fontFamily: 'monospace' }}>{mac}</span>
+              </span>
+            )}
+            {/* Sensor-specific: Battery in header */}
+            {isSensor && readings?.battery != null && (
+              <span>
+                <strong>Battery:</strong>{' '}
+                <span
+                  style={{
+                    color:
+                      readings.battery > 20
+                        ? 'var(--success)'
+                        : 'var(--warning)',
+                  }}
+                >
+                  {readings.battery}%
+                </span>
+              </span>
+            )}
           </div>
+          {lastReportedAt && (
+            <div
+              className="meta"
+              style={{ marginTop: '4px', fontSize: '12px' }}
+            >
+              <span style={{ color: 'var(--text-muted)' }}>
+                Last updated: {formatLastSeen(lastReportedAt)}
+              </span>
+            </div>
+          )}
         </div>
         <div className={`status-pill ${status?.toLowerCase()}`}>
           <div className="dot"></div>
@@ -580,7 +617,11 @@ const DeviceView: React.FC<DeviceViewProps> = ({
             icon="👥"
             label="Connected Clients"
             value={deviceClients.length}
-            gauge={{ min: 0, max: Math.max(50, deviceClients.length), color: 'info' }}
+            gauge={{
+              min: 0,
+              max: Math.max(50, deviceClients.length),
+              color: 'info',
+            }}
             status="normal"
           />
           {device.basicServiceSets && (
@@ -643,7 +684,9 @@ const DeviceView: React.FC<DeviceViewProps> = ({
             label="Recording"
             value={status === 'online' ? 'Active' : 'Inactive'}
             status={status === 'online' ? 'normal' : 'inactive'}
-            statusMessage={status === 'online' ? 'Recording to cloud' : 'Camera offline'}
+            statusMessage={
+              status === 'online' ? 'Recording to cloud' : 'Camera offline'
+            }
           />
           <MetricCard
             icon="👁️"
@@ -657,58 +700,8 @@ const DeviceView: React.FC<DeviceViewProps> = ({
 
       {/* Info Cards Grid */}
       <div className="cards-grid">
-        <div className="info-card">
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '16px',
-            }}
-          >
-            <h3 style={{ margin: 0 }}>ℹ️ Device Information</h3>
-            {lastReportedAt && (
-              <span
-                style={{
-                  fontSize: '11px',
-                  color: 'var(--text-muted)',
-                  fontWeight: 400,
-                }}
-              >
-                Updated: {formatLastSeen(lastReportedAt)}
-              </span>
-            )}
-          </div>
-          <div className="info-grid">
-            {lanIp && (
-              <div className="info-item">
-                <div className="label">LAN IP</div>
-                <div className="value">{lanIp}</div>
-              </div>
-            )}
-            {mac && (
-              <div className="info-item">
-                <div className="label">MAC Address</div>
-                <div className="value mono">{mac}</div>
-              </div>
-            )}
-            {firmware && (
-              <div className="info-item">
-                <div className="label">Firmware</div>
-                <div className="value">{firmware}</div>
-              </div>
-            )}
-            {uptime != null && !isSwitch && !isWireless && !isAppliance && (
-              <div className="info-item">
-                <div className="label">Uptime</div>
-                <div className="value">{formatUptime(uptime)}</div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Sensor-specific Battery Info */}
-        {isSensor && readings && (
+        {/* Device Information card - hidden for switches and sensors since info is in header */}
+        {!isSwitch && !isSensor && (
           <div className="info-card">
             <div
               style={{
@@ -718,7 +711,7 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                 marginBottom: '16px',
               }}
             >
-              <h3 style={{ margin: 0 }}>🔋 Sensor Status</h3>
+              <h3 style={{ margin: 0 }}>ℹ️ Device Information</h3>
               {lastReportedAt && (
                 <span
                   style={{
@@ -732,16 +725,28 @@ const DeviceView: React.FC<DeviceViewProps> = ({
               )}
             </div>
             <div className="info-grid">
-              {readings.battery != null && (
+              {lanIp && (
                 <div className="info-item">
-                  <div className="label">Battery</div>
-                  <div className="value success">{readings.battery}%</div>
+                  <div className="label">LAN IP</div>
+                  <div className="value">{lanIp}</div>
                 </div>
               )}
               {mac && (
                 <div className="info-item">
                   <div className="label">MAC Address</div>
                   <div className="value mono">{mac}</div>
+                </div>
+              )}
+              {firmware && (
+                <div className="info-item">
+                  <div className="label">Firmware</div>
+                  <div className="value">{firmware}</div>
+                </div>
+              )}
+              {uptime != null && !isWireless && !isAppliance && (
+                <div className="info-item">
+                  <div className="label">Uptime</div>
+                  <div className="value">{formatUptime(uptime)}</div>
                 </div>
               )}
             </div>

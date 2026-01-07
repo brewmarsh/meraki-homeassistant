@@ -58,7 +58,7 @@ class TestSetupVlanSwitches:
     ) -> None:
         """Test no switches created when VLAN management disabled."""
         mock_config_entry.options = {CONF_ENABLE_VLAN_MANAGEMENT: False}
-        added = set()
+        added: set[str] = set()
 
         result = _setup_vlan_switches(mock_config_entry, mock_coordinator, added)
 
@@ -77,7 +77,7 @@ class TestSetupVlanSwitches:
                 ]
             }
         }
-        added = set()
+        added: set[str] = set()
 
         result = _setup_vlan_switches(mock_config_entry, mock_coordinator, added)
 
@@ -95,7 +95,7 @@ class TestSetupVlanSwitches:
                 "N_123": [{"name": "VLAN without ID", "dhcpHandling": "Run a DHCP"}]
             }
         }
-        added = set()
+        added: set[str] = set()
 
         result = _setup_vlan_switches(mock_config_entry, mock_coordinator, added)
 
@@ -107,7 +107,7 @@ class TestSetupVlanSwitches:
         """Test non-list VLANs data is skipped."""
         mock_config_entry.options = {CONF_ENABLE_VLAN_MANAGEMENT: True}
         mock_coordinator.data = {"vlans": {"N_123": "not a list"}}
-        added = set()
+        added: set[str] = set()
 
         result = _setup_vlan_switches(mock_config_entry, mock_coordinator, added)
 
@@ -139,7 +139,7 @@ class TestSetupSsidSwitches:
                 {"networkId": "N_123", "number": 1, "name": "Guest"},
             ]
         }
-        added = set()
+        added: set[str] = set()
 
         result = _setup_ssid_switches(mock_config_entry, mock_coordinator, added)
 
@@ -155,7 +155,7 @@ class TestSetupSsidSwitches:
     ) -> None:
         """Test SSIDs without number are skipped."""
         mock_coordinator.data = {"ssids": [{"networkId": "N_123", "name": "No number"}]}
-        added = set()
+        added: set[str] = set()
 
         result = _setup_ssid_switches(mock_config_entry, mock_coordinator, added)
 
@@ -187,7 +187,7 @@ class TestSetupCameraSwitches:
                 {"serial": "CAM-1234", "productType": "camera", "model": "MV12W"},
             ]
         }
-        added = set()
+        added: set[str] = set()
 
         result = _setup_camera_switches(mock_config_entry, mock_coordinator, added)
 
@@ -203,7 +203,7 @@ class TestSetupCameraSwitches:
                 {"serial": "SW-1234", "productType": "switch", "model": "MS225"},
             ]
         }
-        added = set()
+        added: set[str] = set()
 
         result = _setup_camera_switches(mock_config_entry, mock_coordinator, added)
 
@@ -238,7 +238,7 @@ class TestSetupMt40Switches:
                 {"serial": "MT-1234", "model": "MT40", "name": "Smart Outlet"},
             ]
         }
-        added = set()
+        added: set[str] = set()
 
         result = _setup_mt40_switches(
             mock_config_entry, mock_coordinator, added, mock_meraki_client
@@ -259,7 +259,7 @@ class TestSetupMt40Switches:
                 {"serial": "MT-1234", "model": "MT10", "name": "Temp Sensor"},
             ]
         }
-        added = set()
+        added: set[str] = set()
 
         result = _setup_mt40_switches(
             mock_config_entry, mock_coordinator, added, mock_meraki_client
@@ -296,7 +296,7 @@ class TestSetupApLedSwitches:
                 {"id": "N_123", "name": "Main", "productTypes": ["wireless"]},
             ]
         }
-        added = set()
+        added: set[str] = set()
 
         result = _setup_ap_led_switches(mock_config_entry, mock_coordinator, added)
 
@@ -312,7 +312,7 @@ class TestSetupApLedSwitches:
                 {"id": "N_123", "name": "Switches", "productTypes": ["switch"]},
             ]
         }
-        added = set()
+        added: set[str] = set()
 
         result = _setup_ap_led_switches(mock_config_entry, mock_coordinator, added)
 

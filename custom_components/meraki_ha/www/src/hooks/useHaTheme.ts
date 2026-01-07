@@ -20,6 +20,7 @@ const DARK_THEME = {
   '--secondary-background-color': '#1e293b',
   '--card-background-color': '#1e293b',
   '--divider-color': '#334155',
+  '--tertiary-background-color': '#334155',
   '--success-color': '#10b981',
   '--warning-color': '#f59e0b',
   '--error-color': '#ef4444',
@@ -29,13 +30,14 @@ const DARK_THEME = {
 const LIGHT_THEME = {
   '--primary-color': '#03a9f4',
   '--accent-color': '#ff9800',
-  '--primary-text-color': '#1f2937',
-  '--secondary-text-color': '#6b7280',
-  '--disabled-text-color': '#9ca3af',
-  '--primary-background-color': '#f8fafc',
+  '--primary-text-color': '#1e293b',
+  '--secondary-text-color': '#475569',
+  '--disabled-text-color': '#64748b',
+  '--primary-background-color': '#f1f5f9',
   '--secondary-background-color': '#ffffff',
   '--card-background-color': '#ffffff',
-  '--divider-color': '#e2e8f0',
+  '--divider-color': '#cbd5e1',
+  '--tertiary-background-color': '#e2e8f0',
   '--success-color': '#10b981',
   '--warning-color': '#f59e0b',
   '--error-color': '#ef4444',
@@ -110,6 +112,7 @@ export function useHaTheme(hass: HomeAssistant | null): UseHaThemeResult {
     cssProps['--text-muted'] = themeVars['--disabled-text-color'];
     cssProps['--bg-primary'] = themeVars['--primary-background-color'];
     cssProps['--bg-secondary'] = themeVars['--secondary-background-color'];
+    cssProps['--bg-tertiary'] = themeVars['--tertiary-background-color'];
     cssProps['--card-bg'] = themeVars['--card-background-color'];
     cssProps['--card-border'] = themeVars['--divider-color'];
     cssProps['--primary'] = themeVars['--primary-color'];
@@ -142,6 +145,10 @@ export function useHaTheme(hass: HomeAssistant | null): UseHaThemeResult {
     root.style.setProperty(
       '--bg-secondary',
       themeVars['--secondary-background-color']
+    );
+    root.style.setProperty(
+      '--bg-tertiary',
+      themeVars['--tertiary-background-color']
     );
     root.style.setProperty('--card-bg', themeVars['--card-background-color']);
     root.style.setProperty('--card-border', themeVars['--divider-color']);

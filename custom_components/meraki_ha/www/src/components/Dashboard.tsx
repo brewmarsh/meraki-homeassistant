@@ -38,6 +38,7 @@ interface Client {
   description?: string;
   ip?: string;
   networkId?: string;
+  recentDeviceSerial?: string;
 }
 
 interface DashboardProps {
@@ -315,7 +316,11 @@ const Dashboard: React.FC<DashboardProps> = ({
         : 'Offline';
     }
     if (type === 'wireless') {
-      return '— clients';
+      // Get actual client count from clients connected to this device
+      const clientCount = clients.filter(
+        (c) => c.recentDeviceSerial === device.serial
+      ).length;
+      return `${clientCount} clients`;
     }
     if (type === 'sensor') {
       if (device.readings?.temperature != null) {

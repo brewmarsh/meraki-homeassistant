@@ -369,25 +369,27 @@ def create_screenshot_html() -> str:
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Meraki Panel Screenshot</title>
                 <style>
+        /* Dark theme CSS variables - matches useHaTheme DARK_THEME */
         :root {{
             --primary-color: #03a9f4;
-            --primary-text-color: #212121;
-            --secondary-text-color: #727272;
-            --primary-background-color: #fafafa;
-            --secondary-background-color: #e0e0e0;
-            --divider-color: #e0e0e0;
             --accent-color: #ff9800;
-            --error-color: #f44336;
-            --success-color: #4caf50;
-            --warning-color: #ff9800;
-            --card-background-color: #ffffff;
-            --ha-card-border-radius: 8px;
+            --primary-text-color: #f1f5f9;
+            --secondary-text-color: #94a3b8;
+            --disabled-text-color: #64748b;
+            --primary-background-color: #0f172a;
+            --secondary-background-color: #1e293b;
+            --card-background-color: #1e293b;
+            --divider-color: #334155;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --ha-card-border-radius: 12px;
         }}
         body {{
             font-family: Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
             margin: 0;
             padding: 16px;
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            background: var(--primary-background-color);
             min-height: 100vh;
         }}
         meraki-panel {{

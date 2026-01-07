@@ -1,6 +1,6 @@
 """Tests for the camera service module."""
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -93,9 +93,7 @@ class TestCameraService:
         assert result == []
 
     @pytest.mark.asyncio
-    async def test_get_analytics_data(
-        self, mock_camera_repository: AsyncMock
-    ) -> None:
+    async def test_get_analytics_data(self, mock_camera_repository: AsyncMock) -> None:
         """Test get_analytics_data."""
         analytics_data = [{"timestamp": "2024-01-01", "count": 5}]
         mock_camera_repository.get_analytics_data.return_value = analytics_data
@@ -142,9 +140,7 @@ class TestCameraService:
         assert result == "rtsp://192.168.1.100/stream"
 
     @pytest.mark.asyncio
-    async def test_get_rtsp_stream_url(
-        self, mock_camera_repository: AsyncMock
-    ) -> None:
+    async def test_get_rtsp_stream_url(self, mock_camera_repository: AsyncMock) -> None:
         """Test get_rtsp_stream_url."""
         mock_camera_repository.async_get_rtsp_stream_url.return_value = (
             "rtsp://192.168.1.100/stream"
@@ -159,9 +155,7 @@ class TestCameraService:
         )
 
     @pytest.mark.asyncio
-    async def test_get_cloud_video_url(
-        self, mock_camera_repository: AsyncMock
-    ) -> None:
+    async def test_get_cloud_video_url(self, mock_camera_repository: AsyncMock) -> None:
         """Test get_cloud_video_url."""
         mock_camera_repository.async_get_cloud_video_url.return_value = (
             "https://cloud.meraki.com/video"
@@ -176,9 +170,7 @@ class TestCameraService:
         )
 
     @pytest.mark.asyncio
-    async def test_get_camera_snapshot(
-        self, mock_camera_repository: AsyncMock
-    ) -> None:
+    async def test_get_camera_snapshot(self, mock_camera_repository: AsyncMock) -> None:
         """Test get_camera_snapshot."""
         mock_camera_repository.generate_snapshot.return_value = (
             "https://snapshot.meraki.com/image.jpg"
@@ -247,9 +239,7 @@ class TestCameraService:
         assert result == []
 
     @pytest.mark.asyncio
-    async def test_generate_snapshot(
-        self, mock_camera_repository: AsyncMock
-    ) -> None:
+    async def test_generate_snapshot(self, mock_camera_repository: AsyncMock) -> None:
         """Test generate_snapshot."""
         mock_camera_repository.generate_snapshot.return_value = (
             "https://snapshot.meraki.com/image.jpg"
@@ -286,4 +276,3 @@ class TestCameraService:
         mock_camera_repository.set_rtsp_stream_enabled.assert_called_once_with(
             "CAM-1234", False
         )
-
