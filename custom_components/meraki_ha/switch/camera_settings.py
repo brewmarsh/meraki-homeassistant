@@ -7,7 +7,9 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from ..const import DOMAIN
 from ..core.api.client import MerakiAPIClient
+from ..core.utils.naming_utils import format_device_name
 from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..types import MerakiDevice
 
@@ -136,8 +138,10 @@ class MerakiCameraSettingSwitchBase(
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
-            identifiers={("meraki_ha", self._device_data["serial"])},
-            name=self._device_data["name"],
+            identifiers={(DOMAIN, self._device_data["serial"])},
+            name=format_device_name(
+                self._device_data, self.coordinator.config_entry.options
+            ),
             manufacturer="Cisco Meraki",
-            model=self._device_data["model"],
+            model=self._device_data.get("model", "Unknown"),
         )
