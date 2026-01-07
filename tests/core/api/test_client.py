@@ -237,13 +237,9 @@ class TestMerakiAPIClient:
     def test_build_detail_tasks_appliance(self, api_client: MerakiAPIClient) -> None:
         """Test _build_detail_tasks for appliance networks."""
         # Mock endpoint methods to return MagicMock instead of coroutines
-        api_client.appliance.get_network_appliance_traffic = MagicMock(
-            return_value=MagicMock()
-        )
+        api_client.network.get_network_traffic = MagicMock(return_value=MagicMock())
         api_client.appliance.get_network_vlans = MagicMock(return_value=MagicMock())
-        api_client.appliance.get_l3_firewall_rules = MagicMock(
-            return_value=MagicMock()
-        )
+        api_client.appliance.get_l3_firewall_rules = MagicMock(return_value=MagicMock())
         api_client.appliance.get_traffic_shaping = MagicMock(return_value=MagicMock())
         api_client.appliance.get_vpn_status = MagicMock(return_value=MagicMock())
         api_client.appliance.get_network_appliance_content_filtering = MagicMock(
@@ -269,9 +265,7 @@ class TestMerakiAPIClient:
         """Test _build_detail_tasks skips traffic for failed networks."""
         # Mock endpoint methods to return MagicMock instead of coroutines
         api_client.appliance.get_network_vlans = MagicMock(return_value=MagicMock())
-        api_client.appliance.get_l3_firewall_rules = MagicMock(
-            return_value=MagicMock()
-        )
+        api_client.appliance.get_l3_firewall_rules = MagicMock(return_value=MagicMock())
         api_client.appliance.get_traffic_shaping = MagicMock(return_value=MagicMock())
         api_client.appliance.get_vpn_status = MagicMock(return_value=MagicMock())
         api_client.appliance.get_network_appliance_content_filtering = MagicMock(
@@ -290,7 +284,9 @@ class TestMerakiAPIClient:
     def test_build_detail_tasks_camera(self, api_client: MerakiAPIClient) -> None:
         """Test _build_detail_tasks for camera devices."""
         # Mock endpoint methods to return MagicMock instead of coroutines
-        api_client.camera.get_video_settings = MagicMock(return_value=MagicMock())
+        api_client.camera.get_camera_video_settings = MagicMock(
+            return_value=MagicMock()
+        )
         api_client.camera.get_camera_sense_settings = MagicMock(
             return_value=MagicMock()
         )
@@ -306,6 +302,12 @@ class TestMerakiAPIClient:
 
     def test_build_detail_tasks_switch(self, api_client: MerakiAPIClient) -> None:
         """Test _build_detail_tasks for switch devices."""
+        # Mock endpoint methods to return MagicMock instead of coroutines
+        api_client.switch.get_device_switch_ports_statuses = MagicMock(
+            return_value=MagicMock()
+        )
+        api_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
+
         networks: list = []
         devices = [{"serial": "SW-123", "productType": "switch"}]
 
@@ -313,14 +315,16 @@ class TestMerakiAPIClient:
 
         assert "ports_statuses_SW-123" in tasks
 
-        # Close coroutines to avoid RuntimeWarning
-        for task in tasks.values():
-            task.close()
-
     def test_build_detail_tasks_appliance_device(
         self, api_client: MerakiAPIClient
     ) -> None:
         """Test _build_detail_tasks for appliance devices."""
+        # Mock endpoint methods to return MagicMock instead of coroutines
+        api_client.appliance.get_network_appliance_settings = MagicMock(
+            return_value=MagicMock()
+        )
+        api_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
+
         networks: list = []
         devices = [
             {"serial": "MX-123", "productType": "appliance", "networkId": "N_123"}
@@ -329,10 +333,6 @@ class TestMerakiAPIClient:
         tasks = api_client._build_detail_tasks(networks, devices)
 
         assert "appliance_settings_MX-123" in tasks
-
-        # Close coroutines to avoid RuntimeWarning
-        for task in tasks.values():
-            task.close()
 
     def test_process_detailed_data_ssids(self, api_client: MerakiAPIClient) -> None:
         """Test _process_detailed_data processes SSIDs."""
