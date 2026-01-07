@@ -1,5 +1,6 @@
 """Tests for the MTHandler."""
 
+from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
@@ -9,6 +10,7 @@ from custom_components.meraki_ha.binary_sensor.device.meraki_mt_binary_base impo
 )
 from custom_components.meraki_ha.discovery.handlers.mt import MTHandler
 from custom_components.meraki_ha.sensor.device.meraki_mt_base import MerakiMtSensor
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
@@ -29,11 +31,14 @@ async def test_mt_handler_discover_entities_mt10(
     mock_control_service: MagicMock,
 ):
     """Test MTHandler discovers entities correctly for MT10."""
-    device = {
-        "serial": "mt10-1",
-        "model": "MT10",
-        "name": "MT10 Sensor",
-    }
+    device = cast(
+        MerakiDevice,
+        {
+            "serial": "mt10-1",
+            "model": "MT10",
+            "name": "MT10 Sensor",
+        },
+    )
 
     handler = MTHandler(
         mock_coordinator_mt_handler,
@@ -60,11 +65,14 @@ async def test_mt_handler_discover_entities_mt12(
     mock_control_service: MagicMock,
 ):
     """Test MTHandler discovers entities correctly for MT12."""
-    device = {
-        "serial": "mt12-1",
-        "model": "MT12",
-        "name": "MT12 Sensor",
-    }
+    device = cast(
+        MerakiDevice,
+        {
+            "serial": "mt12-1",
+            "model": "MT12",
+            "name": "MT12 Sensor",
+        },
+    )
 
     handler = MTHandler(
         mock_coordinator_mt_handler,
@@ -94,11 +102,14 @@ async def test_mt_handler_discover_entities_mt20(
     mock_control_service: MagicMock,
 ):
     """Test MTHandler discovers entities correctly for MT20."""
-    device = {
-        "serial": "mt20-1",
-        "model": "MT20",
-        "name": "MT20 Sensor",
-    }
+    device = cast(
+        MerakiDevice,
+        {
+            "serial": "mt20-1",
+            "model": "MT20",
+            "name": "MT20 Sensor",
+        },
+    )
 
     handler = MTHandler(
         mock_coordinator_mt_handler,
