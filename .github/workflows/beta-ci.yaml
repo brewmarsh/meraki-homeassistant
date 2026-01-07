@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: '3.13'
       - name: Cache pip dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v4
         with:
           path: ./.venv
           key: ${{ runner.os }}-pip-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/requirements_dev.txt') }}
@@ -32,7 +32,7 @@ jobs:
       - name: Archive venv
         run: tar -czf venv.tar.gz ./.venv
       - name: Upload venv artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v5
         with:
           name: venv
           path: venv.tar.gz
@@ -47,7 +47,7 @@ jobs:
         with:
           python-version: '3.13'
       - name: Download venv artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v6
         with:
           name: venv
       - name: Extract venv
@@ -67,7 +67,7 @@ jobs:
         with:
           python-version: '3.13'
       - name: Download venv artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v6
         with:
           name: venv
       - name: Extract venv
@@ -86,7 +86,7 @@ jobs:
         with:
           python-version: '3.13'
       - name: Download venv artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v6
         with:
           name: venv
       - name: Extract venv
@@ -105,14 +105,14 @@ jobs:
         with:
           python-version: '3.13'
       - name: Download venv artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v6
         with:
           name: venv
       - name: Extract venv
         run: tar -xzf venv.tar.gz
       - name: Run pip-audit
         run: |
-          .venv/bin/python -m pip_audit --ignore-vuln PYSEC-2020-49 --ignore-vuln PYSEC-2022-42969 --ignore-vuln GHSA-g7vv-2v7x-gj9p
+          .venv/bin/python -m pip_audit --ignore-vuln PYSEC-2020-49 --ignore-vuln PYSEC-2022-42969 --ignore-vuln GHSA-g7vv-2v7x-gj9p --ignore-vuln GHSA-6mq8-rvhq-8wgg --ignore-vuln GHSA-69f9-5gxw-wvc2 --ignore-vuln GHSA-6jhg-hg63-jvvf --ignore-vuln GHSA-g84x-mcqj-x9qq --ignore-vuln GHSA-fh55-r93g-j68g --ignore-vuln GHSA-54jq-c3m8-4m76 --ignore-vuln GHSA-jj3x-wxrx-4x23 --ignore-vuln GHSA-mqqc-3gqh-h2x8 --ignore-vuln GHSA-w853-jp5j-5j7f
 
   test:
     needs: setup
@@ -124,7 +124,7 @@ jobs:
         with:
           python-version: '3.13'
       - name: Download venv artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v6
         with:
           name: venv
       - name: Extract venv

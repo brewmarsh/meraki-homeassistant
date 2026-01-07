@@ -293,12 +293,11 @@ class WirelessEndpoints:
         if self._api_client.dashboard is None:
             return {}
 
+        # Prepare kwargs for the library call
         kwargs: dict[str, Any] = {
             "name": name,
+            "groupPolicyId": group_policy_id or "Normal",
         }
-
-        if group_policy_id and group_policy_id != "Normal":
-            kwargs["groupPolicyId"] = group_policy_id
 
         if passphrase:
             kwargs["passphrase"] = passphrase

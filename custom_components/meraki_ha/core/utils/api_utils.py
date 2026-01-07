@@ -47,7 +47,7 @@ def handle_meraki_errors(
         except (JSONDecodeError, MerakiConnectionError) as err:
             _LOGGER.warning(
                 "API call %s failed with an empty or invalid response: %s",
-                getattr(func, "__name__", str(func)),
+                func.__name__,
                 err,
             )
             # Inspect return type to provide a safe empty value
@@ -75,7 +75,7 @@ def handle_meraki_errors(
                 _LOGGER.warning(
                     "Meraki API informational error: %s (%s)",
                     err,
-                    getattr(func, "__name__", str(func)),
+                    func.__name__,
                 )
                 # Inspect return type to provide a safe empty value
                 sig = inspect.signature(func)
