@@ -84,7 +84,8 @@ def test_connected_clients_sensor_appliance(mock_data_coordinator):
     )
     # Expects 2: the two online clients on net1 from the main `clients` list
     assert sensor.native_value == 2
-    assert sensor.device_info["name"] == "[Appliance] Appliance"
+    # Appliance devices use [MX] prefix (Meraki model prefix)
+    assert sensor.device_info["name"] == "[MX] Appliance"
 
 
 def test_connected_clients_sensor_gateway(mock_data_coordinator):
@@ -97,7 +98,8 @@ def test_connected_clients_sensor_gateway(mock_data_coordinator):
     )
     # Expects 2: the two online clients on net1 from the main `clients` list
     assert sensor.native_value == 2
-    assert sensor.device_info["name"] == "[Cellulargateway] Gateway"
+    # Cellular gateway devices use [MG] prefix (Meraki model prefix)
+    assert sensor.device_info["name"] == "[MG] Gateway"
 
 
 def test_connected_clients_sensor_switch(mock_data_coordinator):
@@ -110,7 +112,8 @@ def test_connected_clients_sensor_switch(mock_data_coordinator):
     )
     # Expects 1 from the `clients_by_serial` data
     assert sensor.native_value == 1
-    assert sensor.device_info["name"] == "[Switch] Switch"
+    # Switch devices use [MS] prefix (Meraki model prefix)
+    assert sensor.device_info["name"] == "[MS] Switch"
 
 
 def test_connected_clients_sensor_wireless(mock_data_coordinator):
@@ -123,4 +126,5 @@ def test_connected_clients_sensor_wireless(mock_data_coordinator):
     )
     # Expects 3 from the `clients_by_serial` data
     assert sensor.native_value == 3
-    assert sensor.device_info["name"] == "[Wireless] Access Point"
+    # Wireless devices use [MR] prefix (Meraki model prefix)
+    assert sensor.device_info["name"] == "[MR] Access Point"

@@ -4,7 +4,14 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from custom_components.meraki_ha.button.reboot import MerakiRebootButton
 from custom_components.meraki_ha.discovery.handlers.mr import MRHandler
+from custom_components.meraki_ha.sensor.device.connected_clients import (
+    MerakiDeviceConnectedClientsSensor,
+)
+from custom_components.meraki_ha.sensor.device.device_status import (
+    MerakiDeviceStatusSensor,
+)
 from tests.const import MOCK_DEVICE
 
 
@@ -33,7 +40,8 @@ async def test_mr_handler_discover_entities(
     mock_control_service: MagicMock,
     mock_network_control_service: MagicMock,
 ) -> None:
-    """Test that the MRHandler's discover_entities returns an empty list (for now)."""
+    """Test that the MRHandler's discover_entities returns expected entities."""
+    mock_config_entry.options = {"enable_device_status": True}
     handler = MRHandler(
         mock_coordinator,
         MOCK_DEVICE,
@@ -42,4 +50,10 @@ async def test_mr_handler_discover_entities(
         mock_network_control_service,
     )
     entities = await handler.discover_entities()
-    assert entities == []
+
+    # MR handler should create: RebootButton, DeviceStatusSensor, ConnectedClientsSensor
+    assert len(entities) == 3
+    entity_types = [type(e).__name__ for e in entities]
+    assert "MerakiRebootButton" in entity_types
+    assert "MerakiDeviceStatusSensor" in entity_types
+    assert "MerakiDeviceConnectedClientsSensor" in entity_types
