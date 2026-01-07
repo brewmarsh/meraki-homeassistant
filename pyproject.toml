@@ -13,7 +13,7 @@ dev = [
     "types-aiofiles==25.1.0.20251011",
     "meraki==1.40.1",
     "PyTurboJPEG==1.7.2",
-    "ruff==0.5.5",
+    "ruff>=0.8.0",
     "pip-audit==2.7.3",
     "bandit[toml]==1.7.9",
     "mypy==1.11.0",
@@ -59,7 +59,7 @@ select = [
     "C4", # flake8-comprehensions
     "UP", # pyupgrade
 ]
-ignore = ["D100", "D104", "D107", "D211", "D212"]
+ignore = ["D100", "D104", "D107", "D211", "D212", "UP047"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [

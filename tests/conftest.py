@@ -11,7 +11,7 @@ from tests.const import MOCK_ALL_DATA
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(
     enable_custom_integrations: None,
-) -> Generator[None, None, None]:
+) -> Generator[None]:
     """
     Enable custom integrations defined in the test dir.
 
@@ -45,7 +45,7 @@ def mock_config_entry() -> MagicMock:
 
 
 @pytest.fixture(autouse=True)
-def prevent_socket_and_camera_load() -> Generator[None, None, None]:
+def prevent_socket_and_camera_load() -> Generator[None]:
     """Patch asyncio to prevent opening a real socket."""
     from unittest.mock import MagicMock, patch
 

@@ -53,7 +53,7 @@ jobs:
         if: steps.increment.outputs.new_version != ''
         run: |
           echo "Synchronizing package.json version to: ${{ steps.increment.outputs.new_version }}"
-          npm version ${{ steps.increment.outputs.new_version }} --no-git-tag-version --allow-same-version
+          npm version ${{ steps.increment.outputs.new_version }} --no-git-tag-version --allow-same-version --prefix custom_components/meraki_ha/www
 
       - name: Build frontend
         if: steps.increment.outputs.new_version != ''
@@ -86,7 +86,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }} [skip ci]'
-          file_pattern: 'custom_components/meraki_ha/manifest.json CHANGELOG.md package.json .bumpversion.cfg package-lock.json custom_components/meraki_ha/www/meraki-panel.js docs/images/network_view.png docs/images/device_detail_view.png'
+          file_pattern: 'custom_components/meraki_ha/manifest.json CHANGELOG.md .bumpversion.cfg custom_components/meraki_ha/www/package.json custom_components/meraki_ha/www/package-lock.json custom_components/meraki_ha/www/meraki-panel.js docs/images/network_view.png docs/images/device_detail_view.png'
           commit_user_name: 'github-actions[bot]'
           commit_user_email: 'github-actions[bot]@users.noreply.github.com'
           commit_author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
