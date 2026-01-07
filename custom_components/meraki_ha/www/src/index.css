@@ -1,17 +1,20 @@
-/* Meraki HA Panel - Dark theme styling */
+/* Meraki HA Panel - Theme-aware styling */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* 
- * CSS Variables - Hardcoded dark theme colors for reliability
- * HA CSS variables are not always available in panel context
+ * CSS Variables
+ * 
+ * The useHaTheme hook sets these variables on the root element based on
+ * Home Assistant's theme settings. Initial values here are dark theme defaults
+ * that will be overwritten when the hook runs.
  */
 :root {
-  /* Primary colors - Meraki cyan */
-  --primary: #00b4d8;
-  --primary-dark: #0096c7;
-  --primary-light: rgba(0, 180, 216, 0.15);
+  /* Primary colors - Set by useHaTheme hook from HA --primary-color */
+  --primary: #03a9f4;
+  --primary-dark: #0288d1;
+  --primary-light: rgba(3, 169, 244, 0.15);
   
-  /* Status colors */
+  /* Status colors - Set by useHaTheme hook */
   --success: #10b981;
   --success-light: rgba(16, 185, 129, 0.15);
   --warning: #f59e0b;
@@ -19,14 +22,14 @@
   --error: #ef4444;
   --error-light: rgba(239, 68, 68, 0.15);
   
-  /* Background colors - Dark theme */
+  /* Background colors - Set by useHaTheme hook from HA theme */
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
   --bg-tertiary: #334155;
   --card-bg: #1e293b;
   --card-border: #334155;
   
-  /* Text colors - Light text on dark background */
+  /* Text colors - Set by useHaTheme hook from HA theme */
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
