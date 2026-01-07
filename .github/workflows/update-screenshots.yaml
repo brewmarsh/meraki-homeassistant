@@ -1,12 +1,12 @@
 name: Update Screenshots
 
 on:
-  pull_request:
+  # Only run after CI workflows complete successfully
+  workflow_run:
+    workflows: ['Beta CI', 'Main CI']
+    types:
+      - completed
     branches: ['beta', 'main']
-    paths:
-      - 'custom_components/meraki_ha/www/src/**'
-      - 'custom_components/meraki_ha/www/index.css'
-      - 'scripts/generate_screenshots.py'
   workflow_dispatch:
     inputs:
       force_update:
@@ -22,16 +22,21 @@ env:
 jobs:
   update-screenshots:
     runs-on: ubuntu-latest
+    # Only run if CI passed and it was a PR with frontend changes
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'pull_request')
     permissions:
       contents: write
       pull-requests: write
 
     steps:
-      - name: Checkout code (PR)
-        if: github.event_name == 'pull_request'
+      - name: Checkout code (workflow_run)
+        if: github.event_name == 'workflow_run'
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.event.workflow_run.head_branch }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -107,13 +112,16 @@ jobs:
           git push
 
       - name: Comment on PR
-        if: steps.check-changes.outputs.has_changes == 'true' && github.event_name == 'pull_request'
+        if: steps.check-changes.outputs.has_changes == 'true' && github.event_name == 'workflow_run' && github.event.workflow_run.pull_requests[0]
         uses: actions/github-script@v7
         with:
           script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '📸 Screenshots have been automatically updated based on your frontend changes.\n\nPlease review the updated images in `docs/images/`.'
-            })
+            const prNumber = context.payload.workflow_run.pull_requests[0]?.number;
+            if (prNumber) {
+              github.rest.issues.createComment({
+                issue_number: prNumber,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: '📸 Screenshots have been automatically updated based on your frontend changes.\n\nPlease review the updated images in `docs/images/`.'
+              });
+            }
