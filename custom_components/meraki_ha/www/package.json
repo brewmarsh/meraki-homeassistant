@@ -1,7 +1,7 @@
 {
   "name": "meraki-ha-www",
   "private": true,
-  "version": "2.2.1-beta.20",
+  "version": "2.2.1-beta.21",
   "type": "module",
   "scripts": {
     "dev": "vite",
