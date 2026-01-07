@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import SwitchPortVisualization from './SwitchPortVisualization';
 import SensorReading from './SensorReading';
+import MetricCard from './MetricCard';
 
 interface PortStatus {
   portId: string;
@@ -241,6 +242,10 @@ const DeviceView: React.FC<DeviceViewProps> = ({
     model.toUpperCase().startsWith('MV') || productType === 'camera';
   const isWireless =
     model.toUpperCase().startsWith('MR') || productType === 'wireless';
+  const isAppliance =
+    model.toUpperCase().startsWith('MX') ||
+    model.toUpperCase().startsWith('Z') ||
+    productType === 'appliance';
 
   // Filter out entities that are already shown as hero sensor readings
   const heroEntityPatterns = [
@@ -265,11 +270,21 @@ const DeviceView: React.FC<DeviceViewProps> = ({
     );
   });
 
-  const formatUptime = (seconds?: number): string => {
-    if (!seconds) return '—';
+  const formatUptime = (seconds?: number): string | null => {
+    if (!seconds) return null;
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);
-    return `${days} days, ${hours} hours`;
+    if (days > 0) {
+      return `${days}d ${hours}h`;
+    }
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return `${hours}h ${minutes}m`;
+  };
+
+  // Format uptime for display in metric cards (returns days as number)
+  const getUptimeDays = (seconds?: number): number => {
+    if (!seconds) return 0;
+    return Math.floor(seconds / 86400);
   };
 
   const formatLastSeen = (timestamp?: string): string => {
@@ -460,9 +475,6 @@ const DeviceView: React.FC<DeviceViewProps> = ({
   }, [viewLinkedCamera, linkedCameraId]);
 
   // Calculate PoE stats for switches
-  const poePorts = ports_statuses.filter(
-    (p) => p.poe?.isAllocated || p.poe?.enabled
-  );
   const totalPoeEnergy = ports_statuses.reduce(
     (acc, p) => acc + (p.powerUsageInWh || 0),
     0
@@ -508,86 +520,230 @@ const DeviceView: React.FC<DeviceViewProps> = ({
         </div>
       </div>
 
+      {/* Switch Metric Cards */}
+      {isSwitch && ports_statuses.length > 0 && (
+        <div className="metric-cards-grid">
+          <MetricCard
+            icon="⚡"
+            label="PoE Energy"
+            value={totalPoeEnergy}
+            unit="Wh"
+            gauge={{ min: 0, max: 500, color: 'warning' }}
+            status="normal"
+            statusMessage="Active"
+          />
+          <MetricCard
+            icon="👥"
+            label="Connected Clients"
+            value={totalConnectedClients}
+            gauge={{
+              min: 0,
+              max: Math.max(50, totalConnectedClients),
+              color: 'info',
+            }}
+            status="normal"
+          />
+          {uptime != null && (
+            <MetricCard
+              icon="⏱️"
+              label="Uptime"
+              value={getUptimeDays(uptime)}
+              unit=" days"
+              secondaryValue={formatUptime(uptime) || undefined}
+              status="normal"
+              statusMessage="Running"
+            />
+          )}
+          <MetricCard
+            icon="🔌"
+            label="Connected Ports"
+            value={
+              ports_statuses.filter(
+                (p) => p.status?.toLowerCase() === 'connected'
+              ).length
+            }
+            secondaryValue={`of ${ports_statuses.length} total`}
+            gauge={{
+              min: 0,
+              max: ports_statuses.length,
+              color: 'success',
+            }}
+            status="normal"
+          />
+        </div>
+      )}
+
+      {/* Wireless AP Metric Cards */}
+      {isWireless && (
+        <div className="metric-cards-grid">
+          <MetricCard
+            icon="👥"
+            label="Connected Clients"
+            value={deviceClients.length}
+            gauge={{ min: 0, max: Math.max(50, deviceClients.length), color: 'info' }}
+            status="normal"
+          />
+          {device.basicServiceSets && (
+            <MetricCard
+              icon="📶"
+              label="Active SSIDs"
+              value={device.basicServiceSets.filter((b) => b.enabled).length}
+              secondaryValue={`of ${device.basicServiceSets.length} total`}
+              gauge={{
+                min: 0,
+                max: device.basicServiceSets.length || 1,
+                color: 'success',
+              }}
+              status="normal"
+            />
+          )}
+          {uptime != null && (
+            <MetricCard
+              icon="⏱️"
+              label="Uptime"
+              value={getUptimeDays(uptime)}
+              unit=" days"
+              secondaryValue={formatUptime(uptime) || undefined}
+              status="normal"
+              statusMessage="Running"
+            />
+          )}
+        </div>
+      )}
+
+      {/* Appliance Metric Cards */}
+      {isAppliance && (
+        <div className="metric-cards-grid">
+          <MetricCard
+            icon="🌐"
+            label="WAN Status"
+            value={status === 'online' ? 'Online' : 'Offline'}
+            status={status === 'online' ? 'normal' : 'critical'}
+            statusMessage={status === 'online' ? 'Connected' : 'Disconnected'}
+          />
+          {uptime != null && (
+            <MetricCard
+              icon="⏱️"
+              label="Uptime"
+              value={getUptimeDays(uptime)}
+              unit=" days"
+              secondaryValue={formatUptime(uptime) || undefined}
+              status="normal"
+              statusMessage="Running"
+            />
+          )}
+        </div>
+      )}
+
+      {/* Camera Metric Cards */}
+      {isCamera && (
+        <div className="metric-cards-grid">
+          <MetricCard
+            icon="🔴"
+            label="Recording"
+            value={status === 'online' ? 'Active' : 'Inactive'}
+            status={status === 'online' ? 'normal' : 'inactive'}
+            statusMessage={status === 'online' ? 'Recording to cloud' : 'Camera offline'}
+          />
+          <MetricCard
+            icon="👁️"
+            label="Motion Detection"
+            value="Enabled"
+            status="normal"
+            statusMessage="Monitoring"
+          />
+        </div>
+      )}
+
       {/* Info Cards Grid */}
       <div className="cards-grid">
         <div className="info-card">
-          <h3>ℹ️ Device Information</h3>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '16px',
+            }}
+          >
+            <h3 style={{ margin: 0 }}>ℹ️ Device Information</h3>
+            {lastReportedAt && (
+              <span
+                style={{
+                  fontSize: '11px',
+                  color: 'var(--text-muted)',
+                  fontWeight: 400,
+                }}
+              >
+                Updated: {formatLastSeen(lastReportedAt)}
+              </span>
+            )}
+          </div>
           <div className="info-grid">
-            <div className="info-item">
-              <div className="label">LAN IP</div>
-              <div className="value">{lanIp || '—'}</div>
-            </div>
-            <div className="info-item">
-              <div className="label">MAC Address</div>
-              <div className="value mono">{mac || '—'}</div>
-            </div>
-            <div className="info-item">
-              <div className="label">Uptime</div>
-              <div className="value">{formatUptime(uptime)}</div>
-            </div>
-            <div className="info-item">
-              <div className="label">Last Seen</div>
-              <div className="value">{formatLastSeen(lastReportedAt)}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Switch-specific Power Summary */}
-        {isSwitch && ports_statuses.length > 0 && (
-          <div className="info-card">
-            <h3>⚡ Power &amp; Ports</h3>
-            <div className="info-grid">
+            {lanIp && (
               <div className="info-item">
-                <div className="label">PoE Energy Used</div>
-                <div className="value warning">
-                  {totalPoeEnergy.toFixed(1)} Wh
-                </div>
+                <div className="label">LAN IP</div>
+                <div className="value">{lanIp}</div>
               </div>
+            )}
+            {mac && (
               <div className="info-item">
-                <div className="label">Connected Clients</div>
-                <div className="value primary">{totalConnectedClients}</div>
+                <div className="label">MAC Address</div>
+                <div className="value mono">{mac}</div>
               </div>
+            )}
+            {firmware && (
               <div className="info-item">
-                <div className="label">Active PoE Ports</div>
-                <div className="value">
-                  {poePorts.length} of {ports_statuses.length}
-                </div>
+                <div className="label">Firmware</div>
+                <div className="value">{firmware}</div>
               </div>
-              <div className="info-item">
-                <div className="label">Connected Ports</div>
-                <div className="value success">
-                  {
-                    ports_statuses.filter(
-                      (p) => p.status?.toLowerCase() === 'connected'
-                    ).length
-                  }
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Sensor-specific Battery Info */}
-        {isSensor && readings && (
-          <div className="info-card">
-            <h3>🔋 Sensor Status</h3>
-            <div className="info-grid">
-              <div className="info-item">
-                <div className="label">Battery</div>
-                <div className="value success">{readings.battery || 98}%</div>
-              </div>
-              <div className="info-item">
-                <div className="label">Last Update</div>
-                <div className="value">{formatLastSeen(lastReportedAt)}</div>
-              </div>
-              <div className="info-item">
-                <div className="label">Network</div>
-                <div className="value">Main Office</div>
-              </div>
+            )}
+            {uptime != null && !isSwitch && !isWireless && !isAppliance && (
               <div className="info-item">
                 <div className="label">Uptime</div>
                 <div className="value">{formatUptime(uptime)}</div>
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* Sensor-specific Battery Info */}
+        {isSensor && readings && (
+          <div className="info-card">
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px',
+              }}
+            >
+              <h3 style={{ margin: 0 }}>🔋 Sensor Status</h3>
+              {lastReportedAt && (
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: 'var(--text-muted)',
+                    fontWeight: 400,
+                  }}
+                >
+                  Updated: {formatLastSeen(lastReportedAt)}
+                </span>
+              )}
+            </div>
+            <div className="info-grid">
+              {readings.battery != null && (
+                <div className="info-item">
+                  <div className="label">Battery</div>
+                  <div className="value success">{readings.battery}%</div>
+                </div>
+              )}
+              {mac && (
+                <div className="info-item">
+                  <div className="label">MAC Address</div>
+                  <div className="value mono">{mac}</div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -805,13 +961,18 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                       </div>
                     </div>
                   </td>
-                  <td style={{ fontFamily: 'monospace', fontSize: '13px' }}>
-                    {client.ip || '—'}
-                  </td>
+                  {client.ip && (
+                    <td style={{ fontFamily: 'monospace', fontSize: '13px' }}>
+                      {client.ip}
+                    </td>
+                  )}
+                  {!client.ip && <td></td>}
                   <td>
-                    <span className="detail-badge">
-                      {client.ssid || client.switchport || '—'}
-                    </span>
+                    {(client.ssid || client.switchport) && (
+                      <span className="detail-badge">
+                        {client.ssid || client.switchport}
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -1235,13 +1396,13 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                                 : 'var(--primary)',
                             }}
                           >
-                            {bss.band || '—'}
+                            {bss.band}
                           </span>
                         </td>
-                        <td>{bss.channel || '—'}</td>
-                        <td>{bss.channelWidth || '—'}</td>
+                        <td>{bss.channel}</td>
+                        <td>{bss.channelWidth}</td>
                         <td style={{ color: 'var(--warning)' }}>
-                          {bss.power || '—'}
+                          {bss.power}
                         </td>
                         <td>
                           <span
@@ -1295,10 +1456,10 @@ const DeviceView: React.FC<DeviceViewProps> = ({
             <div className="info-grid">
               <div className="info-item">
                 <div className="label">Connected Clients</div>
-                <div className="value primary">—</div>
+                <div className="value primary">{deviceClients.length}</div>
               </div>
               <div className="info-item">
-                <div className="label">Radio Channels</div>
+                <div className="label">Radio Bands</div>
                 <div className="value">2.4 GHz / 5 GHz</div>
               </div>
             </div>

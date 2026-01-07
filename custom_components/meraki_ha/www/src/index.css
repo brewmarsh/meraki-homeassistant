@@ -82,6 +82,9 @@
   min-height: 100vh;
   color: var(--text-primary);
   padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 /* Header */
@@ -158,7 +161,7 @@
 /* Stats Cards Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -309,6 +312,15 @@
   background: rgba(255, 255, 255, 0.02);
 }
 
+/* Sticky first column for horizontal scrolling */
+.device-table th:first-child,
+.device-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--card-bg);
+  z-index: 1;
+}
+
 .device-row {
   cursor: pointer;
   transition: var(--transition);
@@ -400,10 +412,11 @@
   color: var(--warning);
 }
 
-/* Detail Badge */
+/* Detail Badge - High contrast text for readability */
 .detail-badge {
-  background: var(--primary-light);
-  color: var(--primary);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 13px;
@@ -666,7 +679,7 @@
   justify-content: space-between;
   align-items: center;
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--text-secondary);
 }
 
 .ports-row {
@@ -716,7 +729,7 @@
 
 .port .num {
   font-size: 9px;
-  color: #6b7280;
+  color: var(--text-muted);
   position: absolute;
   bottom: 2px;
 }
@@ -821,7 +834,7 @@
 .port-stat .value {
   font-size: 18px;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--text-primary);
 }
 
 /* Sensor Readings */
@@ -1088,6 +1101,228 @@
   font-size: 14px;
 }
 
+/* MetricCard Component */
+.metric-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  text-align: center;
+  transition: var(--transition);
+}
+
+.metric-card.clickable {
+  cursor: pointer;
+}
+
+.metric-card.clickable:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.metric-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.metric-icon {
+  font-size: 28px;
+}
+
+/* Icon wrapper colors */
+.metric-icon-primary {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.metric-icon-success {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.metric-icon-warning {
+  background: var(--warning-light);
+  color: var(--warning);
+}
+
+.metric-icon-error {
+  background: var(--error-light);
+  color: var(--error);
+}
+
+.metric-icon-info {
+  background: rgba(6, 182, 212, 0.15);
+  color: #06b6d4;
+}
+
+.metric-icon-purple {
+  background: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+}
+
+.metric-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+.metric-unit {
+  font-size: 18px;
+  font-weight: 400;
+  opacity: 0.7;
+  margin-left: 2px;
+}
+
+.metric-secondary {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.metric-status {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.metric-status-normal {
+  color: var(--success);
+}
+
+.metric-status-warning {
+  color: var(--warning);
+}
+
+.metric-status-critical {
+  color: var(--error);
+}
+
+.metric-status-inactive {
+  color: var(--text-muted);
+}
+
+.metric-gauge-wrapper {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  margin-top: 16px;
+  overflow: hidden;
+}
+
+.metric-gauge-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.metric-gauge-primary {
+  background: var(--primary);
+}
+
+.metric-gauge-success {
+  background: var(--success);
+}
+
+.metric-gauge-warning {
+  background: linear-gradient(90deg, var(--success) 0%, var(--warning) 100%);
+}
+
+.metric-gauge-error {
+  background: linear-gradient(90deg, var(--warning) 0%, var(--error) 100%);
+}
+
+.metric-gauge-info {
+  background: #06b6d4;
+}
+
+.metric-gauge-purple {
+  background: #8b5cf6;
+}
+
+.metric-gauge-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Metric Cards Grid */
+.metric-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .metric-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .metric-card {
+    padding: 16px;
+  }
+
+  .metric-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+  }
+
+  .metric-icon {
+    font-size: 22px;
+  }
+
+  .metric-value {
+    font-size: 28px;
+  }
+
+  .metric-unit {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .metric-cards-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .metric-card {
+    padding: 12px;
+  }
+
+  .metric-value {
+    font-size: 24px;
+  }
+
+  .metric-label {
+    font-size: 10px;
+  }
+}
+
 /* Utility Classes */
 .text-primary {
   color: var(--primary);
@@ -1124,6 +1359,37 @@
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Filter Controls */
+.filter-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .filter-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .filter-controls select,
+  .filter-controls button {
+    width: 100%;
+  }
+
+  .view-mode-toggle {
+    order: -1;
+    width: 100%;
+  }
+
+  .view-mode-toggle button {
+    flex: 1;
+  }
 }
 
 /* Responsive */

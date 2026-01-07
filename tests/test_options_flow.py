@@ -57,10 +57,10 @@ def test_options_flow_init(mock_options_config_entry: MagicMock) -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_step_init_with_user_input(
+async def test_async_step_init_with_user_input_moves_to_dashboard(
     mock_options_config_entry: MagicMock,
 ) -> None:
-    """Test options flow step init with user input creates entry."""
+    """Test options flow step init with user input moves to dashboard step."""
     handler = MerakiOptionsFlowHandler(mock_options_config_entry)
 
     user_input = {
@@ -70,13 +70,38 @@ async def test_async_step_init_with_user_input(
 
     result = await handler.async_step_init(user_input)
 
-    assert result["type"] == "create_entry"
+    # Step init should move to dashboard step, returning a form
+    assert result["type"].value == "form"
+    assert result["step_id"] == "dashboard"
+
+
+@pytest.mark.asyncio
+async def test_async_step_dashboard_with_user_input_moves_to_camera(
+    mock_options_config_entry: MagicMock,
+) -> None:
+    """Test options flow step dashboard with user input moves to camera step."""
+    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+
+    result = await handler.async_step_dashboard({"some_dashboard_option": True})
+
+    # Dashboard step should move to camera step, returning a form
+    assert result["type"].value == "form"
+    assert result["step_id"] == "camera"
+
+
+@pytest.mark.asyncio
+async def test_async_step_camera_with_user_input_creates_entry(
+    mock_options_config_entry: MagicMock,
+) -> None:
+    """Test options flow step camera with user input creates entry."""
+    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+
+    result = await handler.async_step_camera({"some_camera_option": True})
+
+    # Camera step with input should create entry
+    assert result["type"].value == "create_entry"
     assert result["title"] == CONF_INTEGRATION_TITLE
-    assert result["data"]["scan_interval"] == 60
-    assert result["data"]["enable_device_status"] is False
-
-
-# Removed test_async_step_init_shows_form as it requires full HA integration setup
+    assert "some_camera_option" in result["data"]
 
 
 def test_populate_schema_defaults() -> None:
@@ -136,10 +161,10 @@ def test_populate_schema_defaults_with_networks() -> None:
 
 
 @pytest.mark.asyncio
-async def test_options_flow_updates_existing_options(
+async def test_full_options_flow_creates_entry(
     mock_options_config_entry: MagicMock,
 ) -> None:
-    """Test that submitting options updates existing values."""
+    """Test complete options flow from start to entry creation."""
     # Start with initial options
     mock_options_config_entry.options = {
         "scan_interval": 30,
@@ -149,14 +174,17 @@ async def test_options_flow_updates_existing_options(
 
     handler = MerakiOptionsFlowHandler(mock_options_config_entry)
 
-    # Submit partial update
-    user_input = {
-        "scan_interval": 120,
-    }
+    # Step 1: init -> goes to dashboard
+    result = await handler.async_step_init({"scan_interval": 120})
+    assert result["step_id"] == "dashboard"
 
-    result = await handler.async_step_init(user_input)
+    # Step 2: dashboard -> goes to camera
+    result = await handler.async_step_dashboard({})
+    assert result["step_id"] == "camera"
 
-    assert result["type"] == "create_entry"
+    # Step 3: camera -> creates entry
+    result = await handler.async_step_camera({})
+    assert result["type"].value == "create_entry"
     # New value should be applied
     assert result["data"]["scan_interval"] == 120
     # Existing values should be preserved

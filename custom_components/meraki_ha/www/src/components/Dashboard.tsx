@@ -462,17 +462,10 @@ const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* Filters and View Toggle */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '12px',
-          marginBottom: '20px',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-        }}
-      >
+      <div className="filter-controls">
         {/* View Mode Toggle */}
         <div
+          className="view-mode-toggle"
           style={{
             display: 'flex',
             gap: '4px',

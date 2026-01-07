@@ -188,7 +188,7 @@ def validate_response(response: Any) -> dict[str, Any] | list[Any]:
     if isinstance(response, list):
         return response
 
-    if isinstance(response, (str, int, float, bool)):
+    if isinstance(response, str | int | float | bool):
         return {"value": response}
 
     raise MerakiConnectionError(

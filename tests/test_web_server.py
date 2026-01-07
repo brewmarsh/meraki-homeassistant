@@ -1,6 +1,5 @@
 """Tests for the web server module."""
 
-import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -46,7 +45,9 @@ def web_server(mock_hass: MagicMock, mock_coordinator: MagicMock, tmp_path):
     (static_dir / "index.html").write_text("<html></html>")
 
     with patch.object(
-        MerakiWebServer, "_setup_routes", lambda self: _mock_setup_routes(self, str(static_dir))
+        MerakiWebServer,
+        "_setup_routes",
+        lambda self: _mock_setup_routes(self, str(static_dir)),
     ):
         server = MerakiWebServer(
             hass=mock_hass,
@@ -168,12 +169,9 @@ async def test_start_and_stop(web_server) -> None:
     mock_runner.cleanup = AsyncMock()
 
     with patch(
-        "custom_components.meraki_ha.web_server.web.AppRunner",
-        return_value=mock_runner
+        "custom_components.meraki_ha.web_server.web.AppRunner", return_value=mock_runner
     ):
-        with patch(
-            "custom_components.meraki_ha.web_server.web.TCPSite"
-        ) as mock_site:
+        with patch("custom_components.meraki_ha.web_server.web.TCPSite") as mock_site:
             mock_site_instance = MagicMock()
             mock_site_instance.start = AsyncMock()
             mock_site.return_value = mock_site_instance
@@ -195,3 +193,417 @@ async def test_stop_when_not_running(web_server) -> None:
     # Should not raise when runner is None
     web_server.runner = None
     await web_server.stop()
+
+
+@pytest.mark.asyncio
+async def test_handle_api_networks_no_data(
+    mock_hass: MagicMock, mock_coordinator: MagicMock, tmp_path
+) -> None:
+    """Test handle_api_networks returns 503 when no data."""
+    mock_coordinator.data = None
+
+    static_dir = tmp_path / "www" / "dist"
+    static_dir.mkdir(parents=True)
+    (static_dir / "assets").mkdir()
+
+    with patch.object(
+        MerakiWebServer,
+        "_setup_routes",
+        lambda self: None,
+    ):
+        server = MerakiWebServer(mock_hass, mock_coordinator, 8080)
+        mock_request = MagicMock()
+
+        response = await server.handle_api_networks(mock_request)
+
+        assert response.status == 503
+
+
+@pytest.mark.asyncio
+async def test_handle_api_network_detail_no_data(
+    mock_hass: MagicMock, mock_coordinator: MagicMock, tmp_path
+) -> None:
+    """Test handle_api_network_detail returns 503 when no data."""
+    mock_coordinator.data = None
+
+    static_dir = tmp_path / "www" / "dist"
+    static_dir.mkdir(parents=True)
+    (static_dir / "assets").mkdir()
+
+    with patch.object(
+        MerakiWebServer,
+        "_setup_routes",
+        lambda self: None,
+    ):
+        server = MerakiWebServer(mock_hass, mock_coordinator, 8080)
+        mock_request = MagicMock()
+        mock_request.match_info = {"network_id": "N_123"}
+
+        response = await server.handle_api_network_detail(mock_request)
+
+        assert response.status == 503
+
+
+@pytest.mark.asyncio
+async def test_handle_api_get_clients_no_data(
+    mock_hass: MagicMock, mock_coordinator: MagicMock, tmp_path
+) -> None:
+    """Test handle_api_get_clients returns 503 when no data."""
+    mock_coordinator.data = None
+
+    static_dir = tmp_path / "www" / "dist"
+    static_dir.mkdir(parents=True)
+    (static_dir / "assets").mkdir()
+
+    with patch.object(
+        MerakiWebServer,
+        "_setup_routes",
+        lambda self: None,
+    ):
+        server = MerakiWebServer(mock_hass, mock_coordinator, 8080)
+        mock_request = MagicMock()
+
+        response = await server.handle_api_get_clients(mock_request)
+
+        assert response.status == 503
+
+
+@pytest.mark.asyncio
+async def test_handle_api_post_settings_error(
+    mock_hass: MagicMock, mock_coordinator: MagicMock, tmp_path
+) -> None:
+    """Test handle_api_post_settings handles errors."""
+    static_dir = tmp_path / "www" / "dist"
+    static_dir.mkdir(parents=True)
+    (static_dir / "assets").mkdir()
+
+    with patch.object(
+        MerakiWebServer,
+        "_setup_routes",
+        lambda self: None,
+    ):
+        server = MerakiWebServer(mock_hass, mock_coordinator, 8080)
+        mock_request = MagicMock()
+        mock_request.json = AsyncMock(side_effect=Exception("Invalid JSON"))
+
+        response = await server.handle_api_post_settings(mock_request)
+
+        assert response.status == 500
+
+
+@pytest.mark.asyncio
+async def test_handle_api_get_settings_no_config_entry(
+    mock_hass: MagicMock, mock_coordinator: MagicMock, tmp_path
+) -> None:
+    """Test handle_api_get_settings when no config entry."""
+    mock_coordinator.config_entry = None
+
+    static_dir = tmp_path / "www" / "dist"
+    static_dir.mkdir(parents=True)
+    (static_dir / "assets").mkdir()
+
+    with patch.object(
+        MerakiWebServer,
+        "_setup_routes",
+        lambda self: None,
+    ):
+        server = MerakiWebServer(mock_hass, mock_coordinator, 8080)
+        mock_request = MagicMock()
+
+        response = await server.handle_api_get_settings(mock_request)
+
+        assert response.status == 200
+
+
+@pytest.mark.asyncio
+async def test_handle_api_get_content_filtering(
+    mock_hass: MagicMock, mock_coordinator: MagicMock, tmp_path
+) -> None:
+    """Test handle_api_get_content_filtering."""
+    mock_coordinator.api.appliance.get_network_appliance_content_filtering = AsyncMock(
+        return_value={"blockedUrlCategories": []}
+    )
+
+    static_dir = tmp_path / "www" / "dist"
+    static_dir.mkdir(parents=True)
+    (static_dir / "assets").mkdir()
+
+    with patch.object(
+        MerakiWebServer,
+        "_setup_routes",
+        lambda self: None,
+    ):
+        server = MerakiWebServer(mock_hass, mock_coordinator, 8080)
+        mock_request = MagicMock()
+        mock_request.match_info = {"network_id": "N_123"}
+
+        response = await server.handle_api_get_content_filtering(mock_request)
+
+        assert response.status == 200
+
+
+@pytest.mark.asyncio
+async def test_handle_api_get_content_filtering_error(
+    mock_hass: MagicMock, mock_coordinator: MagicMock, tmp_path
+) -> None:
+    """Test handle_api_get_content_filtering handles errors."""
+    mock_coordinator.api.appliance.get_network_appliance_content_filtering = AsyncMock(
+        side_effect=Exception("API Error")
+    )
+
+    static_dir = tmp_path / "www" / "dist"
+    static_dir.mkdir(parents=True)
+    (static_dir / "assets").mkdir()
+
+    with patch.object(
+        MerakiWebServer,
+        "_setup_routes",
+        lambda self: None,
+    ):
+        server = MerakiWebServer(mock_hass, mock_coordinator, 8080)
+        mock_request = MagicMock()
+        mock_request.match_info = {"network_id": "N_123"}
+
+        response = await server.handle_api_get_content_filtering(mock_request)
+
+        assert response.status == 500
+
+
+@pytest.mark.asyncio
+async def test_handle_api_put_content_filtering(
+    mock_hass: MagicMock, mock_coordinator: MagicMock, tmp_path
+) -> None:
+    """Test handle_api_put_content_filtering."""
+    mock_coordinator.api.appliance.update_network_appliance_content_filtering = (
+        AsyncMock()
+    )
+
+    static_dir = tmp_path / "www" / "dist"
+    static_dir.mkdir(parents=True)
+    (static_dir / "assets").mkdir()
+
+    with patch.object(
+        MerakiWebServer,
+        "_setup_routes",
+        lambda self: None,
+    ):
+        server = MerakiWebServer(mock_hass, mock_coordinator, 8080)
+        mock_request = MagicMock()
+        mock_request.match_info = {"network_id": "N_123"}
+        mock_request.json = AsyncMock(return_value={"blockedUrlCategories": []})
+
+        response = await server.handle_api_put_content_filtering(mock_request)
+
+        assert response.status == 200
+
+
+@pytest.mark.asyncio
+async def test_handle_api_put_content_filtering_error(
+    mock_hass: MagicMock, mock_coordinator: MagicMock, tmp_path
+) -> None:
+    """Test handle_api_put_content_filtering handles errors."""
+    mock_coordinator.api.appliance.update_network_appliance_content_filtering = (
+        AsyncMock(side_effect=Exception("API Error"))
+    )
+
+    static_dir = tmp_path / "www" / "dist"
+    static_dir.mkdir(parents=True)
+    (static_dir / "assets").mkdir()
+
+    with patch.object(
+        MerakiWebServer,
+        "_setup_routes",
+        lambda self: None,
+    ):
+        server = MerakiWebServer(mock_hass, mock_coordinator, 8080)
+        mock_request = MagicMock()
+        mock_request.match_info = {"network_id": "N_123"}
+        mock_request.json = AsyncMock(return_value={})
+
+        response = await server.handle_api_put_content_filtering(mock_request)
+
+        assert response.status == 500
+
+
+@pytest.mark.asyncio
+async def test_handle_api_get_l7_firewall_rules(
+    mock_hass: MagicMock, mock_coordinator: MagicMock, tmp_path
+) -> None:
+    """Test handle_api_get_l7_firewall_rules."""
+    mock_coordinator.api.appliance.get_network_appliance_l7_firewall_rules = AsyncMock(
+        return_value={"rules": []}
+    )
+
+    static_dir = tmp_path / "www" / "dist"
+    static_dir.mkdir(parents=True)
+    (static_dir / "assets").mkdir()
+
+    with patch.object(
+        MerakiWebServer,
+        "_setup_routes",
+        lambda self: None,
+    ):
+        server = MerakiWebServer(mock_hass, mock_coordinator, 8080)
+        mock_request = MagicMock()
+        mock_request.match_info = {"network_id": "N_123"}
+
+        response = await server.handle_api_get_l7_firewall_rules(mock_request)
+
+        assert response.status == 200
+
+
+@pytest.mark.asyncio
+async def test_handle_api_put_l7_firewall_rules(
+    mock_hass: MagicMock, mock_coordinator: MagicMock, tmp_path
+) -> None:
+    """Test handle_api_put_l7_firewall_rules."""
+    mock_coordinator.api.appliance.update_network_appliance_l7_firewall_rules = (
+        AsyncMock()
+    )
+
+    static_dir = tmp_path / "www" / "dist"
+    static_dir.mkdir(parents=True)
+    (static_dir / "assets").mkdir()
+
+    with patch.object(
+        MerakiWebServer,
+        "_setup_routes",
+        lambda self: None,
+    ):
+        server = MerakiWebServer(mock_hass, mock_coordinator, 8080)
+        mock_request = MagicMock()
+        mock_request.match_info = {"network_id": "N_123"}
+        mock_request.json = AsyncMock(return_value={"rules": []})
+
+        response = await server.handle_api_put_l7_firewall_rules(mock_request)
+
+        assert response.status == 200
+
+
+@pytest.mark.asyncio
+async def test_handle_api_get_content_filtering_categories(
+    mock_hass: MagicMock, mock_coordinator: MagicMock, tmp_path
+) -> None:
+    """Test handle_api_get_content_filtering_categories."""
+    static_dir = tmp_path / "www" / "dist"
+    static_dir.mkdir(parents=True)
+    (static_dir / "assets").mkdir()
+
+    with patch.object(
+        MerakiWebServer,
+        "_setup_routes",
+        lambda self: None,
+    ):
+        server = MerakiWebServer(mock_hass, mock_coordinator, 8080)
+        mock_request = MagicMock()
+
+        response = await server.handle_api_get_content_filtering_categories(
+            mock_request
+        )
+
+        assert response.status == 200
+
+
+@pytest.mark.asyncio
+async def test_handle_spa_index_exists(
+    mock_hass: MagicMock, mock_coordinator: MagicMock, tmp_path
+) -> None:
+    """Test handle_spa when index.html exists."""
+    static_dir = tmp_path / "www" / "dist"
+    static_dir.mkdir(parents=True)
+    (static_dir / "assets").mkdir()
+    index_content = "<html>__HA_URL____CONFIG_ENTRY_ID__</html>"
+    (static_dir / "index.html").write_text(index_content)
+
+    mock_coordinator.config_entry = MagicMock()
+    mock_coordinator.config_entry.entry_id = "test_entry_123"
+
+    with patch.object(
+        MerakiWebServer,
+        "_setup_routes",
+        lambda self: None,
+    ):
+        with patch(
+            "custom_components.meraki_ha.web_server.os.path.dirname",
+            return_value=str(tmp_path),
+        ):
+            with patch(
+                "custom_components.meraki_ha.web_server.os.path.exists",
+                return_value=True,
+            ):
+                mock_file = AsyncMock()
+                mock_file.read = AsyncMock(return_value=index_content)
+                mock_file.__aenter__ = AsyncMock(return_value=mock_file)
+                mock_file.__aexit__ = AsyncMock(return_value=None)
+
+                with patch(
+                    "custom_components.meraki_ha.web_server.aiofiles.open",
+                    return_value=mock_file,
+                ):
+                    server = MerakiWebServer(mock_hass, mock_coordinator, 8080)
+                    mock_request = MagicMock()
+
+                    response = await server.handle_spa(mock_request)
+
+                    assert response.status == 200
+                    assert "text/html" in response.content_type
+
+
+@pytest.mark.asyncio
+async def test_handle_spa_index_not_found(
+    mock_hass: MagicMock, mock_coordinator: MagicMock, tmp_path
+) -> None:
+    """Test handle_spa when index.html doesn't exist."""
+    static_dir = tmp_path / "www" / "dist"
+    static_dir.mkdir(parents=True)
+    (static_dir / "assets").mkdir()
+
+    with patch.object(
+        MerakiWebServer,
+        "_setup_routes",
+        lambda self: None,
+    ):
+        with patch(
+            "custom_components.meraki_ha.web_server.os.path.exists",
+            return_value=False,
+        ):
+            server = MerakiWebServer(mock_hass, mock_coordinator, 8080)
+            mock_request = MagicMock()
+
+            response = await server.handle_spa(mock_request)
+
+            assert response.status == 404
+
+
+@pytest.mark.asyncio
+async def test_start_server_error(
+    mock_hass: MagicMock, mock_coordinator: MagicMock, tmp_path
+) -> None:
+    """Test server start handles errors gracefully."""
+    static_dir = tmp_path / "www" / "dist"
+    static_dir.mkdir(parents=True)
+    (static_dir / "assets").mkdir()
+
+    with patch.object(
+        MerakiWebServer,
+        "_setup_routes",
+        lambda self: None,
+    ):
+        server = MerakiWebServer(mock_hass, mock_coordinator, 8080)
+
+        mock_runner = MagicMock()
+        mock_runner.setup = AsyncMock()
+
+        with patch(
+            "custom_components.meraki_ha.web_server.web.AppRunner",
+            return_value=mock_runner,
+        ):
+            with patch(
+                "custom_components.meraki_ha.web_server.web.TCPSite"
+            ) as mock_site:
+                mock_site_instance = MagicMock()
+                mock_site_instance.start = AsyncMock(side_effect=OSError("Port in use"))
+                mock_site.return_value = mock_site_instance
+
+                # Should not raise, just log error
+                await server.start()

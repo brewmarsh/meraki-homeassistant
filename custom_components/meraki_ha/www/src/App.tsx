@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Dashboard from './components/Dashboard';
 import DeviceView from './components/DeviceView';
 import ClientsView from './components/ClientsView';
+import Settings from './components/Settings';
 import { useHaTheme } from './hooks/useHaTheme';
 import type { HomeAssistant, PanelInfo, RouteInfo } from './types/hass';
 
@@ -177,13 +178,40 @@ const ErrorDisplay: React.FC<{ message: string; onRetry?: () => void }> = ({
 );
 
 /**
- * Header component with logo and version
+ * Header component with logo, version, and settings button
  */
-const Header: React.FC<{ version?: string }> = ({ version }) => (
+const Header: React.FC<{
+  version?: string;
+  onSettingsClick?: () => void;
+}> = ({ version, onSettingsClick }) => (
   <div className="meraki-header">
     <div className="logo">🌐</div>
     <h1>Meraki Dashboard</h1>
     {version && <span className="version">v{version}</span>}
+    <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+      {onSettingsClick && (
+        <button
+          onClick={onSettingsClick}
+          className="settings-btn"
+          title="Settings"
+          style={{
+            background: 'var(--bg-tertiary)',
+            border: '1px solid var(--card-border)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '8px 12px',
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            fontSize: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            transition: 'var(--transition)',
+          }}
+        >
+          ⚙️ Settings
+        </button>
+      )}
+    </div>
   </div>
 );
 
@@ -198,6 +226,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
     view: string;
     deviceId?: string;
   }>({ view: 'dashboard' });
+  const [showSettings, setShowSettings] = useState<boolean>(false);
 
   // Apply HA theme variables to the panel
   const { style: themeStyle } = useHaTheme(hass);
@@ -365,12 +394,22 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
   };
 
   return (
-    <div
-      className="meraki-panel"
-      style={{ ...themeStyle, maxWidth: '100%', margin: '0 auto' }}
-    >
-      <Header version={data.version} />
+    <div className="meraki-panel" style={themeStyle}>
+      <Header
+        version={data.version}
+        onSettingsClick={() => setShowSettings(true)}
+      />
       {renderView()}
+
+      {/* Settings Modal */}
+      {showSettings && configEntryId && (
+        <Settings
+          hass={hass}
+          options={data}
+          configEntryId={configEntryId}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
     </div>
   );
 };
