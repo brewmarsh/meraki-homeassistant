@@ -492,14 +492,23 @@ async def handle_get_available_cameras(
 
         # If integration filter is set, check if entity belongs to that integration
         if integration_filter:
+            # Normalize filter for flexible matching (blue_iris matches blueiris)
+            normalized_filter = integration_filter.replace("_", "").replace("-", "")
             entity_entry = entity_registry.async_get(entity_id)
             if entity_entry:
                 # Check platform (integration domain)
-                if integration_filter not in entity_entry.platform.lower():
+                platform = entity_entry.platform.lower()
+                normalized_platform = platform.replace("_", "").replace("-", "")
+                filter_matches = (
+                    normalized_filter in normalized_platform
+                    or normalized_platform in normalized_filter
+                )
+                if not filter_matches:
                     continue
             else:
                 # No registry entry, try to match by entity_id pattern
-                if integration_filter not in entity_id.lower():
+                normalized_entity = entity_id.lower().replace("_", "").replace("-", "")
+                if normalized_filter not in normalized_entity:
                     continue
 
         friendly_name = state.attributes.get("friendly_name", entity_id)

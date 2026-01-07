@@ -139,49 +139,58 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
         """Return a still image from the camera."""
-        # If we have a linked camera, ONLY use its image (no fallback to Meraki)
-        linked_entity_id = await self._get_linked_camera_entity()
-        if linked_entity_id:
-            linked_image = await self._get_linked_camera_image(linked_entity_id)
-            if linked_image:
-                return linked_image
-            # Return cached snapshot if linked camera fails, but don't fetch from Meraki
-            _LOGGER.debug(
-                "Linked camera %s failed, returning cached snapshot for %s",
-                linked_entity_id,
-                self.name,
-            )
-            return self._cached_snapshot
-
-        if self.device_data.get("status") != "online":
-            _LOGGER.debug("Skipping snapshot for offline camera: %s", self.name)
-            return self._cached_snapshot  # Return cached image if available
-
-        # Check if we should use the cached snapshot based on refresh interval
-        interval = self._snapshot_interval
-        current_time = time.time()
-
-        if interval > 0 and self._cached_snapshot is not None:
-            elapsed = current_time - self._snapshot_timestamp
-            if elapsed < interval:
+        try:
+            # If we have a linked camera, ONLY use its image (no fallback to Meraki)
+            linked_entity_id = await self._get_linked_camera_entity()
+            if linked_entity_id:
+                linked_image = await self._get_linked_camera_image(linked_entity_id)
+                if linked_image:
+                    return linked_image
+                # Return cached snapshot if linked camera fails
+                # (don't fall back to Meraki - linked camera is authoritative)
                 _LOGGER.debug(
-                    "Returning cached snapshot for %s (%.0fs old, interval=%ds)",
+                    "Linked camera %s failed, returning cached snapshot for %s",
+                    linked_entity_id,
                     self.name,
-                    elapsed,
-                    interval,
                 )
                 return self._cached_snapshot
+        except Exception as e:
+            _LOGGER.debug("Error checking linked camera for %s: %s", self.name, e)
+            # Continue to try Meraki snapshot
 
-        # Fetch a new snapshot
-        snapshot = await self._fetch_snapshot()
+        try:
+            if self.device_data.get("status") != "online":
+                _LOGGER.debug("Skipping snapshot for offline camera: %s", self.name)
+                return self._cached_snapshot  # Return cached image if available
 
-        # Cache the snapshot if we got one
-        if snapshot is not None:
-            self._cached_snapshot = snapshot
-            self._snapshot_timestamp = current_time
+            # Check if we should use the cached snapshot based on refresh interval
+            interval = self._snapshot_interval
+            current_time = time.time()
 
-        # Return the new snapshot, or cached one if fetch failed
-        return snapshot if snapshot is not None else self._cached_snapshot
+            if interval > 0 and self._cached_snapshot is not None:
+                elapsed = current_time - self._snapshot_timestamp
+                if elapsed < interval:
+                    _LOGGER.debug(
+                        "Returning cached snapshot for %s (%.0fs old, interval=%ds)",
+                        self.name,
+                        elapsed,
+                        interval,
+                    )
+                    return self._cached_snapshot
+
+            # Fetch a new snapshot
+            snapshot = await self._fetch_snapshot()
+
+            # Cache the snapshot if we got one
+            if snapshot is not None:
+                self._cached_snapshot = snapshot
+                self._snapshot_timestamp = current_time
+
+            # Return the new snapshot, or cached one if fetch failed
+            return snapshot if snapshot is not None else self._cached_snapshot
+        except Exception as e:
+            _LOGGER.warning("Error fetching camera image for %s: %s", self.name, e)
+            return self._cached_snapshot
 
     async def _fetch_snapshot(self) -> bytes | None:
         """Fetch a fresh snapshot from the camera."""
