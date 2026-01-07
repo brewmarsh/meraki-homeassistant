@@ -144,7 +144,7 @@
 /* Stats Cards Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -537,7 +537,7 @@
 /* Info Cards Grid */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 24px;
   margin-bottom: 24px;
 }
@@ -771,7 +771,7 @@
 /* Sensor Readings */
 .readings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
   margin-bottom: 24px;
 }
@@ -1020,7 +1020,24 @@
 
 /* Text colors are defined in :root above and used consistently */
 
+/* Table wrapper for horizontal scrolling on small screens */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Responsive */
+@media (max-width: 1024px) {
+  .info-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .port-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .meraki-panel {
     padding: 16px;
@@ -1030,13 +1047,34 @@
     font-size: 22px;
   }
   
+  .meraki-header .version {
+    display: none;
+  }
+  
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* Make tables horizontally scrollable */
+  .info-card {
+    overflow-x: auto;
+  }
+  
+  .device-table {
+    min-width: 500px;
   }
   
   .device-table th,
   .device-table td {
     padding: 12px 16px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  
+  .device-table th:first-child,
+  .device-table td:first-child {
+    white-space: normal;
+    min-width: 150px;
   }
   
   .device-header {
@@ -1050,5 +1088,148 @@
   
   .cards-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .port-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* Stack port details on mobile */
+  .port-details {
+    padding: 16px;
+  }
+  
+  /* Client info on mobile */
+  .client-info {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  /* Readings grid on mobile */
+  .readings-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .reading-card {
+    padding: 24px;
+  }
+  
+  .reading-card .reading-value {
+    font-size: 36px;
+  }
+  
+  /* Filter controls */
+  .nav-tabs {
+    flex-wrap: wrap;
+  }
+  
+  .nav-tab {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .meraki-panel {
+    padding: 12px;
+  }
+  
+  .meraki-header {
+    gap: 12px;
+  }
+  
+  .meraki-header .logo {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+  
+  .meraki-header h1 {
+    font-size: 18px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  
+  .stat-card {
+    padding: 16px;
+  }
+  
+  .stat-card .value {
+    font-size: 24px;
+  }
+  
+  .device-table th,
+  .device-table td {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+  
+  .device-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  
+  .device-name-cell {
+    gap: 8px;
+  }
+  
+  .device-name-cell .name {
+    font-size: 14px;
+  }
+  
+  .device-model {
+    font-size: 12px;
+  }
+  
+  .info-card {
+    padding: 16px;
+  }
+  
+  .info-card h3 {
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  
+  .port-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  
+  .port-stat .value {
+    font-size: 16px;
+  }
+  
+  /* Switch chassis smaller on mobile */
+  .switch-chassis {
+    padding: 12px 16px;
+  }
+  
+  .port {
+    width: 32px;
+    height: 28px;
+  }
+  
+  .port .num {
+    font-size: 8px;
+  }
+  
+  .port-legend {
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 12px;
+  }
+  
+  /* Back button smaller */
+  .back-button {
+    font-size: 13px;
   }
 }

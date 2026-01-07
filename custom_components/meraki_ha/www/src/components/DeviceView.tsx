@@ -6,14 +6,58 @@ interface PortStatus {
   portId: string;
   status: string;
   enabled: boolean;
+  isUplink?: boolean;
   speed?: string;
   duplex?: string;
-  usageInKb?: { total: number };
+  usageInKb?: { total?: number; sent?: number; recv?: number };
+  trafficInKbps?: { total?: number; sent?: number; recv?: number };
   poe?: { isAllocated?: boolean; enabled?: boolean };
   powerUsageInWh?: number;
   clientName?: string;
   clientMac?: string;
+  clientCount?: number;
   vlan?: number;
+  errors?: string[];
+  warnings?: string[];
+  lldp?: {
+    systemName?: string;
+    systemDescription?: string;
+    portId?: string;
+    managementAddress?: string;
+    portDescription?: string;
+    systemCapabilities?: string;
+    chassisId?: string;
+  };
+  cdp?: {
+    deviceId?: string;
+    systemName?: string;
+    platform?: string;
+    portId?: string;
+    address?: string;
+    nativeVlan?: number;
+    managementAddress?: string;
+    capabilities?: string;
+  };
+  securePort?: {
+    enabled?: boolean;
+    active?: boolean;
+    authenticationStatus?: string;
+  };
+}
+
+interface Client {
+  id: string;
+  mac: string;
+  description?: string;
+  ip?: string;
+  manufacturer?: string;
+  os?: string;
+  status?: string;
+  usage?: { sent: number; recv: number };
+  recentDeviceSerial?: string;
+  recentDeviceName?: string;
+  ssid?: string;
+  switchport?: string;
 }
 
 interface Device {
@@ -42,16 +86,29 @@ interface Device {
   lastReportedAt?: string;
   cloud_video_url?: string;
   rtsp_url?: string;
+  basicServiceSets?: Array<{
+    ssidName?: string;
+    ssidNumber?: number;
+    enabled?: boolean;
+    band?: string;
+    bssid?: string;
+    channel?: number;
+    channelWidth?: string;
+    power?: string;
+    visible?: boolean;
+    broadcasting?: boolean;
+  }>;
 }
 
 interface DeviceViewProps {
-  activeView: { view: string; deviceId?: string };
-  setActiveView: (view: { view: string; deviceId?: string }) => void;
+  activeView: { view: string; deviceId?: string; clientId?: string };
+  setActiveView: (view: { view: string; deviceId?: string; clientId?: string }) => void;
   data: {
     devices: Device[];
+    clients?: Client[];
   };
   hass?: {
-    callWS: (params: Record<string, unknown>) => Promise<unknown>;
+    callWS: <T = unknown>(params: { type: string; [key: string]: unknown }) => Promise<T>;
   };
   configEntryId?: string;
   cameraLinkIntegration?: string;
@@ -72,6 +129,11 @@ const DeviceView: React.FC<DeviceViewProps> = ({
 }) => {
   const temperatureUnit = configEntryOptions?.temperature_unit || 'celsius';
   const device = data.devices.find((d) => d.serial === activeView.deviceId);
+  
+  // Get clients connected to this device
+  const deviceClients = (data.clients || []).filter(
+    (client) => client.recentDeviceSerial === device?.serial
+  );
   const [snapshotUrl, setSnapshotUrl] = React.useState<string | null>(null);
   const [snapshotLoading, setSnapshotLoading] = React.useState(false);
   const [cloudVideoUrl, setCloudVideoUrl] = React.useState<string | null>(null);
@@ -153,6 +215,19 @@ const DeviceView: React.FC<DeviceViewProps> = ({
   const isCamera = model.toUpperCase().startsWith('MV') || productType === 'camera';
   const isWireless = model.toUpperCase().startsWith('MR') || productType === 'wireless';
 
+  // Filter out entities that are already shown as hero sensor readings
+  const heroEntityPatterns = [
+    'temperature', 'humidity', 'battery', 'tvoc', 'pm25', 'pm2_5', 'co2',
+    'noise', 'indoor_air_quality', 'air_quality', 'voc'
+  ];
+  const filteredEntities = entities.filter((entity) => {
+    const lowerName = entity.name.toLowerCase();
+    const lowerEntityId = entity.entity_id.toLowerCase();
+    return !heroEntityPatterns.some(pattern => 
+      lowerName.includes(pattern) || lowerEntityId.includes(pattern)
+    );
+  });
+
   const formatUptime = (seconds?: number): string => {
     if (!seconds) return '—';
     const days = Math.floor(seconds / 86400);
@@ -164,14 +239,17 @@ const DeviceView: React.FC<DeviceViewProps> = ({
     if (!timestamp) return 'Just now';
     const date = new Date(timestamp);
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
+    const isToday = date.toDateString() === now.toDateString();
     
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} min ago`;
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours} hours ago`;
-    return `${Math.floor(diffHours / 24)} days ago`;
+    if (isToday) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    return date.toLocaleString([], { 
+      month: 'short', 
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
   };
 
   const handleEntityClick = (entityId: string) => {
@@ -339,7 +417,8 @@ const DeviceView: React.FC<DeviceViewProps> = ({
 
   // Calculate PoE stats for switches
   const poePorts = ports_statuses.filter((p) => p.poe?.isAllocated || p.poe?.enabled);
-  const totalPoePower = ports_statuses.reduce((acc, p) => acc + (p.powerUsageInWh || 0), 0);
+  const totalPoeEnergy = ports_statuses.reduce((acc, p) => acc + (p.powerUsageInWh || 0), 0);
+  const totalConnectedClients = ports_statuses.reduce((acc, p) => acc + (p.clientCount || 0), 0);
 
   return (
     <div>
@@ -396,23 +475,25 @@ const DeviceView: React.FC<DeviceViewProps> = ({
         {/* Switch-specific Power Summary */}
         {isSwitch && ports_statuses.length > 0 && (
           <div className="info-card">
-            <h3>⚡ Power Summary</h3>
+            <h3>⚡ Power &amp; Ports</h3>
             <div className="info-grid">
               <div className="info-item">
-                <div className="label">Total PoE Power</div>
-                <div className="value warning">{totalPoePower.toFixed(1)} W</div>
+                <div className="label">PoE Energy Used</div>
+                <div className="value warning">{totalPoeEnergy.toFixed(1)} Wh</div>
               </div>
               <div className="info-item">
-                <div className="label">PoE Budget</div>
-                <div className="value">370 W</div>
+                <div className="label">Connected Clients</div>
+                <div className="value primary">{totalConnectedClients}</div>
               </div>
               <div className="info-item">
                 <div className="label">Active PoE Ports</div>
                 <div className="value">{poePorts.length} of {ports_statuses.length}</div>
               </div>
               <div className="info-item">
-                <div className="label">Utilization</div>
-                <div className="value success">{((totalPoePower / 370) * 100).toFixed(1)}%</div>
+                <div className="label">Connected Ports</div>
+                <div className="value success">
+                  {ports_statuses.filter(p => p.status?.toLowerCase() === 'connected').length}
+                </div>
               </div>
             </div>
           </div>
@@ -523,10 +604,10 @@ const DeviceView: React.FC<DeviceViewProps> = ({
         </div>
       )}
 
-      {/* Entities */}
-      {entities.length > 0 && (
+      {/* Entities (filtered to exclude hero readings) */}
+      {filteredEntities.length > 0 && (
         <div className="info-card">
-          <h3>🔗 Entities</h3>
+          <h3>🔗 Entities ({filteredEntities.length})</h3>
           <table className="device-table">
             <thead>
               <tr>
@@ -536,7 +617,7 @@ const DeviceView: React.FC<DeviceViewProps> = ({
               </tr>
             </thead>
             <tbody>
-              {entities.map((entity) => (
+              {filteredEntities.map((entity) => (
                 <tr
                   key={entity.entity_id}
                   className="device-row"
@@ -553,6 +634,71 @@ const DeviceView: React.FC<DeviceViewProps> = ({
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Connected Clients Section */}
+      {deviceClients.length > 0 && (
+        <div className="info-card">
+          <h3>👥 Connected Clients ({deviceClients.length})</h3>
+          <table className="device-table">
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>IP Address</th>
+                <th>Connection</th>
+              </tr>
+            </thead>
+            <tbody>
+              {deviceClients.slice(0, 10).map((client) => (
+                <tr
+                  key={client.id || client.mac}
+                  className="device-row"
+                  onClick={() => setActiveView({ view: 'clients', clientId: client.id })}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '18px' }}>
+                        {client.os?.toLowerCase().includes('ios') || client.manufacturer?.toLowerCase().includes('apple') ? '📱' : 
+                         client.os?.toLowerCase().includes('windows') ? '💻' : '🔌'}
+                      </span>
+                      <div>
+                        <div style={{ fontWeight: 500 }}>{client.description || client.mac}</div>
+                        {client.manufacturer && (
+                          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{client.manufacturer}</div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ fontFamily: 'monospace', fontSize: '13px' }}>{client.ip || '—'}</td>
+                  <td>
+                    <span className="detail-badge">
+                      {client.ssid || client.switchport || '—'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {deviceClients.length > 10 && (
+            <div style={{ textAlign: 'center', padding: '12px', color: 'var(--text-muted)', fontSize: '13px' }}>
+              Showing 10 of {deviceClients.length} clients •{' '}
+              <button
+                onClick={() => setActiveView({ view: 'clients' })}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--primary)',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                  fontSize: '13px'
+                }}
+              >
+                View All Clients
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -853,20 +999,84 @@ const DeviceView: React.FC<DeviceViewProps> = ({
         </div>
       )}
 
-      {/* Wireless AP-specific View */}
+      {/* Wireless AP-specific View with BSS Details */}
       {isWireless && (
         <div className="info-card">
           <h3>📶 Wireless Access Point</h3>
-          <div className="info-grid">
-            <div className="info-item">
-              <div className="label">Connected Clients</div>
-              <div className="value primary">—</div>
+          {device.basicServiceSets && device.basicServiceSets.length > 0 ? (
+            <div>
+              <table className="device-table" style={{ marginTop: '16px' }}>
+                <thead>
+                  <tr>
+                    <th>SSID</th>
+                    <th>Band</th>
+                    <th>Channel</th>
+                    <th>Width</th>
+                    <th>Power</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {device.basicServiceSets.filter(bss => bss.enabled).map((bss, idx) => (
+                    <tr key={`bss-${idx}`}>
+                      <td>
+                        <div style={{ fontWeight: 500 }}>{bss.ssidName || `SSID ${bss.ssidNumber}`}</div>
+                        {bss.bssid && (
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                            {bss.bssid}
+                          </div>
+                        )}
+                      </td>
+                      <td>
+                        <span className="detail-badge" style={{
+                          background: bss.band?.includes('2.4') ? 'rgba(245, 158, 11, 0.15)' : 'rgba(6, 182, 212, 0.15)',
+                          color: bss.band?.includes('2.4') ? 'var(--warning)' : 'var(--primary)'
+                        }}>
+                          {bss.band || '—'}
+                        </span>
+                      </td>
+                      <td>{bss.channel || '—'}</td>
+                      <td>{bss.channelWidth || '—'}</td>
+                      <td style={{ color: 'var(--warning)' }}>{bss.power || '—'}</td>
+                      <td>
+                        <span style={{ 
+                          display: 'inline-flex', 
+                          alignItems: 'center', 
+                          gap: '6px',
+                          color: bss.broadcasting ? 'var(--success)' : 'var(--text-muted)'
+                        }}>
+                          <span style={{ 
+                            width: '8px', 
+                            height: '8px', 
+                            borderRadius: '50%', 
+                            background: bss.broadcasting ? 'var(--success)' : 'var(--text-muted)',
+                            boxShadow: bss.broadcasting ? '0 0 8px var(--success)' : 'none'
+                          }}></span>
+                          {bss.broadcasting ? 'Broadcasting' : 'Off'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {device.basicServiceSets.filter(bss => !bss.enabled).length > 0 && (
+                <div style={{ marginTop: '12px', fontSize: '13px', color: 'var(--text-muted)' }}>
+                  {device.basicServiceSets.filter(bss => !bss.enabled).length} disabled SSIDs not shown
+                </div>
+              )}
             </div>
-            <div className="info-item">
-              <div className="label">Radio Channels</div>
-              <div className="value">2.4 GHz / 5 GHz</div>
+          ) : (
+            <div className="info-grid">
+              <div className="info-item">
+                <div className="label">Connected Clients</div>
+                <div className="value primary">—</div>
+              </div>
+              <div className="info-item">
+                <div className="label">Radio Channels</div>
+                <div className="value">2.4 GHz / 5 GHz</div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>

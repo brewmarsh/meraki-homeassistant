@@ -51,12 +51,13 @@ interface DashboardProps {
     last_updated?: string;
   };
   hass?: {
-    callService?: (domain: string, service: string, data: object) => Promise<void>;
+    callService?: (domain: string, service: string, data?: Record<string, unknown>, target?: { entity_id?: string | string[] }) => Promise<void>;
   };
   // Default settings from integration options
   defaultViewMode?: 'network' | 'type';
   defaultDeviceTypeFilter?: string;
   defaultStatusFilter?: string;
+  temperatureUnit?: 'celsius' | 'fahrenheit';
 }
 
 type DeviceTypeFilter = 'all' | 'switch' | 'camera' | 'wireless' | 'sensor' | 'appliance';
@@ -87,6 +88,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   defaultViewMode = 'network',
   defaultDeviceTypeFilter = 'all',
   defaultStatusFilter = 'all',
+  temperatureUnit = 'celsius',
 }) => {
   const [expandedNetworks, setExpandedNetworks] = useState<Set<string>>(new Set());
   const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set(['switch', 'camera', 'wireless', 'sensor', 'appliance']));
@@ -124,7 +126,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   // Countdown state for next refresh
   const [countdown, setCountdown] = useState<number | null>(null);
-  const countdownRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Calculate and update countdown
   useEffect(() => {
@@ -151,16 +153,21 @@ const Dashboard: React.FC<DashboardProps> = ({
     };
   }, [last_updated, scan_interval]);
 
-  // Format time ago
-  const formatTimeAgo = (isoString: string): string => {
+  // Format timestamp as actual time (not relative)
+  const formatTimestamp = (isoString: string): string => {
     const date = new Date(isoString);
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffSec = Math.floor(diffMs / 1000);
+    const isToday = date.toDateString() === now.toDateString();
     
-    if (diffSec < 60) return `${diffSec}s ago`;
-    if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (isToday) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    return date.toLocaleString([], { 
+      month: 'short', 
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
   };
 
   // Format countdown
@@ -263,9 +270,13 @@ const Dashboard: React.FC<DashboardProps> = ({
     }
     if (type === 'sensor') {
       if (device.readings?.temperature != null) {
-        const temp = device.readings.temperature;
+        const tempC = device.readings.temperature;
+        const temp = temperatureUnit === 'fahrenheit' 
+          ? ((tempC * 9/5) + 32).toFixed(1) 
+          : tempC.toFixed(1);
+        const unit = temperatureUnit === 'fahrenheit' ? '°F' : '°C';
         const humidity = device.readings.humidity ?? '--';
-        return `${temp}°C / ${humidity}%`;
+        return `${temp}${unit} / ${humidity}%`;
       }
       return 'Active';
     }
@@ -367,7 +378,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <span style={{ fontSize: '10px' }}>🔄</span>
-            Last: {formatTimeAgo(last_updated)}
+            Last: {formatTimestamp(last_updated)}
           </span>
           {countdown !== null && (
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

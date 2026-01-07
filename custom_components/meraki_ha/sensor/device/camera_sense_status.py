@@ -61,8 +61,11 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
         current_device_data = self._get_current_device_data()
 
         if not current_device_data:
-            self._attr_native_value = None
+            self._attr_native_value = "unavailable"
             self._attr_icon = "mdi:help-rhombus"
+            self._attr_extra_state_attributes = {
+                "serial_number": self._device_serial,
+            }
             return
 
         # sense_settings contains the senseEnabled field from the API
@@ -74,8 +77,9 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
         )
 
         if sense_enabled_value is None:
-            self._attr_native_value = None
-            self._attr_icon = "mdi:camera-question"
+            # Sense not configured/licensed for this camera
+            self._attr_native_value = "not_configured"
+            self._attr_icon = "mdi:camera-off-outline"
         else:
             sense_enabled = bool(sense_enabled_value)
             self._attr_native_value = "enabled" if sense_enabled else "disabled"
@@ -95,16 +99,10 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def available(self) -> bool:
-        """Return True if entity is available and data is present."""
+        """Return True if entity is available (device exists in coordinator)."""
         if not super().available:
             return False
 
+        # Available as long as the device exists in coordinator data
         current_device_data = self._get_current_device_data()
-        if not current_device_data:
-            return False
-
-        # Check for sense_settings which contains senseEnabled
-        sense_settings = current_device_data.get("sense_settings", {})
-        if not isinstance(sense_settings, dict):
-            return False
-        return sense_settings.get("senseEnabled") is not None
+        return current_device_data is not None
