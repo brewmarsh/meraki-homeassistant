@@ -505,7 +505,8 @@ const Dashboard: React.FC<DashboardProps> = ({
           style={{
             display: 'flex',
             gap: '4px',
-            background: 'var(--bg-secondary)',
+            background: 'var(--card-bg)',
+            border: '1px solid var(--card-border)',
             borderRadius: 'var(--radius-md)',
             padding: '4px',
           }}
@@ -518,8 +519,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               border: 'none',
               background:
                 viewMode === 'network' ? 'var(--primary)' : 'transparent',
-              color:
-                viewMode === 'network' ? 'white' : 'var(--text-secondary)',
+              color: viewMode === 'network' ? 'white' : 'var(--text-primary)',
               cursor: 'pointer',
               fontWeight: 500,
               fontSize: '13px',
@@ -535,7 +535,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               border: 'none',
               background:
                 viewMode === 'type' ? 'var(--primary)' : 'transparent',
-              color: viewMode === 'type' ? 'white' : 'var(--text-secondary)',
+              color: viewMode === 'type' ? 'white' : 'var(--text-primary)',
               cursor: 'pointer',
               fontWeight: 500,
               fontSize: '13px',
@@ -554,8 +554,8 @@ const Dashboard: React.FC<DashboardProps> = ({
           style={{
             padding: '8px 12px',
             borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border)',
-            background: 'var(--bg-secondary)',
+            border: '1px solid var(--card-border)',
+            background: 'var(--card-bg)',
             color: 'var(--text-primary)',
             fontSize: '13px',
             cursor: 'pointer',
@@ -575,8 +575,8 @@ const Dashboard: React.FC<DashboardProps> = ({
           style={{
             padding: '8px 12px',
             borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border)',
-            background: 'var(--bg-secondary)',
+            border: '1px solid var(--card-border)',
+            background: 'var(--card-bg)',
             color: 'var(--text-primary)',
             fontSize: '13px',
             cursor: 'pointer',

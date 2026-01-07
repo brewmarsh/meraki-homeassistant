@@ -197,17 +197,19 @@ const Header: React.FC<{
           className="settings-btn"
           title="Settings"
           style={{
-            background: 'var(--bg-tertiary)',
+            background: 'var(--card-bg)',
             border: '1px solid var(--card-border)',
             borderRadius: 'var(--radius-sm)',
-            padding: '8px 12px',
-            color: 'var(--text-secondary)',
+            padding: '8px 16px',
+            color: 'var(--text-primary)',
             cursor: 'pointer',
             fontSize: '14px',
+            fontWeight: 500,
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
             transition: 'var(--transition)',
+            boxShadow: 'var(--shadow-sm)',
           }}
         >
           ⚙️ Settings
