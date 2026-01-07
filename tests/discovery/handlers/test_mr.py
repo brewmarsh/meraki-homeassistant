@@ -4,14 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.meraki_ha.button.reboot import MerakiRebootButton
 from custom_components.meraki_ha.discovery.handlers.mr import MRHandler
-from custom_components.meraki_ha.sensor.device.connected_clients import (
-    MerakiDeviceConnectedClientsSensor,
-)
-from custom_components.meraki_ha.sensor.device.device_status import (
-    MerakiDeviceStatusSensor,
-)
 from tests.const import MOCK_DEVICE
 
 

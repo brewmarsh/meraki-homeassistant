@@ -32,7 +32,7 @@ def test_format_device_name_no_product_type():
     """Test the format_device_name function with no product type."""
     device = {"name": "My AP", "model": "MR33"}
     config = {"device_name_format": "prefix"}
-    # Without productType, uses uppercase first 2 chars of productType or "DE" for device
+    # Without productType, uses "DE" for device
     assert format_device_name(device, config) == "[DE] My AP"
 
 

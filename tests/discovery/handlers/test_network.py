@@ -15,8 +15,6 @@ from custom_components.meraki_ha.sensor.network.network_identity import (
     MerakiNetworkIdentitySensor,
 )
 
-from ...const import MOCK_CONFIG_ENTRY
-
 MOCK_NETWORK_1 = {"id": "N_1234", "name": "Network 1", "productTypes": ["wireless"]}
 MOCK_NETWORK_2 = {"id": "N_5678", "name": "Network 2", "productTypes": ["switch"]}
 
