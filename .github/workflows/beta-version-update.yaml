@@ -12,30 +12,35 @@ jobs:
     if: github.event.pull_request.merged == true
     permissions:
       contents: write
-      pull-requests: read
     outputs:
       new_version: ${{ steps.increment.outputs.new_version }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: 'beta'
 
-      - name: Set up Python and Node.js
-        uses: actions/setup-python@v6
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '18'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install bump2version playwright
-          npm install
-          npm install --prefix custom_components/meraki_ha/www
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: custom_components/meraki_ha/www/package-lock.json
+
+      - name: Install Python dependencies
+        run: uv pip install --system bump2version playwright
+
+      - name: Install npm dependencies
+        run: npm ci --prefix custom_components/meraki_ha/www
 
       - name: Increment Version
         id: increment
@@ -55,10 +60,21 @@ jobs:
         run: |
           npm run build --prefix custom_components/meraki_ha/www
 
-      - name: Install Playwright Browsers
+      - name: Cache Playwright browsers
         if: steps.increment.outputs.new_version != ''
-        run: |
-          playwright install chromium
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-chromium
+
+      - name: Install Playwright Browsers
+        if: steps.increment.outputs.new_version != '' && steps.playwright-cache.outputs.cache-hit != 'true'
+        run: playwright install --with-deps chromium
+
+      - name: Install Playwright deps (cached)
+        if: steps.increment.outputs.new_version != '' && steps.playwright-cache.outputs.cache-hit == 'true'
+        run: playwright install-deps chromium
 
       - name: Generate Screenshots
         if: steps.increment.outputs.new_version != ''
@@ -79,22 +95,173 @@ jobs:
   release:
     runs-on: ubuntu-latest
     needs: version
-    # Run when version is available
     if: needs.version.outputs.new_version != ''
     permissions:
       contents: write
       pull-requests: read
     steps:
-      - name: Checkout for release-drafter config
-        uses: actions/checkout@v6
-      - name: Create Release
-        uses: release-drafter/release-drafter@v6
-        continue-on-error: true
+      # Fresh checkout gets the just-pushed commit with version bump
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          tag: 'v${{ needs.version.outputs.new_version }}'
-          name: 'Release v${{ needs.version.outputs.new_version }}'
-          version: 'v${{ needs.version.outputs.new_version }}'
-          publish: true
-          prerelease: true
+          ref: 'beta'
+
+      - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # --target beta is REQUIRED to ensure the release is created from
+          # the just-pushed commit, not from GitHub's cached branch state
+          gh release create "v${{ needs.version.outputs.new_version }}" \
+            --repo "${{ github.repository }}" \
+            --title "v${{ needs.version.outputs.new_version }}" \
+            --generate-notes \
+            --prerelease \
+            --target beta
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [version, release]
+    if: needs.version.outputs.new_version != '' && vars.ENABLE_HACS_DEPLOY == 'true'
+    steps:
+      - name: Deploy via HACS
+        env:
+          HA_URL: ${{ secrets.HA_URL }}
+          HA_TOKEN: ${{ secrets.HA_TOKEN }}
+          NEW_VERSION: ${{ needs.version.outputs.new_version }}
+        run: |
+          echo "Waiting 30 seconds for release to propagate to GitHub CDN..."
+          sleep 30
+          
+          CLEAN_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
+          
+          # Force HACS to re-fetch this specific repository from GitHub
+          echo "Refreshing HACS repository: liptonj/meraki-homeassistant..."
+          curl -sS -X POST \
+            -H "Authorization: Bearer $CLEAN_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"action": "reload", "repository": "liptonj/meraki-homeassistant"}' \
+            "$HA_URL/api/services/hacs/repository" || true
+          
+          echo "Waiting 20 seconds for HACS to refresh from GitHub..."
+          sleep 20
+          
+          # Find the update entity
+          echo "Discovering Meraki update entity..."
+          ENTITY_ID=$(curl -sS -H "Authorization: Bearer $CLEAN_TOKEN" \
+            "$HA_URL/api/states" | \
+            jq -r '.[] | select(.entity_id | startswith("update.") and contains("meraki")) | .entity_id' | head -1)
+          
+          if [[ -z "$ENTITY_ID" ]]; then
+            echo "⚠ Meraki update entity not found - skipping auto-deploy"
+            exit 0
+          fi
+          
+          echo "Found: $ENTITY_ID"
+          
+          # Check if HACS sees the new version
+          STATE=$(curl -sS -H "Authorization: Bearer $CLEAN_TOKEN" \
+            "$HA_URL/api/states/$ENTITY_ID")
+          INSTALLED=$(echo "$STATE" | jq -r '.attributes.installed_version // "unknown"')
+          LATEST=$(echo "$STATE" | jq -r '.attributes.latest_version // "unknown"')
+          
+          echo "Installed: $INSTALLED, Latest seen by HACS: $LATEST, Just released: $NEW_VERSION"
+          
+          # Try multiple methods to install the version
+          echo "Attempting to install v$NEW_VERSION..."
+          
+          # Method 1: Use HA update/install service with version
+          echo "Method 1: Using update/install service..."
+          RESULT=$(curl -sS -w "\n%{http_code}" -X POST \
+            -H "Authorization: Bearer $CLEAN_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"entity_id\": \"$ENTITY_ID\", \"version\": \"v$NEW_VERSION\"}" \
+            "$HA_URL/api/services/update/install")
+          HTTP_CODE=$(echo "$RESULT" | tail -1)
+          
+          if [[ "$HTTP_CODE" == "200" ]]; then
+            echo "✅ Update triggered via update/install service!"
+          else
+            echo "Method 1 returned HTTP $HTTP_CODE, trying Method 2..."
+            # Method 2: Try without 'v' prefix
+            RESULT=$(curl -sS -w "\n%{http_code}" -X POST \
+              -H "Authorization: Bearer $CLEAN_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"entity_id\": \"$ENTITY_ID\", \"version\": \"$NEW_VERSION\"}" \
+              "$HA_URL/api/services/update/install")
+            HTTP_CODE=$(echo "$RESULT" | tail -1)
+            
+            if [[ "$HTTP_CODE" == "200" ]]; then
+              echo "✅ Update triggered via update/install service (no v prefix)!"
+            else
+              echo "⚠ Both methods returned non-200. Manual install may be required."
+            fi
+          fi
+          
+          echo "Download triggered for beta version v$NEW_VERSION!"
+          echo "Waiting 30 seconds for HACS to download and install..."
+          sleep 30
+
+      - name: Restart Home Assistant
+        env:
+          HA_URL: ${{ secrets.HA_URL }}
+          HA_TOKEN: ${{ secrets.HA_TOKEN }}
+        run: |
+          CLEAN_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
+          
+          echo "Restarting Home Assistant to load new version..."
+          # HA may not respond during restart, so we use --max-time and ignore errors
+          curl -sS --max-time 30 -X POST \
+            -H "Authorization: Bearer $CLEAN_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            "$HA_URL/api/services/homeassistant/restart" 2>/dev/null || true
+          
+          echo "Restart initiated. Waiting 90 seconds for HA to come back online..."
+          sleep 90
+
+      - name: Verify Installation
+        env:
+          HA_URL: ${{ secrets.HA_URL }}
+          HA_TOKEN: ${{ secrets.HA_TOKEN }}
+          NEW_VERSION: ${{ needs.version.outputs.new_version }}
+        run: |
+          CLEAN_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
+          
+          # Wait for HA to be ready
+          echo "Checking if Home Assistant is back online..."
+          for i in {1..6}; do
+            STATUS=$(curl -sS --max-time 10 -o /dev/null -w "%{http_code}" \
+              -H "Authorization: Bearer $CLEAN_TOKEN" \
+              "$HA_URL/api/" 2>/dev/null || echo "000")
+            if [[ "$STATUS" == "200" ]]; then
+              echo "✓ Home Assistant is online!"
+              break
+            fi
+            echo "  Attempt $i/6: HA not ready (HTTP $STATUS), waiting 15s..."
+            sleep 15
+          done
+          
+          # Verify installed version
+          echo "Verifying installed version..."
+          ENTITY_ID=$(curl -sS -H "Authorization: Bearer $CLEAN_TOKEN" \
+            "$HA_URL/api/states" | \
+            jq -r '.[] | select(.entity_id | startswith("update.") and contains("meraki")) | .entity_id' | head -1)
+          
+          if [[ -n "$ENTITY_ID" ]]; then
+            STATE=$(curl -sS -H "Authorization: Bearer $CLEAN_TOKEN" \
+              "$HA_URL/api/states/$ENTITY_ID")
+            INSTALLED=$(echo "$STATE" | jq -r '.attributes.installed_version // "unknown"')
+            
+            echo "Expected: v$NEW_VERSION"
+            echo "Installed: $INSTALLED"
+            
+            if [[ "$INSTALLED" == "$NEW_VERSION" || "$INSTALLED" == "v$NEW_VERSION" ]]; then
+              echo "✅ SUCCESS: Version v$NEW_VERSION is installed!"
+            else
+              echo "⚠ WARNING: Installed version ($INSTALLED) doesn't match expected (v$NEW_VERSION)"
+              echo "  This may be a timing issue - check HA manually"
+            fi
+          else
+            echo "⚠ Could not find update entity to verify version"
+          fi

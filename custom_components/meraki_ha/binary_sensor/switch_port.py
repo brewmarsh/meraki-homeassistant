@@ -1,6 +1,7 @@
 """Binary sensor for Meraki switch port status."""
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.binary_sensor import (
@@ -27,7 +28,7 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        device: Mapping[str, Any],
         port: dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
@@ -42,30 +43,50 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
         """Return device information."""
         return resolve_device_info(self._device, self.coordinator.config_entry)
 
+    def _get_current_port_data(self) -> dict[str, Any] | None:
+        """Get the current port data from the coordinator."""
+        device = get_device_from_coordinator(self.coordinator, self._device["serial"])
+        if not device:
+            return None
+        for port in device.get("ports_statuses", []):
+            if port.get("portId") == self._port.get("portId"):
+                return port
+        return None
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         device = get_device_from_coordinator(self.coordinator, self._device["serial"])
         if device:
             self._device = device
-            for port in self._device.get("ports_statuses", []):
-                if port["portId"] == self._port["portId"]:
-                    self._port = port
-                    self.async_write_ha_state()
-                    return
+            current_port = self._get_current_port_data()
+            if current_port:
+                self._port = current_port
+        self.async_write_ha_state()
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        if not self.coordinator.last_update_success:
+            return False
+        return self._get_current_port_data() is not None
 
     @property
     def is_on(self) -> bool:
         """Return true if the binary sensor is on."""
-        return self._port.get("status") == "Connected"
+        # Always get fresh data from coordinator
+        port = self._get_current_port_data() or self._port
+        return port.get("status") == "Connected"
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
+        # Always get fresh data from coordinator
+        port = self._get_current_port_data() or self._port
         return {
-            "port_id": self._port.get("portId"),
-            "speed": self._port.get("speed"),
-            "duplex": self._port.get("duplex"),
-            "vlan": self._port.get("vlan"),
-            "enabled": self._port.get("enabled"),
+            "port_id": port.get("portId"),
+            "speed": port.get("speed"),
+            "duplex": port.get("duplex"),
+            "vlan": port.get("vlan"),
+            "enabled": port.get("enabled"),
         }

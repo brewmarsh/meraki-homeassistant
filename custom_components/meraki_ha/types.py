@@ -71,3 +71,4 @@ class MerakiDevice(TypedDict, total=False):
     rtsp_url: str | None
     sense_settings: dict
     readings: list[dict]
+    cellular_uplinks: list[dict]

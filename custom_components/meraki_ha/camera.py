@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import time
+from collections.abc import Mapping
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import aiofiles  # type: ignore[import-untyped]
 import aiohttp
 from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -14,7 +18,6 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    CONF_CAMERA_ENTITY_MAPPINGS,
     CONF_CAMERA_SNAPSHOT_INTERVAL,
     DEFAULT_CAMERA_SNAPSHOT_INTERVAL,
     DOMAIN,
@@ -32,6 +35,23 @@ if TYPE_CHECKING:
 
 
 _LOGGER = logging.getLogger(__name__)
+
+# Storage file for camera mappings (shared with web_api.py)
+CAMERA_MAPPINGS_STORAGE = "meraki_camera_mappings.json"
+
+
+async def _load_camera_mappings(hass: HomeAssistant) -> dict[str, dict[str, str]]:
+    """Load camera mappings from storage file."""
+    storage_path = Path(hass.config.path(".storage")) / CAMERA_MAPPINGS_STORAGE
+    if not storage_path.exists():
+        return {}
+    try:
+        async with aiofiles.open(storage_path) as f:
+            content = await f.read()
+            return json.loads(content) if content else {}
+    except (json.JSONDecodeError, OSError) as e:
+        _LOGGER.warning("Failed to load camera mappings: %s", e)
+        return {}
 
 
 async def async_setup_entry(
@@ -68,7 +88,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self,
         coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
-        device: dict[str, Any],
+        device: Mapping[str, Any],
         camera_service: CameraService,
     ) -> None:
         """Initialize the camera."""
@@ -87,6 +107,8 @@ class MerakiCamera(CoordinatorEntity, Camera):
         # Snapshot caching for configurable refresh interval
         self._cached_snapshot: bytes | None = None
         self._snapshot_timestamp: float = 0
+        # Cached linked camera entity for sync property access
+        self._cached_linked_entity: str | None = None
 
     @property
     def device_data(self) -> dict[str, Any]:
@@ -118,35 +140,58 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
         """Return a still image from the camera."""
-        if self.device_data.get("status") != "online":
-            _LOGGER.debug("Skipping snapshot for offline camera: %s", self.name)
-            return self._cached_snapshot  # Return cached image if available
-
-        # Check if we should use the cached snapshot based on refresh interval
-        interval = self._snapshot_interval
-        current_time = time.time()
-
-        if interval > 0 and self._cached_snapshot is not None:
-            elapsed = current_time - self._snapshot_timestamp
-            if elapsed < interval:
+        try:
+            # If we have a linked camera, ONLY use its image (no fallback to Meraki)
+            linked_entity_id = await self._get_linked_camera_entity()
+            if linked_entity_id:
+                linked_image = await self._get_linked_camera_image(linked_entity_id)
+                if linked_image:
+                    return linked_image
+                # Return cached snapshot if linked camera fails
+                # (don't fall back to Meraki - linked camera is authoritative)
                 _LOGGER.debug(
-                    "Returning cached snapshot for %s (%.0fs old, interval=%ds)",
+                    "Linked camera %s failed, returning cached snapshot for %s",
+                    linked_entity_id,
                     self.name,
-                    elapsed,
-                    interval,
                 )
                 return self._cached_snapshot
+        except Exception as e:
+            _LOGGER.debug("Error checking linked camera for %s: %s", self.name, e)
+            # Continue to try Meraki snapshot
 
-        # Fetch a new snapshot
-        snapshot = await self._fetch_snapshot()
+        try:
+            if self.device_data.get("status") != "online":
+                _LOGGER.debug("Skipping snapshot for offline camera: %s", self.name)
+                return self._cached_snapshot  # Return cached image if available
 
-        # Cache the snapshot if we got one
-        if snapshot is not None:
-            self._cached_snapshot = snapshot
-            self._snapshot_timestamp = current_time
+            # Check if we should use the cached snapshot based on refresh interval
+            interval = self._snapshot_interval
+            current_time = time.time()
 
-        # Return the new snapshot, or cached one if fetch failed
-        return snapshot if snapshot is not None else self._cached_snapshot
+            if interval > 0 and self._cached_snapshot is not None:
+                elapsed = current_time - self._snapshot_timestamp
+                if elapsed < interval:
+                    _LOGGER.debug(
+                        "Returning cached snapshot for %s (%.0fs old, interval=%ds)",
+                        self.name,
+                        elapsed,
+                        interval,
+                    )
+                    return self._cached_snapshot
+
+            # Fetch a new snapshot
+            snapshot = await self._fetch_snapshot()
+
+            # Cache the snapshot if we got one
+            if snapshot is not None:
+                self._cached_snapshot = snapshot
+                self._snapshot_timestamp = current_time
+
+            # Return the new snapshot, or cached one if fetch failed
+            return snapshot if snapshot is not None else self._cached_snapshot
+        except Exception as e:
+            _LOGGER.warning("Error fetching camera image for %s: %s", self.name, e)
+            return self._cached_snapshot
 
     async def _fetch_snapshot(self) -> bytes | None:
         """Fetch a fresh snapshot from the camera."""
@@ -213,6 +258,21 @@ class MerakiCamera(CoordinatorEntity, Camera):
 
     async def stream_source(self) -> str | None:
         """Return the source of the stream, if enabled."""
+        # If we have a linked camera, ONLY use its stream (no fallback to Meraki RTSP)
+        linked_entity_id = await self._get_linked_camera_entity()
+        if linked_entity_id:
+            stream = await self._get_linked_camera_stream(linked_entity_id)
+            if stream:
+                return stream
+            # Don't fall back to Meraki RTSP when linked - the linked camera
+            # is the authoritative source (e.g., Blue Iris already has RTSP)
+            _LOGGER.debug(
+                "Linked camera %s has no stream source for %s",
+                linked_entity_id,
+                self.name,
+            )
+            return None
+
         if not self.is_streaming:
             return None
 
@@ -222,31 +282,85 @@ class MerakiCamera(CoordinatorEntity, Camera):
         # We always use RTSP when available.
         return self.device_data.get("rtsp_url")
 
-    @property
-    def _linked_camera_entity(self) -> str | None:
-        """Get the linked camera entity ID from config options."""
-        mappings = self._config_entry.options.get(CONF_CAMERA_ENTITY_MAPPINGS, {})
-        return mappings.get(self._device_serial)
+    async def _get_linked_camera_entity(self) -> str | None:
+        """Get the linked camera entity ID from storage file."""
+        all_mappings = await _load_camera_mappings(self.hass)
+        entry_mappings = all_mappings.get(self._config_entry.entry_id, {})
+        linked_entity = entry_mappings.get(self._device_serial)
+        # Cache for sync property access in extra_state_attributes
+        self._cached_linked_entity = linked_entity
+        return linked_entity
+
+    async def _get_linked_camera_stream(self, entity_id: str) -> str | None:
+        """Get the stream source from a linked camera entity."""
+        # Get the linked camera's state
+        state = self.hass.states.get(entity_id)
+        if not state:
+            _LOGGER.debug("Linked camera %s not found", entity_id)
+            return None
+
+        # Try to get the stream source from the linked camera
+        # First check if the linked camera has stream support
+        camera_component = self.hass.data.get("camera")
+        if camera_component:
+            linked_camera = camera_component.get_entity(entity_id)
+            if linked_camera and hasattr(linked_camera, "stream_source"):
+                try:
+                    return await linked_camera.stream_source()
+                except Exception as e:
+                    _LOGGER.debug("Error getting stream from %s: %s", entity_id, e)
+
+        return None
+
+    async def _get_linked_camera_image(self, entity_id: str) -> bytes | None:
+        """Get an image from the linked camera entity."""
+        camera_component = self.hass.data.get("camera")
+        if not camera_component:
+            return None
+
+        linked_camera = camera_component.get_entity(entity_id)
+        if linked_camera and hasattr(linked_camera, "async_camera_image"):
+            try:
+                return await linked_camera.async_camera_image()
+            except Exception as e:
+                _LOGGER.debug("Error getting image from %s: %s", entity_id, e)
+
+        return None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        video_settings = self.device_data.get("video_settings", {})
-        rtsp_enabled = video_settings.get("rtspServerEnabled", False)
-        rtsp_url = self.device_data.get("rtsp_url")
-
-        # Determine stream status
-        if rtsp_enabled and rtsp_url:
-            stream_status = "RTSP Enabled"
-        elif not rtsp_enabled:
-            stream_status = "RTSP Disabled in Dashboard"
-        else:
-            stream_status = "RTSP URL Not Available"
-
         attrs: dict[str, Any] = {
             "snapshot_interval": self._snapshot_interval,
-            "stream_status": stream_status,
         }
+
+        # Check if camera is linked to an external NVR
+        linked_entity = (
+            self._cached_linked_entity
+            if hasattr(self, "_cached_linked_entity")
+            else None
+        )
+
+        if linked_entity:
+            # Linked camera - show linked status
+            attrs["stream_status"] = f"Linked to {linked_entity}"
+            attrs["linked_camera_entity"] = linked_entity
+            attrs["stream_source"] = "linked_camera"
+        else:
+            # Not linked - show Meraki RTSP status
+            video_settings = self.device_data.get("video_settings", {})
+            rtsp_enabled = video_settings.get("rtspServerEnabled", False)
+            rtsp_url = self.device_data.get("rtsp_url")
+
+            if rtsp_enabled and rtsp_url:
+                attrs["stream_status"] = "RTSP Enabled"
+                attrs["stream_source"] = "meraki_rtsp"
+            elif not rtsp_enabled:
+                attrs["stream_status"] = "RTSP Disabled in Dashboard"
+                attrs["stream_source"] = "none"
+            else:
+                attrs["stream_status"] = "RTSP URL Not Available"
+                attrs["stream_source"] = "none"
 
         # Include cloud video URL for "view in browser" functionality
         # Note: This is a Meraki Dashboard URL, not a direct video stream
@@ -254,13 +368,16 @@ class MerakiCamera(CoordinatorEntity, Camera):
         if cloud_url:
             attrs["cloud_video_url"] = cloud_url
 
-        # Include linked camera entity if configured
-        # This allows linking to external NVR cameras (e.g., Blue Iris)
-        linked_camera = self._linked_camera_entity
-        if linked_camera:
-            attrs["linked_camera_entity"] = linked_camera
-
         return attrs
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        # Check coordinator is working
+        if not self.coordinator.last_update_success:
+            return False
+        # Check device exists in coordinator data
+        return self.coordinator.get_device(self._device_serial) is not None
 
     @property
     def supported_features(self) -> CameraEntityFeature:
@@ -272,9 +389,17 @@ class MerakiCamera(CoordinatorEntity, Camera):
         """
         Return true if the camera can stream.
 
-        Meraki cameras only support RTSP for direct streaming in Home Assistant.
-        The cloud video link is a Dashboard URL (not a direct stream).
+        When a camera is linked to an external NVR (e.g., Blue Iris), we assume
+        streaming is available through the linked camera. Otherwise, Meraki cameras
+        only support RTSP for direct streaming in Home Assistant.
         """
+        # If we have a linked camera configured, streaming is handled by it
+        # Note: We use the cached value here since this is a sync property
+        if hasattr(self, "_cached_linked_entity") and self._cached_linked_entity:
+            # Check if the linked camera entity exists and is available
+            state = self.hass.states.get(self._cached_linked_entity)
+            return state is not None and state.state != "unavailable"
+
         if self.device_data.get("status") != "online":
             return False
 

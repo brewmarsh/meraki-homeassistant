@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
@@ -37,7 +38,7 @@ class MerakiPoeUsageSensor(
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        device: Mapping[str, Any],
     ) -> None:
         """
         Initialize the sensor.
@@ -66,25 +67,38 @@ class MerakiPoeUsageSensor(
             manufacturer="Cisco Meraki",
         )
 
+    def _get_current_device_data(self) -> dict[str, Any] | None:
+        """Retrieve the latest data for this device from the coordinator."""
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            for dev_data in self.coordinator.data["devices"]:
+                if dev_data.get("serial") == self._device["serial"]:
+                    return dev_data
+        return None
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        device = next(
-            (
-                d
-                for d in self.coordinator.data.get("devices", [])
-                if d["serial"] == self._device["serial"]
-            ),
-            None,
-        )
-        if device:
-            self._device = device
-            self.async_write_ha_state()
+        current_data = self._get_current_device_data()
+        if current_data:
+            self._device = current_data
+        self.async_write_ha_state()
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        if not self.coordinator.last_update_success:
+            return False
+        return self._get_current_device_data() is not None
 
     @property
     def native_value(self) -> float | None:
         """Return the state of the sensor."""
-        ports_statuses = self._device.get("ports_statuses")
+        # Always get fresh data from coordinator
+        device = self._get_current_device_data()
+        if not device:
+            return None
+
+        ports_statuses = device.get("ports_statuses")
         if not isinstance(ports_statuses, list):
             return None
 
@@ -101,7 +115,12 @@ class MerakiPoeUsageSensor(
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        ports_statuses = self._device.get("ports_statuses")
+        # Always get fresh data from coordinator
+        device = self._get_current_device_data()
+        if not device:
+            return {}
+
+        ports_statuses = device.get("ports_statuses")
         if not isinstance(ports_statuses, list):
             return {}
 

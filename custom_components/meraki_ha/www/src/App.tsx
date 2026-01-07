@@ -9,6 +9,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Dashboard from './components/Dashboard';
 import DeviceView from './components/DeviceView';
+import ClientsView from './components/ClientsView';
+import { useHaTheme } from './hooks/useHaTheme';
 import type { HomeAssistant, PanelInfo, RouteInfo } from './types/hass';
 
 // Data types
@@ -57,13 +59,41 @@ interface Device {
   };
 }
 
+interface Client {
+  id: string;
+  mac: string;
+  description?: string;
+  ip?: string;
+  ip6?: string;
+  user?: string;
+  firstSeen?: string;
+  lastSeen?: string;
+  manufacturer?: string;
+  os?: string;
+  recentDeviceSerial?: string;
+  recentDeviceName?: string;
+  ssid?: string;
+  vlan?: number;
+  switchport?: string;
+  status?: string;
+  usage?: { sent: number; recv: number };
+  networkId?: string;
+}
+
 interface MerakiData {
   networks: Network[];
   devices: Device[];
   ssids: SSID[];
+  clients: Client[];
   enabled_networks: string[];
   config_entry_id: string;
   version?: string;
+  // Dashboard settings from integration options
+  dashboard_view_mode?: 'network' | 'type';
+  dashboard_device_type_filter?: string;
+  dashboard_status_filter?: string;
+  camera_link_integration?: string;
+  temperature_unit?: 'celsius' | 'fahrenheit';
   [key: string]: unknown;
 }
 
@@ -128,6 +158,9 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
     deviceId?: string;
   }>({ view: 'dashboard' });
 
+  // Apply HA theme variables to the panel
+  const { style: themeStyle } = useHaTheme(hass);
+
   // Use a ref for hass to avoid re-renders when hass object changes
   // The hass object changes on every HA state update, which would cause constant refetches
   const hassRef = useRef(hass);
@@ -191,7 +224,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
   // Show loading state while waiting for hass
   if (!hass) {
     return (
-      <div className="meraki-panel">
+      <div className="meraki-panel" style={themeStyle}>
         <LoadingSpinner />
         <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '16px' }}>
           Waiting for Home Assistant connection...
@@ -203,7 +236,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
   // Show loading state while fetching data
   if (loading) {
     return (
-      <div className="meraki-panel">
+      <div className="meraki-panel" style={themeStyle}>
         <Header />
         <LoadingSpinner />
       </div>
@@ -213,7 +246,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
   // Show error state
   if (error) {
     return (
-      <div className="meraki-panel">
+      <div className="meraki-panel" style={themeStyle}>
         <Header />
         <ErrorDisplay message={error} onRetry={fetchData} />
       </div>
@@ -223,7 +256,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
   // Show empty state
   if (!data) {
     return (
-      <div className="meraki-panel">
+      <div className="meraki-panel" style={themeStyle}>
         <Header />
         <div className="empty-state">
           <div className="icon">📡</div>
@@ -244,25 +277,48 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
   };
 
   // Render the appropriate view
-  return (
-    <div className="meraki-panel" style={{ maxWidth: '100%', margin: '0 auto' }}>
-      <Header version={data.version} />
+  const renderView = () => {
+    switch (activeView.view) {
+      case 'clients':
+        return (
+          <ClientsView
+            clients={data.clients || []}
+            setActiveView={setActiveView}
+            onBack={() => setActiveView({ view: 'dashboard' })}
+          />
+        );
+      case 'device':
+        return (
+          <DeviceView
+            activeView={activeView}
+            setActiveView={setActiveView}
+            data={data}
+            hass={hass}
+            configEntryId={configEntryId}
+            cameraLinkIntegration={data.camera_link_integration}
+            configEntryOptions={{
+              temperature_unit: data.temperature_unit,
+            }}
+          />
+        );
+      default:
+        return (
+          <Dashboard
+            data={processedData}
+            setActiveView={setActiveView}
+            hass={hass}
+            defaultViewMode={data.dashboard_view_mode}
+            defaultDeviceTypeFilter={data.dashboard_device_type_filter}
+            defaultStatusFilter={data.dashboard_status_filter}
+          />
+        );
+    }
+  };
 
-      {activeView.view === 'dashboard' ? (
-        <Dashboard
-          data={processedData}
-          setActiveView={setActiveView}
-          hass={hass}
-        />
-      ) : (
-        <DeviceView
-          activeView={activeView}
-          setActiveView={setActiveView}
-          data={data}
-          hass={hass}
-          configEntryId={configEntryId}
-        />
-      )}
+  return (
+    <div className="meraki-panel" style={{ ...themeStyle, maxWidth: '100%', margin: '0 auto' }}>
+      <Header version={data.version} />
+      {renderView()}
     </div>
   );
 };

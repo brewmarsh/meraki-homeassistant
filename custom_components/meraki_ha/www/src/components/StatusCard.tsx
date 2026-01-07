@@ -6,6 +6,7 @@ interface StatusCardProps {
   icon?: React.ReactNode;
   variant?: 'default' | 'success' | 'warning' | 'error';
   onClick?: () => void;
+  clickable?: boolean;
 }
 
 const StatusCard: React.FC<StatusCardProps> = ({
@@ -14,14 +15,31 @@ const StatusCard: React.FC<StatusCardProps> = ({
   icon,
   variant = 'default',
   onClick,
+  clickable = false,
 }) => {
   const valueClass = variant === 'default' ? '' : variant;
+  const isClickable = onClick || clickable;
   
   return (
     <div
-      className="stat-card"
+      className={`stat-card ${isClickable ? 'clickable' : ''}`}
       onClick={onClick}
-      style={{ cursor: onClick ? 'pointer' : 'default' }}
+      style={{ 
+        cursor: isClickable ? 'pointer' : 'default',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+      }}
+      onMouseEnter={(e) => {
+        if (isClickable) {
+          e.currentTarget.style.transform = 'translateY(-2px)';
+          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (isClickable) {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '';
+        }
+      }}
     >
       <div className="label">{title}</div>
       <div className={`value ${valueClass}`}>

@@ -26,7 +26,16 @@ MT_TEMPERATURE_DESCRIPTION = SensorEntityDescription(
     name="Temperature",
     device_class=SensorDeviceClass.TEMPERATURE,
     state_class=SensorStateClass.MEASUREMENT,
+    # Unit is set dynamically based on user preference - defaults to Celsius
     native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+)
+
+MT_INDOOR_AIR_QUALITY_DESCRIPTION = SensorEntityDescription(
+    key="indoorAirQuality",
+    name="Indoor Air Quality",
+    device_class=SensorDeviceClass.AQI,
+    state_class=SensorStateClass.MEASUREMENT,
+    icon="mdi:air-filter",
 )
 
 MT_HUMIDITY_DESCRIPTION = SensorEntityDescription(
@@ -70,7 +79,7 @@ MT_NOISE_DESCRIPTION = SensorEntityDescription(
 )
 
 MT_POWER_DESCRIPTION = SensorEntityDescription(
-    key="power",
+    key="realPower",  # API uses realPower, not power
     name="Power",
     device_class=SensorDeviceClass.POWER,
     state_class=SensorStateClass.MEASUREMENT,
@@ -139,6 +148,7 @@ MT_SENSOR_MODELS = {
         MT_BATTERY_DESCRIPTION,
     ],
     "MT15": [
+        MT_INDOOR_AIR_QUALITY_DESCRIPTION,
         MT_CO2_DESCRIPTION,
         MT_TVOC_DESCRIPTION,
         MT_PM25_DESCRIPTION,

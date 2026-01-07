@@ -6,17 +6,31 @@ import voluptuous as vol
 from homeassistant.helpers import selector
 
 from .const import (
+    CONF_CAMERA_LINK_INTEGRATION,
     CONF_CAMERA_SNAPSHOT_INTERVAL,
+    CONF_DASHBOARD_DEVICE_TYPE_FILTER,
+    CONF_DASHBOARD_STATUS_FILTER,
+    CONF_DASHBOARD_VIEW_MODE,
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_ENABLE_VLAN_MANAGEMENT,
     CONF_ENABLED_NETWORKS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
+    CONF_TEMPERATURE_UNIT,
+    DASHBOARD_VIEW_MODE_NETWORK,
+    DASHBOARD_VIEW_MODE_TYPE,
+    DEFAULT_CAMERA_LINK_INTEGRATION,
     DEFAULT_CAMERA_SNAPSHOT_INTERVAL,
+    DEFAULT_DASHBOARD_DEVICE_TYPE_FILTER,
+    DEFAULT_DASHBOARD_STATUS_FILTER,
+    DEFAULT_DASHBOARD_VIEW_MODE,
     DEFAULT_ENABLE_VLAN_MANAGEMENT,
     DEFAULT_ENABLED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_TEMPERATURE_UNIT,
+    TEMPERATURE_UNIT_CELSIUS,
+    TEMPERATURE_UNIT_FAHRENHEIT,
 )
 
 CONFIG_SCHEMA = vol.Schema(
@@ -62,6 +76,90 @@ OPTIONS_SCHEMA = vol.Schema(
                 step=10,
                 unit_of_measurement="seconds",
                 mode=selector.NumberSelectorMode.BOX,
+            )
+        ),
+        # Dashboard display settings
+        vol.Required(
+            CONF_DASHBOARD_VIEW_MODE, default=DEFAULT_DASHBOARD_VIEW_MODE
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[
+                    selector.SelectOptionDict(
+                        value=DASHBOARD_VIEW_MODE_NETWORK, label="By Network"
+                    ),
+                    selector.SelectOptionDict(
+                        value=DASHBOARD_VIEW_MODE_TYPE, label="By Device Type"
+                    ),
+                ],
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Required(
+            CONF_DASHBOARD_DEVICE_TYPE_FILTER,
+            default=DEFAULT_DASHBOARD_DEVICE_TYPE_FILTER,
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[
+                    selector.SelectOptionDict(value="all", label="All Types"),
+                    selector.SelectOptionDict(value="switch", label="Switches"),
+                    selector.SelectOptionDict(value="camera", label="Cameras"),
+                    selector.SelectOptionDict(value="wireless", label="Wireless APs"),
+                    selector.SelectOptionDict(value="sensor", label="Sensors"),
+                    selector.SelectOptionDict(value="appliance", label="Appliances"),
+                ],
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Required(
+            CONF_DASHBOARD_STATUS_FILTER, default=DEFAULT_DASHBOARD_STATUS_FILTER
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[
+                    selector.SelectOptionDict(value="all", label="All Statuses"),
+                    selector.SelectOptionDict(value="online", label="Online"),
+                    selector.SelectOptionDict(value="offline", label="Offline"),
+                    selector.SelectOptionDict(value="alerting", label="Alerting"),
+                    selector.SelectOptionDict(value="dormant", label="Dormant"),
+                ],
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Optional(
+            CONF_CAMERA_LINK_INTEGRATION, default=DEFAULT_CAMERA_LINK_INTEGRATION
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[
+                    selector.SelectOptionDict(value="", label="All Cameras"),
+                    selector.SelectOptionDict(value="blue_iris", label="Blue Iris"),
+                    selector.SelectOptionDict(value="generic", label="Generic Camera"),
+                    selector.SelectOptionDict(value="onvif", label="ONVIF"),
+                    selector.SelectOptionDict(value="frigate", label="Frigate"),
+                    selector.SelectOptionDict(value="unifi", label="UniFi Protect"),
+                    selector.SelectOptionDict(value="ring", label="Ring"),
+                    selector.SelectOptionDict(value="nest", label="Nest"),
+                    selector.SelectOptionDict(value="amcrest", label="Amcrest"),
+                    selector.SelectOptionDict(value="reolink", label="Reolink"),
+                    selector.SelectOptionDict(value="hikvision", label="Hikvision"),
+                    selector.SelectOptionDict(value="dahua", label="Dahua"),
+                ],
+                mode=selector.SelectSelectorMode.DROPDOWN,
+                custom_value=True,  # Allow typing custom integration names
+            )
+        ),
+        # Sensor display settings
+        vol.Required(
+            CONF_TEMPERATURE_UNIT, default=DEFAULT_TEMPERATURE_UNIT
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[
+                    selector.SelectOptionDict(
+                        value=TEMPERATURE_UNIT_CELSIUS, label="Celsius (°C)"
+                    ),
+                    selector.SelectOptionDict(
+                        value=TEMPERATURE_UNIT_FAHRENHEIT, label="Fahrenheit (°F)"
+                    ),
+                ],
+                mode=selector.SelectSelectorMode.DROPDOWN,
             )
         ),
     }

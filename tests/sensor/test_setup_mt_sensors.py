@@ -51,7 +51,7 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                 "model": "MT40",
                 "productType": "sensor",
                 "readings": [
-                    {"metric": "power", "power": {"draw": 120.5}},
+                    {"metric": "realPower", "realPower": {"draw": 120.5}},
                     {"metric": "voltage", "voltage": {"level": 120.1}},
                     {"metric": "current", "current": {"draw": 1.0}},
                 ],
@@ -96,7 +96,8 @@ def test_async_setup_mt15_sensors(
     device_info = mock_coordinator_with_mt_devices.data["devices"][1]
     entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
 
-    assert len(entities) == 6
+    # MT15 has 7 sensors: IAQ, co2, tvoc, pm25, temperature, humidity, noise
+    assert len(entities) == 7
 
     sensors_by_key = {entity.entity_description.key: entity for entity in entities}
 
@@ -183,10 +184,10 @@ def test_async_setup_mt40_sensors(
 
     sensors_by_key = {entity.entity_description.key: entity for entity in entities}
 
-    # Verify Power Sensor
-    power_sensor = sensors_by_key.get("power")
+    # Verify Power Sensor (API uses realPower metric)
+    power_sensor = sensors_by_key.get("realPower")
     assert power_sensor is not None
-    assert power_sensor.unique_id == "mt40-1_power"
+    assert power_sensor.unique_id == "mt40-1_realPower"
     assert power_sensor.name == "MT40 Power Controller Power"
     assert power_sensor.native_value == 120.5  # type: ignore[attr-defined]
     assert power_sensor.available is True

@@ -11,7 +11,9 @@ import logging
 from typing import TYPE_CHECKING
 
 from ...const import CONF_ENABLE_NETWORK_SENSORS, CONF_ENABLE_VLAN_SENSORS
+from ...sensor.network.meraki_network_info import MerakiNetworkInfoSensor
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
+from ...sensor.network.network_identity import MerakiNetworkIdentitySensor
 from ...switch.content_filtering import MerakiContentFilteringSwitch
 from .base import BaseHandler
 
@@ -19,11 +21,11 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ....services.camera_service import CameraService
-    from ....services.device_control_service import DeviceControlService
-    from ....types import MerakiDevice
     from ...meraki_data_coordinator import MerakiDataCoordinator
+    from ...services.camera_service import CameraService
+    from ...services.device_control_service import DeviceControlService
     from ...services.network_control_service import NetworkControlService
+    from ...types import MerakiDevice
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,7 +48,7 @@ class NetworkHandler(BaseHandler):
     def create(
         cls,
         coordinator: MerakiDataCoordinator,
-        device: MerakiDevice,
+        device: MerakiDevice | None,
         config_entry: ConfigEntry,
         camera_service: CameraService,
         control_service: DeviceControlService,
@@ -73,12 +75,29 @@ class NetworkHandler(BaseHandler):
             return entities
 
         for network in networks:
+            # Network clients sensor
             entities.append(
                 MerakiNetworkClientsSensor(
                     coordinator=self._coordinator,
                     config_entry=self._config_entry,
                     network_data=network,
                     network_control_service=self._network_control_service,
+                )
+            )
+            # Network identity sensor
+            entities.append(
+                MerakiNetworkIdentitySensor(
+                    coordinator=self._coordinator,
+                    network_data=network,
+                    config_entry=self._config_entry,
+                )
+            )
+            # Network info sensor
+            entities.append(
+                MerakiNetworkInfoSensor(
+                    coordinator=self._coordinator,
+                    network_data=network,
+                    config_entry=self._config_entry,
                 )
             )
             if "appliance" in network.get("productTypes", []):

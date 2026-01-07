@@ -11,6 +11,7 @@ from homeassistant.helpers import entity_registry as er
 from ...button.reboot import MerakiRebootButton
 from ...const import CONF_ENABLE_DEVICE_STATUS, CONF_ENABLE_PORT_SENSORS, DOMAIN
 from ...sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
+from ...sensor.device.connected_clients import MerakiDeviceConnectedClientsSensor
 from ...sensor.device.device_status import MerakiDeviceStatusSensor
 from .base import BaseDeviceHandler
 
@@ -18,12 +19,10 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ....types import MerakiDevice
-    from ...meraki_data_coordinator import (
-        MerakiDataCoordinator,
-    )
+    from ...meraki_data_coordinator import MerakiDataCoordinator
     from ...services.device_control_service import DeviceControlService
     from ...services.network_control_service import NetworkControlService
+    from ...types import MerakiDevice
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -78,6 +77,13 @@ class GXHandler(BaseDeviceHandler):
                     self._coordinator, self.device, self._config_entry
                 )
             )
+
+        # Connected clients sensor
+        entities.append(
+            MerakiDeviceConnectedClientsSensor(
+                self._coordinator, self.device, self._config_entry
+            )
+        )
 
         # Check if port/uplink sensors are enabled
         if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):

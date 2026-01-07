@@ -18,18 +18,21 @@ from ...sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
 )
+from ...sensor.device.camera_audio_detection import MerakiCameraAudioDetectionSensor
+from ...sensor.device.camera_sense_status import MerakiCameraSenseStatusSensor
+from ...sensor.device.meraki_firmware_status import MerakiFirmwareStatusSensor
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ....core.api.client import MerakiAPIClient
-    from ....services.network_control_service import NetworkControlService
-    from ....types import MerakiDevice
-    from ...core.coordinators.meraki_data_coordinator import MerakiDataCoordinator
+    from ...core.api.client import MerakiAPIClient
+    from ...meraki_data_coordinator import MerakiDataCoordinator
     from ...services.camera_service import CameraService
     from ...services.device_control_service import DeviceControlService
+    from ...services.network_control_service import NetworkControlService
+    from ...types import MerakiDevice
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,7 +49,7 @@ class MVHandler(BaseDeviceHandler):
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
-        meraki_client: MerakiAPIClient,
+        meraki_client: MerakiAPIClient | None = None,
     ) -> None:
         """Initialize the MVHandler."""
         super().__init__(coordinator, device, config_entry)
@@ -64,7 +67,7 @@ class MVHandler(BaseDeviceHandler):
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
-        meraki_client: MerakiAPIClient = None,
+        meraki_client: MerakiAPIClient | None = None,
     ) -> MVHandler:
         """Create an instance of the handler."""
         return cls(
@@ -134,6 +137,33 @@ class MVHandler(BaseDeviceHandler):
                 self._coordinator,
                 self.device,
                 self._camera_service,
+                self._config_entry,
+            )
+        )
+
+        # Camera sense status sensor
+        entities.append(
+            MerakiCameraSenseStatusSensor(
+                self._coordinator,
+                self.device,
+                self._config_entry,
+            )
+        )
+
+        # Camera audio detection sensor
+        entities.append(
+            MerakiCameraAudioDetectionSensor(
+                self._coordinator,
+                self.device,
+                self._config_entry,
+            )
+        )
+
+        # Firmware status sensor
+        entities.append(
+            MerakiFirmwareStatusSensor(
+                self._coordinator,
+                self.device,
                 self._config_entry,
             )
         )
