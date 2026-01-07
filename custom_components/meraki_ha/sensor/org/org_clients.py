@@ -56,7 +56,8 @@ class MerakiOrganizationSSIDClientsSensor(
             config=self.coordinator.config_entry.options,
         )
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, org_id)},
+            # Use org_ prefix to prevent collisions with other entity types
+            identifiers={(DOMAIN, f"org_{org_id}")},
             name=formatted_name,
             manufacturer="Cisco Meraki",
             model="Organization",
@@ -119,7 +120,7 @@ class MerakiOrganizationWirelessClientsSensor(
             config=self.coordinator.config_entry.options,
         )
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, org_id)},
+            identifiers={(DOMAIN, f"org_{org_id}")},
             name=formatted_name,
             manufacturer="Cisco Meraki",
             model="Organization",
@@ -181,7 +182,7 @@ class MerakiOrganizationApplianceClientsSensor(
             config=self.coordinator.config_entry.options,
         )
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, org_id)},
+            identifiers={(DOMAIN, f"org_{org_id}")},
             name=formatted_name,
             manufacturer="Cisco Meraki",
             model="Organization",

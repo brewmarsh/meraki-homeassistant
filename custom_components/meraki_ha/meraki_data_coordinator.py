@@ -223,26 +223,34 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         }
 
         # Build a set of all valid identifiers from the latest coordinator data
+        # Physical devices use serial number as identifier
         latest_valid_identifiers: set[str] = {
             device["serial"] for device in data.get("devices", [])
         }
+
+        # SSIDs use ssid_{network_id}_{ssid_number} format
         for ssid in data.get("ssids", []):
             network_id = ssid.get("networkId")
             ssid_number = ssid.get("number")
             if network_id and ssid_number is not None:
-                latest_valid_identifiers.add(f"{network_id}_{ssid_number}")
+                latest_valid_identifiers.add(f"ssid_{network_id}_{ssid_number}")
 
-        # Add network identifiers
+        # Networks use network_{network_id} format
         for network in data.get("networks", []):
             if network.get("is_enabled"):
                 latest_valid_identifiers.add(f"network_{network['id']}")
 
-        # Add VLAN identifiers
+        # VLANs use vlan_{network_id}_{vlan_id} format
         for network_id, vlans in data.get("vlans", {}).items():
             if isinstance(vlans, list):
                 for vlan in vlans:
                     if "id" in vlan:
                         latest_valid_identifiers.add(f"vlan_{network_id}_{vlan['id']}")
+
+        # Organization uses org_{org_id} format
+        org_data = data.get("organization", {})
+        if org_data.get("id"):
+            latest_valid_identifiers.add(f"org_{org_data['id']}")
 
         # Determine which device identifiers to remove
         device_ids_to_remove = device_ids_in_registry - latest_valid_identifiers
@@ -277,7 +285,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if network_id and ssid_number is not None:
                 # Construct the device identifier for the SSID
                 # Note: This must match the identifier logic in device_info_helpers.py
-                identifier = f"{network_id}_{ssid_number}"
+                identifier = f"ssid_{network_id}_{ssid_number}"
 
                 ha_device = dev_reg.async_get_device(
                     identifiers={(DOMAIN, identifier)},

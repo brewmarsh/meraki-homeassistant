@@ -24,7 +24,8 @@ def test_resolve_device_info_ssid_naming(mock_config_entry):
         entity_data=ssid_data, config_entry=mock_config_entry
     )
     assert device_info["name"] == "[SSID] My Test SSID"
-    assert device_info["identifiers"] == {(DOMAIN, "net1_1")}
+    # SSID identifiers use ssid_{network_id}_{ssid_number} format
+    assert device_info["identifiers"] == {(DOMAIN, "ssid_net1_1")}
 
 
 def test_resolve_device_info_physical_device(mock_config_entry):
