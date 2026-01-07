@@ -110,22 +110,7 @@ const SSIDView: React.FC<SSIDViewProps> = ({
     <div className="ssid-view">
       {/* Header */}
       <div className="view-header">
-        <button
-          className="back-button"
-          onClick={onBack}
-          style={{
-            background: 'var(--bg-tertiary)',
-            border: '1px solid var(--card-border)',
-            borderRadius: 'var(--radius-sm)',
-            padding: '8px 16px',
-            color: 'var(--text-secondary)',
-            cursor: 'pointer',
-            fontSize: '14px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
+        <button className="back-button" onClick={onBack}>
           ← Back
         </button>
         <div style={{ flex: 1, marginLeft: '16px' }}>
