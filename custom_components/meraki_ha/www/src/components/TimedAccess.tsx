@@ -120,13 +120,9 @@ const TimedAccess: React.FC<TimedAccessProps> = ({ hass, configEntryId, data, on
 
   // Helper to find SSIDs for selected network
   const getSsidsForNetwork = (networkId: string) => {
-    const net = data?.networks?.find((n: any) => n.id === networkId);
-    // Ideally filter for IPSK without Radius.
-    // We assume data.ssids or data.networks contains SSIDs details.
-    // The main App.tsx passes `data` which has `ssids`. But those are flat list of ALL SSIDs?
-    // In App.tsx:
-    // ssids: [ { number: 0, name: 'Main WiFi', networkId: 'N_12345' } ]
-    // Let's use that.
+    // Filter SSIDs by network ID
+    // The main App.tsx passes `data` which has `ssids` as a flat list
+    // e.g., ssids: [ { number: 0, name: 'Main WiFi', networkId: 'N_12345' } ]
     return data?.ssids?.filter((s: any) => s.networkId === networkId) || [];
   };
 

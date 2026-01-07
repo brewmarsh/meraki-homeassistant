@@ -46,17 +46,58 @@ interface Device {
     portId: string;
     status: string;
     enabled: boolean;
+    isUplink?: boolean;
     speed?: string;
+    duplex?: string;
     poe?: { isAllocated?: boolean; enabled?: boolean };
     powerUsageInWh?: number;
+    usageInKb?: { total?: number; sent?: number; recv?: number };
+    trafficInKbps?: { total?: number; sent?: number; recv?: number };
     clientName?: string;
     clientMac?: string;
+    clientCount?: number;
+    vlan?: number;
+    errors?: string[];
+    warnings?: string[];
+    lldp?: {
+      systemName?: string;
+      systemDescription?: string;
+      portId?: string;
+      managementAddress?: string;
+      portDescription?: string;
+      chassisId?: string;
+    };
+    cdp?: {
+      deviceId?: string;
+      platform?: string;
+      portId?: string;
+      address?: string;
+      nativeVlan?: number;
+      managementAddress?: string;
+    };
+    securePort?: {
+      enabled?: boolean;
+      active?: boolean;
+      authenticationStatus?: string;
+    };
   }>;
   readings?: {
     temperature?: number;
     humidity?: number;
     battery?: number;
   };
+  basicServiceSets?: Array<{
+    ssidName?: string;
+    ssidNumber?: number;
+    enabled?: boolean;
+    band?: string;
+    bssid?: string;
+    channel?: number;
+    channelWidth?: string;
+    power?: string;
+    visible?: boolean;
+    broadcasting?: boolean;
+  }>;
 }
 
 interface Client {
@@ -149,7 +190,7 @@ const Header: React.FC<{ version?: string }> = ({ version }) => (
 /**
  * Main App Component
  */
-const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
+const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -310,6 +351,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
             defaultViewMode={data.dashboard_view_mode}
             defaultDeviceTypeFilter={data.dashboard_device_type_filter}
             defaultStatusFilter={data.dashboard_status_filter}
+            temperatureUnit={data.temperature_unit}
           />
         );
     }
