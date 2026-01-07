@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 // Frontend version: 2.2.0-beta.28
 import NetworkView from './components/NetworkView';
 import DeviceView from './components/DeviceView';
@@ -48,7 +48,12 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
             status: 'online',
             entity_id: 'switch.office_switch',
             networkId: 'N_12345',
-            ports_statuses: [{status: 'Connected'}, {status: 'Connected'}, {status: 'Disconnected'}, {status: 'Disconnected'}], // 2/4 in use
+            ports_statuses: [
+              { status: 'Connected' },
+              { status: 'Connected' },
+              { status: 'Disconnected' },
+              { status: 'Disconnected' },
+            ], // 2/4 in use
           },
           {
             name: 'Front Door Camera',
@@ -74,32 +79,32 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
             networkId: 'N_12345',
             wan1Ip: '203.0.113.1',
             wan2Ip: '198.51.100.1',
-          }
+          },
         ],
         ssids: [
-            {
-                number: 0,
-                name: 'Main WiFi',
-                enabled: true,
-                networkId: 'N_12345',
-                entity_id: 'switch.main_wifi',
-            }
+          {
+            number: 0,
+            name: 'Main WiFi',
+            enabled: true,
+            networkId: 'N_12345',
+            entity_id: 'switch.main_wifi',
+          },
         ],
         vlans: {
-            'N_12345': [
-                {
-                    id: '1',
-                    name: 'Management',
-                    subnet: '192.168.1.0/24',
-                    applianceIp: '192.168.1.1'
-                },
-                {
-                    id: '10',
-                    name: 'IoT',
-                    subnet: '192.168.10.0/24',
-                    applianceIp: '192.168.10.1'
-                }
-            ]
+          N_12345: [
+            {
+              id: '1',
+              name: 'Management',
+              subnet: '192.168.1.0/24',
+              applianceIp: '192.168.1.1',
+            },
+            {
+              id: '10',
+              name: 'IoT',
+              subnet: '192.168.10.0/24',
+              applianceIp: '192.168.10.1',
+            },
+          ],
         },
         networks: [
           {
@@ -115,7 +120,13 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
                 entity_id: 'switch.main_wifi',
               },
             ],
-            productTypes: ['wireless', 'switch', 'camera', 'sensor', 'appliance'],
+            productTypes: [
+              'wireless',
+              'switch',
+              'camera',
+              'sensor',
+              'appliance',
+            ],
           },
         ],
         options: {
@@ -161,17 +172,34 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
     }
   };
 
-  if (loading) {
-    return <div className="p-4">Loading...</div>;
-  }
+  const handleToggle = async (networkId: string, enabled: boolean) => {
+    if (!data) return;
 
-  if (error) {
-    return <div className="p-4 text-red-500">Error: {error}</div>;
-  }
+    const updatedNetworks = data.networks.map((network: any) =>
+      network.id === networkId ? { ...network, is_enabled: enabled } : network
+    );
 
-  const handleToggle = (networkId: string, enabled: boolean) => {
-    // This functionality is not fully implemented in this refactor
-    console.log(`Toggled network ${networkId} to ${enabled}`);
+    const updatedData = { ...data, networks: updatedNetworks };
+    setData(updatedData);
+
+    const enabledNetworkIds = updatedNetworks
+      .filter((network: any) => network.is_enabled)
+      .map((network: any) => network.id);
+
+    try {
+      await hass.callWS({
+        type: 'meraki_ha/update_enabled_networks',
+        config_entry_id: configEntryId,
+        enabled_networks: enabledNetworkIds,
+      });
+    } catch (err: any) {
+      console.error('Error updating enabled networks:', err);
+      setError(
+        err.message || 'An unknown error occurred while updating networks.'
+      );
+      // Revert UI if API call fails
+      setData(data);
+    }
   };
 
   return (
@@ -180,11 +208,11 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
         <h1 className="text-2xl font-bold">Cisco Meraki Integration</h1>
         <div className="flex gap-2">
           <button
-              onClick={() => setShowTimedAccess(true)}
-              className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-              title="Timed Guest Access"
+            onClick={() => setShowTimedAccess(true)}
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+            title="Timed Guest Access"
           >
-              <ha-icon icon="mdi:clock-outline"></ha-icon>
+            <ha-icon icon="mdi:clock-outline"></ha-icon>
           </button>
           <button
             onClick={fetchData}

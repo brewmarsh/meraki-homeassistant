@@ -4,6 +4,7 @@ repos:
     rev: v4.6.0 # Updated rev
     hooks:
       - id: check-merge-conflict
+        exclude: 'node_modules/'
       - id: check-toml
       - id: check-json
         exclude: '(?x)(?:\.(?:vscode|devcontainer)\/.*|node_modules\/.*)'

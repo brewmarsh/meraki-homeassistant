@@ -35,3 +35,7 @@ class MerakiDeviceError(MerakiHAException):
 
 class MerakiNetworkError(MerakiHAException):
     """Exception to indicate a network-specific error with the Meraki API."""
+
+
+class MerakiVlansDisabledError(MerakiInformationalError):
+    """Error to indicate that VLANs are not enabled for a network."""

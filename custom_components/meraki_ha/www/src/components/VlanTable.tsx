@@ -27,7 +27,10 @@ const VlanTable: React.FC<VlanTableProps> = ({ vlans }) => {
   return (
     <div className="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md mb-4">
       <div className="flex items-center mb-4">
-        <ha-icon icon="mdi:lan-connect" style={{ marginRight: '8px' }}></ha-icon>
+        <ha-icon
+          icon="mdi:lan-connect"
+          style={{ marginRight: '8px' }}
+        ></ha-icon>
         <h3 className="text-lg font-semibold m-0">VLANs</h3>
       </div>
       <input

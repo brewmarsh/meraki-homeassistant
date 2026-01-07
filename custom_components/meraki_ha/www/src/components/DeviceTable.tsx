@@ -176,9 +176,7 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
       return wan1 || wan2 || '-';
     }
     if (deviceType === 'camera') {
-      const rtspUrl = device.lanIp
-        ? `rtsp://${device.lanIp}:9000/live`
-        : null;
+      const rtspUrl = device.lanIp ? `rtsp://${device.lanIp}:9000/live` : null;
       return rtspUrl ? (
         <a
           href={rtspUrl}
@@ -196,7 +194,9 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
     return null;
   };
 
-  const hasExtraColumn = ['switch', 'appliance', 'camera'].includes(deviceType);
+  const hasExtraColumn = ['switch', 'appliance', 'camera'].includes(
+    deviceType
+  );
 
   return (
     <div className="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md">

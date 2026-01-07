@@ -23,6 +23,7 @@ from ...core.errors import (
     MerakiInformationalError,
     MerakiTrafficAnalysisError,
     MerakiVlanError,
+    MerakiVlansDisabledError,
 )
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
@@ -88,6 +89,9 @@ class MerakiAPIClient:
         self.switch = SwitchEndpoints(self)
         self.wireless = WirelessEndpoints(self)
         self.sensor = SensorEndpoints(self)
+
+        # Set to store network IDs that have failed traffic analysis
+        self.traffic_analysis_failed_networks: set[str] = set()
 
         # Semaphore to limit concurrent API calls
         self._semaphore = asyncio.Semaphore(2)
@@ -517,6 +521,8 @@ class MerakiAPIClient:
                     # Fallback for generic handling if needed
                     self._disabled_features.add(network_vlans_key)
                     vlan_by_network[network["id"]] = []
+            elif isinstance(network_vlans, MerakiVlansDisabledError):
+                vlan_by_network[network["id"]] = []
             elif isinstance(network_vlans, list):
                 vlan_by_network[network["id"]] = network_vlans
             elif previous_data and network_vlans_key in previous_data:
@@ -603,7 +609,9 @@ class MerakiAPIClient:
                     device["sense_settings"] = prev_device["sense_settings"]
 
             elif product_type == "switch":
-                if statuses := detail_data.get(f"ports_statuses_{device['serial']}"):
+                statuses_key = f"ports_statuses_{device['serial']}"
+                statuses = detail_data.get(statuses_key)
+                if isinstance(statuses, list):
                     device["ports_statuses"] = statuses
                 elif prev_device and "ports_statuses" in prev_device:
                     device["ports_statuses"] = prev_device["ports_statuses"]
@@ -661,14 +669,14 @@ class MerakiAPIClient:
         )
 
         detail_tasks = self._build_detail_tasks(networks, devices)
-        detail_results = await asyncio.gather(
+        detail_data = await asyncio.gather(
             *detail_tasks.values(),
             return_exceptions=True,
         )
-        detail_data = dict(zip(detail_tasks.keys(), detail_results, strict=True))
+        detail_data_dict = dict(zip(detail_tasks.keys(), detail_data, strict=True))
 
         processed_detailed_data = self._process_detailed_data(
-            detail_data,
+            detail_data_dict,
             networks,
             devices,
             previous_data,

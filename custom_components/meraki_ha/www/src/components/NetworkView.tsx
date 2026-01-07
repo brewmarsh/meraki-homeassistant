@@ -84,7 +84,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({
   const isDeviceOnline = (device: Device) => {
     // For cameras, prioritize device status from API
     if (device.model?.toUpperCase().startsWith('MV')) {
-       return device.status === 'online';
+      return device.status === 'online';
     }
 
     const haState = device.entity_id && hass?.states?.[device.entity_id];
@@ -108,9 +108,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({
 
     networks.forEach((network) => {
       // Group devices
-      const networkDevices = devices.filter(
-        (d) => d.networkId === network.id
-      );
+      const networkDevices = devices.filter((d) => d.networkId === network.id);
       const wirelessDevices = networkDevices.filter(
         (d) =>
           d.model?.toUpperCase().startsWith('MR') ||
@@ -121,11 +119,11 @@ const NetworkView: React.FC<NetworkViewProps> = ({
           d.model?.toUpperCase().startsWith('MS') ||
           d.model?.toUpperCase().startsWith('GS')
       );
-      const cameraDevices = networkDevices.filter((d) =>
-        d.model?.toUpperCase().startsWith('MV')
+      const cameraDevices = networkDevices.filter(
+        (d) => d.model?.toUpperCase().startsWith('MV')
       );
-      const sensorDevices = networkDevices.filter((d) =>
-        d.model?.toUpperCase().startsWith('MT')
+      const sensorDevices = networkDevices.filter(
+        (d) => d.model?.toUpperCase().startsWith('MT')
       );
       const applianceDevices = networkDevices.filter(
         (d) =>
@@ -252,7 +250,8 @@ const NetworkView: React.FC<NetworkViewProps> = ({
               <div className="card-content">
                 {groups.map((group) => {
                   if (group.devices.length === 0) return null;
-                  const onlineCount = group.devices.filter(isDeviceOnline).length;
+                  const onlineCount =
+                    group.devices.filter(isDeviceOnline).length;
                   const totalCount = group.devices.length;
 
                   return (
@@ -275,9 +274,9 @@ const NetworkView: React.FC<NetworkViewProps> = ({
                 })}
 
                 {networkVlans && networkVlans.length > 0 && (
-                    <div style={{ marginBottom: '16px' }}>
-                        <VlanTable vlans={networkVlans} />
-                    </div>
+                  <div style={{ marginBottom: '16px' }}>
+                    <VlanTable vlans={networkVlans} />
+                  </div>
                 )}
 
                 {network.ssids && network.ssids.length > 0 && (

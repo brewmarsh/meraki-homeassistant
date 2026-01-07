@@ -50,13 +50,15 @@ const SSIDView: React.FC<SSIDViewProps> = ({ hass, ssids }) => {
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <ha-icon
                 icon={isOn ? 'mdi:wifi' : 'mdi:wifi-off'}
-                style={{
-                  '--mdc-icon-size': '16px',
-                  marginRight: '4px',
-                  color: isOn
-                    ? 'var(--primary-color)'
-                    : 'var(--disabled-text-color)',
-                } as React.CSSProperties}
+                style={
+                  {
+                    '--mdc-icon-size': '16px',
+                    marginRight: '4px',
+                    color: isOn
+                      ? 'var(--primary-color)'
+                      : 'var(--disabled-text-color)',
+                  } as React.CSSProperties
+                }
               ></ha-icon>
               <span>{isOn ? 'Enabled' : 'Disabled'}</span>
             </div>

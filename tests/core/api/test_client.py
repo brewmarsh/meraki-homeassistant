@@ -199,13 +199,38 @@ def test_build_detail_tasks_for_appliance_device(api_client):
     devices = [appliance_device]
     networks = [network_with_appliance]
 
+    # Mock _run_with_semaphore to return the input immediately (pass-through)
+    api_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
+
+    # Mock endpoint methods to return dummy task objects
+    api_client.network.get_network_traffic = MagicMock(return_value="task_traffic")
+    api_client.appliance.get_network_vlans = MagicMock(return_value="task_vlans")
+    api_client.appliance.get_l3_firewall_rules = MagicMock(return_value="task_firewall")
+    api_client.appliance.get_traffic_shaping = MagicMock(return_value="task_shaping")
+    api_client.appliance.get_vpn_status = MagicMock(return_value="task_vpn")
+    api_client.appliance.get_network_appliance_content_filtering = MagicMock(
+        return_value="task_filtering"
+    )
+    api_client.appliance.get_network_appliance_settings = MagicMock(
+        return_value="task_settings"
+    )
+
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
 
     # Assert
-    assert f"appliance_settings_{appliance_device['serial']}" in tasks
-    assert f"traffic_{network_with_appliance['id']}" in tasks
-    assert f"vlans_{network_with_appliance['id']}" in tasks
+    # Check network tasks
+    assert tasks[f"traffic_{network_with_appliance['id']}"] == "task_traffic"
+    assert tasks[f"vlans_{network_with_appliance['id']}"] == "task_vlans"
+    assert tasks[f"l3_firewall_rules_{network_with_appliance['id']}"] == "task_firewall"
+    assert tasks[f"traffic_shaping_{network_with_appliance['id']}"] == "task_shaping"
+    assert tasks[f"vpn_status_{network_with_appliance['id']}"] == "task_vpn"
+    assert (
+        tasks[f"content_filtering_{network_with_appliance['id']}"] == "task_filtering"
+    )
+
+    # Check device tasks
+    assert tasks[f"appliance_settings_{appliance_device['serial']}"] == "task_settings"
 
 
 def test_process_detailed_data_merges_device_info(api_client):
