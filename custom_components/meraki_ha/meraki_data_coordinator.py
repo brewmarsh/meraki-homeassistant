@@ -375,11 +375,14 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "co2": "concentration",
             "noise": "ambient",
             "water": "present",
-            "power": "draw",
+            "realPower": "draw",  # API uses realPower
+            "apparentPower": "draw",
             "voltage": "level",
             "current": "draw",
             "battery": "percentage",
             "button": "pressType",
+            "door": "open",
+            "indoorAirQuality": "score",
         }
 
         for reading in readings:

@@ -121,7 +121,8 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
                         "co2": "concentration",
                         "noise": "ambient",
                         "water": "present",
-                        "power": "draw",
+                        "realPower": "draw",  # API uses realPower
+                        "apparentPower": "draw",
                         "voltage": "level",
                         "current": "draw",
                         "battery": "percentage",

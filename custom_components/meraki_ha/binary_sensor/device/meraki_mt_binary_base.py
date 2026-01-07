@@ -80,7 +80,16 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
         """Return True if entity is available."""
         if not self.coordinator.last_update_success:
             return False
-        return self._get_current_device_data() is not None
+
+        readings = self._get_readings()
+        if not readings:
+            return False
+
+        # Check if there's a reading for this specific metric
+        for reading in readings:
+            if reading.get("metric") == self.entity_description.key:
+                return True
+        return False
 
     @property
     def is_on(self) -> bool | None:
@@ -93,6 +102,26 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
         for reading in readings:
             metric = reading.get("metric")
             if metric == self.entity_description.key:
+                # API returns nested data like:
+                #   {"metric": "door", "door": {"open": true}}
+                #   {"metric": "water", "water": {"present": true}}
+                metric_data = reading.get(self.entity_description.key)
+                if isinstance(metric_data, dict):
+                    # Map metric to the key holding the boolean value
+                    key_map = {
+                        "door": "open",
+                        "water": "present",
+                    }
+                    value_key = key_map.get(self.entity_description.key)
+                    if value_key:
+                        value = metric_data.get(value_key)
+                        if isinstance(value, bool):
+                            return value
+                elif isinstance(metric_data, bool):
+                    # Direct boolean value
+                    return metric_data
+
+                # Fallback: check for "value" key (legacy format)
                 value = reading.get("value")
                 if isinstance(value, bool):
                     return value

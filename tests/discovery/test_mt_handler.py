@@ -44,12 +44,14 @@ async def test_mt_handler_discover_entities_mt10(
 
     entities = await handler.discover_entities()
 
-    # MT10 has Temperature, Humidity, Battery (3 sensors)
-    assert len(entities) == 3
-    assert all(isinstance(e, MerakiMtSensor) for e in entities)
-    assert any(e.entity_description.key == "temperature" for e in entities)
-    assert any(e.entity_description.key == "humidity" for e in entities)
-    assert any(e.entity_description.key == "battery" for e in entities)
+    # MT10 has Temperature, Humidity, Battery (3 sensors) + Device Status = 4
+    assert len(entities) == 4
+    # Filter out device status sensor for MerakiMtSensor check
+    mt_sensors = [e for e in entities if isinstance(e, MerakiMtSensor)]
+    assert len(mt_sensors) == 3
+    assert any(e.entity_description.key == "temperature" for e in mt_sensors)
+    assert any(e.entity_description.key == "humidity" for e in mt_sensors)
+    assert any(e.entity_description.key == "battery" for e in mt_sensors)
 
 
 async def test_mt_handler_discover_entities_mt12(
@@ -73,8 +75,8 @@ async def test_mt_handler_discover_entities_mt12(
 
     entities = await handler.discover_entities()
 
-    # MT12 has Temperature, Battery (Sensors) + Water (Binary Sensor) = 3 total
-    assert len(entities) == 3
+    # MT12 has Temperature, Battery (Sensors) + Water (Binary) + Device Status = 4
+    assert len(entities) == 4
     sensors = [e for e in entities if isinstance(e, MerakiMtSensor)]
     binary_sensors = [e for e in entities if isinstance(e, MerakiMtBinarySensor)]
 
@@ -107,8 +109,8 @@ async def test_mt_handler_discover_entities_mt20(
 
     entities = await handler.discover_entities()
 
-    # MT20 has Battery, Temperature, Humidity (Sensors) + Door (Binary Sensor) = 4 total
-    assert len(entities) == 4
+    # MT20 has Battery, Temperature, Humidity (Sensors) + Door (Binary) + Status = 5
+    assert len(entities) == 5
     sensors = [e for e in entities if isinstance(e, MerakiMtSensor)]
     binary_sensors = [e for e in entities if isinstance(e, MerakiMtBinarySensor)]
 
