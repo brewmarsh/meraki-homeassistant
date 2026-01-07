@@ -66,9 +66,11 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
 
         # sense_settings contains the senseEnabled field from the API
         sense_settings = current_device_data.get("sense_settings", {})
-        sense_enabled_value = sense_settings.get("senseEnabled") if isinstance(
-            sense_settings, dict
-        ) else None
+        sense_enabled_value = (
+            sense_settings.get("senseEnabled")
+            if isinstance(sense_settings, dict)
+            else None
+        )
 
         if sense_enabled_value is None:
             self._attr_native_value = None

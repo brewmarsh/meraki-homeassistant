@@ -16,9 +16,9 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ....services.device_control_service import DeviceControlService
-    from ....types import MerakiDevice
     from ...meraki_data_coordinator import MerakiDataCoordinator
+    from ...services.device_control_service import DeviceControlService
+    from ...types import MerakiDevice
 
 
 _LOGGER = logging.getLogger(__name__)
