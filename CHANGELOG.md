@@ -1,138 +1,141 @@
 # [2.2.0-beta.35](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.34...v2.2.0-beta.35) (2025-12-02)
 
+
 ### Bug Fixes
 
-- **sensor:** fix linting errors in test files ([16dda77](https://github.com/brewmarsh/meraki-homeassistant/commit/16dda77a7895c363e7e7b27fad9e3c6af1e2cabc))\* **sensor:** improve SSID sensors and add PSK ([ce35050](https://github.com/brewmarsh/meraki-homeassistant/commit/ce350500c344abdb6acc7511893af4261b96f91d))
-
+* **sensor:** fix linting errors in test files ([16dda77](https://github.com/brewmarsh/meraki-homeassistant/commit/16dda77a7895c363e7e7b27fad9e3c6af1e2cabc))* **sensor:** improve SSID sensors and add PSK ([ce35050](https://github.com/brewmarsh/meraki-homeassistant/commit/ce350500c344abdb6acc7511893af4261b96f91d))
 # [2.2.0-beta.34](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.33...v2.2.0-beta.34) (2025-12-02)
 
+
 ### Bug Fixes
 
-- **lint:** re-verify and commit changes ([8435f8f](https://github.com/brewmarsh/meraki-homeassistant/commit/8435f8f09f426397ee7a59df910cad081a2a7c41))_ **lint:** shorten line in client.py ([a0635d2](https://github.com/brewmarsh/meraki-homeassistant/commit/a0635d218d10a94cad826f7b7f88ccff8dfc070f))_ remove [Camera] prefix from camera entities ([04b7a68](https://github.com/brewmarsh/meraki-homeassistant/commit/04b7a683f0338435fd883eb1eaee24837287de16))\* resolve AttributeError by renaming register_update_pending ([97a2a81](https://github.com/brewmarsh/meraki-homeassistant/commit/97a2a81cf49ea21a52ebb6ddfa84d3e3a3b8b2df))
-
+* **lint:** re-verify and commit changes ([8435f8f](https://github.com/brewmarsh/meraki-homeassistant/commit/8435f8f09f426397ee7a59df910cad081a2a7c41))* **lint:** shorten line in client.py ([a0635d2](https://github.com/brewmarsh/meraki-homeassistant/commit/a0635d218d10a94cad826f7b7f88ccff8dfc070f))* remove [Camera] prefix from camera entities ([04b7a68](https://github.com/brewmarsh/meraki-homeassistant/commit/04b7a683f0338435fd883eb1eaee24837287de16))* resolve AttributeError by renaming register_update_pending ([97a2a81](https://github.com/brewmarsh/meraki-homeassistant/commit/97a2a81cf49ea21a52ebb6ddfa84d3e3a3b8b2df))
 # [2.2.0-beta.33](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.32...v2.2.0-beta.33) (2025-12-02)
 
+
 ### Bug Fixes
 
-- **discovery:** restore uplink sensors from registry if API data is missing ([9ce3543](https://github.com/brewmarsh/meraki-homeassistant/commit/9ce3543b32b12adb39824c5313662934c4458f5c))
-
+* **discovery:** restore uplink sensors from registry if API data is missing ([9ce3543](https://github.com/brewmarsh/meraki-homeassistant/commit/9ce3543b32b12adb39824c5313662934c4458f5c))
 # [2.2.0-beta.32](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.31...v2.2.0-beta.32) (2025-12-02)
 
+
 ### Bug Fixes
 
-- robust fallback for detailed device data to prevent unavailable entities ([d344cc2](https://github.com/brewmarsh/meraki-homeassistant/commit/d344cc266860d95f3f13136012012a7739fa673a))\* **sensor:** improve SSID sensors and add PSK ([3c31027](https://github.com/brewmarsh/meraki-homeassistant/commit/3c3102700f9bae83b50784ad99c28d04e166f0ae))
-
+* robust fallback for detailed device data to prevent unavailable entities ([d344cc2](https://github.com/brewmarsh/meraki-homeassistant/commit/d344cc266860d95f3f13136012012a7739fa673a))* **sensor:** improve SSID sensors and add PSK ([3c31027](https://github.com/brewmarsh/meraki-homeassistant/commit/3c3102700f9bae83b50784ad99c28d04e166f0ae))
 # [2.2.0-beta.31](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.30...v2.2.0-beta.31) (2025-12-02)
 
+
 ### Bug Fixes
 
-- **api:** prevent repetitive calls for disabled features ([f664202](https://github.com/brewmarsh/meraki-homeassistant/commit/f6642023564175594127fa60e648d5ac6294f962))\* **sensor:** improve SSID sensors and add PSK ([3c31027](https://github.com/brewmarsh/meraki-homeassistant/commit/3c3102700f9bae83b50784ad99c28d04e166f0ae))
-
+* **api:** prevent repetitive calls for disabled features ([f664202](https://github.com/brewmarsh/meraki-homeassistant/commit/f6642023564175594127fa60e648d5ac6294f962))* **sensor:** improve SSID sensors and add PSK ([3c31027](https://github.com/brewmarsh/meraki-homeassistant/commit/3c3102700f9bae83b50784ad99c28d04e166f0ae))
 # [2.2.0-beta.30](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.29...v2.2.0-beta.30) (2025-12-02)
 
+
 ### Bug Fixes
 
-- **frontend:** Rebuild meraki-panel.js to resolve SyntaxError ([7b6bb81](https://github.com/brewmarsh/meraki-homeassistant/commit/7b6bb812e95289b704508b47097256d5a4309cfe))
-
+* **frontend:** Rebuild meraki-panel.js to resolve SyntaxError ([7b6bb81](https://github.com/brewmarsh/meraki-homeassistant/commit/7b6bb812e95289b704508b47097256d5a4309cfe))
 # [2.2.0-beta.29](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.28...v2.2.0-beta.29) (2025-12-01)
 
+
 ### Bug Fixes
 
-- **sensor:** ensure router entities remain available when uplink data is missing ([f72d1d2](https://github.com/brewmarsh/meraki-homeassistant/commit/f72d1d2954dc54fc9a1a032163dc805dc68b861a)), closes [#123](https://github.com/brewmarsh/meraki-homeassistant/issues/123)
-
+* **sensor:** ensure router entities remain available when uplink data is missing ([f72d1d2](https://github.com/brewmarsh/meraki-homeassistant/commit/f72d1d2954dc54fc9a1a032163dc805dc68b861a)), closes [#123](https://github.com/brewmarsh/meraki-homeassistant/issues/123)
 # [2.2.0-beta.28](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.27...v2.2.0-beta.28) (2025-12-01)
 
+
 ### Bug Fixes
 
-- **ci:** pin python version to 3.13 for release workflows ([af4ca23](https://github.com/brewmarsh/meraki-homeassistant/commit/af4ca235bdaa3689420f72e0b5236eda28c41a64))_ Clean frontend artifact by bumping version and rebuilding ([cad3002](https://github.com/brewmarsh/meraki-homeassistant/commit/cad3002f94592f1b4ab43b0e475102ea02f2eb47))_ cleanup frontend code and force rebuild ([7f93e79](https://github.com/brewmarsh/meraki-homeassistant/commit/7f93e79ca4e10d08b15efac320a790c1ca16b5ad))
-
+* **ci:** pin python version to 3.13 for release workflows ([af4ca23](https://github.com/brewmarsh/meraki-homeassistant/commit/af4ca235bdaa3689420f72e0b5236eda28c41a64))* Clean frontend artifact by bumping version and rebuilding ([cad3002](https://github.com/brewmarsh/meraki-homeassistant/commit/cad3002f94592f1b4ab43b0e475102ea02f2eb47))* cleanup frontend code and force rebuild ([7f93e79](https://github.com/brewmarsh/meraki-homeassistant/commit/7f93e79ca4e10d08b15efac320a790c1ca16b5ad))
 # [2.2.0-beta.27](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.26...v2.2.0-beta.27) (2025-12-01)
 
+
 ### Bug Fixes
 
-- **api:** add required productType to getNetworkEvents call ([d4b2016](https://github.com/brewmarsh/meraki-homeassistant/commit/d4b2016433c7e7888d92f24d57ca6717f8c3c5b8))
-
+* **api:** add required productType to getNetworkEvents call ([d4b2016](https://github.com/brewmarsh/meraki-homeassistant/commit/d4b2016433c7e7888d92f24d57ca6717f8c3c5b8))
 # [2.2.0-beta.26](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.25...v2.2.0-beta.26) (2025-12-01)
 
 # [2.2.0-beta.25](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.24...v2.2.0-beta.25) (2025-12-01)
 
+
 ### Bug Fixes
 
-- **frontend:** improve camera status display logic in DeviceTable ([6356056](https://github.com/brewmarsh/meraki-homeassistant/commit/635605613998ec2c2493b7a1786cfa9a5dc0afe3))
-
+* **frontend:** improve camera status display logic in DeviceTable ([6356056](https://github.com/brewmarsh/meraki-homeassistant/commit/635605613998ec2c2493b7a1786cfa9a5dc0afe3))
 # [2.2.0-beta.24](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.23...v2.2.0-beta.24) (2025-11-30)
 
+
 ### Bug Fixes
 
-- **camera:** improve RTSP stream availability check ([00d33b3](https://github.com/brewmarsh/meraki-homeassistant/commit/00d33b31f3dc79681999d8e8dd7d6e365d59758b))\* **tests:** resolve ruff linting errors in camera tests ([d687d50](https://github.com/brewmarsh/meraki-homeassistant/commit/d687d50d2f5b267a5b1d5917994df7cee95b392b))
-
+* **camera:** improve RTSP stream availability check ([00d33b3](https://github.com/brewmarsh/meraki-homeassistant/commit/00d33b31f3dc79681999d8e8dd7d6e365d59758b))* **tests:** resolve ruff linting errors in camera tests ([d687d50](https://github.com/brewmarsh/meraki-homeassistant/commit/d687d50d2f5b267a5b1d5917994df7cee95b392b))
 # [2.2.0-beta.23](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.22...v2.2.0-beta.23) (2025-11-29)
 
+
 ### Bug Fixes
 
-- **test:** Apply ruff formatting to e2e test ([7088053](https://github.com/brewmarsh/meraki-homeassistant/commit/70880538bc9452cf1b5b6f0fcd376c0ef9e5578e))_ **test:** Resolve mypy and ruff linting errors in e2e test ([0995dc2](https://github.com/brewmarsh/meraki-homeassistant/commit/0995dc24ca8f2d458b111fb6896b7bd80169cb5d))_ **ui:** Fallback to Meraki status when HA entity is unavailable ([1d6b635](https://github.com/brewmarsh/meraki-homeassistant/commit/1d6b635697eb07070f5d1c963ff8c0ebaf029faf))\* **ui:** prevent frequent page refreshes by optimizing useEffect dependencies ([31844e0](https://github.com/brewmarsh/meraki-homeassistant/commit/31844e02d73ceb5e43e5d4d22c23a8995e46cb39))
-
+* **test:** Apply ruff formatting to e2e test ([7088053](https://github.com/brewmarsh/meraki-homeassistant/commit/70880538bc9452cf1b5b6f0fcd376c0ef9e5578e))* **test:** Resolve mypy and ruff linting errors in e2e test ([0995dc2](https://github.com/brewmarsh/meraki-homeassistant/commit/0995dc24ca8f2d458b111fb6896b7bd80169cb5d))* **ui:** Fallback to Meraki status when HA entity is unavailable ([1d6b635](https://github.com/brewmarsh/meraki-homeassistant/commit/1d6b635697eb07070f5d1c963ff8c0ebaf029faf))* **ui:** prevent frequent page refreshes by optimizing useEffect dependencies ([31844e0](https://github.com/brewmarsh/meraki-homeassistant/commit/31844e02d73ceb5e43e5d4d22c23a8995e46cb39))
 # [2.2.0-beta.22](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.21...v2.2.0-beta.22) (2025-11-27)
 
+
 ### Bug Fixes
 
-- resolve linter errors in E2E test ([ae1a9d4](https://github.com/brewmarsh/meraki-homeassistant/commit/ae1a9d4cc7139a145afabbaf30b4ea47e6b4a9bf))
+* resolve linter errors in E2E test ([ae1a9d4](https://github.com/brewmarsh/meraki-homeassistant/commit/ae1a9d4cc7139a145afabbaf30b4ea47e6b4a9bf))
 
 ### Features
 
-- improve frontend E2E test coverage ([8a2b463](https://github.com/brewmarsh/meraki-homeassistant/commit/8a2b4635b467647f6ccabcf52c9ef38a94a89d82))
-
+* improve frontend E2E test coverage ([8a2b463](https://github.com/brewmarsh/meraki-homeassistant/commit/8a2b4635b467647f6ccabcf52c9ef38a94a89d82))
 # [2.2.0-beta.21](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.20...v2.2.0-beta.21) (2025-11-27)
 
+
 ### Bug Fixes
 
-- **frontend:** display live entity state in device table ([55aa8c6](https://github.com/brewmarsh/meraki-homeassistant/commit/55aa8c639a8675ae95dd0efb48086bb4ff66cf5b))
-
+* **frontend:** display live entity state in device table ([55aa8c6](https://github.com/brewmarsh/meraki-homeassistant/commit/55aa8c639a8675ae95dd0efb48086bb4ff66cf5b))
 # [2.2.0-beta.20](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.18...v2.2.0-beta.20) (2025-11-27)
 
+
 ### Bug Fixes
 
-- format meraki_data_coordinator.py with ruff ([c494539](https://github.com/brewmarsh/meraki-homeassistant/commit/c494539e1693e199943dfa439440e077374a9b07))\* **frontend:** populate entity list for devices in frontend ([d8ef540](https://github.com/brewmarsh/meraki-homeassistant/commit/d8ef540e78e488f500ba17dd34d7439b156a6569))
-
+* format meraki_data_coordinator.py with ruff ([c494539](https://github.com/brewmarsh/meraki-homeassistant/commit/c494539e1693e199943dfa439440e077374a9b07))* **frontend:** populate entity list for devices in frontend ([d8ef540](https://github.com/brewmarsh/meraki-homeassistant/commit/d8ef540e78e488f500ba17dd34d7439b156a6569))
 # [2.2.0-beta.19](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.18...v2.2.0-beta.19) (2025-11-27)
 
 # [2.2.0-beta.18](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.17...v2.2.0-beta.18) (2025-11-27)
 
+
 ### Bug Fixes
 
-- **api:** address linter line length error in test ([acc9d9b](https://github.com/brewmarsh/meraki-homeassistant/commit/acc9d9bafd94601736000b3683417f154c9306fe))\* **api:** remove None values from API calls to prevent validation errors ([3090584](https://github.com/brewmarsh/meraki-homeassistant/commit/30905841d660c77419752ed5b156ad1c7b866e5a))
+* **api:** address linter line length error in test ([acc9d9b](https://github.com/brewmarsh/meraki-homeassistant/commit/acc9d9bafd94601736000b3683417f154c9306fe))* **api:** remove None values from API calls to prevent validation errors ([3090584](https://github.com/brewmarsh/meraki-homeassistant/commit/30905841d660c77419752ed5b156ad1c7b866e5a))
 
 ### Features
 
-- update panel title to Cisco Meraki Integration ([ba1f45e](https://github.com/brewmarsh/meraki-homeassistant/commit/ba1f45e6b7e115a4fd63711872068e900fac69df))
-
+* update panel title to Cisco Meraki Integration ([ba1f45e](https://github.com/brewmarsh/meraki-homeassistant/commit/ba1f45e6b7e115a4fd63711872068e900fac69df))
 # [2.2.0-beta.17](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.10...v2.2.0-beta.17) (2025-11-27)
 
+
 ### Bug Fixes
 
-- **ci:** Correct payload for HA cache clearing API call ([e98f2fd](https://github.com/brewmarsh/meraki-homeassistant/commit/e98f2fd809a946f49067adabd3d4e11d2905877b))_ **ci:** trigger local deployment on push to beta ([e4770fe](https://github.com/brewmarsh/meraki-homeassistant/commit/e4770fecb77b1e8586a09cf064329677468456ab))_ **ci:** trigger local deployment on push to beta and fix linting error ([27ffd01](https://github.com/brewmarsh/meraki-homeassistant/commit/27ffd0146c7dde9cd080051a83455affb7d54fb4))_ Correctly handle informational API errors ([ef7f8e6](https://github.com/brewmarsh/meraki-homeassistant/commit/ef7f8e67af0d0297d79567d1c7e9e2645d6af79b))_ **frontend:** Create deterministic build process ([9156275](https://github.com/brewmarsh/meraki-homeassistant/commit/91562759d62fab1e27bc591d91c0c511cb0a9ce0))_ **frontend:** Pass config_entry_id as prop to components ([1b3343d](https://github.com/brewmarsh/meraki-homeassistant/commit/1b3343d351de069c2221a686787cf8927d02989c))_ **frontend:** pass hass object as prop to fix connection error ([90e2d68](https://github.com/brewmarsh/meraki-homeassistant/commit/90e2d68a978645c9b4accd2b919fb8430216e15e))_ **frontend:** Preserve UI state across panel refreshes ([c12fe60](https://github.com/brewmarsh/meraki-homeassistant/commit/c12fe605634dbc97df9bf19d14f7a9555db86ea9))_ **frontend:** rebuild frontend assets ([9a694e2](https://github.com/brewmarsh/meraki-homeassistant/commit/9a694e228e35c3b576f2d187188d66ede3de214c))_ **frontend:** refactor web UI to use standard hass websocket ([4535136](https://github.com/brewmarsh/meraki-homeassistant/commit/453513654947947e891e5ebedc57998f51b8969c))_ **frontend:** resolve vite build circular dependency ([8ea7418](https://github.com/brewmarsh/meraki-homeassistant/commit/8ea741887d424340f67e10defceddcff02df44d0))_ **frontend:** Update built assets ([99da4a6](https://github.com/brewmarsh/meraki-homeassistant/commit/99da4a6b616024940f716564ccf1b66376e3eddd))_ **frontend:** Update built assets ([26c5d86](https://github.com/brewmarsh/meraki-homeassistant/commit/26c5d8613aefd4af1ba622f375cd07e41a3022d7))_ **frontend:** Update built assets with normalized line endings ([43e4f73](https://github.com/brewmarsh/meraki-homeassistant/commit/43e4f73b35c125516f4ab27c7b5f81dac9f48b42))_ **version:** synchronize version across configuration files ([a8c029a](https://github.com/brewmarsh/meraki-homeassistant/commit/a8c029ac121de3e20539594de0ef3971070bba7d))
+* **ci:** Correct payload for HA cache clearing API call ([e98f2fd](https://github.com/brewmarsh/meraki-homeassistant/commit/e98f2fd809a946f49067adabd3d4e11d2905877b))* **ci:** trigger local deployment on push to beta ([e4770fe](https://github.com/brewmarsh/meraki-homeassistant/commit/e4770fecb77b1e8586a09cf064329677468456ab))* **ci:** trigger local deployment on push to beta and fix linting error ([27ffd01](https://github.com/brewmarsh/meraki-homeassistant/commit/27ffd0146c7dde9cd080051a83455affb7d54fb4))* Correctly handle informational API errors ([ef7f8e6](https://github.com/brewmarsh/meraki-homeassistant/commit/ef7f8e67af0d0297d79567d1c7e9e2645d6af79b))* **frontend:** Create deterministic build process ([9156275](https://github.com/brewmarsh/meraki-homeassistant/commit/91562759d62fab1e27bc591d91c0c511cb0a9ce0))* **frontend:** Pass config_entry_id as prop to components ([1b3343d](https://github.com/brewmarsh/meraki-homeassistant/commit/1b3343d351de069c2221a686787cf8927d02989c))* **frontend:** pass hass object as prop to fix connection error ([90e2d68](https://github.com/brewmarsh/meraki-homeassistant/commit/90e2d68a978645c9b4accd2b919fb8430216e15e))* **frontend:** Preserve UI state across panel refreshes ([c12fe60](https://github.com/brewmarsh/meraki-homeassistant/commit/c12fe605634dbc97df9bf19d14f7a9555db86ea9))* **frontend:** rebuild frontend assets ([9a694e2](https://github.com/brewmarsh/meraki-homeassistant/commit/9a694e228e35c3b576f2d187188d66ede3de214c))* **frontend:** refactor web UI to use standard hass websocket ([4535136](https://github.com/brewmarsh/meraki-homeassistant/commit/453513654947947e891e5ebedc57998f51b8969c))* **frontend:** resolve vite build circular dependency ([8ea7418](https://github.com/brewmarsh/meraki-homeassistant/commit/8ea741887d424340f67e10defceddcff02df44d0))* **frontend:** Update built assets ([99da4a6](https://github.com/brewmarsh/meraki-homeassistant/commit/99da4a6b616024940f716564ccf1b66376e3eddd))* **frontend:** Update built assets ([26c5d86](https://github.com/brewmarsh/meraki-homeassistant/commit/26c5d8613aefd4af1ba622f375cd07e41a3022d7))* **frontend:** Update built assets with normalized line endings ([43e4f73](https://github.com/brewmarsh/meraki-homeassistant/commit/43e4f73b35c125516f4ab27c7b5f81dac9f48b42))* **version:** synchronize version across configuration files ([a8c029a](https://github.com/brewmarsh/meraki-homeassistant/commit/a8c029ac121de3e20539594de0ef3971070bba7d))
 
 ### Features
 
-- Add final-check job to CI workflow ([9f01e95](https://github.com/brewmarsh/meraki-homeassistant/commit/9f01e956fc119f99b3e2469a61ddcedeaddb251d))_ Add frontend cache clear to deploy-local.yml ([2ae44f5](https://github.com/brewmarsh/meraki-homeassistant/commit/2ae44f53ccb7a436fc43be3d3b1b66225bef876d))_ Auto-commit frontend assets in CI ([48b8665](https://github.com/brewmarsh/meraki-homeassistant/commit/48b8665f6995f2619106d73aa71a2d252b122278))_ Echo manifest version in frontend-build CI job ([669eec4](https://github.com/brewmarsh/meraki-homeassistant/commit/669eec45ce1ba9a04a2e6f8fec0c468d695376b4))_ **frontend:** implement dark mode synchronization ([555770e](https://github.com/brewmarsh/meraki-homeassistant/commit/555770e80aecd3b9e17013b2229f009e4cf291c9))_ **frontend:** open RTSP stream links in a new tab ([0e79da8](https://github.com/brewmarsh/meraki-homeassistant/commit/0e79da8cdb50b6119e6c2fc364dfac0c69fe5076))_ Log informational API errors with documentation links ([337a059](https://github.com/brewmarsh/meraki-homeassistant/commit/337a059c72e46e50599a6be6079c6f1b7d19fd7d))_ Make deploy-local.yml depend on beta-ci.yaml success ([0994a0a](https://github.com/brewmarsh/meraki-homeassistant/commit/0994a0a5435b10fd255bf7209197ac0816eb05c2))_ Refactor CI workflows for HACS and Hassfest validation ([9cb3a73](https://github.com/brewmarsh/meraki-homeassistant/commit/9cb3a73df245c36476cf3a98267fb1c8862d588f))
-
+* Add final-check job to CI workflow ([9f01e95](https://github.com/brewmarsh/meraki-homeassistant/commit/9f01e956fc119f99b3e2469a61ddcedeaddb251d))* Add frontend cache clear to deploy-local.yml ([2ae44f5](https://github.com/brewmarsh/meraki-homeassistant/commit/2ae44f53ccb7a436fc43be3d3b1b66225bef876d))* Auto-commit frontend assets in CI ([48b8665](https://github.com/brewmarsh/meraki-homeassistant/commit/48b8665f6995f2619106d73aa71a2d252b122278))* Echo manifest version in frontend-build CI job ([669eec4](https://github.com/brewmarsh/meraki-homeassistant/commit/669eec45ce1ba9a04a2e6f8fec0c468d695376b4))* **frontend:** implement dark mode synchronization ([555770e](https://github.com/brewmarsh/meraki-homeassistant/commit/555770e80aecd3b9e17013b2229f009e4cf291c9))* **frontend:** open RTSP stream links in a new tab ([0e79da8](https://github.com/brewmarsh/meraki-homeassistant/commit/0e79da8cdb50b6119e6c2fc364dfac0c69fe5076))* Log informational API errors with documentation links ([337a059](https://github.com/brewmarsh/meraki-homeassistant/commit/337a059c72e46e50599a6be6079c6f1b7d19fd7d))* Make deploy-local.yml depend on beta-ci.yaml success ([0994a0a](https://github.com/brewmarsh/meraki-homeassistant/commit/0994a0a5435b10fd255bf7209197ac0816eb05c2))* Refactor CI workflows for HACS and Hassfest validation ([9cb3a73](https://github.com/brewmarsh/meraki-homeassistant/commit/9cb3a73df245c36476cf3a98267fb1c8862d588f))
 # [2.2.0-beta.10](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.9...v2.2.0-beta.10) (2025-11-22)
 
+
 ### Bug Fixes
 
-- frontend loading error [#299](https://github.com/brewmarsh/meraki-homeassistant/issues/299) and RTSP feature ([507971d](https://github.com/brewmarsh/meraki-homeassistant/commit/507971dde65c0d2f179628a227bf2940d48d5320))
-
+* frontend loading error [#299](https://github.com/brewmarsh/meraki-homeassistant/issues/299) and RTSP feature ([507971d](https://github.com/brewmarsh/meraki-homeassistant/commit/507971dde65c0d2f179628a227bf2940d48d5320))
 # [2.2.0-beta.9](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.8...v2.2.0-beta.9) (2025-11-21)
 
+
 ### Features
 
-- display RTSP URL for cameras in the frontend device table ([442015f](https://github.com/brewmarsh/meraki-homeassistant/commit/442015f670e405d7c30a79619a1937045d7c3898))
-
+* display RTSP URL for cameras in the frontend device table ([442015f](https://github.com/brewmarsh/meraki-homeassistant/commit/442015f670e405d7c30a79619a1937045d7c3898))
 # [2.2.0-beta.8](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.7...v2.2.0-beta.8) (2025-11-21)
 
+
 ### Features
 
-- add entity configuration options to backend and frontend ([5744afe](https://github.com/brewmarsh/meraki-homeassistant/commit/5744afe0361091498d4864fd8b5a8de20b983295))
+* add entity configuration options to backend and frontend ([5744afe](https://github.com/brewmarsh/meraki-homeassistant/commit/5744afe0361091498d4864fd8b5a8de20b983295))
+
+
 
 # [2.2.0-beta.7](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.6...v2.2.0-beta.7) (2025-11-21)
 

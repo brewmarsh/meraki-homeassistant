@@ -8,8 +8,7 @@ from pathlib import Path
 
 import aiofiles  # type: ignore[import-untyped]
 from homeassistant.components import frontend
-
-# from homeassistant.components.http import StaticPathConfig
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
@@ -18,20 +17,20 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
-# async def async_register_static_path(hass: HomeAssistant) -> None:
-#     """Register the static path for the frontend."""
-#     _LOGGER.debug("Registering static path for Meraki HA frontend")
-#     static_path = str(Path(__file__).parent / "www")
-#     _LOGGER.debug("Frontend static path: %s", static_path)
-#     await hass.http.async_register_static_paths(
-#         [
-#             StaticPathConfig(
-#                 url_path=f"/api/panel_custom/{DOMAIN}",
-#                 path=static_path,
-#                 cache_headers=False,
-#             ),
-#         ],
-#     )
+async def async_register_static_path(hass: HomeAssistant) -> None:
+    """Register the static path for the frontend."""
+    _LOGGER.debug("Registering static path for Meraki HA frontend")
+    static_path = str(Path(__file__).parent / "www")
+    _LOGGER.debug("Frontend static path: %s", static_path)
+    await hass.http.async_register_static_paths(
+        [
+            StaticPathConfig(
+                url_path=f"/api/panel_custom/{DOMAIN}",
+                path=static_path,
+                cache_headers=False,
+            ),
+        ],
+    )
 
 
 async def async_register_panel(hass: HomeAssistant, entry: ConfigEntry) -> None:
