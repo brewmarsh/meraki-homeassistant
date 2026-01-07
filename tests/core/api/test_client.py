@@ -186,12 +186,19 @@ def test_build_detail_tasks_for_camera_device(api_client):
     devices = [camera_device]
     networks = []
 
+    # Mock dependencies to avoid unawaited coroutine warnings
+    api_client.camera = MagicMock()
+    api_client._run_with_semaphore = MagicMock()
+
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
 
     # Assert
     assert f"video_settings_{camera_device['serial']}" in tasks
     assert f"sense_settings_{camera_device['serial']}" in tasks
+
+    api_client.camera.get_camera_video_settings.assert_called_once_with("c123")
+    api_client.camera.get_camera_sense_settings.assert_called_once_with("c123")
 
 
 def test_build_detail_tasks_for_appliance_device(api_client):
