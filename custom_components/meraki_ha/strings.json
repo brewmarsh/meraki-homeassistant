@@ -83,7 +83,8 @@
           "dashboard_view_mode": "Default Dashboard View",
           "dashboard_device_type_filter": "Default Device Type Filter",
           "dashboard_status_filter": "Default Status Filter",
-          "camera_link_integration": "Camera Link Integration"
+          "camera_link_integration": "Camera Link Integration",
+          "temperature_unit": "Temperature Unit"
         },
         "data_description": {
           "scan_interval": "How often to poll the Meraki API for updates, in seconds.",
@@ -94,7 +95,8 @@
           "dashboard_view_mode": "Choose how devices are grouped on the dashboard (by network or by device type).",
           "dashboard_device_type_filter": "Default filter for device types on the dashboard.",
           "dashboard_status_filter": "Default filter for device status on the dashboard.",
-          "camera_link_integration": "Select an integration to filter which cameras are shown when linking Meraki cameras. Choose 'All Cameras' to see all available camera entities."
+          "camera_link_integration": "Select an integration to filter which cameras are shown when linking Meraki cameras. Choose 'All Cameras' to see all available camera entities.",
+          "temperature_unit": "Choose the unit for temperature readings from Meraki sensors (Celsius or Fahrenheit)."
         }
       },
       "features": {

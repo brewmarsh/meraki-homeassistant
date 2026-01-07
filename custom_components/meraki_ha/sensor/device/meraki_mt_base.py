@@ -4,11 +4,17 @@ import logging
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.const import UnitOfTemperature
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN
+from ...const import (
+    CONF_TEMPERATURE_UNIT,
+    DEFAULT_TEMPERATURE_UNIT,
+    DOMAIN,
+    TEMPERATURE_UNIT_FAHRENHEIT,
+)
 from ...core.utils.naming_utils import format_device_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
@@ -72,6 +78,25 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
         self.async_write_ha_state()
 
     @property
+    def _use_fahrenheit(self) -> bool:
+        """Check if Fahrenheit should be used for temperature."""
+        temp_unit = self.coordinator.config_entry.options.get(
+            CONF_TEMPERATURE_UNIT, DEFAULT_TEMPERATURE_UNIT
+        )
+        return temp_unit == TEMPERATURE_UNIT_FAHRENHEIT
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        """Return the unit of measurement for this sensor."""
+        # For temperature sensors, return the configured unit
+        if self.entity_description.key == "temperature":
+            if self._use_fahrenheit:
+                return UnitOfTemperature.FAHRENHEIT
+            return UnitOfTemperature.CELSIUS
+        # For other sensors, use the entity description's unit
+        return self.entity_description.native_unit_of_measurement
+
+    @property
     def native_value(self) -> str | float | bool | None:
         """Return the state of the sensor."""
         readings = self._get_readings()
@@ -82,9 +107,14 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
             if reading.get("metric") == self.entity_description.key:
                 metric_data = reading.get(self.entity_description.key)
                 if isinstance(metric_data, dict):
+                    # Handle temperature specially based on user preference
+                    if self.entity_description.key == "temperature":
+                        if self._use_fahrenheit:
+                            return metric_data.get("fahrenheit")
+                        return metric_data.get("celsius")
+
                     # Map metric to the key holding its value
                     key_map = {
-                        "temperature": "celsius",
                         "humidity": "relativePercentage",
                         "pm25": "concentration",
                         "tvoc": "concentration",
@@ -96,6 +126,7 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
                         "current": "draw",
                         "battery": "percentage",
                         "button": "pressType",
+                        "indoorAirQuality": "score",
                     }
                     value_key = key_map.get(self.entity_description.key)
                     if value_key:

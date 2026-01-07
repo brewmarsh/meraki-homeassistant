@@ -98,6 +98,18 @@ DEFAULT_DASHBOARD_STATUS_FILTER: Final = "all"
 DEFAULT_CAMERA_LINK_INTEGRATION: Final = ""
 """Default camera link integration (empty = show all cameras)."""
 
+CONF_TEMPERATURE_UNIT: Final = "temperature_unit"
+"""Configuration key for temperature unit preference."""
+
+TEMPERATURE_UNIT_CELSIUS: Final = "celsius"
+"""Use Celsius for temperature readings."""
+
+TEMPERATURE_UNIT_FAHRENHEIT: Final = "fahrenheit"
+"""Use Fahrenheit for temperature readings."""
+
+DEFAULT_TEMPERATURE_UNIT: Final = TEMPERATURE_UNIT_CELSIUS
+"""Default temperature unit (Celsius)."""
+
 CONF_ENABLE_DEVICE_TRACKER: Final = "enable_device_tracker"
 """Configuration key for enabling device tracker."""
 
