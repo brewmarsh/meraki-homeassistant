@@ -11,7 +11,9 @@ import logging
 from typing import TYPE_CHECKING
 
 from ...const import CONF_ENABLE_NETWORK_SENSORS, CONF_ENABLE_VLAN_SENSORS
+from ...sensor.network.meraki_network_info import MerakiNetworkInfoSensor
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
+from ...sensor.network.network_identity import MerakiNetworkIdentitySensor
 from ...switch.content_filtering import MerakiContentFilteringSwitch
 from .base import BaseHandler
 
@@ -73,12 +75,29 @@ class NetworkHandler(BaseHandler):
             return entities
 
         for network in networks:
+            # Network clients sensor
             entities.append(
                 MerakiNetworkClientsSensor(
                     coordinator=self._coordinator,
                     config_entry=self._config_entry,
                     network_data=network,
                     network_control_service=self._network_control_service,
+                )
+            )
+            # Network identity sensor
+            entities.append(
+                MerakiNetworkIdentitySensor(
+                    coordinator=self._coordinator,
+                    network_data=network,
+                    config_entry=self._config_entry,
+                )
+            )
+            # Network info sensor
+            entities.append(
+                MerakiNetworkInfoSensor(
+                    coordinator=self._coordinator,
+                    network_data=network,
+                    config_entry=self._config_entry,
                 )
             )
             if "appliance" in network.get("productTypes", []):
