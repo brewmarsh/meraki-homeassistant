@@ -159,16 +159,38 @@ jobs:
           
           echo "Installed: $INSTALLED, Latest seen by HACS: $LATEST, Just released: $NEW_VERSION"
           
-          # Use HACS repository service directly to download specific version
-          # This works even when HACS is tracking default branch instead of releases
-          echo "Downloading specific version v$NEW_VERSION via HACS repository service..."
-          curl -sS -X POST \
+          # Try multiple methods to install the version
+          echo "Attempting to install v$NEW_VERSION..."
+          
+          # Method 1: Use HA update/install service with version
+          echo "Method 1: Using update/install service..."
+          RESULT=$(curl -sS -w "\n%{http_code}" -X POST \
             -H "Authorization: Bearer $CLEAN_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{\"action\": \"download\", \"repository\": \"liptonj/meraki-homeassistant\", \"version\": \"v$NEW_VERSION\"}" \
-            "$HA_URL/api/services/hacs/repository"
+            -d "{\"entity_id\": \"$ENTITY_ID\", \"version\": \"v$NEW_VERSION\"}" \
+            "$HA_URL/api/services/update/install")
+          HTTP_CODE=$(echo "$RESULT" | tail -1)
           
-          echo "✅ Download triggered for version v$NEW_VERSION!"
+          if [[ "$HTTP_CODE" == "200" ]]; then
+            echo "✅ Update triggered via update/install service!"
+          else
+            echo "Method 1 returned HTTP $HTTP_CODE, trying Method 2..."
+            # Method 2: Try without 'v' prefix
+            RESULT=$(curl -sS -w "\n%{http_code}" -X POST \
+              -H "Authorization: Bearer $CLEAN_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"entity_id\": \"$ENTITY_ID\", \"version\": \"$NEW_VERSION\"}" \
+              "$HA_URL/api/services/update/install")
+            HTTP_CODE=$(echo "$RESULT" | tail -1)
+            
+            if [[ "$HTTP_CODE" == "200" ]]; then
+              echo "✅ Update triggered via update/install service (no v prefix)!"
+            else
+              echo "⚠ Both methods returned non-200. Manual install may be required."
+            fi
+          fi
+          
+          echo "Download triggered for version v$NEW_VERSION!"
           echo "Waiting 30 seconds for HACS to download and install..."
           sleep 30
 
