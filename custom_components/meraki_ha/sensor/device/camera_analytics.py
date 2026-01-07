@@ -23,6 +23,9 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
     """Base class for Meraki analytics sensors."""
 
+    # Enable polling so async_update() is called in addition to coordinator updates
+    _attr_should_poll = True
+
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,

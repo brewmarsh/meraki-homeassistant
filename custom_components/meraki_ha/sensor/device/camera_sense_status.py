@@ -64,7 +64,11 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
             self._attr_icon = "mdi:help-rhombus"
             return
 
-        sense_enabled_value = current_device_data.get("senseEnabled")
+        # sense_settings contains the senseEnabled field from the API
+        sense_settings = current_device_data.get("sense_settings", {})
+        sense_enabled_value = sense_settings.get("senseEnabled") if isinstance(
+            sense_settings, dict
+        ) else None
 
         if sense_enabled_value is None:
             self._attr_native_value = None
@@ -96,4 +100,8 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
         if not current_device_data:
             return False
 
-        return current_device_data.get("senseEnabled") is not None
+        # Check for sense_settings which contains senseEnabled
+        sense_settings = current_device_data.get("sense_settings", {})
+        if not isinstance(sense_settings, dict):
+            return False
+        return sense_settings.get("senseEnabled") is not None

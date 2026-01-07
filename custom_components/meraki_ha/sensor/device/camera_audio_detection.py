@@ -64,7 +64,13 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
             self._attr_icon = "mdi:help-rhombus"
             return
 
-        audio_detection_data = current_device_data.get("audioDetection")
+        # audioDetection is nested inside sense_settings from the API
+        sense_settings = current_device_data.get("sense_settings", {})
+        audio_detection_data = (
+            sense_settings.get("audioDetection")
+            if isinstance(sense_settings, dict)
+            else None
+        )
 
         if (
             not isinstance(audio_detection_data, dict)
@@ -99,7 +105,11 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
         if not current_device_data:
             return False
 
-        audio_data = current_device_data.get("audioDetection")
+        # audioDetection is nested inside sense_settings
+        sense_settings = current_device_data.get("sense_settings", {})
+        if not isinstance(sense_settings, dict):
+            return False
+        audio_data = sense_settings.get("audioDetection")
         if not isinstance(audio_data, dict) or "enabled" not in audio_data:
             return False
 
