@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -30,7 +31,7 @@ class MerakiCellularUplinkSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device_data: dict[str, Any],
+        device_data: Mapping[str, Any],
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the Meraki Cellular Uplink sensor."""
@@ -137,7 +138,7 @@ class MerakiCellularSignalSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device_data: dict[str, Any],
+        device_data: Mapping[str, Any],
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the Meraki Cellular Signal sensor."""

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.binary_sensor import (
@@ -26,7 +27,7 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        device: Mapping[str, Any],
         entity_description: BinarySensorEntityDescription,
     ) -> None:
         """Initialize the binary sensor."""

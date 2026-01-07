@@ -1,6 +1,7 @@
 """Base classes for Meraki camera switch entities."""
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
@@ -26,7 +27,7 @@ class MerakiCameraSettingSwitchBase(
         self,
         coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: dict[str, Any],
+        device_data: Mapping[str, Any],
         key: str,
         api_field: str,
     ) -> None:

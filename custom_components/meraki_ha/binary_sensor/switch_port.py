@@ -1,6 +1,7 @@
 """Binary sensor for Meraki switch port status."""
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.binary_sensor import (
@@ -27,7 +28,7 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        device: Mapping[str, Any],
         port: dict[str, Any],
     ) -> None:
         """Initialize the sensor."""

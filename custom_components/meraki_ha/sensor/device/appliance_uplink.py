@@ -1,6 +1,7 @@
 """Sensor for Meraki appliance uplink status."""
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
@@ -22,7 +23,7 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device_data: dict[str, Any],
+        device_data: Mapping[str, Any],
         config_entry: ConfigEntry,
         uplink_data: dict[str, Any],
     ) -> None:

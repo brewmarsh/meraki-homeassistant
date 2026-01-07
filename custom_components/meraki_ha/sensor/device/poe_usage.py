@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
@@ -37,7 +38,7 @@ class MerakiPoeUsageSensor(
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        device: Mapping[str, Any],
     ) -> None:
         """
         Initialize the sensor.

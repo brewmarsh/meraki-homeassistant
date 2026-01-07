@@ -49,7 +49,7 @@ class MVHandler(BaseDeviceHandler):
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
-        meraki_client: MerakiAPIClient,
+        meraki_client: MerakiAPIClient | None = None,
     ) -> None:
         """Initialize the MVHandler."""
         super().__init__(coordinator, device, config_entry)
@@ -67,7 +67,7 @@ class MVHandler(BaseDeviceHandler):
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
-        meraki_client: MerakiAPIClient = None,
+        meraki_client: MerakiAPIClient | None = None,
     ) -> MVHandler:
         """Create an instance of the handler."""
         return cls(

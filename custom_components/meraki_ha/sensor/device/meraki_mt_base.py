@@ -1,6 +1,7 @@
 """Base class for Meraki MT sensor entities."""
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
@@ -27,7 +28,7 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        device: Mapping[str, Any],
         entity_description: SensorEntityDescription,
     ) -> None:
         """Initialize the sensor."""

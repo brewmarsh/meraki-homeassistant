@@ -48,7 +48,7 @@ class NetworkHandler(BaseHandler):
     def create(
         cls,
         coordinator: MerakiDataCoordinator,
-        device: MerakiDevice,
+        device: MerakiDevice | None,
         config_entry: ConfigEntry,
         camera_service: CameraService,
         control_service: DeviceControlService,

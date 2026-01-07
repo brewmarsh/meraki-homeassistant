@@ -1,6 +1,7 @@
 """Switch entities for controlling Meraki Camera profiles."""
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntityDescription
@@ -21,7 +22,7 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
         self,
         coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: dict[str, Any],
+        device_data: Mapping[str, Any],
     ) -> None:
         """Initialize the Camera Sense switch."""
         super().__init__(
@@ -61,7 +62,7 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
         self,
         coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: dict[str, Any],
+        device_data: Mapping[str, Any],
     ) -> None:
         """Initialize the Camera Audio Detection switch."""
         super().__init__(

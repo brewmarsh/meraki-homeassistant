@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
@@ -32,7 +33,7 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device_data: dict[str, Any],
+        device_data: Mapping[str, Any],
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""

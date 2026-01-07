@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import SensorEntity
@@ -29,7 +30,7 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        device: Mapping[str, Any],
         camera_service: CameraService,
         object_type: str,
     ) -> None:
@@ -104,7 +105,7 @@ class MerakiPersonCountSensor(MerakiAnalyticsSensor):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        device: Mapping[str, Any],
         camera_service: CameraService,
     ) -> None:
         """Initialize the sensor."""
@@ -118,7 +119,7 @@ class MerakiVehicleCountSensor(MerakiAnalyticsSensor):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        device: Mapping[str, Any],
         camera_service: CameraService,
     ) -> None:
         """Initialize the sensor."""

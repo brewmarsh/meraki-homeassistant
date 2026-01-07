@@ -12,7 +12,7 @@ _LOGGER = logging.getLogger(__name__)
 _PREFIX_PATTERN = re.compile(r"^(\[[\w\s]+\]\s+)+")
 
 
-def format_device_name(device: dict[str, Any], config: Mapping[str, Any]) -> str:
+def format_device_name(device: Mapping[str, Any], config: Mapping[str, Any]) -> str:
     """Format the device name based on the user's preference.
 
     This function adds a [ProductType] prefix to device names. It detects and

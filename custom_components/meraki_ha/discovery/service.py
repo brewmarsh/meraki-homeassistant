@@ -18,8 +18,6 @@ from ..const import (
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_SSID_SENSORS,
 )
-from .handlers.cs import CSHandler
-from .handlers.cw import CWHandler
 from .handlers.gx import GXHandler
 from .handlers.mg import MGHandler
 from .handlers.mr import MRHandler
@@ -54,8 +52,8 @@ HANDLER_MAPPING = {
     "MT": MTHandler,
     "GR": GXHandler,
     "MG": MGHandler,  # Cellular Gateway
-    "CW": CWHandler,  # Catalyst Wireless
-    "C9": CSHandler,  # Catalyst Switch (C9xxx models)
+    "CW": MRHandler,  # Catalyst Wireless (same as MR)
+    "C9": MSHandler,  # Catalyst Switch (same as MS)
 }
 
 

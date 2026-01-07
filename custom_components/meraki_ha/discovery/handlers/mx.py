@@ -169,7 +169,8 @@ class MXHandler(BaseDeviceHandler):
                 )
 
             # Add appliance port sensors (LAN ports)
-            for port in self.device.get("ports", []):
+            ports: list[dict[str, Any]] = self.device.get("ports", [])  # type: ignore[assignment]
+            for port in ports:
                 entities.append(
                     MerakiAppliancePortSensor(
                         coordinator=self._coordinator,

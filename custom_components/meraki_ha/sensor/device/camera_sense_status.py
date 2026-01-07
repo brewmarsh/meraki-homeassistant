@@ -1,6 +1,7 @@
 """Sensor entity for Meraki camera sense status."""
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
@@ -24,7 +25,7 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device_data: dict[str, Any],
+        device_data: Mapping[str, Any],
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the Meraki Camera Sense Status sensor."""
