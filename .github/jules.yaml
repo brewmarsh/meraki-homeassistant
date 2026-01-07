@@ -4,3 +4,10 @@ project_context:
   development_branch: beta
   coding_standards: "Follow Home Assistant Core integration standards (PEP8, async/await)."
   ignored_errors: "Ignore all errors not related to the meraki_ha integration."
+
+# This section tells Jules to wake up when specific events happen
+triggers:
+  on_label:
+    - "jules-work"        # Wake up when this label is added
+    - "ai-refactor"      # (Optional) additional trigger labels
+  on_mention: true       # Also wake up when tagged as @jules
