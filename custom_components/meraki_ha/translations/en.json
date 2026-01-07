@@ -96,20 +96,48 @@
         "description": "Configure the Meraki integration settings.",
         "data": {
           "scan_interval": "Scan Interval (seconds)",
+          "enable_device_tracker": "Enable Client Tracker",
+          "enable_vlan_management": "Enable VLAN Management",
+          "enable_device_status": "Enable Device Status Entities",
+          "enable_org_sensors": "Enable Organization Sensors",
+          "enable_camera_entities": "Enable Camera Entities",
+          "enable_device_sensors": "Enable Device Sensors",
+          "enable_network_sensors": "Enable Network Sensors",
+          "enable_vlan_sensors": "Enable VLAN Sensors",
+          "enable_port_sensors": "Enable Port Sensors",
+          "enable_ssid_sensors": "Enable SSID Sensors",
           "enabled_networks": "Enabled Networks"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the Meraki API for updates, in seconds.",
+          "enable_device_tracker": "Track devices connected to your Meraki networks.",
+          "enable_vlan_management": "Allow management of VLANs.",
+          "enable_device_status": "Create binary sensors for device online/offline status.",
+          "enable_org_sensors": "Create sensors for organization-wide metrics.",
+          "enable_camera_entities": "Create entities for Meraki cameras.",
+          "enable_device_sensors": "Create sensors for device-specific metrics.",
+          "enable_network_sensors": "Create sensors for network-specific metrics.",
+          "enable_vlan_sensors": "Create sensors for VLAN metrics.",
+          "enable_port_sensors": "Create sensors for switch port metrics.",
+          "enable_ssid_sensors": "Create sensors for SSID metrics.",
+          "enabled_networks": "Select which Meraki networks to include in Home Assistant."
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "client_count": { "name": "Client count" },
-      "power": { "name": "Power" },
-      "energy": { "name": "Energy" },
-      "wan1_connectivity": { "name": "WAN 1 connectivity" },
-      "wan2_connectivity": { "name": "WAN 2 connectivity" },
-      "firmware_status": {
-        "name": "Firmware status",
+      "meraki_wan1_connectivity": {
+        "name": "WAN 1 Connectivity"
+      },
+      "meraki_wan2_connectivity": {
+        "name": "WAN 2 Connectivity"
+      },
+      "meraki_network_info": {
+        "name": "Network Information"
+      },
+      "meraki_firmware_status": {
+        "name": "Firmware Status",
         "state": {
           "up-to-date": "Up-to-date",
           "out-of-date": "Out-of-date",
@@ -125,12 +153,32 @@
           "dormant": "Dormant",
           "unknown": "Unknown"
         }
+      },
+      "radio_settings": {
+        "name": "Radio Settings"
       }
     },
     "switch": {
-      "ssid_status": { "name": "SSID status" },
-      "camera_rtsp": { "name": "RTSP server" },
-      "camera_sense": { "name": "Sense" }
+      "meraki_ssid_enabled_switch": {
+        "name": "SSID Enabled"
+      },
+      "meraki_ssid_broadcast_switch": {
+        "name": "SSID Broadcast"
+      },
+      "meraki_camera_sense_switch": {
+        "name": "MV Sense"
+      },
+      "meraki_camera_audio_detection_switch": {
+        "name": "Audio Detection"
+      },
+      "meraki_camera_rtsp_switch": {
+        "name": "RTSP Server"
+      }
+    },
+    "text": {
+      "meraki_ssid_name": {
+        "name": "SSID Name"
+      }
     }
   }
 }
