@@ -1,0 +1,6 @@
+# .github/jules.yaml
+project_context:
+  primary_branch: main
+  development_branch: beta
+  coding_standards: "Follow Home Assistant Core integration standards (PEP8, async/await)."
+  ignored_errors: "Ignore all errors not related to the meraki_ha integration."
