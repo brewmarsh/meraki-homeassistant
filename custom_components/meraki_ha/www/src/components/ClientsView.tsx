@@ -24,11 +24,19 @@ interface Client {
 
 interface ClientsViewProps {
   clients: Client[];
-  setActiveView: (view: { view: string; deviceId?: string; clientId?: string }) => void;
+  setActiveView: (view: {
+    view: string;
+    deviceId?: string;
+    clientId?: string;
+  }) => void;
   onBack: () => void;
 }
 
-const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBack }) => {
+const ClientsView: React.FC<ClientsViewProps> = ({
+  clients,
+  setActiveView,
+  onBack,
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
@@ -62,7 +70,7 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
   const getClientIcon = (client: Client): string => {
     const os = client.os?.toLowerCase() || '';
     const manufacturer = client.manufacturer?.toLowerCase() || '';
-    
+
     if (os.includes('ios') || manufacturer.includes('apple')) return '📱';
     if (os.includes('android')) return '📱';
     if (os.includes('windows')) return '💻';
@@ -77,25 +85,38 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
   if (selectedClient) {
     return (
       <div>
-        <button onClick={() => setSelectedClient(null)} className="back-button">
+        <button
+          onClick={() => setSelectedClient(null)}
+          className="back-button"
+        >
           ← Back to Clients
         </button>
 
         <div className="device-header">
-          <div className="device-icon">
-            {getClientIcon(selectedClient)}
-          </div>
+          <div className="device-icon">{getClientIcon(selectedClient)}</div>
           <div className="device-info">
             <h1>{selectedClient.description || selectedClient.mac}</h1>
             <div className="meta">
-              <span><strong>MAC:</strong> {selectedClient.mac}</span>
-              {selectedClient.ip && <span><strong>IP:</strong> {selectedClient.ip}</span>}
+              <span>
+                <strong>MAC:</strong> {selectedClient.mac}
+              </span>
+              {selectedClient.ip && (
+                <span>
+                  <strong>IP:</strong> {selectedClient.ip}
+                </span>
+              )}
               {selectedClient.manufacturer && (
-                <span><strong>Manufacturer:</strong> {selectedClient.manufacturer}</span>
+                <span>
+                  <strong>Manufacturer:</strong> {selectedClient.manufacturer}
+                </span>
               )}
             </div>
           </div>
-          <div className={`status-pill ${selectedClient.status?.toLowerCase() || 'online'}`}>
+          <div
+            className={`status-pill ${
+              selectedClient.status?.toLowerCase() || 'online'
+            }`}
+          >
             <div className="dot"></div>
             {selectedClient.status || 'Online'}
           </div>
@@ -107,7 +128,9 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
             <div className="info-grid">
               <div className="info-item">
                 <div className="label">Description</div>
-                <div className="value">{selectedClient.description || '—'}</div>
+                <div className="value">
+                  {selectedClient.description || '—'}
+                </div>
               </div>
               <div className="info-item">
                 <div className="label">User</div>
@@ -119,7 +142,9 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
               </div>
               <div className="info-item">
                 <div className="label">Manufacturer</div>
-                <div className="value">{selectedClient.manufacturer || '—'}</div>
+                <div className="value">
+                  {selectedClient.manufacturer || '—'}
+                </div>
               </div>
             </div>
           </div>
@@ -154,22 +179,30 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
               <div className="info-item">
                 <div className="label">Data Sent</div>
                 <div className="value success">
-                  {selectedClient.usage ? formatBytes(selectedClient.usage.sent) : '—'}
+                  {selectedClient.usage
+                    ? formatBytes(selectedClient.usage.sent)
+                    : '—'}
                 </div>
               </div>
               <div className="info-item">
                 <div className="label">Data Received</div>
                 <div className="value primary">
-                  {selectedClient.usage ? formatBytes(selectedClient.usage.recv) : '—'}
+                  {selectedClient.usage
+                    ? formatBytes(selectedClient.usage.recv)
+                    : '—'}
                 </div>
               </div>
               <div className="info-item">
                 <div className="label">First Seen</div>
-                <div className="value">{formatDate(selectedClient.firstSeen)}</div>
+                <div className="value">
+                  {formatDate(selectedClient.firstSeen)}
+                </div>
               </div>
               <div className="info-item">
                 <div className="label">Last Seen</div>
-                <div className="value">{formatDate(selectedClient.lastSeen)}</div>
+                <div className="value">
+                  {formatDate(selectedClient.lastSeen)}
+                </div>
               </div>
             </div>
           </div>
@@ -180,7 +213,9 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
               <div className="info-item">
                 <div className="label">Device</div>
                 <div className="value">
-                  {selectedClient.recentDeviceName || selectedClient.recentDeviceSerial || '—'}
+                  {selectedClient.recentDeviceName ||
+                    selectedClient.recentDeviceSerial ||
+                    '—'}
                 </div>
               </div>
               <div className="info-item">
@@ -190,10 +225,12 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
             </div>
             {selectedClient.recentDeviceSerial && (
               <button
-                onClick={() => setActiveView({ 
-                  view: 'device', 
-                  deviceId: selectedClient.recentDeviceSerial 
-                })}
+                onClick={() =>
+                  setActiveView({
+                    view: 'device',
+                    deviceId: selectedClient.recentDeviceSerial,
+                  })
+                }
                 style={{
                   marginTop: '12px',
                   padding: '8px 16px',
@@ -202,7 +239,7 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
                   background: 'var(--primary)',
                   color: 'white',
                   cursor: 'pointer',
-                  fontWeight: 500
+                  fontWeight: 500,
                 }}
               >
                 View Device
@@ -221,7 +258,10 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
       </button>
 
       <div className="device-header">
-        <div className="device-icon" style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}>
+        <div
+          className="device-icon"
+          style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}
+        >
           👥
         </div>
         <div className="device-info">
@@ -246,7 +286,7 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
             border: '1px solid var(--border)',
             background: 'var(--bg-secondary)',
             color: 'var(--text-primary)',
-            fontSize: '14px'
+            fontSize: '14px',
           }}
         />
       </div>
@@ -277,9 +317,16 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
                       {getClientIcon(client)}
                     </div>
                     <div>
-                      <span className="name">{client.description || client.mac}</span>
+                      <span className="name">
+                        {client.description || client.mac}
+                      </span>
                       {client.os && (
-                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: 'var(--text-muted)',
+                          }}
+                        >
                           {client.os}
                         </div>
                       )}
@@ -287,7 +334,10 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
                   </div>
                 </td>
                 <td className="device-model">{client.ip || '—'}</td>
-                <td className="device-model" style={{ fontFamily: 'monospace', fontSize: '12px' }}>
+                <td
+                  className="device-model"
+                  style={{ fontFamily: 'monospace', fontSize: '12px' }}
+                >
                   {client.mac}
                 </td>
                 <td className="device-model">{client.manufacturer || '—'}</td>
@@ -299,16 +349,28 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
                 <td>
                   {client.usage ? (
                     <span style={{ fontSize: '12px' }}>
-                      ↑{formatBytes(client.usage.sent)} ↓{formatBytes(client.usage.recv)}
+                      ↑{formatBytes(client.usage.sent)} ↓
+                      {formatBytes(client.usage.recv)}
                     </span>
-                  ) : '—'}
+                  ) : (
+                    '—'
+                  )}
                 </td>
               </tr>
             ))}
             {filteredClients.length === 0 && (
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px' }}>
-                  {searchTerm ? 'No clients match your search' : 'No clients found'}
+                <td
+                  colSpan={6}
+                  style={{
+                    textAlign: 'center',
+                    color: 'var(--text-muted)',
+                    padding: '40px',
+                  }}
+                >
+                  {searchTerm
+                    ? 'No clients match your search'
+                    : 'No clients found'}
                 </td>
               </tr>
             )}
@@ -320,4 +382,3 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
 };
 
 export default ClientsView;
-

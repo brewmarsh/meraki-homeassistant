@@ -1,32 +1,30 @@
 {
-    // Python Interpreter - Force venv usage
-    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
-    "python.terminal.activateEnvironment": true,
-    "python.terminal.activateEnvInCurrentTerminal": true,
-    
-    // Ensure Pylance/Python extension uses the venv
-    "python.analysis.extraPaths": [
-        "${workspaceFolder}",
-        "${workspaceFolder}/custom_components"
-    ],
-    
-    // Disable ALL spell checkers
-    "cSpell.enabled": false,
-    "spellright.enabled": false,
-    "editor.quickSuggestions": {
-        "strings": true
-    },
-    
-    // Disable spell check in specific scopes as fallback
-    "cSpell.enabledLanguageIds": [],
-    
-    // Ruff integration (matches pyproject.toml)
-    "ruff.path": ["${workspaceFolder}/.venv/bin/ruff"],
-    
-    // Testing
-    "python.testing.pytestEnabled": true,
-    "python.testing.pytestPath": "${workspaceFolder}/.venv/bin/pytest",
-    "python.testing.pytestArgs": [
-        "tests"
-    ]
+  // Python Interpreter - Force venv usage
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "python.terminal.activateEnvInCurrentTerminal": true,
+
+  // Ensure Pylance/Python extension uses the venv
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}",
+    "${workspaceFolder}/custom_components"
+  ],
+
+  // Disable ALL spell checkers
+  "cSpell.enabled": false,
+  "spellright.enabled": false,
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+
+  // Disable spell check in specific scopes as fallback
+  "cSpell.enabledLanguageIds": [],
+
+  // Ruff integration (matches pyproject.toml)
+  "ruff.path": ["${workspaceFolder}/.venv/bin/ruff"],
+
+  // Testing
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestPath": "${workspaceFolder}/.venv/bin/pytest",
+  "python.testing.pytestArgs": ["tests"]
 }

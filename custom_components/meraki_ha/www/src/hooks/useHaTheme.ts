@@ -1,6 +1,6 @@
 /**
  * Hook to integrate with Home Assistant theming.
- * 
+ *
  * This reads theme information from the hass object and computes
  * CSS variables to apply to the panel. It also attempts to read
  * CSS variables from the parent document where HA sets them.
@@ -46,19 +46,25 @@ const LIGHT_THEME = {
  */
 function getCssVariable(name: string): string | null {
   // Try document root
-  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
   if (value) return value;
-  
+
   // Try parent document (in case we're in an iframe)
   try {
     if (window.parent && window.parent !== window) {
-      const parentValue = getComputedStyle(window.parent.document.documentElement).getPropertyValue(name).trim();
+      const parentValue = getComputedStyle(
+        window.parent.document.documentElement
+      )
+        .getPropertyValue(name)
+        .trim();
       if (parentValue) return parentValue;
     }
   } catch {
     // Cross-origin access denied - ignore
   }
-  
+
   return null;
 }
 
@@ -68,11 +74,11 @@ function getCssVariable(name: string): string | null {
 function getThemeVariables(isDarkMode: boolean): Record<string, string> {
   const defaults = isDarkMode ? DARK_THEME : LIGHT_THEME;
   const result: Record<string, string> = {};
-  
+
   for (const [key, fallback] of Object.entries(defaults)) {
     result[key] = getCssVariable(key) || fallback;
   }
-  
+
   return result;
 }
 
@@ -87,11 +93,11 @@ export interface UseHaThemeResult {
  */
 export function useHaTheme(hass: HomeAssistant | null): UseHaThemeResult {
   const isDarkMode = hass?.themes?.darkMode ?? true; // Default to dark mode
-  
+
   const themeVars = useMemo(() => {
     return getThemeVariables(isDarkMode);
   }, [isDarkMode]);
-  
+
   // Convert theme vars to React CSSProperties style object
   const style = useMemo(() => {
     const cssProps: Record<string, string> = {};
@@ -112,7 +118,7 @@ export function useHaTheme(hass: HomeAssistant | null): UseHaThemeResult {
     cssProps['--error'] = themeVars['--error-color'];
     return cssProps as React.CSSProperties;
   }, [themeVars]);
-  
+
   // Also update document root with theme vars for global CSS
   useEffect(() => {
     const root = document.documentElement;
@@ -120,11 +126,23 @@ export function useHaTheme(hass: HomeAssistant | null): UseHaThemeResult {
       root.style.setProperty(key, value);
     }
     // Set our custom vars
-    root.style.setProperty('--text-primary', themeVars['--primary-text-color']);
-    root.style.setProperty('--text-secondary', themeVars['--secondary-text-color']);
+    root.style.setProperty(
+      '--text-primary',
+      themeVars['--primary-text-color']
+    );
+    root.style.setProperty(
+      '--text-secondary',
+      themeVars['--secondary-text-color']
+    );
     root.style.setProperty('--text-muted', themeVars['--disabled-text-color']);
-    root.style.setProperty('--bg-primary', themeVars['--primary-background-color']);
-    root.style.setProperty('--bg-secondary', themeVars['--secondary-background-color']);
+    root.style.setProperty(
+      '--bg-primary',
+      themeVars['--primary-background-color']
+    );
+    root.style.setProperty(
+      '--bg-secondary',
+      themeVars['--secondary-background-color']
+    );
     root.style.setProperty('--card-bg', themeVars['--card-background-color']);
     root.style.setProperty('--card-border', themeVars['--divider-color']);
     root.style.setProperty('--primary', themeVars['--primary-color']);
@@ -132,9 +150,8 @@ export function useHaTheme(hass: HomeAssistant | null): UseHaThemeResult {
     root.style.setProperty('--warning', themeVars['--warning-color']);
     root.style.setProperty('--error', themeVars['--error-color']);
   }, [themeVars]);
-  
+
   return { isDarkMode, themeVars, style };
 }
 
 export default useHaTheme;
-

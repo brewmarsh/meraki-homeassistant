@@ -267,7 +267,13 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
     return (
       <div className="meraki-panel" style={themeStyle}>
         <LoadingSpinner />
-        <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '16px' }}>
+        <p
+          style={{
+            textAlign: 'center',
+            color: 'var(--text-secondary)',
+            marginTop: '16px',
+          }}
+        >
           Waiting for Home Assistant connection...
         </p>
       </div>
@@ -309,8 +315,9 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
   }
 
   // Filter to only show enabled networks
-  const enabledNetworks = data.networks?.filter((network) => network.is_enabled) || [];
-  
+  const enabledNetworks =
+    data.networks?.filter((network) => network.is_enabled) || [];
+
   // Create processed data with only enabled networks
   const processedData = {
     ...data,
@@ -358,7 +365,10 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
   };
 
   return (
-    <div className="meraki-panel" style={{ ...themeStyle, maxWidth: '100%', margin: '0 auto' }}>
+    <div
+      className="meraki-panel"
+      style={{ ...themeStyle, maxWidth: '100%', margin: '0 auto' }}
+    >
       <Header version={data.version} />
       {renderView()}
     </div>

@@ -1,9 +1,9 @@
 /* Meraki HA Panel - Theme-aware styling */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* 
+/*
  * CSS Variables
- * 
+ *
  * The useHaTheme hook sets these variables on the root element based on
  * Home Assistant's theme settings. Initial values here are dark theme defaults
  * that will be overwritten when the hook runs.
@@ -13,7 +13,7 @@
   --primary: #03a9f4;
   --primary-dark: #0288d1;
   --primary-light: rgba(3, 169, 244, 0.15);
-  
+
   /* Status colors - Set by useHaTheme hook */
   --success: #10b981;
   --success-light: rgba(16, 185, 129, 0.15);
@@ -21,31 +21,31 @@
   --warning-light: rgba(245, 158, 11, 0.15);
   --error: #ef4444;
   --error-light: rgba(239, 68, 68, 0.15);
-  
+
   /* Background colors - Set by useHaTheme hook from HA theme */
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
   --bg-tertiary: #334155;
   --card-bg: #1e293b;
   --card-border: #334155;
-  
+
   /* Text colors - Set by useHaTheme hook from HA theme */
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
-  
+
   /* Border radius */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 20px;
-  
+
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.4);
   --transition: all 0.2s ease;
-  
+
   /* Device type colors - These stay consistent for visual identity */
   --switch-color: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
   --camera-color: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
@@ -63,8 +63,22 @@
 
 /* Panel container */
 .meraki-panel {
-  font-family: var(--paper-font-body1_-_font-family, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
-  background: var(--primary-background-color, linear-gradient(135deg, var(--bg-primary) 0%, #1e1b4b 50%, var(--bg-primary) 100%));
+  font-family: var(
+    --paper-font-body1_-_font-family,
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif
+  );
+  background: var(
+    --primary-background-color,
+    linear-gradient(
+      135deg,
+      var(--bg-primary) 0%,
+      #1e1b4b 50%,
+      var(--bg-primary) 100%
+    )
+  );
   min-height: 100vh;
   color: var(--text-primary);
   padding: 24px;
@@ -182,11 +196,20 @@
   text-shadow: 0 0 1px currentColor;
 }
 
-.stat-card .value.success { color: var(--success) !important; }
-.stat-card .value.warning { color: var(--warning) !important; }
-.stat-card .value.error { color: var(--error) !important; }
+.stat-card .value.success {
+  color: var(--success) !important;
+}
+.stat-card .value.warning {
+  color: var(--warning) !important;
+}
+.stat-card .value.error {
+  color: var(--error) !important;
+}
 /* Default text color variant for when we want high contrast text */
-.stat-card .value.default { color: var(--text-primary) !important; font-weight: 600; }
+.stat-card .value.default {
+  color: var(--text-primary) !important;
+  font-weight: 600;
+}
 
 /* Network Card */
 .network-card {
@@ -203,13 +226,21 @@
   justify-content: space-between;
   padding: 20px 24px;
   border-bottom: 1px solid var(--card-border);
-  background: linear-gradient(90deg, rgba(0, 180, 216, 0.1) 0%, transparent 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(0, 180, 216, 0.1) 0%,
+    transparent 100%
+  );
   cursor: pointer;
   transition: var(--transition);
 }
 
 .network-header:hover {
-  background: linear-gradient(90deg, rgba(0, 180, 216, 0.15) 0%, transparent 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(0, 180, 216, 0.15) 0%,
+    transparent 100%
+  );
 }
 
 .network-header .title {
@@ -301,11 +332,21 @@
   flex-shrink: 0;
 }
 
-.device-icon.switch { background: var(--switch-color); }
-.device-icon.camera { background: var(--camera-color); }
-.device-icon.wireless { background: var(--wireless-color); }
-.device-icon.sensor { background: var(--sensor-color); }
-.device-icon.appliance { background: var(--appliance-color); }
+.device-icon.switch {
+  background: var(--switch-color);
+}
+.device-icon.camera {
+  background: var(--camera-color);
+}
+.device-icon.wireless {
+  background: var(--wireless-color);
+}
+.device-icon.sensor {
+  background: var(--sensor-color);
+}
+.device-icon.appliance {
+  background: var(--appliance-color);
+}
 
 .device-name-cell .name {
   font-weight: 500;
@@ -585,11 +626,22 @@
   opacity: 1;
 }
 
-.info-item .value.primary { color: var(--primary) !important; }
-.info-item .value.success { color: var(--success) !important; }
-.info-item .value.warning { color: var(--warning) !important; }
-.info-item .value.error { color: var(--error) !important; }
-.info-item .value.mono { font-family: 'SF Mono', 'Monaco', 'Consolas', monospace; font-size: 14px; }
+.info-item .value.primary {
+  color: var(--primary) !important;
+}
+.info-item .value.success {
+  color: var(--success) !important;
+}
+.info-item .value.warning {
+  color: var(--warning) !important;
+}
+.info-item .value.error {
+  color: var(--error) !important;
+}
+.info-item .value.mono {
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 14px;
+}
 
 /* Switch Port Visualization */
 .port-visualization {
@@ -698,8 +750,12 @@
   border-radius: 50%;
 }
 
-.port-legend .dot.connected { background: var(--success); }
-.port-legend .dot.disconnected { background: #374151; }
+.port-legend .dot.connected {
+  background: var(--success);
+}
+.port-legend .dot.disconnected {
+  background: #374151;
+}
 
 /* Port Details Panel */
 .port-details {
@@ -837,13 +893,23 @@
   margin-bottom: 8px;
 }
 
-.reading-card.temperature .reading-value { color: #f97316; }
-.reading-card.humidity .reading-value { color: #06b6d4; }
+.reading-card.temperature .reading-value {
+  color: #f97316;
+}
+.reading-card.humidity .reading-value {
+  color: #06b6d4;
+}
 .reading-card.tvoc .reading-value,
 .reading-card.pm25 .reading-value,
-.reading-card.co2 .reading-value { color: #84cc16; }
-.reading-card.indoorAirQuality .reading-value { color: #22c55e; }
-.reading-card.noise .reading-value { color: #8b5cf6; }
+.reading-card.co2 .reading-value {
+  color: #84cc16;
+}
+.reading-card.indoorAirQuality .reading-value {
+  color: #22c55e;
+}
+.reading-card.noise .reading-value {
+  color: #8b5cf6;
+}
 
 .reading-card .reading-unit {
   font-size: 24px;
@@ -885,7 +951,14 @@
 }
 
 .gauge-fill.air-quality {
-  background: linear-gradient(90deg, #22c55e 0%, #84cc16 25%, #eab308 50%, #f97316 75%, #ef4444 100%);
+  background: linear-gradient(
+    90deg,
+    #22c55e 0%,
+    #84cc16 25%,
+    #eab308 50%,
+    #f97316 75%,
+    #ef4444 100%
+  );
 }
 
 .gauge-fill.noise {
@@ -893,7 +966,13 @@
 }
 
 .gauge-fill.battery {
-  background: linear-gradient(90deg, #ef4444 0%, #eab308 25%, #22c55e 50%, #22c55e 100%);
+  background: linear-gradient(
+    90deg,
+    #ef4444 0%,
+    #eab308 25%,
+    #22c55e 50%,
+    #22c55e 100%
+  );
 }
 
 .gauge-fill.default {
@@ -927,7 +1006,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-text {
@@ -1008,15 +1089,33 @@
 }
 
 /* Utility Classes */
-.text-primary { color: var(--primary); }
-.text-success { color: var(--success); }
-.text-warning { color: var(--warning); }
-.text-error { color: var(--error); }
-.text-muted { color: var(--text-muted); }
-.font-mono { font-family: monospace; }
-.font-medium { font-weight: 500; }
-.font-semibold { font-weight: 600; }
-.font-bold { font-weight: 700; }
+.text-primary {
+  color: var(--primary);
+}
+.text-success {
+  color: var(--success);
+}
+.text-warning {
+  color: var(--warning);
+}
+.text-error {
+  color: var(--error);
+}
+.text-muted {
+  color: var(--text-muted);
+}
+.font-mono {
+  font-family: monospace;
+}
+.font-medium {
+  font-weight: 500;
+}
+.font-semibold {
+  font-weight: 600;
+}
+.font-bold {
+  font-weight: 700;
+}
 
 /* Text colors are defined in :root above and used consistently */
 
@@ -1032,7 +1131,7 @@
   .info-grid {
     grid-template-columns: 1fr 1fr;
   }
-  
+
   .port-stats {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -1042,92 +1141,92 @@
   .meraki-panel {
     padding: 16px;
   }
-  
+
   .meraki-header h1 {
     font-size: 22px;
   }
-  
+
   .meraki-header .version {
     display: none;
   }
-  
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   /* Make tables horizontally scrollable */
   .info-card {
     overflow-x: auto;
   }
-  
+
   .device-table {
     min-width: 500px;
   }
-  
+
   .device-table th,
   .device-table td {
     padding: 12px 16px;
     font-size: 13px;
     white-space: nowrap;
   }
-  
+
   .device-table th:first-child,
   .device-table td:first-child {
     white-space: normal;
     min-width: 150px;
   }
-  
+
   .device-header {
     flex-direction: column;
     gap: 16px;
   }
-  
+
   .device-header .status-pill {
     margin-left: 0;
   }
-  
+
   .cards-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .info-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .port-stats {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   /* Stack port details on mobile */
   .port-details {
     padding: 16px;
   }
-  
+
   /* Client info on mobile */
   .client-info {
     flex-direction: column;
     text-align: center;
     gap: 12px;
   }
-  
+
   /* Readings grid on mobile */
   .readings-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .reading-card {
     padding: 24px;
   }
-  
+
   .reading-card .reading-value {
     font-size: 36px;
   }
-  
+
   /* Filter controls */
   .nav-tabs {
     flex-wrap: wrap;
   }
-  
+
   .nav-tab {
     padding: 8px 14px;
     font-size: 13px;
@@ -1138,96 +1237,96 @@
   .meraki-panel {
     padding: 12px;
   }
-  
+
   .meraki-header {
     gap: 12px;
   }
-  
+
   .meraki-header .logo {
     width: 40px;
     height: 40px;
     font-size: 20px;
   }
-  
+
   .meraki-header h1 {
     font-size: 18px;
   }
-  
+
   .stats-grid {
     grid-template-columns: 1fr 1fr;
     gap: 12px;
   }
-  
+
   .stat-card {
     padding: 16px;
   }
-  
+
   .stat-card .value {
     font-size: 24px;
   }
-  
+
   .device-table th,
   .device-table td {
     padding: 10px 12px;
     font-size: 12px;
   }
-  
+
   .device-icon {
     width: 32px;
     height: 32px;
     font-size: 14px;
   }
-  
+
   .device-name-cell {
     gap: 8px;
   }
-  
+
   .device-name-cell .name {
     font-size: 14px;
   }
-  
+
   .device-model {
     font-size: 12px;
   }
-  
+
   .info-card {
     padding: 16px;
   }
-  
+
   .info-card h3 {
     font-size: 13px;
     margin-bottom: 16px;
   }
-  
+
   .port-stats {
     grid-template-columns: 1fr 1fr;
     gap: 12px;
   }
-  
+
   .port-stat .value {
     font-size: 16px;
   }
-  
+
   /* Switch chassis smaller on mobile */
   .switch-chassis {
     padding: 12px 16px;
   }
-  
+
   .port {
     width: 32px;
     height: 28px;
   }
-  
+
   .port .num {
     font-size: 8px;
   }
-  
+
   .port-legend {
     flex-wrap: wrap;
     gap: 12px;
     font-size: 12px;
   }
-  
+
   /* Back button smaller */
   .back-button {
     font-size: 13px;

@@ -22,7 +22,12 @@ interface TimedAccessProps {
   onClose: () => void;
 }
 
-const TimedAccess: React.FC<TimedAccessProps> = ({ hass, configEntryId, data, onClose }) => {
+const TimedAccess: React.FC<TimedAccessProps> = ({
+  hass,
+  configEntryId,
+  data,
+  onClose,
+}) => {
   const [keys, setKeys] = useState<TimedAccessKey[]>([]);
   const [policies, setPolicies] = useState<GroupPolicy[]>([]);
   const [loading, setLoading] = useState(false);
@@ -141,7 +146,10 @@ const TimedAccess: React.FC<TimedAccessProps> = ({ hass, configEntryId, data, on
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">Timed Guest Access</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
             <ha-icon icon="mdi:close"></ha-icon>
           </button>
         </div>
@@ -157,35 +165,43 @@ const TimedAccess: React.FC<TimedAccessProps> = ({ hass, configEntryId, data, on
                 className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                 value={selectedNetwork}
                 onChange={(e) => {
-                    setSelectedNetwork(e.target.value);
-                    setSelectedSsid('');
+                  setSelectedNetwork(e.target.value);
+                  setSelectedSsid('');
                 }}
               >
                 <option value="">Select Network</option>
-                {data?.networks?.filter((n: any) => n.productTypes?.includes('wireless')).map((n: any) => (
-                  <option key={n.id} value={n.id}>{n.name}</option>
-                ))}
+                {data?.networks
+                  ?.filter((n: any) => n.productTypes?.includes('wireless'))
+                  .map((n: any) => (
+                    <option key={n.id} value={n.id}>
+                      {n.name}
+                    </option>
+                  ))}
               </select>
             </div>
 
             {selectedNetwork && (
-                <div>
-                  <label className="block text-sm font-medium mb-1">SSID</label>
-                  <select
-                    className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-                    value={selectedSsid}
-                    onChange={(e) => setSelectedSsid(e.target.value)}
-                  >
-                    <option value="">Select SSID</option>
-                    {getSsidsForNetwork(selectedNetwork).map((s: any) => (
-                      <option key={s.number} value={s.number}>{s.name} (SSID {s.number})</option>
-                    ))}
-                  </select>
-                </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">SSID</label>
+                <select
+                  className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+                  value={selectedSsid}
+                  onChange={(e) => setSelectedSsid(e.target.value)}
+                >
+                  <option value="">Select SSID</option>
+                  {getSsidsForNetwork(selectedNetwork).map((s: any) => (
+                    <option key={s.number} value={s.number}>
+                      {s.name} (SSID {s.number})
+                    </option>
+                  ))}
+                </select>
+              </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium mb-1">Group Policy</label>
+              <label className="block text-sm font-medium mb-1">
+                Group Policy
+              </label>
               <select
                 className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                 value={selectedPolicy}
@@ -194,13 +210,17 @@ const TimedAccess: React.FC<TimedAccessProps> = ({ hass, configEntryId, data, on
               >
                 <option value="">None (Default)</option>
                 {policies.map((p) => (
-                    <option key={p.groupPolicyId} value={p.groupPolicyId}>{p.name}</option>
+                  <option key={p.groupPolicyId} value={p.groupPolicyId}>
+                    {p.name}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Duration (Minutes)</label>
+              <label className="block text-sm font-medium mb-1">
+                Duration (Minutes)
+              </label>
               <select
                 className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                 value={duration}
@@ -215,33 +235,37 @@ const TimedAccess: React.FC<TimedAccessProps> = ({ hass, configEntryId, data, on
             </div>
 
             <div>
-               <label className="block text-sm font-medium mb-1">Name (Optional)</label>
-               <input
-                  type="text"
-                  className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-                  placeholder="e.g. Guest-John"
-                  value={customName}
-                  onChange={(e) => setCustomName(e.target.value)}
-               />
+              <label className="block text-sm font-medium mb-1">
+                Name (Optional)
+              </label>
+              <input
+                type="text"
+                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+                placeholder="e.g. Guest-John"
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+              />
             </div>
 
             <div>
-               <label className="block text-sm font-medium mb-1">Passphrase (Optional)</label>
-               <input
-                  type="text"
-                  className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-                  placeholder="Leave empty to auto-generate"
-                  value={customPassphrase}
-                  onChange={(e) => setCustomPassphrase(e.target.value)}
-               />
+              <label className="block text-sm font-medium mb-1">
+                Passphrase (Optional)
+              </label>
+              <input
+                type="text"
+                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+                placeholder="Leave empty to auto-generate"
+                value={customPassphrase}
+                onChange={(e) => setCustomPassphrase(e.target.value)}
+              />
             </div>
 
             <button
-                className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:opacity-50"
-                onClick={handleCreate}
-                disabled={creating || !selectedNetwork || !selectedSsid}
+              className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:opacity-50"
+              onClick={handleCreate}
+              disabled={creating || !selectedNetwork || !selectedSsid}
             >
-                {creating ? 'Creating...' : 'Generate Access Key'}
+              {creating ? 'Creating...' : 'Generate Access Key'}
             </button>
           </div>
 
@@ -249,46 +273,54 @@ const TimedAccess: React.FC<TimedAccessProps> = ({ hass, configEntryId, data, on
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Active Guest Keys</h3>
             {loading ? (
-                <div>Loading keys...</div>
+              <div>Loading keys...</div>
             ) : keys.length === 0 ? (
-                <div className="text-gray-500 italic">No active keys found.</div>
+              <div className="text-gray-500 italic">No active keys found.</div>
             ) : (
-                <div className="space-y-4">
-                    {keys.map((key) => {
-                        const ssidName = getSsidsForNetwork(key.network_id).find((s:any) => s.number.toString() === key.ssid_number)?.name || `SSID ${key.ssid_number}`;
-                        const wifiString = `WIFI:T:WPA;S:${ssidName};P:${key.passphrase};;`;
+              <div className="space-y-4">
+                {keys.map((key) => {
+                  const ssidName =
+                    getSsidsForNetwork(key.network_id).find(
+                      (s: any) => s.number.toString() === key.ssid_number
+                    )?.name || `SSID ${key.ssid_number}`;
+                  const wifiString = `WIFI:T:WPA;S:${ssidName};P:${key.passphrase};;`;
 
-                        return (
-                            <div key={key.identity_psk_id} className="border rounded p-4 dark:border-gray-700 flex flex-col gap-2">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <div className="font-bold">{key.name}</div>
-                                        <div className="text-sm text-gray-500">{ssidName}</div>
-                                    </div>
-                                    <button
-                                        onClick={() => handleDelete(key)}
-                                        className="text-red-500 hover:text-red-700 text-sm border border-red-500 rounded px-2 py-1"
-                                    >
-                                        Revoke
-                                    </button>
-                                </div>
+                  return (
+                    <div
+                      key={key.identity_psk_id}
+                      className="border rounded p-4 dark:border-gray-700 flex flex-col gap-2"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="font-bold">{key.name}</div>
+                          <div className="text-sm text-gray-500">
+                            {ssidName}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDelete(key)}
+                          className="text-red-500 hover:text-red-700 text-sm border border-red-500 rounded px-2 py-1"
+                        >
+                          Revoke
+                        </button>
+                      </div>
 
-                                <div className="bg-gray-100 dark:bg-gray-900 p-2 rounded font-mono text-center text-lg select-all">
-                                    {key.passphrase}
-                                </div>
+                      <div className="bg-gray-100 dark:bg-gray-900 p-2 rounded font-mono text-center text-lg select-all">
+                        {key.passphrase}
+                      </div>
 
-                                <div className="flex justify-between items-end">
-                                    <div className="text-sm text-blue-600 dark:text-blue-400">
-                                        {formatExpiry(key.expires_at)}
-                                    </div>
-                                    <div className="bg-white p-1 rounded">
-                                        <QRCode value={wifiString} size={64} />
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                      <div className="flex justify-between items-end">
+                        <div className="text-sm text-blue-600 dark:text-blue-400">
+                          {formatExpiry(key.expires_at)}
+                        </div>
+                        <div className="bg-white p-1 rounded">
+                          <QRCode value={wifiString} size={64} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         </div>

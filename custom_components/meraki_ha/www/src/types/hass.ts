@@ -183,4 +183,3 @@ export interface HaPanelProps {
   /** Current route information */
   route: RouteInfo;
 }
-

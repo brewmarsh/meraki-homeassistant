@@ -20,7 +20,7 @@ declare module 'react' {
   namespace JSX {
     interface IntrinsicElements {
       'ha-card': React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & { 
+        React.HTMLAttributes<HTMLElement> & {
           header?: string;
           class?: string;
         },

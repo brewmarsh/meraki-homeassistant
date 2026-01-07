@@ -1,0 +1,119 @@
+name: Update Screenshots
+
+on:
+  pull_request:
+    branches: ['beta', 'main']
+    paths:
+      - 'custom_components/meraki_ha/www/src/**'
+      - 'custom_components/meraki_ha/www/index.css'
+      - 'scripts/generate_screenshots.py'
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force screenshot regeneration'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  PYTHON_VERSION: '3.13'
+  NODE_VERSION: '20'
+
+jobs:
+  update-screenshots:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code (PR)
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Checkout code (workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: custom_components/meraki_ha/www/package-lock.json
+
+      - name: Install Python dependencies
+        run: uv pip install --system playwright
+
+      - name: Install npm dependencies
+        working-directory: custom_components/meraki_ha/www
+        run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-chromium-v1
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: playwright install --with-deps chromium
+
+      - name: Install Playwright deps (cached)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: playwright install-deps chromium
+
+      - name: Build frontend
+        working-directory: custom_components/meraki_ha/www
+        run: npm run build
+
+      - name: Generate screenshots
+        run: python scripts/generate_screenshots.py
+
+      - name: Check for screenshot changes
+        id: check-changes
+        run: |
+          if [[ `git status --porcelain docs/images/` ]]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Screenshots have changed:"
+            git status --porcelain docs/images/
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No screenshot changes detected"
+          fi
+
+      - name: Commit and push screenshot updates
+        if: steps.check-changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/images/*.png
+          git commit -m "docs: update screenshots [skip ci]"
+          git push
+
+      - name: Comment on PR
+        if: steps.check-changes.outputs.has_changes == 'true' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '📸 Screenshots have been automatically updated based on your frontend changes.\n\nPlease review the updated images in `docs/images/`.'
+            })
