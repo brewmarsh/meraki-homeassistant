@@ -405,14 +405,28 @@ def create_screenshot_html() -> str:
         customElements.whenDefined('meraki-panel').then(() => {{
             const panel = document.getElementById('panel');
 
-            // Create a mock hass object
+            // Mock data for the panel
+            const mockData = {mock_data_json};
+
+            // Create a mock hass object with connection for WebSocket subscription
             const mockHass = {{
                 callWS: async (params) => {{
                     console.log('Mock callWS called with:', params);
                     if (params.type === 'meraki_ha/get_config') {{
-                        return {mock_data_json};
+                        return mockData;
                     }}
                     return {{}};
+                }},
+                connection: {{
+                    subscribeMessage: async (callback, params) => {{
+                        console.log('Mock subscribeMessage called with:', params);
+                        if (params.type === 'meraki_ha/subscribe_meraki_data') {{
+                            // Immediately call callback with mock data (simulates initial data)
+                            setTimeout(() => callback(mockData), 100);
+                        }}
+                        // Return unsubscribe function
+                        return () => {{}};
+                    }},
                 }},
                 states: {{}},
                 services: {{}},
