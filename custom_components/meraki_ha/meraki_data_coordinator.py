@@ -257,11 +257,47 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         for device_id in device_ids_to_remove:
             device = dev_reg.async_get_device(identifiers={(DOMAIN, device_id)})
-            if device:
-                _LOGGER.debug("Removing device %s and its entities.", device_id)
-                entities = er.async_entries_for_device(ent_reg, device.id)
-                for entity in entities:
+            if not device:
+                continue
+
+            entities = er.async_entries_for_device(ent_reg, device.id)
+            if not entities:
+                # No entities - safe to remove orphaned device
+                _LOGGER.debug("Removing orphaned device %s (no entities)", device_id)
+                dev_reg.async_remove_device(device.id)
+                continue
+
+            # Device has entities - check if they should migrate to a valid device
+            # An entity should migrate if a device with valid identifier exists
+            # that matches what the entity's unique_id suggests
+            should_remove = True
+            for entity in entities:
+                # Check if this entity's unique_id references data we still have
+                # If the unique_id contains a serial that exists, keep entity
+                unique_id = entity.unique_id or ""
+                entity_refs_valid_data = any(
+                    valid_id in unique_id for valid_id in latest_valid_identifiers
+                )
+                if not entity_refs_valid_data:
+                    # Entity references data we don't have anymore - remove it
+                    _LOGGER.debug(
+                        "Removing stale entity %s (references removed data)",
+                        entity.entity_id,
+                    )
                     ent_reg.async_remove(entity.entity_id)
+                else:
+                    # Entity references valid data but is on wrong device
+                    # This shouldn't happen after reload - warn and keep device
+                    _LOGGER.warning(
+                        "Entity %s on stale device %s references valid data - "
+                        "reload integration to fix device association",
+                        entity.entity_id,
+                        device_id,
+                    )
+                    should_remove = False
+
+            if should_remove:
+                _LOGGER.debug("Removing device %s after cleaning entities", device_id)
                 dev_reg.async_remove_device(device.id)
 
     def _populate_ssid_entities(self, data: dict[str, Any]) -> None:
