@@ -44,8 +44,8 @@ def api_client(hass, mock_dashboard, coordinator):
     client.camera = MagicMock()
     client.appliance = MagicMock()
     client.network = MagicMock()
-    client.devices = MagicMock()
     client.organization = MagicMock()
+    client.devices = MagicMock()
     client.sensor = MagicMock()
 
     # Mock methods to return Coroutines/Awaitables as expected by _run_with_semaphore.
