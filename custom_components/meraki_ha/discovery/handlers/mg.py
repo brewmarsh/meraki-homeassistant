@@ -1,4 +1,4 @@
-"""Meraki MS Switch Handler."""
+"""Meraki MG Cellular Gateway Handler."""
 
 from __future__ import annotations
 
@@ -6,10 +6,12 @@ import logging
 from typing import TYPE_CHECKING
 
 from ...button.reboot import MerakiRebootButton
-from ...const import CONF_ENABLE_DEVICE_STATUS, CONF_ENABLE_PORT_SENSORS
-from ...sensor.device.connected_clients import MerakiDeviceConnectedClientsSensor
+from ...const import CONF_ENABLE_DEVICE_STATUS
+from ...sensor.device.cellular_uplink import (
+    MerakiCellularSignalSensor,
+    MerakiCellularUplinkSensor,
+)
 from ...sensor.device.device_status import MerakiDeviceStatusSensor
-from ...sensor.device.poe_usage import MerakiPoeUsageSensor
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
@@ -26,8 +28,8 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MSHandler(BaseDeviceHandler):
-    """Handler for Meraki MS switches."""
+class MGHandler(BaseDeviceHandler):
+    """Handler for Meraki MG Cellular Gateways."""
 
     def __init__(
         self,
@@ -37,7 +39,7 @@ class MSHandler(BaseDeviceHandler):
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
     ) -> None:
-        """Initialize the MSHandler."""
+        """Initialize the MGHandler."""
         super().__init__(coordinator, device, config_entry)
         self._control_service = control_service
         self._network_control_service = network_control_service
@@ -51,7 +53,7 @@ class MSHandler(BaseDeviceHandler):
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
-    ) -> MSHandler:
+    ) -> MGHandler:
         """Create an instance of the handler."""
         return cls(
             coordinator,
@@ -62,9 +64,7 @@ class MSHandler(BaseDeviceHandler):
         )
 
     async def discover_entities(self) -> list[Entity]:
-        """Discover entities for the MS switch."""
-        from ...binary_sensor.switch_port import SwitchPortSensor
-
+        """Discover entities for the MG cellular gateway."""
         entities: list[Entity] = []
 
         # Reboot button
@@ -80,26 +80,18 @@ class MSHandler(BaseDeviceHandler):
                 )
             )
 
-        # Connected clients sensor
+        # Cellular uplink status sensor (shows status, provider, connection type)
         entities.append(
-            MerakiDeviceConnectedClientsSensor(
+            MerakiCellularUplinkSensor(
                 self._coordinator, self.device, self._config_entry
             )
         )
 
-        # PoE usage sensor (switches support PoE)
-        entities.append(MerakiPoeUsageSensor(self._coordinator, self.device))
-
-        # Check if port sensors are enabled
-        if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
-            if self.device and self.device.get("ports_statuses"):
-                for port in self.device["ports_statuses"]:
-                    entities.append(
-                        SwitchPortSensor(self._coordinator, self.device, port)
-                    )
-        else:
-            _LOGGER.debug(
-                "Port sensors disabled for device %s", self.device.get("serial")
+        # Cellular signal strength sensor (RSRP in dBm)
+        entities.append(
+            MerakiCellularSignalSensor(
+                self._coordinator, self.device, self._config_entry
             )
+        )
 
         return entities

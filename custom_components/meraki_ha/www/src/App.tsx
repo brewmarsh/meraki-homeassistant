@@ -93,6 +93,7 @@ interface MerakiData {
   dashboard_device_type_filter?: string;
   dashboard_status_filter?: string;
   camera_link_integration?: string;
+  temperature_unit?: 'celsius' | 'fahrenheit';
   [key: string]: unknown;
 }
 
@@ -295,6 +296,9 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow }) => {
             hass={hass}
             configEntryId={configEntryId}
             cameraLinkIntegration={data.camera_link_integration}
+            configEntryOptions={{
+              temperature_unit: data.temperature_unit,
+            }}
           />
         );
       default:

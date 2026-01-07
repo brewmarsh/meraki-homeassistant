@@ -1,21 +1,23 @@
 import React from 'react';
 
 interface SensorReadingProps {
-  type: 'temperature' | 'humidity' | 'water' | 'door' | 'tvoc' | 'pm25' | 'noise' | 'battery';
+  type: 'temperature' | 'humidity' | 'water' | 'door' | 'tvoc' | 'pm25' | 'noise' | 'battery' | 'co2' | 'indoorAirQuality';
   value: number;
   unit?: string;
   min?: number;
   max?: number;
   status?: 'normal' | 'warning' | 'critical';
+  temperatureUnit?: 'celsius' | 'fahrenheit';
 }
 
 const SensorReading: React.FC<SensorReadingProps> = ({
   type,
   value,
   unit,
-  min = 0,
-  max = 100,
+  min,
+  max,
   status = 'normal',
+  temperatureUnit = 'celsius',
 }) => {
   const getIcon = (): string => {
     switch (type) {
@@ -27,6 +29,8 @@ const SensorReading: React.FC<SensorReadingProps> = ({
       case 'pm25': return '🌫️';
       case 'noise': return '🔊';
       case 'battery': return '🔋';
+      case 'co2': return '💨';
+      case 'indoorAirQuality': return '🍃';
       default: return '📊';
     }
   };
@@ -41,26 +45,75 @@ const SensorReading: React.FC<SensorReadingProps> = ({
       case 'pm25': return 'PM2.5';
       case 'noise': return 'Noise Level';
       case 'battery': return 'Battery';
+      case 'co2': return 'CO₂';
+      case 'indoorAirQuality': return 'Air Quality';
       default: return type;
     }
   };
 
   const getDefaultUnit = (): string => {
     switch (type) {
-      case 'temperature': return '°C';
+      case 'temperature': 
+        return temperatureUnit === 'fahrenheit' ? '°F' : '°C';
       case 'humidity': return '%';
       case 'tvoc': return 'ppb';
       case 'pm25': return 'µg/m³';
       case 'noise': return 'dB';
       case 'battery': return '%';
+      case 'co2': return 'ppm';
+      case 'indoorAirQuality': return '';
       default: return '';
+    }
+  };
+
+  // Convert temperature from Celsius to Fahrenheit if needed
+  const getDisplayValue = (): number => {
+    if (type === 'temperature' && temperatureUnit === 'fahrenheit') {
+      return (value * 9/5) + 32;
+    }
+    return value;
+  };
+
+  // Get appropriate min/max for gauge based on type and unit
+  const getGaugeRange = (): { min: number; max: number } => {
+    if (min !== undefined && max !== undefined) {
+      // If custom min/max provided, convert for temperature
+      if (type === 'temperature' && temperatureUnit === 'fahrenheit') {
+        return { min: (min * 9/5) + 32, max: (max * 9/5) + 32 };
+      }
+      return { min, max };
+    }
+    // Default ranges by type
+    switch (type) {
+      case 'temperature':
+        return temperatureUnit === 'fahrenheit' 
+          ? { min: 32, max: 122 }  // 0-50°C in °F
+          : { min: 0, max: 50 };
+      case 'humidity':
+      case 'battery':
+        return { min: 0, max: 100 };
+      case 'tvoc':
+        return { min: 0, max: 1000 };
+      case 'pm25':
+        return { min: 0, max: 150 };
+      case 'noise':
+        return { min: 20, max: 100 };
+      case 'co2':
+        return { min: 400, max: 2000 };
+      case 'indoorAirQuality':
+        return { min: 0, max: 100 };
+      default:
+        return { min: 0, max: 100 };
     }
   };
 
   const getStatusMessage = (): string => {
     switch (status) {
       case 'normal': 
-        return type === 'humidity' ? 'Optimal humidity' : 'Within normal range';
+        if (type === 'humidity') return 'Optimal humidity';
+        if (type === 'indoorAirQuality') return 'Good air quality';
+        if (type === 'co2') return 'Normal CO₂';
+        return 'Within normal range';
       case 'warning': 
         return 'Above threshold';
       case 'critical': 
@@ -71,12 +124,32 @@ const SensorReading: React.FC<SensorReadingProps> = ({
   };
 
   const getGaugePercent = (): number => {
-    if (max === min) return 0;
-    return Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
+    const range = getGaugeRange();
+    const displayVal = getDisplayValue();
+    if (range.max === range.min) return 0;
+    return Math.min(100, Math.max(0, ((displayVal - range.min) / (range.max - range.min)) * 100));
+  };
+
+  // Get gauge color class based on type
+  const getGaugeClass = (): string => {
+    switch (type) {
+      case 'temperature': return 'temp';
+      case 'humidity': return 'humidity';
+      case 'tvoc': 
+      case 'pm25':
+      case 'co2':
+      case 'indoorAirQuality':
+        return 'air-quality';
+      case 'noise': return 'noise';
+      case 'battery': return 'battery';
+      default: return 'default';
+    }
   };
 
   const displayUnit = unit || getDefaultUnit();
   const gaugePercent = getGaugePercent();
+  const displayValue = getDisplayValue();
+  const range = getGaugeRange();
 
   return (
     <div className={`reading-card ${type}`}>
@@ -85,7 +158,7 @@ const SensorReading: React.FC<SensorReadingProps> = ({
       </div>
       <div className="reading-label">{getLabel()}</div>
       <div className="reading-value">
-        {typeof value === 'number' ? value.toFixed(1) : value}
+        {typeof displayValue === 'number' ? displayValue.toFixed(1) : displayValue}
         <span className="reading-unit">{displayUnit}</span>
       </div>
       <div className="reading-status">
@@ -96,18 +169,17 @@ const SensorReading: React.FC<SensorReadingProps> = ({
       </div>
       <div className="gauge-wrapper">
         <div 
-          className={`gauge-fill ${type === 'temperature' ? 'temp' : 'humidity'}`}
+          className={`gauge-fill ${getGaugeClass()}`}
           style={{ width: `${gaugePercent}%` }}
         />
       </div>
       <div className="gauge-labels">
-        <span>{min}{displayUnit}</span>
-        <span>{((max + min) / 2).toFixed(0)}{displayUnit}</span>
-        <span>{max}{displayUnit}</span>
+        <span>{range.min.toFixed(0)}{displayUnit}</span>
+        <span>{((range.max + range.min) / 2).toFixed(0)}{displayUnit}</span>
+        <span>{range.max.toFixed(0)}{displayUnit}</span>
       </div>
     </div>
   );
 };
 
 export default SensorReading;
-

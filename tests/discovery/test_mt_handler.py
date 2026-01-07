@@ -1,5 +1,6 @@
 """Tests for the MTHandler."""
 
+from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
@@ -9,6 +10,7 @@ from custom_components.meraki_ha.binary_sensor.device.meraki_mt_binary_base impo
 )
 from custom_components.meraki_ha.discovery.handlers.mt import MTHandler
 from custom_components.meraki_ha.sensor.device.meraki_mt_base import MerakiMtSensor
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
@@ -29,11 +31,14 @@ async def test_mt_handler_discover_entities_mt10(
     mock_control_service: MagicMock,
 ):
     """Test MTHandler discovers entities correctly for MT10."""
-    device = {
-        "serial": "mt10-1",
-        "model": "MT10",
-        "name": "MT10 Sensor",
-    }
+    device = cast(
+        MerakiDevice,
+        {
+            "serial": "mt10-1",
+            "model": "MT10",
+            "name": "MT10 Sensor",
+        },
+    )
 
     handler = MTHandler(
         mock_coordinator_mt_handler,
@@ -44,12 +49,14 @@ async def test_mt_handler_discover_entities_mt10(
 
     entities = await handler.discover_entities()
 
-    # MT10 has Temperature, Humidity, Battery (3 sensors)
-    assert len(entities) == 3
-    assert all(isinstance(e, MerakiMtSensor) for e in entities)
-    assert any(e.entity_description.key == "temperature" for e in entities)
-    assert any(e.entity_description.key == "humidity" for e in entities)
-    assert any(e.entity_description.key == "battery" for e in entities)
+    # MT10 has Temperature, Humidity, Battery (3 sensors) + Device Status = 4
+    assert len(entities) == 4
+    # Filter out device status sensor for MerakiMtSensor check
+    mt_sensors = [e for e in entities if isinstance(e, MerakiMtSensor)]
+    assert len(mt_sensors) == 3
+    assert any(e.entity_description.key == "temperature" for e in mt_sensors)
+    assert any(e.entity_description.key == "humidity" for e in mt_sensors)
+    assert any(e.entity_description.key == "battery" for e in mt_sensors)
 
 
 async def test_mt_handler_discover_entities_mt12(
@@ -58,11 +65,14 @@ async def test_mt_handler_discover_entities_mt12(
     mock_control_service: MagicMock,
 ):
     """Test MTHandler discovers entities correctly for MT12."""
-    device = {
-        "serial": "mt12-1",
-        "model": "MT12",
-        "name": "MT12 Sensor",
-    }
+    device = cast(
+        MerakiDevice,
+        {
+            "serial": "mt12-1",
+            "model": "MT12",
+            "name": "MT12 Sensor",
+        },
+    )
 
     handler = MTHandler(
         mock_coordinator_mt_handler,
@@ -73,8 +83,8 @@ async def test_mt_handler_discover_entities_mt12(
 
     entities = await handler.discover_entities()
 
-    # MT12 has Temperature, Battery (Sensors) + Water (Binary Sensor) = 3 total
-    assert len(entities) == 3
+    # MT12 has Temperature, Battery (Sensors) + Water (Binary) + Device Status = 4
+    assert len(entities) == 4
     sensors = [e for e in entities if isinstance(e, MerakiMtSensor)]
     binary_sensors = [e for e in entities if isinstance(e, MerakiMtBinarySensor)]
 
@@ -92,11 +102,14 @@ async def test_mt_handler_discover_entities_mt20(
     mock_control_service: MagicMock,
 ):
     """Test MTHandler discovers entities correctly for MT20."""
-    device = {
-        "serial": "mt20-1",
-        "model": "MT20",
-        "name": "MT20 Sensor",
-    }
+    device = cast(
+        MerakiDevice,
+        {
+            "serial": "mt20-1",
+            "model": "MT20",
+            "name": "MT20 Sensor",
+        },
+    )
 
     handler = MTHandler(
         mock_coordinator_mt_handler,
@@ -107,8 +120,8 @@ async def test_mt_handler_discover_entities_mt20(
 
     entities = await handler.discover_entities()
 
-    # MT20 has Battery, Temperature, Humidity (Sensors) + Door (Binary Sensor) = 4 total
-    assert len(entities) == 4
+    # MT20 has Battery, Temperature, Humidity (Sensors) + Door (Binary) + Status = 5
+    assert len(entities) == 5
     sensors = [e for e in entities if isinstance(e, MerakiMtSensor)]
     binary_sensors = [e for e in entities if isinstance(e, MerakiMtBinarySensor)]
 

@@ -805,6 +805,23 @@
   color: #06b6d4;
 }
 
+.reading-card.tvoc .icon-wrapper,
+.reading-card.pm25 .icon-wrapper,
+.reading-card.co2 .icon-wrapper {
+  background: rgba(132, 204, 22, 0.15);
+  color: #84cc16;
+}
+
+.reading-card.indoorAirQuality .icon-wrapper {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.reading-card.noise .icon-wrapper {
+  background: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+}
+
 .reading-card .reading-label {
   font-size: 14px;
   color: var(--text-muted);
@@ -822,6 +839,11 @@
 
 .reading-card.temperature .reading-value { color: #f97316; }
 .reading-card.humidity .reading-value { color: #06b6d4; }
+.reading-card.tvoc .reading-value,
+.reading-card.pm25 .reading-value,
+.reading-card.co2 .reading-value { color: #84cc16; }
+.reading-card.indoorAirQuality .reading-value { color: #22c55e; }
+.reading-card.noise .reading-value { color: #8b5cf6; }
 
 .reading-card .reading-unit {
   font-size: 24px;
@@ -860,6 +882,22 @@
 
 .gauge-fill.humidity {
   background: #06b6d4;
+}
+
+.gauge-fill.air-quality {
+  background: linear-gradient(90deg, #22c55e 0%, #84cc16 25%, #eab308 50%, #f97316 75%, #ef4444 100%);
+}
+
+.gauge-fill.noise {
+  background: linear-gradient(90deg, #22c55e 0%, #06b6d4 50%, #8b5cf6 100%);
+}
+
+.gauge-fill.battery {
+  background: linear-gradient(90deg, #ef4444 0%, #eab308 25%, #22c55e 50%, #22c55e 100%);
+}
+
+.gauge-fill.default {
+  background: #64748b;
 }
 
 .gauge-labels {

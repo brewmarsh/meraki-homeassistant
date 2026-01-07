@@ -19,6 +19,7 @@ from ..const import (
     CONF_ENABLE_SSID_SENSORS,
 )
 from .handlers.gx import GXHandler
+from .handlers.mg import MGHandler
 from .handlers.mr import MRHandler
 from .handlers.ms import MSHandler
 from .handlers.mt import MTHandler
@@ -50,6 +51,10 @@ HANDLER_MAPPING = {
     "GS": MSHandler,
     "MT": MTHandler,
     "GR": GXHandler,
+    "MG": MGHandler,  # Cellular Gateway
+    "CW": MRHandler,  # Catalyst Wireless (same as MR)
+    "C9": MSHandler,  # Catalyst Switch C9200/C9300 (same as MS)
+    "CS": MSHandler,  # Catalyst Switch (same as MS)
 }
 
 
@@ -215,7 +220,7 @@ class DeviceDiscoveryService:
                     self._control_service,
                     self._network_control_service,
                 )
-            elif model_prefix in ("MS", "GS"):
+            elif model_prefix in ("MS", "GS", "C9", "CS"):
                 handler = handler_class(
                     self._coordinator,
                     device,
@@ -223,7 +228,7 @@ class DeviceDiscoveryService:
                     self._control_service,
                     self._network_control_service,
                 )
-            elif model_prefix == "MR":
+            elif model_prefix in ("MR", "MG", "CW"):
                 handler = handler_class(
                     self._coordinator,
                     device,

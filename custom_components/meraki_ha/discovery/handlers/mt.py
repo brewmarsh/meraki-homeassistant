@@ -6,6 +6,8 @@ import logging
 from typing import TYPE_CHECKING
 
 from ...binary_sensor.device.meraki_mt_binary_base import MerakiMtBinarySensor
+from ...const import CONF_ENABLE_DEVICE_STATUS
+from ...sensor.device.device_status import MerakiDeviceStatusSensor
 from ...sensor.device.meraki_mt_base import MerakiMtSensor
 from ...sensor_defs.mt_sensors import MT_BINARY_SENSOR_MODELS, MT_SENSOR_MODELS
 from .base import BaseDeviceHandler
@@ -14,9 +16,9 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ....services.device_control_service import DeviceControlService
-    from ....types import MerakiDevice
     from ...meraki_data_coordinator import MerakiDataCoordinator
+    from ...services.device_control_service import DeviceControlService
+    from ...types import MerakiDevice
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -69,11 +71,19 @@ class MTHandler(BaseDeviceHandler):
         if not model:
             return []
 
+        # Device status sensor (common to all MT devices)
+        if self._config_entry.options.get(CONF_ENABLE_DEVICE_STATUS, True):
+            entities.append(
+                MerakiDeviceStatusSensor(
+                    self._coordinator, self.device, self._config_entry
+                )
+            )
+
         # Get the model prefix for lookup (e.g., MT15-HW -> MT15)
         model_prefix = self._get_model_prefix(model)
         if not model_prefix:
             _LOGGER.debug("Unknown MT sensor model: %s", model)
-            return []
+            return entities  # Return status sensor even for unknown models
 
         # Look up supported sensors for this model
         sensor_descriptions = MT_SENSOR_MODELS.get(model_prefix)

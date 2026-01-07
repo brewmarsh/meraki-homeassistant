@@ -29,11 +29,11 @@ def test_format_device_name_no_name():
 
 
 def test_format_device_name_no_product_type():
-    """Test the format_device_name function with no product type."""
+    """Test the format_device_name function with no product type but known model."""
     device = {"name": "My AP", "model": "MR33"}
     config = {"device_name_format": "prefix"}
-    # Without productType, uses "DE" for device
-    assert format_device_name(device, config) == "[DE] My AP"
+    # Model prefix MR is recognized, so uses [MR] even without productType
+    assert format_device_name(device, config) == "[MR] My AP"
 
 
 def test_format_device_name_camera():

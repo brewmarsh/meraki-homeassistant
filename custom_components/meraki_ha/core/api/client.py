@@ -25,6 +25,7 @@ from ...core.errors import (
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
+from .endpoints.cellular import CellularEndpoint
 from .endpoints.devices import DevicesEndpoints
 from .endpoints.network import NetworkEndpoints
 from .endpoints.organization import OrganizationEndpoints
@@ -70,6 +71,7 @@ class MerakiAPIClient:
         # Initialize endpoint handlers
         self.appliance = ApplianceEndpoints(self, self._hass)
         self.camera = CameraEndpoints(self)
+        self.cellular = CellularEndpoint(self)
         self.devices = DevicesEndpoints(self)
         self.network = NetworkEndpoints(self)
         self.organization = OrganizationEndpoints(self)
@@ -161,6 +163,9 @@ class MerakiAPIClient:
             "appliance_uplink_statuses": self._run_with_semaphore(
                 self.appliance.get_organization_appliance_uplink_statuses(),
             ),
+            "cellular_uplink_statuses": self._run_with_semaphore(
+                self.cellular.get_organization_cellular_gateway_uplink_statuses(),
+            ),
             "sensor_readings": self._run_with_semaphore(
                 self.sensor.get_organization_sensor_readings_latest(),
             ),
@@ -228,6 +233,14 @@ class MerakiAPIClient:
                 "Could not fetch Meraki sensor readings: %s", sensor_readings_res
             )
 
+        # Process cellular gateway uplink statuses
+        cellular_uplink_statuses_res = results.get("cellular_uplink_statuses")
+        cellular_uplink_statuses: list[dict[str, Any]] = (
+            cellular_uplink_statuses_res
+            if isinstance(cellular_uplink_statuses_res, list)
+            else []
+        )
+
         availabilities_by_serial = {
             availability["serial"]: availability
             for availability in devices_availabilities
@@ -240,11 +253,21 @@ class MerakiAPIClient:
             if isinstance(reading, dict) and "serial" in reading
         }
 
+        # Index cellular uplink statuses by serial
+        cellular_uplinks_by_serial = {
+            uplink["serial"]: uplink.get("uplinks", [])
+            for uplink in cellular_uplink_statuses
+            if isinstance(uplink, dict) and "serial" in uplink
+        }
+
         for device in devices:
             if availability := availabilities_by_serial.get(device["serial"]):
                 device["status"] = availability["status"]
             if readings := readings_by_serial.get(device["serial"]):
                 device["readings"] = readings
+            # Merge cellular uplink data into device
+            if uplinks := cellular_uplinks_by_serial.get(device["serial"]):
+                device["cellular_uplinks"] = uplinks
 
         return {
             "networks": networks,

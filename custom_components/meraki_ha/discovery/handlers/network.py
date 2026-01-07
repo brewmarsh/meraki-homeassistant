@@ -21,11 +21,11 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ....services.camera_service import CameraService
-    from ....services.device_control_service import DeviceControlService
-    from ....types import MerakiDevice
     from ...meraki_data_coordinator import MerakiDataCoordinator
+    from ...services.camera_service import CameraService
+    from ...services.device_control_service import DeviceControlService
     from ...services.network_control_service import NetworkControlService
+    from ...types import MerakiDevice
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ class NetworkHandler(BaseHandler):
     def create(
         cls,
         coordinator: MerakiDataCoordinator,
-        device: MerakiDevice,
+        device: MerakiDevice | None,
         config_entry: ConfigEntry,
         camera_service: CameraService,
         control_service: DeviceControlService,
