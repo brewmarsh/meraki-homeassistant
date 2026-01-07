@@ -105,11 +105,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Fresh checkout ensures we're on the commit with the version bump
+          # --target main is REQUIRED to ensure the release is created from
+          # the just-pushed commit, not from GitHub's cached branch state
           gh release create "v${{ needs.version.outputs.new_version }}" \
             --repo "${{ github.repository }}" \
             --title "Release v${{ needs.version.outputs.new_version }}" \
-            --generate-notes
+            --generate-notes \
+            --target main
 
   deploy:
     runs-on: ubuntu-latest
