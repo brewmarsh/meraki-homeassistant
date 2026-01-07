@@ -21,12 +21,14 @@ from .const import (
     CONF_DASHBOARD_VIEW_MODE,
     CONF_ENABLED_NETWORKS,
     CONF_SCAN_INTERVAL,
+    CONF_TEMPERATURE_UNIT,
     DATA_CLIENT,
     DEFAULT_CAMERA_LINK_INTEGRATION,
     DEFAULT_DASHBOARD_DEVICE_TYPE_FILTER,
     DEFAULT_DASHBOARD_STATUS_FILTER,
     DEFAULT_DASHBOARD_VIEW_MODE,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_TEMPERATURE_UNIT,
     DOMAIN,
 )
 from .core.errors import MerakiError
@@ -243,6 +245,9 @@ async def handle_get_config(
         ),
         "camera_link_integration": config_entry.options.get(
             CONF_CAMERA_LINK_INTEGRATION, DEFAULT_CAMERA_LINK_INTEGRATION
+        ),
+        "temperature_unit": config_entry.options.get(
+            CONF_TEMPERATURE_UNIT, DEFAULT_TEMPERATURE_UNIT
         ),
     }
 

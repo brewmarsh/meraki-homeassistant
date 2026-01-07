@@ -32,6 +32,11 @@ interface Device {
     temperature?: number;
     humidity?: number;
     battery?: number;
+    tvoc?: number;
+    pm25?: number;
+    co2?: number;
+    noise?: number;
+    indoorAirQuality?: number;
   };
   uptime?: number;
   lastReportedAt?: string;
@@ -50,6 +55,10 @@ interface DeviceViewProps {
   };
   configEntryId?: string;
   cameraLinkIntegration?: string;
+  configEntryOptions?: {
+    temperature_unit?: 'celsius' | 'fahrenheit';
+    [key: string]: unknown;
+  };
 }
 
 const DeviceView: React.FC<DeviceViewProps> = ({
@@ -59,7 +68,9 @@ const DeviceView: React.FC<DeviceViewProps> = ({
   hass,
   configEntryId,
   cameraLinkIntegration,
+  configEntryOptions,
 }) => {
+  const temperatureUnit = configEntryOptions?.temperature_unit || 'celsius';
   const device = data.devices.find((d) => d.serial === activeView.deviceId);
   const [snapshotUrl, setSnapshotUrl] = React.useState<string | null>(null);
   const [snapshotLoading, setSnapshotLoading] = React.useState(false);
@@ -449,8 +460,7 @@ const DeviceView: React.FC<DeviceViewProps> = ({
             <SensorReading
               type="temperature"
               value={readings.temperature}
-              min={0}
-              max={50}
+              temperatureUnit={temperatureUnit}
               status="normal"
             />
           )}
@@ -458,9 +468,42 @@ const DeviceView: React.FC<DeviceViewProps> = ({
             <SensorReading
               type="humidity"
               value={readings.humidity}
-              min={0}
-              max={100}
               status="normal"
+            />
+          )}
+          {readings.indoorAirQuality != null && (
+            <SensorReading
+              type="indoorAirQuality"
+              value={readings.indoorAirQuality}
+              status={readings.indoorAirQuality >= 70 ? 'normal' : readings.indoorAirQuality >= 50 ? 'warning' : 'critical'}
+            />
+          )}
+          {readings.tvoc != null && (
+            <SensorReading
+              type="tvoc"
+              value={readings.tvoc}
+              status={readings.tvoc <= 400 ? 'normal' : readings.tvoc <= 800 ? 'warning' : 'critical'}
+            />
+          )}
+          {readings.pm25 != null && (
+            <SensorReading
+              type="pm25"
+              value={readings.pm25}
+              status={readings.pm25 <= 35 ? 'normal' : readings.pm25 <= 75 ? 'warning' : 'critical'}
+            />
+          )}
+          {readings.co2 != null && (
+            <SensorReading
+              type="co2"
+              value={readings.co2}
+              status={readings.co2 <= 1000 ? 'normal' : readings.co2 <= 2000 ? 'warning' : 'critical'}
+            />
+          )}
+          {readings.noise != null && (
+            <SensorReading
+              type="noise"
+              value={readings.noise}
+              status={readings.noise <= 60 ? 'normal' : readings.noise <= 80 ? 'warning' : 'critical'}
             />
           )}
         </div>
