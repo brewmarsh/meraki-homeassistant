@@ -13,6 +13,7 @@ from .sensor.device.meraki_firmware_status import MerakiFirmwareStatusSensor
 from .sensor.device.meraki_wan1_connectivity import MerakiWAN1ConnectivitySensor
 from .sensor.device.meraki_wan2_connectivity import MerakiWAN2ConnectivitySensor
 from .sensor.device.poe_usage import MerakiPoeUsageSensor
+from .sensor.device.rtsp_url import MerakiRtspUrlSensor
 
 SensorClassList = list[type[Entity]]
 
@@ -42,6 +43,7 @@ SENSORS_COORD_DEV_CONF: dict[str, SensorClassList] = {
         MerakiCameraSenseStatusSensor,
         MerakiCameraAudioDetectionSensor,
         MerakiFirmwareStatusSensor,
+        MerakiRtspUrlSensor,
     ],
     "cellularGateway": [
         MerakiDeviceConnectedClientsSensor,
@@ -52,6 +54,9 @@ SENSORS_COORD_DEV_CONF: dict[str, SensorClassList] = {
 COMMON_SENSORS_COORD_DEV_CONF: SensorClassList = [
     MerakiDeviceStatusSensor,
 ]
+
+# Alias for backward compatibility or clarity if needed
+COMMON_DEVICE_SENSORS = COMMON_SENSORS_COORD_DEV_CONF
 
 
 def get_sensors_for_device_type(

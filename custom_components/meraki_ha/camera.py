@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 import aiohttp
 from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
@@ -77,6 +77,13 @@ class MerakiCamera(CoordinatorEntity, Camera):
             "",
         )
         self._attr_model = self.device_data.get("model")
+        self._attr_supported_features = CameraEntityFeature.STREAM
+        self._rtsp_url: str | None = None
+        self._webrtc_provider = None
+        self.access_tokens = []
+        self._supports_native_async_webrtc = False
+        self._cache = {}
+        self._create_stream_lock = asyncio.Lock()
 
     @property
     def device_data(self) -> dict[str, Any]:
