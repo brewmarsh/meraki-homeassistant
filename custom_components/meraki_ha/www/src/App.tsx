@@ -172,35 +172,6 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
     }
   };
 
-  const handleToggle = async (networkId: string, enabled: boolean) => {
-    if (!data) return;
-
-    const updatedNetworks = data.networks.map((network: any) =>
-      network.id === networkId ? { ...network, is_enabled: enabled } : network
-    );
-
-    const updatedData = { ...data, networks: updatedNetworks };
-    setData(updatedData);
-
-    const enabledNetworkIds = updatedNetworks
-      .filter((network: any) => network.is_enabled)
-      .map((network: any) => network.id);
-
-    try {
-      await hass.callWS({
-        type: 'meraki_ha/update_enabled_networks',
-        config_entry_id: configEntryId,
-        enabled_networks: enabledNetworkIds,
-      });
-    } catch (err: any) {
-      console.error('Error updating enabled networks:', err);
-      setError(
-        err.message || 'An unknown error occurred while updating networks.'
-      );
-      // Revert UI if API call fails
-      setData(data);
-    }
-  };
 
   if (loading || !data) {
     return (
@@ -243,7 +214,6 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
         <NetworkView
           hass={hass}
           data={data}
-          onToggle={handleToggle}
           setActiveView={setActiveView}
           configEntryId={configEntryId}
         />
