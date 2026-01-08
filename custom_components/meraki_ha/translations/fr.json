@@ -28,43 +28,15 @@
         "description": "Configurez les paramètres de l'intégration Meraki.",
         "data": {
           "scan_interval": "Intervalle de mise à jour",
+          "scan_interval_description": "Fréquence d'interrogation de l'API Meraki pour les mises à jour, en secondes.",
           "enable_device_tracker": "Activer le suivi des appareils",
+          "enable_device_tracker_description": "Suivez les appareils connectés à vos réseaux Meraki en tant qu'entités Home Assistant.",
           "enable_vlan_management": "Activer la gestion des VLAN",
-          "ignored_networks": "Réseaux ignorés"
+          "enable_vlan_management_description": "Exposez les contrôles pour gérer les paramètres VLAN sur vos réseaux.",
+          "ignored_networks": "Réseaux ignorés",
+          "ignored_networks_description": "Une liste de noms de réseau séparés par des virgules à exclure de l'intégration."
         }
       }
-    }
-  },
-  "entity": {
-    "sensor": {
-      "client_count": { "name": "Nombre de clients" },
-      "power": { "name": "Puissance" },
-      "energy": { "name": "Énergie" },
-      "wan1_connectivity": { "name": "Connectivité WAN 1" },
-      "wan2_connectivity": { "name": "Connectivité WAN 2" },
-      "firmware_status": {
-        "name": "État du firmware",
-        "state": {
-          "up-to-date": "À jour",
-          "out-of-date": "Obsolète",
-          "unknown": "Inconnu"
-        }
-      },
-      "device_status": {
-        "name": "Statut",
-        "state": {
-          "online": "En ligne",
-          "offline": "Hors ligne",
-          "alerting": "Alerte en cours",
-          "dormant": "Inactif",
-          "unknown": "Inconnu"
-        }
-      }
-    },
-    "switch": {
-      "ssid_status": { "name": "Statut du SSID" },
-      "camera_rtsp": { "name": "Serveur RTSP" },
-      "camera_sense": { "name": "Sense" }
     }
   }
 }
