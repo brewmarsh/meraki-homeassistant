@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Jules to Fix CI
-        uses: google-labs-code/jules-invoke@v1
+        uses: google-labs-code/jules-invoke@main
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           base_branch: 'beta'

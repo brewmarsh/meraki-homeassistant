@@ -327,37 +327,6 @@ class MerakiAPIClient:
                 clients.extend(result)
         return clients
 
-    async def _async_fetch_device_clients(
-        self,
-        devices: list[MerakiDevice],
-    ) -> dict[str, list[dict[str, Any]]]:
-        """
-        Fetch client data for each device.
-
-        Args:
-            devices: A list of devices to fetch clients for.
-
-        Returns
-        -------
-            A dictionary of clients by device serial.
-
-        """
-        client_tasks = {
-            device["serial"]: self._run_with_semaphore(
-                self.devices.get_device_clients(device["serial"]),
-            )
-            for device in devices
-            if device.get("productType")
-            in ["wireless", "appliance", "switch", "cellularGateway"]
-        }
-        results = await asyncio.gather(*client_tasks.values(), return_exceptions=True)
-        clients_by_serial: dict[str, list[dict[str, Any]]] = {}
-        for i, serial in enumerate(client_tasks.keys()):
-            result = results[i]
-            if isinstance(result, list):
-                clients_by_serial[serial] = result
-        return clients_by_serial
-
     def _build_detail_tasks(
         self,
         networks: list[MerakiNetwork],
@@ -662,11 +631,22 @@ class MerakiAPIClient:
         networks = processed_initial_data["networks"]
         devices = processed_initial_data["devices"]
 
-        network_clients, device_clients = await asyncio.gather(
-            self._async_fetch_network_clients(networks),
-            self._async_fetch_device_clients(devices),
-            return_exceptions=True,
-        )
+        # Fetch clients for all networks (single bulk operation)
+        # This replaces the N+1 per-device fetch strategy
+        network_clients = await self._async_fetch_network_clients(networks)
+
+        # Organize clients by device serial for quick lookup
+        # We only consider 'Online' clients to match the behavior of the previous
+        # implementation which fetched clients with a short timespan (300s).
+        clients_by_serial: dict[str, list[dict[str, Any]]] = {}
+        if isinstance(network_clients, list):
+            for client in network_clients:
+                if client.get("status") == "Online":
+                    serial = client.get("recentDeviceSerial")
+                    if serial:
+                        if serial not in clients_by_serial:
+                            clients_by_serial[serial] = []
+                        clients_by_serial[serial].append(client)
 
         detail_tasks = self._build_detail_tasks(networks, devices)
         detail_data = await asyncio.gather(
@@ -686,9 +666,7 @@ class MerakiAPIClient:
             "networks": networks,
             "devices": devices,
             "clients": network_clients if isinstance(network_clients, list) else [],
-            "clients_by_serial": (
-                device_clients if isinstance(device_clients, dict) else {}
-            ),
+            "clients_by_serial": clients_by_serial,
             "appliance_uplink_statuses": processed_initial_data[
                 "appliance_uplink_statuses"
             ],

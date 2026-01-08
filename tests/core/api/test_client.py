@@ -86,7 +86,7 @@ async def test_get_all_data_orchestration(api_client):
         }
     )
     api_client._async_fetch_network_clients = AsyncMock(return_value=[])
-    api_client._async_fetch_device_clients = AsyncMock(return_value={})
+    # _async_fetch_device_clients removed as it's N+1 calls
     api_client._build_detail_tasks = MagicMock(return_value={})
     api_client._process_detailed_data = MagicMock(return_value={})
 
@@ -97,7 +97,6 @@ async def test_get_all_data_orchestration(api_client):
     api_client._async_fetch_initial_data.assert_awaited_once()
     api_client._process_initial_data.assert_called_once()
     api_client._async_fetch_network_clients.assert_awaited_once_with([MOCK_NETWORK])
-    api_client._async_fetch_device_clients.assert_awaited_once_with([MOCK_DEVICE])
     api_client._build_detail_tasks.assert_called_once_with(
         [MOCK_NETWORK], [MOCK_DEVICE]
     )

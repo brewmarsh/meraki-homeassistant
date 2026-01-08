@@ -25,7 +25,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Jules Agent
-        uses: google-labs-code/jules-invoke@v1
+        uses: google-labs-code/jules-invoke@main
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Explicitly tell Jules to use the beta branch
