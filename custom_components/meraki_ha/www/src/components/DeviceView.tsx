@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, memo } from 'react';
 import SwitchPortVisualization from './SwitchPortVisualization';
 import SensorReading from './SensorReading';
 import MetricCard from './MetricCard';
@@ -126,7 +126,7 @@ interface DeviceViewProps {
   };
 }
 
-const DeviceView: React.FC<DeviceViewProps> = ({
+const DeviceViewComponent: React.FC<DeviceViewProps> = ({
   activeView,
   setActiveView,
   data,
@@ -1448,5 +1448,46 @@ const DeviceView: React.FC<DeviceViewProps> = ({
     </div>
   );
 };
+
+// Memoize DeviceView to prevent unnecessary re-renders
+const DeviceView = memo(DeviceViewComponent, (prevProps, nextProps) => {
+  // Only re-render if the viewed device or its data changed
+  if (prevProps.activeView.deviceId !== nextProps.activeView.deviceId) {
+    return false; // Different device selected
+  }
+
+  // Find the current device in both props
+  const prevDevice = prevProps.data.devices.find(
+    (d) => d.serial === prevProps.activeView.deviceId
+  );
+  const nextDevice = nextProps.data.devices.find(
+    (d) => d.serial === nextProps.activeView.deviceId
+  );
+
+  // Compare device status
+  if (prevDevice?.status !== nextDevice?.status) {
+    return false;
+  }
+
+  // Compare port count for switches
+  if (
+    prevDevice?.ports_statuses?.length !== nextDevice?.ports_statuses?.length
+  ) {
+    return false;
+  }
+
+  // Compare client count
+  const prevClients = prevProps.data.clients?.filter(
+    (c) => c.recentDeviceSerial === prevDevice?.serial
+  ).length;
+  const nextClients = nextProps.data.clients?.filter(
+    (c) => c.recentDeviceSerial === nextDevice?.serial
+  ).length;
+  if (prevClients !== nextClients) {
+    return false;
+  }
+
+  return true; // No meaningful changes
+});
 
 export default DeviceView;

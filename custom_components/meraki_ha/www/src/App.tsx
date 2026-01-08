@@ -6,7 +6,13 @@
  * it to communicate with the backend via WebSocket.
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
 import Dashboard from './components/Dashboard';
 import DeviceView from './components/DeviceView';
 import ClientsView from './components/ClientsView';
@@ -255,6 +261,60 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
   }, []);
 
   /**
+   * Compare two data objects to check if they are meaningfully different
+   * Only triggers re-render if actual data changed, not just timestamps
+   */
+  const hasDataChanged = useCallback(
+    (oldData: MerakiData | null, newData: MerakiData): boolean => {
+      if (!oldData) return true;
+
+      // Compare key data counts
+      if (
+        oldData.devices?.length !== newData.devices?.length ||
+        oldData.networks?.length !== newData.networks?.length ||
+        oldData.clients?.length !== newData.clients?.length ||
+        oldData.ssids?.length !== newData.ssids?.length
+      ) {
+        return true;
+      }
+
+      // Compare device statuses (quick check for status changes)
+      const oldDeviceStates = oldData.devices
+        ?.map((d) => `${d.serial}:${d.status}`)
+        .sort()
+        .join('|');
+      const newDeviceStates = newData.devices
+        ?.map((d) => `${d.serial}:${d.status}`)
+        .sort()
+        .join('|');
+      if (oldDeviceStates !== newDeviceStates) {
+        return true;
+      }
+
+      // Compare client count per device (for port visualizations)
+      const oldClientDevices = oldData.clients
+        ?.map((c) => c.recentDeviceSerial)
+        .sort()
+        .join('|');
+      const newClientDevices = newData.clients
+        ?.map((c) => c.recentDeviceSerial)
+        .sort()
+        .join('|');
+      if (oldClientDevices !== newClientDevices) {
+        return true;
+      }
+
+      // Always accept if last_updated changed (for timestamp display)
+      // but don't force full re-render - handled by memoized components
+      return false;
+    },
+    []
+  );
+
+  // Store the last update timestamp separately to avoid re-renders
+  const lastUpdatedRef = useRef<string | null>(null);
+
+  /**
    * Subscribe to real-time Meraki data updates via WebSocket
    * Uses refs to avoid re-subscribing when hass object updates
    */
@@ -286,8 +346,36 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
                   networks: message.networks?.length,
                   devices: message.devices?.length,
                 });
+
                 const processed = processData(message);
-                setData(processed);
+
+                // Update timestamp ref (doesn't trigger re-render)
+                lastUpdatedRef.current =
+                  (message.last_updated as string) || null;
+
+                // Only update state if data actually changed
+                setData((prevData) => {
+                  if (hasDataChanged(prevData, processed)) {
+                    console.log(
+                      '[Meraki] Data changed, updating state',
+                      processed.last_updated
+                    );
+                    return processed;
+                  }
+                  // Data hasn't meaningfully changed, but update timestamps
+                  if (
+                    prevData &&
+                    prevData.last_updated !== processed.last_updated
+                  ) {
+                    console.log(
+                      '[Meraki] Only timestamp changed, light update'
+                    );
+                    return { ...prevData, ...processed };
+                  }
+                  console.log('[Meraki] No changes detected, skipping update');
+                  return prevData;
+                });
+
                 setLoading(false);
                 hasLoadedRef.current = true;
               }
@@ -369,15 +457,20 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
     );
   }
 
-  // Filter to only show enabled networks
-  const enabledNetworks =
-    data.networks?.filter((network) => network.is_enabled) || [];
+  // Memoize filtered networks to prevent recalculation on every render
+  const enabledNetworks = useMemo(
+    () => data.networks?.filter((network) => network.is_enabled) || [],
+    [data.networks]
+  );
 
-  // Create processed data with only enabled networks
-  const processedData = {
-    ...data,
-    networks: enabledNetworks,
-  };
+  // Memoize processed data with only enabled networks
+  const processedData = useMemo(
+    () => ({
+      ...data,
+      networks: enabledNetworks,
+    }),
+    [data, enabledNetworks]
+  );
 
   // Render the appropriate view
   const renderView = () => {

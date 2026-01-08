@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 
 interface Client {
   id: string;
@@ -32,7 +32,7 @@ interface ClientsViewProps {
   onBack: () => void;
 }
 
-const ClientsView: React.FC<ClientsViewProps> = ({
+const ClientsViewComponent: React.FC<ClientsViewProps> = ({
   clients,
   setActiveView,
   onBack,
@@ -382,5 +382,17 @@ const ClientsView: React.FC<ClientsViewProps> = ({
     </div>
   );
 };
+
+// Memoize ClientsView to prevent unnecessary re-renders
+const ClientsView = memo(ClientsViewComponent, (prevProps, nextProps) => {
+  // Only re-render if clients array changed
+  if (prevProps.clients.length !== nextProps.clients.length) {
+    return false;
+  }
+  // Compare client IDs
+  const prevIds = prevProps.clients.map((c) => c.id).join('|');
+  const nextIds = nextProps.clients.map((c) => c.id).join('|');
+  return prevIds === nextIds;
+});
 
 export default ClientsView;

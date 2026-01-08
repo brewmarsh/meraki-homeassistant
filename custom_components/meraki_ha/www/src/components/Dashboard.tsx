@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import StatusCard from './StatusCard';
 
 interface Device {
@@ -103,7 +103,7 @@ const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'dormant', label: 'Dormant' },
 ];
 
-const Dashboard: React.FC<DashboardProps> = ({
+const DashboardComponent: React.FC<DashboardProps> = ({
   setActiveView,
   data,
   hass: _hass,
@@ -649,5 +649,48 @@ const Dashboard: React.FC<DashboardProps> = ({
     </div>
   );
 };
+
+// Memoize the Dashboard to prevent unnecessary re-renders
+// Only re-render when data meaningfully changes
+const Dashboard = memo(DashboardComponent, (prevProps, nextProps) => {
+  // Return true if props are equal (skip re-render)
+  // Return false if props are different (trigger re-render)
+
+  // Check if data reference changed
+  if (prevProps.data === nextProps.data) {
+    return true; // Same reference, skip re-render
+  }
+
+  // Compare key data elements
+  const prevData = prevProps.data;
+  const nextData = nextProps.data;
+
+  // Compare counts
+  if (
+    prevData.devices?.length !== nextData.devices?.length ||
+    prevData.networks?.length !== nextData.networks?.length ||
+    prevData.clients?.length !== nextData.clients?.length
+  ) {
+    return false; // Different counts, re-render
+  }
+
+  // Compare device statuses
+  const prevStatuses = prevData.devices
+    ?.map((d) => `${d.serial}:${d.status}`)
+    .join('|');
+  const nextStatuses = nextData.devices
+    ?.map((d) => `${d.serial}:${d.status}`)
+    .join('|');
+  if (prevStatuses !== nextStatuses) {
+    return false; // Status changed, re-render
+  }
+
+  // Compare timestamps - allow re-render for countdown updates
+  if (prevData.last_updated !== nextData.last_updated) {
+    return false; // Timestamp changed, re-render for countdown
+  }
+
+  return true; // No meaningful changes, skip re-render
+});
 
 export default Dashboard;
