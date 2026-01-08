@@ -73,6 +73,7 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
                         "noise": "ambient",
                         "water": "present",
                         "power": "draw",
+                        "realPower": "draw",
                         "voltage": "level",
                         "current": "draw",
                         "battery": "percentage",

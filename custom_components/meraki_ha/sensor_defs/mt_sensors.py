@@ -70,7 +70,7 @@ MT_NOISE_DESCRIPTION = SensorEntityDescription(
 )
 
 MT_POWER_DESCRIPTION = SensorEntityDescription(
-    key="power",
+    key="realPower",
     name="Power",
     device_class=SensorDeviceClass.POWER,
     state_class=SensorStateClass.MEASUREMENT,
