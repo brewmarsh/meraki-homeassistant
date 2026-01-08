@@ -8,6 +8,7 @@ on:
 
 jobs:
   jules-process:
+    # Only run if the 'jules' label is added OR if someone mentions @jules in a comment
     if: >
       github.event.label.name == 'jules' ||
       contains(github.event.comment.body, '@jules')
@@ -18,7 +19,11 @@ jobs:
       pull-requests: write
 
     steps:
-      # We REMOVED the "Checkout" step here
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Run Jules Agent
         uses: google-labs-code/jules-invoke@v1
         with:
