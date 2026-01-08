@@ -1,35 +1,19 @@
-# Type of Change
+## 🤖 Jules AI Contribution Summary
+### 🎯 Versioning & Type
+**PR Title Format:** `[major|minor|patch] Short Description`
+- [ ] **Type:** (Bug fix / New feature / Breaking change)
 
--Bug fix (non-breaking change which fixes an issue)
--New feature (non-breaking change which adds functionality)
--Breaking change (fix or feature that would cause existing functionality to not
-work as expected)
+### 🔗 Context
+- **Linked Issue:** Fixes #
+- **Milestone:** v2.3.0 (2026.1 Infrastructure Update)
 
-**Remember to include `[major]`, `[minor]`, or `[patch]` in your PR title based**
-**on the type of change.** **Example:** `[minor] Add support for new sensor type`
+### 🛠 2026.1 Compliance Checklist
+- [ ] **Naming:** Implemented `has_entity_name: true` & Sentence case.
+- [ ] **Translations:** Updated `strings.json` and linked `en.json`.
+- [ ] **Categorization:** Moved technical metadata to `DIAGNOSTIC`.
+- [ ] **Refactoring:** Followed `ROADMAP.md` instructions.
 
-## Description
-
-## Motivation and Context
-
-## How Has This Been Tested?
-
-## Screenshots (if appropriate)
-
-## Types of changes
-
--Bug fix (non-breaking change which fixes an issue)
--New feature (non-breaking change which adds functionality)
--Breaking change (fix or feature that would cause existing functionality to not
-work as expected)
-
-## Checklist
-
--My code follows the style guidelines of this project
--I have performed a self-review of my own code
--I have commented my code, particularly in hard-to-understand areas
--I have made corresponding changes to the documentation
--My changes generate no new warnings
--I have added tests that prove my fix is effective or that my feature works
--New and existing unit tests pass locally with my changes
--Any dependent changes have been merged and published in downstream modules
+### ✍️ Documentation & Quality
+- [ ] **Comments:** I have commented code in complex Meraki API logic areas.
+- [ ] **Self-Review:** I have verified this code generates no new `meraki_ha` warnings.
+- [ ] **Roadmap:** I have marked the task as complete in `ROADMAP.md` (if applicable).
