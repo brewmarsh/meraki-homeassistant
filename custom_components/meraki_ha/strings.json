@@ -120,15 +120,29 @@
         "description": "Step 4 of 4: Configure MQTT for MT sensor real-time updates.\n\nConfigured relay destinations: {relay_destinations}",
         "data": {
           "enable_mqtt": "Enable MQTT for MT Sensors",
-          "add_relay_destination": "Add Relay Destination"
+          "add_relay_destination": "Add Relay Destination",
+          "manage_relay_destinations": "Manage Existing Destinations"
         },
         "data_description": {
           "enable_mqtt": "Enable MQTT to receive real-time updates from MT sensors via Home Assistant's Mosquitto broker. When enabled, API polling for sensor readings is disabled.",
-          "add_relay_destination": "Check this to add an external MQTT broker to relay sensor data to."
+          "add_relay_destination": "Check this to add an external MQTT broker to relay sensor data to.",
+          "manage_relay_destinations": "Edit or delete existing relay destinations."
+        }
+      },
+      "mqtt_manage_relays": {
+        "title": "Manage MQTT Relay Destinations",
+        "description": "Select a relay destination to edit or delete.",
+        "data": {
+          "destination_index": "Select Destination",
+          "action": "Action"
+        },
+        "data_description": {
+          "destination_index": "Choose a relay destination from the list.",
+          "action": "Choose whether to edit, delete, or go back."
         }
       },
       "mqtt_destination": {
-        "title": "Add MQTT Relay Destination",
+        "title": "{action} MQTT Relay Destination",
         "description": "Configure an external MQTT broker to relay Meraki sensor data to.",
         "data": {
           "name": "Destination Name",

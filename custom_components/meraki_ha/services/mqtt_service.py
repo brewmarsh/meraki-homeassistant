@@ -11,6 +11,7 @@ import json
 import logging
 import re
 from collections.abc import Callable
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from homeassistant.components import mqtt
@@ -61,11 +62,49 @@ class MerakiMqttService:
         self._unsubscribe: Callable[[], None] | None = None
         self._mac_to_serial_map: dict[str, str] = {}
         self._is_running = False
+        # Statistics tracking
+        self._messages_received: int = 0
+        self._messages_processed: int = 0
+        self._last_message_time: datetime | None = None
+        self._start_time: datetime | None = None
 
     @property
     def is_running(self) -> bool:
         """Return True if the MQTT service is running."""
         return self._is_running
+
+    @property
+    def messages_received(self) -> int:
+        """Return total messages received."""
+        return self._messages_received
+
+    @property
+    def messages_processed(self) -> int:
+        """Return total messages successfully processed."""
+        return self._messages_processed
+
+    @property
+    def last_message_time(self) -> datetime | None:
+        """Return time of last received message."""
+        return self._last_message_time
+
+    @property
+    def start_time(self) -> datetime | None:
+        """Return service start time."""
+        return self._start_time
+
+    def get_statistics(self) -> dict:
+        """Return MQTT service statistics."""
+        return {
+            "is_running": self._is_running,
+            "messages_received": self._messages_received,
+            "messages_processed": self._messages_processed,
+            "last_message_time": (
+                self._last_message_time.isoformat() if self._last_message_time else None
+            ),
+            "start_time": self._start_time.isoformat() if self._start_time else None,
+            "sensors_mapped": len(self._mac_to_serial_map),
+        }
 
     async def async_start(self) -> bool:
         """
@@ -92,6 +131,7 @@ class MerakiMqttService:
                 qos=0,
             )
             self._is_running = True
+            self._start_time = datetime.now()
             _LOGGER.info(
                 "MQTT service started, subscribed to %s", MERAKI_MQTT_MT_TOPIC_PATTERN
             )
@@ -161,6 +201,9 @@ class MerakiMqttService:
             msg: The received MQTT message.
 
         """
+        self._messages_received += 1
+        self._last_message_time = datetime.now()
+
         topic = msg.topic
         payload = msg.payload
 
@@ -219,6 +262,8 @@ class MerakiMqttService:
             metric,
             data,
         )
+
+        self._messages_processed += 1
 
         # Update the coordinator with the new data
         self._hass.async_create_task(

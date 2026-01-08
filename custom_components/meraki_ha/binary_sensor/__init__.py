@@ -9,6 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN
+from .mqtt_status import async_setup_mqtt_sensors
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -20,11 +21,17 @@ async def async_setup_entry(
 ) -> bool:
     """Set up Meraki binary sensor entities from a config entry."""
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = entry_data.get("coordinator")
 
     discovered_entities = entry_data.get("entities", [])
     binary_sensor_entities = [
         e for e in discovered_entities if isinstance(e, BinarySensorEntity)
     ]
+
+    # Add MQTT status sensors if MQTT is enabled
+    if coordinator is not None:
+        mqtt_sensors = await async_setup_mqtt_sensors(hass, config_entry, coordinator)
+        binary_sensor_entities.extend(mqtt_sensors)
 
     if binary_sensor_entities:
         _LOGGER.debug("Adding %d binary_sensor entities", len(binary_sensor_entities))
