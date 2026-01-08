@@ -229,6 +229,10 @@ interface Device {
     noise?: number;
     indoorAirQuality?: number;
   };
+  readings_meta?: {
+    last_updated?: string; // ISO timestamp of last reading update
+    data_source?: 'mqtt' | 'api' | 'mqtt_pending';
+  };
   uptime?: number;
   lastReportedAt?: string;
   cloud_video_url?: string;
@@ -355,6 +359,7 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
     entities = [],
     ports_statuses = [],
     readings,
+    readings_meta,
     uptime,
     lastReportedAt,
   } = device;
@@ -1399,6 +1404,8 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
               value={readings.temperature}
               temperatureUnit={temperatureUnit}
               status="normal"
+              lastUpdated={readings_meta?.last_updated}
+              dataSource={readings_meta?.data_source}
             />
           )}
           {readings.humidity != null && (
@@ -1406,6 +1413,8 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
               type="humidity"
               value={readings.humidity}
               status="normal"
+              lastUpdated={readings_meta?.last_updated}
+              dataSource={readings_meta?.data_source}
             />
           )}
           {readings.indoorAirQuality != null && (
@@ -1419,6 +1428,8 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
                   ? 'warning'
                   : 'critical'
               }
+              lastUpdated={readings_meta?.last_updated}
+              dataSource={readings_meta?.data_source}
             />
           )}
           {readings.tvoc != null && (
@@ -1432,6 +1443,8 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
                   ? 'warning'
                   : 'critical'
               }
+              lastUpdated={readings_meta?.last_updated}
+              dataSource={readings_meta?.data_source}
             />
           )}
           {readings.pm25 != null && (
@@ -1445,6 +1458,8 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
                   ? 'warning'
                   : 'critical'
               }
+              lastUpdated={readings_meta?.last_updated}
+              dataSource={readings_meta?.data_source}
             />
           )}
           {readings.co2 != null && (
@@ -1458,6 +1473,8 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
                   ? 'warning'
                   : 'critical'
               }
+              lastUpdated={readings_meta?.last_updated}
+              dataSource={readings_meta?.data_source}
             />
           )}
           {readings.noise != null && (
@@ -1471,6 +1488,8 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
                   ? 'warning'
                   : 'critical'
               }
+              lastUpdated={readings_meta?.last_updated}
+              dataSource={readings_meta?.data_source}
             />
           )}
         </div>

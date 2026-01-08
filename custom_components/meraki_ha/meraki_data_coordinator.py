@@ -260,11 +260,20 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._process_sensor_readings_for_frontend(readings_raw)
         )
 
+        # Track MQTT update timestamp
+        mqtt_update_time = datetime.now()
+        self._mqtt_last_updates[serial] = mqtt_update_time
+
+        # Update readings_meta with timestamp and data source
+        # Use the timestamp from the reading if available, otherwise use current time
+        reading_ts = data.get("ts") or mqtt_update_time.isoformat()
+        self.data["devices"][device_idx]["readings_meta"] = {
+            "last_updated": reading_ts,
+            "data_source": "mqtt",
+        }
+
         # Update the lookup table
         self.devices_by_serial[serial] = self.data["devices"][device_idx]
-
-        # Track MQTT update timestamp
-        self._mqtt_last_updates[serial] = datetime.now()
 
         _LOGGER.debug(
             "Updated device %s metric %s from MQTT",
@@ -660,6 +669,26 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
                 # Keep original list for sensor entities under a different key
                 device["readings_raw"] = raw_readings
+
+                # Add readings_meta with timestamp and data source
+                # Check if this device has MQTT updates (preserve MQTT source if active)
+                serial = device.get("serial", "")
+                mqtt_update = self._mqtt_last_updates.get(serial)
+                if mqtt_update and self._mqtt_enabled:
+                    # MQTT is providing data - keep existing meta
+                    pass
+                else:
+                    # Extract timestamp from readings if available
+                    last_ts = None
+                    for reading in raw_readings:
+                        ts = reading.get("ts")
+                        if ts:
+                            last_ts = ts
+                            break
+                    device["readings_meta"] = {
+                        "last_updated": last_ts or datetime.now().isoformat(),
+                        "data_source": "api",
+                    }
 
             ha_device = dev_reg.async_get_device(
                 identifiers={(DOMAIN, device["serial"])},

@@ -18,7 +18,23 @@ interface SensorReadingProps {
   max?: number;
   status?: 'normal' | 'warning' | 'critical';
   temperatureUnit?: 'celsius' | 'fahrenheit';
+  lastUpdated?: string; // ISO timestamp
+  dataSource?: 'mqtt' | 'api' | 'mqtt_pending';
 }
+
+// Format relative time for last updated display
+const formatRelativeTime = (isoTime: string | undefined): string => {
+  if (!isoTime) return '';
+  const date = new Date(isoTime);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+
+  if (diff < 0) return 'Just now'; // Future timestamp (clock skew)
+  if (diff < 60000) return `${Math.floor(diff / 1000)}s ago`;
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+  return date.toLocaleDateString();
+};
 
 const SensorReadingComponent: React.FC<SensorReadingProps> = ({
   type,
@@ -28,6 +44,8 @@ const SensorReadingComponent: React.FC<SensorReadingProps> = ({
   max,
   status = 'normal',
   temperatureUnit = 'celsius',
+  lastUpdated,
+  dataSource,
 }) => {
   const getIcon = (): string => {
     switch (type) {
@@ -200,7 +218,7 @@ const SensorReadingComponent: React.FC<SensorReadingProps> = ({
   const range = getGaugeRange();
 
   return (
-    <div className={`reading-card ${type}`}>
+    <div className={`reading-card ${type}`} style={{ position: 'relative' }}>
       <div className="icon-wrapper">
         <span className="reading-icon">{getIcon()}</span>
       </div>
@@ -237,6 +255,30 @@ const SensorReadingComponent: React.FC<SensorReadingProps> = ({
           {displayUnit}
         </span>
       </div>
+      {/* Last Updated Timestamp */}
+      {lastUpdated && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '6px',
+            right: '8px',
+            fontSize: '10px',
+            color: 'var(--secondary-text-color, #888)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
+          title={`Last updated: ${new Date(lastUpdated).toLocaleString()}${dataSource ? ` (via ${dataSource.toUpperCase()})` : ''}`}
+        >
+          {dataSource === 'mqtt' && (
+            <span style={{ color: '#22c55e', fontSize: '8px' }}>●</span>
+          )}
+          {dataSource === 'api' && (
+            <span style={{ color: '#3b82f6', fontSize: '8px' }}>●</span>
+          )}
+          {formatRelativeTime(lastUpdated)}
+        </div>
+      )}
     </div>
   );
 };
