@@ -13,9 +13,15 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
+    CONF_DASHBOARD_DEVICE_TYPE_FILTER,
     CONF_ENABLED_NETWORKS,
     CONF_SCAN_INTERVAL,
+    CONF_SCAN_INTERVAL_CLIENTS,
+    CONF_SCAN_INTERVAL_DEVICE_STATUS,
+    DATA_COORDINATORS,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SCAN_INTERVAL_CLIENTS,
+    DEFAULT_SCAN_INTERVAL_DEVICE_STATUS,
     DOMAIN,
 )
 from .core.api.client import MerakiAPIClient as ApiClient
@@ -25,49 +31,21 @@ from .types import MerakiDevice, MerakiNetwork
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
-    """A centralized coordinator for Meraki API data."""
+class MerakiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
+    """Base class for Meraki coordinators."""
 
     def __init__(
         self,
         hass: "HomeAssistant",
         api_client: ApiClient,
         entry: ConfigEntry,
+        name: str,
+        update_interval: timedelta,
     ) -> None:
-        """
-        Initialize the coordinator.
-
-        Args:
-        ----
-            hass: The Home Assistant instance.
-            entry: The config entry.
-
-        """
+        """Initialize the coordinator."""
         self.api = api_client
-        self.devices_by_serial: dict[str, MerakiDevice] = {}
-        self.networks_by_id: dict[str, MerakiNetwork] = {}
-        self.ssids_by_network_and_number: dict[tuple[str, int], dict[str, Any]] = {}
-        self.last_successful_update: datetime | None = None
-        self.last_successful_data: dict[str, Any] = {}
-        self._pending_updates: dict[str, datetime] = {}
-        self._vlan_check_timestamps: dict[str, datetime] = {}
-        self._traffic_check_timestamps: dict[str, datetime] = {}
-
-        try:
-            scan_interval = int(
-                entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-            )
-            if scan_interval <= 0:
-                scan_interval = DEFAULT_SCAN_INTERVAL
-        except (ValueError, TypeError):
-            scan_interval = DEFAULT_SCAN_INTERVAL
-
-        super().__init__(
-            hass,
-            _LOGGER,
-            name=DOMAIN,
-            update_interval=timedelta(seconds=scan_interval),
-        )
+        self.entry = entry
+        super().__init__(hass, _LOGGER, name=name, update_interval=update_interval)
 
     def register_pending_update(
         self,
@@ -157,6 +135,138 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         self.register_pending_update(unique_id, expiry_seconds)
 
+
+class MerakiDataCoordinator(MerakiCoordinator):
+    """A centralized coordinator for Meraki API data."""
+
+    def __init__(
+        self,
+        hass: "HomeAssistant",
+        api_client: ApiClient,
+        entry: ConfigEntry,
+    ) -> None:
+        """
+        Initialize the coordinator.
+
+        Args:
+        ----
+            hass: The Home Assistant instance.
+            entry: The config entry.
+
+        """
+        self.api = api_client
+        self.devices_by_serial: dict[str, MerakiDevice] = {}
+        self.networks_by_id: dict[str, MerakiNetwork] = {}
+        self.ssids_by_network_and_number: dict[tuple[str, int], dict[str, Any]] = {}
+        self.last_successful_update: datetime | None = None
+        self.last_successful_data: dict[str, Any] = {}
+        self._pending_updates: dict[str, datetime] = {}
+        self._vlan_check_timestamps: dict[str, datetime] = {}
+        self._traffic_check_timestamps: dict[str, datetime] = {}
+
+        scan_interval = entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+        super().__init__(
+            hass,
+            api_client,
+            entry,
+            name=f"{DOMAIN}_main",
+            update_interval=timedelta(seconds=scan_interval),
+        )
+
+        # Initialize sub-coordinators
+        self.device_status_coordinator = DeviceStatusCoordinator(
+            hass, api_client, entry
+        )
+        self.client_coordinator = ClientCoordinator(hass, api_client, entry)
+        hass.data[DOMAIN][entry.entry_id][DATA_COORDINATORS] = {
+            "device_status": self.device_status_coordinator,
+            "clients": self.client_coordinator,
+        }
+
+
+class DeviceStatusCoordinator(MerakiCoordinator):
+    """Coordinator for device status polling."""
+
+    def __init__(
+        self,
+        hass: "HomeAssistant",
+        api_client: ApiClient,
+        entry: ConfigEntry,
+    ) -> None:
+        """Initialize the coordinator."""
+        scan_interval = entry.options.get(
+            CONF_SCAN_INTERVAL_DEVICE_STATUS, DEFAULT_SCAN_INTERVAL_DEVICE_STATUS
+        )
+        super().__init__(
+            hass,
+            api_client,
+            entry,
+            name=f"{DOMAIN}_device_status",
+            update_interval=timedelta(seconds=scan_interval),
+        )
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Fetch device status data."""
+        try:
+            return await self.api.get_device_statuses()
+        except ApiClientCommunicationError as err:
+            raise UpdateFailed(
+                f"Could not connect to Meraki API for device status: {err}"
+            ) from err
+
+
+class ClientCoordinator(MerakiCoordinator):
+    """Coordinator for client data polling."""
+
+    def __init__(
+        self,
+        hass: "HomeAssistant",
+        api_client: ApiClient,
+        entry: ConfigEntry,
+    ) -> None:
+        """Initialize the coordinator."""
+        scan_interval = entry.options.get(
+            CONF_SCAN_INTERVAL_CLIENTS, DEFAULT_SCAN_INTERVAL_CLIENTS
+        )
+        super().__init__(
+            hass,
+            api_client,
+            entry,
+            name=f"{DOMAIN}_clients",
+            update_interval=timedelta(seconds=scan_interval),
+        )
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Fetch client data."""
+        try:
+            return await self.api.get_all_clients()
+        except ApiClientCommunicationError as err:
+            raise UpdateFailed(f"Could not connect to Meraki API for clients: {err}") from err
+
+
+
+    def _get_enabled_network_ids(self) -> set[str] | None:
+        """
+        Get the set of enabled network IDs from config options.
+
+        Returns
+        -------
+            A set of enabled network IDs, or None if all networks should be
+            enabled (e.g., when the option is not set or config is unavailable).
+
+        """
+        if not self.config_entry or not hasattr(self.config_entry, "options"):
+            return None
+
+        enabled_network_ids = self.config_entry.options.get(CONF_ENABLED_NETWORKS)
+
+        # If the option is not set or is empty, return None to poll all networks
+        if not enabled_network_ids:
+            return None
+
+        return set(enabled_network_ids)
+
+
     def _filter_enabled_networks(self, data: dict[str, Any]) -> None:
         """
         Filter out networks that the user has chosen to disable.
@@ -198,6 +308,43 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     s
                     for s in data["ssids"]
                     if s.get("networkId") in enabled_network_ids
+                ]
+
+    def _filter_device_types(self, data: dict[str, Any]) -> None:
+        """Filter out devices by type based on user's selection."""
+        if not self.config_entry or not hasattr(self.config_entry, "options"):
+            _LOGGER.debug(
+                "Config entry or options not available, "
+                "cannot filter device types.",
+            )
+            return
+
+        selected_types = self.config_entry.options.get(
+            CONF_DASHBOARD_DEVICE_TYPE_FILTER
+        )
+
+        # If "all" is selected or the option is not set, no filtering is needed.
+        if not selected_types or "all" in selected_types:
+            return
+
+        if "devices" in data:
+            type_map = {
+                "switch": "MS",
+                "camera": "MV",
+                "wireless": "MR",
+                "sensor": "MT",
+                "appliance": "MX",
+            }
+            # Create a list of model prefixes to keep
+            prefixes_to_keep = tuple(
+                type_map[type_] for type_ in selected_types if type_ in type_map
+            )
+
+            if prefixes_to_keep:
+                data["devices"] = [
+                    d
+                    for d in data["devices"]
+                    if d.get("model", "").startswith(prefixes_to_keep)
                 ]
 
     async def _async_remove_disabled_devices(self, data: dict[str, Any]) -> None:
@@ -499,28 +646,6 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                                 "state": state_obj.state if state_obj else "unknown",
                             }
                         )
-
-    def _get_enabled_network_ids(self) -> set[str] | None:
-        """
-        Get the set of enabled network IDs from config options.
-
-        Returns
-        -------
-            A set of enabled network IDs, or None if all networks should be
-            enabled (e.g., when the option is not set or config is unavailable).
-
-        """
-        if not self.config_entry or not hasattr(self.config_entry, "options"):
-            return None
-
-        enabled_network_ids = self.config_entry.options.get(CONF_ENABLED_NETWORKS)
-
-        # If the option is not set or is empty, return None to poll all networks
-        if not enabled_network_ids:
-            return None
-
-        return set(enabled_network_ids)
-
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint and apply filters."""
         try:
@@ -536,6 +661,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 raise UpdateFailed("API call returned no data.")
 
             self._filter_enabled_networks(data)
+            self._filter_device_types(data)
             _LOGGER.debug("SSIDs after filtering: %s", data.get("ssids"))
             await self._async_remove_disabled_devices(data)
 

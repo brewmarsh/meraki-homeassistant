@@ -73,15 +73,19 @@
     "step": {
       "init": {
         "title": "Meraki Options - Basic Settings",
-        "description": "Step 1 of 3: Configure basic integration settings.",
+        "description": "Step 1 of 4: Configure basic integration settings.",
         "data": {
-          "scan_interval": "Scan Interval (seconds)",
+          "scan_interval": "Default Polling Interval (seconds)",
+          "scan_interval_device_status": "Device Status Polling Interval (seconds)",
+          "scan_interval_clients": "Client Polling Interval (seconds)",
           "enable_device_tracker": "Enable Client Tracker",
           "enable_vlan_management": "Enable VLAN Management",
           "enabled_networks": "Enabled Networks"
         },
         "data_description": {
-          "scan_interval": "How often to poll the Meraki API for updates, in seconds.",
+          "scan_interval": "Default polling interval for general data like network and device information.",
+          "scan_interval_device_status": "How often to poll specifically for device status (online/offline). More frequent polling can provide faster status updates.",
+          "scan_interval_clients": "How often to poll for connected client information. This is a heavy API call, so a longer interval is recommended.",
           "enable_device_tracker": "Enable tracking of clients connected to the network.",
           "enable_vlan_management": "Enable VLAN management features.",
           "enabled_networks": "Select which networks to monitor. Leave empty for all networks."
@@ -89,7 +93,7 @@
       },
       "dashboard": {
         "title": "Meraki Options - Dashboard Settings",
-        "description": "Step 2 of 3: Configure dashboard display preferences.",
+        "description": "Step 2 of 4: Configure dashboard display preferences.",
         "data": {
           "dashboard_view_mode": "Default Dashboard View",
           "dashboard_device_type_filter": "Default Device Type Filter",
@@ -98,14 +102,14 @@
         },
         "data_description": {
           "dashboard_view_mode": "Choose how devices are grouped on the dashboard (by network or by device type).",
-          "dashboard_device_type_filter": "Default filter for device types on the dashboard.",
+          "dashboard_device_type_filter": "Filter which device types are shown on the dashboard. You can select multiple types.",
           "dashboard_status_filter": "Default filter for device status on the dashboard.",
           "temperature_unit": "Choose the unit for temperature readings from Meraki sensors (Celsius or Fahrenheit)."
         }
       },
       "camera": {
         "title": "Meraki Options - Camera Settings",
-        "description": "Step 3 of 3: Configure camera-related settings.",
+        "description": "Step 3 of 4: Configure camera-related settings.",
         "data": {
           "camera_snapshot_interval": "Camera Snapshot Refresh Interval (seconds)",
           "camera_link_integration": "Camera Link Integration"
@@ -113,6 +117,29 @@
         "data_description": {
           "camera_snapshot_interval": "How often to refresh camera snapshots on the dashboard (0 = only on demand). Camera streaming uses RTSP and requires the RTSP server to be enabled in the Meraki Dashboard.",
           "camera_link_integration": "Select an integration to filter which cameras are shown when linking Meraki cameras. Choose 'All Cameras' to see all available camera entities."
+        }
+      },
+      "mqtt": {
+        "title": "Meraki Options - MQTT Settings",
+        "description": "Step 4 of 4: Configure MQTT relay destinations for MV Sense camera events.",
+        "menu_options": {
+          "mqtt_add_destination": "Add New Destination",
+          "mqtt_edit_destination": "Edit Existing Destination",
+          "mqtt_delete_destination": "Delete Destination"
+        }
+      },
+      "mqtt_destination_details": {
+        "title": "MQTT Destination Details",
+        "description": "Enter the details for the MQTT relay destination. This will be sent to the Meraki Dashboard to configure the MV Sense camera event relay.",
+        "data": {
+          "server_ip": "Server IP Address",
+          "port": "Port",
+          "topic": "Topic"
+        },
+        "data_description": {
+          "server_ip": "The IP address or hostname of your MQTT broker.",
+          "port": "The port number for your MQTT broker (e.g., 1883).",
+          "topic": "The MQTT topic to which events will be published."
         }
       },
       "features": {
