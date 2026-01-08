@@ -15,6 +15,7 @@ from ..errors import (
     MerakiAuthenticationError,
     MerakiConnectionError,
     MerakiDeviceError,
+    MerakiInformationalError,
     MerakiNetworkError,
     MerakiTrafficAnalysisError,
     MerakiVlansDisabledError,
