@@ -35,7 +35,7 @@ class MerakiFirmwareStatusSensor(CoordinatorEntity, SensorEntity):
         self._device_serial: str = device_data["serial"]
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device_serial}_firmware_status"
-        self._attr_name = "Firmware Status"
+        self.translation_key = "meraki_firmware_status"
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},

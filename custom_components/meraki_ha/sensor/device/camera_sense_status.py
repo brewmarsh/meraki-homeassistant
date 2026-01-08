@@ -40,7 +40,7 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
         )
         self.entity_description = SensorEntityDescription(
             key="camera_sense_status",
-            name="Sense Enabled",
+            translation_key="camera_sense_status",
             native_unit_of_measurement=None,
             state_class=None,
         )

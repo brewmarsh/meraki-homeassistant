@@ -14,7 +14,7 @@ class MerakiSSIDWPAEncryptionModeSensor(MerakiSSIDBaseSensor):
 
     entity_description = SensorEntityDescription(
         key="wpa_encryption_mode",
-        name="WPA Encryption Mode",
+        translation_key="wpa_encryption_mode",
         icon="mdi:shield-key-outline",
     )
 

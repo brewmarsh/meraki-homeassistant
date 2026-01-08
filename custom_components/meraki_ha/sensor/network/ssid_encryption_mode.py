@@ -14,7 +14,7 @@ class MerakiSSIDEncryptionModeSensor(MerakiSSIDBaseSensor):
 
     entity_description = SensorEntityDescription(
         key="encryption_mode",
-        name="Encryption Mode",
+        translation_key="encryption_mode",
         icon="mdi:shield-key",
     )
 

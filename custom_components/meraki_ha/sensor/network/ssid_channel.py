@@ -16,7 +16,7 @@ class MerakiSSIDChannelSensor(MerakiSSIDBaseSensor):
 
     entity_description = SensorEntityDescription(
         key="channel",
-        name="Channel",
+        translation_key="channel",
         icon="mdi:radio-tower",
     )
 
