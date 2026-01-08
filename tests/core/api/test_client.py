@@ -34,19 +34,38 @@ def coordinator():
 @pytest.fixture
 def api_client(hass, mock_dashboard, coordinator):
     """Fixture for a MerakiAPIClient instance."""
-    return MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
+    client = MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
+    # Mock endpoint classes to prevent real API calls or errors
+    client.appliance = MagicMock()
+    client.camera = MagicMock()
+    client.devices = MagicMock()
+    client.network = MagicMock()
+    client.organization = MagicMock()
+    client.switch = MagicMock()
+    client.wireless = MagicMock()
+    client.sensor = MagicMock()
+    return client
 
 
 @pytest.mark.asyncio
 async def test_get_all_data_orchestration(api_client):
     """Test that get_all_data correctly orchestrates helper methods."""
     # Arrange
-    api_client._async_fetch_initial_data = AsyncMock(return_value=())
+    api_client._async_fetch_initial_data = AsyncMock(
+        return_value={
+            "networks": [MOCK_NETWORK],
+            "devices": [MOCK_DEVICE],
+            "appliance_uplink_statuses": [],
+        }
+    )
     api_client._process_initial_data = MagicMock(
         return_value={
             "networks": [MOCK_NETWORK],
             "devices": [MOCK_DEVICE],
             "appliance_uplink_statuses": [],
+            "vpn_statuses_by_network": {},
+            "rf_profiles_by_network": {},
+            "switch_ports_by_serial": {},
         }
     )
     api_client._async_fetch_network_clients = AsyncMock(return_value=[])
@@ -106,9 +125,14 @@ def test_process_initial_data_handles_errors(api_client, caplog):
     assert "Could not fetch Meraki devices" in caplog.text
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_wireless_device(api_client):
-    """Test that _build_detail_tasks creates the correct tasks for a wireless device."""
+    """
+    Test that _build_detail_tasks creates the correct tasks for a wireless device.
+
+    Updated: Wireless RF profiles are now bulk fetched, so should NOT be in tasks.
+    Wireless Settings are fetched per network.
+    SSIDs are fetched per network.
+    """
     # Arrange
     devices = [MOCK_DEVICE]
     networks = [MOCK_NETWORK]
@@ -118,13 +142,17 @@ def test_build_detail_tasks_for_wireless_device(api_client):
 
     # Assert
     assert f"ssids_{MOCK_NETWORK['id']}" in tasks
-    assert f"wireless_settings_{MOCK_DEVICE['serial']}" in tasks
-    assert f"rf_profiles_{MOCK_NETWORK['id']}" in tasks
+    assert f"wireless_settings_{MOCK_NETWORK['id']}" in tasks
+    # rf_profiles should NOT be here anymore as it is bulk fetched
+    assert f"rf_profiles_{MOCK_NETWORK['id']}" not in tasks
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_switch_device(api_client):
-    """Test that _build_detail_tasks creates the correct tasks for a switch device."""
+    """
+    Test that _build_detail_tasks creates the correct tasks for a switch device.
+
+    Updated: Switch ports statuses are now bulk fetched, so should NOT be in tasks.
+    """
     # Arrange
     switch_device = {"serial": "s123", "productType": "switch"}
     devices = [switch_device]
@@ -134,16 +162,21 @@ def test_build_detail_tasks_for_switch_device(api_client):
     tasks = api_client._build_detail_tasks(networks, devices)
 
     # Assert
-    assert f"ports_statuses_{switch_device['serial']}" in tasks
+    # ports_statuses should NOT be here anymore as it is bulk fetched
+    assert f"ports_statuses_{switch_device['serial']}" not in tasks
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_camera_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a camera device."""
     # Arrange
     camera_device = {"serial": "c123", "productType": "camera"}
     devices = [camera_device]
     networks = []
+
+    # Mock coroutines to prevent unawaited warnings
+    api_client.camera.get_camera_video_settings.return_value = AsyncMock()
+    api_client.camera.get_camera_sense_settings.return_value = AsyncMock()
+    api_client._run_with_semaphore = AsyncMock()
 
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
@@ -153,9 +186,12 @@ def test_build_detail_tasks_for_camera_device(api_client):
     assert f"sense_settings_{camera_device['serial']}" in tasks
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_appliance_device(api_client):
-    """Test that _build_detail_tasks creates tasks for an appliance device."""
+    """
+    Test that _build_detail_tasks creates tasks for an appliance device.
+
+    Updated: VPN status is bulk fetched, so should not be in tasks.
+    """
     # Arrange
     appliance_device = {
         "serial": "a123",
@@ -166,6 +202,17 @@ def test_build_detail_tasks_for_appliance_device(api_client):
     devices = [appliance_device]
     networks = [network_with_appliance]
 
+    # Mock coroutines
+    api_client.appliance.get_network_appliance_settings.return_value = AsyncMock()
+    api_client.network.get_network_traffic.return_value = AsyncMock()
+    api_client.appliance.get_network_vlans.return_value = AsyncMock()
+    api_client.appliance.get_l3_firewall_rules.return_value = AsyncMock()
+    api_client.appliance.get_traffic_shaping.return_value = AsyncMock()
+    api_client.appliance.get_network_appliance_content_filtering.return_value = (
+        AsyncMock()
+    )
+    api_client._run_with_semaphore = AsyncMock()
+
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
 
@@ -173,19 +220,32 @@ def test_build_detail_tasks_for_appliance_device(api_client):
     assert f"appliance_settings_{appliance_device['serial']}" in tasks
     assert f"traffic_{network_with_appliance['id']}" in tasks
     assert f"vlans_{network_with_appliance['id']}" in tasks
+    # vpn_status should NOT be here anymore
+    assert f"vpn_status_{network_with_appliance['id']}" not in tasks
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
-def test_process_detailed_data_merges_device_info(api_client):
-    """Test that _process_detailed_data merges details into device objects."""
+def test_process_detailed_data_merges_bulk_data(api_client):
+    """Test that _process_detailed_data merges bulk data."""
     # Arrange
     device = MOCK_DEVICE.copy()
-    radio_settings = {"five_ghz_settings": {"channel": 149}}
-    detail_data = {f"wireless_settings_{device['serial']}": radio_settings}
+    device["serial"] = "S_123"
+    device["productType"] = "switch"
+
+    switch_ports = [{"portId": "1", "status": "Connected"}]
+
+    bulk_data = {
+        "switch_ports_by_serial": {"S_123": switch_ports},
+        "vpn_statuses_by_network": {"N_123": {"status": "enabled"}},
+        "rf_profiles_by_network": {"N_123": [{"name": "Profile1"}]},
+    }
+
+    networks = [{"id": "N_123"}]
+    devices = [device]
 
     # Act
-    api_client._process_detailed_data(detail_data, [], [device], previous_data={})
+    result = api_client._process_detailed_data({}, networks, devices, {}, bulk_data)
 
     # Assert
-    assert "radio_settings" in device
-    assert device["radio_settings"]["five_ghz_settings"]["channel"] == 149
+    assert device["ports_statuses"] == switch_ports
+    assert result["vpn_status"]["N_123"] == {"status": "enabled"}
+    assert result["rf_profiles"]["N_123"] == [{"name": "Profile1"}]
