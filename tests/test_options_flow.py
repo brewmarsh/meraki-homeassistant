@@ -8,7 +8,6 @@ from homeassistant.helpers import selector
 
 from custom_components.meraki_ha.const import (
     CONF_ENABLED_NETWORKS,
-    CONF_INTEGRATION_TITLE,
     CONF_MQTT_RELAY_DESTINATIONS,
     DOMAIN,
 )
@@ -88,8 +87,6 @@ async def test_async_step_dashboard_with_user_input_moves_to_camera(
     # Dashboard step should move to camera step, returning a form
     assert result["type"].value == "form"
     assert result["step_id"] == "camera"
-
-
 
 
 def test_populate_schema_defaults() -> None:
