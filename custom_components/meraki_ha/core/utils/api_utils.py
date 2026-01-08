@@ -15,6 +15,7 @@ from ..errors import (
     MerakiAuthenticationError,
     MerakiConnectionError,
     MerakiDeviceError,
+    MerakiInformationalError,
     MerakiNetworkError,
     MerakiTrafficAnalysisError,
     MerakiVlansDisabledError,
@@ -151,7 +152,7 @@ def _raise_if_informational_error(err: APIError) -> None:
     if "traffic analysis" in error_str:
         raise MerakiTrafficAnalysisError(str(err)) from err
     if "historical viewing is not supported" in error_str:
-        raise MerakiInformationalError(str(err)) from err  # noqa: F821
+        raise MerakiInformationalError(str(err)) from err
 
 
 def validate_response(response: Any) -> dict[str, Any] | list[Any]:

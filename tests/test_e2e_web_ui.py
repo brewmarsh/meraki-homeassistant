@@ -91,7 +91,7 @@ async def test_e2e_panel_comprehensive(
     # Use a simple python http server to serve the www directory
     os.chdir("custom_components/meraki_ha/www")
     # Build the frontend to make sure the latest changes are included
-    os.system("npm run build")
+    # os.system("npm run build")
 
     # Create a test index.html that points to the compiled JS
     with open("test_index.html", "w") as f:

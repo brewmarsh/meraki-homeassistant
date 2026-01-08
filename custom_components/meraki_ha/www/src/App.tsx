@@ -202,6 +202,14 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
     }
   };
 
+  if (loading || !data) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text">
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 relative bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text">
       <div className="flex justify-between items-center mb-4">
