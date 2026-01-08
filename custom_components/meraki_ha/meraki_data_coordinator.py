@@ -339,6 +339,21 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         elif metric == "downstreamPowerStatus":
             reading["metric"] = "downstream_power"
             reading["value"] = data.get("downstreamPower") == "on"
+        elif metric.startswith("gateway/") and metric.endswith("/rssi"):
+            # Gateway RSSI metric: gateway/{ap_mac}/rssi
+            # Extract AP MAC from metric path
+            parts = metric.split("/")
+            if len(parts) == 3:
+                ap_mac = parts[1]
+                reading["metric"] = "gateway_rssi"
+                reading["gateway_rssi"] = {
+                    "ap_mac": ap_mac,
+                    "rssi": data.get("rssi"),
+                    "units": data.get("units", "dBm"),
+                }
+            else:
+                _LOGGER.debug("Malformed gateway RSSI metric: %s", metric)
+                return None
         else:
             _LOGGER.debug("Unknown MQTT metric: %s", metric)
             return None
