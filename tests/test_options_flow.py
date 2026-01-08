@@ -90,18 +90,31 @@ async def test_async_step_dashboard_with_user_input_moves_to_camera(
 
 
 @pytest.mark.asyncio
-async def test_async_step_camera_with_user_input_creates_entry(
+async def test_async_step_camera_with_user_input_moves_to_mqtt(
     mock_options_config_entry: MagicMock,
 ) -> None:
-    """Test options flow step camera with user input creates entry."""
+    """Test options flow step camera with user input moves to mqtt step."""
     handler = MerakiOptionsFlowHandler(mock_options_config_entry)
 
     result = await handler.async_step_camera({"some_camera_option": True})
 
-    # Camera step with input should create entry
+    # Camera step should move to mqtt step, returning a form
+    assert result["type"].value == "form"
+    assert result["step_id"] == "mqtt"
+
+
+@pytest.mark.asyncio
+async def test_async_step_mqtt_with_user_input_creates_entry(
+    mock_options_config_entry: MagicMock,
+) -> None:
+    """Test options flow step mqtt with user input creates entry."""
+    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+
+    result = await handler.async_step_mqtt({"enable_mqtt": False})
+
+    # MQTT step with input should create entry
     assert result["type"].value == "create_entry"
     assert result["title"] == CONF_INTEGRATION_TITLE
-    assert "some_camera_option" in result["data"]
 
 
 def test_populate_schema_defaults() -> None:
@@ -182,8 +195,12 @@ async def test_full_options_flow_creates_entry(
     result = await handler.async_step_dashboard({})
     assert result["step_id"] == "camera"
 
-    # Step 3: camera -> creates entry
+    # Step 3: camera -> goes to mqtt
     result = await handler.async_step_camera({})
+    assert result["step_id"] == "mqtt"
+
+    # Step 4: mqtt -> creates entry
+    result = await handler.async_step_mqtt({"enable_mqtt": False})
     assert result["type"].value == "create_entry"
     # New value should be applied
     assert result["data"]["scan_interval"] == 120
