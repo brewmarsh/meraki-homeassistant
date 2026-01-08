@@ -42,16 +42,48 @@ jobs:
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          increment_type="patch" # Default increment type
+          # Get current version from manifest
+          current_version=$(grep -oP '"version": "\K[^"]+' custom_components/meraki_ha/manifest.json)
+          echo "Current version: $current_version"
 
+          # Strip beta suffix if present (e.g., 2.2.1-beta.23 -> 2.2.1)
+          base_version=$(echo "$current_version" | sed 's/-beta\.[0-9]*//')
+          echo "Base version (without beta): $base_version"
+
+          # Determine increment type from PR title
+          increment_type="none"
           if [[ "$PR_TITLE" == *"[major]"* ]]; then
             increment_type="major"
           elif [[ "$PR_TITLE" == *"[minor]"* ]]; then
             increment_type="minor"
+          elif [[ "$PR_TITLE" == *"[patch]"* ]]; then
+            increment_type="patch"
           fi
 
-          bump2version --allow-dirty $increment_type
-          new_version=$(grep -oP '"version": "\K[^"]+' custom_components/meraki_ha/manifest.json)
+          # Calculate new version
+          IFS='.' read -r major minor patch <<< "$base_version"
+
+          if [[ "$increment_type" == "major" ]]; then
+            major=$((major + 1))
+            minor=0
+            patch=0
+          elif [[ "$increment_type" == "minor" ]]; then
+            minor=$((minor + 1))
+            patch=0
+          elif [[ "$increment_type" == "patch" ]]; then
+            patch=$((patch + 1))
+          fi
+          # If no increment type specified, just use the base version (strip beta)
+
+          new_version="${major}.${minor}.${patch}"
+          echo "New version: $new_version"
+
+          # Update manifest.json directly
+          sed -i "s/\"version\": \"$current_version\"/\"version\": \"$new_version\"/" custom_components/meraki_ha/manifest.json
+
+          # Update .bumpversion.cfg
+          sed -i "s/current_version = $current_version/current_version = $new_version/" .bumpversion.cfg
+
           echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
 
       - name: Update package.json version
@@ -126,9 +158,9 @@ jobs:
         run: |
           echo "Waiting 30 seconds for release to propagate to GitHub CDN..."
           sleep 30
-          
+
           CLEAN_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
-          
+
           # Force HACS to re-fetch this specific repository from GitHub
           echo "Refreshing HACS repository: liptonj/meraki-homeassistant..."
           curl -sS -X POST \
@@ -136,34 +168,34 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"action": "reload", "repository": "liptonj/meraki-homeassistant"}' \
             "$HA_URL/api/services/hacs/repository" || true
-          
+
           echo "Waiting 20 seconds for HACS to refresh from GitHub..."
           sleep 20
-          
+
           # Find the update entity
           echo "Discovering Meraki update entity..."
           ENTITY_ID=$(curl -sS -H "Authorization: Bearer $CLEAN_TOKEN" \
             "$HA_URL/api/states" | \
             jq -r '.[] | select(.entity_id | startswith("update.") and contains("meraki")) | .entity_id' | head -1)
-          
+
           if [[ -z "$ENTITY_ID" ]]; then
             echo "⚠ Meraki update entity not found - skipping auto-deploy"
             exit 0
           fi
-          
+
           echo "Found: $ENTITY_ID"
-          
+
           # Check if HACS sees the new version
           STATE=$(curl -sS -H "Authorization: Bearer $CLEAN_TOKEN" \
             "$HA_URL/api/states/$ENTITY_ID")
           INSTALLED=$(echo "$STATE" | jq -r '.attributes.installed_version // "unknown"')
           LATEST=$(echo "$STATE" | jq -r '.attributes.latest_version // "unknown"')
-          
+
           echo "Installed: $INSTALLED, Latest seen by HACS: $LATEST, Just released: $NEW_VERSION"
-          
+
           # Try multiple methods to install the version
           echo "Attempting to install v$NEW_VERSION..."
-          
+
           # Method 1: Use HA update/install service with version
           echo "Method 1: Using update/install service..."
           RESULT=$(curl -sS -w "\n%{http_code}" -X POST \
@@ -172,7 +204,7 @@ jobs:
             -d "{\"entity_id\": \"$ENTITY_ID\", \"version\": \"v$NEW_VERSION\"}" \
             "$HA_URL/api/services/update/install")
           HTTP_CODE=$(echo "$RESULT" | tail -1)
-          
+
           if [[ "$HTTP_CODE" == "200" ]]; then
             echo "✅ Update triggered via update/install service!"
           else
@@ -184,14 +216,14 @@ jobs:
               -d "{\"entity_id\": \"$ENTITY_ID\", \"version\": \"$NEW_VERSION\"}" \
               "$HA_URL/api/services/update/install")
             HTTP_CODE=$(echo "$RESULT" | tail -1)
-            
+
             if [[ "$HTTP_CODE" == "200" ]]; then
               echo "✅ Update triggered via update/install service (no v prefix)!"
             else
               echo "⚠ Both methods returned non-200. Manual install may be required."
             fi
           fi
-          
+
           echo "Download triggered for version v$NEW_VERSION!"
           echo "Waiting 30 seconds for HACS to download and install..."
           sleep 30
@@ -202,14 +234,14 @@ jobs:
           HA_TOKEN: ${{ secrets.HA_TOKEN }}
         run: |
           CLEAN_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
-          
+
           echo "Restarting Home Assistant to load new version..."
           curl -sS --max-time 30 -X POST \
             -H "Authorization: Bearer $CLEAN_TOKEN" \
             -H "Content-Type: application/json" \
             -d '{}' \
             "$HA_URL/api/services/homeassistant/restart" 2>/dev/null || true
-          
+
           echo "Restart initiated. Waiting 90 seconds for HA to come back online..."
           sleep 90
 
@@ -220,7 +252,7 @@ jobs:
           NEW_VERSION: ${{ needs.version.outputs.new_version }}
         run: |
           CLEAN_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
-          
+
           # Wait for HA to be ready
           echo "Checking if Home Assistant is back online..."
           for i in {1..6}; do
@@ -234,21 +266,21 @@ jobs:
             echo "  Attempt $i/6: HA not ready (HTTP $STATUS), waiting 15s..."
             sleep 15
           done
-          
+
           # Verify installed version
           echo "Verifying installed version..."
           ENTITY_ID=$(curl -sS -H "Authorization: Bearer $CLEAN_TOKEN" \
             "$HA_URL/api/states" | \
             jq -r '.[] | select(.entity_id | startswith("update.") and contains("meraki")) | .entity_id' | head -1)
-          
+
           if [[ -n "$ENTITY_ID" ]]; then
             STATE=$(curl -sS -H "Authorization: Bearer $CLEAN_TOKEN" \
               "$HA_URL/api/states/$ENTITY_ID")
             INSTALLED=$(echo "$STATE" | jq -r '.attributes.installed_version // "unknown"')
-            
+
             echo "Expected: v$NEW_VERSION"
             echo "Installed: $INSTALLED"
-            
+
             if [[ "$INSTALLED" == "$NEW_VERSION" || "$INSTALLED" == "v$NEW_VERSION" ]]; then
               echo "✅ SUCCESS: Version v$NEW_VERSION is installed!"
             else
