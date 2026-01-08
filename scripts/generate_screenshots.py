@@ -554,8 +554,8 @@ def generate_screenshots() -> None:
 
             # Screenshot 2: Settings View
             print("Capturing Settings view...")
-            # Click on the Settings button
-            page.click("button:has-text('Settings')")
+            # Click on the Settings button (uses class selector for reliability)
+            page.click(".settings-btn")
             page.wait_for_timeout(1500)
             # Set larger viewport to capture the full modal
             page.set_viewport_size({"width": 1000, "height": 1400})
