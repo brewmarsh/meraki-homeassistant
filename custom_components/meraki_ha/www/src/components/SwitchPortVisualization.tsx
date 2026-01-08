@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 
 interface PortStatus {
   portId: string;
@@ -64,7 +64,9 @@ interface SwitchPortVisualizationProps {
   onClientClick?: (clientId: string) => void;
 }
 
-const SwitchPortVisualization: React.FC<SwitchPortVisualizationProps> = ({
+const SwitchPortVisualizationComponent: React.FC<
+  SwitchPortVisualizationProps
+> = ({
   deviceName: _deviceName,
   model,
   ports,
@@ -445,5 +447,26 @@ const SwitchPortVisualization: React.FC<SwitchPortVisualizationProps> = ({
     </div>
   );
 };
+
+// Memoize SwitchPortVisualization to prevent unnecessary re-renders
+const SwitchPortVisualization = memo(
+  SwitchPortVisualizationComponent,
+  (prevProps, nextProps) => {
+    // Re-render if ports or clients change
+    if (prevProps.ports.length !== nextProps.ports.length) return false;
+    if (prevProps.clients?.length !== nextProps.clients?.length) return false;
+
+    // Compare connected port count
+    const prevConnected = prevProps.ports.filter(
+      (p) => p.status?.toLowerCase() === 'connected'
+    ).length;
+    const nextConnected = nextProps.ports.filter(
+      (p) => p.status?.toLowerCase() === 'connected'
+    ).length;
+    if (prevConnected !== nextConnected) return false;
+
+    return true;
+  }
+);
 
 export default SwitchPortVisualization;

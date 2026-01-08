@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 export type MetricType =
   // Switch metrics
@@ -49,7 +49,7 @@ interface MetricCardProps {
   onClick?: () => void;
 }
 
-const MetricCard: React.FC<MetricCardProps> = ({
+const MetricCardComponent: React.FC<MetricCardProps> = ({
   icon,
   label,
   value,
@@ -172,5 +172,8 @@ const MetricCard: React.FC<MetricCardProps> = ({
     </div>
   );
 };
+
+// Memoize MetricCard - re-render only when value or status changes
+const MetricCard = memo(MetricCardComponent);
 
 export default MetricCard;

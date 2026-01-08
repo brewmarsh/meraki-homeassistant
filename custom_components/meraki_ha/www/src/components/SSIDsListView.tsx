@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 interface SSID {
   number: number;
@@ -27,7 +27,7 @@ interface SSIDsListViewProps {
   onSSIDClick: (ssid: SSID) => void;
 }
 
-const SSIDsListView: React.FC<SSIDsListViewProps> = ({
+const SSIDsListViewComponent: React.FC<SSIDsListViewProps> = ({
   ssids,
   clients,
   networks,
@@ -173,5 +173,19 @@ const SSIDsListView: React.FC<SSIDsListViewProps> = ({
     </div>
   );
 };
+
+// Memoize SSIDsListView to prevent unnecessary re-renders
+const SSIDsListView = memo(SSIDsListViewComponent, (prevProps, nextProps) => {
+  // Re-render if SSID count or enabled status changes
+  if (prevProps.ssids.length !== nextProps.ssids.length) return false;
+  if (prevProps.clients.length !== nextProps.clients.length) return false;
+
+  // Compare SSID enabled states
+  const prevEnabled = prevProps.ssids.filter((s) => s.enabled).length;
+  const nextEnabled = nextProps.ssids.filter((s) => s.enabled).length;
+  if (prevEnabled !== nextEnabled) return false;
+
+  return true;
+});
 
 export default SSIDsListView;
