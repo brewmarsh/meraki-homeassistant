@@ -12,6 +12,7 @@ import fnmatch
 import logging
 import ssl
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from typing import Any
 
@@ -103,6 +104,11 @@ class MqttRelayDestination:
         self._message_queue: asyncio.Queue[tuple[str, bytes]] = asyncio.Queue()
         self._publisher_task: asyncio.Task | None = None
         self._running = False
+        # Statistics tracking
+        self._messages_relayed: int = 0
+        self._last_relay_time: datetime | None = None
+        self._last_error: str | None = None
+        self._last_error_time: datetime | None = None
 
     @property
     def name(self) -> str:
@@ -118,6 +124,26 @@ class MqttRelayDestination:
     def config(self) -> RelayDestinationConfig:
         """Return the destination configuration."""
         return self._config
+
+    @property
+    def messages_relayed(self) -> int:
+        """Return the total number of messages relayed."""
+        return self._messages_relayed
+
+    @property
+    def last_relay_time(self) -> datetime | None:
+        """Return the time of the last relayed message."""
+        return self._last_relay_time
+
+    @property
+    def last_error(self) -> str | None:
+        """Return the last error message."""
+        return self._last_error
+
+    @property
+    def last_error_time(self) -> datetime | None:
+        """Return the time of the last error."""
+        return self._last_error_time
 
     def matches_topic(self, topic: str) -> bool:
         """
@@ -204,15 +230,20 @@ class MqttRelayDestination:
                             timeout=30.0,
                         )
                         await self._client.publish(topic, payload)
+                        self._messages_relayed += 1
+                        self._last_relay_time = datetime.now()
                         _LOGGER.debug(
-                            "Relayed message to '%s': %s",
+                            "Relayed message to '%s': %s (total: %d)",
                             self._config.name,
                             topic,
+                            self._messages_relayed,
                         )
                     except TimeoutError:
                         # Keep connection alive
                         continue
                     except aiomqtt.MqttError as err:
+                        self._last_error = str(err)
+                        self._last_error_time = datetime.now()
                         _LOGGER.warning(
                             "MQTT error publishing to '%s': %s",
                             self._config.name,
@@ -224,6 +255,8 @@ class MqttRelayDestination:
             except asyncio.CancelledError:
                 break
             except Exception as err:
+                self._last_error = str(err)
+                self._last_error_time = datetime.now()
                 _LOGGER.error(
                     "Error in publisher loop for '%s': %s",
                     self._config.name,
@@ -329,6 +362,14 @@ class MqttRelayManager:
                 "host": dest.config.host,
                 "port": dest.config.port,
                 "topic_filter": dest.config.topic_filter,
+                "messages_relayed": dest.messages_relayed,
+                "last_relay_time": (
+                    dest.last_relay_time.isoformat() if dest.last_relay_time else None
+                ),
+                "last_error": dest.last_error,
+                "last_error_time": (
+                    dest.last_error_time.isoformat() if dest.last_error_time else None
+                ),
             }
             for dest in self._destinations
         }

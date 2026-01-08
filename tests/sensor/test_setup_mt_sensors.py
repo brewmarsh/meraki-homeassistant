@@ -180,7 +180,9 @@ def test_async_setup_mt40_sensors(
     device_info = mock_coordinator_with_mt_devices.data["devices"][3]
     entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
 
-    assert len(entities) == 3
+    # MT40 has: realPower, voltage, current, apparentPower,
+    # powerFactor, frequency, energy
+    assert len(entities) == 7
 
     sensors_by_key = {entity.entity_description.key: entity for entity in entities}
 

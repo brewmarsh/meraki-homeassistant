@@ -325,6 +325,17 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             reading["button"] = {
                 "pressType": "short" if data.get("button pressed") else None
             }
+        elif metric == "usbPowered":
+            reading["metric"] = "usb_powered"
+            reading["usb_powered"] = {"powered": data.get("usb powered", False)}
+        elif metric == "cableConnected":
+            reading["metric"] = "cable_connected"
+            reading["cable_connected"] = {
+                "connected": data.get("cable connected", False)
+            }
+        elif metric == "probeType":
+            reading["metric"] = "probe_type"
+            reading["probe_type"] = {"type": data.get("probe type")}
         elif metric == "door":
             reading["door"] = {"open": data.get("open")}
         elif metric == "mainsVolts":
@@ -336,9 +347,36 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         elif metric == "mainsRealPower":
             reading["metric"] = "realPower"
             reading["realPower"] = {"draw": data.get("mainsRealPower")}
+        elif metric == "mainsApparentPower":
+            reading["metric"] = "apparentPower"
+            reading["apparentPower"] = {"draw": data.get("mainsApparentPower")}
+        elif metric == "mainsPowerFactor":
+            reading["metric"] = "powerFactor"
+            reading["powerFactor"] = {"percentage": data.get("mainsPowerFactor")}
+        elif metric == "mainsFrequency":
+            reading["metric"] = "frequency"
+            reading["frequency"] = {"level": data.get("mainsFrequency")}
+        elif metric == "mainsDeltaEnergy":
+            reading["metric"] = "energy"
+            reading["energy"] = {"usage": data.get("mainsDeltaEnergy")}
         elif metric == "downstreamPowerStatus":
             reading["metric"] = "downstream_power"
             reading["value"] = data.get("downstreamPower") == "on"
+        elif metric.startswith("gateway/") and metric.endswith("/rssi"):
+            # Gateway RSSI metric: gateway/{ap_mac}/rssi
+            # Extract AP MAC from metric path
+            parts = metric.split("/")
+            if len(parts) == 3:
+                ap_mac = parts[1]
+                reading["metric"] = "gateway_rssi"
+                reading["gateway_rssi"] = {
+                    "ap_mac": ap_mac,
+                    "rssi": data.get("rssi"),
+                    "units": data.get("units", "dBm"),
+                }
+            else:
+                _LOGGER.debug("Malformed gateway RSSI metric: %s", metric)
+                return None
         else:
             _LOGGER.debug("Unknown MQTT metric: %s", metric)
             return None
