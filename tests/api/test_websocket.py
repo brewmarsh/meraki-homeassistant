@@ -42,8 +42,8 @@ def mock_coordinator() -> MagicMock:
 class TestAsyncSetupWebsocketApi:
     """Tests for async_setup_websocket_api function."""
 
-    def test_setup_registers_command(self, mock_hass: MagicMock) -> None:
-        """Test that setup registers the websocket command."""
+    def test_setup_registers_commands(self, mock_hass: MagicMock) -> None:
+        """Test that setup registers all websocket commands."""
         from homeassistant.components import websocket_api
 
         original_register = websocket_api.async_register_command
@@ -57,8 +57,9 @@ class TestAsyncSetupWebsocketApi:
 
         try:
             async_setup_websocket_api(mock_hass)
-            assert len(calls) == 1
-            assert calls[0][0] is mock_hass
+            # Should register 2 commands: subscribe_meraki_data and get_rtsp_url
+            assert len(calls) == 2
+            assert all(call[0] is mock_hass for call in calls)
         finally:
             websocket_api.async_register_command = original_register
 
