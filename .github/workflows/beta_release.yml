@@ -1,0 +1,25 @@
+name: Beta Release
+
+on:
+  push:
+    branches:
+      - beta
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: HACS Action
+        uses: hacs/action@main
+        with:
+          category: integration
+          
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.run_number }}-beta
+          prerelease: true
+          generate_release_notes: true
