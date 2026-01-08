@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 interface RelayDestination {
   name: string;
@@ -26,9 +26,9 @@ interface MqttStatusCardProps {
   relayDestinations: Record<string, RelayDestination>;
 }
 
-const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
-  const getStatusStyle = (status: string) => {
-    switch (status) {
+const StatusBadge = memo<{ status: string }>(({ status }) => {
+  const getStatusStyle = (s: string) => {
+    switch (s) {
       case 'connected':
         return { backgroundColor: '#22c55e', color: '#fff' };
       case 'connecting':
@@ -57,7 +57,8 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
       {status}
     </span>
   );
-};
+});
+StatusBadge.displayName = 'StatusBadge';
 
 const formatTime = (isoTime: string | null): string => {
   if (!isoTime) return 'Never';
@@ -77,23 +78,122 @@ const formatTime = (isoTime: string | null): string => {
   return date.toLocaleDateString();
 };
 
-const StatItem: React.FC<{ label: string; value: string | number }> = ({
-  label,
-  value,
-}) => (
-  <div
-    style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      padding: '4px 0',
-    }}
-  >
-    <span style={{ color: 'var(--secondary-text-color, #888)' }}>{label}</span>
-    <span style={{ fontWeight: 500 }}>{value}</span>
-  </div>
+const StatItem = memo<{ label: string; value: string | number }>(
+  ({ label, value }) => (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '4px 0',
+      }}
+    >
+      <span style={{ color: 'var(--secondary-text-color, #888)' }}>
+        {label}
+      </span>
+      <span style={{ fontWeight: 500 }}>{value}</span>
+    </div>
+  )
 );
+StatItem.displayName = 'StatItem';
 
-export const MqttStatusCard: React.FC<MqttStatusCardProps> = ({
+/**
+ * Memoized relay destination card - only re-renders when this destination changes
+ */
+interface RelayDestinationCardProps {
+  name: string;
+  dest: RelayDestination;
+}
+
+const RelayDestinationCard = memo<RelayDestinationCardProps>(
+  ({ name, dest }) => {
+    const relayCardStyle: React.CSSProperties = {
+      backgroundColor: 'var(--primary-background-color, #f5f5f5)',
+      borderRadius: '8px',
+      padding: '12px',
+      marginBottom: '8px',
+    };
+
+    return (
+      <div style={relayCardStyle}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '8px',
+          }}
+        >
+          <span style={{ fontWeight: 600 }}>{name}</span>
+          <StatusBadge status={dest.status} />
+        </div>
+        <div
+          style={{
+            fontSize: '12px',
+            color: 'var(--secondary-text-color, #888)',
+          }}
+        >
+          <div>
+            {dest.host}:{dest.port}
+          </div>
+          <div style={{ fontFamily: 'monospace', marginTop: '4px' }}>
+            {dest.topic_filter}
+          </div>
+        </div>
+        <div style={{ marginTop: '8px', fontSize: '12px' }}>
+          <StatItem
+            label="Messages Relayed"
+            value={dest.messages_relayed.toLocaleString()}
+          />
+          <StatItem
+            label="Last Relay"
+            value={formatTime(dest.last_relay_time)}
+          />
+          {dest.last_error && (
+            <div
+              style={{
+                marginTop: '4px',
+                padding: '6px',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                borderRadius: '4px',
+              }}
+            >
+              <div style={{ color: '#ef4444', fontWeight: 500 }}>
+                Last Error
+              </div>
+              <div style={{ fontSize: '11px', marginTop: '2px' }}>
+                {dest.last_error}
+              </div>
+              <div
+                style={{
+                  fontSize: '10px',
+                  color: 'var(--secondary-text-color)',
+                }}
+              >
+                {formatTime(dest.last_error_time)}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison - only re-render if destination data changed
+    const prev = prevProps.dest;
+    const next = nextProps.dest;
+
+    if (prevProps.name !== nextProps.name) return false;
+    if (prev.status !== next.status) return false;
+    if (prev.messages_relayed !== next.messages_relayed) return false;
+    if (prev.last_relay_time !== next.last_relay_time) return false;
+    if (prev.last_error !== next.last_error) return false;
+
+    return true; // No changes, skip re-render
+  }
+);
+RelayDestinationCard.displayName = 'RelayDestinationCard';
+
+const MqttStatusCardComponent: React.FC<MqttStatusCardProps> = ({
   mqttStats,
   relayDestinations,
 }) => {
@@ -121,13 +221,6 @@ export const MqttStatusCard: React.FC<MqttStatusCardProps> = ({
 
   const sectionStyle: React.CSSProperties = {
     marginBottom: '16px',
-  };
-
-  const relayCardStyle: React.CSSProperties = {
-    backgroundColor: 'var(--primary-background-color, #f5f5f5)',
-    borderRadius: '8px',
-    padding: '12px',
-    marginBottom: '8px',
   };
 
   return (
@@ -204,72 +297,51 @@ export const MqttStatusCard: React.FC<MqttStatusCardProps> = ({
             Relay Destinations ({Object.keys(relayDestinations).length})
           </h4>
           {Object.entries(relayDestinations).map(([name, dest]) => (
-            <div key={name} style={relayCardStyle}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '8px',
-                }}
-              >
-                <span style={{ fontWeight: 600 }}>{name}</span>
-                <StatusBadge status={dest.status} />
-              </div>
-              <div
-                style={{
-                  fontSize: '12px',
-                  color: 'var(--secondary-text-color, #888)',
-                }}
-              >
-                <div>
-                  {dest.host}:{dest.port}
-                </div>
-                <div style={{ fontFamily: 'monospace', marginTop: '4px' }}>
-                  {dest.topic_filter}
-                </div>
-              </div>
-              <div style={{ marginTop: '8px', fontSize: '12px' }}>
-                <StatItem
-                  label="Messages Relayed"
-                  value={dest.messages_relayed.toLocaleString()}
-                />
-                <StatItem
-                  label="Last Relay"
-                  value={formatTime(dest.last_relay_time)}
-                />
-                {dest.last_error && (
-                  <div
-                    style={{
-                      marginTop: '4px',
-                      padding: '6px',
-                      backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                      borderRadius: '4px',
-                    }}
-                  >
-                    <div style={{ color: '#ef4444', fontWeight: 500 }}>
-                      Last Error
-                    </div>
-                    <div style={{ fontSize: '11px', marginTop: '2px' }}>
-                      {dest.last_error}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '10px',
-                        color: 'var(--secondary-text-color)',
-                      }}
-                    >
-                      {formatTime(dest.last_error_time)}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+            <RelayDestinationCard key={name} name={name} dest={dest} />
           ))}
         </div>
       )}
     </div>
   );
 };
+
+/**
+ * Memoized MqttStatusCard - only re-renders when MQTT data changes
+ */
+export const MqttStatusCard = memo(
+  MqttStatusCardComponent,
+  (prevProps, nextProps) => {
+    // Compare stats
+    const prevStats = prevProps.mqttStats;
+    const nextStats = nextProps.mqttStats;
+
+    if (prevStats?.is_running !== nextStats?.is_running) return false;
+    if (prevStats?.messages_received !== nextStats?.messages_received)
+      return false;
+    if (prevStats?.messages_processed !== nextStats?.messages_processed)
+      return false;
+    if (prevStats?.last_message_time !== nextStats?.last_message_time)
+      return false;
+
+    // Compare relay destinations count
+    const prevDestKeys = Object.keys(prevProps.relayDestinations);
+    const nextDestKeys = Object.keys(nextProps.relayDestinations);
+    if (prevDestKeys.length !== nextDestKeys.length) return false;
+
+    // Compare each destination
+    for (const key of nextDestKeys) {
+      const prevDest = prevProps.relayDestinations[key];
+      const nextDest = nextProps.relayDestinations[key];
+      if (!prevDest) return false;
+      if (prevDest.status !== nextDest.status) return false;
+      if (prevDest.messages_relayed !== nextDest.messages_relayed)
+        return false;
+      if (prevDest.last_relay_time !== nextDest.last_relay_time) return false;
+      if (prevDest.last_error !== nextDest.last_error) return false;
+    }
+
+    return true; // No changes, skip re-render
+  }
+);
 
 export default MqttStatusCard;

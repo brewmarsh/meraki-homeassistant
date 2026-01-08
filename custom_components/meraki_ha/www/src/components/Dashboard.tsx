@@ -786,6 +786,21 @@ const Dashboard = memo(DashboardComponent, (prevProps, nextProps) => {
     return false; // Timestamp changed, re-render for countdown
   }
 
+  // Compare MQTT data - MqttStatusCard is memoized, so Dashboard
+  // only needs to re-render if MQTT enabled state changes
+  if (prevData.mqtt?.enabled !== nextData.mqtt?.enabled) {
+    return false; // MQTT enabled state changed, re-render
+  }
+
+  // MQTT stats/relay changes are handled by MqttStatusCard's own memo
+  // but we still pass new data to trigger the child's comparison
+  if (
+    prevData.mqtt?.stats?.messages_received !==
+    nextData.mqtt?.stats?.messages_received
+  ) {
+    return false; // Let child handle the update
+  }
+
   return true; // No meaningful changes, skip re-render
 });
 
