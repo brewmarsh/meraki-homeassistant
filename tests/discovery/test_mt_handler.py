@@ -49,11 +49,14 @@ async def test_mt_handler_discover_entities_mt10(
 
     entities = await handler.discover_entities()
 
-    # MT10 has Temperature, Humidity, Battery (3 sensors) + Device Status = 4
-    assert len(entities) == 4
+    # MT10 has Temperature, Humidity, Battery (3 sensors)
+    # + USB Powered (1 binary) + Device Status = 5
+    assert len(entities) == 5
     # Filter out device status sensor for MerakiMtSensor check
     mt_sensors = [e for e in entities if isinstance(e, MerakiMtSensor)]
+    binary_sensors = [e for e in entities if isinstance(e, MerakiMtBinarySensor)]
     assert len(mt_sensors) == 3
+    assert len(binary_sensors) == 1  # USB Powered
     assert any(e.entity_description.key == "temperature" for e in mt_sensors)
     assert any(e.entity_description.key == "humidity" for e in mt_sensors)
     assert any(e.entity_description.key == "battery" for e in mt_sensors)
@@ -83,17 +86,20 @@ async def test_mt_handler_discover_entities_mt12(
 
     entities = await handler.discover_entities()
 
-    # MT12 has Temperature, Battery (Sensors) + Water (Binary) + Device Status = 4
-    assert len(entities) == 4
+    # MT12 has Temperature, Battery (2 Sensors)
+    # + Water, Cable Connected, USB Powered (3 Binary) + Device Status = 6
+    assert len(entities) == 6
     sensors = [e for e in entities if isinstance(e, MerakiMtSensor)]
     binary_sensors = [e for e in entities if isinstance(e, MerakiMtBinarySensor)]
 
     assert len(sensors) == 2  # Temp, Battery
-    assert len(binary_sensors) == 1  # Water
+    assert len(binary_sensors) == 3  # Water, Cable Connected, USB Powered
 
     assert any(e.entity_description.key == "temperature" for e in sensors)
     assert any(e.entity_description.key == "battery" for e in sensors)
-    assert binary_sensors[0].entity_description.key == "water"
+    assert any(e.entity_description.key == "water" for e in binary_sensors)
+    assert any(e.entity_description.key == "cable_connected" for e in binary_sensors)
+    assert any(e.entity_description.key == "usb_powered" for e in binary_sensors)
 
 
 async def test_mt_handler_discover_entities_mt20(
@@ -120,15 +126,17 @@ async def test_mt_handler_discover_entities_mt20(
 
     entities = await handler.discover_entities()
 
-    # MT20 has Battery, Temperature, Humidity (Sensors) + Door (Binary) + Status = 5
-    assert len(entities) == 5
+    # MT20 has Battery, Temperature, Humidity (3 Sensors)
+    # + Door, USB Powered (2 Binary) + Status = 6
+    assert len(entities) == 6
     sensors = [e for e in entities if isinstance(e, MerakiMtSensor)]
     binary_sensors = [e for e in entities if isinstance(e, MerakiMtBinarySensor)]
 
     assert len(sensors) == 3  # Battery, Temperature, Humidity
-    assert len(binary_sensors) == 1  # Door
+    assert len(binary_sensors) == 2  # Door, USB Powered
 
     assert any(e.entity_description.key == "battery" for e in sensors)
     assert any(e.entity_description.key == "temperature" for e in sensors)
     assert any(e.entity_description.key == "humidity" for e in sensors)
-    assert binary_sensors[0].entity_description.key == "door"
+    assert any(e.entity_description.key == "door" for e in binary_sensors)
+    assert any(e.entity_description.key == "usb_powered" for e in binary_sensors)

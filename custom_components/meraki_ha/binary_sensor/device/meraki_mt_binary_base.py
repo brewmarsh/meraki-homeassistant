@@ -92,24 +92,45 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
                 return True
         return False
 
+    def _get_reading_timestamp(self) -> str | None:
+        """Get the timestamp from the current reading."""
+        readings = self._get_readings()
+        if not readings:
+            return None
+
+        for reading in readings:
+            if reading.get("metric") == self.entity_description.key:
+                # Meraki readings include 'ts' field with ISO timestamp
+                return reading.get("ts")
+        return None
+
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Return entity state attributes with update timestamp."""
+        """Return entity state attributes with update source and timestamps."""
         attrs: dict[str, Any] = {}
-        if self.coordinator.last_successful_update:
-            attrs["last_meraki_update"] = (
-                self.coordinator.last_successful_update.isoformat()
-            )
 
-        # Add MQTT update timestamp if available
-        mqtt_update = self.coordinator.get_mqtt_last_update(self._device.get("serial"))
+        # Get the actual reading timestamp from the data
+        reading_ts = self._get_reading_timestamp()
+        if reading_ts:
+            attrs["last_updated"] = reading_ts
+
+        # Determine data source and add relevant timestamps
+        serial = self._device.get("serial")
+        mqtt_update = self.coordinator.get_mqtt_last_update(serial) if serial else None
+
         if mqtt_update:
-            attrs["last_mqtt_update"] = mqtt_update.isoformat()
             attrs["data_source"] = "mqtt"
+            attrs["last_mqtt_update"] = mqtt_update.isoformat()
         elif self.coordinator.mqtt_enabled:
             attrs["data_source"] = "mqtt_pending"
         else:
             attrs["data_source"] = "api"
+
+        # Add coordinator update timestamp for reference
+        if self.coordinator.last_successful_update:
+            attrs["last_coordinator_update"] = (
+                self.coordinator.last_successful_update.isoformat()
+            )
 
         return attrs
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, memo, useCallback } from 'react';
 import StatusCard from './StatusCard';
+import MqttStatusCard from './MqttStatusCard';
 
 interface Device {
   serial: string;
@@ -42,6 +43,27 @@ interface Client {
   ssid?: string;
 }
 
+interface MqttServiceStats {
+  is_running: boolean;
+  messages_received: number;
+  messages_processed: number;
+  last_message_time: string | null;
+  start_time: string | null;
+  sensors_mapped: number;
+}
+
+interface RelayDestination {
+  name: string;
+  status: 'connected' | 'connecting' | 'disconnected' | 'error';
+  host: string;
+  port: number;
+  topic_filter: string;
+  messages_relayed: number;
+  last_relay_time: string | null;
+  last_error: string | null;
+  last_error_time: string | null;
+}
+
 interface DashboardProps {
   setActiveView: (view: {
     view: string;
@@ -56,6 +78,11 @@ interface DashboardProps {
     clients?: Client[];
     scan_interval?: number;
     last_updated?: string;
+    mqtt?: {
+      enabled: boolean;
+      stats?: MqttServiceStats;
+      relay_destinations?: Record<string, RelayDestination>;
+    };
   };
   hass?: {
     callService?: (
@@ -231,6 +258,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({
     clients = [],
     scan_interval = 90,
     last_updated,
+    mqtt,
   } = data;
 
   // Countdown state for next refresh
@@ -545,6 +573,14 @@ const DashboardComponent: React.FC<DashboardProps> = ({
         />
       </div>
 
+      {/* MQTT Status Card - Only shown when MQTT is enabled */}
+      {mqtt?.enabled && (
+        <MqttStatusCard
+          mqttStats={mqtt.stats || null}
+          relayDestinations={mqtt.relay_destinations || {}}
+        />
+      )}
+
       {/* Filters and View Toggle */}
       <div className="filter-controls">
         {/* View Mode Toggle */}
@@ -748,6 +784,21 @@ const Dashboard = memo(DashboardComponent, (prevProps, nextProps) => {
   // Compare timestamps - allow re-render for countdown updates
   if (prevData.last_updated !== nextData.last_updated) {
     return false; // Timestamp changed, re-render for countdown
+  }
+
+  // Compare MQTT data - MqttStatusCard is memoized, so Dashboard
+  // only needs to re-render if MQTT enabled state changes
+  if (prevData.mqtt?.enabled !== nextData.mqtt?.enabled) {
+    return false; // MQTT enabled state changed, re-render
+  }
+
+  // MQTT stats/relay changes are handled by MqttStatusCard's own memo
+  // but we still pass new data to trigger the child's comparison
+  if (
+    prevData.mqtt?.stats?.messages_received !==
+    nextData.mqtt?.stats?.messages_received
+  ) {
+    return false; // Let child handle the update
   }
 
   return true; // No meaningful changes, skip re-render

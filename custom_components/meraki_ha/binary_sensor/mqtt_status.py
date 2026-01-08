@@ -24,9 +24,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMqttStatusSensor(
-    CoordinatorEntity["MerakiDataCoordinator"], BinarySensorEntity
-):
+class MerakiMqttStatusSensor(CoordinatorEntity, BinarySensorEntity):  # type: ignore[type-arg]
     """Binary sensor indicating MQTT service connection status."""
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
@@ -79,9 +77,7 @@ class MerakiMqttStatusSensor(
         self.async_write_ha_state()
 
 
-class MerakiMqttRelayStatusSensor(
-    CoordinatorEntity["MerakiDataCoordinator"], BinarySensorEntity
-):
+class MerakiMqttRelayStatusSensor(CoordinatorEntity, BinarySensorEntity):  # type: ignore[type-arg]
     """Binary sensor indicating MQTT relay destination connection status."""
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY

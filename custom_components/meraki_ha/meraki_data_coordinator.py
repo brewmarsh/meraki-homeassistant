@@ -299,7 +299,10 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # waterDetection: {"ts": "...", "wet": false}
         # etc.
 
+        # Include the timestamp from MQTT data if available
         reading: dict[str, Any] = {"metric": metric}
+        if "ts" in data:
+            reading["ts"] = data["ts"]
 
         if metric == "temperature":
             reading["temperature"] = {
