@@ -283,7 +283,34 @@ const SensorReadingComponent: React.FC<SensorReadingProps> = ({
   );
 };
 
-// Memoize SensorReading - re-render only when value or status changes
-const SensorReading = memo(SensorReadingComponent);
+// Custom comparison function for memoization
+// Only re-render when meaningful data changes, not every timestamp tick
+const areSensorPropsEqual = (
+  prev: SensorReadingProps,
+  next: SensorReadingProps
+): boolean => {
+  // Always re-render if core data changes
+  if (prev.type !== next.type) return false;
+  if (prev.value !== next.value) return false;
+  if (prev.status !== next.status) return false;
+  if (prev.unit !== next.unit) return false;
+  if (prev.temperatureUnit !== next.temperatureUnit) return false;
+  if (prev.dataSource !== next.dataSource) return false;
+
+  // For timestamp, only re-render if it's significantly different (> 30s)
+  // This prevents constant re-renders from minor timestamp updates
+  if (prev.lastUpdated !== next.lastUpdated) {
+    if (!prev.lastUpdated || !next.lastUpdated) return false;
+    const prevTime = new Date(prev.lastUpdated).getTime();
+    const nextTime = new Date(next.lastUpdated).getTime();
+    // Only re-render if timestamp differs by more than 30 seconds
+    if (Math.abs(nextTime - prevTime) > 30000) return false;
+  }
+
+  return true;
+};
+
+// Memoize SensorReading - re-render only when meaningful data changes
+const SensorReading = memo(SensorReadingComponent, areSensorPropsEqual);
 
 export default SensorReading;
