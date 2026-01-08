@@ -35,8 +35,13 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
         self._camera_service = camera_service
         self._object_type = object_type
         self._attr_unique_id = f"{self._device['serial']}-{object_type}-count"
-        self._attr_name = f"{self._device['name']} {object_type.capitalize()} Count"
         self._analytics_data: dict[str, Any] = {}
+        self.translation_key = "camera_analytics"
+
+    @property
+    def translation_placeholders(self) -> dict[str, str]:
+        """Return the placeholders for translation."""
+        return {"object_type": self._object_type.capitalize()}
 
     @property
     def device_info(self) -> DeviceInfo | None:

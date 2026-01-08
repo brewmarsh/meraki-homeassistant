@@ -33,7 +33,7 @@ class MerakiDeviceConnectedClientsSensor(CoordinatorEntity, SensorEntity):
         self._device_serial: str = device_data["serial"]
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device_serial}_connected_clients"
-        self._attr_name = "Connected Clients"
+        self.translation_key = "connected_clients"
 
         self._attr_device_info = resolve_device_info(
             entity_data=device_data,

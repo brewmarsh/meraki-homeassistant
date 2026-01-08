@@ -156,6 +156,117 @@
       },
       "radio_settings": {
         "name": "Radio Settings"
+      },
+      "appliance_port": {
+        "name": "Port {port_number}"
+      },
+      "appliance_uplink": {
+        "name": "Uplink {uplink_interface}"
+      },
+      "camera_analytics": {
+        "name": "{object_type} Count"
+      },
+      "camera_audio_detection": {
+        "name": "Audio Detection"
+      },
+      "camera_sense_status": {
+        "name": "Sense Enabled"
+      },
+      "connected_clients": {
+        "name": "Connected Clients"
+      },
+      "data_usage": {
+        "name": "Data Usage"
+      },
+      "temperature": {
+        "name": "Temperature"
+      },
+      "humidity": {
+        "name": "Humidity"
+      },
+      "water": {
+        "name": "Water Detection"
+      },
+      "pm25": {
+        "name": "PM2.5"
+      },
+      "tvoc": {
+        "name": "TVOC"
+      },
+      "co2": {
+        "name": "CO2"
+      },
+      "noise": {
+        "name": "Ambient Noise"
+      },
+      "power": {
+        "name": "Power"
+      },
+      "voltage": {
+        "name": "Voltage"
+      },
+      "current": {
+        "name": "Current"
+      },
+      "poe_usage": {
+        "name": "PoE Usage"
+      },
+      "rtsp_url": {
+        "name": "RTSP URL"
+      },
+      "network_clients": {
+        "name": "Clients"
+      },
+      "auth_mode": {
+        "name": "Auth Mode"
+      },
+      "availability": {
+        "name": "Availability"
+      },
+      "band_selection": {
+        "name": "Band Selection"
+      },
+      "channel": {
+        "name": "Channel"
+      },
+      "client_count": {
+        "name": "Client Count"
+      },
+      "walled_garden": {
+        "name": "Walled Garden"
+      },
+      "total_upload_limit": {
+        "name": "Total Upload Limit"
+      },
+      "total_download_limit": {
+        "name": "Total Download Limit"
+      },
+      "mandatory_dhcp": {
+        "name": "Mandatory DHCP"
+      },
+      "min_bitrate_24ghz": {
+        "name": "Minimum Bitrate 2.4GHz"
+      },
+      "min_bitrate_5ghz": {
+        "name": "Minimum Bitrate 5GHz"
+      },
+      "encryption_mode": {
+        "name": "Encryption Mode"
+      },
+      "ip_assignment_mode": {
+        "name": "IP Assignment Mode"
+      },
+      "per_client_bandwidth_limit": {
+        "name": "Per-Client Bandwidth Limit {direction}"
+      },
+      "per_ssid_bandwidth_limit": {
+        "name": "Per-SSID Bandwidth Limit {direction}"
+      },
+      "splash_page": {
+        "name": "Splash Page"
+      },
+      "visible": {
+        "name": "Visible"
       }
     },
     "switch": {
