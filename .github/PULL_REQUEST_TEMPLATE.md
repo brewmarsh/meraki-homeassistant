@@ -19,7 +19,8 @@
 - [ ] **Roadmap:** I have marked the task as complete in `ROADMAP.md` (if applicable).
 
 ---
-**Contributor Type:** - [ ] Human Developer
+**Contributor Type:**
+- [ ] Human Developer
 - [ ] Jules AI Agent
 
 *Please review for 2026.1 architectural alignment before merging into beta.*
