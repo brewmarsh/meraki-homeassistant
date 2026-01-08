@@ -39,7 +39,10 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
         self._device_data = device_data
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device_data['serial']}-rtsp-url"
-        self.translation_key = "rtsp_url"
+        self._attr_name = format_entity_name(
+            format_device_name(self._device_data, self._config_entry.options),
+            "RTSP URL",
+        )
         self._attr_icon = "mdi:cctv"
 
         # Set availability based on model

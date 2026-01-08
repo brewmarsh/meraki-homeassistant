@@ -13,8 +13,6 @@ from .sensor.device.meraki_firmware_status import MerakiFirmwareStatusSensor
 from .sensor.device.meraki_wan1_connectivity import MerakiWAN1ConnectivitySensor
 from .sensor.device.meraki_wan2_connectivity import MerakiWAN2ConnectivitySensor
 from .sensor.device.poe_usage import MerakiPoeUsageSensor
-from .sensor.device.public_ip import MerakiPublicIpSensor
-from .sensor.device.serial_number import MerakiSerialNumberSensor
 
 SensorClassList = list[type[Entity]]
 
@@ -53,8 +51,6 @@ SENSORS_COORD_DEV_CONF: dict[str, SensorClassList] = {
 # Common sensors for all devices
 COMMON_SENSORS_COORD_DEV_CONF: SensorClassList = [
     MerakiDeviceStatusSensor,
-    MerakiPublicIpSensor,
-    MerakiSerialNumberSensor,
 ]
 
 

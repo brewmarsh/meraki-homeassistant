@@ -14,7 +14,7 @@ class MerakiSSIDAuthModeSensor(MerakiSSIDBaseSensor):
 
     entity_description = SensorEntityDescription(
         key="auth_mode",
-        translation_key="auth_mode",
+        name="Auth Mode",
         icon="mdi:lock",
     )
 

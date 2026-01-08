@@ -1,16 +1,16 @@
 name: Deploy Latest Code to Local Folder on Linux Runner
 
+# This workflow will run on 'push' events to the specified branches.
 on:
   push:
     branches:
-      - beta
+      - main
+      - beta # Trigger deployment on pushes/merges to the beta branch
 
 jobs:
   deploy-to-linux-folder:
     # This job runs on the self-hosted runner.
     runs-on: self-hosted
-    permissions:
-      contents: read # Explicitly grant read permission for the GITHUB_TOKEN
 
     # Define environment variables
     env:
@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Checkout repository
         # Checks out your repository code into $GITHUB_WORKSPACE.
-        uses: actions/checkout@v6
+        uses: actions/checkout@v5
 
       - name: Copy files to destination folder (rsync)
         # Use 'bash' and 'sudo rsync' to bypass symlink and permission issues.
@@ -54,6 +54,7 @@ jobs:
             --exclude 'tests' \
             --exclude '*.log' \
             --exclude 'docker-runner' \
+            --exclude 'custom_components' \
             "${SourceComponentDir}" "${DestinationPath}"
 
           echo "Successfully copied latest code to ${DestinationPath}."
@@ -62,24 +63,6 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Clear Home Assistant Frontend Cache
-        shell: bash
-        env:
-          HA_URL: ${{ secrets.HA_URL }}
-          HA_TOKEN: ${{ secrets.HA_TOKEN }}
-        run: |
-          echo "Clearing Home Assistant frontend cache..."
-          CLEAN_HA_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
-          API_STATUS=$(curl -sS -o /dev/null -w "%{http_code}" -X POST \
-              -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d "{}" \
-              "$HA_URL/api/services/frontend/reload_themes")
-          if [[ "$API_STATUS" -ne 200 ]]; then
-              echo "Warning: Failed to clear frontend cache. HTTP status code: $API_STATUS."
-          else
-              echo "Home Assistant frontend cache cleared."
-          fi
       - name: Restart Home Assistant
         shell: bash
         env:
@@ -153,18 +136,14 @@ jobs:
 
           # Step 1b: Trigger Restart
           echo "Triggering Home Assistant restart..."
-          RESTART_RESPONSE_FILE=$(mktemp)
-          RESTART_STATUS=$(curl -sS -o "$RESTART_RESPONSE_FILE" -w "%{http_code}" -X POST \
+          RESTART_STATUS=$(curl -sS -o /dev/null -w "%{http_code}" -X POST \
               -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
               -H "Content-Type: application/json" \
               -d "{}" \
-              "$HA_URL/api/services/homeassistant/restart")
-          RESTART_RESPONSE=$(cat "$RESTART_RESPONSE_FILE")
-          rm "$RESTART_RESPONSE_FILE"
+              "$HA_URL/api/services/home_assistant/restart")
 
           if [[ "$RESTART_STATUS" -lt 200 || "$RESTART_STATUS" -ge 300 ]]; then
               echo "Error: API call to restart failed with HTTP status code $RESTART_STATUS."
-              echo "Response: $RESTART_RESPONSE"
               exit 1
           fi
 

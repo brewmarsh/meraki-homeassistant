@@ -10,7 +10,6 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from ...const import CONF_ENABLE_NETWORK_SENSORS, CONF_ENABLE_VLAN_SENSORS
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
 from ...switch.content_filtering import MerakiContentFilteringSwitch
 from .base import BaseHandler
@@ -62,11 +61,6 @@ class NetworkHandler(BaseHandler):
     async def discover_entities(self) -> list[Entity]:
         """Discover network-level entities."""
         entities: list[Entity] = []
-
-        # Check if network sensors are enabled
-        if not self._config_entry.options.get(CONF_ENABLE_NETWORK_SENSORS, True):
-            return entities
-
         networks = self._coordinator.data.get("networks", [])
         if not networks:
             _LOGGER.debug("No networks found to create network-level entities.")
@@ -101,72 +95,6 @@ class NetworkHandler(BaseHandler):
                         network["id"],
                         e,
                     )
-
-            # VLAN Sensors
-            if self._config_entry.options.get(CONF_ENABLE_VLAN_SENSORS, True):
-                vlans = self._coordinator.data.get("vlans", {}).get(network["id"], [])
-                if vlans:
-                    from ...sensor.network.vlan import (
-                        MerakiVLANIDSensor,
-                        MerakiVLANIPv4EnabledSensor,
-                        MerakiVLANIPv4InterfaceSensor,
-                        MerakiVLANIPv4UplinkSensor,
-                        MerakiVLANIPv6EnabledSensor,
-                        MerakiVLANIPv6InterfaceSensor,
-                        MerakiVLANIPv6UplinkSensor,
-                    )
-
-                    for vlan in vlans:
-                        entities.extend(
-                            [
-                                MerakiVLANIDSensor(
-                                    self._coordinator,
-                                    self._config_entry,
-                                    network["id"],
-                                    vlan,
-                                ),
-                                MerakiVLANIPv4EnabledSensor(
-                                    self._coordinator,
-                                    self._config_entry,
-                                    network["id"],
-                                    vlan,
-                                ),
-                                MerakiVLANIPv4InterfaceSensor(
-                                    self._coordinator,
-                                    self._config_entry,
-                                    network["id"],
-                                    vlan,
-                                ),
-                                MerakiVLANIPv4UplinkSensor(
-                                    self._coordinator,
-                                    self._config_entry,
-                                    network["id"],
-                                    vlan,
-                                ),
-                                MerakiVLANIPv6EnabledSensor(
-                                    self._coordinator,
-                                    self._config_entry,
-                                    network["id"],
-                                    vlan,
-                                ),
-                                MerakiVLANIPv6InterfaceSensor(
-                                    self._coordinator,
-                                    self._config_entry,
-                                    network["id"],
-                                    vlan,
-                                ),
-                                MerakiVLANIPv6UplinkSensor(
-                                    self._coordinator,
-                                    self._config_entry,
-                                    network["id"],
-                                    vlan,
-                                ),
-                            ]
-                        )
-                else:
-                    _LOGGER.debug("No VLANs found for network %s", network["id"])
-            else:
-                _LOGGER.debug("VLAN sensors are disabled.")
 
         _LOGGER.info("Discovered %d network-level entities", len(entities))
         return entities

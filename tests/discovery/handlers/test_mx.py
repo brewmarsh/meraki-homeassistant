@@ -6,9 +6,6 @@ import pytest
 
 from custom_components.meraki_ha.button.reboot import MerakiRebootButton
 from custom_components.meraki_ha.discovery.handlers.mx import MXHandler
-from custom_components.meraki_ha.sensor.device.device_status import (
-    MerakiDeviceStatusSensor,
-)
 
 from ...const import MOCK_CONFIG_ENTRY, MOCK_MX_DEVICE
 
@@ -34,7 +31,7 @@ def mock_camera_service():
 
 
 @pytest.mark.asyncio
-async def test_discover_entities_creates_reboot_button_and_status_sensor(
+async def test_discover_entities_creates_reboot_button(
     mock_coordinator, mock_camera_service, mock_control_service
 ):
     """Test that discover_entities creates a MerakiRebootButton."""
@@ -48,6 +45,5 @@ async def test_discover_entities_creates_reboot_button_and_status_sensor(
 
     entities = await handler.discover_entities()
 
-    assert len(entities) >= 2
-    assert any(isinstance(e, MerakiRebootButton) for e in entities)
-    assert any(isinstance(e, MerakiDeviceStatusSensor) for e in entities)
+    assert len(entities) == 1
+    assert isinstance(entities[0], MerakiRebootButton)

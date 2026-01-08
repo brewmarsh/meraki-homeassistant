@@ -2,20 +2,29 @@
   "domain": "meraki_ha",
   "name": "Meraki for Home Assistant",
   "after_dependencies": [],
-  "codeowners": ["@brewmarsh"],
+  "codeowners": [
+    "@brewmarsh"
+  ],
   "config_flow": true,
-  "dependencies": ["frontend", "http", "panel_custom"],
+  "dependencies": [
+    "frontend",
+    "panel_custom",
+    "http",
+    "stream"
+  ],
   "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/brewmarsh/meraki-homeassistant/issues",
-  "loggers": ["meraki_ha"],
+  "loggers": [
+    "meraki_ha"
+  ],
   "quality_scale": "platinum",
   "requirements": [
-    "aiofiles",
+    "meraki>=1.36.0",
     "aiohttp",
     "diskcache==5.6.3",
-    "meraki>=1.36.0"
+    "aiofiles"
   ],
-  "version": "2.2.1-beta.34"
+"version": "2.0.0-beta.69"
 }

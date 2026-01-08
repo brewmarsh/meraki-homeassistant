@@ -14,7 +14,7 @@ class MerakiSSIDVisibleSensor(MerakiSSIDBaseSensor):
 
     entity_description = SensorEntityDescription(
         key="visible",
-        translation_key="visible",
+        name="Visible",
         icon="mdi:eye",
     )
 

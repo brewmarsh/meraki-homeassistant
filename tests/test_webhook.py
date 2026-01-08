@@ -30,6 +30,7 @@ def mock_hass_with_webhook_data(hass: HomeAssistant) -> HomeAssistant:
     coordinator = MerakiDataCoordinator(
         hass,
         api_client=MagicMock(),
+        scan_interval=300,
         entry=config_entry,
     )
     coordinator.data = {

@@ -7,7 +7,6 @@ This document outlines a high-level plan for improving the health and maintainab
 **Problem:** The test suite was significantly out of sync with the application code, leading to a cascade of failures during refactoring. This indicates a lack of maintenance and makes future development risky and time-consuming.
 
 **Action:**
-
 - Meticulously review every test file.
 - Update tests that are failing due to signature changes in the application code.
 - Delete obsolete tests that are no longer relevant to the current architecture.
@@ -19,7 +18,6 @@ This document outlines a high-level plan for improving the health and maintainab
 **Problem:** Different device handlers (`MXHandler`, `GXHandler`, `MSHandler`, etc.) had inconsistent constructor signatures, making the discovery service logic complex and prone to `TypeError`s.
 
 **Action:**
-
 - Enforce a standard, consistent interface for all classes that inherit from `BaseDeviceHandler`.
 - This includes standardizing the arguments passed in the constructor.
 - This will simplify the `DeviceDiscoveryService` and make it easier to add new handlers in the future.
@@ -29,7 +27,6 @@ This document outlines a high-level plan for improving the health and maintainab
 **Problem:** The `DeviceDiscoveryService` constructor has a large and growing number of parameters. While explicit dependency injection is good, this can become unwieldy and hard to manage.
 
 **Action:**
-
 - Investigate creating a dedicated "services" or "context" object.
 - This object would act as a container for all necessary services (`control_service`, `camera_service`, `network_control_service`, etc.).
 - The context object would be passed to the `DeviceDiscoveryService`, which can then access the services it needs.

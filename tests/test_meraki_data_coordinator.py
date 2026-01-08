@@ -21,7 +21,9 @@ def coordinator(hass, mock_api_client):
     """Fixture for a MerakiDataCoordinator instance."""
     entry = MagicMock()
     entry.options = {}
-    return MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
+    return MerakiDataCoordinator(
+        hass=hass, api_client=mock_api_client, scan_interval=300, entry=entry
+    )
 
 
 @pytest.mark.asyncio

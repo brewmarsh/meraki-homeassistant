@@ -7,12 +7,7 @@ interface StatusCardProps {
   onClick?: () => void;
 }
 
-const StatusCard: React.FC<StatusCardProps> = ({
-  title,
-  value,
-  icon,
-  onClick,
-}) => {
+const StatusCard: React.FC<StatusCardProps> = ({ title, value, icon, onClick }) => {
   return (
     <div
       className="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md flex items-center transition-shadow duration-200"
@@ -22,9 +17,7 @@ const StatusCard: React.FC<StatusCardProps> = ({
       {icon && <div className="mr-4 text-cisco-blue">{icon}</div>}
       <div>
         <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
-        <p className="text-2xl font-bold text-dark-text dark:text-light-text">
-          {value}
-        </p>
+        <p className="text-2xl font-bold text-dark-text dark:text-light-text">{value}</p>
       </div>
     </div>
   );

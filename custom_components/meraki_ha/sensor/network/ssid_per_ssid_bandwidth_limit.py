@@ -27,17 +27,11 @@ class MerakiSSIDPerSsidBandwidthLimitSensor(MerakiSSIDBaseSensor):
         direction: str,
     ) -> None:
         """Initialize the sensor."""
-        self._direction = direction
         attribute = f"perSsidBandwidthLimit{direction.capitalize()}"
         super().__init__(coordinator, config_entry, ssid_data, attribute)
-        self.translation_key = "per_ssid_bandwidth_limit"
+        self._attr_name = f"Per-SSID Bandwidth Limit {direction.capitalize()}"
         self._attr_native_value = self._ssid_data_at_init.get(attribute)
         self._attr_unique_id = (
             f"ssid-{self._network_id}-{self._ssid_number}-"
             f"per-ssid-bandwidth-limit-{direction}"
         )
-
-    @property
-    def translation_placeholders(self) -> dict[str, str]:
-        """Return the placeholders for translation."""
-        return {"direction": self._direction.capitalize()}

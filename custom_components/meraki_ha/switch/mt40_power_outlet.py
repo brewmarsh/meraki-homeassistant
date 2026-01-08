@@ -79,14 +79,14 @@ class MerakiMt40PowerOutlet(
         readings = self._device_info.get("readings")
         if not isinstance(readings, list):
             return None
-
-        for reading in readings:
-            if reading.get("metric") == "downstreamPower":
-                data = reading.get("downstreamPower")
-                if isinstance(data, dict):
-                    return data.get("enabled")
-
-        return None
+        return next(
+            (
+                reading.get("value")
+                for reading in readings
+                if reading.get("metric") == "downstream_power"
+            ),
+            None,
+        )
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """
