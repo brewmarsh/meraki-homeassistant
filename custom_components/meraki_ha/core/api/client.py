@@ -94,7 +94,7 @@ class MerakiAPIClient:
         self.traffic_analysis_failed_networks: set[str] = set()
 
         # Semaphore to limit concurrent API calls
-        self._semaphore = asyncio.Semaphore(2)
+        self._semaphore = asyncio.Semaphore(10)
 
         # Set of disabled features to prevent repetitive API calls
         self._disabled_features: set[str] = set()
