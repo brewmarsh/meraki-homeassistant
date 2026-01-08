@@ -13,8 +13,11 @@ from homeassistant.const import (
     CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
     CONCENTRATION_PARTS_PER_MILLION,
     PERCENTAGE,
+    UnitOfApparentPower,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
+    UnitOfEnergy,
+    UnitOfFrequency,
     UnitOfPower,
     UnitOfSoundPressure,
     UnitOfTemperature,
@@ -102,6 +105,38 @@ MT_CURRENT_DESCRIPTION = SensorEntityDescription(
     native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
 )
 
+MT_APPARENT_POWER_DESCRIPTION = SensorEntityDescription(
+    key="apparentPower",
+    name="Apparent Power",
+    device_class=SensorDeviceClass.APPARENT_POWER,
+    state_class=SensorStateClass.MEASUREMENT,
+    native_unit_of_measurement=UnitOfApparentPower.VOLT_AMPERE,
+)
+
+MT_POWER_FACTOR_DESCRIPTION = SensorEntityDescription(
+    key="powerFactor",
+    name="Power Factor",
+    device_class=SensorDeviceClass.POWER_FACTOR,
+    state_class=SensorStateClass.MEASUREMENT,
+    native_unit_of_measurement=PERCENTAGE,
+)
+
+MT_FREQUENCY_DESCRIPTION = SensorEntityDescription(
+    key="frequency",
+    name="Frequency",
+    device_class=SensorDeviceClass.FREQUENCY,
+    state_class=SensorStateClass.MEASUREMENT,
+    native_unit_of_measurement=UnitOfFrequency.HERTZ,
+)
+
+MT_ENERGY_DESCRIPTION = SensorEntityDescription(
+    key="energy",
+    name="Energy",
+    device_class=SensorDeviceClass.ENERGY,
+    state_class=SensorStateClass.TOTAL_INCREASING,
+    native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
+)
+
 MT_BATTERY_DESCRIPTION = SensorEntityDescription(
     key="battery",
     name="Battery",
@@ -128,6 +163,24 @@ MT_DOOR_DESCRIPTION = BinarySensorEntityDescription(
     key="door",
     name="Door",
     device_class=BinarySensorDeviceClass.DOOR,
+)
+
+MT_DOWNSTREAM_POWER_DESCRIPTION = BinarySensorEntityDescription(
+    key="downstream_power",
+    name="Downstream Power",
+    device_class=BinarySensorDeviceClass.POWER,
+)
+
+MT_USB_POWERED_DESCRIPTION = BinarySensorEntityDescription(
+    key="usb_powered",
+    name="USB Powered",
+    device_class=BinarySensorDeviceClass.PLUG,
+)
+
+MT_CABLE_CONNECTED_DESCRIPTION = BinarySensorEntityDescription(
+    key="cable_connected",
+    name="Cable Connected",
+    device_class=BinarySensorDeviceClass.CONNECTIVITY,
 )
 
 # Mapping of MT models to their supported sensor descriptions
@@ -166,17 +219,25 @@ MT_SENSOR_MODELS: dict[str, list[SensorEntityDescription]] = {
         MT_POWER_DESCRIPTION,
         MT_VOLTAGE_DESCRIPTION,
         MT_CURRENT_DESCRIPTION,
+        MT_APPARENT_POWER_DESCRIPTION,
+        MT_POWER_FACTOR_DESCRIPTION,
+        MT_FREQUENCY_DESCRIPTION,
+        MT_ENERGY_DESCRIPTION,
     ],
 }
 
 # Mapping of MT models to their supported binary sensor descriptions
 MT_BINARY_SENSOR_MODELS: dict[str, list[BinarySensorEntityDescription]] = {
-    "MT10": [],
-    "MT11": [],
-    "MT12": [MT_WATER_DESCRIPTION],
-    "MT14": [],
-    "MT15": [],
-    "MT20": [MT_DOOR_DESCRIPTION],
-    "MT30": [],
-    "MT40": [],
+    "MT10": [MT_USB_POWERED_DESCRIPTION],
+    "MT11": [MT_USB_POWERED_DESCRIPTION],
+    "MT12": [
+        MT_WATER_DESCRIPTION,
+        MT_CABLE_CONNECTED_DESCRIPTION,
+        MT_USB_POWERED_DESCRIPTION,
+    ],
+    "MT14": [MT_USB_POWERED_DESCRIPTION],
+    "MT15": [MT_USB_POWERED_DESCRIPTION],
+    "MT20": [MT_DOOR_DESCRIPTION, MT_USB_POWERED_DESCRIPTION],
+    "MT30": [MT_USB_POWERED_DESCRIPTION],
+    "MT40": [MT_DOWNSTREAM_POWER_DESCRIPTION],
 }
