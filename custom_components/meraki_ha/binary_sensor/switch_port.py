@@ -83,10 +83,51 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
         """Return the state attributes."""
         # Always get fresh data from coordinator
         port = self._get_current_port_data() or self._port
-        return {
+        poe_data = port.get("poe", {}) if isinstance(port.get("poe"), dict) else {}
+        usage_data = (
+            port.get("usageInKb", {}) if isinstance(port.get("usageInKb"), dict) else {}
+        )
+        traffic_data = (
+            port.get("trafficInKbps", {})
+            if isinstance(port.get("trafficInKbps"), dict)
+            else {}
+        )
+
+        attrs = {
             "port_id": port.get("portId"),
             "speed": port.get("speed"),
             "duplex": port.get("duplex"),
             "vlan": port.get("vlan"),
             "enabled": port.get("enabled"),
+            # Client info (from port status API)
+            "client_name": port.get("clientName"),
+            "client_mac": port.get("clientMac"),
+            "client_count": port.get("clientCount"),
+            # PoE info
+            "poe_enabled": poe_data.get("enabled"),
+            "poe_allocated": poe_data.get("isAllocated"),
+            "power_usage_wh": port.get("powerUsageInWh"),
+            # Traffic stats
+            "usage_total_kb": usage_data.get("total"),
+            "traffic_kbps": traffic_data.get("total"),
+            # LLDP/CDP neighbor info
+            "lldp_system_name": (
+                port.get("lldp", {}).get("systemName")
+                if isinstance(port.get("lldp"), dict)
+                else None
+            ),
+            "cdp_device_id": (
+                port.get("cdp", {}).get("deviceId")
+                if isinstance(port.get("cdp"), dict)
+                else None
+            ),
         }
+
+        # Add coordinator update timestamp
+        if self.coordinator.last_successful_update:
+            attrs["last_meraki_update"] = (
+                self.coordinator.last_successful_update.isoformat()
+            )
+
+        # Filter out None values for cleaner attributes
+        return {k: v for k, v in attrs.items() if v is not None}

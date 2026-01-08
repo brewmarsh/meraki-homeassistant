@@ -9,7 +9,7 @@ env:
   NODE_VERSION: '20'
 
 jobs:
-  # Fast linting checks with pip caching
+  # Fast linting checks
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -18,21 +18,16 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - name: Cache linter packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: lint-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-ruff-bandit
-          restore-keys: |
-            lint-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
       - name: Install linters
-        run: pip install ruff bandit
+        run: uv pip install --system ruff bandit
       - name: Run ruff check
         run: ruff check .
       - name: Run ruff format check
         run: ruff format --check .
       - name: Run bandit
-        run: bandit -r custom_components/meraki_ha/ -c .bandit.yaml
+        run: bandit -r custom_components/meraki_ha/ -c pyproject.toml
 
   # Type checking and security audit
   type-check:
@@ -43,11 +38,17 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: requirements_dev.txt
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
       - name: Install dependencies
-        run: |
-          pip install -r requirements_dev.txt
+        run: uv pip install --system -e ".[dev]"
+      - name: Cache mypy
+        uses: actions/cache@v4
+        with:
+          path: .mypy_cache
+          key: mypy-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('custom_components/**/*.py', 'tests/**/*.py') }}
+          restore-keys: |
+            mypy-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
       - name: Run mypy
         run: mypy custom_components/meraki_ha/ tests/
       - name: Run pip-audit
@@ -74,8 +75,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: requirements_dev.txt
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -83,7 +84,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: custom_components/meraki_ha/www/package-lock.json
       - name: Install Python dependencies
-        run: pip install -r requirements_dev.txt
+        run: uv pip install --system -e ".[dev]"
       - name: Install npm dependencies
         working-directory: custom_components/meraki_ha/www
         run: npm ci
@@ -92,7 +93,7 @@ jobs:
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('requirements_dev.txt') }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
       - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: playwright install --with-deps chromium

@@ -6,6 +6,7 @@ from typing import Any
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...helpers.device_info_helpers import resolve_device_info
@@ -14,8 +15,11 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDBaseSensor(CoordinatorEntity, SensorEntity):
-    """Base class for Meraki SSID sensors."""
+class MerakiSSIDBaseSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
+    """Base class for Meraki SSID sensors.
+
+    Uses RestoreEntity to preserve state across Home Assistant restarts.
+    """
 
     _attr_has_entity_name = True
 
@@ -41,6 +45,15 @@ class MerakiSSIDBaseSensor(CoordinatorEntity, SensorEntity):
             entity_data=self._ssid_data_at_init,
             config_entry=self._config_entry,
         )
+        self._restored_value: Any = None
+
+    async def async_added_to_hass(self) -> None:
+        """Restore state when entity is added to HA."""
+        await super().async_added_to_hass()
+
+        # Restore previous state on restart
+        if (last_state := await self.async_get_last_state()) is not None:
+            self._restored_value = last_state.state
 
     def _get_current_ssid_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this SSID from the coordinator."""
@@ -55,11 +68,24 @@ class MerakiSSIDBaseSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def available(self) -> bool:
-        """Return True if entity is available."""
+        """Return True if entity is available (data exists in coordinator).
+
+        Note: Availability is based on data existence, not SSID enabled status.
+        The sensor VALUE should indicate enabled/disabled status, not availability.
+        """
         if not super().available or not self.coordinator.data:
             return False
-        ssid_data = self._get_current_ssid_data()
-        return ssid_data is not None and ssid_data.get("enabled", False)
+        return self._get_current_ssid_data() is not None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return entity state attributes with update timestamp."""
+        attrs: dict[str, Any] = {}
+        if self.coordinator.last_successful_update:
+            attrs["last_meraki_update"] = (
+                self.coordinator.last_successful_update.isoformat()
+            )
+        return attrs
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -67,4 +93,7 @@ class MerakiSSIDBaseSensor(CoordinatorEntity, SensorEntity):
         ssid_data = self._get_current_ssid_data()
         if ssid_data:
             self._attr_native_value = ssid_data.get(self._attribute)
+        elif self._restored_value is not None:
+            # Use restored value if no fresh data
+            self._attr_native_value = self._restored_value
         self.async_write_ha_state()

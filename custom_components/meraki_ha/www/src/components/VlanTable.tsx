@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 
 interface Vlan {
   id: string;
@@ -7,11 +7,32 @@ interface Vlan {
   applianceIp?: string;
 }
 
+// Memoized VLAN row - only re-renders when this VLAN changes
+interface VlanRowProps {
+  vlan: Vlan;
+}
+
+const VlanRow = memo<VlanRowProps>(
+  ({ vlan }) => (
+    <tr>
+      <td>{vlan.id}</td>
+      <td>{vlan.name}</td>
+      <td className="text-mono">{vlan.subnet || '—'}</td>
+      <td className="text-mono">{vlan.applianceIp || '—'}</td>
+    </tr>
+  ),
+  (prev, next) =>
+    prev.vlan.id === next.vlan.id &&
+    prev.vlan.name === next.vlan.name &&
+    prev.vlan.subnet === next.vlan.subnet &&
+    prev.vlan.applianceIp === next.vlan.applianceIp
+);
+
 interface VlanTableProps {
   vlans: Vlan[];
 }
 
-const VlanTable: React.FC<VlanTableProps> = ({ vlans }) => {
+const VlanTableComponent: React.FC<VlanTableProps> = ({ vlans }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   if (!vlans || vlans.length === 0) {
@@ -25,45 +46,44 @@ const VlanTable: React.FC<VlanTableProps> = ({ vlans }) => {
   );
 
   return (
-    <div className="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md mb-4">
-      <div className="flex items-center mb-4">
-        <ha-icon icon="mdi:lan-connect" style={{ marginRight: '8px' }}></ha-icon>
-        <h3 className="text-lg font-semibold m-0">VLANs</h3>
-      </div>
+    <div className="info-card">
+      <h3>🔗 VLANs</h3>
       <input
         type="text"
         placeholder="Search VLANs..."
-        className="w-full p-2 mb-4 border rounded-lg bg-light-background dark:bg-dark-background dark:border-gray-600"
+        className="search-input mb-5"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
-      <div className="overflow-x-auto">
-        <table className="min-w-full">
-          <thead>
-            <tr className="border-b border-light-border dark:border-dark-border">
-              <th className="text-left p-4 font-semibold">ID</th>
-              <th className="text-left p-4 font-semibold">Name</th>
-              <th className="text-left p-4 font-semibold">Subnet</th>
-              <th className="text-left p-4 font-semibold">Appliance IP</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredVlans.map((vlan) => (
-              <tr
-                key={vlan.id}
-                className="border-b border-light-border dark:border-dark-border hover:bg-light-hover dark:hover:bg-dark-hover"
-              >
-                <td className="p-4">{vlan.id}</td>
-                <td className="p-4">{vlan.name}</td>
-                <td className="p-4">{vlan.subnet || '-'}</td>
-                <td className="p-4">{vlan.applianceIp || '-'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <table className="device-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Subnet</th>
+            <th>Appliance IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredVlans.map((vlan) => (
+            <VlanRow key={vlan.id} vlan={vlan} />
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
+
+// Memoize VlanTable to prevent unnecessary re-renders
+const VlanTable = memo(VlanTableComponent, (prevProps, nextProps) => {
+  if (prevProps.vlans.length !== nextProps.vlans.length) return false;
+  return prevProps.vlans.every(
+    (vlan, i) =>
+      vlan.id === nextProps.vlans[i].id &&
+      vlan.name === nextProps.vlans[i].name &&
+      vlan.subnet === nextProps.vlans[i].subnet &&
+      vlan.applianceIp === nextProps.vlans[i].applianceIp
+  );
+});
 
 export default VlanTable;

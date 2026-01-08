@@ -13,13 +13,14 @@ from typing import TYPE_CHECKING
 from ...binary_sensor.device.camera_motion import MerakiMotionSensor
 from ...button.device.camera_snapshot import MerakiSnapshotButton
 from ...camera import MerakiCamera
-from ...const import CONF_ENABLE_CAMERA_ENTITIES
+from ...const import CONF_ENABLE_CAMERA_ENTITIES, CONF_ENABLE_DEVICE_STATUS
 from ...sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
 )
 from ...sensor.device.camera_audio_detection import MerakiCameraAudioDetectionSensor
 from ...sensor.device.camera_sense_status import MerakiCameraSenseStatusSensor
+from ...sensor.device.device_status import MerakiDeviceStatusSensor
 from ...sensor.device.meraki_firmware_status import MerakiFirmwareStatusSensor
 from .base import BaseDeviceHandler
 
@@ -167,5 +168,15 @@ class MVHandler(BaseDeviceHandler):
                 self._config_entry,
             )
         )
+
+        # Device status sensor (matching other handlers like MS, MX, MR)
+        if self._config_entry.options.get(CONF_ENABLE_DEVICE_STATUS, True):
+            entities.append(
+                MerakiDeviceStatusSensor(
+                    self._coordinator,
+                    self.device,
+                    self._config_entry,
+                )
+            )
 
         return entities

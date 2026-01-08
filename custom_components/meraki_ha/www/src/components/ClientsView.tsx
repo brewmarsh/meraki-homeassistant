@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo, useCallback } from 'react';
 
 interface Client {
   id: string;
@@ -24,11 +24,83 @@ interface Client {
 
 interface ClientsViewProps {
   clients: Client[];
-  setActiveView: (view: { view: string; deviceId?: string; clientId?: string }) => void;
+  setActiveView: (view: {
+    view: string;
+    deviceId?: string;
+    clientId?: string;
+  }) => void;
   onBack: () => void;
 }
 
-const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBack }) => {
+/**
+ * Memoized client row - only re-renders when this specific client changes
+ */
+interface ClientRowProps {
+  client: Client;
+  onClick: () => void;
+  getClientIcon: (client: Client) => string;
+  formatBytes: (bytes: number) => string;
+}
+
+const ClientRow = memo<ClientRowProps>(
+  ({ client, onClick, getClientIcon, formatBytes }) => (
+    <tr className="device-row" onClick={onClick}>
+      <td>
+        <div className="device-name-cell">
+          <div className="device-icon text-xl">{getClientIcon(client)}</div>
+          <div>
+            <span className="name">{client.description || client.mac}</span>
+            {client.os && (
+              <div className="text-sm text-muted">{client.os}</div>
+            )}
+          </div>
+        </div>
+      </td>
+      <td className="device-model">{client.ip || '—'}</td>
+      <td className="device-model text-mono text-sm">{client.mac}</td>
+      <td className="device-model">{client.manufacturer || '—'}</td>
+      <td>
+        <span className="detail-badge">
+          {client.ssid || client.switchport || '—'}
+        </span>
+      </td>
+      <td>
+        {client.usage ? (
+          <span className="text-sm">
+            ↑{formatBytes(client.usage.sent)} ↓{formatBytes(client.usage.recv)}
+          </span>
+        ) : (
+          '—'
+        )}
+      </td>
+    </tr>
+  ),
+  (prevProps, nextProps) => {
+    const prev = prevProps.client;
+    const next = nextProps.client;
+
+    // Only re-render if this client's data changed
+    if (prev.id !== next.id) return false;
+    if (prev.mac !== next.mac) return false;
+    if (prev.ip !== next.ip) return false;
+    if (prev.description !== next.description) return false;
+    if (prev.status !== next.status) return false;
+    if (prev.ssid !== next.ssid) return false;
+    if (prev.switchport !== next.switchport) return false;
+    if (prev.usage?.sent !== next.usage?.sent) return false;
+    if (prev.usage?.recv !== next.usage?.recv) return false;
+
+    return true; // No changes, skip re-render
+  }
+);
+
+ClientRow.displayName = 'ClientRow';
+
+const ClientsViewComponent: React.FC<ClientsViewProps> = ({
+  clients,
+  setActiveView,
+  onBack,
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
@@ -45,24 +117,25 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
     );
   });
 
-  const formatBytes = (bytes: number): string => {
+  // Memoized helper functions to prevent ClientRow re-renders
+  const formatBytes = useCallback((bytes: number): string => {
     if (bytes === 0) return '0 B';
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+  }, []);
 
-  const formatDate = (dateString?: string): string => {
+  const formatDate = useCallback((dateString?: string): string => {
     if (!dateString) return '—';
     const date = new Date(dateString);
     return date.toLocaleString();
-  };
+  }, []);
 
-  const getClientIcon = (client: Client): string => {
+  const getClientIcon = useCallback((client: Client): string => {
     const os = client.os?.toLowerCase() || '';
     const manufacturer = client.manufacturer?.toLowerCase() || '';
-    
+
     if (os.includes('ios') || manufacturer.includes('apple')) return '📱';
     if (os.includes('android')) return '📱';
     if (os.includes('windows')) return '💻';
@@ -72,143 +145,209 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
     if (manufacturer.includes('roku')) return '📺';
     if (manufacturer.includes('samsung')) return '📺';
     return '🔌';
-  };
+  }, []);
+
+  // Memoized click handler
+  const handleClientClick = useCallback((client: Client) => {
+    setSelectedClient(client);
+  }, []);
 
   if (selectedClient) {
     return (
       <div>
-        <button onClick={() => setSelectedClient(null)} className="back-button">
+        <button
+          onClick={() => setSelectedClient(null)}
+          className="back-button"
+        >
           ← Back to Clients
         </button>
 
         <div className="device-header">
-          <div className="device-icon">
-            {getClientIcon(selectedClient)}
-          </div>
+          <div className="device-icon">{getClientIcon(selectedClient)}</div>
           <div className="device-info">
             <h1>{selectedClient.description || selectedClient.mac}</h1>
             <div className="meta">
-              <span><strong>MAC:</strong> {selectedClient.mac}</span>
-              {selectedClient.ip && <span><strong>IP:</strong> {selectedClient.ip}</span>}
+              <span>
+                <strong>MAC:</strong>{' '}
+                <span className="text-mono">{selectedClient.mac}</span>
+              </span>
+              {selectedClient.ip && (
+                <span>
+                  <strong>IP:</strong> {selectedClient.ip}
+                </span>
+              )}
               {selectedClient.manufacturer && (
-                <span><strong>Manufacturer:</strong> {selectedClient.manufacturer}</span>
+                <span>
+                  <strong>Manufacturer:</strong> {selectedClient.manufacturer}
+                </span>
+              )}
+              {selectedClient.os && (
+                <span>
+                  <strong>OS:</strong> {selectedClient.os}
+                </span>
+              )}
+              {selectedClient.vlan && (
+                <span>
+                  <strong>VLAN:</strong> {selectedClient.vlan}
+                </span>
+              )}
+              {selectedClient.ssid && (
+                <span>
+                  <strong>SSID:</strong> {selectedClient.ssid}
+                </span>
               )}
             </div>
+            {selectedClient.lastSeen && (
+              <div className="meta meta-info">
+                <span>Last seen: {formatDate(selectedClient.lastSeen)}</span>
+              </div>
+            )}
           </div>
-          <div className={`status-pill ${selectedClient.status?.toLowerCase() || 'online'}`}>
+          <div
+            className={`status-pill ${
+              selectedClient.status?.toLowerCase() || 'online'
+            }`}
+          >
             <div className="dot"></div>
             {selectedClient.status || 'Online'}
           </div>
         </div>
 
-        <div className="cards-grid">
-          <div className="info-card">
-            <h3>📋 Client Information</h3>
-            <div className="info-grid">
-              <div className="info-item">
-                <div className="label">Description</div>
-                <div className="value">{selectedClient.description || '—'}</div>
-              </div>
-              <div className="info-item">
-                <div className="label">User</div>
-                <div className="value">{selectedClient.user || '—'}</div>
-              </div>
-              <div className="info-item">
-                <div className="label">Operating System</div>
-                <div className="value">{selectedClient.os || '—'}</div>
-              </div>
-              <div className="info-item">
-                <div className="label">Manufacturer</div>
-                <div className="value">{selectedClient.manufacturer || '—'}</div>
-              </div>
-            </div>
-          </div>
+        {/* Single comprehensive session card */}
+        <div className="info-card mb-5">
+          <h3>📊 Session Details</h3>
 
-          <div className="info-card">
-            <h3>🌐 Network Information</h3>
-            <div className="info-grid">
-              <div className="info-item">
-                <div className="label">IP Address</div>
-                <div className="value mono">{selectedClient.ip || '—'}</div>
-              </div>
-              <div className="info-item">
-                <div className="label">IPv6 Address</div>
-                <div className="value mono" style={{ fontSize: '11px' }}>
-                  {selectedClient.ip6 || '—'}
+          {/* Usage Stats Row */}
+          {selectedClient.usage && (
+            <div className="usage-stats-row">
+              <div className="usage-stat">
+                <div className="usage-stat-label">UPLOADED</div>
+                <div className="usage-stat-value upload">
+                  ↑ {formatBytes(selectedClient.usage.sent)}
                 </div>
               </div>
-              <div className="info-item">
-                <div className="label">VLAN</div>
-                <div className="value">{selectedClient.vlan || '—'}</div>
+              <div className="usage-divider" />
+              <div className="usage-stat">
+                <div className="usage-stat-label">DOWNLOADED</div>
+                <div className="usage-stat-value download">
+                  ↓ {formatBytes(selectedClient.usage.recv)}
+                </div>
               </div>
+              <div className="usage-divider" />
+              <div className="usage-stat">
+                <div className="usage-stat-label">TOTAL</div>
+                <div className="usage-stat-value total">
+                  {formatBytes(
+                    selectedClient.usage.sent + selectedClient.usage.recv
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Details Grid */}
+          <div className="info-grid">
+            {/* Connection Type */}
+            <div className="info-item">
+              <div className="label">Connection Type</div>
+              <div className="value">
+                {selectedClient.ssid ? '📶 Wireless' : '🔌 Wired'}
+              </div>
+            </div>
+
+            {/* Connected Device */}
+            {(selectedClient.recentDeviceName ||
+              selectedClient.recentDeviceSerial) && (
+              <div className="info-item">
+                <div className="label">Connected To</div>
+                <div className="value">
+                  {selectedClient.recentDeviceName ||
+                    selectedClient.recentDeviceSerial}
+                  {selectedClient.switchport &&
+                    ` (Port ${selectedClient.switchport})`}
+                </div>
+              </div>
+            )}
+
+            {/* SSID for wireless */}
+            {selectedClient.ssid && (
               <div className="info-item">
                 <div className="label">SSID</div>
-                <div className="value">{selectedClient.ssid || '—'}</div>
+                <div className="value">{selectedClient.ssid}</div>
               </div>
-            </div>
-          </div>
+            )}
 
-          <div className="info-card">
-            <h3>📊 Usage Statistics</h3>
-            <div className="info-grid">
+            {/* VLAN */}
+            {selectedClient.vlan && (
               <div className="info-item">
-                <div className="label">Data Sent</div>
-                <div className="value success">
-                  {selectedClient.usage ? formatBytes(selectedClient.usage.sent) : '—'}
+                <div className="label">VLAN</div>
+                <div className="value">{selectedClient.vlan}</div>
+              </div>
+            )}
+
+            {/* IPv6 if available */}
+            {selectedClient.ip6 && (
+              <div className="info-item">
+                <div className="label">IPv6 Address</div>
+                <div className="value text-mono text-xs">
+                  {selectedClient.ip6}
                 </div>
               </div>
-              <div className="info-item">
-                <div className="label">Data Received</div>
-                <div className="value primary">
-                  {selectedClient.usage ? formatBytes(selectedClient.usage.recv) : '—'}
-                </div>
-              </div>
-              <div className="info-item">
-                <div className="label">First Seen</div>
-                <div className="value">{formatDate(selectedClient.firstSeen)}</div>
-              </div>
-              <div className="info-item">
-                <div className="label">Last Seen</div>
-                <div className="value">{formatDate(selectedClient.lastSeen)}</div>
-              </div>
-            </div>
-          </div>
+            )}
 
-          <div className="info-card">
-            <h3>🔗 Connected To</h3>
-            <div className="info-grid">
+            {/* User (802.1x) */}
+            {selectedClient.user && (
               <div className="info-item">
-                <div className="label">Device</div>
+                <div className="label">User (802.1x)</div>
+                <div className="value">{selectedClient.user}</div>
+              </div>
+            )}
+
+            {/* First Seen */}
+            {selectedClient.firstSeen && (
+              <div className="info-item">
+                <div className="label">First Connected</div>
                 <div className="value">
-                  {selectedClient.recentDeviceName || selectedClient.recentDeviceSerial || '—'}
+                  {formatDate(selectedClient.firstSeen)}
                 </div>
               </div>
+            )}
+
+            {/* Session Duration - calculated if we have both dates */}
+            {selectedClient.firstSeen && selectedClient.lastSeen && (
               <div className="info-item">
-                <div className="label">Switch Port</div>
-                <div className="value">{selectedClient.switchport || '—'}</div>
+                <div className="label">Known For</div>
+                <div className="value">
+                  {(() => {
+                    const first = new Date(selectedClient.firstSeen);
+                    const last = new Date(selectedClient.lastSeen);
+                    const days = Math.floor(
+                      (last.getTime() - first.getTime()) /
+                        (1000 * 60 * 60 * 24)
+                    );
+                    if (days > 30) return `${Math.floor(days / 30)} months`;
+                    if (days > 0) return `${days} days`;
+                    return 'Today';
+                  })()}
+                </div>
               </div>
-            </div>
-            {selectedClient.recentDeviceSerial && (
-              <button
-                onClick={() => setActiveView({ 
-                  view: 'device', 
-                  deviceId: selectedClient.recentDeviceSerial 
-                })}
-                style={{
-                  marginTop: '12px',
-                  padding: '8px 16px',
-                  borderRadius: 'var(--radius-md)',
-                  border: 'none',
-                  background: 'var(--primary)',
-                  color: 'white',
-                  cursor: 'pointer',
-                  fontWeight: 500
-                }}
-              >
-                View Device
-              </button>
             )}
           </div>
+
+          {/* View Device Button */}
+          {selectedClient.recentDeviceSerial && (
+            <button
+              onClick={() =>
+                setActiveView({
+                  view: 'device',
+                  deviceId: selectedClient.recentDeviceSerial,
+                })
+              }
+              className="btn-primary mt-4"
+            >
+              🔗 View Connected Device
+            </button>
+          )}
         </div>
       </div>
     );
@@ -221,9 +360,7 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
       </button>
 
       <div className="device-header">
-        <div className="device-icon" style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}>
-          👥
-        </div>
+        <div className="device-icon device-icon-gradient">👥</div>
         <div className="device-info">
           <h1>Connected Clients</h1>
           <div className="meta">
@@ -233,21 +370,13 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
       </div>
 
       {/* Search Bar */}
-      <div style={{ marginBottom: '20px' }}>
+      <div className="mb-5">
         <input
           type="text"
           placeholder="Search clients by name, MAC, IP, manufacturer..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '12px 16px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border)',
-            background: 'var(--bg-secondary)',
-            color: 'var(--text-primary)',
-            fontSize: '14px'
-          }}
+          className="search-input"
         />
       </div>
 
@@ -266,49 +395,20 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
           </thead>
           <tbody>
             {filteredClients.map((client) => (
-              <tr
+              <ClientRow
                 key={client.id || client.mac}
-                className="device-row"
-                onClick={() => setSelectedClient(client)}
-              >
-                <td>
-                  <div className="device-name-cell">
-                    <div className="device-icon" style={{ fontSize: '20px' }}>
-                      {getClientIcon(client)}
-                    </div>
-                    <div>
-                      <span className="name">{client.description || client.mac}</span>
-                      {client.os && (
-                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                          {client.os}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </td>
-                <td className="device-model">{client.ip || '—'}</td>
-                <td className="device-model" style={{ fontFamily: 'monospace', fontSize: '12px' }}>
-                  {client.mac}
-                </td>
-                <td className="device-model">{client.manufacturer || '—'}</td>
-                <td>
-                  <span className="detail-badge">
-                    {client.ssid || client.switchport || '—'}
-                  </span>
-                </td>
-                <td>
-                  {client.usage ? (
-                    <span style={{ fontSize: '12px' }}>
-                      ↑{formatBytes(client.usage.sent)} ↓{formatBytes(client.usage.recv)}
-                    </span>
-                  ) : '—'}
-                </td>
-              </tr>
+                client={client}
+                onClick={() => handleClientClick(client)}
+                getClientIcon={getClientIcon}
+                formatBytes={formatBytes}
+              />
             ))}
             {filteredClients.length === 0 && (
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px' }}>
-                  {searchTerm ? 'No clients match your search' : 'No clients found'}
+                <td colSpan={6} className="empty-state-message">
+                  {searchTerm
+                    ? 'No clients match your search'
+                    : 'No clients found'}
                 </td>
               </tr>
             )}
@@ -319,5 +419,16 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, setActiveView, onBac
   );
 };
 
-export default ClientsView;
+// Memoize ClientsView to prevent unnecessary re-renders
+const ClientsView = memo(ClientsViewComponent, (prevProps, nextProps) => {
+  // Only re-render if clients array changed
+  if (prevProps.clients.length !== nextProps.clients.length) {
+    return false;
+  }
+  // Compare client IDs
+  const prevIds = prevProps.clients.map((c) => c.id).join('|');
+  const nextIds = nextProps.clients.map((c) => c.id).join('|');
+  return prevIds === nextIds;
+});
 
+export default ClientsView;

@@ -17,7 +17,3 @@ Please explore the different sections to find the information you need:
 
 - **[Testing](./testing/testing_plan.md)**
   This section contains the testing plan for the integration, outlining the strategy for ensuring code quality and reliability.
-
----
-
-For guidelines on how to contribute to this documentation, please see the [AGENTS.md](./AGENTS.md) file.

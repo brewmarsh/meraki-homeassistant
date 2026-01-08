@@ -1,20 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 
 interface SettingsProps {
-  hass: any; // Add hass to props
+  hass: any;
   options: Record<string, any>;
   configEntryId: string;
   onClose: () => void;
 }
 
-const Settings: React.FC<SettingsProps> = ({
-  hass, // Destructure hass from props
+type ThemeMode = 'auto' | 'dark' | 'light';
+
+const THEME_STORAGE_KEY = 'meraki_ha_theme_mode';
+
+const SettingsComponent: React.FC<SettingsProps> = ({
+  hass,
   options,
   configEntryId,
   onClose,
 }) => {
   const [localOptions, setLocalOptions] = useState(options);
   const [saving, setSaving] = useState(false);
+  const [themeMode, setThemeMode] = useState<ThemeMode>('auto');
+
+  // Load theme preference from localStorage on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as ThemeMode;
+    if (savedTheme && ['auto', 'dark', 'light'].includes(savedTheme)) {
+      setThemeMode(savedTheme);
+    }
+  }, []);
+
+  const handleThemeModeChange = (mode: ThemeMode) => {
+    setThemeMode(mode);
+    localStorage.setItem(THEME_STORAGE_KEY, mode);
+    // Dispatch event so the theme hook can react immediately
+    window.dispatchEvent(
+      new CustomEvent('meraki-theme-change', { detail: mode })
+    );
+  };
 
   const handleToggle = (key: string) => {
     setLocalOptions((prev) => ({
@@ -26,7 +48,6 @@ const Settings: React.FC<SettingsProps> = ({
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Use the hass prop directly
       if (hass) {
         await hass.callWS({
           type: 'meraki_ha/update_options',
@@ -34,7 +55,6 @@ const Settings: React.FC<SettingsProps> = ({
           options: localOptions,
         });
       } else {
-        // Fallback for dev/standalone mode
         console.log('Saving options (dev):', localOptions);
       }
     } catch (e) {
@@ -43,7 +63,6 @@ const Settings: React.FC<SettingsProps> = ({
     } finally {
       setSaving(false);
       onClose();
-      // Reload to apply changes
       window.location.reload();
     }
   };
@@ -94,59 +113,203 @@ const Settings: React.FC<SettingsProps> = ({
     },
   ];
 
+  const handleRangeChange = (
+    key: string,
+    field: 'min' | 'max',
+    value: string
+  ) => {
+    const numValue = parseFloat(value);
+    setLocalOptions((prev) => ({
+      ...prev,
+      sensor_ranges: {
+        ...(prev.sensor_ranges || {}),
+        [key]: {
+          ...(prev.sensor_ranges?.[key] || {}),
+          [field]: isNaN(numValue) ? undefined : numValue,
+        },
+      },
+    }));
+  };
+
+  const sensorRanges = [
+    {
+      key: 'temperature',
+      label: 'Temperature',
+      unit: '°',
+      defaultMin: 32,
+      defaultMax: 100,
+    },
+    {
+      key: 'humidity',
+      label: 'Humidity',
+      unit: '%',
+      defaultMin: 0,
+      defaultMax: 100,
+    },
+    {
+      key: 'co2',
+      label: 'CO₂',
+      unit: 'ppm',
+      defaultMin: 300,
+      defaultMax: 2000,
+    },
+    {
+      key: 'tvoc',
+      label: 'TVOC',
+      unit: 'ppb',
+      defaultMin: 0,
+      defaultMax: 1000,
+    },
+    {
+      key: 'pm25',
+      label: 'PM2.5',
+      unit: 'µg/m³',
+      defaultMin: 0,
+      defaultMax: 150,
+    },
+    {
+      key: 'noise',
+      label: 'Noise',
+      unit: 'dB',
+      defaultMin: 30,
+      defaultMax: 100,
+    },
+  ];
+
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-      <ha-card class="p-6 w-full max-w-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-lg rounded-lg">
-        <div className="card-header flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Integration Settings</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <ha-icon icon="mdi:close"></ha-icon>
+    <div className="settings-overlay" onClick={onClose}>
+      <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="settings-header">
+          <h2>⚙️ Integration Settings</h2>
+          <button className="settings-close-btn" onClick={onClose}>
+            ✕
           </button>
         </div>
-        <div className="card-content space-y-4 max-h-96 overflow-y-auto">
-          {sections.map((section) => (
-            <div
-              key={section.key}
-              className="flex items-center justify-between p-2 border-b border-gray-200 dark:border-gray-700"
-            >
-              <div className="flex flex-col">
-                <span className="font-medium">{section.label}</span>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {section.description}
-                </span>
+
+        {/* Content */}
+        <div className="settings-content">
+          {/* Theme Mode Section */}
+          <h3 className="section-label">Appearance</h3>
+          <div className="settings-section">
+            <div className="settings-row">
+              <div className="settings-row-info">
+                <div className="settings-row-label">Theme Mode</div>
+                <div className="settings-row-description">
+                  Choose dark, light, or auto-detect from Home Assistant theme.
+                </div>
               </div>
-              <ha-switch
-                checked={localOptions[section.key] !== false} // Default to true if undefined
-                onClick={(e: any) => {
-                  e.stopPropagation();
-                  handleToggle(section.key);
-                }}
-              ></ha-switch>
+              <div className="theme-toggle-group">
+                {(['auto', 'dark', 'light'] as ThemeMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => handleThemeModeChange(mode)}
+                    className={`theme-toggle-btn ${
+                      themeMode === mode ? 'active' : ''
+                    }`}
+                  >
+                    {mode === 'auto'
+                      ? '🔄 Auto'
+                      : mode === 'dark'
+                      ? '🌙 Dark'
+                      : '☀️ Light'}
+                  </button>
+                ))}
+              </div>
             </div>
-          ))}
+          </div>
+
+          {/* Entity Toggles Section */}
+          <h3 className="section-label">Entity Settings</h3>
+          <div className="settings-section">
+            {sections.map((section) => (
+              <div key={section.key} className="settings-row">
+                <div className="settings-row-info">
+                  <div className="settings-row-label">{section.label}</div>
+                  <div className="settings-row-description">
+                    {section.description}
+                  </div>
+                </div>
+                <div
+                  className={`toggle-switch ${
+                    localOptions[section.key] !== false ? 'on' : 'off'
+                  }`}
+                  onClick={() => handleToggle(section.key)}
+                >
+                  <div className="toggle-knob" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Sensor Range Configuration */}
+          <h3 className="section-label">Sensor Gauge Ranges</h3>
+          <p className="description">
+            Customize the min/max values for sensor gauge displays. Leave empty
+            for defaults.
+          </p>
+          <div className="sensor-ranges-grid">
+            {sensorRanges.map((range) => {
+              const currentRange =
+                localOptions.sensor_ranges?.[range.key] || {};
+              return (
+                <div key={range.key} className="sensor-range-card">
+                  <div className="sensor-range-label">
+                    {range.label} ({range.unit})
+                  </div>
+                  <div className="sensor-range-inputs">
+                    <div className="sensor-range-input">
+                      <label className="field-label">Min</label>
+                      <input
+                        type="number"
+                        placeholder={String(range.defaultMin)}
+                        value={currentRange.min ?? ''}
+                        onChange={(e) =>
+                          handleRangeChange(range.key, 'min', e.target.value)
+                        }
+                      />
+                    </div>
+                    <div className="sensor-range-input">
+                      <label className="field-label">Max</label>
+                      <input
+                        type="number"
+                        placeholder={String(range.defaultMax)}
+                        value={currentRange.max ?? ''}
+                        onChange={(e) =>
+                          handleRangeChange(range.key, 'max', e.target.value)
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
-        <div className="card-actions flex justify-end mt-6 gap-4">
+
+        {/* Footer */}
+        <div className="settings-footer">
           <button
+            className="btn btn-secondary"
             onClick={onClose}
-            className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
             disabled={saving}
           >
             Cancel
           </button>
           <button
+            className="btn btn-primary"
             onClick={handleSave}
-            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
             disabled={saving}
           >
             {saving ? 'Saving...' : 'Save & Reload'}
           </button>
         </div>
-      </ha-card>
+      </div>
     </div>
   );
 };
+
+// Memoize Settings - re-render only when options change
+const Settings = memo(SettingsComponent);
 
 export default Settings;

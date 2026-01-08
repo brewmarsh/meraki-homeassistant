@@ -28,9 +28,10 @@ export default defineConfig({
         assetFileNames: 'style.css',
       },
     },
-    // Generate sourcemaps for debugging
-    sourcemap: true,
+    // Disable sourcemaps for production (prevents 404 errors in HA)
+    sourcemap: false,
     // Use esbuild minification (built-in, no extra dependency)
+    // Temporarily disabled for debugging
     minify: 'esbuild',
   },
   // Inline CSS into JS

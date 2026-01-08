@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 
 interface EventLogProps {
   hass: any;
@@ -16,6 +16,40 @@ interface MerakiEvent {
   deviceSerial?: string;
   deviceName?: string;
 }
+
+// Memoized event row - only re-renders when this event changes
+interface EventRowProps {
+  event: MerakiEvent;
+}
+
+const EventRow = memo<EventRowProps>(
+  ({ event }) => (
+    <tr>
+      <td className="text-mono text-sm">
+        {new Date(event.occurredAt).toLocaleString()}
+      </td>
+      <td>
+        <span className="detail-badge">{event.type}</span>
+      </td>
+      <td>{event.description}</td>
+      <td className="text-muted">
+        {event.clientDescription ||
+          event.deviceName ||
+          event.clientId ||
+          event.deviceSerial ||
+          '—'}
+      </td>
+    </tr>
+  ),
+  (prev, next) =>
+    prev.event.occurredAt === next.event.occurredAt &&
+    prev.event.type === next.event.type &&
+    prev.event.description === next.event.description &&
+    prev.event.clientDescription === next.event.clientDescription &&
+    prev.event.deviceName === next.event.deviceName &&
+    prev.event.clientId === next.event.clientId &&
+    prev.event.deviceSerial === next.event.deviceSerial
+);
 
 const EventLog: React.FC<EventLogProps> = ({
   hass,
@@ -92,51 +126,37 @@ const EventLog: React.FC<EventLogProps> = ({
 
   if (!networkId) {
     return (
-      <div className="p-4 text-gray-500">Select a network to view events.</div>
+      <div className="empty-state-message">
+        Select a network to view events.
+      </div>
     );
   }
 
   return (
-    <div className="mt-4">
-      <h3 className="text-lg font-semibold mb-2">Recent Events</h3>
-      {loading && <p>Loading events...</p>}
-      {error && <p className="text-red-500">Error: {error}</p>}
-      {!loading && !error && events.length === 0 && <p>No events found.</p>}
+    <div className="info-card">
+      <h3>📋 Recent Events</h3>
+      {loading && <p className="text-muted">Loading events...</p>}
+      {error && <p className="text-error">Error: {error}</p>}
+      {!loading && !error && events.length === 0 && (
+        <p className="text-muted">No events found.</p>
+      )}
 
       {!loading && !error && events.length > 0 && (
-        <div className="overflow-x-auto bg-light-card dark:bg-dark-card rounded-lg shadow-md">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="border-b border-light-border dark:border-dark-border bg-gray-50 dark:bg-gray-800">
-                <th className="text-left p-3 font-medium">Time</th>
-                <th className="text-left p-3 font-medium">Type</th>
-                <th className="text-left p-3 font-medium">Description</th>
-                <th className="text-left p-3 font-medium">Source</th>
-              </tr>
-            </thead>
-            <tbody>
-              {events.map((event, index) => (
-                <tr
-                  key={index}
-                  className="border-b border-light-border dark:border-dark-border hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  <td className="p-3 whitespace-nowrap">
-                    {new Date(event.occurredAt).toLocaleString()}
-                  </td>
-                  <td className="p-3">{event.type}</td>
-                  <td className="p-3">{event.description}</td>
-                  <td className="p-3">
-                    {event.clientDescription ||
-                      event.deviceName ||
-                      event.clientId ||
-                      event.deviceSerial ||
-                      '-'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <table className="device-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            {events.map((event, index) => (
+              <EventRow key={`${event.occurredAt}-${index}`} event={event} />
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );

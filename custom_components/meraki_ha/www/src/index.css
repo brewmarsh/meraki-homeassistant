@@ -1,57 +1,835 @@
 /* Meraki HA Panel - Theme-aware styling */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* 
+/*
  * CSS Variables
- * 
- * The useHaTheme hook sets these variables on the root element based on
- * Home Assistant's theme settings. Initial values here are dark theme defaults
- * that will be overwritten when the hook runs.
+ *
+ * Theme variables are set dynamically by the useHaTheme hook based on
+ * Home Assistant's theme settings. The hook reads HA's CSS variables
+ * (--primary-color, --card-background-color, etc.) and maps them to
+ * our custom variables (--primary, --card-bg, etc.).
+ *
+ * These base values are fallbacks that will be overwritten when the hook runs.
  */
+
 :root {
-  /* Primary colors - Set by useHaTheme hook from HA --primary-color */
-  --primary: #03a9f4;
+  /* Primary colors - will be set from HA's --primary-color */
+  --primary: var(--primary-color, #03a9f4);
   --primary-dark: #0288d1;
-  --primary-light: rgba(3, 169, 244, 0.15);
-  
-  /* Status colors - Set by useHaTheme hook */
-  --success: #10b981;
-  --success-light: rgba(16, 185, 129, 0.15);
-  --warning: #f59e0b;
-  --warning-light: rgba(245, 158, 11, 0.15);
-  --error: #ef4444;
-  --error-light: rgba(239, 68, 68, 0.15);
-  
-  /* Background colors - Set by useHaTheme hook from HA theme */
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --card-bg: #1e293b;
-  --card-border: #334155;
-  
-  /* Text colors - Set by useHaTheme hook from HA theme */
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  
+  --primary-light: rgba(3, 169, 244, 0.1);
+
+  /* Status colors - will be set from HA's status colors */
+  --success: var(--success-color, #43a047);
+  --success-light: rgba(67, 160, 71, 0.15);
+  --warning: var(--warning-color, #ffa600);
+  --warning-light: rgba(255, 166, 0, 0.15);
+  --error: var(--error-color, #db4437);
+  --error-light: rgba(219, 68, 55, 0.15);
+
+  /* Background colors - will be set from HA's background colors */
+  --bg-primary: var(--primary-background-color, #fafafa);
+  --bg-secondary: var(--secondary-background-color, #ffffff);
+  --bg-tertiary: #f1f5f9;
+  --card-bg: var(--card-background-color, #ffffff);
+  --card-border: var(--divider-color, rgba(0, 0, 0, 0.12));
+
+  /* Text colors - will be set from HA's text colors */
+  --text-primary: var(--primary-text-color, #212121);
+  --text-secondary: var(--secondary-text-color, #727272);
+  /* Note: HA's disabled-text-color is often too faint (30% opacity), so we use a more visible default */
+  --text-muted: #8e8e93;
+
   /* Border radius */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 20px;
-  
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.4);
+
+  /* Shadows - lighter for light themes */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
   --transition: all 0.2s ease;
-  
-  /* Device type colors - These stay consistent for visual identity */
+
+  /* Device type colors - consistent across themes */
   --switch-color: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
   --camera-color: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
   --wireless-color: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
   --sensor-color: linear-gradient(135deg, #10b981 0%, #059669 100%);
   --appliance-color: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+/* Dark theme adjustments */
+:root[data-theme='dark'] {
+  --bg-tertiary: #2c2c2e;
+  --text-muted: rgba(255, 255, 255, 0.5);
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --primary-light: rgba(3, 169, 244, 0.2);
+  --success-light: rgba(67, 160, 71, 0.2);
+  --warning-light: rgba(255, 166, 0, 0.2);
+  --error-light: rgba(219, 68, 55, 0.2);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================================================
+   Utility Classes - Use these instead of inline styles for consistent theming
+   ========================================================================== */
+
+/* Text utilities */
+.text-primary {
+  color: var(--text-primary);
+}
+.text-secondary {
+  color: var(--text-secondary);
+}
+.text-muted {
+  color: var(--text-muted);
+}
+.text-success {
+  color: var(--success);
+}
+.text-warning {
+  color: var(--warning);
+}
+.text-error {
+  color: var(--error);
+}
+.text-mono {
+  font-family: monospace;
+}
+
+/* Font weight utilities */
+.font-medium {
+  font-weight: 500;
+}
+.font-semibold {
+  font-weight: 600;
+}
+
+/* Flex utilities */
+.flex {
+  display: flex;
+}
+.flex-col {
+  flex-direction: column;
+}
+.items-center {
+  align-items: center;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.gap-2 {
+  gap: 8px;
+}
+.gap-3 {
+  gap: 12px;
+}
+
+/* Device client row - for client lists in device/SSID views */
+.client-row-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.client-row-icon {
+  font-size: 18px;
+}
+
+.client-row-info {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Band badge for wireless BSS - 2.4GHz vs 5GHz */
+.band-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.band-badge.band-2_4 {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning);
+}
+.band-badge.band-5 {
+  background: rgba(6, 182, 212, 0.15);
+  color: var(--primary);
+}
+
+/* Broadcasting status indicator */
+.broadcast-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.broadcast-status.active {
+  color: var(--success);
+}
+.broadcast-status.inactive {
+  color: var(--text-muted);
+}
+.broadcast-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.broadcast-status.active .broadcast-dot {
+  box-shadow: 0 0 8px var(--success);
+}
+
+/* BSSID text styling */
+.bssid-text {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+/* Status badge/pill - used for Broadcasting/Disabled, Online/Offline, etc. */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.status-badge.enabled,
+.status-badge.online,
+.status-badge.success {
+  background: var(--success-light);
+  color: var(--success);
+}
+.status-badge.disabled,
+.status-badge.offline,
+.status-badge.inactive {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+.status-badge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Number badge - used for SSID numbers, port numbers, etc. */
+.number-badge {
+  display: inline-block;
+  background: var(--bg-tertiary);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Section label - uppercase headers for settings sections */
+.section-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+}
+
+/* Field label - small uppercase labels above inputs */
+.field-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/* Description text - help text below labels */
+.description {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Empty state - centered placeholder when no data */
+.empty-state-message {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+}
+
+/* Clickable arrow indicator */
+.arrow-indicator {
+  color: var(--text-muted);
+}
+
+/* Meta info row - secondary info like "Last updated", stats, etc. */
+.meta-info {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Dashboard Specific Styles
+   ========================================================================== */
+
+/* Refresh indicator bar */
+.refresh-indicator {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+.refresh-indicator-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.refresh-indicator-icon {
+  font-size: 10px;
+}
+
+/* View mode toggle */
+.view-mode-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 4px;
+}
+
+.view-mode-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 13px;
+  transition: var(--transition);
+}
+
+.view-mode-btn.active {
+  background: var(--primary);
+  color: white;
+}
+
+/* Filter select inputs */
+.filter-select {
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Clear filters button */
+.clear-filters-btn {
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--warning);
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* Table cell with monospace font */
+.cell-mono {
+  font-family: monospace;
+  font-size: 11px;
+}
+
+/* Empty table row message */
+.empty-table-message {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 20px;
+}
+
+/* ==========================================================================
+   Client View Specific Styles
+   ========================================================================== */
+
+/* Usage stats row - for upload/download/total display */
+.usage-stats-row {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+}
+
+.usage-stat {
+  flex: 1;
+  text-align: center;
+}
+
+.usage-stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.usage-stat-value {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.usage-stat-value.upload {
+  color: var(--success);
+}
+
+.usage-stat-value.download {
+  color: var(--primary);
+}
+
+.usage-stat-value.total {
+  color: var(--text-primary);
+}
+
+.usage-divider {
+  width: 1px;
+  background: var(--card-border);
+}
+
+/* Search input */
+.search-input {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Primary action button */
+.btn-primary {
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+/* Secondary action button */
+.btn-secondary {
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Device icon with gradient background */
+.device-icon-gradient {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+/* Text sizes */
+.text-xs {
+  font-size: 10px;
+}
+
+.text-sm {
+  font-size: 12px;
+}
+
+.text-lg {
+  font-size: 16px;
+}
+
+.text-xl {
+  font-size: 20px;
+}
+
+/* Margin utilities */
+.mt-4 {
+  margin-top: 16px;
+}
+
+.mb-5 {
+  margin-bottom: 20px;
+}
+
+/* ==========================================================================
+   Settings Modal
+   ========================================================================== */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.settings-modal {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.settings-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.settings-close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  transition: color 0.2s;
+}
+
+.settings-close-btn:hover {
+  color: var(--text-primary);
+}
+
+.settings-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.settings-section {
+  margin-bottom: 32px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.settings-row-info {
+  flex: 1;
+}
+
+.settings-row-label {
+  font-weight: 500;
+  margin-bottom: 2px;
+  color: var(--text-primary);
+}
+
+.settings-row-description {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Theme toggle button group */
+.theme-toggle-group {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  margin-left: 16px;
+}
+
+.theme-toggle-btn {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.theme-toggle-btn.active {
+  background: var(--primary);
+  color: white;
+}
+
+.theme-toggle-btn:hover:not(.active) {
+  background: var(--bg-secondary);
+}
+
+/* Toggle switch */
+.toggle-switch {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s;
+  margin-left: 16px;
+  flex-shrink: 0;
+}
+
+.toggle-switch.on {
+  background: var(--success);
+}
+
+.toggle-switch.off {
+  background: var(--bg-tertiary);
+}
+
+.toggle-knob {
+  position: absolute;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  transition: left 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-switch.on .toggle-knob {
+  left: 22px;
+}
+
+.toggle-switch.off .toggle-knob {
+  left: 2px;
+}
+
+/* Sensor range cards */
+.sensor-ranges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.sensor-range-card {
+  padding: 12px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.sensor-range-label {
+  font-weight: 500;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.sensor-range-inputs {
+  display: flex;
+  gap: 8px;
+}
+
+.sensor-range-input {
+  flex: 1;
+}
+
+.sensor-range-input input {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--card-border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.sensor-range-input input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Settings footer */
+.settings-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+}
+
+/* Timed Access Modal */
+.timed-access-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .timed-access-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.timed-access-create {
+  padding-right: 24px;
+  border-right: 1px solid var(--card-border);
+}
+
+@media (max-width: 768px) {
+  .timed-access-create {
+    padding-right: 0;
+    border-right: none;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--card-border);
+  }
+}
+
+.timed-access-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.guest-keys-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.guest-key-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.guest-key-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.guest-key-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.guest-key-passphrase {
+  background: var(--bg-tertiary);
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  font-family: monospace;
+  font-size: 18px;
+  text-align: center;
+  user-select: all;
+  margin-bottom: 12px;
+}
+
+.guest-key-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.guest-key-expiry {
+  font-size: 13px;
+  color: var(--primary);
+}
+
+.guest-key-qr {
+  background: white;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.btn-revoke {
+  background: transparent;
+  border: 1px solid var(--error);
+  color: var(--error);
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.btn-revoke:hover {
+  background: var(--error);
+  color: white;
+  border-top: 1px solid var(--card-border);
+}
+
+/* Buttons */
+.btn {
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  border: none;
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+.btn-secondary {
+  border: 1px solid var(--card-border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-tertiary);
 }
 
 /* Base styles */
@@ -61,13 +839,28 @@
   padding: 0;
 }
 
+/* Web Component mount point */
+#meraki-panel-root {
+  height: 100%;
+  width: 100%;
+}
+
 /* Panel container */
 .meraki-panel {
-  font-family: var(--paper-font-body1_-_font-family, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
-  background: var(--primary-background-color, linear-gradient(135deg, var(--bg-primary) 0%, #1e1b4b 50%, var(--bg-primary) 100%));
+  font-family: var(
+    --paper-font-body1_-_font-family,
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif
+  );
+  background: var(--bg-primary);
   min-height: 100vh;
   color: var(--text-primary);
   padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 /* Header */
@@ -93,18 +886,49 @@
 .meraki-header h1 {
   font-size: 28px;
   font-weight: 600;
-  background: linear-gradient(90deg, #fff 0%, var(--text-secondary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text-primary);
 }
 
 .meraki-header .version {
   font-size: 12px;
-  color: var(--text-muted);
-  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   padding: 4px 10px;
   border-radius: 12px;
+}
+
+.meraki-header .header-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.settings-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.settings-btn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--primary);
+}
+
+.loading-message {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-top: 16px;
 }
 
 /* Navigation */
@@ -144,7 +968,7 @@
 /* Stats Cards Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -161,6 +985,14 @@
   border-color: var(--primary);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+}
+
+.stat-card.clickable {
+  cursor: pointer;
+}
+
+.stat-card .stat-icon {
+  margin-right: 8px;
 }
 
 .stat-card .label {
@@ -182,11 +1014,20 @@
   text-shadow: 0 0 1px currentColor;
 }
 
-.stat-card .value.success { color: var(--success) !important; }
-.stat-card .value.warning { color: var(--warning) !important; }
-.stat-card .value.error { color: var(--error) !important; }
+.stat-card .value.success {
+  color: var(--success) !important;
+}
+.stat-card .value.warning {
+  color: var(--warning) !important;
+}
+.stat-card .value.error {
+  color: var(--error) !important;
+}
 /* Default text color variant for when we want high contrast text */
-.stat-card .value.default { color: var(--text-primary) !important; font-weight: 600; }
+.stat-card .value.default {
+  color: var(--text-primary) !important;
+  font-weight: 600;
+}
 
 /* Network Card */
 .network-card {
@@ -203,13 +1044,13 @@
   justify-content: space-between;
   padding: 20px 24px;
   border-bottom: 1px solid var(--card-border);
-  background: linear-gradient(90deg, rgba(0, 180, 216, 0.1) 0%, transparent 100%);
+  background: var(--bg-secondary);
   cursor: pointer;
   transition: var(--transition);
 }
 
 .network-header:hover {
-  background: linear-gradient(90deg, rgba(0, 180, 216, 0.15) 0%, transparent 100%);
+  background: var(--bg-tertiary);
 }
 
 .network-header .title {
@@ -275,7 +1116,16 @@
 }
 
 .device-table tr:hover td {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-secondary);
+}
+
+/* Sticky first column for horizontal scrolling */
+.device-table th:first-child,
+.device-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--card-bg);
+  z-index: 1;
 }
 
 .device-row {
@@ -301,11 +1151,21 @@
   flex-shrink: 0;
 }
 
-.device-icon.switch { background: var(--switch-color); }
-.device-icon.camera { background: var(--camera-color); }
-.device-icon.wireless { background: var(--wireless-color); }
-.device-icon.sensor { background: var(--sensor-color); }
-.device-icon.appliance { background: var(--appliance-color); }
+.device-icon.switch {
+  background: var(--switch-color);
+}
+.device-icon.camera {
+  background: var(--camera-color);
+}
+.device-icon.wireless {
+  background: var(--wireless-color);
+}
+.device-icon.sensor {
+  background: var(--sensor-color);
+}
+.device-icon.appliance {
+  background: var(--appliance-color);
+}
 
 .device-name-cell .name {
   font-weight: 500;
@@ -359,10 +1219,11 @@
   color: var(--warning);
 }
 
-/* Detail Badge */
+/* Detail Badge - High contrast text for readability */
 .detail-badge {
-  background: var(--primary-light);
-  color: var(--primary);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 13px;
@@ -392,7 +1253,7 @@
 }
 
 .ssid-item {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-secondary);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-sm);
   padding: 12px 16px;
@@ -404,7 +1265,7 @@
 
 .ssid-item:hover {
   border-color: var(--primary);
-  background: rgba(0, 180, 216, 0.05);
+  background: var(--bg-tertiary);
 }
 
 .ssid-item .icon {
@@ -419,6 +1280,33 @@
 .ssid-item .clients {
   color: var(--text-muted);
   font-size: 13px;
+}
+
+/* SSID Control Panel */
+.ssid-control-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.ssid-control-panel.enabled {
+  background: var(--success-light);
+}
+
+.ssid-control-info {
+  flex: 1;
+}
+
+.ssid-control-status {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.ssid-control-desc {
+  margin-top: 4px;
 }
 
 /* Toggle Switch */
@@ -458,19 +1346,24 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--primary);
+  color: var(--text-primary);
   font-weight: 500;
   margin-bottom: 24px;
-  background: none;
-  border: none;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
   font-size: 14px;
   cursor: pointer;
-  padding: 0;
+  padding: 8px 16px;
   font-family: inherit;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
 }
 
 .back-button:hover {
-  text-decoration: underline;
+  background: var(--bg-secondary);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 /* Device Detail Header */
@@ -537,7 +1430,7 @@
 /* Info Cards Grid */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 24px;
   margin-bottom: 24px;
 }
@@ -585,11 +1478,157 @@
   opacity: 1;
 }
 
-.info-item .value.primary { color: var(--primary) !important; }
-.info-item .value.success { color: var(--success) !important; }
-.info-item .value.warning { color: var(--warning) !important; }
-.info-item .value.error { color: var(--error) !important; }
-.info-item .value.mono { font-family: 'SF Mono', 'Monaco', 'Consolas', monospace; font-size: 14px; }
+.info-item .value.primary {
+  color: var(--primary) !important;
+}
+.info-item .value.success {
+  color: var(--success) !important;
+}
+.info-item .value.warning {
+  color: var(--warning) !important;
+}
+.info-item .value.error {
+  color: var(--error) !important;
+}
+.info-item .value.mono {
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 14px;
+}
+
+/* Generic Card Component */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.card-content {
+  padding: 24px;
+}
+
+/* SSID List View */
+.ssids-list-view .view-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.ssids-list-view .view-header-content {
+  flex: 1;
+  margin-left: 16px;
+}
+
+.ssids-list-view .view-header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ssids-list-view .view-header-icon {
+  font-size: 24px;
+}
+
+.ssids-list-view .view-header-title h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.ssids-list-view .view-header-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.ssids-list-view .separator {
+  color: var(--text-muted);
+}
+
+.ssids-list-view .ssid-network-card {
+  margin-bottom: 16px;
+}
+
+.ssids-list-view .ssid-network-card .card-content {
+  padding: 0;
+}
+
+.ssids-list-view .ssid-network-card .card-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ssids-list-view .ssid-count {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.ssids-list-view .ssid-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ssids-list-view .ssid-icon {
+  font-size: 18px;
+}
+
+.ssids-list-view .ssid-name {
+  font-weight: 500;
+}
+
+.ssids-list-view .client-count {
+  font-weight: 500;
+}
+
+.ssids-list-view .arrow-cell {
+  text-align: right;
+}
+
+.ssids-list-view .empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.ssids-list-view .empty-state-message h3 {
+  margin-bottom: 8px;
+}
+
+/* Text utility classes with primary color */
+.text-primary {
+  color: var(--primary);
+}
+
+/* SSID View */
+.ssid-view {
+  padding: 0;
+}
+
+.ssid-view .view-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.ssid-view .back-button:hover {
+  background: var(--bg-secondary);
+  border-color: var(--primary);
+  color: var(--primary);
+}
 
 /* Switch Port Visualization */
 .port-visualization {
@@ -600,13 +1639,13 @@
 }
 
 .switch-chassis {
-  background: linear-gradient(180deg, #374151 0%, #1f2937 100%);
+  background: var(--bg-tertiary);
   border-radius: var(--radius-sm);
   padding: 16px 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border: 2px solid #4b5563;
+  border: 2px solid var(--card-border);
 }
 
 .switch-label {
@@ -614,7 +1653,7 @@
   justify-content: space-between;
   align-items: center;
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--text-secondary);
 }
 
 .ports-row {
@@ -626,7 +1665,7 @@
 .port {
   width: 40px;
   height: 32px;
-  background: #111827;
+  background: var(--bg-primary);
   border-radius: 4px;
   display: flex;
   flex-direction: column;
@@ -634,7 +1673,7 @@
   justify-content: center;
   cursor: pointer;
   position: relative;
-  border: 2px solid #374151;
+  border: 2px solid var(--card-border);
   transition: var(--transition);
 }
 
@@ -664,7 +1703,7 @@
 
 .port .num {
   font-size: 9px;
-  color: #6b7280;
+  color: var(--text-muted);
   position: absolute;
   bottom: 2px;
 }
@@ -698,8 +1737,12 @@
   border-radius: 50%;
 }
 
-.port-legend .dot.connected { background: var(--success); }
-.port-legend .dot.disconnected { background: #374151; }
+.port-legend .dot.connected {
+  background: var(--success);
+}
+.port-legend .dot.disconnected {
+  background: var(--text-muted);
+}
 
 /* Port Details Panel */
 .port-details {
@@ -749,6 +1792,226 @@
   font-family: monospace;
 }
 
+/* Port clients list styles */
+.port-clients {
+  margin-top: 16px;
+}
+
+.port-clients-header {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.port-clients-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.port-client-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.port-client-item:hover {
+  background: var(--primary-alpha-10, rgba(3, 169, 244, 0.1));
+}
+
+.port-client-icon {
+  font-size: 20px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.port-client-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.port-client-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.port-client-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.port-client-ip {
+  font-family: monospace;
+}
+
+.port-client-manufacturer {
+  opacity: 0.8;
+}
+
+.port-client-vlan {
+  padding: 4px 8px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Port details header */
+.port-details-header {
+  font-size: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.port-status-icon {
+  display: inline;
+}
+
+.port-status-icon.connected {
+  color: var(--success);
+}
+
+.port-status-icon.disconnected {
+  color: var(--text-muted);
+}
+
+.port-uplink-badge {
+  margin-left: 8px;
+  font-size: 12px;
+  color: var(--primary);
+}
+
+/* Port alerts */
+.port-alerts {
+  margin-bottom: 12px;
+}
+
+.port-alert {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.port-alert.error {
+  color: var(--error);
+}
+
+.port-alert.warning {
+  color: var(--warning);
+}
+
+/* Port empty state */
+.port-empty-state {
+  padding: 16px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+/* Neighbor discovery section */
+.neighbor-discovery {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+}
+
+.neighbor-discovery-header {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.neighbor-protocol {
+  margin-bottom: 8px;
+}
+
+.neighbor-protocol:last-child {
+  margin-bottom: 0;
+}
+
+.neighbor-protocol-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.neighbor-protocol-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.neighbor-protocol-detail {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.neighbor-protocol-address {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-family: monospace;
+}
+
+/* SecurePort status */
+.secure-port-status {
+  margin-top: 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.secure-port-status.active {
+  color: var(--success);
+}
+
+.secure-port-status.inactive {
+  color: var(--text-muted);
+}
+
+/* Port select prompt */
+.port-select-prompt {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* PoE value highlight */
+.value-poe {
+  color: var(--warning);
+}
+
+/* Clickable items */
+.clickable {
+  cursor: pointer;
+}
+
 .port-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -765,13 +2028,13 @@
 .port-stat .value {
   font-size: 18px;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--text-primary);
 }
 
 /* Sensor Readings */
 .readings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
   margin-bottom: 24px;
 }
@@ -788,6 +2051,10 @@
   width: 80px;
   height: 80px;
   border-radius: 50%;
+}
+
+.reading-card .reading-icon {
+  font-size: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -837,13 +2104,23 @@
   margin-bottom: 8px;
 }
 
-.reading-card.temperature .reading-value { color: #f97316; }
-.reading-card.humidity .reading-value { color: #06b6d4; }
+.reading-card.temperature .reading-value {
+  color: #f97316;
+}
+.reading-card.humidity .reading-value {
+  color: #06b6d4;
+}
 .reading-card.tvoc .reading-value,
 .reading-card.pm25 .reading-value,
-.reading-card.co2 .reading-value { color: #84cc16; }
-.reading-card.indoorAirQuality .reading-value { color: #22c55e; }
-.reading-card.noise .reading-value { color: #8b5cf6; }
+.reading-card.co2 .reading-value {
+  color: #84cc16;
+}
+.reading-card.indoorAirQuality .reading-value {
+  color: #22c55e;
+}
+.reading-card.noise .reading-value {
+  color: #8b5cf6;
+}
 
 .reading-card .reading-unit {
   font-size: 24px;
@@ -864,7 +2141,7 @@
 .gauge-wrapper {
   width: 100%;
   height: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-tertiary);
   border-radius: 4px;
   margin-top: 20px;
   overflow: hidden;
@@ -885,7 +2162,14 @@
 }
 
 .gauge-fill.air-quality {
-  background: linear-gradient(90deg, #22c55e 0%, #84cc16 25%, #eab308 50%, #f97316 75%, #ef4444 100%);
+  background: linear-gradient(
+    90deg,
+    #22c55e 0%,
+    #84cc16 25%,
+    #eab308 50%,
+    #f97316 75%,
+    #ef4444 100%
+  );
 }
 
 .gauge-fill.noise {
@@ -893,11 +2177,17 @@
 }
 
 .gauge-fill.battery {
-  background: linear-gradient(90deg, #ef4444 0%, #eab308 25%, #22c55e 50%, #22c55e 100%);
+  background: linear-gradient(
+    90deg,
+    #ef4444 0%,
+    #eab308 25%,
+    #22c55e 50%,
+    #22c55e 100%
+  );
 }
 
 .gauge-fill.default {
-  background: #64748b;
+  background: var(--text-muted);
 }
 
 .gauge-labels {
@@ -927,7 +2217,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-text {
@@ -1007,48 +2299,500 @@
   font-size: 14px;
 }
 
+/* MetricCard Component */
+.metric-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  text-align: center;
+  transition: var(--transition);
+}
+
+.metric-card.clickable {
+  cursor: pointer;
+}
+
+.metric-card.clickable:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.metric-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.metric-icon {
+  font-size: 28px;
+}
+
+/* Icon wrapper colors */
+.metric-icon-primary {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.metric-icon-success {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.metric-icon-warning {
+  background: var(--warning-light);
+  color: var(--warning);
+}
+
+.metric-icon-error {
+  background: var(--error-light);
+  color: var(--error);
+}
+
+.metric-icon-info {
+  background: rgba(6, 182, 212, 0.15);
+  color: #06b6d4;
+}
+
+.metric-icon-purple {
+  background: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+}
+
+.metric-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+.metric-unit {
+  font-size: 18px;
+  font-weight: 400;
+  opacity: 0.7;
+  margin-left: 2px;
+}
+
+.metric-secondary {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.metric-status {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.metric-status-normal {
+  color: var(--success);
+}
+
+.metric-status-warning {
+  color: var(--warning);
+}
+
+.metric-status-critical {
+  color: var(--error);
+}
+
+.metric-status-inactive {
+  color: var(--text-muted);
+}
+
+.metric-gauge-wrapper {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+  margin-top: 16px;
+  overflow: hidden;
+}
+
+.metric-gauge-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.metric-gauge-primary {
+  background: var(--primary);
+}
+
+.metric-gauge-success {
+  background: var(--success);
+}
+
+.metric-gauge-warning {
+  background: linear-gradient(90deg, var(--success) 0%, var(--warning) 100%);
+}
+
+.metric-gauge-error {
+  background: linear-gradient(90deg, var(--warning) 0%, var(--error) 100%);
+}
+
+.metric-gauge-info {
+  background: #06b6d4;
+}
+
+.metric-gauge-purple {
+  background: #8b5cf6;
+}
+
+.metric-gauge-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Metric Cards Grid */
+.metric-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .metric-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .metric-card {
+    padding: 16px;
+  }
+
+  .metric-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+  }
+
+  .metric-icon {
+    font-size: 22px;
+  }
+
+  .metric-value {
+    font-size: 28px;
+  }
+
+  .metric-unit {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .metric-cards-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .metric-card {
+    padding: 12px;
+  }
+
+  .metric-value {
+    font-size: 24px;
+  }
+
+  .metric-label {
+    font-size: 10px;
+  }
+}
+
 /* Utility Classes */
-.text-primary { color: var(--primary); }
-.text-success { color: var(--success); }
-.text-warning { color: var(--warning); }
-.text-error { color: var(--error); }
-.text-muted { color: var(--text-muted); }
-.font-mono { font-family: monospace; }
-.font-medium { font-weight: 500; }
-.font-semibold { font-weight: 600; }
-.font-bold { font-weight: 700; }
+.text-primary {
+  color: var(--primary);
+}
+.text-success {
+  color: var(--success);
+}
+.text-warning {
+  color: var(--warning);
+}
+.text-error {
+  color: var(--error);
+}
+.text-muted {
+  color: var(--text-muted);
+}
+.font-mono {
+  font-family: monospace;
+}
+.font-medium {
+  font-weight: 500;
+}
+.font-semibold {
+  font-weight: 600;
+}
+.font-bold {
+  font-weight: 700;
+}
 
 /* Text colors are defined in :root above and used consistently */
 
+/* Table wrapper for horizontal scrolling on small screens */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Filter Controls */
+.filter-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .filter-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .filter-controls select,
+  .filter-controls button {
+    width: 100%;
+  }
+
+  .view-mode-toggle {
+    order: -1;
+    width: 100%;
+  }
+
+  .view-mode-toggle button {
+    flex: 1;
+  }
+}
+
 /* Responsive */
+@media (max-width: 1024px) {
+  .info-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .port-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .meraki-panel {
     padding: 16px;
   }
-  
+
   .meraki-header h1 {
     font-size: 22px;
   }
-  
+
+  .meraki-header .version {
+    display: none;
+  }
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
+  /* Make tables horizontally scrollable */
+  .info-card {
+    overflow-x: auto;
+  }
+
+  .device-table {
+    min-width: 500px;
+  }
+
   .device-table th,
   .device-table td {
     padding: 12px 16px;
+    font-size: 13px;
+    white-space: nowrap;
   }
-  
+
+  .device-table th:first-child,
+  .device-table td:first-child {
+    white-space: normal;
+    min-width: 150px;
+  }
+
   .device-header {
     flex-direction: column;
     gap: 16px;
   }
-  
+
   .device-header .status-pill {
     margin-left: 0;
   }
-  
+
   .cards-grid {
     grid-template-columns: 1fr;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .port-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Stack port details on mobile */
+  .port-details {
+    padding: 16px;
+  }
+
+  /* Client info on mobile */
+  .client-info {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+
+  /* Readings grid on mobile */
+  .readings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reading-card {
+    padding: 24px;
+  }
+
+  .reading-card .reading-value {
+    font-size: 36px;
+  }
+
+  /* Filter controls */
+  .nav-tabs {
+    flex-wrap: wrap;
+  }
+
+  .nav-tab {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .meraki-panel {
+    padding: 12px;
+  }
+
+  .meraki-header {
+    gap: 12px;
+  }
+
+  .meraki-header .logo {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .meraki-header h1 {
+    font-size: 18px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-card .value {
+    font-size: 24px;
+  }
+
+  .device-table th,
+  .device-table td {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .device-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .device-name-cell {
+    gap: 8px;
+  }
+
+  .device-name-cell .name {
+    font-size: 14px;
+  }
+
+  .device-model {
+    font-size: 12px;
+  }
+
+  .info-card {
+    padding: 16px;
+  }
+
+  .info-card h3 {
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  .port-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .port-stat .value {
+    font-size: 16px;
+  }
+
+  /* Switch chassis smaller on mobile */
+  .switch-chassis {
+    padding: 12px 16px;
+  }
+
+  .port {
+    width: 32px;
+    height: 28px;
+  }
+
+  .port .num {
+    font-size: 8px;
+  }
+
+  .port-legend {
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 12px;
+  }
+
+  /* Back button smaller */
+  .back-button {
+    font-size: 13px;
   }
 }

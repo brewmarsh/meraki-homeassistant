@@ -79,13 +79,14 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
 
     @property
     def available(self) -> bool:
-        """Return True if entity is available."""
+        """Return True if entity is available (data exists in coordinator).
+
+        Note: Availability is based on data existence, not SSID enabled status.
+        The switch VALUE should indicate enabled/disabled status, not availability.
+        """
         if not super().available or not self.coordinator.data:
             return False
-        ssid_data = self._get_current_ssid_data()
-        # For the broadcast switch, it should only be available if the SSID is enabled.
-        # The enabled switch will override this.
-        return ssid_data is not None and ssid_data.get("enabled", False)
+        return self._get_current_ssid_data() is not None
 
     @callback
     def _handle_coordinator_update(self) -> None:

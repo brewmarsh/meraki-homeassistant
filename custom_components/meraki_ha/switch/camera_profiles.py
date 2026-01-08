@@ -39,9 +39,12 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
     @property
     def name(self) -> str:
         """Return the explicit name of the switch."""
-        if self.entity_description.name is UNDEFINED:
+        if (
+            self.entity_description.name is UNDEFINED
+            or self.entity_description.name is None
+        ):
             return ""
-        return self.entity_description.name or ""
+        return str(self.entity_description.name)
 
     async def _async_update_setting(self, is_on: bool) -> None:
         """Update the setting via the Meraki API.
@@ -79,9 +82,12 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
     @property
     def name(self) -> str:
         """Return the explicit name of the switch."""
-        if self.entity_description.name is UNDEFINED:
+        if (
+            self.entity_description.name is UNDEFINED
+            or self.entity_description.name is None
+        ):
             return ""
-        return self.entity_description.name or ""
+        return str(self.entity_description.name)
 
     async def _async_update_setting(self, is_on: bool) -> None:
         """Update the setting via the Meraki API.

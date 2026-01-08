@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import QRCode from 'react-qr-code';
 
 interface TimedAccessKey {
@@ -9,6 +9,51 @@ interface TimedAccessKey {
   passphrase: string;
   expires_at: string;
 }
+
+// Memoized guest key card - only re-renders when this key changes
+interface GuestKeyCardProps {
+  accessKey: TimedAccessKey;
+  ssidName: string;
+  onDelete: () => void;
+  formatExpiry: (iso: string) => string;
+}
+
+const GuestKeyCard = memo<GuestKeyCardProps>(
+  ({ accessKey, ssidName, onDelete, formatExpiry }) => {
+    const wifiString = `WIFI:T:WPA;S:${ssidName};P:${accessKey.passphrase};;`;
+
+    return (
+      <div className="guest-key-card">
+        <div className="guest-key-header">
+          <div>
+            <div className="guest-key-name">{accessKey.name}</div>
+            <div className="text-sm text-muted">{ssidName}</div>
+          </div>
+          <button onClick={onDelete} className="btn-revoke">
+            Revoke
+          </button>
+        </div>
+
+        <div className="guest-key-passphrase">{accessKey.passphrase}</div>
+
+        <div className="guest-key-footer">
+          <div className="guest-key-expiry">
+            {formatExpiry(accessKey.expires_at)}
+          </div>
+          <div className="guest-key-qr">
+            <QRCode value={wifiString} size={64} />
+          </div>
+        </div>
+      </div>
+    );
+  },
+  (prev, next) =>
+    prev.accessKey.identity_psk_id === next.accessKey.identity_psk_id &&
+    prev.accessKey.name === next.accessKey.name &&
+    prev.accessKey.passphrase === next.accessKey.passphrase &&
+    prev.accessKey.expires_at === next.accessKey.expires_at &&
+    prev.ssidName === next.ssidName
+);
 
 interface GroupPolicy {
   groupPolicyId: string;
@@ -22,7 +67,12 @@ interface TimedAccessProps {
   onClose: () => void;
 }
 
-const TimedAccess: React.FC<TimedAccessProps> = ({ hass, configEntryId, data, onClose }) => {
+const TimedAccess: React.FC<TimedAccessProps> = ({
+  hass,
+  configEntryId,
+  data,
+  onClose,
+}) => {
   const [keys, setKeys] = useState<TimedAccessKey[]>([]);
   const [policies, setPolicies] = useState<GroupPolicy[]>([]);
   const [loading, setLoading] = useState(false);
@@ -120,180 +170,168 @@ const TimedAccess: React.FC<TimedAccessProps> = ({ hass, configEntryId, data, on
 
   // Helper to find SSIDs for selected network
   const getSsidsForNetwork = (networkId: string) => {
-    const net = data?.networks?.find((n: any) => n.id === networkId);
-    // Ideally filter for IPSK without Radius.
-    // We assume data.ssids or data.networks contains SSIDs details.
-    // The main App.tsx passes `data` which has `ssids`. But those are flat list of ALL SSIDs?
-    // In App.tsx:
-    // ssids: [ { number: 0, name: 'Main WiFi', networkId: 'N_12345' } ]
-    // Let's use that.
+    // Filter SSIDs by network ID
+    // The main App.tsx passes `data` which has `ssids` as a flat list
+    // e.g., ssids: [ { number: 0, name: 'Main WiFi', networkId: 'N_12345' } ]
     return data?.ssids?.filter((s: any) => s.networkId === networkId) || [];
   };
 
-  // Format expiry
-  const formatExpiry = (iso: string) => {
+  // Format expiry - wrapped in useCallback for stable reference
+  const formatExpiry = useCallback((iso: string) => {
     const date = new Date(iso);
     const now = new Date();
     const diff = date.getTime() - now.getTime();
     if (diff <= 0) return 'Expired';
     const minutes = Math.floor(diff / 60000);
     return `${minutes} mins left (${date.toLocaleTimeString()})`;
-  };
+  }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">Timed Guest Access</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <ha-icon icon="mdi:close"></ha-icon>
+    <div className="settings-overlay">
+      <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="settings-header">
+          <h2>🔑 Timed Guest Access</h2>
+          <button className="settings-close-btn" onClick={onClose}>
+            ✕
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Create Section */}
-          <div className="space-y-4 border-r pr-6 border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold">Create New Key</h3>
+        <div className="settings-content">
+          <div className="timed-access-grid">
+            {/* Create Section */}
+            <div className="timed-access-create">
+              <h3 className="section-label">Create New Key</h3>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Network</label>
-              <select
-                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-                value={selectedNetwork}
-                onChange={(e) => {
+              <div className="settings-section">
+                <label className="field-label">Network</label>
+                <select
+                  className="filter-select"
+                  value={selectedNetwork}
+                  onChange={(e) => {
                     setSelectedNetwork(e.target.value);
                     setSelectedSsid('');
-                }}
-              >
-                <option value="">Select Network</option>
-                {data?.networks?.filter((n: any) => n.productTypes?.includes('wireless')).map((n: any) => (
-                  <option key={n.id} value={n.id}>{n.name}</option>
-                ))}
-              </select>
-            </div>
+                  }}
+                >
+                  <option value="">Select Network</option>
+                  {data?.networks
+                    ?.filter((n: any) => n.productTypes?.includes('wireless'))
+                    .map((n: any) => (
+                      <option key={n.id} value={n.id}>
+                        {n.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
 
-            {selectedNetwork && (
-                <div>
-                  <label className="block text-sm font-medium mb-1">SSID</label>
+              {selectedNetwork && (
+                <div className="settings-section">
+                  <label className="field-label">SSID</label>
                   <select
-                    className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+                    className="filter-select"
                     value={selectedSsid}
                     onChange={(e) => setSelectedSsid(e.target.value)}
                   >
                     <option value="">Select SSID</option>
                     {getSsidsForNetwork(selectedNetwork).map((s: any) => (
-                      <option key={s.number} value={s.number}>{s.name} (SSID {s.number})</option>
+                      <option key={s.number} value={s.number}>
+                        {s.name} (SSID {s.number})
+                      </option>
                     ))}
                   </select>
                 </div>
-            )}
+              )}
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Group Policy</label>
-              <select
-                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-                value={selectedPolicy}
-                onChange={(e) => setSelectedPolicy(e.target.value)}
-                disabled={!selectedNetwork}
-              >
-                <option value="">None (Default)</option>
-                {policies.map((p) => (
-                    <option key={p.groupPolicyId} value={p.groupPolicyId}>{p.name}</option>
-                ))}
-              </select>
-            </div>
+              <div className="settings-section">
+                <label className="field-label">Group Policy</label>
+                <select
+                  className="filter-select"
+                  value={selectedPolicy}
+                  onChange={(e) => setSelectedPolicy(e.target.value)}
+                  disabled={!selectedNetwork}
+                >
+                  <option value="">None (Default)</option>
+                  {policies.map((p) => (
+                    <option key={p.groupPolicyId} value={p.groupPolicyId}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Duration (Minutes)</label>
-              <select
-                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-              >
-                <option value="30">30 Minutes</option>
-                <option value="60">1 Hour</option>
-                <option value="240">4 Hours</option>
-                <option value="1440">24 Hours</option>
-                <option value="10080">7 Days</option>
-              </select>
-            </div>
+              <div className="settings-section">
+                <label className="field-label">Duration</label>
+                <select
+                  className="filter-select"
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                >
+                  <option value="30">30 Minutes</option>
+                  <option value="60">1 Hour</option>
+                  <option value="240">4 Hours</option>
+                  <option value="1440">24 Hours</option>
+                  <option value="10080">7 Days</option>
+                </select>
+              </div>
 
-            <div>
-               <label className="block text-sm font-medium mb-1">Name (Optional)</label>
-               <input
+              <div className="settings-section">
+                <label className="field-label">Name (Optional)</label>
+                <input
                   type="text"
-                  className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+                  className="search-input"
                   placeholder="e.g. Guest-John"
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
-               />
-            </div>
+                />
+              </div>
 
-            <div>
-               <label className="block text-sm font-medium mb-1">Passphrase (Optional)</label>
-               <input
+              <div className="settings-section">
+                <label className="field-label">Passphrase (Optional)</label>
+                <input
                   type="text"
-                  className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+                  className="search-input"
                   placeholder="Leave empty to auto-generate"
                   value={customPassphrase}
                   onChange={(e) => setCustomPassphrase(e.target.value)}
-               />
-            </div>
+                />
+              </div>
 
-            <button
-                className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:opacity-50"
+              <button
+                className="btn-primary"
                 onClick={handleCreate}
                 disabled={creating || !selectedNetwork || !selectedSsid}
-            >
-                {creating ? 'Creating...' : 'Generate Access Key'}
-            </button>
-          </div>
+              >
+                {creating ? 'Creating...' : '🔑 Generate Access Key'}
+              </button>
+            </div>
 
-          {/* List Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Active Guest Keys</h3>
-            {loading ? (
-                <div>Loading keys...</div>
-            ) : keys.length === 0 ? (
-                <div className="text-gray-500 italic">No active keys found.</div>
-            ) : (
-                <div className="space-y-4">
-                    {keys.map((key) => {
-                        const ssidName = getSsidsForNetwork(key.network_id).find((s:any) => s.number.toString() === key.ssid_number)?.name || `SSID ${key.ssid_number}`;
-                        const wifiString = `WIFI:T:WPA;S:${ssidName};P:${key.passphrase};;`;
+            {/* List Section */}
+            <div className="timed-access-list">
+              <h3 className="section-label">Active Guest Keys</h3>
+              {loading ? (
+                <p className="text-muted">Loading keys...</p>
+              ) : keys.length === 0 ? (
+                <p className="text-muted">No active keys found.</p>
+              ) : (
+                <div className="guest-keys-list">
+                  {keys.map((key) => {
+                    const ssidName =
+                      getSsidsForNetwork(key.network_id).find(
+                        (s: any) => s.number.toString() === key.ssid_number
+                      )?.name || `SSID ${key.ssid_number}`;
 
-                        return (
-                            <div key={key.identity_psk_id} className="border rounded p-4 dark:border-gray-700 flex flex-col gap-2">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <div className="font-bold">{key.name}</div>
-                                        <div className="text-sm text-gray-500">{ssidName}</div>
-                                    </div>
-                                    <button
-                                        onClick={() => handleDelete(key)}
-                                        className="text-red-500 hover:text-red-700 text-sm border border-red-500 rounded px-2 py-1"
-                                    >
-                                        Revoke
-                                    </button>
-                                </div>
-
-                                <div className="bg-gray-100 dark:bg-gray-900 p-2 rounded font-mono text-center text-lg select-all">
-                                    {key.passphrase}
-                                </div>
-
-                                <div className="flex justify-between items-end">
-                                    <div className="text-sm text-blue-600 dark:text-blue-400">
-                                        {formatExpiry(key.expires_at)}
-                                    </div>
-                                    <div className="bg-white p-1 rounded">
-                                        <QRCode value={wifiString} size={64} />
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
+                    return (
+                      <GuestKeyCard
+                        key={key.identity_psk_id}
+                        accessKey={key}
+                        ssidName={ssidName}
+                        onDelete={() => handleDelete(key)}
+                        formatExpiry={formatExpiry}
+                      />
+                    );
+                  })}
                 </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

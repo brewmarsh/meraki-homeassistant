@@ -9,6 +9,7 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..core.api.client import MerakiAPIClient
@@ -21,8 +22,12 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiMt40PowerOutlet(
     CoordinatorEntity,
     SwitchEntity,
+    RestoreEntity,
 ):
-    """Representation of a Meraki MT40 power outlet."""
+    """Representation of a Meraki MT40 power outlet.
+
+    Uses RestoreEntity to preserve state across Home Assistant restarts.
+    """
 
     def __init__(
         self,
@@ -49,6 +54,15 @@ class MerakiMt40PowerOutlet(
         self._attr_unique_id = f"{self._device_info['serial']}-outlet"
         self._attr_name = f"{self._device_info['name']} Outlet"
         self._attr_is_on: bool | None = None
+
+    async def async_added_to_hass(self) -> None:
+        """Restore state when entity is added to HA."""
+        await super().async_added_to_hass()
+
+        # Restore previous state on restart if no fresh power state
+        if self._attr_is_on is None:
+            if (last_state := await self.async_get_last_state()) is not None:
+                self._attr_is_on = last_state.state == "on"
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -136,6 +150,32 @@ class MerakiMt40PowerOutlet(
             self.coordinator.cancel_pending_update(self.unique_id)
 
     @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return entity state attributes with update timestamp."""
+        attrs: dict[str, Any] = {}
+        if self.coordinator.last_successful_update:
+            attrs["last_meraki_update"] = (
+                self.coordinator.last_successful_update.isoformat()
+            )
+        return attrs
+
+    @property
     def available(self) -> bool:
-        """Return if the entity is available."""
-        return super().available and self._get_power_state() is not None
+        """Return if the entity is available.
+
+        The entity is available if the device exists in coordinator data.
+        We don't require downstream_power readings for availability since
+        the outlet can still be controlled even if readings are delayed.
+        """
+        if not super().available:
+            return False
+        # Check if device exists in coordinator data
+        device = next(
+            (
+                d
+                for d in self.coordinator.data.get("devices", [])
+                if d.get("serial") == self._device_info["serial"]
+            ),
+            None,
+        )
+        return device is not None

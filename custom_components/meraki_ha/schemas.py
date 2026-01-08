@@ -42,13 +42,18 @@ CONFIG_SCHEMA = vol.Schema(
     }
 )
 
-OPTIONS_SCHEMA = vol.Schema(
+# Step 1: Basic Settings
+OPTIONS_SCHEMA_BASIC = vol.Schema(
     {
         vol.Required(
             CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
         ): selector.NumberSelector(
             selector.NumberSelectorConfig(
-                min=30, max=86400, step=1, mode=selector.NumberSelectorMode.SLIDER
+                min=30,
+                max=300,
+                step=5,
+                unit_of_measurement="seconds",
+                mode=selector.NumberSelectorMode.SLIDER,
             )
         ),
         vol.Required(
@@ -67,18 +72,12 @@ OPTIONS_SCHEMA = vol.Schema(
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
         ),
-        vol.Required(
-            CONF_CAMERA_SNAPSHOT_INTERVAL, default=DEFAULT_CAMERA_SNAPSHOT_INTERVAL
-        ): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=0,
-                max=3600,
-                step=10,
-                unit_of_measurement="seconds",
-                mode=selector.NumberSelectorMode.BOX,
-            )
-        ),
-        # Dashboard display settings
+    }
+)
+
+# Step 2: Dashboard Settings
+OPTIONS_SCHEMA_DASHBOARD = vol.Schema(
+    {
         vol.Required(
             CONF_DASHBOARD_VIEW_MODE, default=DEFAULT_DASHBOARD_VIEW_MODE
         ): selector.SelectSelector(
@@ -124,6 +123,38 @@ OPTIONS_SCHEMA = vol.Schema(
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
         ),
+        vol.Required(
+            CONF_TEMPERATURE_UNIT, default=DEFAULT_TEMPERATURE_UNIT
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[
+                    selector.SelectOptionDict(
+                        value=TEMPERATURE_UNIT_CELSIUS, label="Celsius (°C)"
+                    ),
+                    selector.SelectOptionDict(
+                        value=TEMPERATURE_UNIT_FAHRENHEIT, label="Fahrenheit (°F)"
+                    ),
+                ],
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+    }
+)
+
+# Step 3: Camera Settings
+OPTIONS_SCHEMA_CAMERA = vol.Schema(
+    {
+        vol.Required(
+            CONF_CAMERA_SNAPSHOT_INTERVAL, default=DEFAULT_CAMERA_SNAPSHOT_INTERVAL
+        ): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0,
+                max=3600,
+                step=10,
+                unit_of_measurement="seconds",
+                mode=selector.NumberSelectorMode.BOX,
+            )
+        ),
         vol.Optional(
             CONF_CAMERA_LINK_INTEGRATION, default=DEFAULT_CAMERA_LINK_INTEGRATION
         ): selector.SelectSelector(
@@ -143,24 +174,17 @@ OPTIONS_SCHEMA = vol.Schema(
                     selector.SelectOptionDict(value="dahua", label="Dahua"),
                 ],
                 mode=selector.SelectSelectorMode.DROPDOWN,
-                custom_value=True,  # Allow typing custom integration names
+                custom_value=True,
             )
         ),
-        # Sensor display settings
-        vol.Required(
-            CONF_TEMPERATURE_UNIT, default=DEFAULT_TEMPERATURE_UNIT
-        ): selector.SelectSelector(
-            selector.SelectSelectorConfig(
-                options=[
-                    selector.SelectOptionDict(
-                        value=TEMPERATURE_UNIT_CELSIUS, label="Celsius (°C)"
-                    ),
-                    selector.SelectOptionDict(
-                        value=TEMPERATURE_UNIT_FAHRENHEIT, label="Fahrenheit (°F)"
-                    ),
-                ],
-                mode=selector.SelectSelectorMode.DROPDOWN,
-            )
-        ),
+    }
+)
+
+# Combined schema for backwards compatibility
+OPTIONS_SCHEMA = vol.Schema(
+    {
+        **OPTIONS_SCHEMA_BASIC.schema,
+        **OPTIONS_SCHEMA_DASHBOARD.schema,
+        **OPTIONS_SCHEMA_CAMERA.schema,
     }
 )

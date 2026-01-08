@@ -147,7 +147,7 @@ DATA_SSID_DEVICES_COORDINATOR: Final = "ssid_devices"
 MERAKI_API_CLIENT: Final = "meraki_api_client"
 """Key for storing the MerakiAPIClient instance in hass.data."""
 
-DEFAULT_SCAN_INTERVAL: Final = 300
+DEFAULT_SCAN_INTERVAL: Final = 90
 """Default scan interval in seconds for the Meraki API data."""
 
 # Defaults for new options

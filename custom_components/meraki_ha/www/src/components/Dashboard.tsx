@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo, useCallback } from 'react';
 import StatusCard from './StatusCard';
 
 interface Device {
@@ -38,10 +38,17 @@ interface Client {
   description?: string;
   ip?: string;
   networkId?: string;
+  recentDeviceSerial?: string;
+  ssid?: string;
 }
 
 interface DashboardProps {
-  setActiveView: (view: { view: string; deviceId?: string }) => void;
+  setActiveView: (view: {
+    view: string;
+    deviceId?: string;
+    ssidNetworkId?: string;
+    ssidNumber?: number;
+  }) => void;
   data: {
     devices?: Device[];
     networks?: Network[];
@@ -51,25 +58,41 @@ interface DashboardProps {
     last_updated?: string;
   };
   hass?: {
-    callService?: (domain: string, service: string, data: object) => Promise<void>;
+    callService?: (
+      domain: string,
+      service: string,
+      data?: Record<string, unknown>,
+      target?: { entity_id?: string | string[] }
+    ) => Promise<void>;
   };
   // Default settings from integration options
   defaultViewMode?: 'network' | 'type';
   defaultDeviceTypeFilter?: string;
   defaultStatusFilter?: string;
+  temperatureUnit?: 'celsius' | 'fahrenheit';
 }
 
-type DeviceTypeFilter = 'all' | 'switch' | 'camera' | 'wireless' | 'sensor' | 'appliance';
+type DeviceTypeFilter =
+  | 'all'
+  | 'switch'
+  | 'camera'
+  | 'wireless'
+  | 'sensor'
+  | 'appliance';
 type StatusFilter = 'all' | 'online' | 'offline' | 'alerting' | 'dormant';
 type ViewMode = 'network' | 'type';
 
-const DEVICE_TYPES: { value: DeviceTypeFilter; label: string; icon: string }[] = [
+const DEVICE_TYPES: {
+  value: DeviceTypeFilter;
+  label: string;
+  icon: string;
+}[] = [
   { value: 'all', label: 'All Types', icon: '📱' },
-  { value: 'switch', label: 'Switches', icon: '⚡' },
+  { value: 'switch', label: 'Switches', icon: '🔀' },
   { value: 'camera', label: 'Cameras', icon: '📹' },
   { value: 'wireless', label: 'Wireless', icon: '📶' },
-  { value: 'sensor', label: 'Sensors', icon: '🌡️' },
-  { value: 'appliance', label: 'Appliances', icon: '🔒' },
+  { value: 'sensor', label: 'Sensors', icon: '📡' },
+  { value: 'appliance', label: 'Firewalls', icon: '🛡️' },
 ];
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
@@ -80,23 +103,104 @@ const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'dormant', label: 'Dormant' },
 ];
 
-const Dashboard: React.FC<DashboardProps> = ({ 
-  setActiveView, 
-  data, 
-  hass,
+/**
+ * Memoized device row - only re-renders when this specific device changes
+ */
+interface DeviceRowProps {
+  device: Device;
+  onClick: () => void;
+  getDeviceIcon: (device: Device) => string;
+  getDeviceTypeClass: (device: Device) => string;
+  getDeviceDetail: (device: Device) => string;
+}
+
+const DeviceRow = memo<DeviceRowProps>(
+  ({
+    device,
+    onClick,
+    getDeviceIcon,
+    getDeviceTypeClass,
+    getDeviceDetail,
+  }) => (
+    <tr className="device-row" onClick={onClick}>
+      <td>
+        <div className="device-name-cell">
+          <div className={`device-icon ${getDeviceTypeClass(device)}`}>
+            {getDeviceIcon(device)}
+          </div>
+          <span className="name">{device.name || device.serial}</span>
+        </div>
+      </td>
+      <td className="device-model">{device.model || '—'}</td>
+      <td className="device-model cell-mono">{device.serial}</td>
+      <td>
+        <div className={`status-badge ${device.status?.toLowerCase()}`}>
+          <div className="status-dot"></div>
+          <span>{device.status || 'Unknown'}</span>
+        </div>
+      </td>
+      <td className="device-model">{device.lanIp || '—'}</td>
+      <td>
+        <span className="detail-badge">{getDeviceDetail(device) || '—'}</span>
+      </td>
+    </tr>
+  ),
+  (prevProps, nextProps) => {
+    const prev = prevProps.device;
+    const next = nextProps.device;
+
+    // Only re-render if device-specific data changed
+    if (prev.serial !== next.serial) return false;
+    if (prev.status !== next.status) return false;
+    if (prev.name !== next.name) return false;
+    if (prev.lanIp !== next.lanIp) return false;
+    if (prev.model !== next.model) return false;
+
+    // Check readings for sensor devices
+    if (prev.readings?.temperature !== next.readings?.temperature)
+      return false;
+    if (prev.readings?.humidity !== next.readings?.humidity) return false;
+
+    // Check ports for switches
+    const prevConnected = prev.ports_statuses?.filter(
+      (p) => p.status === 'Connected'
+    ).length;
+    const nextConnected = next.ports_statuses?.filter(
+      (p) => p.status === 'Connected'
+    ).length;
+    if (prevConnected !== nextConnected) return false;
+
+    return true; // No changes, skip re-render
+  }
+);
+
+DeviceRow.displayName = 'DeviceRow';
+
+const DashboardComponent: React.FC<DashboardProps> = ({
+  setActiveView,
+  data,
+  hass: _hass,
   defaultViewMode = 'network',
   defaultDeviceTypeFilter = 'all',
   defaultStatusFilter = 'all',
+  temperatureUnit = 'celsius',
 }) => {
-  const [expandedNetworks, setExpandedNetworks] = useState<Set<string>>(new Set());
-  const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set(['switch', 'camera', 'wireless', 'sensor', 'appliance']));
+  const [expandedNetworks, setExpandedNetworks] = useState<Set<string>>(
+    new Set()
+  );
+  const [expandedTypes, setExpandedTypes] = useState<Set<string>>(
+    new Set(['switch', 'camera', 'wireless', 'sensor', 'appliance'])
+  );
+  // expandedSSIDs removed - SSIDs now navigate to dedicated view
   const [deviceTypeFilter, setDeviceTypeFilter] = useState<DeviceTypeFilter>(
     (defaultDeviceTypeFilter as DeviceTypeFilter) || 'all'
   );
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(
     (defaultStatusFilter as StatusFilter) || 'all'
   );
-  const [viewMode, setViewMode] = useState<ViewMode>(defaultViewMode || 'network');
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    defaultViewMode || 'network'
+  );
   const hasAutoExpandedRef = useRef(false);
 
   // Auto-expand if there's only one network (or a few networks)
@@ -120,18 +224,34 @@ const Dashboard: React.FC<DashboardProps> = ({
     );
   }
 
-  const { devices = [], networks = [], ssids = [], clients = [], scan_interval = 60, last_updated } = data;
+  const {
+    devices = [],
+    networks = [],
+    ssids = [],
+    clients = [],
+    scan_interval = 90,
+    last_updated,
+  } = data;
 
   // Countdown state for next refresh
   const [countdown, setCountdown] = useState<number | null>(null);
-  const countdownRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Calculate and update countdown
   useEffect(() => {
     if (!last_updated || !scan_interval) {
+      console.log('[Meraki] Countdown disabled - missing data:', {
+        last_updated,
+        scan_interval,
+      });
       setCountdown(null);
       return;
     }
+
+    console.log('[Meraki] Countdown reset - new data received:', {
+      last_updated,
+      scan_interval,
+    });
 
     const updateCountdown = () => {
       const lastUpdate = new Date(last_updated).getTime();
@@ -151,16 +271,25 @@ const Dashboard: React.FC<DashboardProps> = ({
     };
   }, [last_updated, scan_interval]);
 
-  // Format time ago
-  const formatTimeAgo = (isoString: string): string => {
+  // Format timestamp as actual time (not relative)
+  const formatTimestamp = (isoString: string): string => {
     const date = new Date(isoString);
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffSec = Math.floor(diffMs / 1000);
-    
-    if (diffSec < 60) return `${diffSec}s ago`;
-    if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const isToday = date.toDateString() === now.toDateString();
+
+    if (isToday) {
+      return date.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+    }
+    return date.toLocaleString([], {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   // Format countdown
@@ -174,12 +303,18 @@ const Dashboard: React.FC<DashboardProps> = ({
   const getDeviceType = (device: Device): DeviceTypeFilter => {
     const model = device.model?.toUpperCase() || '';
     const productType = device.productType?.toLowerCase() || '';
-    
+
     if (model.startsWith('MS') || productType === 'switch') return 'switch';
     if (model.startsWith('MV') || productType === 'camera') return 'camera';
-    if (model.startsWith('MR') || productType === 'wireless') return 'wireless';
+    if (model.startsWith('MR') || productType === 'wireless')
+      return 'wireless';
     if (model.startsWith('MT') || productType === 'sensor') return 'sensor';
-    if (model.startsWith('MX') || model.startsWith('Z') || productType === 'appliance') return 'appliance';
+    if (
+      model.startsWith('MX') ||
+      model.startsWith('Z') ||
+      productType === 'appliance'
+    )
+      return 'appliance';
     return 'all';
   };
 
@@ -187,11 +322,17 @@ const Dashboard: React.FC<DashboardProps> = ({
   const filterDevices = (deviceList: Device[]): Device[] => {
     return deviceList.filter((device) => {
       // Type filter
-      if (deviceTypeFilter !== 'all' && getDeviceType(device) !== deviceTypeFilter) {
+      if (
+        deviceTypeFilter !== 'all' &&
+        getDeviceType(device) !== deviceTypeFilter
+      ) {
         return false;
       }
       // Status filter
-      if (statusFilter !== 'all' && device.status?.toLowerCase() !== statusFilter) {
+      if (
+        statusFilter !== 'all' &&
+        device.status?.toLowerCase() !== statusFilter
+      ) {
         return false;
       }
       return true;
@@ -201,7 +342,9 @@ const Dashboard: React.FC<DashboardProps> = ({
   const filteredDevices = filterDevices(devices);
 
   // Calculate metrics
-  const onlineDevices = devices.filter((d) => d.status?.toLowerCase() === 'online').length;
+  const onlineDevices = devices.filter(
+    (d) => d.status?.toLowerCase() === 'online'
+  ).length;
   const totalClients = clients.length || 0;
   const activeSSIDs = ssids.filter((s) => s.enabled).length;
 
@@ -229,72 +372,108 @@ const Dashboard: React.FC<DashboardProps> = ({
     });
   };
 
-  const getDeviceIcon = (device: Device): string => {
+  // Memoized helper functions to prevent DeviceRow re-renders
+  const getDeviceIcon = useCallback((device: Device): string => {
     const type = getDeviceType(device);
+    const model = device.model?.toUpperCase() || '';
+
+    // Sensor-specific icons based on model
+    if (type === 'sensor') {
+      if (
+        model.startsWith('MT10') ||
+        model.startsWith('MT11') ||
+        model.startsWith('MT15')
+      ) {
+        return '🌡️'; // Temperature sensor
+      }
+      if (model.startsWith('MT12')) {
+        return '🚪'; // Door/open-close sensor
+      }
+      if (model.startsWith('MT14')) {
+        return '💨'; // Air quality sensor
+      }
+      if (model.startsWith('MT20')) {
+        return '🔘'; // Button sensor
+      }
+      if (model.startsWith('MT30')) {
+        return '⚡'; // Power meter
+      }
+      return '📡'; // Default sensor
+    }
+
     const icons: Record<DeviceTypeFilter, string> = {
-      switch: '⚡',
-      camera: '📹',
-      wireless: '📶',
-      sensor: '🌡️',
-      appliance: '🔒',
+      switch: '🔀', // Network switch
+      camera: '📹', // Camera
+      wireless: '📶', // Wireless AP
+      sensor: '📡', // Default sensor (fallback)
+      appliance: '🛡️', // Security appliance/firewall
       all: '📱',
     };
     return icons[type];
-  };
+  }, []);
 
-  const getDeviceTypeClass = (device: Device): string => {
+  const getDeviceTypeClass = useCallback((device: Device): string => {
     return getDeviceType(device);
-  };
+  }, []);
 
-  const getDeviceDetail = (device: Device): string => {
-    const type = getDeviceType(device);
-    
-    if (type === 'switch') {
-      const activePorts = device.ports_statuses?.filter((p) => 
-        p.status?.toLowerCase() === 'connected'
-      ).length || 0;
-      return `${activePorts} ports active`;
-    }
-    if (type === 'camera') {
-      return device.status?.toLowerCase() === 'online' ? 'Recording' : 'Offline';
-    }
-    if (type === 'wireless') {
-      return '— clients';
-    }
-    if (type === 'sensor') {
-      if (device.readings?.temperature != null) {
-        const temp = device.readings.temperature;
-        const humidity = device.readings.humidity ?? '--';
-        return `${temp}°C / ${humidity}%`;
+  const getDeviceDetail = useCallback(
+    (device: Device): string => {
+      const type = getDeviceType(device);
+
+      if (type === 'switch') {
+        const activePorts =
+          device.ports_statuses?.filter(
+            (p) => p.status?.toLowerCase() === 'connected'
+          ).length || 0;
+        return `${activePorts} ports active`;
       }
-      return 'Active';
-    }
-    return '';
-  };
+      if (type === 'camera') {
+        return device.status?.toLowerCase() === 'online'
+          ? 'Recording'
+          : 'Offline';
+      }
+      if (type === 'wireless') {
+        // Get actual client count from clients connected to this device
+        const clientCount = clients.filter(
+          (c) => c.recentDeviceSerial === device.serial
+        ).length;
+        return `${clientCount} clients`;
+      }
+      if (type === 'sensor') {
+        if (device.readings?.temperature != null) {
+          const tempC = device.readings.temperature;
+          const temp =
+            temperatureUnit === 'fahrenheit'
+              ? ((tempC * 9) / 5 + 32).toFixed(1)
+              : tempC.toFixed(1);
+          const unit = temperatureUnit === 'fahrenheit' ? '°F' : '°C';
+          const humidity = device.readings.humidity ?? '--';
+          return `${temp}${unit} / ${humidity}%`;
+        }
+        return 'Active';
+      }
+      return '';
+    },
+    [clients, temperatureUnit]
+  );
+
+  // Memoized click handler factory
+  const handleDeviceClick = useCallback(
+    (serial: string) => {
+      setActiveView({ view: 'device', deviceId: serial });
+    },
+    [setActiveView]
+  );
 
   const getDevicesForNetwork = (networkId: string): Device[] => {
     return filteredDevices.filter((d) => d.networkId === networkId);
-  };
-
-  const getSSIDsForNetwork = (networkId: string): SSID[] => {
-    return ssids.filter((s) => s.networkId === networkId);
   };
 
   const getDevicesByType = (type: DeviceTypeFilter): Device[] => {
     return filteredDevices.filter((d) => getDeviceType(d) === type);
   };
 
-  const handleSSIDToggle = async (ssid: SSID) => {
-    if (!hass?.callService || !ssid.entity_id) return;
-    
-    try {
-      await hass.callService('switch', ssid.enabled ? 'turn_off' : 'turn_on', {
-        entity_id: ssid.entity_id,
-      });
-    } catch (error) {
-      console.error('Failed to toggle SSID:', error);
-    }
-  };
+  // SSID toggle is now handled in SSIDView
 
   const renderDeviceTable = (deviceList: Device[]) => (
     <table className="device-table">
@@ -302,6 +481,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         <tr>
           <th>Device</th>
           <th>Model</th>
+          <th>Serial</th>
           <th>Status</th>
           <th>IP Address</th>
           <th>Details</th>
@@ -309,40 +489,18 @@ const Dashboard: React.FC<DashboardProps> = ({
       </thead>
       <tbody>
         {deviceList.map((device) => (
-          <tr
+          <DeviceRow
             key={device.serial}
-            className="device-row"
-            onClick={() => setActiveView({ 
-              view: 'device', 
-              deviceId: device.serial 
-            })}
-          >
-            <td>
-              <div className="device-name-cell">
-                <div className={`device-icon ${getDeviceTypeClass(device)}`}>
-                  {getDeviceIcon(device)}
-                </div>
-                <span className="name">{device.name || device.serial}</span>
-              </div>
-            </td>
-            <td className="device-model">{device.model || '—'}</td>
-            <td>
-              <div className={`status-badge ${device.status?.toLowerCase()}`}>
-                <div className="status-dot"></div>
-                <span>{device.status || 'Unknown'}</span>
-              </div>
-            </td>
-            <td className="device-model">{device.lanIp || '—'}</td>
-            <td>
-              <span className="detail-badge">
-                {getDeviceDetail(device) || '—'}
-              </span>
-            </td>
-          </tr>
+            device={device}
+            onClick={() => handleDeviceClick(device.serial)}
+            getDeviceIcon={getDeviceIcon}
+            getDeviceTypeClass={getDeviceTypeClass}
+            getDeviceDetail={getDeviceDetail}
+          />
         ))}
         {deviceList.length === 0 && (
           <tr>
-            <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+            <td colSpan={6} className="empty-table-message">
               No devices match your filters
             </td>
           </tr>
@@ -355,23 +513,14 @@ const Dashboard: React.FC<DashboardProps> = ({
     <div>
       {/* Refresh Indicator */}
       {last_updated && (
-        <div style={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          gap: '16px',
-          marginBottom: '12px',
-          fontSize: '12px',
-          color: 'var(--text-muted)',
-          opacity: 0.8,
-        }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ fontSize: '10px' }}>🔄</span>
-            Last: {formatTimeAgo(last_updated)}
+        <div className="refresh-indicator">
+          <span className="refresh-indicator-item">
+            <span className="refresh-indicator-icon">🔄</span>
+            Last: {formatTimestamp(last_updated)}
           </span>
           {countdown !== null && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ fontSize: '10px' }}>⏱️</span>
+            <span className="refresh-indicator-item">
+              <span className="refresh-indicator-icon">⏱️</span>
               Next: {formatCountdown(countdown)}
             </span>
           )}
@@ -382,58 +531,35 @@ const Dashboard: React.FC<DashboardProps> = ({
       <div className="stats-grid">
         <StatusCard title="Total Devices" value={devices.length} />
         <StatusCard title="Online" value={onlineDevices} variant="success" />
-        <StatusCard 
-          title="Connected Clients" 
+        <StatusCard
+          title="Connected Clients"
           value={totalClients}
           onClick={() => setActiveView({ view: 'clients' })}
           clickable
         />
-        <StatusCard title="Active SSIDs" value={activeSSIDs} />
+        <StatusCard
+          title="Active SSIDs"
+          value={activeSSIDs}
+          onClick={() => setActiveView({ view: 'ssids' })}
+          clickable
+        />
       </div>
 
       {/* Filters and View Toggle */}
-      <div style={{ 
-        display: 'flex', 
-        gap: '12px', 
-        marginBottom: '20px',
-        flexWrap: 'wrap',
-        alignItems: 'center'
-      }}>
+      <div className="filter-controls">
         {/* View Mode Toggle */}
-        <div style={{ 
-          display: 'flex', 
-          gap: '4px',
-          background: 'var(--bg-secondary)',
-          borderRadius: 'var(--radius-md)',
-          padding: '4px'
-        }}>
+        <div className="view-mode-toggle">
           <button
             onClick={() => setViewMode('network')}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              background: viewMode === 'network' ? 'var(--primary)' : 'transparent',
-              color: viewMode === 'network' ? 'white' : 'var(--text-secondary)',
-              cursor: 'pointer',
-              fontWeight: 500,
-              fontSize: '13px'
-            }}
+            className={`view-mode-btn ${
+              viewMode === 'network' ? 'active' : ''
+            }`}
           >
             🌐 By Network
           </button>
           <button
             onClick={() => setViewMode('type')}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              background: viewMode === 'type' ? 'var(--primary)' : 'transparent',
-              color: viewMode === 'type' ? 'white' : 'var(--text-secondary)',
-              cursor: 'pointer',
-              fontWeight: 500,
-              fontSize: '13px'
-            }}
+            className={`view-mode-btn ${viewMode === 'type' ? 'active' : ''}`}
           >
             📦 By Type
           </button>
@@ -442,16 +568,10 @@ const Dashboard: React.FC<DashboardProps> = ({
         {/* Device Type Filter */}
         <select
           value={deviceTypeFilter}
-          onChange={(e) => setDeviceTypeFilter(e.target.value as DeviceTypeFilter)}
-          style={{
-            padding: '8px 12px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border)',
-            background: 'var(--bg-secondary)',
-            color: 'var(--text-primary)',
-            fontSize: '13px',
-            cursor: 'pointer'
-          }}
+          onChange={(e) =>
+            setDeviceTypeFilter(e.target.value as DeviceTypeFilter)
+          }
+          className="filter-select"
         >
           {DEVICE_TYPES.map((type) => (
             <option key={type.value} value={type.value}>
@@ -464,15 +584,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-          style={{
-            padding: '8px 12px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border)',
-            background: 'var(--bg-secondary)',
-            color: 'var(--text-primary)',
-            fontSize: '13px',
-            cursor: 'pointer'
-          }}
+          className="filter-select"
         >
           {STATUS_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -488,16 +600,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               setDeviceTypeFilter('all');
               setStatusFilter('all');
             }}
-            style={{
-              padding: '8px 12px',
-              borderRadius: 'var(--radius-md)',
-              border: 'none',
-              background: 'var(--warning)',
-              color: 'white',
-              fontSize: '12px',
-              cursor: 'pointer',
-              fontWeight: 500
-            }}
+            className="clear-filters-btn"
           >
             ✕ Clear Filters ({filteredDevices.length}/{devices.length})
           </button>
@@ -505,111 +608,91 @@ const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* View by Network */}
-      {viewMode === 'network' && networks.map((network) => {
-        const networkDevices = getDevicesForNetwork(network.id);
-        const networkSSIDs = getSSIDsForNetwork(network.id);
-        const onlineCount = networkDevices.filter((d) => 
-          d.status?.toLowerCase() === 'online'
-        ).length;
-        const isExpanded = expandedNetworks.has(network.id);
+      {viewMode === 'network' &&
+        networks.map((network) => {
+          const networkDevices = getDevicesForNetwork(network.id);
+          const onlineCount = networkDevices.filter(
+            (d) => d.status?.toLowerCase() === 'online'
+          ).length;
+          const isExpanded = expandedNetworks.has(network.id);
 
-        return (
-          <div key={network.id} className="network-card">
-            <div 
-              className="network-header"
-              onClick={() => toggleNetwork(network.id)}
-            >
-              <div className="title">
-                <span className="network-icon">🌐</span>
-                <h2>{network.name}</h2>
-                <span className="badge">{onlineCount}/{networkDevices.length} online</span>
+          return (
+            <div key={network.id} className="network-card">
+              <div
+                className="network-header"
+                onClick={() => toggleNetwork(network.id)}
+              >
+                <div className="title">
+                  <span className="network-icon">🌐</span>
+                  <h2>{network.name}</h2>
+                  <span className="badge">
+                    {onlineCount}/{networkDevices.length} online
+                  </span>
+                </div>
+                <span
+                  className={`expand-icon ${isExpanded ? 'expanded' : ''}`}
+                >
+                  ▼
+                </span>
               </div>
-              <span className={`expand-icon ${isExpanded ? 'expanded' : ''}`}>
-                ▼
-              </span>
+
+              {isExpanded && renderDeviceTable(networkDevices)}
             </div>
-
-            {isExpanded && (
-              <>
-                {renderDeviceTable(networkDevices)}
-
-                {/* SSID Section */}
-                {networkSSIDs.length > 0 && (
-                  <div className="ssid-section">
-                    <h3>
-                      <span>📶</span>
-                      Wireless Networks
-                    </h3>
-                    <div className="ssid-list">
-                      {networkSSIDs.map((ssid) => (
-                        <div key={`${ssid.networkId}-${ssid.number}`} className="ssid-item">
-                          <span className="icon">
-                            {ssid.enabled ? '🔒' : '📶'}
-                          </span>
-                          <span className="name">{ssid.name}</span>
-                          <span className="clients">— clients</span>
-                          <div 
-                            className={`toggle ${ssid.enabled ? 'active' : ''}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSSIDToggle(ssid);
-                            }}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        );
-      })}
+          );
+        })}
 
       {/* View by Type */}
-      {viewMode === 'type' && DEVICE_TYPES.filter(t => t.value !== 'all').map((type) => {
-        const typeDevices = getDevicesByType(type.value);
-        if (typeDevices.length === 0 && deviceTypeFilter !== 'all') return null;
-        
-        const onlineCount = typeDevices.filter((d) => 
-          d.status?.toLowerCase() === 'online'
-        ).length;
-        const isExpanded = expandedTypes.has(type.value);
+      {viewMode === 'type' &&
+        DEVICE_TYPES.filter((t) => t.value !== 'all').map((type) => {
+          const typeDevices = getDevicesByType(type.value);
+          if (typeDevices.length === 0 && deviceTypeFilter !== 'all')
+            return null;
 
-        return (
-          <div key={type.value} className="network-card">
-            <div 
-              className="network-header"
-              onClick={() => toggleType(type.value)}
-            >
-              <div className="title">
-                <span className="network-icon">{type.icon}</span>
-                <h2>{type.label}</h2>
-                <span className="badge">{onlineCount}/{typeDevices.length} online</span>
+          const onlineCount = typeDevices.filter(
+            (d) => d.status?.toLowerCase() === 'online'
+          ).length;
+          const isExpanded = expandedTypes.has(type.value);
+
+          return (
+            <div key={type.value} className="network-card">
+              <div
+                className="network-header"
+                onClick={() => toggleType(type.value)}
+              >
+                <div className="title">
+                  <span className="network-icon">{type.icon}</span>
+                  <h2>{type.label}</h2>
+                  <span className="badge">
+                    {onlineCount}/{typeDevices.length} online
+                  </span>
+                </div>
+                <span
+                  className={`expand-icon ${isExpanded ? 'expanded' : ''}`}
+                >
+                  ▼
+                </span>
               </div>
-              <span className={`expand-icon ${isExpanded ? 'expanded' : ''}`}>
-                ▼
-              </span>
-            </div>
 
-            {isExpanded && renderDeviceTable(typeDevices)}
-          </div>
-        );
-      })}
+              {isExpanded && renderDeviceTable(typeDevices)}
+            </div>
+          );
+        })}
 
       {/* Fallback: Show all devices if no networks and network view */}
-      {viewMode === 'network' && networks.length === 0 && filteredDevices.length > 0 && (
-        <div className="network-card">
-          <div className="network-header">
-            <div className="title">
-              <span className="network-icon">🌐</span>
-              <h2>All Devices</h2>
-              <span className="badge">{onlineDevices} online</span>
+      {viewMode === 'network' &&
+        networks.length === 0 &&
+        filteredDevices.length > 0 && (
+          <div className="network-card">
+            <div className="network-header">
+              <div className="title">
+                <span className="network-icon">🌐</span>
+                <h2>All Devices</h2>
+                <span className="badge">{onlineDevices} online</span>
+              </div>
             </div>
+            {renderDeviceTable(filteredDevices)}
           </div>
-          {renderDeviceTable(filteredDevices)}
-        </div>
-      )}
+        )}
 
       {/* Empty State */}
       {filteredDevices.length === 0 && (
@@ -617,7 +700,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           <div className="icon">📡</div>
           <h3>No Devices Found</h3>
           <p>
-            {deviceTypeFilter !== 'all' || statusFilter !== 'all' 
+            {deviceTypeFilter !== 'all' || statusFilter !== 'all'
               ? 'No devices match your current filters.'
               : 'Your Meraki devices will appear here once discovered.'}
           </p>
@@ -626,5 +709,48 @@ const Dashboard: React.FC<DashboardProps> = ({
     </div>
   );
 };
+
+// Memoize the Dashboard to prevent unnecessary re-renders
+// Only re-render when data meaningfully changes
+const Dashboard = memo(DashboardComponent, (prevProps, nextProps) => {
+  // Return true if props are equal (skip re-render)
+  // Return false if props are different (trigger re-render)
+
+  // Check if data reference changed
+  if (prevProps.data === nextProps.data) {
+    return true; // Same reference, skip re-render
+  }
+
+  // Compare key data elements
+  const prevData = prevProps.data;
+  const nextData = nextProps.data;
+
+  // Compare counts
+  if (
+    prevData.devices?.length !== nextData.devices?.length ||
+    prevData.networks?.length !== nextData.networks?.length ||
+    prevData.clients?.length !== nextData.clients?.length
+  ) {
+    return false; // Different counts, re-render
+  }
+
+  // Compare device statuses
+  const prevStatuses = prevData.devices
+    ?.map((d) => `${d.serial}:${d.status}`)
+    .join('|');
+  const nextStatuses = nextData.devices
+    ?.map((d) => `${d.serial}:${d.status}`)
+    .join('|');
+  if (prevStatuses !== nextStatuses) {
+    return false; // Status changed, re-render
+  }
+
+  // Compare timestamps - allow re-render for countdown updates
+  if (prevData.last_updated !== nextData.last_updated) {
+    return false; // Timestamp changed, re-render for countdown
+  }
+
+  return true; // No meaningful changes, skip re-render
+});
 
 export default Dashboard;

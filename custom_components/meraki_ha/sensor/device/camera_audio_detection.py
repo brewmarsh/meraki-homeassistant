@@ -61,8 +61,11 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
         current_device_data = self._get_current_device_data()
 
         if not current_device_data:
-            self._attr_native_value = None
+            self._attr_native_value = "unavailable"
             self._attr_icon = "mdi:help-rhombus"
+            self._attr_extra_state_attributes = {
+                "serial_number": self._device_serial,
+            }
             return
 
         # audioDetection is nested inside sense_settings from the API
@@ -77,8 +80,9 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
             not isinstance(audio_detection_data, dict)
             or "enabled" not in audio_detection_data
         ):
-            self._attr_native_value = None
-            self._attr_icon = "mdi:microphone-question"
+            # Camera doesn't have Sense license or audio detection not configured
+            self._attr_native_value = "not_configured"
+            self._attr_icon = "mdi:microphone-off"
         else:
             audio_enabled = bool(audio_detection_data["enabled"])
             self._attr_native_value = "enabled" if audio_enabled else "disabled"
@@ -98,20 +102,10 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def available(self) -> bool:
-        """Return True if entity is available and data is present."""
+        """Return True if entity is available (device exists in coordinator)."""
         if not super().available:
             return False
 
+        # Available as long as the device exists in coordinator data
         current_device_data = self._get_current_device_data()
-        if not current_device_data:
-            return False
-
-        # audioDetection is nested inside sense_settings
-        sense_settings = current_device_data.get("sense_settings", {})
-        if not isinstance(sense_settings, dict):
-            return False
-        audio_data = sense_settings.get("audioDetection")
-        if not isinstance(audio_data, dict) or "enabled" not in audio_data:
-            return False
-
-        return True
+        return current_device_data is not None

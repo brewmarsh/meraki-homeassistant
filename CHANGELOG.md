@@ -2,59 +2,59 @@
 
 ### Features
 
-* **camera:** Add configurable snapshot refresh interval
+- **camera:** Add configurable snapshot refresh interval
   - New `camera_snapshot_interval` configuration option (0-3600 seconds)
   - Set to 0 for on-demand snapshots only (default)
   - Cached snapshots are returned instantly within the interval, reducing API calls
-* **camera:** Expose cloud video URL as entity attribute
+- **camera:** Expose cloud video URL as entity attribute
   - Cloud URL available in `cloud_video_url` attribute for browser viewing
   - Note: Streaming uses RTSP only (Meraki cloud URLs are Dashboard pages, not direct streams)
-* **api:** Filter networks before making API calls based on enabled networks setting
+- **api:** Filter networks before making API calls based on enabled networks setting
   - Only polls networks that are enabled in integration settings
   - Reduces unnecessary API calls and improves performance
-* **frontend:** Refactor panel to use proper HA custom panel architecture
+- **frontend:** Refactor panel to use proper HA custom panel architecture
   - Implement Web Component wrapper that receives `hass` and `panel` from Home Assistant
   - Replace manual WebSocket connections with `hass.callWS()` for authenticated API calls
   - Register WebSocket subscription handler in `__init__.py`
   - Remove token prompts - panel now uses HA's authenticated connection
-* **frontend:** Redesign panel UI with HA-compatible styling
+- **frontend:** Redesign panel UI with HA-compatible styling
   - New clean card-based layout with proper CSS variables for light/dark theme support
   - Device status badges with color coding (green=online, red=offline, orange=alerting)
   - Device icons based on model type (MR, MS, MV, MX, MG, MT)
   - SSID grid with visual enabled/disabled indicators
-* **frontend:** Filter networks to only show enabled ones
+- **frontend:** Filter networks to only show enabled ones
   - Panel now only displays networks that are enabled in integration settings
   - Auto-expand single network when only one is enabled
-* **frontend:** Enhanced camera device view in web panel
+- **frontend:** Enhanced camera device view in web panel
   - Live snapshot display with refresh button
   - "Open in Meraki Dashboard" button for cloud video viewing
   - Works even when RTSP is unavailable or in use by another client
-* **camera:** Link Meraki cameras to external NVR cameras (e.g., Blue Iris)
+- **camera:** Link Meraki cameras to external NVR cameras (e.g., Blue Iris)
   - New "Link Camera" configuration in web panel
   - View linked camera streams directly in the panel
   - Mappings stored in integration options
   - Exposed as `linked_camera_entity` attribute on camera entity
-* **api:** Add stream_source parameter to camera stream URL websocket endpoint
+- **api:** Add stream_source parameter to camera stream URL websocket endpoint
   - Web UI can request "rtsp" for direct streaming or "cloud" for Dashboard viewing
 
 ### Bug Fixes
 
-* **api:** Fix "Invalid device type" error in getNetworkClients (1,900+ occurrences)
+- **api:** Fix "Invalid device type" error in getNetworkClients (1,900+ occurrences)
   - Filter networks to only query those with client-capable product types
   - Camera-only networks are now skipped, preventing 400 Bad Request errors
-* **camera:** Fix camera snapshot 400 Bad Request errors
+- **camera:** Fix camera snapshot 400 Bad Request errors
   - Added retry mechanism (3 attempts with 2-second delays)
   - Gracefully handles 202 (Accepted) and 400 responses during snapshot generation
   - Falls back to cached snapshot if new fetch fails
-* **camera:** Fix stream error with cloud video URLs
+- **camera:** Fix stream error with cloud video URLs
   - Cloud video links from Meraki are Dashboard URLs, not direct video streams
   - Streaming now correctly uses RTSP only when enabled in Meraki Dashboard
   - Cloud URL exposed as attribute for "view in browser" functionality
-* **api:** Fix traffic analysis errors being logged at ERROR level
+- **api:** Fix traffic analysis errors being logged at ERROR level
   - Informational errors (traffic analysis disabled, VLANs disabled) now propagate cleanly
   - No longer logged as "Unexpected error" at ERROR level
-* **frontend:** Fix click handling for device rows and entity links
-* **websocket:** Register `async_setup_websocket_api` to enable subscription handler
+- **frontend:** Fix click handling for device rows and entity links
+- **websocket:** Register `async_setup_websocket_api` to enable subscription handler
 
 ---
 

@@ -7,6 +7,7 @@
     "tables": false,
     "headings": true
   },
+  "MD024": false,
   "MD027": false,
   "MD029": false,
   "MD030": {
@@ -17,6 +18,7 @@
   },
   "MD031": true,
   "MD032": true,
+  "MD033": false,
   "MD034": true,
   "MD040": true
 }
