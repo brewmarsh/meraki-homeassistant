@@ -51,11 +51,13 @@ def api_client(hass, mock_dashboard, coordinator):
 async def test_get_all_data_orchestration(api_client):
     """Test that get_all_data correctly orchestrates helper methods."""
     # Arrange
-    api_client._async_fetch_initial_data = AsyncMock(return_value={
-        "networks": [MOCK_NETWORK],
-        "devices": [MOCK_DEVICE],
-        "appliance_uplink_statuses": [],
-    })
+    api_client._async_fetch_initial_data = AsyncMock(
+        return_value={
+            "networks": [MOCK_NETWORK],
+            "devices": [MOCK_DEVICE],
+            "appliance_uplink_statuses": [],
+        }
+    )
     api_client._process_initial_data = MagicMock(
         return_value={
             "networks": [MOCK_NETWORK],
@@ -207,7 +209,9 @@ def test_build_detail_tasks_for_appliance_device(api_client):
     api_client.appliance.get_network_vlans.return_value = AsyncMock()
     api_client.appliance.get_l3_firewall_rules.return_value = AsyncMock()
     api_client.appliance.get_traffic_shaping.return_value = AsyncMock()
-    api_client.appliance.get_network_appliance_content_filtering.return_value = AsyncMock()
+    api_client.appliance.get_network_appliance_content_filtering.return_value = (
+        AsyncMock()
+    )
     api_client._run_with_semaphore = AsyncMock()
 
     # Act
@@ -231,15 +235,9 @@ def test_process_detailed_data_merges_bulk_data(api_client):
     switch_ports = [{"portId": "1", "status": "Connected"}]
 
     bulk_data = {
-        "switch_ports_by_serial": {
-            "S_123": switch_ports
-        },
-        "vpn_statuses_by_network": {
-            "N_123": {"status": "enabled"}
-        },
-        "rf_profiles_by_network": {
-            "N_123": [{"name": "Profile1"}]
-        }
+        "switch_ports_by_serial": {"S_123": switch_ports},
+        "vpn_statuses_by_network": {"N_123": {"status": "enabled"}},
+        "rf_profiles_by_network": {"N_123": [{"name": "Profile1"}]},
     }
 
     networks = [{"id": "N_123"}]
