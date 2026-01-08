@@ -5,11 +5,23 @@ on:
     types: [closed]
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      increment_type:
+        description: 'Version increment type'
+        required: false
+        default: 'none'
+        type: choice
+        options:
+          - none
+          - patch
+          - minor
+          - major
 
 jobs:
   version:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     permissions:
       contents: write
       pull-requests: read
@@ -41,7 +53,8 @@ jobs:
       - name: Increment Version
         id: increment
         env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_TITLE: ${{ github.event.pull_request.title || '' }}
+          DISPATCH_INCREMENT: ${{ github.event.inputs.increment_type || 'none' }}
         run: |
           # Get current version from manifest
           current_version=$(grep -oP '"version": "\K[^"]+' custom_components/meraki_ha/manifest.json)
@@ -51,15 +64,19 @@ jobs:
           base_version=$(echo "$current_version" | sed 's/-beta\.[0-9]*//')
           echo "Base version (without beta): $base_version"
 
-          # Determine increment type from PR title
+          # Determine increment type from workflow_dispatch input or PR title
           increment_type="none"
-          if [[ "$PR_TITLE" == *"[major]"* ]]; then
+          if [[ "$DISPATCH_INCREMENT" != "none" && -n "$DISPATCH_INCREMENT" ]]; then
+            # Use workflow_dispatch input if provided
+            increment_type="$DISPATCH_INCREMENT"
+          elif [[ "$PR_TITLE" == *"[major]"* ]]; then
             increment_type="major"
           elif [[ "$PR_TITLE" == *"[minor]"* ]]; then
             increment_type="minor"
           elif [[ "$PR_TITLE" == *"[patch]"* ]]; then
             increment_type="patch"
           fi
+          echo "Increment type: $increment_type"
 
           # Calculate new version
           IFS='.' read -r major minor patch <<< "$base_version"
