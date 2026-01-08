@@ -9,7 +9,8 @@
   "dependencies": [
     "frontend",
     "panel_custom",
-    "http"
+    "http",
+    "stream"
   ],
   "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
   "integration_type": "hub",
