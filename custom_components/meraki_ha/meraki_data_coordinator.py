@@ -336,6 +336,15 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         elif metric == "mainsRealPower":
             reading["metric"] = "realPower"
             reading["realPower"] = {"draw": data.get("mainsRealPower")}
+        elif metric == "mainsApparentPower":
+            reading["metric"] = "apparentPower"
+            reading["apparentPower"] = {"draw": data.get("mainsApparentPower")}
+        elif metric == "mainsPowerFactor":
+            reading["metric"] = "powerFactor"
+            reading["powerFactor"] = {"percentage": data.get("mainsPowerFactor")}
+        elif metric == "mainsFrequency":
+            reading["metric"] = "frequency"
+            reading["frequency"] = {"level": data.get("mainsFrequency")}
         elif metric == "downstreamPowerStatus":
             reading["metric"] = "downstream_power"
             reading["value"] = data.get("downstreamPower") == "on"
