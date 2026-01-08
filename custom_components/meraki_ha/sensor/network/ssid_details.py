@@ -52,7 +52,7 @@ class MerakiSSIDWalledGardenSensor(MerakiSSIDDetailSensor):
         self._attr_unique_id = (
             f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_walled_garden"
         )
-        self._attr_name = "Walled Garden"
+        self.translation_key = "walled_garden"
         self._attr_native_value = (
             "enabled" if self._ssid_data.get("walledGardenEnabled") else "disabled"
         )
@@ -73,7 +73,7 @@ class MerakiSSIDTotalUploadLimitSensor(MerakiSSIDDetailSensor):
         self._attr_unique_id = (
             f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_upload_limit"
         )
-        self._attr_name = "Total Upload Limit"
+        self.translation_key = "total_upload_limit"
         self._attr_native_value = self._ssid_data.get("perSsidBandwidthLimitUp")
 
 
@@ -89,7 +89,7 @@ class MerakiSSIDTotalDownloadLimitSensor(MerakiSSIDDetailSensor):
         self._attr_unique_id = (
             f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_download_limit"
         )
-        self._attr_name = "Total Download Limit"
+        self.translation_key = "total_download_limit"
         self._attr_native_value = self._ssid_data.get("perSsidBandwidthLimitDown")
 
 
@@ -104,7 +104,7 @@ class MerakiSSIDMandatoryDhcpSensor(MerakiSSIDDetailSensor):
         self._attr_unique_id = (
             f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_mandatory_dhcp"
         )
-        self._attr_name = "Mandatory DHCP"
+        self.translation_key = "mandatory_dhcp"
         self._attr_native_value = (
             "enabled" if self._ssid_data.get("mandatoryDhcpEnabled") else "disabled"
         )
@@ -122,7 +122,7 @@ class MerakiSSIDMinBitrate24GhzSensor(MerakiSSIDDetailSensor):
         self._attr_unique_id = (
             f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_min_bitrate_24"
         )
-        self._attr_name = "Minimum Bitrate 2.4GHz"
+        self.translation_key = "min_bitrate_24ghz"
         if self._rf_profile and self._rf_profile.get("twoFourGhzSettings"):
             self._attr_native_value = self._rf_profile["twoFourGhzSettings"].get(
                 "minBitrate"
@@ -143,7 +143,7 @@ class MerakiSSIDMinBitrate5GhzSensor(MerakiSSIDDetailSensor):
         self._attr_unique_id = (
             f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_min_bitrate_5"
         )
-        self._attr_name = "Minimum Bitrate 5GHz"
+        self.translation_key = "min_bitrate_5ghz"
         if self._rf_profile and self._rf_profile.get("fiveGhzSettings"):
             self._attr_native_value = self._rf_profile["fiveGhzSettings"].get(
                 "minBitrate"

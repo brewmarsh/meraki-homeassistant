@@ -19,7 +19,10 @@ def mock_coordinator_with_mt40_data(mock_coordinator: MagicMock) -> MagicMock:
                 "model": "MT40",
                 "productType": "sensor",
                 "readings": [
-                    {"metric": "downstream_power", "value": True},  # Outlet is on
+                    {
+                        "metric": "downstreamPower",
+                        "downstreamPower": {"enabled": True},
+                    },  # Outlet is on
                 ],
             },
         ]

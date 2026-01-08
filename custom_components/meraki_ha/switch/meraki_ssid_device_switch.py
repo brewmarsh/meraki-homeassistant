@@ -142,7 +142,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
             return
 
         # Register a pending update to prevent overwriting the optimistic state
-        self.coordinator.register_update_pending(self.unique_id)
+        self.coordinator.register_pending_update(self.unique_id)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""

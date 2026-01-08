@@ -30,3 +30,6 @@ select = [
 ignore = ["D100", "D104", "D107", "D211", "D212"]
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
+
+[tool.codespell]
+skip = "*meraki-panel.js,*/dist/*"

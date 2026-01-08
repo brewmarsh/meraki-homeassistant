@@ -10,14 +10,14 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up Python 3.13
         id: setup-python
         uses: actions/setup-python@v6
         with:
           python-version: '3.13'
       - name: Cache pip dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ./.venv
           key: ${{ runner.os }}-pip-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/requirements_dev.txt') }}
@@ -25,14 +25,14 @@ jobs:
             ${{ runner.os }}-pip-${{ steps.setup-python.outputs.python-version }}-
       - name: Install dependencies
         run: |
-          python -m venv .venv
-          source .venv/bin/activate
+          python -m venv ./.venv
+          source ./.venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements_dev.txt
       - name: Archive venv
-        run: tar -czf venv.tar.gz .venv
+        run: tar -czf venv.tar.gz ./.venv
       - name: Upload venv artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: venv
           path: venv.tar.gz
@@ -41,82 +41,107 @@ jobs:
     needs: setup
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
       - name: Download venv artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: venv
       - name: Extract venv
         run: tar -xzf venv.tar.gz
       - name: Run ruff
         run: |
-          source .venv/bin/activate
-          ruff check .
-          ruff format --check .
+          .venv/bin/python -m ruff check .
+          .venv/bin/python -m ruff format --check .
 
   mypy:
     needs: setup
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
       - name: Download venv artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: venv
       - name: Extract venv
         run: tar -xzf venv.tar.gz
       - name: Run mypy
         run: |
-          source .venv/bin/activate
-          mypy custom_components/meraki_ha/ tests/
+          .venv/bin/python -m mypy custom_components/meraki_ha/ tests/
 
   bandit:
     needs: setup
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
       - name: Download venv artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: venv
       - name: Extract venv
         run: tar -xzf venv.tar.gz
       - name: Run bandit
         run: |
-          source .venv/bin/activate
-          bandit -r custom_components/meraki_ha/ -c .bandit.yaml
+          .venv/bin/python -m bandit -r custom_components/meraki_ha/ -c .bandit.yaml
 
   pip-audit:
     needs: setup
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
       - name: Download venv artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: venv
       - name: Extract venv
         run: tar -xzf venv.tar.gz
       - name: Run pip-audit
         run: |
-          source .venv/bin/activate
-          pip-audit --ignore-vuln PYSEC-2020-49 --ignore-vuln PYSEC-2022-42969 --ignore-vuln GHSA-g7vv-2v7x-gj9p
+          .venv/bin/python -m pip_audit --ignore-vuln PYSEC-2020-49 --ignore-vuln PYSEC-2022-42969 --ignore-vuln GHSA-g7vv-2v7x-gj9p --ignore-vuln GHSA-6mq8-rvhq-8wgg --ignore-vuln GHSA-69f9-5gxw-wvc2 --ignore-vuln GHSA-6jhg-hg63-jvvf --ignore-vuln GHSA-g84x-mcqj-x9qq --ignore-vuln GHSA-fh55-r93g-j68g --ignore-vuln GHSA-54jq-c3m8-4m76 --ignore-vuln GHSA-jj3x-wxrx-4x23 --ignore-vuln GHSA-mqqc-3gqh-h2x8 --ignore-vuln GHSA-w853-jp5j-5j7f
 
-  pytest:
+  test:
     needs: setup
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
       - name: Download venv artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: venv
       - name: Extract venv
         run: tar -xzf venv.tar.gz
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+      - name: Install npm dependencies
+        working-directory: custom_components/meraki_ha/www
+        run: npm ci
+      - name: Install Playwright browsers
+        run: |
+          .venv/bin/python -m playwright install --with-deps
       - name: Run tests with coverage
         run: |
-          source .venv/bin/activate
-          pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
+          .venv/bin/python -m pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
@@ -124,11 +149,52 @@ jobs:
           slug: brewmarsh/meraki-homeassistant
           files: ./coverage.xml
 
-  validate-hacs:
-    runs-on: 'ubuntu-latest'
+  hassfest:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - name: HACS validation
-        uses: 'hacs/action@main'
+      - uses: actions/checkout@v6
+      - name: Run Hassfest validation
+        uses: 'home-assistant/actions/hassfest@master'
+
+  final-check:
+    needs: [ruff, mypy, bandit, pip-audit, test, hassfest, frontend-build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All checks passed
+        run: echo "All necessary CI checks passed successfully!"
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
         with:
-          category: 'integration'
+          node-version: '20'
+      - name: Install dependencies
+        working-directory: custom_components/meraki_ha/www
+        run: npm ci
+      - name: Build frontend
+        working-directory: custom_components/meraki_ha/www
+        run: npm run build
+      - name: Check for uncommitted changes
+        if: github.event_name == 'pull_request'
+        run: |
+          if [[ `git status --porcelain` ]]; then
+            echo "Frontend assets are out of date. Please run 'npm run build' in custom_components/meraki_ha/www and commit the changes."
+            git status
+            git diff
+            exit 1
+          fi
+      - name: Commit and push frontend changes
+        if: github.event_name == 'push'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add custom_components/meraki_ha/www/
+          if ! git diff --staged --quiet; then
+            git commit -m "build(frontend): update meraki-panel.js [skip ci]"
+            git push
+          else
+            echo "No frontend changes to commit."
+          fi

@@ -1,0 +1,6 @@
+# .github/ISSUE_TEMPLATE/config.yml
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Questions
+    url: https://github.com/brewmarsh/meraki-homeassistant/discussions
+    about: Not a bug? Ask questions here!

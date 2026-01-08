@@ -7,14 +7,14 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:  # Add this section to grant write permission
-      contents: write  # This allows the action to write to the repository's contents
+    permissions: # Add this section to grant write permission
+      contents: write # This allows the action to write to the repository's contents
 
     steps:
       - uses: actions/setup-python@v6
-      - uses: actions/checkout@v5
         with:
           python-version: 3.x
+      - uses: actions/checkout@v6
 
       - run: pip install -r requirements_dev.txt
       - run: mkdocs build

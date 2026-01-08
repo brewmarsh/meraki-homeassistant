@@ -51,7 +51,7 @@ class MerakiWAN2ConnectivitySensor(
         self._device_serial: str = device_data["serial"]
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device_serial}_wan2_connectivity"
-        self._attr_name = "WAN 2 Connectivity"
+        self.translation_key = "meraki_wan2_connectivity"
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},

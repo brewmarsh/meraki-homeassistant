@@ -19,6 +19,7 @@ from .const import (
     DOMAIN,
 )
 from .core.api.client import MerakiAPIClient as ApiClient
+from .core.errors import ApiClientCommunicationError
 from .types import MerakiDevice, MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,7 +32,6 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self,
         hass: "HomeAssistant",
         api_client: ApiClient,
-        scan_interval: int,
         entry: ConfigEntry,
     ) -> None:
         """
@@ -69,7 +69,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=timedelta(seconds=scan_interval),
         )
 
-    def register_update_pending(
+    def register_pending_update(
         self,
         unique_id: str,
         expiry_seconds: int = 150,
@@ -155,7 +155,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             expiry_seconds: The duration of the cooldown period.
 
         """
-        self.register_update_pending(unique_id, expiry_seconds)
+        self.register_pending_update(unique_id, expiry_seconds)
 
     def _filter_enabled_networks(self, data: dict[str, Any]) -> None:
         """
@@ -177,7 +177,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
 
         # If the option is not set, all networks are enabled by default.
-        if enabled_network_ids is None:
+        if not enabled_network_ids:
             enabled_network_ids = [
                 n["id"] for n in data.get("networks", []) if "id" in n
             ]
@@ -256,6 +256,48 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     ent_reg.async_remove(entity.entity_id)
                 dev_reg.async_remove_device(device.id)
 
+    def _populate_ssid_entities(self, data: dict[str, Any]) -> None:
+        """
+        Populate SSID data with associated Home Assistant entities.
+
+        Args:
+        ----
+            data: The data dictionary to populate.
+
+        """
+        if not (data and "ssids" in data):
+            return
+
+        ent_reg = er.async_get(self.hass)
+        dev_reg = dr.async_get(self.hass)
+
+        for ssid in data["ssids"]:
+            network_id = ssid.get("networkId")
+            ssid_number = ssid.get("number")
+            if network_id and ssid_number is not None:
+                # Construct the device identifier for the SSID
+                # Note: This must match the identifier logic in device_info_helpers.py
+                identifier = f"{network_id}_{ssid_number}"
+
+                ha_device = dev_reg.async_get_device(
+                    identifiers={(DOMAIN, identifier)},
+                )
+
+                if ha_device:
+                    entities_for_device = er.async_entries_for_device(
+                        ent_reg,
+                        ha_device.id,
+                    )
+
+                    # Find the enabled switch
+                    for entity in entities_for_device:
+                        if entity.domain == "switch" and (
+                            "enabled" in (entity.unique_id or "")
+                            or "Enabled Control" in (entity.original_name or "")
+                        ):
+                            ssid["entity_id"] = entity.entity_id
+                            break
+
     def _populate_device_entities(self, data: dict[str, Any]) -> None:
         """
         Populate device data with associated Home Assistant entities.
@@ -285,14 +327,50 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if entities_for_device:
                     # Prioritize more representative entities
                     primary_entity = None
+                    device_entities = []
                     for entity in entities_for_device:
-                        if entity.platform in ["switch", "camera", "binary_sensor"]:
+                        # Collect entity details for the frontend
+                        state = self.hass.states.get(entity.entity_id)
+                        device_entities.append(
+                            {
+                                "name": entity.name or entity.original_name,
+                                "entity_id": entity.entity_id,
+                                "state": state.state if state else "unknown",
+                            }
+                        )
+
+                        if not primary_entity and entity.domain in [
+                            "switch",
+                            "camera",
+                            "binary_sensor",
+                        ]:
                             primary_entity = entity
-                            break
+
+                        # If we haven't found a preferred platform entity yet,
+                        # check if this is the dedicated device status sensor.
+                        # This ensures we prefer a "clean" status sensor over
+                        # random other sensors if available.
+                        elif (
+                            not primary_entity
+                            and entity.unique_id
+                            and entity.unique_id.endswith("_device_status")
+                        ):
+                            primary_entity = entity
+
+                    device["entities"] = device_entities
+
                     if primary_entity:
                         device["entity_id"] = primary_entity.entity_id
                     else:
-                        device["entity_id"] = entities_for_device[0].entity_id
+                        # Fallback: Pick the first non-button entity if possible.
+                        # Button entities often have a timestamp state (last pressed),
+                        # which is confusing for a "status" display.
+                        fallback_entity = entities_for_device[0]
+                        for entity in entities_for_device:
+                            if entity.domain != "button":
+                                fallback_entity = entity
+                                break
+                        device["entity_id"] = fallback_entity.entity_id
 
                     # Add list of entities to device data for frontend
                     device["entities"] = []
@@ -360,20 +438,27 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     ]
 
             self._populate_device_entities(data)
+            self._populate_ssid_entities(data)
+
+            _LOGGER.info("Meraki networks: %s", data.get("networks"))
 
             self.last_successful_update = datetime.now()
             self.last_successful_data = data
             return data
-        except Exception as err:
-            if self.last_successful_update and (
-                datetime.now() - self.last_successful_update
-            ) < timedelta(minutes=30):
+        except ApiClientCommunicationError as err:
+            # If we have successfully fetched data before, log a warning and return
+            # the stale data. Otherwise, raise UpdateFailed to indicate that the
+            # integration cannot start.
+            if self.last_successful_data:
                 _LOGGER.warning(
-                    "Failed to fetch new data, using stale data. Error: %s",
+                    "Could not connect to Meraki API, using stale data. "
+                    "This is expected if the internet connection is down. "
+                    "Error: %s",
                     err,
                 )
-                return self.data
-
+                return self.last_successful_data
+            raise UpdateFailed(f"Could not connect to Meraki API: {err}") from err
+        except Exception as err:
             _LOGGER.error(
                 "Unexpected error fetching Meraki data: %s",
                 err,

@@ -8,8 +8,9 @@ on:
 
 jobs:
   jules-process:
+    # Only run if the 'jules' label is added OR if someone mentions @jules in a comment
     if: >
-      github.event.label.name == 'jules' || 
+      github.event.label.name == 'jules' ||
       contains(github.event.comment.body, '@jules')
     runs-on: ubuntu-latest
     permissions:
@@ -18,11 +19,15 @@ jobs:
       pull-requests: write
 
     steps:
-      # We REMOVED the "Checkout" step here
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Run Jules Agent
         uses: google-labs-code/jules-invoke@main
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Explicitly tell Jules to use the beta branch
-          base_branch: "beta" 
-          instructions_path: "ROADMAP.md" # Change this to ROADMAP.md if that's where your list is
+          base_branch: 'beta'
+          instructions_path: 'ROADMAP.md' # Change this to ROADMAP.md if that's where your list is

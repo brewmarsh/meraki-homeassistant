@@ -30,11 +30,13 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
         self._device = device
         self._port = port
         self._attr_unique_id = f"{self._device['serial']}_port_{self._port['number']}"
-        self._attr_name = format_entity_name(
-            self._device["name"],
-            f"Port {self._port['number']}",
-        )
         self._attr_icon = "mdi:ethernet-port"
+        self.translation_key = "appliance_port"
+
+    @property
+    def translation_placeholders(self) -> dict[str, Any]:
+        """Return the translation placeholders."""
+        return {"port_number": self._port["number"]}
 
     @property
     def device_info(self) -> DeviceInfo:

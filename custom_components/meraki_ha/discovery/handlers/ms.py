@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from ...const import CONF_ENABLE_PORT_SENSORS
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
@@ -59,9 +60,23 @@ class MSHandler(BaseDeviceHandler):
     async def discover_entities(self) -> list[Entity]:
         """Discover entities for the MS switch."""
         from ...binary_sensor.switch_port import SwitchPortSensor
+        from ...sensor.device.switch_energy import MerakiSwitchEnergySensor
+        from ...sensor.device.switch_power import MerakiSwitchPowerSensor
 
         entities: list[Entity] = []
-        if self.device and self.device.get("ports_statuses"):
-            for port in self.device["ports_statuses"]:
-                entities.append(SwitchPortSensor(self._coordinator, self.device, port))
+
+        entities.append(MerakiSwitchPowerSensor(self._coordinator, self.device))
+        entities.append(MerakiSwitchEnergySensor(self._coordinator, self.device))
+
+        # Check if port sensors are enabled
+        if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
+            if self.device and self.device.get("ports_statuses"):
+                for port in self.device["ports_statuses"]:
+                    entities.append(
+                        SwitchPortSensor(self._coordinator, self.device, port)
+                    )
+        else:
+            _LOGGER.debug(
+                "Port sensors disabled for device %s", self.device.get("serial")
+            )
         return entities

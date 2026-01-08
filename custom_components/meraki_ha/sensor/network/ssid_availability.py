@@ -16,7 +16,7 @@ class MerakiSSIDAvailabilitySensor(MerakiSSIDBaseSensor):
 
     entity_description = SensorEntityDescription(
         key="availability",
-        name="Availability",
+        translation_key="availability",
         icon="mdi:check-circle-outline",
     )
 

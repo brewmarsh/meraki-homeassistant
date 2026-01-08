@@ -31,3 +31,10 @@ def test_format_device_name_no_product_type():
     device = {"name": "My AP", "model": "MR33"}
     config = {"device_name_format": "prefix"}
     assert format_device_name(device, config) == "[Device] My AP"
+
+
+def test_format_device_name_camera():
+    """Test the format_device_name function for camera (should have prefix)."""
+    device = {"name": "Big Boss", "model": "MV13", "productType": "camera"}
+    config = {"device_name_format": "prefix"}
+    assert format_device_name(device, config) == "[Camera] Big Boss"

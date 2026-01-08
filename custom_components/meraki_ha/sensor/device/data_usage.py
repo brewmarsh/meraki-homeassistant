@@ -40,7 +40,7 @@ class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):
         self._network_id: str = device_data["networkId"]
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device_serial}_data_usage"
-        self._attr_name = "Data Usage"
+        self.translation_key = "data_usage"
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
