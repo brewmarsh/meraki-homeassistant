@@ -10,13 +10,17 @@ from homeassistant.exceptions import ConfigEntryNotReady
 
 from .api.websocket import async_setup_websocket_api
 from .const import (
+    CONF_ENABLE_MQTT,
     CONF_ENABLE_WEB_UI,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
+    CONF_MQTT_RELAY_DESTINATIONS,
     CONF_SCAN_INTERVAL,
     CONF_WEB_UI_PORT,
     DATA_CLIENT,
+    DEFAULT_ENABLE_MQTT,
     DEFAULT_ENABLE_WEB_UI,
+    DEFAULT_MQTT_RELAY_DESTINATIONS,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_WEB_UI_PORT,
     DOMAIN,
@@ -39,6 +43,8 @@ from .frontend import (
 from .meraki_data_coordinator import MerakiDataCoordinator
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
+from .services.mqtt_relay import MqttRelayManager
+from .services.mqtt_service import MerakiMqttService
 from .services.network_control_service import NetworkControlService
 from .web_api import async_setup_api
 from .web_server import MerakiWebServer
@@ -151,6 +157,33 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await server.start()
         entry_data["web_server"] = server
 
+    # Initialize MQTT service if enabled
+    if entry.options.get(CONF_ENABLE_MQTT, DEFAULT_ENABLE_MQTT):
+        # Set up the relay manager for forwarding messages
+        relay_destinations = entry.options.get(
+            CONF_MQTT_RELAY_DESTINATIONS, DEFAULT_MQTT_RELAY_DESTINATIONS
+        )
+        relay_manager = None
+        if relay_destinations:
+            relay_manager = MqttRelayManager(relay_destinations)
+            await relay_manager.async_start()
+            entry_data["mqtt_relay_manager"] = relay_manager
+
+        # Set up the MQTT service for receiving sensor data
+        mqtt_service = MerakiMqttService(
+            hass=hass,
+            coordinator=coordinator,
+            relay_manager=relay_manager,
+        )
+        if await mqtt_service.async_start():
+            entry_data["mqtt_service"] = mqtt_service
+            coordinator.set_mqtt_enabled(True)
+            _LOGGER.info("MQTT service started for MT sensor real-time updates")
+        else:
+            _LOGGER.warning(
+                "Failed to start MQTT service - ensure Mosquitto broker is running"
+            )
+
     # Initialize repositories and services for the new architecture
     if "control_service" not in entry_data:
         entry_data["control_service"] = DeviceControlService(meraki_repository)
@@ -253,6 +286,17 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Meraki config entry."""
     entry_data = hass.data[DOMAIN].get(entry.entry_id)
     if entry_data:
+        # Stop MQTT service and relay manager
+        if "mqtt_service" in entry_data:
+            mqtt_service = entry_data["mqtt_service"]
+            await mqtt_service.async_stop()
+            _LOGGER.info("MQTT service stopped")
+
+        if "mqtt_relay_manager" in entry_data:
+            relay_manager = entry_data["mqtt_relay_manager"]
+            await relay_manager.async_stop()
+            _LOGGER.info("MQTT relay manager stopped")
+
         if "web_server" in entry_data:
             server = entry_data["web_server"]
             await server.stop()

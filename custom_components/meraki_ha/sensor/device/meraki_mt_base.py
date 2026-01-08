@@ -1,5 +1,7 @@
 """Base class for Meraki MT sensor entities."""
 
+from __future__ import annotations
+
 import logging
 from collections.abc import Mapping
 from typing import Any
@@ -28,6 +30,8 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
 
     Uses RestoreEntity to preserve state across Home Assistant restarts.
     """
+
+    coordinator: MerakiDataCoordinator
 
     def __init__(
         self,
@@ -58,11 +62,14 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
+        options = (
+            self.coordinator.config_entry.options
+            if self.coordinator.config_entry
+            else {}
+        )
         return DeviceInfo(
             identifiers={(DOMAIN, self._device["serial"])},
-            name=format_device_name(
-                self._device, self.coordinator.config_entry.options
-            ),
+            name=format_device_name(self._device, options),
             model=self._device["model"],
             manufacturer="Cisco Meraki",
         )
@@ -98,9 +105,12 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
     @property
     def _use_fahrenheit(self) -> bool:
         """Check if Fahrenheit should be used for temperature."""
-        temp_unit = self.coordinator.config_entry.options.get(
-            CONF_TEMPERATURE_UNIT, DEFAULT_TEMPERATURE_UNIT
+        options = (
+            self.coordinator.config_entry.options
+            if self.coordinator.config_entry
+            else {}
         )
+        temp_unit = options.get(CONF_TEMPERATURE_UNIT, DEFAULT_TEMPERATURE_UNIT)
         return temp_unit == TEMPERATURE_UNIT_FAHRENHEIT
 
     @property
@@ -164,6 +174,18 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
             attrs["last_meraki_update"] = (
                 self.coordinator.last_successful_update.isoformat()
             )
+
+        # Add MQTT update timestamp if available
+        serial = self._device.get("serial", "")
+        mqtt_update = self.coordinator.get_mqtt_last_update(serial) if serial else None
+        if mqtt_update:
+            attrs["last_mqtt_update"] = mqtt_update.isoformat()
+            attrs["data_source"] = "mqtt"
+        elif self.coordinator.mqtt_enabled:
+            attrs["data_source"] = "mqtt_pending"
+        else:
+            attrs["data_source"] = "api"
+
         return attrs
 
     @property

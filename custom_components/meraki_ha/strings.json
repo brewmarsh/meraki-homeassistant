@@ -73,7 +73,7 @@
     "step": {
       "init": {
         "title": "Meraki Options - Basic Settings",
-        "description": "Step 1 of 3: Configure basic integration settings.",
+        "description": "Step 1 of 4: Configure basic integration settings.",
         "data": {
           "scan_interval": "Scan Interval (seconds)",
           "enable_device_tracker": "Enable Client Tracker",
@@ -89,7 +89,7 @@
       },
       "dashboard": {
         "title": "Meraki Options - Dashboard Settings",
-        "description": "Step 2 of 3: Configure dashboard display preferences.",
+        "description": "Step 2 of 4: Configure dashboard display preferences.",
         "data": {
           "dashboard_view_mode": "Default Dashboard View",
           "dashboard_device_type_filter": "Default Device Type Filter",
@@ -105,7 +105,7 @@
       },
       "camera": {
         "title": "Meraki Options - Camera Settings",
-        "description": "Step 3 of 3: Configure camera-related settings.",
+        "description": "Step 3 of 4: Configure camera-related settings.",
         "data": {
           "camera_snapshot_interval": "Camera Snapshot Refresh Interval (seconds)",
           "camera_link_integration": "Camera Link Integration"
@@ -113,6 +113,40 @@
         "data_description": {
           "camera_snapshot_interval": "How often to refresh camera snapshots on the dashboard (0 = only on demand). Camera streaming uses RTSP and requires the RTSP server to be enabled in the Meraki Dashboard.",
           "camera_link_integration": "Select an integration to filter which cameras are shown when linking Meraki cameras. Choose 'All Cameras' to see all available camera entities."
+        }
+      },
+      "mqtt": {
+        "title": "Meraki Options - MQTT Settings",
+        "description": "Step 4 of 4: Configure MQTT for MT sensor real-time updates.\n\nConfigured relay destinations: {relay_destinations}",
+        "data": {
+          "enable_mqtt": "Enable MQTT for MT Sensors"
+        },
+        "data_description": {
+          "enable_mqtt": "Enable MQTT to receive real-time updates from MT sensors via Home Assistant's Mosquitto broker. When enabled, API polling for sensor readings is disabled."
+        }
+      },
+      "mqtt_destination": {
+        "title": "Add MQTT Relay Destination",
+        "description": "Configure an external MQTT broker to relay Meraki sensor data to.",
+        "data": {
+          "name": "Destination Name",
+          "host": "Broker Hostname",
+          "port": "Broker Port",
+          "username": "Username (optional)",
+          "password": "Password (optional)",
+          "use_tls": "Use TLS",
+          "topic_filter": "Topic Filter",
+          "device_types": "Device Types (optional)"
+        },
+        "data_description": {
+          "name": "A friendly name for this relay destination (e.g., 'IoT Platform').",
+          "host": "The hostname or IP address of the external MQTT broker.",
+          "port": "The port of the MQTT broker (default: 1883, or 8883 for TLS).",
+          "username": "Username for broker authentication (if required).",
+          "password": "Password for broker authentication (if required).",
+          "use_tls": "Enable TLS encryption for the connection.",
+          "topic_filter": "Topic pattern to match (e.g., 'meraki/v1/mt/#' for all MT sensors).",
+          "device_types": "Optionally filter by specific device types."
         }
       },
       "features": {

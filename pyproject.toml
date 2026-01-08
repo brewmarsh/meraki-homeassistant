@@ -11,6 +11,7 @@ dev = [
     "urllib3>=2.6.0",
     "aiofiles==23.2.1",
     "types-aiofiles==25.1.0.20251011",
+    "aiomqtt>=2.0.0",
     "meraki==1.40.1",
     "PyTurboJPEG==1.7.2",
     "ruff>=0.8.0",

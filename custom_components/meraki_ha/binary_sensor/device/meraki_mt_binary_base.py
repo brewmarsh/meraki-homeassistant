@@ -93,6 +93,27 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
         return False
 
     @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return entity state attributes with update timestamp."""
+        attrs: dict[str, Any] = {}
+        if self.coordinator.last_successful_update:
+            attrs["last_meraki_update"] = (
+                self.coordinator.last_successful_update.isoformat()
+            )
+
+        # Add MQTT update timestamp if available
+        mqtt_update = self.coordinator.get_mqtt_last_update(self._device.get("serial"))
+        if mqtt_update:
+            attrs["last_mqtt_update"] = mqtt_update.isoformat()
+            attrs["data_source"] = "mqtt"
+        elif self.coordinator.mqtt_enabled:
+            attrs["data_source"] = "mqtt_pending"
+        else:
+            attrs["data_source"] = "api"
+
+        return attrs
+
+    @property
     def is_on(self) -> bool | None:
         """Return true if the binary sensor is on."""
         # Always get fresh data from coordinator
