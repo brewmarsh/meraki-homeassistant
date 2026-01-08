@@ -14,21 +14,10 @@ from .const import (
     DOMAIN,
 )
 from .schemas import (
+    MQTT_DESTINATION_SCHEMA,
     OPTIONS_SCHEMA_BASIC,
     OPTIONS_SCHEMA_CAMERA,
     OPTIONS_SCHEMA_DASHBOARD,
-)
-
-MQTT_DESTINATION_SCHEMA = vol.Schema(
-    {
-        vol.Required("server_ip"): selector.TextSelector(),
-        vol.Required("port"): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=1, max=65535, mode=selector.NumberSelectorMode.BOX
-            )
-        ),
-        vol.Required("topic"): selector.TextSelector(),
-    }
 )
 
 
@@ -178,7 +167,7 @@ class MerakiOptionsFlowHandler(OptionsFlow):
             return self.async_create_entry(title="", data=self.options)
 
         return self.async_show_form(
-            step_id="mqtt_destination_details",
+            step_id="mqtt_add_destination",
             data_schema=MQTT_DESTINATION_SCHEMA,
         )
 
@@ -188,17 +177,12 @@ class MerakiOptionsFlowHandler(OptionsFlow):
         """Handle the start of the edit flow or the form submission."""
         destinations = self.options.get(CONF_MQTT_RELAY_DESTINATIONS, [])
 
-        # If no destinations, show an abort message
         if not destinations:
             return self.async_abort(reason="no_destinations")
 
-        # If user_input is not None, it's a submission from one of the forms
         if user_input is not None:
-            # Check if 'destination_index' is in user_input to know if it's
-            # from the selection form
             if "destination_index" in user_input:
                 self._destination_index_to_edit = user_input["destination_index"]
-                # Now show the form with the details of the selected destination
                 destination_to_edit = destinations[self._destination_index_to_edit]
                 return self.async_show_form(
                     step_id="mqtt_edit_destination",
@@ -211,8 +195,10 @@ class MerakiOptionsFlowHandler(OptionsFlow):
                                 "port", default=destination_to_edit["port"]
                             ): selector.NumberSelector(
                                 selector.NumberSelectorConfig(
-                                    min=1, max=65535, mode=selector.NumberSelectorMode.BOX
-                        ),
+                                    min=1,
+                                    max=65535,
+                                    mode=selector.NumberSelectorMode.BOX,
+                                ),
                             ),
                             vol.Required(
                                 "topic", default=destination_to_edit["topic"]
@@ -226,15 +212,13 @@ class MerakiOptionsFlowHandler(OptionsFlow):
                         )
                     },
                 )
-            # Otherwise, it's a submission from the details form
             else:
                 if self._destination_index_to_edit is not None:
                     destinations[self._destination_index_to_edit] = user_input
                     self.options[CONF_MQTT_RELAY_DESTINATIONS] = destinations
-                    self._destination_index_to_edit = None  # Reset index
+                    self._destination_index_to_edit = None
                     return self.async_create_entry(title="", data=self.options)
 
-        # Show the initial selection form
         destination_options = [
             selector.SelectOptionDict(
                 value=str(i), label=f"{d['server_ip']}:{d['port']}"
@@ -265,11 +249,9 @@ class MerakiOptionsFlowHandler(OptionsFlow):
             return self.async_abort(reason="no_destinations")
 
         if user_input is not None:
-            # The user has confirmed the deletion
             indices_to_delete = {
                 int(i) for i in user_input.get("destinations_to_delete", [])
             }
-            # Rebuild the list, excluding the selected indices
             self.options[CONF_MQTT_RELAY_DESTINATIONS] = [
                 dest
                 for i, dest in enumerate(destinations)
@@ -277,7 +259,6 @@ class MerakiOptionsFlowHandler(OptionsFlow):
             ]
             return self.async_create_entry(title="", data=self.options)
 
-        # Show the form with a list of destinations to delete
         destination_options = [
             selector.SelectOptionDict(
                 value=str(i), label=f"{d['server_ip']}:{d['port']}"

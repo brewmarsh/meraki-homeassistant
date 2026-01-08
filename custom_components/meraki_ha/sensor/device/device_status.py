@@ -49,6 +49,7 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
     """
 
     _attr_has_entity_name = True
+    _attr_native_value: str | None = None
 
     def __init__(
         self,

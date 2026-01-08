@@ -207,6 +207,17 @@ OPTIONS_SCHEMA_CAMERA = vol.Schema(
         ),
     }
 )
+MQTT_DESTINATION_SCHEMA = vol.Schema(
+    {
+        vol.Required("server_ip"): selector.TextSelector(),
+        vol.Required("port"): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=1, max=65535, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
+        vol.Required("topic"): selector.TextSelector(),
+    }
+)
 
 # Combined schema for backwards compatibility
 OPTIONS_SCHEMA = vol.Schema(
