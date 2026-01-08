@@ -256,9 +256,11 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
 
   /**
    * Subscribe to real-time Meraki data updates via WebSocket
+   * Uses refs to avoid re-subscribing when hass object updates
    */
   useEffect(() => {
-    if (!hass || !configEntryId) {
+    const currentHass = hassRef.current;
+    if (!currentHass || !configEntryId) {
       return;
     }
 
@@ -267,30 +269,34 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
 
     const setupSubscription = async () => {
       try {
-        setLoading(true);
+        // Only show loading on initial load, not on data updates
+        if (!hasLoadedRef.current) {
+          setLoading(true);
+        }
         setError(null);
 
         // Subscribe to meraki data updates - this sends initial data and pushes updates
-        unsubscribe = await hass.connection.subscribeMessage<MerakiData>(
-          (message: MerakiData) => {
-            if (isSubscribed && message) {
-              console.log('[Meraki] Received data update:', {
-                last_updated: message.last_updated,
-                scan_interval: message.scan_interval,
-                networks: message.networks?.length,
-                devices: message.devices?.length,
-              });
-              const processed = processData(message);
-              setData(processed);
-              setLoading(false);
-              hasLoadedRef.current = true;
+        unsubscribe =
+          await currentHass.connection.subscribeMessage<MerakiData>(
+            (message: MerakiData) => {
+              if (isSubscribed && message) {
+                console.log('[Meraki] Received data update:', {
+                  last_updated: message.last_updated,
+                  scan_interval: message.scan_interval,
+                  networks: message.networks?.length,
+                  devices: message.devices?.length,
+                });
+                const processed = processData(message);
+                setData(processed);
+                setLoading(false);
+                hasLoadedRef.current = true;
+              }
+            },
+            {
+              type: 'meraki_ha/subscribe_meraki_data',
+              config_entry_id: configEntryId,
             }
-          },
-          {
-            type: 'meraki_ha/subscribe_meraki_data',
-            config_entry_id: configEntryId,
-          }
-        );
+          );
       } catch (err) {
         console.error('Failed to subscribe to Meraki data:', err);
         if (isSubscribed) {
@@ -306,14 +312,16 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
 
     setupSubscription();
 
-    // Cleanup subscription on unmount or when dependencies change
+    // Cleanup subscription on unmount or when config entry changes
     return () => {
       isSubscribed = false;
       if (unsubscribe) {
         unsubscribe();
       }
     };
-  }, [hass, configEntryId, processData, retryCount]);
+    // Only re-subscribe when configEntryId changes or retry is requested
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [configEntryId, retryCount]);
 
   // Show loading state while waiting for hass
   if (!hass) {
