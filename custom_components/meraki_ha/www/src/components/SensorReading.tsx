@@ -18,7 +18,23 @@ interface SensorReadingProps {
   max?: number;
   status?: 'normal' | 'warning' | 'critical';
   temperatureUnit?: 'celsius' | 'fahrenheit';
+  lastUpdated?: string; // ISO timestamp
+  dataSource?: 'mqtt' | 'api' | 'mqtt_pending';
 }
+
+// Format relative time for last updated display
+const formatRelativeTime = (isoTime: string | undefined): string => {
+  if (!isoTime) return '';
+  const date = new Date(isoTime);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+
+  if (diff < 0) return 'Just now'; // Future timestamp (clock skew)
+  if (diff < 60000) return `${Math.floor(diff / 1000)}s ago`;
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+  return date.toLocaleDateString();
+};
 
 const SensorReadingComponent: React.FC<SensorReadingProps> = ({
   type,
@@ -28,6 +44,8 @@ const SensorReadingComponent: React.FC<SensorReadingProps> = ({
   max,
   status = 'normal',
   temperatureUnit = 'celsius',
+  lastUpdated,
+  dataSource,
 }) => {
   const getIcon = (): string => {
     switch (type) {
@@ -200,7 +218,7 @@ const SensorReadingComponent: React.FC<SensorReadingProps> = ({
   const range = getGaugeRange();
 
   return (
-    <div className={`reading-card ${type}`}>
+    <div className={`reading-card ${type}`} style={{ position: 'relative' }}>
       <div className="icon-wrapper">
         <span className="reading-icon">{getIcon()}</span>
       </div>
@@ -237,11 +255,62 @@ const SensorReadingComponent: React.FC<SensorReadingProps> = ({
           {displayUnit}
         </span>
       </div>
+      {/* Last Updated Timestamp */}
+      {lastUpdated && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '6px',
+            right: '8px',
+            fontSize: '10px',
+            color: 'var(--secondary-text-color, #888)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
+          title={`Last updated: ${new Date(lastUpdated).toLocaleString()}${dataSource ? ` (via ${dataSource.toUpperCase()})` : ''}`}
+        >
+          {dataSource === 'mqtt' && (
+            <span style={{ color: '#22c55e', fontSize: '8px' }}>●</span>
+          )}
+          {dataSource === 'api' && (
+            <span style={{ color: '#3b82f6', fontSize: '8px' }}>●</span>
+          )}
+          {formatRelativeTime(lastUpdated)}
+        </div>
+      )}
     </div>
   );
 };
 
-// Memoize SensorReading - re-render only when value or status changes
-const SensorReading = memo(SensorReadingComponent);
+// Custom comparison function for memoization
+// Only re-render when meaningful data changes, not every timestamp tick
+const areSensorPropsEqual = (
+  prev: SensorReadingProps,
+  next: SensorReadingProps
+): boolean => {
+  // Always re-render if core data changes
+  if (prev.type !== next.type) return false;
+  if (prev.value !== next.value) return false;
+  if (prev.status !== next.status) return false;
+  if (prev.unit !== next.unit) return false;
+  if (prev.temperatureUnit !== next.temperatureUnit) return false;
+  if (prev.dataSource !== next.dataSource) return false;
+
+  // For timestamp, only re-render if it's significantly different (> 30s)
+  // This prevents constant re-renders from minor timestamp updates
+  if (prev.lastUpdated !== next.lastUpdated) {
+    if (!prev.lastUpdated || !next.lastUpdated) return false;
+    const prevTime = new Date(prev.lastUpdated).getTime();
+    const nextTime = new Date(next.lastUpdated).getTime();
+    // Only re-render if timestamp differs by more than 30 seconds
+    if (Math.abs(nextTime - prevTime) > 30000) return false;
+  }
+
+  return true;
+};
+
+// Memoize SensorReading - re-render only when meaningful data changes
+const SensorReading = memo(SensorReadingComponent, areSensorPropsEqual);
 
 export default SensorReading;

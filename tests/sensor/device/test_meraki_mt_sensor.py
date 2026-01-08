@@ -104,3 +104,60 @@ def test_mt30_button_sensor(
     assert sensor.name == "MT30 Button Last Button Press"
     assert sensor.native_value == "short"
     assert sensor.available is True
+
+
+def test_sanitize_value_filters_unknown(
+    mock_coordinator_mt_sensor: MagicMock,
+):
+    """Test that _sanitize_value filters 'unknown' string values."""
+    device_info = mock_coordinator_mt_sensor.data["devices"][0]
+    sensor = MerakiMtSensor(
+        mock_coordinator_mt_sensor, device_info, MT_TEMPERATURE_DESCRIPTION
+    )
+
+    # Test filtering of invalid string values
+    assert sensor._sanitize_value("unknown") is None
+    assert sensor._sanitize_value("unavailable") is None
+    assert sensor._sanitize_value("") is None
+
+    # Test that valid values pass through
+    assert sensor._sanitize_value(25.5) == 25.5
+    assert sensor._sanitize_value(0) == 0
+    assert sensor._sanitize_value(None) is None
+    assert sensor._sanitize_value("valid_string") == "valid_string"
+    assert sensor._sanitize_value(True) is True
+    assert sensor._sanitize_value(False) is False
+
+
+def test_extra_state_attributes_api_source(
+    mock_coordinator_mt_sensor: MagicMock,
+):
+    """Test extra_state_attributes includes data source for API."""
+    mock_coordinator_mt_sensor.mqtt_enabled = False
+    mock_coordinator_mt_sensor.get_mqtt_last_update = MagicMock(return_value=None)
+    mock_coordinator_mt_sensor.last_successful_update = None
+
+    device_info = mock_coordinator_mt_sensor.data["devices"][0]
+    sensor = MerakiMtSensor(
+        mock_coordinator_mt_sensor, device_info, MT_TEMPERATURE_DESCRIPTION
+    )
+
+    attrs = sensor.extra_state_attributes
+    assert attrs["data_source"] == "api"
+
+
+def test_extra_state_attributes_mqtt_pending(
+    mock_coordinator_mt_sensor: MagicMock,
+):
+    """Test extra_state_attributes shows mqtt_pending when enabled but no update."""
+    mock_coordinator_mt_sensor.mqtt_enabled = True
+    mock_coordinator_mt_sensor.get_mqtt_last_update = MagicMock(return_value=None)
+    mock_coordinator_mt_sensor.last_successful_update = None
+
+    device_info = mock_coordinator_mt_sensor.data["devices"][0]
+    sensor = MerakiMtSensor(
+        mock_coordinator_mt_sensor, device_info, MT_TEMPERATURE_DESCRIPTION
+    )
+
+    attrs = sensor.extra_state_attributes
+    assert attrs["data_source"] == "mqtt_pending"

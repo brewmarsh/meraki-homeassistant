@@ -63,15 +63,17 @@ class RelayDestinationConfig:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> RelayDestinationConfig:
         """Create a RelayDestinationConfig from a dictionary."""
+        # Get port and ensure it's an int (NumberSelector returns float)
+        raw_port = data.get(
+            MQTT_DEST_PORT,
+            DEFAULT_MQTT_TLS_PORT if data.get(MQTT_DEST_USE_TLS) else DEFAULT_MQTT_PORT,
+        )
+        port = int(raw_port) if raw_port is not None else DEFAULT_MQTT_PORT
+
         return cls(
             name=data.get(MQTT_DEST_NAME, "Unnamed"),
             host=data.get(MQTT_DEST_HOST, ""),
-            port=data.get(
-                MQTT_DEST_PORT,
-                DEFAULT_MQTT_TLS_PORT
-                if data.get(MQTT_DEST_USE_TLS)
-                else DEFAULT_MQTT_PORT,
-            ),
+            port=port,
             username=data.get(MQTT_DEST_USERNAME),
             password=data.get(MQTT_DEST_PASSWORD),
             use_tls=data.get(MQTT_DEST_USE_TLS, False),

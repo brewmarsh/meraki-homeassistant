@@ -53,10 +53,15 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
 
         # Restore previous state on restart
         if (last_state := await self.async_get_last_state()) is not None:
+            # Skip invalid states like 'unknown', 'unavailable'
+            if last_state.state in ("unknown", "unavailable", None, ""):
+                self._restored_value = None
+                return
             # Try to restore numeric value for sensors
             try:
                 self._restored_value = float(last_state.state)
             except (ValueError, TypeError):
+                # For non-numeric sensors, store the string value
                 self._restored_value = last_state.state
 
     @property
@@ -124,13 +129,22 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
         # For other sensors, use the entity description's unit
         return self.entity_description.native_unit_of_measurement
 
+    def _sanitize_value(
+        self, value: str | float | bool | None
+    ) -> str | float | bool | None:
+        """Sanitize value to avoid HA errors with non-numeric values."""
+        # Return None for invalid string values that HA can't handle
+        if isinstance(value, str) and value in ("unknown", "unavailable", ""):
+            return None
+        return value
+
     @property
     def native_value(self) -> str | float | bool | None:
         """Return the state of the sensor."""
         readings = self._get_readings()
         if not readings:
-            # Return restored value if no fresh readings
-            return self._restored_value
+            # Return sanitized restored value if no fresh readings
+            return self._sanitize_value(self._restored_value)
 
         for reading in readings:
             if reading.get("metric") == self.entity_description.key:
@@ -139,8 +153,10 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
                     # Handle temperature specially based on user preference
                     if self.entity_description.key == "temperature":
                         if self._use_fahrenheit:
-                            return metric_data.get("fahrenheit")
-                        return metric_data.get("celsius")
+                            value = metric_data.get("fahrenheit")
+                        else:
+                            value = metric_data.get("celsius")
+                        return self._sanitize_value(value)
 
                     # Map metric to the key holding its value
                     key_map = {
@@ -154,17 +170,23 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
                         "apparentPower": "draw",
                         "voltage": "level",
                         "current": "draw",
+                        "powerFactor": "percentage",
+                        "frequency": "level",
+                        "energy": "usage",
                         "battery": "percentage",
                         "button": "pressType",
                         "indoorAirQuality": "score",
+                        "gateway_rssi": "rssi",
                     }
                     value_key = key_map.get(self.entity_description.key)
                     if value_key:
                         if value_key == "ambient":
-                            return metric_data.get("ambient", {}).get("level")
-                        return metric_data.get(value_key)
-        # Fall back to restored value
-        return self._restored_value
+                            value = metric_data.get("ambient", {}).get("level")
+                        else:
+                            value = metric_data.get(value_key)
+                        return self._sanitize_value(value)
+        # Fall back to sanitized restored value
+        return self._sanitize_value(self._restored_value)
 
     def _get_reading_timestamp(self) -> str | None:
         """Get the timestamp from the current reading."""
