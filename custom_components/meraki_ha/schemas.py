@@ -197,6 +197,9 @@ OPTIONS_SCHEMA_MQTT = vol.Schema(
         vol.Required(
             CONF_ENABLE_MQTT, default=DEFAULT_ENABLE_MQTT
         ): selector.BooleanSelector(),
+        vol.Optional(
+            "add_relay_destination", default=False
+        ): selector.BooleanSelector(),
     }
 )
 
