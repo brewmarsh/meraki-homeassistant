@@ -43,16 +43,48 @@ jobs:
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          increment_type="patch" # Default increment type
+          # Get current version from manifest
+          current_version=$(grep -oP '"version": "\K[^"]+' custom_components/meraki_ha/manifest.json)
+          echo "Current version: $current_version"
 
+          # Strip beta suffix if present (e.g., 2.2.1-beta.23 -> 2.2.1)
+          base_version=$(echo "$current_version" | sed 's/-beta\.[0-9]*//')
+          echo "Base version (without beta): $base_version"
+
+          # Determine increment type from PR title
+          increment_type="none"
           if [[ "$PR_TITLE" == *"[major]"* ]]; then
             increment_type="major"
           elif [[ "$PR_TITLE" == *"[minor]"* ]]; then
             increment_type="minor"
+          elif [[ "$PR_TITLE" == *"[patch]"* ]]; then
+            increment_type="patch"
           fi
 
-          bump2version --allow-dirty $increment_type
-          new_version=$(grep -oP '"version": "\K[^"]+' custom_components/meraki_ha/manifest.json)
+          # Calculate new version
+          IFS='.' read -r major minor patch <<< "$base_version"
+
+          if [[ "$increment_type" == "major" ]]; then
+            major=$((major + 1))
+            minor=0
+            patch=0
+          elif [[ "$increment_type" == "minor" ]]; then
+            minor=$((minor + 1))
+            patch=0
+          elif [[ "$increment_type" == "patch" ]]; then
+            patch=$((patch + 1))
+          fi
+          # If no increment type specified, just use the base version (strip beta)
+
+          new_version="${major}.${minor}.${patch}"
+          echo "New version: $new_version"
+
+          # Update manifest.json directly
+          sed -i "s/\"version\": \"$current_version\"/\"version\": \"$new_version\"/" custom_components/meraki_ha/manifest.json
+
+          # Update .bumpversion.cfg
+          sed -i "s/current_version = $current_version/current_version = $new_version/" .bumpversion.cfg
+
           echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
 
       - name: Update package.json version
