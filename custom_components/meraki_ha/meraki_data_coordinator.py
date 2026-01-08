@@ -13,6 +13,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
+    CONF_DASHBOARD_DEVICE_TYPE_FILTER,
     CONF_ENABLED_NETWORKS,
     CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
@@ -500,6 +501,40 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                             }
                         )
 
+    def _filter_device_types(self, data: dict[str, Any]) -> None:
+        """Filter out devices by type based on user's selection."""
+        if not self.config_entry or not hasattr(self.config_entry, "options"):
+            _LOGGER.debug(
+                "Config entry or options not available, cannot filter device types.",
+            )
+            return
+
+        selected_types = self.config_entry.options.get(
+            CONF_DASHBOARD_DEVICE_TYPE_FILTER
+        )
+
+        if not selected_types or "all" in selected_types:
+            return
+
+        if "devices" in data:
+            type_map = {
+                "switch": "MS",
+                "camera": "MV",
+                "wireless": "MR",
+                "sensor": "MT",
+                "appliance": "MX",
+            }
+            prefixes_to_keep = tuple(
+                type_map[type_] for type_ in selected_types if type_ in type_map
+            )
+
+            if prefixes_to_keep:
+                data["devices"] = [
+                    d
+                    for d in data["devices"]
+                    if d.get("model", "").startswith(prefixes_to_keep)
+                ]
+
     def _get_enabled_network_ids(self) -> set[str] | None:
         """
         Get the set of enabled network IDs from config options.
@@ -536,6 +571,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 raise UpdateFailed("API call returned no data.")
 
             self._filter_enabled_networks(data)
+            self._filter_device_types(data)
             _LOGGER.debug("SSIDs after filtering: %s", data.get("ssids"))
             await self._async_remove_disabled_devices(data)
 
