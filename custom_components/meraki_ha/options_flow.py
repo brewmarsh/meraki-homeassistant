@@ -8,11 +8,22 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
 from homeassistant.helpers import selector
 
-from .const import CONF_ENABLED_NETWORKS, CONF_INTEGRATION_TITLE, DOMAIN
+from .const import (
+    CONF_ENABLE_MQTT,
+    CONF_ENABLED_NETWORKS,
+    CONF_INTEGRATION_TITLE,
+    CONF_MQTT_RELAY_DESTINATIONS,
+    DEFAULT_MQTT_RELAY_DESTINATIONS,
+    DOMAIN,
+    MQTT_DEST_HOST,
+    MQTT_DEST_NAME,
+)
 from .schemas import (
+    MQTT_RELAY_DESTINATION_SCHEMA,
     OPTIONS_SCHEMA_BASIC,
     OPTIONS_SCHEMA_CAMERA,
     OPTIONS_SCHEMA_DASHBOARD,
+    OPTIONS_SCHEMA_MQTT,
 )
 
 
@@ -122,10 +133,7 @@ class MerakiOptionsFlowHandler(OptionsFlow):
         """
         if user_input is not None:
             self.options.update(user_input)
-            return self.async_create_entry(
-                title=CONF_INTEGRATION_TITLE,
-                data=self.options,
-            )
+            return await self.async_step_mqtt()
 
         schema_with_defaults = self._populate_schema_defaults(
             OPTIONS_SCHEMA_CAMERA,
@@ -136,6 +144,105 @@ class MerakiOptionsFlowHandler(OptionsFlow):
         return self.async_show_form(
             step_id="camera",
             data_schema=schema_with_defaults,
+        )
+
+    async def async_step_mqtt(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """
+        Step 4: MQTT Settings.
+
+        Args:
+        ----
+            user_input: The user input.
+
+        Returns
+        -------
+            The flow result.
+
+        """
+        if user_input is not None:
+            self.options.update(user_input)
+
+            # If MQTT is enabled and user wants to add relay destinations
+            if user_input.get(CONF_ENABLE_MQTT, False):
+                # Check if there's an action to add a destination
+                if user_input.get("add_relay_destination"):
+                    return await self.async_step_mqtt_destination()
+
+            return self.async_create_entry(
+                title=CONF_INTEGRATION_TITLE,
+                data=self.options,
+            )
+
+        # Build the schema with current relay destinations info
+        current_destinations = self.options.get(
+            CONF_MQTT_RELAY_DESTINATIONS, DEFAULT_MQTT_RELAY_DESTINATIONS
+        )
+        destinations_summary = ""
+        if current_destinations:
+            destinations_summary = ", ".join(
+                d.get(MQTT_DEST_NAME, d.get(MQTT_DEST_HOST, "Unknown"))
+                for d in current_destinations
+            )
+
+        schema_with_defaults = self._populate_schema_defaults(
+            OPTIONS_SCHEMA_MQTT,
+            self.options,
+            [],
+        )
+
+        return self.async_show_form(
+            step_id="mqtt",
+            data_schema=schema_with_defaults,
+            description_placeholders={
+                "relay_destinations": destinations_summary or "None configured",
+                "destination_count": str(len(current_destinations)),
+            },
+        )
+
+    async def async_step_mqtt_destination(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """
+        Sub-step: Add/Edit MQTT Relay Destination.
+
+        Args:
+        ----
+            user_input: The user input.
+
+        Returns
+        -------
+            The flow result.
+
+        """
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            # Validate the destination configuration
+            if not user_input.get(MQTT_DEST_HOST):
+                errors["base"] = "host_required"
+            elif not user_input.get(MQTT_DEST_NAME):
+                errors["base"] = "name_required"
+            else:
+                # Add the new destination to the list
+                current_destinations = list(
+                    self.options.get(
+                        CONF_MQTT_RELAY_DESTINATIONS, DEFAULT_MQTT_RELAY_DESTINATIONS
+                    )
+                )
+                current_destinations.append(user_input)
+                self.options[CONF_MQTT_RELAY_DESTINATIONS] = current_destinations
+
+                # Return to MQTT step to show updated list or finish
+                return await self.async_step_mqtt()
+
+        return self.async_show_form(
+            step_id="mqtt_destination",
+            data_schema=MQTT_RELAY_DESTINATION_SCHEMA,
+            errors=errors,
         )
 
     def _populate_schema_defaults(
