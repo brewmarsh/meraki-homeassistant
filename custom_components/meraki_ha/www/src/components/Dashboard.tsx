@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, memo, useCallback } from 'react';
 import StatusCard from './StatusCard';
+import MqttStatusCard from './MqttStatusCard';
 
 interface Device {
   serial: string;
@@ -42,6 +43,27 @@ interface Client {
   ssid?: string;
 }
 
+interface MqttServiceStats {
+  is_running: boolean;
+  messages_received: number;
+  messages_processed: number;
+  last_message_time: string | null;
+  start_time: string | null;
+  sensors_mapped: number;
+}
+
+interface RelayDestination {
+  name: string;
+  status: 'connected' | 'connecting' | 'disconnected' | 'error';
+  host: string;
+  port: number;
+  topic_filter: string;
+  messages_relayed: number;
+  last_relay_time: string | null;
+  last_error: string | null;
+  last_error_time: string | null;
+}
+
 interface DashboardProps {
   setActiveView: (view: {
     view: string;
@@ -56,6 +78,11 @@ interface DashboardProps {
     clients?: Client[];
     scan_interval?: number;
     last_updated?: string;
+    mqtt?: {
+      enabled: boolean;
+      stats?: MqttServiceStats;
+      relay_destinations?: Record<string, RelayDestination>;
+    };
   };
   hass?: {
     callService?: (
@@ -231,6 +258,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({
     clients = [],
     scan_interval = 90,
     last_updated,
+    mqtt,
   } = data;
 
   // Countdown state for next refresh
@@ -544,6 +572,14 @@ const DashboardComponent: React.FC<DashboardProps> = ({
           clickable
         />
       </div>
+
+      {/* MQTT Status Card - Only shown when MQTT is enabled */}
+      {mqtt?.enabled && (
+        <MqttStatusCard
+          mqttStats={mqtt.stats || null}
+          relayDestinations={mqtt.relay_destinations || {}}
+        />
+      )}
 
       {/* Filters and View Toggle */}
       <div className="filter-controls">
