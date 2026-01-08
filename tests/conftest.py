@@ -1,7 +1,15 @@
+import sys
+from unittest.mock import MagicMock
+
+# Mock the webrtc component for tests since it's a future feature
+mock_webrtc = MagicMock()
+sys.modules['homeassistant.components.webrtc'] = mock_webrtc
+mock_webrtc.async_handle_webrtc_offer = MagicMock()
+
 """Global fixtures for meraki_ha integration."""
 
 from collections.abc import Generator
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -47,12 +55,11 @@ def mock_config_entry() -> MagicMock:
 @pytest.fixture(autouse=True)
 def prevent_socket_and_camera_load() -> Generator[None, None, None]:
     """Patch asyncio to prevent opening a real socket."""
-    from unittest.mock import MagicMock, patch
-
     with (
         patch(
             "asyncio.base_events.BaseEventLoop.create_server", new_callable=AsyncMock
         ),
         patch("turbojpeg.TurboJPEG", MagicMock()),
+        patch("aiodns.DNSResolver", MagicMock()),
     ):
         yield
