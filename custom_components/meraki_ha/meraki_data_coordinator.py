@@ -325,6 +325,17 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             reading["button"] = {
                 "pressType": "short" if data.get("button pressed") else None
             }
+        elif metric == "usbPowered":
+            reading["metric"] = "usb_powered"
+            reading["usb_powered"] = {"powered": data.get("usb powered", False)}
+        elif metric == "cableConnected":
+            reading["metric"] = "cable_connected"
+            reading["cable_connected"] = {
+                "connected": data.get("cable connected", False)
+            }
+        elif metric == "probeType":
+            reading["metric"] = "probe_type"
+            reading["probe_type"] = {"type": data.get("probe type")}
         elif metric == "door":
             reading["door"] = {"open": data.get("open")}
         elif metric == "mainsVolts":
@@ -345,6 +356,9 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         elif metric == "mainsFrequency":
             reading["metric"] = "frequency"
             reading["frequency"] = {"level": data.get("mainsFrequency")}
+        elif metric == "mainsDeltaEnergy":
+            reading["metric"] = "energy"
+            reading["energy"] = {"usage": data.get("mainsDeltaEnergy")}
         elif metric == "downstreamPowerStatus":
             reading["metric"] = "downstream_power"
             reading["value"] = data.get("downstreamPower") == "on"
