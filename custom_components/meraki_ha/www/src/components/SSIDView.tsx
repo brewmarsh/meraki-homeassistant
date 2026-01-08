@@ -1,4 +1,76 @@
-import React from 'react';
+import React, { memo, useCallback } from 'react';
+
+// === Memoized Sub-components for granular updates ===
+
+// SSID Client row props
+interface SSIDClientRowProps {
+  client: {
+    id: string;
+    mac: string;
+    description?: string;
+    ip?: string;
+    manufacturer?: string;
+    os?: string;
+    lastSeen?: string;
+    usage?: { sent: number; recv: number };
+  };
+  onClick?: () => void;
+  formatLastSeen: (dateStr?: string) => string;
+  formatBytes: (bytes: number) => string;
+}
+
+// Memoized client row for SSID view - only re-renders when this client changes
+const SSIDClientRow = memo<SSIDClientRowProps>(
+  ({ client, onClick, formatLastSeen, formatBytes }) => (
+    <tr
+      className={onClick ? 'device-row clickable' : 'device-row'}
+      onClick={onClick}
+    >
+      <td>
+        <div className="device-name-cell">
+          <span className="text-xl">
+            {client.os?.toLowerCase().includes('android')
+              ? '📱'
+              : client.os?.toLowerCase().includes('ios') ||
+                client.os?.toLowerCase().includes('apple')
+              ? '🍎'
+              : client.os?.toLowerCase().includes('windows')
+              ? '💻'
+              : '📱'}
+          </span>
+          <div>
+            <div className="name">{client.description || client.mac}</div>
+            {client.description && (
+              <div className="text-xs text-muted text-mono">{client.mac}</div>
+            )}
+          </div>
+        </div>
+      </td>
+      <td className="text-mono text-sm">{client.ip || '—'}</td>
+      <td>{client.manufacturer || '—'}</td>
+      <td>{formatLastSeen(client.lastSeen)}</td>
+      <td>
+        {client.usage ? (
+          <span className="text-sm">
+            ↓{formatBytes(client.usage.recv)} ↑{formatBytes(client.usage.sent)}
+          </span>
+        ) : (
+          '—'
+        )}
+      </td>
+    </tr>
+  ),
+  (prev, next) =>
+    prev.client.id === next.client.id &&
+    prev.client.mac === next.client.mac &&
+    prev.client.description === next.client.description &&
+    prev.client.ip === next.client.ip &&
+    prev.client.manufacturer === next.client.manufacturer &&
+    prev.client.os === next.client.os &&
+    prev.client.lastSeen === next.client.lastSeen &&
+    prev.client.usage?.sent === next.client.usage?.sent &&
+    prev.client.usage?.recv === next.client.usage?.recv
+);
 
 interface SSID {
   number: number;
@@ -45,7 +117,7 @@ interface SSIDViewProps {
   onClientClick?: (clientId: string) => void;
 }
 
-const SSIDView: React.FC<SSIDViewProps> = ({
+const SSIDViewComponent: React.FC<SSIDViewProps> = ({
   ssid,
   clients,
   network,
@@ -74,15 +146,15 @@ const SSIDView: React.FC<SSIDViewProps> = ({
     }
   };
 
-  const formatBytes = (bytes: number): string => {
+  const formatBytes = useCallback((bytes: number): string => {
     if (bytes === 0) return '0 B';
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  };
+  }, []);
 
-  const formatLastSeen = (dateStr?: string): string => {
+  const formatLastSeen = useCallback((dateStr?: string): string => {
     if (!dateStr) return 'Unknown';
     const date = new Date(dateStr);
     const now = new Date();
@@ -95,7 +167,7 @@ const SSIDView: React.FC<SSIDViewProps> = ({
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
     return `${days}d ago`;
-  };
+  }, []);
 
   // Calculate total usage for this SSID
   const totalUsage = ssidClients.reduce(
@@ -195,51 +267,17 @@ const SSIDView: React.FC<SSIDViewProps> = ({
             </thead>
             <tbody>
               {ssidClients.map((client) => (
-                <tr
+                <SSIDClientRow
                   key={client.id || client.mac}
-                  className={
-                    onClientClick ? 'device-row clickable' : 'device-row'
+                  client={client}
+                  onClick={
+                    onClientClick
+                      ? () => onClientClick(client.id || client.mac)
+                      : undefined
                   }
-                  onClick={() => onClientClick?.(client.id || client.mac)}
-                >
-                  <td>
-                    <div className="device-name-cell">
-                      <span className="text-xl">
-                        {client.os?.toLowerCase().includes('android')
-                          ? '📱'
-                          : client.os?.toLowerCase().includes('ios') ||
-                            client.os?.toLowerCase().includes('apple')
-                          ? '🍎'
-                          : client.os?.toLowerCase().includes('windows')
-                          ? '💻'
-                          : '📱'}
-                      </span>
-                      <div>
-                        <div className="name">
-                          {client.description || client.mac}
-                        </div>
-                        {client.description && (
-                          <div className="text-xs text-muted text-mono">
-                            {client.mac}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="text-mono text-sm">{client.ip || '—'}</td>
-                  <td>{client.manufacturer || '—'}</td>
-                  <td>{formatLastSeen(client.lastSeen)}</td>
-                  <td>
-                    {client.usage ? (
-                      <span className="text-sm">
-                        ↓{formatBytes(client.usage.recv)} ↑
-                        {formatBytes(client.usage.sent)}
-                      </span>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                </tr>
+                  formatLastSeen={formatLastSeen}
+                  formatBytes={formatBytes}
+                />
               ))}
             </tbody>
           </table>
@@ -253,5 +291,24 @@ const SSIDView: React.FC<SSIDViewProps> = ({
     </div>
   );
 };
+
+// Memoize SSIDView to prevent unnecessary re-renders
+const SSIDView = memo(SSIDViewComponent, (prevProps, nextProps) => {
+  // Re-render if SSID or client count changes
+  if (prevProps.ssid.number !== nextProps.ssid.number) return false;
+  if (prevProps.ssid.networkId !== nextProps.ssid.networkId) return false;
+  if (prevProps.ssid.enabled !== nextProps.ssid.enabled) return false;
+
+  // Compare client count for this SSID
+  const prevClients = prevProps.clients.filter(
+    (c) => c.ssid === prevProps.ssid.name
+  ).length;
+  const nextClients = nextProps.clients.filter(
+    (c) => c.ssid === nextProps.ssid.name
+  ).length;
+  if (prevClients !== nextClients) return false;
+
+  return true;
+});
 
 export default SSIDView;

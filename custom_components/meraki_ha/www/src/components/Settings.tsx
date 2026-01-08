@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 
 interface SettingsProps {
   hass: any;
@@ -11,7 +11,7 @@ type ThemeMode = 'auto' | 'dark' | 'light';
 
 const THEME_STORAGE_KEY = 'meraki_ha_theme_mode';
 
-const Settings: React.FC<SettingsProps> = ({
+const SettingsComponent: React.FC<SettingsProps> = ({
   hass,
   options,
   configEntryId,
@@ -308,5 +308,8 @@ const Settings: React.FC<SettingsProps> = ({
     </div>
   );
 };
+
+// Memoize Settings - re-render only when options change
+const Settings = memo(SettingsComponent);
 
 export default Settings;

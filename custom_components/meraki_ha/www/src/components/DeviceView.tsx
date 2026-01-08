@@ -1,7 +1,153 @@
-import React, { useRef } from 'react';
+import React, { useRef, memo } from 'react';
 import SwitchPortVisualization from './SwitchPortVisualization';
 import SensorReading from './SensorReading';
 import MetricCard from './MetricCard';
+
+// === Memoized Sub-components for granular updates ===
+
+// Entity row props
+interface EntityRowProps {
+  entity: { entity_id: string; name: string; state: string };
+  onClick: () => void;
+}
+
+// Memoized entity row - only re-renders when this specific entity changes
+const EntityRow = memo<EntityRowProps>(
+  ({ entity, onClick }) => (
+    <tr className="device-row" onClick={onClick}>
+      <td>{entity.name}</td>
+      <td className="text-mono text-sm text-muted">{entity.entity_id}</td>
+      <td>
+        <span className="detail-badge">{entity.state}</span>
+      </td>
+    </tr>
+  ),
+  (prev, next) =>
+    prev.entity.entity_id === next.entity.entity_id &&
+    prev.entity.name === next.entity.name &&
+    prev.entity.state === next.entity.state
+);
+
+// Device client row props
+interface DeviceClientRowProps {
+  client: {
+    id: string;
+    mac: string;
+    description?: string;
+    ip?: string;
+    manufacturer?: string;
+    os?: string;
+    ssid?: string;
+    switchport?: string;
+  };
+  onClick: () => void;
+}
+
+// Memoized client row for device view - only re-renders when this client changes
+const DeviceClientRow = memo<DeviceClientRowProps>(
+  ({ client, onClick }) => (
+    <tr className="device-row clickable" onClick={onClick}>
+      <td>
+        <div className="client-row-cell">
+          <span className="client-row-icon">
+            {client.os?.toLowerCase().includes('ios') ||
+            client.manufacturer?.toLowerCase().includes('apple')
+              ? '📱'
+              : client.os?.toLowerCase().includes('windows')
+              ? '💻'
+              : '🔌'}
+          </span>
+          <div className="client-row-info">
+            <div className="font-medium">
+              {client.description || client.mac}
+            </div>
+            {client.manufacturer && (
+              <div className="text-sm text-muted">{client.manufacturer}</div>
+            )}
+          </div>
+        </div>
+      </td>
+      {client.ip && <td className="text-mono text-sm">{client.ip}</td>}
+      {!client.ip && <td></td>}
+      <td>
+        {(client.ssid || client.switchport) && (
+          <span className="detail-badge">
+            {client.ssid || client.switchport}
+          </span>
+        )}
+      </td>
+    </tr>
+  ),
+  (prev, next) =>
+    prev.client.id === next.client.id &&
+    prev.client.mac === next.client.mac &&
+    prev.client.description === next.client.description &&
+    prev.client.ip === next.client.ip &&
+    prev.client.manufacturer === next.client.manufacturer &&
+    prev.client.os === next.client.os &&
+    prev.client.ssid === next.client.ssid &&
+    prev.client.switchport === next.client.switchport
+);
+
+// BSS row props
+interface BSSRowProps {
+  bss: {
+    ssidName?: string;
+    ssidNumber?: number;
+    bssid?: string;
+    band?: string;
+    channel?: number;
+    channelWidth?: string;
+    power?: string;
+    broadcasting?: boolean;
+  };
+  index: number;
+}
+
+// Memoized BSS row - only re-renders when this BSS entry changes
+const BSSRow = memo<BSSRowProps>(
+  ({ bss }) => (
+    <tr>
+      <td>
+        <div className="font-medium">
+          {bss.ssidName || `SSID ${bss.ssidNumber}`}
+        </div>
+        {bss.bssid && <div className="bssid-text">{bss.bssid}</div>}
+      </td>
+      <td>
+        <span
+          className={`band-badge ${
+            bss.band?.includes('2.4') ? 'band-2_4' : 'band-5'
+          }`}
+        >
+          {bss.band}
+        </span>
+      </td>
+      <td>{bss.channel}</td>
+      <td>{bss.channelWidth}</td>
+      <td className="text-warning">{bss.power}</td>
+      <td>
+        <span
+          className={`broadcast-status ${
+            bss.broadcasting ? 'active' : 'inactive'
+          }`}
+        >
+          <span className="broadcast-dot"></span>
+          {bss.broadcasting ? 'Broadcasting' : 'Off'}
+        </span>
+      </td>
+    </tr>
+  ),
+  (prev, next) =>
+    prev.bss.ssidName === next.bss.ssidName &&
+    prev.bss.ssidNumber === next.bss.ssidNumber &&
+    prev.bss.bssid === next.bss.bssid &&
+    prev.bss.band === next.bss.band &&
+    prev.bss.channel === next.bss.channel &&
+    prev.bss.channelWidth === next.bss.channelWidth &&
+    prev.bss.power === next.bss.power &&
+    prev.bss.broadcasting === next.bss.broadcasting
+);
 
 interface PortStatus {
   portId: string;
@@ -87,6 +233,7 @@ interface Device {
   lastReportedAt?: string;
   cloud_video_url?: string;
   rtsp_url?: string;
+  rtspEnabled?: boolean;
   basicServiceSets?: Array<{
     ssidName?: string;
     ssidNumber?: number;
@@ -126,7 +273,7 @@ interface DeviceViewProps {
   };
 }
 
-const DeviceView: React.FC<DeviceViewProps> = ({
+const DeviceViewComponent: React.FC<DeviceViewProps> = ({
   activeView,
   setActiveView,
   data,
@@ -154,11 +301,23 @@ const DeviceView: React.FC<DeviceViewProps> = ({
   >([]);
   const [linkedCameraId, setLinkedCameraId] = React.useState<string>('');
   const [showCameraConfig, setShowCameraConfig] = React.useState(false);
-  const [viewLinkedCamera, setViewLinkedCamera] = React.useState(false);
   const [linkedCameraUrl, setLinkedCameraUrl] = React.useState<string | null>(
     null
   );
   const [linkedCameraLoading, setLinkedCameraLoading] = React.useState(false);
+  const [_linkedCameraFailed, setLinkedCameraFailed] = React.useState(false);
+
+  // RTSP stream state
+  const [rtspStreamUrl, setRtspStreamUrl] = React.useState<string | null>(
+    null
+  );
+  const [rtspLoading, setRtspLoading] = React.useState(false);
+  const [_rtspFailed, setRtspFailed] = React.useState(false);
+
+  // Track which video source is active: 'linked' | 'rtsp' | 'snapshot' | 'none'
+  const [activeVideoSource, setActiveVideoSource] = React.useState<
+    'linked' | 'rtsp' | 'snapshot' | 'none'
+  >('none');
 
   // Use refs to avoid re-renders when hass object changes (happens on every HA state update)
   const hassRef = useRef(hass);
@@ -437,11 +596,12 @@ const DeviceView: React.FC<DeviceViewProps> = ({
       });
       setLinkedCameraId(entityId);
       setShowCameraConfig(false);
-      // If viewing linked camera, fetch the new signed URL
-      if (viewLinkedCamera && entityId) {
-        setLinkedCameraUrl(null);
-        // Delay slightly to ensure state is updated
-        setTimeout(() => fetchLinkedCameraUrl(), 100);
+      // Reset video state and reload stream with new camera
+      setLinkedCameraUrl(null);
+      setActiveVideoSource('none');
+      // Delay slightly to ensure state is updated, then load the stream
+      if (entityId) {
+        setTimeout(() => loadVideoStream(), 100);
       }
     } catch (err) {
       console.error('Failed to save camera mapping:', err);
@@ -449,11 +609,12 @@ const DeviceView: React.FC<DeviceViewProps> = ({
   };
 
   // Fetch signed camera stream URL from Home Assistant (MJPEG live stream)
-  const fetchLinkedCameraUrl = async () => {
+  const fetchLinkedCameraUrl = async (): Promise<boolean> => {
     const currentHass = hassRef.current;
-    if (!currentHass || !linkedCameraId) return;
+    if (!currentHass || !linkedCameraId) return false;
 
     setLinkedCameraLoading(true);
+    setLinkedCameraFailed(false);
     try {
       // Use camera_proxy_stream for live MJPEG video (not camera_proxy which is snapshot)
       const result = (await currentHass.callWS({
@@ -464,12 +625,71 @@ const DeviceView: React.FC<DeviceViewProps> = ({
 
       if (result?.path) {
         setLinkedCameraUrl(result.path);
+        setActiveVideoSource('linked');
+        return true;
       }
+      setLinkedCameraFailed(true);
+      return false;
     } catch (err) {
       console.error('Failed to get signed camera stream URL:', err);
       setLinkedCameraUrl(null);
+      setLinkedCameraFailed(true);
+      return false;
     } finally {
       setLinkedCameraLoading(false);
+    }
+  };
+
+  // Fetch RTSP stream URL from Meraki API
+  const fetchRtspStreamUrl = async (): Promise<boolean> => {
+    const currentHass = hassRef.current;
+    if (!currentHass || !device?.serial || !configEntryId) return false;
+
+    setRtspLoading(true);
+    setRtspFailed(false);
+    try {
+      const result = (await currentHass.callWS({
+        type: 'meraki_ha/get_rtsp_url',
+        config_entry_id: configEntryId,
+        serial: device.serial,
+      })) as { rtsp_url?: string };
+
+      if (result?.rtsp_url) {
+        setRtspStreamUrl(result.rtsp_url);
+        setActiveVideoSource('rtsp');
+        return true;
+      }
+      setRtspFailed(true);
+      return false;
+    } catch (err) {
+      console.error('Failed to get RTSP stream URL:', err);
+      setRtspStreamUrl(null);
+      setRtspFailed(true);
+      return false;
+    } finally {
+      setRtspLoading(false);
+    }
+  };
+
+  // Auto-load video stream with fallback chain: linked camera → RTSP → snapshot
+  const loadVideoStream = async () => {
+    // Try linked camera first
+    if (linkedCameraId) {
+      const linkedSuccess = await fetchLinkedCameraUrl();
+      if (linkedSuccess) return;
+    }
+
+    // Fallback to RTSP if available
+    if (device?.rtsp_url || device?.rtspEnabled) {
+      const rtspSuccess = await fetchRtspStreamUrl();
+      if (rtspSuccess) return;
+    }
+
+    // Final fallback to snapshot
+    if (snapshotUrl) {
+      setActiveVideoSource('snapshot');
+    } else {
+      setActiveVideoSource('none');
     }
   };
 
@@ -493,12 +713,19 @@ const DeviceView: React.FC<DeviceViewProps> = ({
     }
   }, [device?.serial, configEntryId]);
 
-  // Fetch signed URL when viewing linked camera
+  // Auto-load video stream when linked camera ID is available or changes
   React.useEffect(() => {
-    if (viewLinkedCamera && linkedCameraId && hassRef.current) {
-      fetchLinkedCameraUrl();
+    const isCameraDevice =
+      device &&
+      (device.model?.toUpperCase().startsWith('MV') ||
+        device.productType === 'camera');
+
+    if (isCameraDevice && hassRef.current) {
+      // Load video with fallback chain
+      loadVideoStream();
     }
-  }, [viewLinkedCamera, linkedCameraId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkedCameraId, device?.serial, snapshotUrl]);
 
   // Calculate PoE stats for switches
   const totalPoeEnergy = ports_statuses.reduce(
@@ -863,69 +1090,90 @@ const DeviceView: React.FC<DeviceViewProps> = ({
               marginBottom: '16px',
             }}
           >
-            {linkedCameraId ? (
-              /* Live stream from linked camera entity */
-              linkedCameraLoading ? (
-                <div
+            {/* Loading state */}
+            {(linkedCameraLoading || rtspLoading) && (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--text-muted)',
+                  zIndex: 10,
+                }}
+              >
+                ⏳ Loading{' '}
+                {linkedCameraLoading ? 'linked camera' : 'RTSP stream'}...
+              </div>
+            )}
+
+            {/* Linked Camera Stream (highest priority) */}
+            {activeVideoSource === 'linked' && linkedCameraUrl && (
+              <img
+                src={linkedCameraUrl}
+                alt={`Live view: ${name || serial}`}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                }}
+                onError={() => {
+                  console.error(
+                    'Linked camera stream failed, trying fallback'
+                  );
+                  setLinkedCameraUrl(null);
+                  setLinkedCameraFailed(true);
+                  // Try RTSP fallback
+                  if (device?.rtsp_url || device?.rtspEnabled) {
+                    fetchRtspStreamUrl();
+                  } else if (snapshotUrl) {
+                    setActiveVideoSource('snapshot');
+                  } else {
+                    setActiveVideoSource('none');
+                  }
+                }}
+              />
+            )}
+
+            {/* RTSP Stream (second priority) */}
+            {activeVideoSource === 'rtsp' && rtspStreamUrl && (
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--text-muted)',
+                  gap: '12px',
+                }}
+              >
+                <span style={{ fontSize: '48px' }}>🎥</span>
+                <span>RTSP Stream Available</span>
+                <code
                   style={{
-                    position: 'absolute',
-                    inset: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'var(--text-muted)',
+                    fontSize: '11px',
+                    padding: '8px 12px',
+                    background: 'rgba(255,255,255,0.1)',
+                    borderRadius: 'var(--radius-sm)',
+                    maxWidth: '90%',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  ⏳ Loading stream...
-                </div>
-              ) : linkedCameraUrl ? (
-                <img
-                  src={linkedCameraUrl}
-                  alt={`Live view: ${name || serial}`}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain',
-                  }}
-                  onError={() => {
-                    console.error('Failed to load camera stream');
-                    setLinkedCameraUrl(null);
-                  }}
-                />
-              ) : (
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'var(--text-muted)',
-                    gap: '8px',
-                  }}
-                >
-                  <span style={{ fontSize: '48px' }}>📹</span>
-                  <span>Unable to load stream</span>
-                  <button
-                    onClick={() => fetchLinkedCameraUrl()}
-                    style={{
-                      marginTop: '8px',
-                      padding: '8px 16px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: 'none',
-                      background: 'var(--primary)',
-                      color: 'white',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                    }}
-                  >
-                    Retry
-                  </button>
-                </div>
-              )
-            ) : snapshotUrl ? (
-              /* Show snapshot if no linked camera */
+                  {rtspStreamUrl}
+                </code>
+                <span style={{ fontSize: '12px', opacity: 0.7 }}>
+                  Open this URL in VLC or a compatible player
+                </span>
+              </div>
+            )}
+
+            {/* Snapshot (third priority / fallback) */}
+            {activeVideoSource === 'snapshot' && snapshotUrl && (
               <img
                 src={snapshotUrl}
                 alt={`${name || serial} snapshot`}
@@ -935,39 +1183,84 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                   objectFit: 'contain',
                 }}
               />
-            ) : (
-              /* No camera configured */
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--text-muted)',
-                  gap: '12px',
-                }}
-              >
-                <span style={{ fontSize: '48px' }}>📹</span>
-                <span>No live stream configured</span>
-                <button
-                  onClick={() => setShowCameraConfig(true)}
+            )}
+
+            {/* No video source available */}
+            {activeVideoSource === 'none' &&
+              !linkedCameraLoading &&
+              !rtspLoading && (
+                <div
                   style={{
-                    marginTop: '4px',
-                    padding: '8px 16px',
-                    borderRadius: 'var(--radius-sm)',
-                    border: 'none',
-                    background: 'var(--primary)',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontSize: '13px',
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--text-muted)',
+                    gap: '12px',
                   }}
                 >
-                  Link Camera Entity
-                </button>
-              </div>
-            )}
+                  <span style={{ fontSize: '48px' }}>📹</span>
+                  <span>No live stream available</span>
+                  <div
+                    style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}
+                  >
+                    <button
+                      onClick={() => loadVideoStream()}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: 'none',
+                        background: 'var(--primary)',
+                        color: 'white',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                      }}
+                    >
+                      🔄 Retry
+                    </button>
+                    <button
+                      onClick={() => setShowCameraConfig(true)}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--border)',
+                        background: 'transparent',
+                        color: 'var(--text-primary)',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                      }}
+                    >
+                      ⚙️ Link Camera
+                    </button>
+                  </div>
+                </div>
+              )}
+
+            {/* Video source indicator badge */}
+            {activeVideoSource !== 'none' &&
+              !linkedCameraLoading &&
+              !rtspLoading && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '8px',
+                    left: '8px',
+                    padding: '4px 8px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'rgba(0,0,0,0.6)',
+                    color: 'white',
+                    fontSize: '11px',
+                    fontWeight: 500,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {activeVideoSource === 'linked' && '● Live'}
+                  {activeVideoSource === 'rtsp' && '● RTSP'}
+                  {activeVideoSource === 'snapshot' && '📷 Snapshot'}
+                </div>
+              )}
           </div>
 
           {/* Action Buttons */}
@@ -979,57 +1272,77 @@ const DeviceView: React.FC<DeviceViewProps> = ({
               flexWrap: 'wrap',
             }}
           >
-            {linkedCameraId ? (
-              <>
-                <button
-                  onClick={() => fetchLinkedCameraUrl()}
-                  disabled={linkedCameraLoading}
-                  style={{
-                    padding: '10px 20px',
-                    borderRadius: 'var(--radius-md)',
-                    border: 'none',
-                    background: 'var(--primary)',
-                    color: 'white',
-                    cursor: linkedCameraLoading ? 'wait' : 'pointer',
-                    fontWeight: 500,
-                  }}
-                >
-                  {linkedCameraLoading ? '⏳ Loading...' : '🔄 Refresh Stream'}
-                </button>
-                <button
-                  onClick={() => handleEntityClick(linkedCameraId)}
-                  style={{
-                    padding: '10px 20px',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--card-border)',
-                    background: 'var(--bg-secondary)',
-                    color: 'var(--text-primary)',
-                    cursor: 'pointer',
-                    fontWeight: 500,
-                  }}
-                >
-                  📺 Full Screen
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={fetchSnapshot}
-                  disabled={snapshotLoading}
-                  style={{
-                    padding: '10px 20px',
-                    borderRadius: 'var(--radius-md)',
-                    border: 'none',
-                    background: 'var(--primary)',
-                    color: 'white',
-                    cursor: snapshotLoading ? 'wait' : 'pointer',
-                    fontWeight: 500,
-                  }}
-                >
-                  {snapshotLoading ? '⏳ Loading...' : '📷 Get Snapshot'}
-                </button>
-              </>
+            {/* Refresh button - always available */}
+            <button
+              onClick={() => loadVideoStream()}
+              disabled={linkedCameraLoading || rtspLoading}
+              style={{
+                padding: '10px 20px',
+                borderRadius: 'var(--radius-md)',
+                border: 'none',
+                background: 'var(--primary)',
+                color: 'white',
+                cursor:
+                  linkedCameraLoading || rtspLoading ? 'wait' : 'pointer',
+                fontWeight: 500,
+              }}
+            >
+              {linkedCameraLoading || rtspLoading
+                ? '⏳ Loading...'
+                : '🔄 Refresh Stream'}
+            </button>
+
+            {/* Full screen for linked camera */}
+            {activeVideoSource === 'linked' && linkedCameraId && (
+              <button
+                onClick={() => handleEntityClick(linkedCameraId)}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--card-border)',
+                  background: 'var(--bg-secondary)',
+                  color: 'var(--text-primary)',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                }}
+              >
+                📺 Full Screen
+              </button>
             )}
+
+            {/* Get snapshot button */}
+            <button
+              onClick={fetchSnapshot}
+              disabled={snapshotLoading}
+              style={{
+                padding: '10px 20px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--card-border)',
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-primary)',
+                cursor: snapshotLoading ? 'wait' : 'pointer',
+                fontWeight: 500,
+              }}
+            >
+              {snapshotLoading ? '⏳...' : '📷 Snapshot'}
+            </button>
+
+            {/* Link/config camera button */}
+            <button
+              onClick={() => setShowCameraConfig(true)}
+              style={{
+                padding: '10px 20px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--card-border)',
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                fontWeight: 500,
+              }}
+            >
+              ⚙️ {linkedCameraId ? 'Change' : 'Link'} Camera
+            </button>
+
             {cloudVideoUrl && (
               <button
                 onClick={openInDashboard}
@@ -1200,25 +1513,11 @@ const DeviceView: React.FC<DeviceViewProps> = ({
             </thead>
             <tbody>
               {filteredEntities.map((entity) => (
-                <tr
+                <EntityRow
                   key={entity.entity_id}
-                  className="device-row"
+                  entity={entity}
                   onClick={() => handleEntityClick(entity.entity_id)}
-                >
-                  <td>{entity.name}</td>
-                  <td
-                    style={{
-                      fontFamily: 'monospace',
-                      fontSize: '13px',
-                      color: 'var(--text-muted)',
-                    }}
-                  >
-                    {entity.entity_id}
-                  </td>
-                  <td>
-                    <span className="detail-badge">{entity.state}</span>
-                  </td>
-                </tr>
+                />
               ))}
             </tbody>
           </table>
@@ -1239,61 +1538,13 @@ const DeviceView: React.FC<DeviceViewProps> = ({
             </thead>
             <tbody>
               {deviceClients.slice(0, 10).map((client) => (
-                <tr
+                <DeviceClientRow
                   key={client.id || client.mac}
-                  className="device-row"
+                  client={client}
                   onClick={() =>
                     setActiveView({ view: 'clients', clientId: client.id })
                   }
-                  style={{ cursor: 'pointer' }}
-                >
-                  <td>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                      }}
-                    >
-                      <span style={{ fontSize: '18px' }}>
-                        {client.os?.toLowerCase().includes('ios') ||
-                        client.manufacturer?.toLowerCase().includes('apple')
-                          ? '📱'
-                          : client.os?.toLowerCase().includes('windows')
-                          ? '💻'
-                          : '🔌'}
-                      </span>
-                      <div>
-                        <div style={{ fontWeight: 500 }}>
-                          {client.description || client.mac}
-                        </div>
-                        {client.manufacturer && (
-                          <div
-                            style={{
-                              fontSize: '12px',
-                              color: 'var(--text-muted)',
-                            }}
-                          >
-                            {client.manufacturer}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  {client.ip && (
-                    <td style={{ fontFamily: 'monospace', fontSize: '13px' }}>
-                      {client.ip}
-                    </td>
-                  )}
-                  {!client.ip && <td></td>}
-                  <td>
-                    {(client.ssid || client.switchport) && (
-                      <span className="detail-badge">
-                        {client.ssid || client.switchport}
-                      </span>
-                    )}
-                  </td>
-                </tr>
+                />
               ))}
             </tbody>
           </table>
@@ -1346,71 +1597,7 @@ const DeviceView: React.FC<DeviceViewProps> = ({
                   {device.basicServiceSets
                     .filter((bss) => bss.enabled)
                     .map((bss, idx) => (
-                      <tr key={`bss-${idx}`}>
-                        <td>
-                          <div style={{ fontWeight: 500 }}>
-                            {bss.ssidName || `SSID ${bss.ssidNumber}`}
-                          </div>
-                          {bss.bssid && (
-                            <div
-                              style={{
-                                fontSize: '11px',
-                                color: 'var(--text-muted)',
-                                fontFamily: 'monospace',
-                              }}
-                            >
-                              {bss.bssid}
-                            </div>
-                          )}
-                        </td>
-                        <td>
-                          <span
-                            className="detail-badge"
-                            style={{
-                              background: bss.band?.includes('2.4')
-                                ? 'rgba(245, 158, 11, 0.15)'
-                                : 'rgba(6, 182, 212, 0.15)',
-                              color: bss.band?.includes('2.4')
-                                ? 'var(--warning)'
-                                : 'var(--primary)',
-                            }}
-                          >
-                            {bss.band}
-                          </span>
-                        </td>
-                        <td>{bss.channel}</td>
-                        <td>{bss.channelWidth}</td>
-                        <td style={{ color: 'var(--warning)' }}>
-                          {bss.power}
-                        </td>
-                        <td>
-                          <span
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              color: bss.broadcasting
-                                ? 'var(--success)'
-                                : 'var(--text-muted)',
-                            }}
-                          >
-                            <span
-                              style={{
-                                width: '8px',
-                                height: '8px',
-                                borderRadius: '50%',
-                                background: bss.broadcasting
-                                  ? 'var(--success)'
-                                  : 'var(--text-muted)',
-                                boxShadow: bss.broadcasting
-                                  ? '0 0 8px var(--success)'
-                                  : 'none',
-                              }}
-                            ></span>
-                            {bss.broadcasting ? 'Broadcasting' : 'Off'}
-                          </span>
-                        </td>
-                      </tr>
+                      <BSSRow key={`bss-${idx}`} bss={bss} index={idx} />
                     ))}
                 </tbody>
               </table>
@@ -1448,5 +1635,46 @@ const DeviceView: React.FC<DeviceViewProps> = ({
     </div>
   );
 };
+
+// Memoize DeviceView to prevent unnecessary re-renders
+const DeviceView = memo(DeviceViewComponent, (prevProps, nextProps) => {
+  // Only re-render if the viewed device or its data changed
+  if (prevProps.activeView.deviceId !== nextProps.activeView.deviceId) {
+    return false; // Different device selected
+  }
+
+  // Find the current device in both props
+  const prevDevice = prevProps.data.devices.find(
+    (d) => d.serial === prevProps.activeView.deviceId
+  );
+  const nextDevice = nextProps.data.devices.find(
+    (d) => d.serial === nextProps.activeView.deviceId
+  );
+
+  // Compare device status
+  if (prevDevice?.status !== nextDevice?.status) {
+    return false;
+  }
+
+  // Compare port count for switches
+  if (
+    prevDevice?.ports_statuses?.length !== nextDevice?.ports_statuses?.length
+  ) {
+    return false;
+  }
+
+  // Compare client count
+  const prevClients = prevProps.data.clients?.filter(
+    (c) => c.recentDeviceSerial === prevDevice?.serial
+  ).length;
+  const nextClients = nextProps.data.clients?.filter(
+    (c) => c.recentDeviceSerial === nextDevice?.serial
+  ).length;
+  if (prevClients !== nextClients) {
+    return false;
+  }
+
+  return true; // No meaningful changes
+});
 
 export default DeviceView;

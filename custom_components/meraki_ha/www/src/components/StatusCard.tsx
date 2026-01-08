@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 interface StatusCardProps {
   title: string;
@@ -9,7 +9,7 @@ interface StatusCardProps {
   clickable?: boolean;
 }
 
-const StatusCard: React.FC<StatusCardProps> = ({
+const StatusCardComponent: React.FC<StatusCardProps> = ({
   title,
   value,
   icon,
@@ -33,5 +33,8 @@ const StatusCard: React.FC<StatusCardProps> = ({
     </div>
   );
 };
+
+// Memoize StatusCard - re-render only when value changes
+const StatusCard = memo(StatusCardComponent);
 
 export default StatusCard;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo, useCallback } from 'react';
 
 interface Client {
   id: string;
@@ -32,7 +32,71 @@ interface ClientsViewProps {
   onBack: () => void;
 }
 
-const ClientsView: React.FC<ClientsViewProps> = ({
+/**
+ * Memoized client row - only re-renders when this specific client changes
+ */
+interface ClientRowProps {
+  client: Client;
+  onClick: () => void;
+  getClientIcon: (client: Client) => string;
+  formatBytes: (bytes: number) => string;
+}
+
+const ClientRow = memo<ClientRowProps>(
+  ({ client, onClick, getClientIcon, formatBytes }) => (
+    <tr className="device-row" onClick={onClick}>
+      <td>
+        <div className="device-name-cell">
+          <div className="device-icon text-xl">{getClientIcon(client)}</div>
+          <div>
+            <span className="name">{client.description || client.mac}</span>
+            {client.os && (
+              <div className="text-sm text-muted">{client.os}</div>
+            )}
+          </div>
+        </div>
+      </td>
+      <td className="device-model">{client.ip || '—'}</td>
+      <td className="device-model text-mono text-sm">{client.mac}</td>
+      <td className="device-model">{client.manufacturer || '—'}</td>
+      <td>
+        <span className="detail-badge">
+          {client.ssid || client.switchport || '—'}
+        </span>
+      </td>
+      <td>
+        {client.usage ? (
+          <span className="text-sm">
+            ↑{formatBytes(client.usage.sent)} ↓{formatBytes(client.usage.recv)}
+          </span>
+        ) : (
+          '—'
+        )}
+      </td>
+    </tr>
+  ),
+  (prevProps, nextProps) => {
+    const prev = prevProps.client;
+    const next = nextProps.client;
+
+    // Only re-render if this client's data changed
+    if (prev.id !== next.id) return false;
+    if (prev.mac !== next.mac) return false;
+    if (prev.ip !== next.ip) return false;
+    if (prev.description !== next.description) return false;
+    if (prev.status !== next.status) return false;
+    if (prev.ssid !== next.ssid) return false;
+    if (prev.switchport !== next.switchport) return false;
+    if (prev.usage?.sent !== next.usage?.sent) return false;
+    if (prev.usage?.recv !== next.usage?.recv) return false;
+
+    return true; // No changes, skip re-render
+  }
+);
+
+ClientRow.displayName = 'ClientRow';
+
+const ClientsViewComponent: React.FC<ClientsViewProps> = ({
   clients,
   setActiveView,
   onBack,
@@ -53,21 +117,22 @@ const ClientsView: React.FC<ClientsViewProps> = ({
     );
   });
 
-  const formatBytes = (bytes: number): string => {
+  // Memoized helper functions to prevent ClientRow re-renders
+  const formatBytes = useCallback((bytes: number): string => {
     if (bytes === 0) return '0 B';
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+  }, []);
 
-  const formatDate = (dateString?: string): string => {
+  const formatDate = useCallback((dateString?: string): string => {
     if (!dateString) return '—';
     const date = new Date(dateString);
     return date.toLocaleString();
-  };
+  }, []);
 
-  const getClientIcon = (client: Client): string => {
+  const getClientIcon = useCallback((client: Client): string => {
     const os = client.os?.toLowerCase() || '';
     const manufacturer = client.manufacturer?.toLowerCase() || '';
 
@@ -80,7 +145,12 @@ const ClientsView: React.FC<ClientsViewProps> = ({
     if (manufacturer.includes('roku')) return '📺';
     if (manufacturer.includes('samsung')) return '📺';
     return '🔌';
-  };
+  }, []);
+
+  // Memoized click handler
+  const handleClientClick = useCallback((client: Client) => {
+    setSelectedClient(client);
+  }, []);
 
   if (selectedClient) {
     return (
@@ -325,47 +395,13 @@ const ClientsView: React.FC<ClientsViewProps> = ({
           </thead>
           <tbody>
             {filteredClients.map((client) => (
-              <tr
+              <ClientRow
                 key={client.id || client.mac}
-                className="device-row"
-                onClick={() => setSelectedClient(client)}
-              >
-                <td>
-                  <div className="device-name-cell">
-                    <div className="device-icon text-xl">
-                      {getClientIcon(client)}
-                    </div>
-                    <div>
-                      <span className="name">
-                        {client.description || client.mac}
-                      </span>
-                      {client.os && (
-                        <div className="text-sm text-muted">{client.os}</div>
-                      )}
-                    </div>
-                  </div>
-                </td>
-                <td className="device-model">{client.ip || '—'}</td>
-                <td className="device-model text-mono text-sm">
-                  {client.mac}
-                </td>
-                <td className="device-model">{client.manufacturer || '—'}</td>
-                <td>
-                  <span className="detail-badge">
-                    {client.ssid || client.switchport || '—'}
-                  </span>
-                </td>
-                <td>
-                  {client.usage ? (
-                    <span className="text-sm">
-                      ↑{formatBytes(client.usage.sent)} ↓
-                      {formatBytes(client.usage.recv)}
-                    </span>
-                  ) : (
-                    '—'
-                  )}
-                </td>
-              </tr>
+                client={client}
+                onClick={() => handleClientClick(client)}
+                getClientIcon={getClientIcon}
+                formatBytes={formatBytes}
+              />
             ))}
             {filteredClients.length === 0 && (
               <tr>
@@ -382,5 +418,17 @@ const ClientsView: React.FC<ClientsViewProps> = ({
     </div>
   );
 };
+
+// Memoize ClientsView to prevent unnecessary re-renders
+const ClientsView = memo(ClientsViewComponent, (prevProps, nextProps) => {
+  // Only re-render if clients array changed
+  if (prevProps.clients.length !== nextProps.clients.length) {
+    return false;
+  }
+  // Compare client IDs
+  const prevIds = prevProps.clients.map((c) => c.id).join('|');
+  const nextIds = nextProps.clients.map((c) => c.id).join('|');
+  return prevIds === nextIds;
+});
 
 export default ClientsView;

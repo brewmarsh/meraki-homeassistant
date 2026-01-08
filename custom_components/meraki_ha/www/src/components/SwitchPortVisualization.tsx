@@ -1,4 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, memo, useCallback } from 'react';
+
+/**
+ * Individual port icon - memoized to only re-render when this specific port changes
+ */
+interface PortIconProps {
+  port: PortStatus;
+  isSelected: boolean;
+  onClick: () => void;
+}
+
+const PortIcon = memo<PortIconProps>(
+  ({ port, isSelected, onClick }) => {
+    const isConnected = port.status?.toLowerCase() === 'connected';
+    const hasPoe =
+      port.poe?.isAllocated === true || port.poe?.enabled === true;
+
+    return (
+      <div
+        className={`port ${isConnected ? 'connected' : ''} ${
+          isSelected ? 'selected' : ''
+        }`}
+        onClick={onClick}
+        title={`Port ${port.portId}${
+          port.clientName ? ` - ${port.clientName}` : ''
+        }`}
+      >
+        <span className="num">{port.portId}</span>
+        {hasPoe && <span className="poe">⚡</span>}
+      </div>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Only re-render if this specific port's relevant data changed
+    const prevPort = prevProps.port;
+    const nextPort = nextProps.port;
+
+    // Check selection state
+    if (prevProps.isSelected !== nextProps.isSelected) return false;
+
+    // Check port status
+    if (prevPort.status !== nextPort.status) return false;
+
+    // Check PoE status
+    if (prevPort.poe?.isAllocated !== nextPort.poe?.isAllocated) return false;
+    if (prevPort.poe?.enabled !== nextPort.poe?.enabled) return false;
+
+    // Check client name (for tooltip)
+    if (prevPort.clientName !== nextPort.clientName) return false;
+
+    return true; // No changes, skip re-render
+  }
+);
+
+PortIcon.displayName = 'PortIcon';
 
 interface PortStatus {
   portId: string;
@@ -64,7 +118,9 @@ interface SwitchPortVisualizationProps {
   onClientClick?: (clientId: string) => void;
 }
 
-const SwitchPortVisualization: React.FC<SwitchPortVisualizationProps> = ({
+const SwitchPortVisualizationComponent: React.FC<
+  SwitchPortVisualizationProps
+> = ({
   deviceName: _deviceName,
   model,
   ports,
@@ -72,6 +128,11 @@ const SwitchPortVisualization: React.FC<SwitchPortVisualizationProps> = ({
   onClientClick,
 }) => {
   const [selectedPort, setSelectedPort] = useState<PortStatus | null>(null);
+
+  // Memoize the click handler to prevent unnecessary re-renders of PortIcon
+  const handlePortClick = useCallback((port: PortStatus) => {
+    setSelectedPort(port);
+  }, []);
 
   // Get clients connected to a specific port
   // Handles various switchport formats:
@@ -169,19 +230,12 @@ const SwitchPortVisualization: React.FC<SwitchPortVisualizationProps> = ({
           </div>
           <div className="ports-row">
             {ports.map((port) => (
-              <div
+              <PortIcon
                 key={port.portId}
-                className={`port ${isConnected(port) ? 'connected' : ''} ${
-                  selectedPort?.portId === port.portId ? 'selected' : ''
-                }`}
-                onClick={() => setSelectedPort(port)}
-                title={`Port ${port.portId}${
-                  port.clientName ? ` - ${port.clientName}` : ''
-                }`}
-              >
-                <span className="num">{port.portId}</span>
-                {hasPoe(port) && <span className="poe">⚡</span>}
-              </div>
+                port={port}
+                isSelected={selectedPort?.portId === port.portId}
+                onClick={() => handlePortClick(port)}
+              />
             ))}
           </div>
         </div>
@@ -445,5 +499,26 @@ const SwitchPortVisualization: React.FC<SwitchPortVisualizationProps> = ({
     </div>
   );
 };
+
+// Memoize SwitchPortVisualization to prevent unnecessary re-renders
+const SwitchPortVisualization = memo(
+  SwitchPortVisualizationComponent,
+  (prevProps, nextProps) => {
+    // Re-render if ports or clients change
+    if (prevProps.ports.length !== nextProps.ports.length) return false;
+    if (prevProps.clients?.length !== nextProps.clients?.length) return false;
+
+    // Compare connected port count
+    const prevConnected = prevProps.ports.filter(
+      (p) => p.status?.toLowerCase() === 'connected'
+    ).length;
+    const nextConnected = nextProps.ports.filter(
+      (p) => p.status?.toLowerCase() === 'connected'
+    ).length;
+    if (prevConnected !== nextConnected) return false;
+
+    return true;
+  }
+);
 
 export default SwitchPortVisualization;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import QRCode from 'react-qr-code';
 
 interface TimedAccessKey {
@@ -9,6 +9,51 @@ interface TimedAccessKey {
   passphrase: string;
   expires_at: string;
 }
+
+// Memoized guest key card - only re-renders when this key changes
+interface GuestKeyCardProps {
+  accessKey: TimedAccessKey;
+  ssidName: string;
+  onDelete: () => void;
+  formatExpiry: (iso: string) => string;
+}
+
+const GuestKeyCard = memo<GuestKeyCardProps>(
+  ({ accessKey, ssidName, onDelete, formatExpiry }) => {
+    const wifiString = `WIFI:T:WPA;S:${ssidName};P:${accessKey.passphrase};;`;
+
+    return (
+      <div className="guest-key-card">
+        <div className="guest-key-header">
+          <div>
+            <div className="guest-key-name">{accessKey.name}</div>
+            <div className="text-sm text-muted">{ssidName}</div>
+          </div>
+          <button onClick={onDelete} className="btn-revoke">
+            Revoke
+          </button>
+        </div>
+
+        <div className="guest-key-passphrase">{accessKey.passphrase}</div>
+
+        <div className="guest-key-footer">
+          <div className="guest-key-expiry">
+            {formatExpiry(accessKey.expires_at)}
+          </div>
+          <div className="guest-key-qr">
+            <QRCode value={wifiString} size={64} />
+          </div>
+        </div>
+      </div>
+    );
+  },
+  (prev, next) =>
+    prev.accessKey.identity_psk_id === next.accessKey.identity_psk_id &&
+    prev.accessKey.name === next.accessKey.name &&
+    prev.accessKey.passphrase === next.accessKey.passphrase &&
+    prev.accessKey.expires_at === next.accessKey.expires_at &&
+    prev.ssidName === next.ssidName
+);
 
 interface GroupPolicy {
   groupPolicyId: string;
@@ -131,15 +176,15 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
     return data?.ssids?.filter((s: any) => s.networkId === networkId) || [];
   };
 
-  // Format expiry
-  const formatExpiry = (iso: string) => {
+  // Format expiry - wrapped in useCallback for stable reference
+  const formatExpiry = useCallback((iso: string) => {
     const date = new Date(iso);
     const now = new Date();
     const diff = date.getTime() - now.getTime();
     if (diff <= 0) return 'Expired';
     const minutes = Math.floor(diff / 60000);
     return `${minutes} mins left (${date.toLocaleTimeString()})`;
-  };
+  }, []);
 
   return (
     <div className="settings-overlay">
@@ -273,41 +318,15 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
                       getSsidsForNetwork(key.network_id).find(
                         (s: any) => s.number.toString() === key.ssid_number
                       )?.name || `SSID ${key.ssid_number}`;
-                    const wifiString = `WIFI:T:WPA;S:${ssidName};P:${key.passphrase};;`;
 
                     return (
-                      <div
+                      <GuestKeyCard
                         key={key.identity_psk_id}
-                        className="guest-key-card"
-                      >
-                        <div className="guest-key-header">
-                          <div>
-                            <div className="guest-key-name">{key.name}</div>
-                            <div className="text-sm text-muted">
-                              {ssidName}
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => handleDelete(key)}
-                            className="btn-revoke"
-                          >
-                            Revoke
-                          </button>
-                        </div>
-
-                        <div className="guest-key-passphrase">
-                          {key.passphrase}
-                        </div>
-
-                        <div className="guest-key-footer">
-                          <div className="guest-key-expiry">
-                            {formatExpiry(key.expires_at)}
-                          </div>
-                          <div className="guest-key-qr">
-                            <QRCode value={wifiString} size={64} />
-                          </div>
-                        </div>
-                      </div>
+                        accessKey={key}
+                        ssidName={ssidName}
+                        onDelete={() => handleDelete(key)}
+                        formatExpiry={formatExpiry}
+                      />
                     );
                   })}
                 </div>

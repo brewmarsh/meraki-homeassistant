@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 
 interface EventLogProps {
   hass: any;
@@ -16,6 +16,40 @@ interface MerakiEvent {
   deviceSerial?: string;
   deviceName?: string;
 }
+
+// Memoized event row - only re-renders when this event changes
+interface EventRowProps {
+  event: MerakiEvent;
+}
+
+const EventRow = memo<EventRowProps>(
+  ({ event }) => (
+    <tr>
+      <td className="text-mono text-sm">
+        {new Date(event.occurredAt).toLocaleString()}
+      </td>
+      <td>
+        <span className="detail-badge">{event.type}</span>
+      </td>
+      <td>{event.description}</td>
+      <td className="text-muted">
+        {event.clientDescription ||
+          event.deviceName ||
+          event.clientId ||
+          event.deviceSerial ||
+          '—'}
+      </td>
+    </tr>
+  ),
+  (prev, next) =>
+    prev.event.occurredAt === next.event.occurredAt &&
+    prev.event.type === next.event.type &&
+    prev.event.description === next.event.description &&
+    prev.event.clientDescription === next.event.clientDescription &&
+    prev.event.deviceName === next.event.deviceName &&
+    prev.event.clientId === next.event.clientId &&
+    prev.event.deviceSerial === next.event.deviceSerial
+);
 
 const EventLog: React.FC<EventLogProps> = ({
   hass,
@@ -119,22 +153,7 @@ const EventLog: React.FC<EventLogProps> = ({
           </thead>
           <tbody>
             {events.map((event, index) => (
-              <tr key={index}>
-                <td className="text-mono text-sm">
-                  {new Date(event.occurredAt).toLocaleString()}
-                </td>
-                <td>
-                  <span className="detail-badge">{event.type}</span>
-                </td>
-                <td>{event.description}</td>
-                <td className="text-muted">
-                  {event.clientDescription ||
-                    event.deviceName ||
-                    event.clientId ||
-                    event.deviceSerial ||
-                    '—'}
-                </td>
-              </tr>
+              <EventRow key={`${event.occurredAt}-${index}`} event={event} />
             ))}
           </tbody>
         </table>

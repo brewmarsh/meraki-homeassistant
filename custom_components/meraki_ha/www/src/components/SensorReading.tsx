@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 interface SensorReadingProps {
   type:
@@ -20,7 +20,7 @@ interface SensorReadingProps {
   temperatureUnit?: 'celsius' | 'fahrenheit';
 }
 
-const SensorReading: React.FC<SensorReadingProps> = ({
+const SensorReadingComponent: React.FC<SensorReadingProps> = ({
   type,
   value,
   unit,
@@ -240,5 +240,8 @@ const SensorReading: React.FC<SensorReadingProps> = ({
     </div>
   );
 };
+
+// Memoize SensorReading - re-render only when value or status changes
+const SensorReading = memo(SensorReadingComponent);
 
 export default SensorReading;

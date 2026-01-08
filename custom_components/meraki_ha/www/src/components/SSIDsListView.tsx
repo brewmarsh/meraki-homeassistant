@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 
 interface SSID {
   number: number;
@@ -27,7 +27,68 @@ interface SSIDsListViewProps {
   onSSIDClick: (ssid: SSID) => void;
 }
 
-const SSIDsListView: React.FC<SSIDsListViewProps> = ({
+/**
+ * Memoized SSID row - only re-renders when this specific SSID changes
+ */
+interface SSIDRowProps {
+  ssid: SSID;
+  clientCount: number;
+  onClick: () => void;
+}
+
+const SSIDRow = memo<SSIDRowProps>(
+  ({ ssid, clientCount, onClick }) => (
+    <tr
+      key={`${ssid.networkId}-${ssid.number}`}
+      onClick={onClick}
+      className="device-row"
+    >
+      <td>
+        <div className="ssid-name-cell">
+          <span className="ssid-icon">{ssid.enabled ? '🔒' : '📶'}</span>
+          <span className="ssid-name">{ssid.name}</span>
+        </div>
+      </td>
+      <td>
+        <span className="number-badge">#{ssid.number}</span>
+      </td>
+      <td>
+        <span
+          className={`status-badge ${ssid.enabled ? 'enabled' : 'disabled'}`}
+        >
+          <span className="dot" />
+          {ssid.enabled ? 'Broadcasting' : 'Disabled'}
+        </span>
+      </td>
+      <td>
+        {clientCount > 0 ? (
+          <span className="client-count text-primary">
+            {clientCount} {clientCount === 1 ? 'client' : 'clients'}
+          </span>
+        ) : (
+          <span className="text-muted">No clients</span>
+        )}
+      </td>
+      <td className="arrow-cell">
+        <span className="arrow-indicator">→</span>
+      </td>
+    </tr>
+  ),
+  (prevProps, nextProps) => {
+    // Only re-render if this SSID's data changed
+    if (prevProps.ssid.number !== nextProps.ssid.number) return false;
+    if (prevProps.ssid.networkId !== nextProps.ssid.networkId) return false;
+    if (prevProps.ssid.enabled !== nextProps.ssid.enabled) return false;
+    if (prevProps.ssid.name !== nextProps.ssid.name) return false;
+    if (prevProps.clientCount !== nextProps.clientCount) return false;
+
+    return true; // No changes, skip re-render
+  }
+);
+
+SSIDRow.displayName = 'SSIDRow';
+
+const SSIDsListViewComponent: React.FC<SSIDsListViewProps> = ({
   ssids,
   clients,
   networks,
@@ -47,14 +108,20 @@ const SSIDsListView: React.FC<SSIDsListViewProps> = ({
     {} as Record<string, SSID[]>
   );
 
-  const getNetworkName = (networkId: string): string => {
-    const network = networks.find((n) => n.id === networkId);
-    return network?.name || networkId;
-  };
+  const getNetworkName = useCallback(
+    (networkId: string): string => {
+      const network = networks.find((n) => n.id === networkId);
+      return network?.name || networkId;
+    },
+    [networks]
+  );
 
-  const getClientCount = (ssidName: string): number => {
-    return clients.filter((c) => c.ssid === ssidName).length;
-  };
+  const getClientCount = useCallback(
+    (ssidName: string): number => {
+      return clients.filter((c) => c.ssid === ssidName).length;
+    },
+    [clients]
+  );
 
   const enabledCount = ssids.filter((s) => s.enabled).length;
   const totalClients = ssids.reduce(
@@ -110,51 +177,14 @@ const SSIDsListView: React.FC<SSIDsListViewProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {networkSSIDs.map((ssid) => {
-                  const clientCount = getClientCount(ssid.name);
-                  return (
-                    <tr
-                      key={`${ssid.networkId}-${ssid.number}`}
-                      onClick={() => onSSIDClick(ssid)}
-                      className="device-row"
-                    >
-                      <td>
-                        <div className="ssid-name-cell">
-                          <span className="ssid-icon">
-                            {ssid.enabled ? '🔒' : '📶'}
-                          </span>
-                          <span className="ssid-name">{ssid.name}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="number-badge">#{ssid.number}</span>
-                      </td>
-                      <td>
-                        <span
-                          className={`status-badge ${
-                            ssid.enabled ? 'enabled' : 'disabled'
-                          }`}
-                        >
-                          <span className="dot" />
-                          {ssid.enabled ? 'Broadcasting' : 'Disabled'}
-                        </span>
-                      </td>
-                      <td>
-                        {clientCount > 0 ? (
-                          <span className="client-count text-primary">
-                            {clientCount}{' '}
-                            {clientCount === 1 ? 'client' : 'clients'}
-                          </span>
-                        ) : (
-                          <span className="text-muted">No clients</span>
-                        )}
-                      </td>
-                      <td className="arrow-cell">
-                        <span className="arrow-indicator">→</span>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {networkSSIDs.map((ssid) => (
+                  <SSIDRow
+                    key={`${ssid.networkId}-${ssid.number}`}
+                    ssid={ssid}
+                    clientCount={getClientCount(ssid.name)}
+                    onClick={() => onSSIDClick(ssid)}
+                  />
+                ))}
               </tbody>
             </table>
           </div>
@@ -173,5 +203,19 @@ const SSIDsListView: React.FC<SSIDsListViewProps> = ({
     </div>
   );
 };
+
+// Memoize SSIDsListView to prevent unnecessary re-renders
+const SSIDsListView = memo(SSIDsListViewComponent, (prevProps, nextProps) => {
+  // Re-render if SSID count or enabled status changes
+  if (prevProps.ssids.length !== nextProps.ssids.length) return false;
+  if (prevProps.clients.length !== nextProps.clients.length) return false;
+
+  // Compare SSID enabled states
+  const prevEnabled = prevProps.ssids.filter((s) => s.enabled).length;
+  const nextEnabled = nextProps.ssids.filter((s) => s.enabled).length;
+  if (prevEnabled !== nextEnabled) return false;
+
+  return true;
+});
 
 export default SSIDsListView;
