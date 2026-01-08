@@ -545,16 +545,17 @@ def generate_screenshots() -> None:
             page = browser.new_page(viewport={"width": 1400, "height": 1000})
             page.goto(f"http://localhost:{TEST_PORT}/screenshot.html")
 
-            # Wait for panel to be ready
+            # Wait for panel to be ready and data to load
             page.wait_for_function("window.__PANEL_READY__ === true", timeout=30000)
-            page.wait_for_timeout(2000)  # Allow rendering
+            # Wait for Settings button which only appears after data loads
+            page.wait_for_selector(".settings-btn", state="visible", timeout=30000)
+            page.wait_for_timeout(500)  # Allow rendering
 
             page.screenshot(path=str(SCREENSHOT_DIR / "dashboard_view.png"))
             print(f"  Saved: {SCREENSHOT_DIR / 'dashboard_view.png'}")
 
             # Screenshot 2: Settings View
             print("Capturing Settings view...")
-            # Click on the Settings button (uses class selector for reliability)
             page.click(".settings-btn")
             page.wait_for_timeout(1500)
             # Set larger viewport to capture the full modal
