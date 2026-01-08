@@ -30,7 +30,7 @@ jobs:
       - name: Archive venv
         run: tar -czf venv.tar.gz .venv
       - name: Upload venv artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: venv
           path: venv.tar.gz
