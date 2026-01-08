@@ -1,35 +1,33 @@
-# `AGENTS.md`: AI Agent Guidelines
+# 🤖 AGENTS.md: AI Agent Guidelines
 
-**This document is for AI agents working on this codebase.** Human developers should refer to the `DEVELOPMENT.md` file for instructions.
+**This document is for AI agents (Jules, Claude Code, Cursor) working on the Meraki HA codebase.** ## 1. Core Mission & Project Context
+Your goal is to assist in modernizing the Meraki Home Assistant integration for the **2026.1 Infrastructure Update**.
+- **Domain:** Home Assistant Integration (`meraki_ha`).
+- **Language:** Python 3.13+ using `homeassistant.core`.
+- **Target:** High-scale Cisco Meraki environments.
 
-## 1. Core Mission
+## 2. 2026.1 Mandatory Conventions
+You must strictly adhere to these architectural rules:
+1. **Naming:** Always use `has_entity_name = True`. Do not prefix entity names with the device name.
+2. **Case:** All UI strings must use **Sentence case** (e.g., "Client count", not "Client Count").
+3. **Categorization:** Technical metadata (Serial numbers, IPs, Firmware) MUST be set to `EntityCategory.DIAGNOSTIC`.
+4. **Translations:** `strings.json` is the source of truth. Ensure any new entity keys are added there first.
 
-Your primary goal is to assist human developers by performing well-defined tasks, such as fixing bugs, adding features, and refactoring code. You must do so in a way that is consistent with the project's standards and conventions.
+## 3. Tool Usage & Reliability
+- **Verification:** Always use `read_file` to get exact content before attempting a `replace` or `write`.
+- **Context:** Use the `replace` tool with sufficient surrounding context to avoid accidental duplicate edits.
+- **Diagnostics:** If you use `run_shell_command`, only log or act upon errors within the `meraki_ha` namespace. Ignore unrelated system or HACS errors.
 
-## 2. Onboarding & Project-Specifics
+## 4. Onboarding & References
+Before starting any task, you **must** review:
+- **`ROADMAP.md`**: For the specific phase requirements.
+- **`jules.yaml`**: For current branch and milestone logic.
+- **`manifest.json`**: To verify versioning and requirements.
 
-Before starting any task, you **must** familiarize yourself with the project by reviewing the following files:
+## 5. Code Contributions
+- **Style:** Follow PEP8 and Home Assistant `async/await` patterns.
+- **Commits:** Use **Conventional Commits** (e.g., `feat:`, `fix:`, `refactor:`).
+- **PRs:** Use the provided PR template and fill out the checklist completely.
 
-- **`README.md`**: To understand the project's purpose and high-level structure.
-- **`DEVELOPMENT.md`**: To understand the development environment, coding standards, and architectural principles.
-- **`pyproject.toml`** or **`package.json`**: To understand the project's dependencies and available scripts.
-
-## 3. Tool Usage
-
-- **Be precise with your tool calls.** Do not use vague or ambiguous parameters.
-- **Use the `read_file` tool** to get the exact content of a file before modifying it.
-- **Use the `replace` tool** for making targeted changes to files. Be sure to provide enough context in the `old_string` to avoid ambiguity.
-- **Use the `run_shell_command` tool** for running commands. Be mindful of the user's operating system and use the correct syntax.
-- **When in doubt, ask.** If you are unsure about how to proceed, or if a user's request is ambiguous, ask for clarification.
-
-## 4. Code Contributions
-
-- **Follow all coding standards and best practices** outlined in the `DEVELOPMENT.md` file.
-- **Run all quality checks** before submitting your changes.
-- **Write clear and concise commit messages** that follow the Conventional Commits format.
-
-## 5. Self-Correction and Learning
-
-- If you make a mistake, acknowledge it and correct it.
-- If you discover a new technique or a better way of doing something, incorporate it into your future work.
-- If you encounter a new tool or a new version of a tool, read its documentation to understand how to use it correctly.
+---
+*Self-Correction: If a task conflicts with Home Assistant Core design guidelines, prioritize the Core guidelines and inform the human developer.*
