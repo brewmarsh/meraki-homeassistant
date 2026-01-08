@@ -53,10 +53,15 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
 
         # Restore previous state on restart
         if (last_state := await self.async_get_last_state()) is not None:
+            # Skip invalid states like 'unknown', 'unavailable'
+            if last_state.state in ("unknown", "unavailable", None, ""):
+                self._restored_value = None
+                return
             # Try to restore numeric value for sensors
             try:
                 self._restored_value = float(last_state.state)
             except (ValueError, TypeError):
+                # For non-numeric sensors, store the string value
                 self._restored_value = last_state.state
 
     @property
@@ -154,16 +159,25 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
                         "apparentPower": "draw",
                         "voltage": "level",
                         "current": "draw",
+                        "powerFactor": "percentage",
+                        "frequency": "level",
+                        "energy": "usage",
                         "battery": "percentage",
                         "button": "pressType",
                         "indoorAirQuality": "score",
+                        "gateway_rssi": "rssi",
                     }
                     value_key = key_map.get(self.entity_description.key)
                     if value_key:
                         if value_key == "ambient":
-                            return metric_data.get("ambient", {}).get("level")
-                        return metric_data.get(value_key)
-        # Fall back to restored value
+                            value = metric_data.get("ambient", {}).get("level")
+                        else:
+                            value = metric_data.get(value_key)
+                        # Return None for invalid values to avoid HA errors
+                        if value is None or value == "unknown":
+                            return None
+                        return value
+        # Fall back to restored value (already filtered for 'unknown')
         return self._restored_value
 
     def _get_reading_timestamp(self) -> str | None:
