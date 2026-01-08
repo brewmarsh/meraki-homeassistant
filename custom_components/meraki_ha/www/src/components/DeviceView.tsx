@@ -154,11 +154,23 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
   >([]);
   const [linkedCameraId, setLinkedCameraId] = React.useState<string>('');
   const [showCameraConfig, setShowCameraConfig] = React.useState(false);
-  const [viewLinkedCamera, setViewLinkedCamera] = React.useState(false);
   const [linkedCameraUrl, setLinkedCameraUrl] = React.useState<string | null>(
     null
   );
   const [linkedCameraLoading, setLinkedCameraLoading] = React.useState(false);
+  const [linkedCameraFailed, setLinkedCameraFailed] = React.useState(false);
+
+  // RTSP stream state
+  const [rtspStreamUrl, setRtspStreamUrl] = React.useState<string | null>(
+    null
+  );
+  const [rtspLoading, setRtspLoading] = React.useState(false);
+  const [rtspFailed, setRtspFailed] = React.useState(false);
+
+  // Track which video source is active: 'linked' | 'rtsp' | 'snapshot' | 'none'
+  const [activeVideoSource, setActiveVideoSource] = React.useState<
+    'linked' | 'rtsp' | 'snapshot' | 'none'
+  >('none');
 
   // Use refs to avoid re-renders when hass object changes (happens on every HA state update)
   const hassRef = useRef(hass);
@@ -437,11 +449,12 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
       });
       setLinkedCameraId(entityId);
       setShowCameraConfig(false);
-      // If viewing linked camera, fetch the new signed URL
-      if (viewLinkedCamera && entityId) {
-        setLinkedCameraUrl(null);
-        // Delay slightly to ensure state is updated
-        setTimeout(() => fetchLinkedCameraUrl(), 100);
+      // Reset video state and reload stream with new camera
+      setLinkedCameraUrl(null);
+      setActiveVideoSource('none');
+      // Delay slightly to ensure state is updated, then load the stream
+      if (entityId) {
+        setTimeout(() => loadVideoStream(), 100);
       }
     } catch (err) {
       console.error('Failed to save camera mapping:', err);
@@ -449,11 +462,12 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
   };
 
   // Fetch signed camera stream URL from Home Assistant (MJPEG live stream)
-  const fetchLinkedCameraUrl = async () => {
+  const fetchLinkedCameraUrl = async (): Promise<boolean> => {
     const currentHass = hassRef.current;
-    if (!currentHass || !linkedCameraId) return;
+    if (!currentHass || !linkedCameraId) return false;
 
     setLinkedCameraLoading(true);
+    setLinkedCameraFailed(false);
     try {
       // Use camera_proxy_stream for live MJPEG video (not camera_proxy which is snapshot)
       const result = (await currentHass.callWS({
@@ -464,12 +478,71 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
 
       if (result?.path) {
         setLinkedCameraUrl(result.path);
+        setActiveVideoSource('linked');
+        return true;
       }
+      setLinkedCameraFailed(true);
+      return false;
     } catch (err) {
       console.error('Failed to get signed camera stream URL:', err);
       setLinkedCameraUrl(null);
+      setLinkedCameraFailed(true);
+      return false;
     } finally {
       setLinkedCameraLoading(false);
+    }
+  };
+
+  // Fetch RTSP stream URL from Meraki API
+  const fetchRtspStreamUrl = async (): Promise<boolean> => {
+    const currentHass = hassRef.current;
+    if (!currentHass || !device?.serial || !configEntryId) return false;
+
+    setRtspLoading(true);
+    setRtspFailed(false);
+    try {
+      const result = (await currentHass.callWS({
+        type: 'meraki_ha/get_rtsp_url',
+        config_entry_id: configEntryId,
+        serial: device.serial,
+      })) as { rtsp_url?: string };
+
+      if (result?.rtsp_url) {
+        setRtspStreamUrl(result.rtsp_url);
+        setActiveVideoSource('rtsp');
+        return true;
+      }
+      setRtspFailed(true);
+      return false;
+    } catch (err) {
+      console.error('Failed to get RTSP stream URL:', err);
+      setRtspStreamUrl(null);
+      setRtspFailed(true);
+      return false;
+    } finally {
+      setRtspLoading(false);
+    }
+  };
+
+  // Auto-load video stream with fallback chain: linked camera → RTSP → snapshot
+  const loadVideoStream = async () => {
+    // Try linked camera first
+    if (linkedCameraId) {
+      const linkedSuccess = await fetchLinkedCameraUrl();
+      if (linkedSuccess) return;
+    }
+
+    // Fallback to RTSP if available
+    if (device?.rtsp_url || device?.rtspEnabled) {
+      const rtspSuccess = await fetchRtspStreamUrl();
+      if (rtspSuccess) return;
+    }
+
+    // Final fallback to snapshot
+    if (snapshotUrl) {
+      setActiveVideoSource('snapshot');
+    } else {
+      setActiveVideoSource('none');
     }
   };
 
@@ -493,12 +566,19 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
     }
   }, [device?.serial, configEntryId]);
 
-  // Fetch signed URL when viewing linked camera
+  // Auto-load video stream when linked camera ID is available or changes
   React.useEffect(() => {
-    if (viewLinkedCamera && linkedCameraId && hassRef.current) {
-      fetchLinkedCameraUrl();
+    const isCameraDevice =
+      device &&
+      (device.model?.toUpperCase().startsWith('MV') ||
+        device.productType === 'camera');
+
+    if (isCameraDevice && hassRef.current) {
+      // Load video with fallback chain
+      loadVideoStream();
     }
-  }, [viewLinkedCamera, linkedCameraId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkedCameraId, device?.serial, snapshotUrl]);
 
   // Calculate PoE stats for switches
   const totalPoeEnergy = ports_statuses.reduce(
@@ -863,69 +943,90 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
               marginBottom: '16px',
             }}
           >
-            {linkedCameraId ? (
-              /* Live stream from linked camera entity */
-              linkedCameraLoading ? (
-                <div
+            {/* Loading state */}
+            {(linkedCameraLoading || rtspLoading) && (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--text-muted)',
+                  zIndex: 10,
+                }}
+              >
+                ⏳ Loading{' '}
+                {linkedCameraLoading ? 'linked camera' : 'RTSP stream'}...
+              </div>
+            )}
+
+            {/* Linked Camera Stream (highest priority) */}
+            {activeVideoSource === 'linked' && linkedCameraUrl && (
+              <img
+                src={linkedCameraUrl}
+                alt={`Live view: ${name || serial}`}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                }}
+                onError={() => {
+                  console.error(
+                    'Linked camera stream failed, trying fallback'
+                  );
+                  setLinkedCameraUrl(null);
+                  setLinkedCameraFailed(true);
+                  // Try RTSP fallback
+                  if (device?.rtsp_url || device?.rtspEnabled) {
+                    fetchRtspStreamUrl();
+                  } else if (snapshotUrl) {
+                    setActiveVideoSource('snapshot');
+                  } else {
+                    setActiveVideoSource('none');
+                  }
+                }}
+              />
+            )}
+
+            {/* RTSP Stream (second priority) */}
+            {activeVideoSource === 'rtsp' && rtspStreamUrl && (
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--text-muted)',
+                  gap: '12px',
+                }}
+              >
+                <span style={{ fontSize: '48px' }}>🎥</span>
+                <span>RTSP Stream Available</span>
+                <code
                   style={{
-                    position: 'absolute',
-                    inset: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'var(--text-muted)',
+                    fontSize: '11px',
+                    padding: '8px 12px',
+                    background: 'rgba(255,255,255,0.1)',
+                    borderRadius: 'var(--radius-sm)',
+                    maxWidth: '90%',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  ⏳ Loading stream...
-                </div>
-              ) : linkedCameraUrl ? (
-                <img
-                  src={linkedCameraUrl}
-                  alt={`Live view: ${name || serial}`}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain',
-                  }}
-                  onError={() => {
-                    console.error('Failed to load camera stream');
-                    setLinkedCameraUrl(null);
-                  }}
-                />
-              ) : (
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'var(--text-muted)',
-                    gap: '8px',
-                  }}
-                >
-                  <span style={{ fontSize: '48px' }}>📹</span>
-                  <span>Unable to load stream</span>
-                  <button
-                    onClick={() => fetchLinkedCameraUrl()}
-                    style={{
-                      marginTop: '8px',
-                      padding: '8px 16px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: 'none',
-                      background: 'var(--primary)',
-                      color: 'white',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                    }}
-                  >
-                    Retry
-                  </button>
-                </div>
-              )
-            ) : snapshotUrl ? (
-              /* Show snapshot if no linked camera */
+                  {rtspStreamUrl}
+                </code>
+                <span style={{ fontSize: '12px', opacity: 0.7 }}>
+                  Open this URL in VLC or a compatible player
+                </span>
+              </div>
+            )}
+
+            {/* Snapshot (third priority / fallback) */}
+            {activeVideoSource === 'snapshot' && snapshotUrl && (
               <img
                 src={snapshotUrl}
                 alt={`${name || serial} snapshot`}
@@ -935,39 +1036,84 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
                   objectFit: 'contain',
                 }}
               />
-            ) : (
-              /* No camera configured */
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--text-muted)',
-                  gap: '12px',
-                }}
-              >
-                <span style={{ fontSize: '48px' }}>📹</span>
-                <span>No live stream configured</span>
-                <button
-                  onClick={() => setShowCameraConfig(true)}
+            )}
+
+            {/* No video source available */}
+            {activeVideoSource === 'none' &&
+              !linkedCameraLoading &&
+              !rtspLoading && (
+                <div
                   style={{
-                    marginTop: '4px',
-                    padding: '8px 16px',
-                    borderRadius: 'var(--radius-sm)',
-                    border: 'none',
-                    background: 'var(--primary)',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontSize: '13px',
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--text-muted)',
+                    gap: '12px',
                   }}
                 >
-                  Link Camera Entity
-                </button>
-              </div>
-            )}
+                  <span style={{ fontSize: '48px' }}>📹</span>
+                  <span>No live stream available</span>
+                  <div
+                    style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}
+                  >
+                    <button
+                      onClick={() => loadVideoStream()}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: 'none',
+                        background: 'var(--primary)',
+                        color: 'white',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                      }}
+                    >
+                      🔄 Retry
+                    </button>
+                    <button
+                      onClick={() => setShowCameraConfig(true)}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--border)',
+                        background: 'transparent',
+                        color: 'var(--text-primary)',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                      }}
+                    >
+                      ⚙️ Link Camera
+                    </button>
+                  </div>
+                </div>
+              )}
+
+            {/* Video source indicator badge */}
+            {activeVideoSource !== 'none' &&
+              !linkedCameraLoading &&
+              !rtspLoading && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '8px',
+                    left: '8px',
+                    padding: '4px 8px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'rgba(0,0,0,0.6)',
+                    color: 'white',
+                    fontSize: '11px',
+                    fontWeight: 500,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {activeVideoSource === 'linked' && '● Live'}
+                  {activeVideoSource === 'rtsp' && '● RTSP'}
+                  {activeVideoSource === 'snapshot' && '📷 Snapshot'}
+                </div>
+              )}
           </div>
 
           {/* Action Buttons */}
@@ -979,57 +1125,77 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
               flexWrap: 'wrap',
             }}
           >
-            {linkedCameraId ? (
-              <>
-                <button
-                  onClick={() => fetchLinkedCameraUrl()}
-                  disabled={linkedCameraLoading}
-                  style={{
-                    padding: '10px 20px',
-                    borderRadius: 'var(--radius-md)',
-                    border: 'none',
-                    background: 'var(--primary)',
-                    color: 'white',
-                    cursor: linkedCameraLoading ? 'wait' : 'pointer',
-                    fontWeight: 500,
-                  }}
-                >
-                  {linkedCameraLoading ? '⏳ Loading...' : '🔄 Refresh Stream'}
-                </button>
-                <button
-                  onClick={() => handleEntityClick(linkedCameraId)}
-                  style={{
-                    padding: '10px 20px',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--card-border)',
-                    background: 'var(--bg-secondary)',
-                    color: 'var(--text-primary)',
-                    cursor: 'pointer',
-                    fontWeight: 500,
-                  }}
-                >
-                  📺 Full Screen
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={fetchSnapshot}
-                  disabled={snapshotLoading}
-                  style={{
-                    padding: '10px 20px',
-                    borderRadius: 'var(--radius-md)',
-                    border: 'none',
-                    background: 'var(--primary)',
-                    color: 'white',
-                    cursor: snapshotLoading ? 'wait' : 'pointer',
-                    fontWeight: 500,
-                  }}
-                >
-                  {snapshotLoading ? '⏳ Loading...' : '📷 Get Snapshot'}
-                </button>
-              </>
+            {/* Refresh button - always available */}
+            <button
+              onClick={() => loadVideoStream()}
+              disabled={linkedCameraLoading || rtspLoading}
+              style={{
+                padding: '10px 20px',
+                borderRadius: 'var(--radius-md)',
+                border: 'none',
+                background: 'var(--primary)',
+                color: 'white',
+                cursor:
+                  linkedCameraLoading || rtspLoading ? 'wait' : 'pointer',
+                fontWeight: 500,
+              }}
+            >
+              {linkedCameraLoading || rtspLoading
+                ? '⏳ Loading...'
+                : '🔄 Refresh Stream'}
+            </button>
+
+            {/* Full screen for linked camera */}
+            {activeVideoSource === 'linked' && linkedCameraId && (
+              <button
+                onClick={() => handleEntityClick(linkedCameraId)}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--card-border)',
+                  background: 'var(--bg-secondary)',
+                  color: 'var(--text-primary)',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                }}
+              >
+                📺 Full Screen
+              </button>
             )}
+
+            {/* Get snapshot button */}
+            <button
+              onClick={fetchSnapshot}
+              disabled={snapshotLoading}
+              style={{
+                padding: '10px 20px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--card-border)',
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-primary)',
+                cursor: snapshotLoading ? 'wait' : 'pointer',
+                fontWeight: 500,
+              }}
+            >
+              {snapshotLoading ? '⏳...' : '📷 Snapshot'}
+            </button>
+
+            {/* Link/config camera button */}
+            <button
+              onClick={() => setShowCameraConfig(true)}
+              style={{
+                padding: '10px 20px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--card-border)',
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                fontWeight: 500,
+              }}
+            >
+              ⚙️ {linkedCameraId ? 'Change' : 'Link'} Camera
+            </button>
+
             {cloudVideoUrl && (
               <button
                 onClick={openInDashboard}
