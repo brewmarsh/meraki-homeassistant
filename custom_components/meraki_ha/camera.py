@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 import aiohttp
 from homeassistant.components.camera import Camera, CameraEntityFeature
+from homeassistant.components.webrtc import async_handle_webrtc_offer
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -137,6 +138,15 @@ class MerakiCamera(CoordinatorEntity, Camera):
 
         return None
 
+    async def async_handle_webrtc_offer(self, offer_sdp: str) -> str | None:
+        """Handle a WebRTC offer from a browser."""
+        stream_source = await self.stream_source()
+        if not stream_source:
+            return None
+        return await async_handle_webrtc_offer(
+            self.hass, offer_sdp, stream_source
+        )
+
     async def stream_source(self) -> str | None:
         """Return the source of the stream, if enabled."""
         if self.is_streaming:
@@ -174,7 +184,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
     @property
     def supported_features(self) -> CameraEntityFeature:
         """Return supported features."""
-        return CameraEntityFeature.STREAM
+        return CameraEntityFeature.STREAM | CameraEntityFeature.SUPPORTS_WEBRTC
 
     @property
     def is_streaming(self) -> bool:
