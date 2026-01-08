@@ -59,8 +59,14 @@ class MSHandler(BaseDeviceHandler):
     async def discover_entities(self) -> list[Entity]:
         """Discover entities for the MS switch."""
         from ...binary_sensor.switch_port import SwitchPortSensor
+        from ...sensor.device.switch_energy import MerakiSwitchEnergySensor
+        from ...sensor.device.switch_power import MerakiSwitchPowerSensor
 
         entities: list[Entity] = []
+
+        entities.append(MerakiSwitchPowerSensor(self._coordinator, self.device))
+        entities.append(MerakiSwitchEnergySensor(self._coordinator, self.device))
+
         if self.device and self.device.get("ports_statuses"):
             for port in self.device["ports_statuses"]:
                 entities.append(SwitchPortSensor(self._coordinator, self.device, port))
