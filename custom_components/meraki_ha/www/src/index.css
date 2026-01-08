@@ -100,6 +100,96 @@
   font-family: monospace;
 }
 
+/* Font weight utilities */
+.font-medium {
+  font-weight: 500;
+}
+.font-semibold {
+  font-weight: 600;
+}
+
+/* Flex utilities */
+.flex {
+  display: flex;
+}
+.flex-col {
+  flex-direction: column;
+}
+.items-center {
+  align-items: center;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.gap-2 {
+  gap: 8px;
+}
+.gap-3 {
+  gap: 12px;
+}
+
+/* Device client row - for client lists in device/SSID views */
+.client-row-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.client-row-icon {
+  font-size: 18px;
+}
+
+.client-row-info {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Band badge for wireless BSS - 2.4GHz vs 5GHz */
+.band-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.band-badge.band-2_4 {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning);
+}
+.band-badge.band-5 {
+  background: rgba(6, 182, 212, 0.15);
+  color: var(--primary);
+}
+
+/* Broadcasting status indicator */
+.broadcast-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.broadcast-status.active {
+  color: var(--success);
+}
+.broadcast-status.inactive {
+  color: var(--text-muted);
+}
+.broadcast-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.broadcast-status.active .broadcast-dot {
+  box-shadow: 0 0 8px var(--success);
+}
+
+/* BSSID text styling */
+.bssid-text {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
 /* Status badge/pill - used for Broadcasting/Disabled, Online/Offline, etc. */
 .status-badge {
   display: inline-flex;

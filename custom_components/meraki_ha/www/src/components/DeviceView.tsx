@@ -3,6 +3,152 @@ import SwitchPortVisualization from './SwitchPortVisualization';
 import SensorReading from './SensorReading';
 import MetricCard from './MetricCard';
 
+// === Memoized Sub-components for granular updates ===
+
+// Entity row props
+interface EntityRowProps {
+  entity: { entity_id: string; name: string; state: string };
+  onClick: () => void;
+}
+
+// Memoized entity row - only re-renders when this specific entity changes
+const EntityRow = memo<EntityRowProps>(
+  ({ entity, onClick }) => (
+    <tr className="device-row" onClick={onClick}>
+      <td>{entity.name}</td>
+      <td className="text-mono text-sm text-muted">{entity.entity_id}</td>
+      <td>
+        <span className="detail-badge">{entity.state}</span>
+      </td>
+    </tr>
+  ),
+  (prev, next) =>
+    prev.entity.entity_id === next.entity.entity_id &&
+    prev.entity.name === next.entity.name &&
+    prev.entity.state === next.entity.state
+);
+
+// Device client row props
+interface DeviceClientRowProps {
+  client: {
+    id: string;
+    mac: string;
+    description?: string;
+    ip?: string;
+    manufacturer?: string;
+    os?: string;
+    ssid?: string;
+    switchport?: string;
+  };
+  onClick: () => void;
+}
+
+// Memoized client row for device view - only re-renders when this client changes
+const DeviceClientRow = memo<DeviceClientRowProps>(
+  ({ client, onClick }) => (
+    <tr className="device-row clickable" onClick={onClick}>
+      <td>
+        <div className="client-row-cell">
+          <span className="client-row-icon">
+            {client.os?.toLowerCase().includes('ios') ||
+            client.manufacturer?.toLowerCase().includes('apple')
+              ? '📱'
+              : client.os?.toLowerCase().includes('windows')
+              ? '💻'
+              : '🔌'}
+          </span>
+          <div className="client-row-info">
+            <div className="font-medium">
+              {client.description || client.mac}
+            </div>
+            {client.manufacturer && (
+              <div className="text-sm text-muted">{client.manufacturer}</div>
+            )}
+          </div>
+        </div>
+      </td>
+      {client.ip && <td className="text-mono text-sm">{client.ip}</td>}
+      {!client.ip && <td></td>}
+      <td>
+        {(client.ssid || client.switchport) && (
+          <span className="detail-badge">
+            {client.ssid || client.switchport}
+          </span>
+        )}
+      </td>
+    </tr>
+  ),
+  (prev, next) =>
+    prev.client.id === next.client.id &&
+    prev.client.mac === next.client.mac &&
+    prev.client.description === next.client.description &&
+    prev.client.ip === next.client.ip &&
+    prev.client.manufacturer === next.client.manufacturer &&
+    prev.client.os === next.client.os &&
+    prev.client.ssid === next.client.ssid &&
+    prev.client.switchport === next.client.switchport
+);
+
+// BSS row props
+interface BSSRowProps {
+  bss: {
+    ssidName?: string;
+    ssidNumber?: number;
+    bssid?: string;
+    band?: string;
+    channel?: number;
+    channelWidth?: string;
+    power?: string;
+    broadcasting?: boolean;
+  };
+  index: number;
+}
+
+// Memoized BSS row - only re-renders when this BSS entry changes
+const BSSRow = memo<BSSRowProps>(
+  ({ bss }) => (
+    <tr>
+      <td>
+        <div className="font-medium">
+          {bss.ssidName || `SSID ${bss.ssidNumber}`}
+        </div>
+        {bss.bssid && <div className="bssid-text">{bss.bssid}</div>}
+      </td>
+      <td>
+        <span
+          className={`band-badge ${
+            bss.band?.includes('2.4') ? 'band-2_4' : 'band-5'
+          }`}
+        >
+          {bss.band}
+        </span>
+      </td>
+      <td>{bss.channel}</td>
+      <td>{bss.channelWidth}</td>
+      <td className="text-warning">{bss.power}</td>
+      <td>
+        <span
+          className={`broadcast-status ${
+            bss.broadcasting ? 'active' : 'inactive'
+          }`}
+        >
+          <span className="broadcast-dot"></span>
+          {bss.broadcasting ? 'Broadcasting' : 'Off'}
+        </span>
+      </td>
+    </tr>
+  ),
+  (prev, next) =>
+    prev.bss.ssidName === next.bss.ssidName &&
+    prev.bss.ssidNumber === next.bss.ssidNumber &&
+    prev.bss.bssid === next.bss.bssid &&
+    prev.bss.band === next.bss.band &&
+    prev.bss.channel === next.bss.channel &&
+    prev.bss.channelWidth === next.bss.channelWidth &&
+    prev.bss.power === next.bss.power &&
+    prev.bss.broadcasting === next.bss.broadcasting
+);
+
 interface PortStatus {
   portId: string;
   status: string;
@@ -87,6 +233,7 @@ interface Device {
   lastReportedAt?: string;
   cloud_video_url?: string;
   rtsp_url?: string;
+  rtspEnabled?: boolean;
   basicServiceSets?: Array<{
     ssidName?: string;
     ssidNumber?: number;
@@ -158,14 +305,14 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
     null
   );
   const [linkedCameraLoading, setLinkedCameraLoading] = React.useState(false);
-  const [linkedCameraFailed, setLinkedCameraFailed] = React.useState(false);
+  const [_linkedCameraFailed, setLinkedCameraFailed] = React.useState(false);
 
   // RTSP stream state
   const [rtspStreamUrl, setRtspStreamUrl] = React.useState<string | null>(
     null
   );
   const [rtspLoading, setRtspLoading] = React.useState(false);
-  const [rtspFailed, setRtspFailed] = React.useState(false);
+  const [_rtspFailed, setRtspFailed] = React.useState(false);
 
   // Track which video source is active: 'linked' | 'rtsp' | 'snapshot' | 'none'
   const [activeVideoSource, setActiveVideoSource] = React.useState<
@@ -1366,25 +1513,11 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
             </thead>
             <tbody>
               {filteredEntities.map((entity) => (
-                <tr
+                <EntityRow
                   key={entity.entity_id}
-                  className="device-row"
+                  entity={entity}
                   onClick={() => handleEntityClick(entity.entity_id)}
-                >
-                  <td>{entity.name}</td>
-                  <td
-                    style={{
-                      fontFamily: 'monospace',
-                      fontSize: '13px',
-                      color: 'var(--text-muted)',
-                    }}
-                  >
-                    {entity.entity_id}
-                  </td>
-                  <td>
-                    <span className="detail-badge">{entity.state}</span>
-                  </td>
-                </tr>
+                />
               ))}
             </tbody>
           </table>
@@ -1405,61 +1538,13 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
             </thead>
             <tbody>
               {deviceClients.slice(0, 10).map((client) => (
-                <tr
+                <DeviceClientRow
                   key={client.id || client.mac}
-                  className="device-row"
+                  client={client}
                   onClick={() =>
                     setActiveView({ view: 'clients', clientId: client.id })
                   }
-                  style={{ cursor: 'pointer' }}
-                >
-                  <td>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                      }}
-                    >
-                      <span style={{ fontSize: '18px' }}>
-                        {client.os?.toLowerCase().includes('ios') ||
-                        client.manufacturer?.toLowerCase().includes('apple')
-                          ? '📱'
-                          : client.os?.toLowerCase().includes('windows')
-                          ? '💻'
-                          : '🔌'}
-                      </span>
-                      <div>
-                        <div style={{ fontWeight: 500 }}>
-                          {client.description || client.mac}
-                        </div>
-                        {client.manufacturer && (
-                          <div
-                            style={{
-                              fontSize: '12px',
-                              color: 'var(--text-muted)',
-                            }}
-                          >
-                            {client.manufacturer}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  {client.ip && (
-                    <td style={{ fontFamily: 'monospace', fontSize: '13px' }}>
-                      {client.ip}
-                    </td>
-                  )}
-                  {!client.ip && <td></td>}
-                  <td>
-                    {(client.ssid || client.switchport) && (
-                      <span className="detail-badge">
-                        {client.ssid || client.switchport}
-                      </span>
-                    )}
-                  </td>
-                </tr>
+                />
               ))}
             </tbody>
           </table>
@@ -1512,71 +1597,7 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
                   {device.basicServiceSets
                     .filter((bss) => bss.enabled)
                     .map((bss, idx) => (
-                      <tr key={`bss-${idx}`}>
-                        <td>
-                          <div style={{ fontWeight: 500 }}>
-                            {bss.ssidName || `SSID ${bss.ssidNumber}`}
-                          </div>
-                          {bss.bssid && (
-                            <div
-                              style={{
-                                fontSize: '11px',
-                                color: 'var(--text-muted)',
-                                fontFamily: 'monospace',
-                              }}
-                            >
-                              {bss.bssid}
-                            </div>
-                          )}
-                        </td>
-                        <td>
-                          <span
-                            className="detail-badge"
-                            style={{
-                              background: bss.band?.includes('2.4')
-                                ? 'rgba(245, 158, 11, 0.15)'
-                                : 'rgba(6, 182, 212, 0.15)',
-                              color: bss.band?.includes('2.4')
-                                ? 'var(--warning)'
-                                : 'var(--primary)',
-                            }}
-                          >
-                            {bss.band}
-                          </span>
-                        </td>
-                        <td>{bss.channel}</td>
-                        <td>{bss.channelWidth}</td>
-                        <td style={{ color: 'var(--warning)' }}>
-                          {bss.power}
-                        </td>
-                        <td>
-                          <span
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              color: bss.broadcasting
-                                ? 'var(--success)'
-                                : 'var(--text-muted)',
-                            }}
-                          >
-                            <span
-                              style={{
-                                width: '8px',
-                                height: '8px',
-                                borderRadius: '50%',
-                                background: bss.broadcasting
-                                  ? 'var(--success)'
-                                  : 'var(--text-muted)',
-                                boxShadow: bss.broadcasting
-                                  ? '0 0 8px var(--success)'
-                                  : 'none',
-                              }}
-                            ></span>
-                            {bss.broadcasting ? 'Broadcasting' : 'Off'}
-                          </span>
-                        </td>
-                      </tr>
+                      <BSSRow key={`bss-${idx}`} bss={bss} index={idx} />
                     ))}
                 </tbody>
               </table>

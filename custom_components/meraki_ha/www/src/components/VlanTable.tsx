@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 
 interface Vlan {
   id: string;
@@ -7,11 +7,32 @@ interface Vlan {
   applianceIp?: string;
 }
 
+// Memoized VLAN row - only re-renders when this VLAN changes
+interface VlanRowProps {
+  vlan: Vlan;
+}
+
+const VlanRow = memo<VlanRowProps>(
+  ({ vlan }) => (
+    <tr>
+      <td>{vlan.id}</td>
+      <td>{vlan.name}</td>
+      <td className="text-mono">{vlan.subnet || '—'}</td>
+      <td className="text-mono">{vlan.applianceIp || '—'}</td>
+    </tr>
+  ),
+  (prev, next) =>
+    prev.vlan.id === next.vlan.id &&
+    prev.vlan.name === next.vlan.name &&
+    prev.vlan.subnet === next.vlan.subnet &&
+    prev.vlan.applianceIp === next.vlan.applianceIp
+);
+
 interface VlanTableProps {
   vlans: Vlan[];
 }
 
-const VlanTable: React.FC<VlanTableProps> = ({ vlans }) => {
+const VlanTableComponent: React.FC<VlanTableProps> = ({ vlans }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   if (!vlans || vlans.length === 0) {
@@ -45,17 +66,24 @@ const VlanTable: React.FC<VlanTableProps> = ({ vlans }) => {
         </thead>
         <tbody>
           {filteredVlans.map((vlan) => (
-            <tr key={vlan.id}>
-              <td>{vlan.id}</td>
-              <td>{vlan.name}</td>
-              <td className="text-mono">{vlan.subnet || '—'}</td>
-              <td className="text-mono">{vlan.applianceIp || '—'}</td>
-            </tr>
+            <VlanRow key={vlan.id} vlan={vlan} />
           ))}
         </tbody>
       </table>
     </div>
   );
 };
+
+// Memoize VlanTable to prevent unnecessary re-renders
+const VlanTable = memo(VlanTableComponent, (prevProps, nextProps) => {
+  if (prevProps.vlans.length !== nextProps.vlans.length) return false;
+  return prevProps.vlans.every(
+    (vlan, i) =>
+      vlan.id === nextProps.vlans[i].id &&
+      vlan.name === nextProps.vlans[i].name &&
+      vlan.subnet === nextProps.vlans[i].subnet &&
+      vlan.applianceIp === nextProps.vlans[i].applianceIp
+  );
+});
 
 export default VlanTable;
