@@ -31,9 +31,9 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
         self._device_serial: str = device_data["serial"]
         self._config_entry = config_entry
         self._uplink_interface: str = uplink_data["interface"]
-        self.translation_key = "appliance_uplink"
 
         self._attr_unique_id = f"{self._device_serial}_uplink_{self._uplink_interface}"
+        self._attr_name = f"Uplink {self._uplink_interface.upper()}"
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
@@ -42,11 +42,6 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
             manufacturer="Cisco Meraki",
         )
         self._update_state()
-
-    @property
-    def translation_placeholders(self) -> dict[str, str]:
-        """Return the placeholders for translation."""
-        return {"uplink_interface": self._uplink_interface.upper()}
 
     def _get_current_uplink_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this sensor's uplink from the coordinator."""
@@ -88,4 +83,4 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        return super().available
+        return super().available and self._get_current_uplink_data() is not None

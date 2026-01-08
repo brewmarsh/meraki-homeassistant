@@ -2,7 +2,7 @@ name: Jules Self-Healer
 
 on:
   workflow_run:
-    workflows: ['Beta CI', 'Hassfest Validation'] # Add the names of your failing workflows here
+    workflows: ["Beta CI", "Hassfest Validation"] # Add the names of your failing workflows here
     types: [completed]
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
         uses: google-labs-code/jules-invoke@main
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          base_branch: 'beta'
+          base_branch: "beta"
           # This prompt gives Jules the specific context of the failure
           instructions: |
             The latest CI run for the Meraki integration failed.

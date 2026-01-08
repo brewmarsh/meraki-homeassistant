@@ -35,7 +35,7 @@ class MerakiNetworkClientsSensor(MerakiNetworkEntity, SensorEntity):
         super().__init__(coordinator, config_entry, cast(MerakiNetwork, network_data))
         self._network_control_service = network_control_service
         self._attr_unique_id = f"meraki_network_clients_{self._network_id}"
-        self.translation_key = "network_clients"
+        self._attr_name = "Clients"
 
     @callback
     def _handle_coordinator_update(self) -> None:

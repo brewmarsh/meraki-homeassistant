@@ -14,7 +14,7 @@ class MerakiSSIDSplashPageSensor(MerakiSSIDBaseSensor):
 
     entity_description = SensorEntityDescription(
         key="splash_page",
-        translation_key="splash_page",
+        name="Splash Page",
         icon="mdi:page-next",
     )
 

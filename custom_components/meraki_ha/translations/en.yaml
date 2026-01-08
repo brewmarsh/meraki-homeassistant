@@ -1,0 +1,37 @@
+# English translations for Meraki Home Assistant integration
+# Config and Options are now primarily managed in strings.json to reduce redundancy.
+# This file will focus on entity and state translations that might differ
+# or are not covered by strings.json, or for languages other than English.
+
+entity:
+  sensor:
+    meraki_wan1_connectivity:
+      name: 'WAN 1 Connectivity'
+      # State translations for this entity are now managed centrally
+      # if they follow the structure in strings.json (state.sensor__meraki_wan1_connectivity)
+      # or by Home Assistant default translations.
+    meraki_wan2_connectivity:
+      name: 'WAN 2 Connectivity'
+      # State translations for this entity are now managed centrally
+      # if they follow the structure in strings.json (state.sensor__meraki_wan2_connectivity)
+      # or by Home Assistant default translations.
+    meraki_network_info:
+      name: 'Network Information'
+    meraki_firmware_status:
+      name: 'Firmware Status'
+# State translations that are specific to sensor states and not covered by
+# entity-specific state blocks above or default HA translations would go here,
+# mirroring the structure of `strings.json` if applicable.
+# For example:
+# state:
+#  sensor__meraki_wan1_connectivity:
+#   connected: "Connected"
+#   disconnected: "Disconnected"
+#   unknown: "Unknown"
+#  sensor__meraki_wan2_connectivity:
+#   connected: "Connected"
+#   disconnected: "Disconnected"
+#   unknown: "Unknown"
+# However, as per HA best practices, if these are identical to strings.json,
+# they are not strictly needed here for 'en' unless overriding.
+# For now, we assume strings.json is the source for these.

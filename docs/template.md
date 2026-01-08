@@ -8,13 +8,13 @@
 
 ## 1. Overview
 
-_A brief, one-paragraph summary of the document's purpose. What is this document about? What problem does it solve or what feature does it describe?_
+*A brief, one-paragraph summary of the document's purpose. What is this document about? What problem does it solve or what feature does it describe?*
 
 ---
 
 ## 2. Requirements (if applicable)
 
-_If this document describes a new feature, list the functional and non-functional requirements here. Use a list or a table._
+*If this document describes a new feature, list the functional and non-functional requirements here. Use a list or a table.*
 
 - **Requirement 1:** ...
 - **Requirement 2:** ...
@@ -28,28 +28,28 @@ _If this document describes a new feature, list the functional and non-functiona
 
 ## 3. Design (if applicable)
 
-_Describe the proposed design. This can include architecture diagrams, UI mockups, data models, and API endpoint descriptions._
+*Describe the proposed design. This can include architecture diagrams, UI mockups, data models, and API endpoint descriptions.*
 
 ### 3.1. High-Level Architecture
 
-_A diagram or description of the overall system architecture._
+*A diagram or description of the overall system architecture.*
 
 ### 3.2. UI/UX Mockups
 
-_Embed or link to mockups for any user interface changes._
+*Embed or link to mockups for any user interface changes.*
 
 ### 3.3. Data Model
 
-_Describe any new or modified data models._
+*Describe any new or modified data models.*
 
 ---
 
 ## 4. Implementation Details (if applicable)
 
-_Provide details about the implementation. This could include code snippets, library choices, and descriptions of key algorithms or logic._
+*Provide details about the implementation. This could include code snippets, library choices, and descriptions of key algorithms or logic.*
 
 ---
 
 ## 5. Open Questions & Decisions
 
-_List any open questions that need to be resolved or key decisions that were made during the design process._
+*List any open questions that need to be resolved or key decisions that were made during the design process.*

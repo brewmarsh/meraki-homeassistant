@@ -37,4 +37,4 @@ async def test_discover_entities():
     entities = await handler.discover_entities()
 
     # Assert
-    assert len(entities) == 4
+    assert len(entities) == 2

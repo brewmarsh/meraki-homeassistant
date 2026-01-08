@@ -14,7 +14,7 @@ class MerakiSSIDBandSelectionSensor(MerakiSSIDBaseSensor):
 
     entity_description = SensorEntityDescription(
         key="band_selection",
-        translation_key="band_selection",
+        name="Band Selection",
         icon="mdi:wifi-arrow-up-down",
     )
 

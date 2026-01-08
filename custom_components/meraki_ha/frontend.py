@@ -41,7 +41,6 @@ async def async_register_panel(hass: HomeAssistant, entry: ConfigEntry) -> None:
         manifest_data = await f.read()
         manifest = json.loads(manifest_data)
     version = manifest.get("version", "0.0.0")
-    # Add a random query parameter for aggressive cache-busting (for debugging)
     module_url = f"/api/panel_custom/{DOMAIN}/meraki-panel.js?v={version}"
     _LOGGER.debug("Frontend module URL: %s", module_url)
     frontend.async_register_built_in_panel(
@@ -60,8 +59,6 @@ async def async_register_panel(hass: HomeAssistant, entry: ConfigEntry) -> None:
             "config_entry_id": entry.entry_id,
         },
         require_admin=True,
-        # Allow updating the panel registration to prevent conflicts on reload
-        update=True,
     )
 
 

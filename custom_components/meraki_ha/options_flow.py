@@ -100,10 +100,7 @@ class MerakiOptionsFlowHandler(OptionsFlow):
             if key_name in defaults:
                 # Create a new voluptuous key (e.g., vol.Required) with the
                 # default value set to the existing option value.
-                val_to_use = defaults[key.schema]
-                if key_name == CONF_ENABLED_NETWORKS and not val_to_use:
-                    val_to_use = [n["value"] for n in network_options]
-                key = type(key)(key.schema, default=val_to_use)
+                key = type(key)(key.schema, default=defaults[key.schema])
 
             if key_name == CONF_ENABLED_NETWORKS and isinstance(
                 value, selector.SelectSelector

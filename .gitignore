@@ -13,20 +13,3 @@ node_modules/
 .coverage
 coverage.xml
 custom_components/meraki_ha/www/node_modules
-# Agent / diagnostic artifacts
-git-error-*
-git-output-*
-message_to_user.txt
-*.tmp
-*~
-*.bak
-tmp/
-archive/
-
-# Build artifacts
-custom_components/meraki_ha/www/dist/
-
-# Local configuration
-config/
-blocked_message.md
-.venv/
