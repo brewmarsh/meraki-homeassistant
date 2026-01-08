@@ -305,7 +305,39 @@ This project uses an automated versioning and release process based on PR titles
 
 ---
 
-## 9. Testing Requirements
+## 9. Home Assistant Integration Quality Scale
+
+This integration follows the [Home Assistant Integration Quality Scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/) and targets **🏆 Platinum tier**.
+
+### Quality Scale Tiers
+
+| Tier        | Requirements                                                                |
+| ----------- | --------------------------------------------------------------------------- |
+| 🥉 Bronze   | UI config flow, unique entity IDs, basic tests, documentation               |
+| 🥈 Silver   | Error handling, reauthentication, 95%+ test coverage, code owners           |
+| 🥇 Gold     | Discovery, diagnostics, translations, entity categories, comprehensive docs |
+| 🏆 Platinum | Async dependencies, websession injection, strict typing                     |
+
+### Key Rules to Maintain
+
+When modifying code, ensure these rules remain satisfied:
+
+- **entity-unique-id**: All entities must have unique IDs
+- **has-entity-name**: Use `_attr_has_entity_name = True`
+- **entity-unavailable**: Mark entities unavailable when device/service is offline
+- **entity-device-class**: Use appropriate device classes
+- **entity-category**: Assign `EntityCategory.CONFIG` or `EntityCategory.DIAGNOSTIC` where appropriate
+- **test-coverage**: Maintain 95%+ test coverage
+- **strict-typing**: All code must be fully typed with type annotations
+- **async-dependency**: Use async patterns throughout
+
+### Quality Scale File
+
+Track compliance in `quality_scale.yaml`. Reference the [full rules documentation](https://developers.home-assistant.io/docs/core/integration-quality-scale/rules) for details on each rule.
+
+---
+
+## 10. Testing Requirements
 
 - **Unit tests are mandatory** for new features and bug fixes.
 - Tests should be placed in the `tests/` directory, mirroring the source structure.
@@ -344,7 +376,7 @@ async def test_ssid_switch_turn_on(mock_coordinator):
 
 ---
 
-## 10. Security Guidelines
+## 11. Security Guidelines
 
 ### 10.1. Credentials
 
@@ -360,7 +392,7 @@ async def test_ssid_switch_turn_on(mock_coordinator):
 
 ---
 
-## 11. Common Tasks
+## 12. Common Tasks
 
 ### Adding a New Sensor
 
@@ -386,7 +418,7 @@ async def test_ssid_switch_turn_on(mock_coordinator):
 
 ---
 
-## 12. Troubleshooting
+## 13. Troubleshooting
 
 ### Common Issues
 
@@ -411,7 +443,7 @@ logger:
 
 ---
 
-## 13. Self-Correction and Learning
+## 14. Self-Correction and Learning
 
 - If you make a mistake, acknowledge it and correct it.
 - If you discover a new technique or a better way of doing something, incorporate it into your future work.
@@ -420,7 +452,7 @@ logger:
 
 ---
 
-## 14. Quick Reference
+## 15. Quick Reference
 
 | What                    | Where                                                    |
 | ----------------------- | -------------------------------------------------------- |
