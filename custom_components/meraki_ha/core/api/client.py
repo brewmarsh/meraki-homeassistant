@@ -399,6 +399,12 @@ class MerakiAPIClient:
                         ),
                     )
                 )
+            elif device.get("productType") == "wireless":
+                detail_tasks[f"wireless_settings_{device['serial']}"] = (
+                    self._run_with_semaphore(
+                        self.wireless.get_wireless_settings(device["serial"]),
+                    )
+                )
         return detail_tasks
 
     def _process_detailed_data(
@@ -560,6 +566,11 @@ class MerakiAPIClient:
                 ):
                     if isinstance(settings.get("dynamicDns"), dict):
                         device["dynamicDns"] = settings["dynamicDns"]
+            elif product_type == "wireless":
+                if settings := detail_data.get(
+                    f"wireless_settings_{device['serial']}",
+                ):
+                    device["radio_settings"] = settings
 
         return {
             "ssids": ssids,

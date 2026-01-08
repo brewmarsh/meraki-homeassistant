@@ -107,10 +107,10 @@ def test_process_initial_data_handles_errors(api_client, caplog):
     assert "Could not fetch Meraki devices" in caplog.text
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_wireless_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a wireless device."""
     # Arrange
+    api_client._run_with_semaphore = MagicMock()
     devices = [MOCK_DEVICE]
     networks = [MOCK_NETWORK]
 
@@ -123,10 +123,10 @@ def test_build_detail_tasks_for_wireless_device(api_client):
     assert f"rf_profiles_{MOCK_NETWORK['id']}" in tasks
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_switch_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a switch device."""
     # Arrange
+    api_client._run_with_semaphore = MagicMock()
     switch_device = {"serial": "s123", "productType": "switch"}
     devices = [switch_device]
     networks = []
@@ -138,10 +138,10 @@ def test_build_detail_tasks_for_switch_device(api_client):
     assert f"ports_statuses_{switch_device['serial']}" in tasks
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_camera_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a camera device."""
     # Arrange
+    api_client._run_with_semaphore = MagicMock()
     camera_device = {"serial": "c123", "productType": "camera"}
     devices = [camera_device]
     networks = []
@@ -154,10 +154,10 @@ def test_build_detail_tasks_for_camera_device(api_client):
     assert f"sense_settings_{camera_device['serial']}" in tasks
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
 def test_build_detail_tasks_for_appliance_device(api_client):
     """Test that _build_detail_tasks creates tasks for an appliance device."""
     # Arrange
+    api_client._run_with_semaphore = MagicMock()
     appliance_device = {
         "serial": "a123",
         "productType": "appliance",
@@ -176,7 +176,6 @@ def test_build_detail_tasks_for_appliance_device(api_client):
     assert f"vlans_{network_with_appliance['id']}" in tasks
 
 
-@pytest.mark.skip(reason="TODO: Fix this test")
 def test_process_detailed_data_merges_device_info(api_client):
     """Test that _process_detailed_data merges details into device objects."""
     # Arrange
