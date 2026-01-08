@@ -60,8 +60,13 @@ class MSHandler(BaseDeviceHandler):
     async def discover_entities(self) -> list[Entity]:
         """Discover entities for the MS switch."""
         from ...binary_sensor.switch_port import SwitchPortSensor
+        from ...sensor.device.switch_energy import MerakiSwitchEnergySensor
+        from ...sensor.device.switch_power import MerakiSwitchPowerSensor
 
         entities: list[Entity] = []
+
+        entities.append(MerakiSwitchPowerSensor(self._coordinator, self.device))
+        entities.append(MerakiSwitchEnergySensor(self._coordinator, self.device))
 
         # Check if port sensors are enabled
         if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
@@ -74,5 +79,4 @@ class MSHandler(BaseDeviceHandler):
             _LOGGER.debug(
                 "Port sensors disabled for device %s", self.device.get("serial")
             )
-
         return entities
