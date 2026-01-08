@@ -5,11 +5,23 @@ on:
     types: [closed]
     branches:
       - beta
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Confirm beta version bump'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 jobs:
   version:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
+    if: >
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.confirm == 'true') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     permissions:
       contents: write
     outputs:
