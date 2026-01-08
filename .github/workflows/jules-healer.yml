@@ -1,0 +1,24 @@
+name: Jules Self-Healer
+
+on:
+  workflow_run:
+    workflows: ["Beta CI", "Hassfest Validation"] # Add the names of your failing workflows here
+    types: [completed]
+
+jobs:
+  heal:
+    # Only trigger if the previous workflow failed
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Jules to Fix CI
+        uses: google-labs-code/jules-invoke@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          base_branch: "beta"
+          # This prompt gives Jules the specific context of the failure
+          instructions: |
+            The latest CI run for the Meraki integration failed. 
+            1. Read the logs from the failed workflow.
+            2. Identify the linting or test errors.
+            3. Apply fixes to the current branch to make the CI pass.
