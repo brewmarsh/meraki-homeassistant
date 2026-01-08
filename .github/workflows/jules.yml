@@ -1,0 +1,32 @@
+name: Jules Agent Trigger
+
+on:
+  issues:
+    types: [labeled, commented]
+  pull_request:
+    types: [labeled]
+
+jobs:
+  jules-process:
+    # Only run if the 'jules' label is added OR if someone mentions @jules in a comment
+    if: >
+      github.event.label.name == 'jules' ||
+      contains(github.event.comment.body, '@jules')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Jules Agent
+        uses: google-labs-code/jules-invoke@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # This tells Jules to look at your AGENTS.md for context
+          instructions_path: "AGENTS.md"
