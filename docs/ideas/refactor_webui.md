@@ -1,4 +1,4 @@
-### **AI Agent Instructions**
+# AI Agent Instructions
 
 **Persona:** A senior product manager with a deep understanding of user experience and system architecture.
 
@@ -14,7 +14,7 @@
 
 ---
 
-### **Architecture & Design Instructions**
+## Architecture & Design Instructions
 
 The UI will be a single-page application (SPA) built using **React** for its component-based architecture and state management capabilities, with **Tailwind CSS** for a utility-first approach to styling.
 
@@ -29,11 +29,11 @@ The UI will be a single-page application (SPA) built using **React** for its com
 
 ---
 
-### **Detailed Implementation Plan**
+## Detailed Implementation Plan
 
 This plan is a step-by-step guide for an AI agent to build the new UI from scratch.
 
-**Phase 1: Backend Data & API**
+## Phase 1: Backend Data & API
 
 1.  **Create WebSocket Endpoint:**
 
@@ -45,7 +45,7 @@ This plan is a step-by-step guide for an AI agent to build the new UI from scrat
     - Modify the Meraki data coordinator to store a new `status_messages` list for each device in its data payload.
     - Whenever an entity or handler logs a significant event (e.g., "Could not retrieve stream..."), instead of just logging a message, it should also add a formatted string to this new `status_messages` list for the relevant device.
 
-**Phase 2: Frontend Foundation (React)**
+## Phase 2: Frontend Foundation (React)
 
 1.  **Set up the React App:**
     - Create a React app in a new folder: `custom_components/meraki_ha/www`.
@@ -58,7 +58,7 @@ This plan is a step-by-step guide for an AI agent to build the new UI from scrat
     - Create a simple state-based routing system within `App.tsx` using a state variable like `activeView`.
     - The `App.tsx` component will conditionally render either the `Dashboard` component or the `DeviceView` component based on the `activeView` state.
 
-**Phase 3: Dashboard & Core Components**
+## Phase 3: Dashboard & Core Components
 
 1.  **Build `StatusCard.tsx`:**
     - Create this reusable component. It will accept props like `title`, `value`, `icon`, and a `onClick` handler.
@@ -71,7 +71,7 @@ This plan is a step-by-step guide for an AI agent to build the new UI from scrat
     - Add a search bar at the top to filter the table by device name or serial.
     - Add a `onClick` handler to each table row that sets the `activeView` state in the parent `App` component to show the device details.
 
-**Phase 4: Device Details & Final Touches**
+## Phase 4: Device Details & Final Touches
 
 1.  **Build `DeviceView.tsx`:**
     - This component will receive the selected device's data as a prop.

@@ -1,4 +1,4 @@
-### AI Agent Instructions
+# AI Agent Instructions
 
 Your task is to refactor the `meraki_ha` integration to properly represent Meraki MS/GS switch ports as Home Assistant entities. This includes creating a **visual status indicator** that changes based on whether a port is connected or disconnected. The refactor must be modular and testable, adhering to all previous instructions regarding file size and code structure.
 
@@ -8,7 +8,7 @@ Your task is to refactor the `meraki_ha` integration to properly represent Merak
 
 ---
 
-### Refactor Plan for Meraki MS/GS Switches
+## Refactor Plan for Meraki MS/GS Switches
 
 This plan will integrate switch port monitoring into the existing architecture by adding a new service layer and updating the `MSHandler` to dynamically create a binary sensor for each port.
 

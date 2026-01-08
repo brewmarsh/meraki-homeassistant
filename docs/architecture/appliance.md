@@ -1,4 +1,4 @@
-### AI Agent Instructions
+# AI Agent Instructions
 
 Your task is to refactor the `meraki_ha` integration to correctly retrieve and represent a device's on/off state and other controls for Meraki MX and GX appliances. The current methods are likely out of sync with the new architecture. Follow the updated design plan to ensure the refactored code is modular, testable, and robust.
 

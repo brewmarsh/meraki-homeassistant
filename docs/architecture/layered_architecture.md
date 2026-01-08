@@ -1,4 +1,4 @@
-### AI Agent Instructions
+# AI Agent Instructions
 
 **Primary Objective:** Refactor the `meraki_ha` Home Assistant integration to a modern, layered architecture that is scalable, highly testable, and robust against API failures. Prioritize a modular design to enable future feature expansion without significant refactoring.
 
@@ -18,11 +18,11 @@
 
 ---
 
-### Updated Design and Implementation Plan
+## Updated Design and Implementation Plan
 
 This plan is a cohesive roadmap for refactoring the `meraki_ha` integration. It combines a robust architectural design with a practical, step-by-step implementation guide, built to be executed by AI coding agents.
 
-#### Architectural Design: A Layered and Modular Approach
+### Architectural Design: A Layered and Modular Approach
 
 The architecture is based on a clean separation of concerns, ensuring each component has a single, well-defined responsibility.
 

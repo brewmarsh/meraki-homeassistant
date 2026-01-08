@@ -68,12 +68,15 @@ We love contributions! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) and [D
 This project uses **Jules AI** as an asynchronous coding partner to accelerate development and maintain 2026.1 architectural standards.
 
 ### 🛠 How We Build
+
 - **Branches:** All active development happens on the `beta` branch. The `main` branch is protected and reserved for stable production releases.
 - **Task Delegation:** We use the `[Jules]` issue template to assign specific refactors or features to the AI.
 - **Human Oversight:** Every AI-generated Pull Request undergoes a human code review. We verify 2026.1 compliance (Sentence case, Diagnostic categories, and `has_entity_name`) before merging.
 
 ### 🤝 Contributing Alongside AI
+
 Humans are welcome! If you'd like to contribute:
+
 1. Check the `ROADMAP.md` to see what Jules is currently working on to avoid merge conflicts.
 2. Use our Issue Templates so both the maintainers and Jules can understand your bug reports or feature requests.
 3. If you're a developer, refer to `AGENTS.md` for our specific AI coding conventions.

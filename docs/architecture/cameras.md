@@ -1,4 +1,4 @@
-### AI Agent Instructions
+# AI Agent Instructions
 
 Your task is to refactor the Meraki MV camera integration to properly handle various camera models and their unique features. This requires a **granular, type-aware approach** that goes beyond basic video streams. The goal is to dynamically expose all supported sensors and controls for each specific camera model.
 

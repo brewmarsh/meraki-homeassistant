@@ -11,12 +11,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: HACS Action
         uses: hacs/action@main
         with:
           category: integration
-          
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:

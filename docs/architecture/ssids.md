@@ -1,4 +1,4 @@
-### AI Agent Instructions
+# AI Agent Instructions
 
 **Persona:** A pragmatic and experienced software architect, focused on creating scalable and maintainable solutions.
 
@@ -15,7 +15,7 @@
 
 ---
 
-### Implementation Plan
+## Implementation Plan
 
 The refactoring will be executed in a phased, step-by-step approach to ensure a seamless migration to the new device model.
 

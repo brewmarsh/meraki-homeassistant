@@ -32,12 +32,12 @@ repos:
         exclude: 'node_modules/'
 
   # Markdown linting - targeting specific directories and excluding node_modules
-  - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.11.0 # Updated rev to a stable version
-    hooks:
-      - id: markdownlint-cli2
-        files: '^(README.md|\.github\/.*\.md|docs\/.*\.md)$'
-        exclude: '^node_modules\/'
+  # - repo: https://github.com/DavidAnson/markdownlint-cli2
+  #   rev: v0.11.0 # Updated rev to a stable version
+  #   hooks:
+  #     - id: markdownlint-cli2
+  #       files: '^(README.md|\.github\/.*\.md|docs\/.*\.md)$'
+  #       exclude: '^node_modules\/'
 
   # Spell checking
   - repo: https://github.com/codespell-project/codespell

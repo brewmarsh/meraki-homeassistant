@@ -1,9 +1,9 @@
-### Agent Instructions
+# Agent Instructions
 
 The agent's primary objective is to refactor the **Meraki MR** and **GR** components to align with the new, service-based architecture of the Home Assistant integration. The agent must adhere to the following instructions:
 
 1.  **Objective:** The core task is to create a unified and scalable architecture for Meraki devices by refactoring the **MR** and **GR** components.
-2.  **Service-Oriented Design:** The agent must exclusively use the **`DeviceControlService`** for all device management functions, such as rebooting or upgrading firmware. This service will be injected into the component handlers during discovery.
+2.  **Service-Oriented Design:** The agent must exclusively use the **`DeviceControlService`** for all device management functions, suchs as rebooting or upgrading firmware. This service will be injected into the component handlers during discovery.
 3.  **Handler Consolidation:** The agent should ensure the new **MR** and **GR** handlers inherit from a common base class, such as `BaseDeviceHandler`, to reduce redundant code and standardize the interface for device discovery.
 4.  **Preservation of Functionality:** The refactor must not introduce any regressions. Existing functionalities, such as sensor discovery for MR devices, must continue to work as intended.
 5.  **Code Quality:** The code produced must be clean, well-commented, and conform to the PEP 8 Python style guide. All new functions and classes should have clear docstrings.

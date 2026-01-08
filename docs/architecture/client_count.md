@@ -1,4 +1,4 @@
-### AI Agent Instructions
+# AI Agent Instructions
 
 The connected client counts are incorrect because the existing implementation likely uses a simple API endpoint that provides a snapshot of connected clients at a single point in time, which can quickly become outdated. It may also not correctly aggregate data from multiple devices or networks. The fix involves using a different set of Meraki API endpoints that are designed for monitoring client data.
 
@@ -10,7 +10,7 @@ Your task is to refactor how client counts are retrieved, ensuring the data is c
 
 ---
 
-### Implementation Plan
+## Implementation Plan
 
 This plan builds on the existing modular architecture, adding a new service layer dedicated to client count collection and aggregation.
 

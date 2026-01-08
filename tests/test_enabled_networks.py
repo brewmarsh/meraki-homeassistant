@@ -16,7 +16,9 @@ def coordinator_enabled_networks(hass):
     # Initially, no enabled networks option set (or empty list)
     entry.options = {CONF_ENABLED_NETWORKS: []}
 
-    coordinator = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
+    coordinator = MerakiDataCoordinator(
+        hass=hass, api_client=mock_api_client, entry=entry
+    )
     # Manually set config_entry as it might not be set by super().__init__ if not passed
     coordinator.config_entry = entry
     return coordinator
