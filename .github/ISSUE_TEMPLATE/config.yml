@@ -1,0 +1,9 @@
+# .github/ISSUE_TEMPLATE/config.yml
+blank_issues_enabled: false # Disables the "Open a blank issue" link
+contact_links:
+  - name: 💬 Feature Requests & Questions
+    url: https://github.com/brewmarsh/meraki-homeassistant/discussions
+    about: Please use Discussions for general questions or to brainstorm new features.
+  - name: 🛠 Support / Troubleshooting
+    url: https://github.com/brewmarsh/meraki-homeassistant/discussions/categories/q-a
+    about: Need help setting up your Meraki integration? Ask the community here.
