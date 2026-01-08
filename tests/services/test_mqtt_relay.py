@@ -69,6 +69,36 @@ class TestRelayDestinationConfig:
 
         assert config.port == 8883  # TLS default port
 
+    def test_from_dict_port_float_to_int(self):
+        """Test that port is converted from float to int.
+
+        Home Assistant's NumberSelector returns float values (e.g., 1883.0),
+        but aiomqtt expects int. This test ensures the conversion works.
+        """
+        data = {
+            "name": "Float Port Test",
+            "host": "mqtt.example.com",
+            "port": 1883.0,  # Float as returned by HA NumberSelector
+        }
+
+        config = RelayDestinationConfig.from_dict(data)
+
+        assert config.port == 1883
+        assert isinstance(config.port, int)
+
+    def test_from_dict_port_string_to_int(self):
+        """Test that port handles string values gracefully."""
+        data = {
+            "name": "String Port Test",
+            "host": "mqtt.example.com",
+            "port": "8883",  # String value
+        }
+
+        config = RelayDestinationConfig.from_dict(data)
+
+        assert config.port == 8883
+        assert isinstance(config.port, int)
+
 
 class TestMqttRelayDestination:
     """Tests for MqttRelayDestination."""
