@@ -1,7 +1,8 @@
 """Test the button platform setup."""
 
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock
 
+from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.button import async_setup_entry
@@ -14,15 +15,12 @@ async def test_async_setup_entry_adds_all_buttons(hass: HomeAssistant) -> None:
     config_entry.entry_id = "test_entry"
 
     # Create mock entities
-    mock_entity1 = MagicMock()
-    mock_entity1.should_poll = False
     # Mock isinstance to return True for ButtonEntity (simulated)
-    # Since we can't easily mock isinstance(obj, Class), we will just use objects that PASS the check
-    # in the real code.
-    # In the real code: button_entities = [e for e in discovered_entities if isinstance(e, ButtonEntity)]
+    # Since we can't easily mock isinstance(obj, Class), we will just use objects
+    # that PASS the check in the real code.
+    # In the real code:
+    # button_entities = [e for e in discovered_entities if isinstance(e, ButtonEntity)]
     # So we need to pass actual ButtonEntity instances or mocks that inherit from it.
-
-    from homeassistant.components.button import ButtonEntity
 
     class MockButton(ButtonEntity):
         pass
