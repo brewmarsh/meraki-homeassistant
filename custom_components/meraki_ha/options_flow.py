@@ -244,13 +244,23 @@ class MerakiOptionsFlowHandler(OptionsFlow):
 
         if user_input is not None:
             action = user_input.get("action", "back")
-            selected_index = user_input.get("destination_index")
+            selected_dest = user_input.get("destination_index")
 
-            if action == "edit" and selected_index is not None:
-                self._editing_destination_index = int(selected_index)
+            # Find the index by matching the display string
+            idx = None
+            if selected_dest:
+                for i, d in enumerate(current_destinations):
+                    display = (
+                        f"{d.get(MQTT_DEST_NAME, 'Unnamed')} ({d.get(MQTT_DEST_HOST)})"
+                    )
+                    if display == selected_dest:
+                        idx = i
+                        break
+
+            if action == "edit" and idx is not None:
+                self._editing_destination_index = idx
                 return await self.async_step_mqtt_destination()
-            if action == "delete" and selected_index is not None:
-                idx = int(selected_index)
+            if action == "delete" and idx is not None:
                 if 0 <= idx < len(current_destinations):
                     current_destinations = list(current_destinations)
                     del current_destinations[idx]
@@ -259,14 +269,9 @@ class MerakiOptionsFlowHandler(OptionsFlow):
             return await self.async_step_mqtt()
 
         # Build list of destinations for selection
-        destination_options = [
-            {
-                "label": (
-                    f"{d.get(MQTT_DEST_NAME, 'Unnamed')} ({d.get(MQTT_DEST_HOST)})"
-                ),
-                "value": str(i),
-            }
-            for i, d in enumerate(current_destinations)
+        destination_options: list[str] = [
+            f"{d.get(MQTT_DEST_NAME, 'Unnamed')} ({d.get(MQTT_DEST_HOST)})"
+            for d in current_destinations
         ]
 
         manage_schema = vol.Schema(
@@ -279,12 +284,9 @@ class MerakiOptionsFlowHandler(OptionsFlow):
                 ),
                 vol.Required("action", default="edit"): selector.SelectSelector(
                     selector.SelectSelectorConfig(
-                        options=[
-                            {"label": "Edit", "value": "edit"},
-                            {"label": "Delete", "value": "delete"},
-                            {"label": "Back", "value": "back"},
-                        ],
+                        options=["edit", "delete", "back"],
                         mode=selector.SelectSelectorMode.DROPDOWN,
+                        translation_key="mqtt_relay_action",
                     )
                 ),
             }
