@@ -4,7 +4,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.meraki_ha.sensor.device.switch_power import MerakiSwitchPowerSensor
+from custom_components.meraki_ha.sensor.device.switch_power import (
+    MerakiSwitchPowerSensor,
+)
 
 
 @pytest.fixture
