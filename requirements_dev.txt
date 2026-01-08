@@ -164,3 +164,4 @@ webrtc-models==0.3.0
 wheel==0.45.1
 yarl==1.22.0
 zeroconf==0.148.0
+# Updated uv version
