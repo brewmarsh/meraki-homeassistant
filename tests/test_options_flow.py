@@ -8,7 +8,6 @@ from homeassistant.helpers import selector
 
 from custom_components.meraki_ha.const import (
     CONF_ENABLED_NETWORKS,
-    CONF_INTEGRATION_TITLE,
     CONF_MQTT_RELAY_DESTINATIONS,
     DOMAIN,
 )
@@ -253,7 +252,9 @@ async def test_mqtt_edit_destination_flow(mock_options_config_entry: MagicMock) 
     # Verify that the destination was updated
     updated_destinations = result["data"][CONF_MQTT_RELAY_DESTINATIONS]
     assert updated_destinations[0] == updated_details
-    assert updated_destinations[1]["server_ip"] == "2.2.2.2"  # Ensure others are untouched
+    assert (
+        updated_destinations[1]["server_ip"] == "2.2.2.2"
+    )  # Ensure others are untouched
 
 
 @pytest.mark.asyncio

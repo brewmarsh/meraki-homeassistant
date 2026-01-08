@@ -10,7 +10,6 @@ from homeassistant.helpers import selector
 
 from .const import (
     CONF_ENABLED_NETWORKS,
-    CONF_INTEGRATION_TITLE,
     CONF_MQTT_RELAY_DESTINATIONS,
     DOMAIN,
 )
@@ -195,7 +194,8 @@ class MerakiOptionsFlowHandler(OptionsFlow):
 
         # If user_input is not None, it's a submission from one of the forms
         if user_input is not None:
-            # Check if 'destination_index' is in user_input to know if it's from the selection form
+            # Check if 'destination_index' is in user_input to know if it's
+            # from the selection form
             if "destination_index" in user_input:
                 self._destination_index_to_edit = user_input["destination_index"]
                 # Now show the form with the details of the selected destination
@@ -212,14 +212,19 @@ class MerakiOptionsFlowHandler(OptionsFlow):
                             ): selector.NumberSelector(
                                 selector.NumberSelectorConfig(
                                     min=1, max=65535, mode=selector.NumberSelectorMode.BOX
-                                )
+                        ),
                             ),
                             vol.Required(
                                 "topic", default=destination_to_edit["topic"]
                             ): selector.TextSelector(),
                         }
                     ),
-                    description_placeholders={"destination_label": f"{destination_to_edit['server_ip']}:{destination_to_edit['port']}"},
+                    description_placeholders={
+                        "destination_label": (
+                            f"{destination_to_edit['server_ip']}:"
+                            f"{destination_to_edit['port']}"
+                        )
+                    },
                 )
             # Otherwise, it's a submission from the details form
             else:
@@ -231,7 +236,9 @@ class MerakiOptionsFlowHandler(OptionsFlow):
 
         # Show the initial selection form
         destination_options = [
-            selector.SelectOptionDict(value=str(i), label=f"{d['server_ip']}:{d['port']}")
+            selector.SelectOptionDict(
+                value=str(i), label=f"{d['server_ip']}:{d['port']}"
+            )
             for i, d in enumerate(destinations)
         ]
         return self.async_show_form(
@@ -239,7 +246,10 @@ class MerakiOptionsFlowHandler(OptionsFlow):
             data_schema=vol.Schema(
                 {
                     vol.Required("destination_index"): selector.SelectSelector(
-                        selector.SelectSelectorConfig(options=destination_options, mode=selector.SelectSelectorMode.DROPDOWN)
+                        selector.SelectSelectorConfig(
+                            options=destination_options,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                        )
                     ),
                 }
             ),
@@ -256,16 +266,22 @@ class MerakiOptionsFlowHandler(OptionsFlow):
 
         if user_input is not None:
             # The user has confirmed the deletion
-            indices_to_delete = {int(i) for i in user_input.get("destinations_to_delete", [])}
+            indices_to_delete = {
+                int(i) for i in user_input.get("destinations_to_delete", [])
+            }
             # Rebuild the list, excluding the selected indices
             self.options[CONF_MQTT_RELAY_DESTINATIONS] = [
-                dest for i, dest in enumerate(destinations) if i not in indices_to_delete
+                dest
+                for i, dest in enumerate(destinations)
+                if i not in indices_to_delete
             ]
             return self.async_create_entry(title="", data=self.options)
 
         # Show the form with a list of destinations to delete
         destination_options = [
-            selector.SelectOptionDict(value=str(i), label=f"{d['server_ip']}:{d['port']}")
+            selector.SelectOptionDict(
+                value=str(i), label=f"{d['server_ip']}:{d['port']}"
+            )
             for i, d in enumerate(destinations)
         ]
         return self.async_show_form(
@@ -273,7 +289,9 @@ class MerakiOptionsFlowHandler(OptionsFlow):
             data_schema=vol.Schema(
                 {
                     vol.Required("destinations_to_delete"): selector.SelectSelector(
-                        selector.SelectSelectorConfig(options=destination_options, multiple=True)
+                        selector.SelectSelectorConfig(
+                            options=destination_options, multiple=True
+                        )
                     ),
                 }
             ),

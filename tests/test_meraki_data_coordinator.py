@@ -7,12 +7,7 @@ import pytest
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from custom_components.meraki_ha.core.errors import ApiClientCommunicationError
-from custom_components.meraki_ha.const import DOMAIN
-from custom_components.meraki_ha.meraki_data_coordinator import (
-    ClientCoordinator,
-    DeviceStatusCoordinator,
-    MerakiDataCoordinator,
-)
+from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
 from tests.const import MOCK_NETWORK
 
 
@@ -30,7 +25,6 @@ def coordinator(hass, mock_api_client):
     entry = MagicMock()
     entry.options = {}
     entry.entry_id = "test_entry_id"
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {}
     coord = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
     coord.config_entry = entry
     return coord
@@ -42,7 +36,6 @@ def coordinator_with_scan_interval(hass, mock_api_client):
     entry = MagicMock()
     entry.options = {"scan_interval": 120}
     entry.entry_id = "test_entry_id"
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {}
     coord = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
     coord.config_entry = entry
     return coord
@@ -215,7 +208,6 @@ def test_coordinator_custom_scan_interval(hass, mock_api_client):
     entry = MagicMock()
     entry.options = {"scan_interval": 60}
     entry.entry_id = "test_entry_id"
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {}
 
     coord = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
 
@@ -227,7 +219,6 @@ def test_coordinator_invalid_scan_interval(hass, mock_api_client):
     entry = MagicMock()
     entry.options = {"scan_interval": "invalid"}
     entry.entry_id = "test_entry_id"
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {}
 
     coord = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
 
@@ -240,7 +231,6 @@ def test_coordinator_negative_scan_interval(hass, mock_api_client):
     entry = MagicMock()
     entry.options = {"scan_interval": -10}
     entry.entry_id = "test_entry_id"
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {}
 
     coord = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
 
@@ -642,52 +632,3 @@ def test_populate_ssid_entities_empty_data(coordinator):
     coordinator._populate_ssid_entities({})
     coordinator._populate_ssid_entities({"ssids": []})
     # Should not raise any exceptions
-
-
-@pytest.mark.asyncio
-async def test_sub_coordinator_initialization(hass, mock_api_client):
-    """Test that sub-coordinators are initialized with correct intervals."""
-    entry = MagicMock()
-    entry.options = {
-        "scan_interval_device_status": 45,
-        "scan_interval_clients": 75,
-    }
-    entry.entry_id = "test_entry_id"
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {}
-
-    # Since coordinators are created in the main coordinator's __init__, we need to create it
-    main_coordinator = MerakiDataCoordinator(
-        hass=hass, api_client=mock_api_client, entry=entry
-    )
-
-    device_status_coordinator = main_coordinator.device_status_coordinator
-    client_coordinator = main_coordinator.client_coordinator
-
-    assert isinstance(device_status_coordinator, DeviceStatusCoordinator)
-    assert device_status_coordinator.update_interval == timedelta(seconds=45)
-
-    assert isinstance(client_coordinator, ClientCoordinator)
-    assert client_coordinator.update_interval == timedelta(seconds=75)
-
-
-@pytest.mark.asyncio
-async def test_sub_coordinators_call_main_update(hass, mock_api_client):
-    """Test that sub-coordinators call the main coordinator's update method."""
-    entry = MagicMock()
-    entry.options = {}
-    entry.entry_id = "test_entry_id"
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {}
-
-    main_coordinator = MerakiDataCoordinator(
-        hass=hass, api_client=mock_api_client, entry=entry
-    )
-    mock_api_client.get_device_statuses = AsyncMock(return_value={"status": "ok"})
-    mock_api_client.get_all_clients = AsyncMock(return_value={"clients": []})
-
-    # Test DeviceStatusCoordinator
-    await main_coordinator.device_status_coordinator._async_update_data()
-    mock_api_client.get_device_statuses.assert_called_once()
-
-    # Test ClientCoordinator
-    await main_coordinator.client_coordinator._async_update_data()
-    mock_api_client.get_all_clients.assert_called_once()
