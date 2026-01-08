@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, memo } from 'react';
+import React, { useState, useEffect, useRef, memo, useCallback } from 'react';
 import StatusCard from './StatusCard';
 
 interface Device {
@@ -102,6 +102,79 @@ const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'alerting', label: 'Alerting' },
   { value: 'dormant', label: 'Dormant' },
 ];
+
+/**
+ * Memoized device row - only re-renders when this specific device changes
+ */
+interface DeviceRowProps {
+  device: Device;
+  onClick: () => void;
+  getDeviceIcon: (device: Device) => string;
+  getDeviceTypeClass: (device: Device) => string;
+  getDeviceDetail: (device: Device) => string;
+}
+
+const DeviceRow = memo<DeviceRowProps>(
+  ({
+    device,
+    onClick,
+    getDeviceIcon,
+    getDeviceTypeClass,
+    getDeviceDetail,
+  }) => (
+    <tr className="device-row" onClick={onClick}>
+      <td>
+        <div className="device-name-cell">
+          <div className={`device-icon ${getDeviceTypeClass(device)}`}>
+            {getDeviceIcon(device)}
+          </div>
+          <span className="name">{device.name || device.serial}</span>
+        </div>
+      </td>
+      <td className="device-model">{device.model || '—'}</td>
+      <td className="device-model cell-mono">{device.serial}</td>
+      <td>
+        <div className={`status-badge ${device.status?.toLowerCase()}`}>
+          <div className="status-dot"></div>
+          <span>{device.status || 'Unknown'}</span>
+        </div>
+      </td>
+      <td className="device-model">{device.lanIp || '—'}</td>
+      <td>
+        <span className="detail-badge">{getDeviceDetail(device) || '—'}</span>
+      </td>
+    </tr>
+  ),
+  (prevProps, nextProps) => {
+    const prev = prevProps.device;
+    const next = nextProps.device;
+
+    // Only re-render if device-specific data changed
+    if (prev.serial !== next.serial) return false;
+    if (prev.status !== next.status) return false;
+    if (prev.name !== next.name) return false;
+    if (prev.lanIp !== next.lanIp) return false;
+    if (prev.model !== next.model) return false;
+
+    // Check readings for sensor devices
+    if (prev.readings?.temperature !== next.readings?.temperature)
+      return false;
+    if (prev.readings?.humidity !== next.readings?.humidity) return false;
+
+    // Check ports for switches
+    const prevConnected = prev.ports_statuses?.filter(
+      (p) => p.status === 'Connected'
+    ).length;
+    const nextConnected = next.ports_statuses?.filter(
+      (p) => p.status === 'Connected'
+    ).length;
+    if (prevConnected !== nextConnected) return false;
+
+    return true; // No changes, skip re-render
+  }
+);
+
+DeviceRow.displayName = 'DeviceRow';
 
 const DashboardComponent: React.FC<DashboardProps> = ({
   setActiveView,
@@ -299,7 +372,8 @@ const DashboardComponent: React.FC<DashboardProps> = ({
     });
   };
 
-  const getDeviceIcon = (device: Device): string => {
+  // Memoized helper functions to prevent DeviceRow re-renders
+  const getDeviceIcon = useCallback((device: Device): string => {
     const type = getDeviceType(device);
     const model = device.model?.toUpperCase() || '';
 
@@ -336,49 +410,60 @@ const DashboardComponent: React.FC<DashboardProps> = ({
       all: '📱',
     };
     return icons[type];
-  };
+  }, []);
 
-  const getDeviceTypeClass = (device: Device): string => {
+  const getDeviceTypeClass = useCallback((device: Device): string => {
     return getDeviceType(device);
-  };
+  }, []);
 
-  const getDeviceDetail = (device: Device): string => {
-    const type = getDeviceType(device);
+  const getDeviceDetail = useCallback(
+    (device: Device): string => {
+      const type = getDeviceType(device);
 
-    if (type === 'switch') {
-      const activePorts =
-        device.ports_statuses?.filter(
-          (p) => p.status?.toLowerCase() === 'connected'
-        ).length || 0;
-      return `${activePorts} ports active`;
-    }
-    if (type === 'camera') {
-      return device.status?.toLowerCase() === 'online'
-        ? 'Recording'
-        : 'Offline';
-    }
-    if (type === 'wireless') {
-      // Get actual client count from clients connected to this device
-      const clientCount = clients.filter(
-        (c) => c.recentDeviceSerial === device.serial
-      ).length;
-      return `${clientCount} clients`;
-    }
-    if (type === 'sensor') {
-      if (device.readings?.temperature != null) {
-        const tempC = device.readings.temperature;
-        const temp =
-          temperatureUnit === 'fahrenheit'
-            ? ((tempC * 9) / 5 + 32).toFixed(1)
-            : tempC.toFixed(1);
-        const unit = temperatureUnit === 'fahrenheit' ? '°F' : '°C';
-        const humidity = device.readings.humidity ?? '--';
-        return `${temp}${unit} / ${humidity}%`;
+      if (type === 'switch') {
+        const activePorts =
+          device.ports_statuses?.filter(
+            (p) => p.status?.toLowerCase() === 'connected'
+          ).length || 0;
+        return `${activePorts} ports active`;
       }
-      return 'Active';
-    }
-    return '';
-  };
+      if (type === 'camera') {
+        return device.status?.toLowerCase() === 'online'
+          ? 'Recording'
+          : 'Offline';
+      }
+      if (type === 'wireless') {
+        // Get actual client count from clients connected to this device
+        const clientCount = clients.filter(
+          (c) => c.recentDeviceSerial === device.serial
+        ).length;
+        return `${clientCount} clients`;
+      }
+      if (type === 'sensor') {
+        if (device.readings?.temperature != null) {
+          const tempC = device.readings.temperature;
+          const temp =
+            temperatureUnit === 'fahrenheit'
+              ? ((tempC * 9) / 5 + 32).toFixed(1)
+              : tempC.toFixed(1);
+          const unit = temperatureUnit === 'fahrenheit' ? '°F' : '°C';
+          const humidity = device.readings.humidity ?? '--';
+          return `${temp}${unit} / ${humidity}%`;
+        }
+        return 'Active';
+      }
+      return '';
+    },
+    [clients, temperatureUnit]
+  );
+
+  // Memoized click handler factory
+  const handleDeviceClick = useCallback(
+    (serial: string) => {
+      setActiveView({ view: 'device', deviceId: serial });
+    },
+    [setActiveView]
+  );
 
   const getDevicesForNetwork = (networkId: string): Device[] => {
     return filteredDevices.filter((d) => d.networkId === networkId);
@@ -404,39 +489,14 @@ const DashboardComponent: React.FC<DashboardProps> = ({
       </thead>
       <tbody>
         {deviceList.map((device) => (
-          <tr
+          <DeviceRow
             key={device.serial}
-            className="device-row"
-            onClick={() =>
-              setActiveView({
-                view: 'device',
-                deviceId: device.serial,
-              })
-            }
-          >
-            <td>
-              <div className="device-name-cell">
-                <div className={`device-icon ${getDeviceTypeClass(device)}`}>
-                  {getDeviceIcon(device)}
-                </div>
-                <span className="name">{device.name || device.serial}</span>
-              </div>
-            </td>
-            <td className="device-model">{device.model || '—'}</td>
-            <td className="device-model cell-mono">{device.serial}</td>
-            <td>
-              <div className={`status-badge ${device.status?.toLowerCase()}`}>
-                <div className="status-dot"></div>
-                <span>{device.status || 'Unknown'}</span>
-              </div>
-            </td>
-            <td className="device-model">{device.lanIp || '—'}</td>
-            <td>
-              <span className="detail-badge">
-                {getDeviceDetail(device) || '—'}
-              </span>
-            </td>
-          </tr>
+            device={device}
+            onClick={() => handleDeviceClick(device.serial)}
+            getDeviceIcon={getDeviceIcon}
+            getDeviceTypeClass={getDeviceTypeClass}
+            getDeviceDetail={getDeviceDetail}
+          />
         ))}
         {deviceList.length === 0 && (
           <tr>
