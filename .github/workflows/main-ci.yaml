@@ -45,7 +45,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Download venv artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: venv
       - name: Extract venv
@@ -65,7 +65,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Download venv artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: venv
       - name: Extract venv
@@ -84,7 +84,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Download venv artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: venv
       - name: Extract venv
@@ -103,7 +103,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Download venv artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: venv
       - name: Extract venv
@@ -165,7 +165,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Download venv artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: venv
       - name: Extract venv
