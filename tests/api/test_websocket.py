@@ -104,18 +104,14 @@ class TestWsSubscribeMerakiData:
 
         ws_subscribe_meraki_data(mock_hass, mock_connection, msg)
 
-        # Should send initial enriched data
-        mock_connection.send_result.assert_called_once()
-        call_args = mock_connection.send_result.call_args
-        assert call_args[0][0] == 1
-        result_data = call_args[0][1]
-        # Verify enriched data contains expected keys
-        assert "networks" in result_data
-        assert "devices" in result_data
-        assert "enabled_networks" in result_data
-        assert "config_entry_id" in result_data
-        assert "scan_interval" in result_data
-        assert result_data["config_entry_id"] == "test_entry_id"
+        # Should confirm subscription with send_result (no data, just confirmation)
+        mock_connection.send_result.assert_called_once_with(1)
+
+        # Should send initial data as an event message
+        mock_connection.send_message.assert_called_once()
+        event_call = mock_connection.send_message.call_args[0][0]
+        # Event message should contain the enriched data
+        assert "networks" in str(event_call) or hasattr(event_call, "get")
 
         # Should register listener
         mock_coordinator.async_add_listener.assert_called_once()

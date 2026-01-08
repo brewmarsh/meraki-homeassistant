@@ -114,9 +114,12 @@ def ws_subscribe_meraki_data(
         enriched_data = _build_enriched_data(coordinator, config_entry_id, hass)
         connection.send_message(websocket_api.event_message(msg["id"], enriched_data))
 
-    # Send initial enriched data
+    # Confirm the subscription (required by HA WebSocket protocol)
+    connection.send_result(msg["id"])
+
+    # Send initial data as an event (subscribeMessage callback only receives events)
     initial_data = _build_enriched_data(coordinator, config_entry_id, hass)
-    connection.send_result(msg["id"], initial_data)
+    connection.send_message(websocket_api.event_message(msg["id"], initial_data))
 
     # Register for updates
     cancel_subscription = coordinator.async_add_listener(async_send_update)
