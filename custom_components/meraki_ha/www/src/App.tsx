@@ -411,6 +411,25 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [configEntryId, retryCount]);
 
+  // Memoize filtered networks to prevent recalculation on every render
+  // NOTE: These hooks must be before any early returns to comply with Rules of Hooks
+  const enabledNetworks = useMemo(
+    () => data?.networks?.filter((network) => network.is_enabled) || [],
+    [data?.networks]
+  );
+
+  // Memoize processed data with only enabled networks
+  const processedData = useMemo(
+    () =>
+      data
+        ? {
+            ...data,
+            networks: enabledNetworks,
+          }
+        : null,
+    [data, enabledNetworks]
+  );
+
   // Show loading state while waiting for hass
   if (!hass) {
     return (
@@ -444,7 +463,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
   }
 
   // Show empty state
-  if (!data) {
+  if (!data || !processedData) {
     return (
       <div className="meraki-panel" style={themeStyle}>
         <Header />
@@ -456,21 +475,6 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
       </div>
     );
   }
-
-  // Memoize filtered networks to prevent recalculation on every render
-  const enabledNetworks = useMemo(
-    () => data.networks?.filter((network) => network.is_enabled) || [],
-    [data.networks]
-  );
-
-  // Memoize processed data with only enabled networks
-  const processedData = useMemo(
-    () => ({
-      ...data,
-      networks: enabledNetworks,
-    }),
-    [data, enabledNetworks]
-  );
 
   // Render the appropriate view
   const renderView = () => {
