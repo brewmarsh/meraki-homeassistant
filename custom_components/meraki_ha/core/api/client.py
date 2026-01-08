@@ -81,7 +81,7 @@ class MerakiAPIClient:
         self.traffic_analysis_failed_networks: set[str] = set()
 
         # Semaphore to limit concurrent API calls
-        self._semaphore = asyncio.Semaphore(2)
+        self._semaphore = asyncio.Semaphore(10)
 
     async def async_setup(self) -> None:
         """Perform asynchronous setup of the API client."""
