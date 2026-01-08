@@ -1,6 +1,7 @@
 """Sensor entity for Meraki camera audio detection status."""
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
@@ -24,7 +25,7 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device_data: dict[str, Any],
+        device_data: Mapping[str, Any],
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the Meraki Camera Audio Detection sensor."""
@@ -60,18 +61,28 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
         current_device_data = self._get_current_device_data()
 
         if not current_device_data:
-            self._attr_native_value = None
+            self._attr_native_value = "unavailable"
             self._attr_icon = "mdi:help-rhombus"
+            self._attr_extra_state_attributes = {
+                "serial_number": self._device_serial,
+            }
             return
 
-        audio_detection_data = current_device_data.get("audioDetection")
+        # audioDetection is nested inside sense_settings from the API
+        sense_settings = current_device_data.get("sense_settings", {})
+        audio_detection_data = (
+            sense_settings.get("audioDetection")
+            if isinstance(sense_settings, dict)
+            else None
+        )
 
         if (
             not isinstance(audio_detection_data, dict)
             or "enabled" not in audio_detection_data
         ):
-            self._attr_native_value = None
-            self._attr_icon = "mdi:microphone-question"
+            # Camera doesn't have Sense license or audio detection not configured
+            self._attr_native_value = "not_configured"
+            self._attr_icon = "mdi:microphone-off"
         else:
             audio_enabled = bool(audio_detection_data["enabled"])
             self._attr_native_value = "enabled" if audio_enabled else "disabled"
@@ -91,16 +102,10 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def available(self) -> bool:
-        """Return True if entity is available and data is present."""
+        """Return True if entity is available (device exists in coordinator)."""
         if not super().available:
             return False
 
+        # Available as long as the device exists in coordinator data
         current_device_data = self._get_current_device_data()
-        if not current_device_data:
-            return False
-
-        audio_data = current_device_data.get("audioDetection")
-        if not isinstance(audio_data, dict) or "enabled" not in audio_data:
-            return False
-
-        return True
+        return current_device_data is not None

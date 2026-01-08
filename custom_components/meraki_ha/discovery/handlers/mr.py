@@ -5,16 +5,20 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from ...button.reboot import MerakiRebootButton
+from ...const import CONF_ENABLE_DEVICE_STATUS
+from ...sensor.device.connected_clients import MerakiDeviceConnectedClientsSensor
+from ...sensor.device.device_status import MerakiDeviceStatusSensor
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ....services.network_control_service import NetworkControlService
-    from ....types import MerakiDevice
     from ...meraki_data_coordinator import MerakiDataCoordinator
     from ...services.device_control_service import DeviceControlService
+    from ...services.network_control_service import NetworkControlService
+    from ...types import MerakiDevice
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -59,13 +63,24 @@ class MRHandler(BaseDeviceHandler):
         """Discover entities for a wireless device."""
         entities: list[Entity] = []
 
-        # In the future, this is where we would create entities like:
-        # - Radio settings sensors
-        # - Connected client count sensors
-        # - etc.
-        #
-        # For example:
-        # if "radio_settings" in self.device:
-        #     entities.append(RadioSettingsSensor(self.device))
+        # Reboot button
+        entities.append(
+            MerakiRebootButton(self._control_service, self.device, self._config_entry)
+        )
+
+        # Device status sensor
+        if self._config_entry.options.get(CONF_ENABLE_DEVICE_STATUS, True):
+            entities.append(
+                MerakiDeviceStatusSensor(
+                    self._coordinator, self.device, self._config_entry
+                )
+            )
+
+        # Connected clients sensor
+        entities.append(
+            MerakiDeviceConnectedClientsSensor(
+                self._coordinator, self.device, self._config_entry
+            )
+        )
 
         return entities

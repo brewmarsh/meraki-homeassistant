@@ -295,11 +295,17 @@ class WirelessEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        rules = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.getNetworkWirelessSsidL7FirewallRules,
-            networkId=network_id,
-            number=number,
-        )
+        # Method name includes "Firewall" in the path
+        wireless = self._api_client.dashboard.wireless
+        try:
+            rules = await self._api_client.run_sync(
+                wireless.getNetworkWirelessSsidFirewallL7FirewallRules,
+                networkId=network_id,
+                number=number,
+            )
+        except AttributeError:
+            _LOGGER.debug("L7 firewall rules API not available")
+            return {}
         validated = validate_response(rules)
         if not isinstance(validated, dict):
             _LOGGER.warning(
@@ -307,6 +313,90 @@ class WirelessEndpoints:
             )
             return {}
         return validated
+
+    @handle_meraki_errors
+    async def create_identity_psk(
+        self,
+        network_id: str,
+        number: str,
+        name: str,
+        group_policy_id: str | None = None,
+        passphrase: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Create an Identity PSK.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+            number: The SSID number.
+            name: The name of the Identity PSK.
+            group_policy_id: The ID of the group policy to apply.
+            passphrase: The passphrase for the Identity PSK.
+
+        Returns
+        -------
+            The created Identity PSK.
+
+        """
+        if self._api_client.dashboard is None:
+            return {}
+
+        kwargs: dict[str, Any] = {
+            "name": name,
+        }
+
+        if group_policy_id and group_policy_id != "Normal":
+            kwargs["groupPolicyId"] = group_policy_id
+
+        if passphrase:
+            kwargs["passphrase"] = passphrase
+
+        _LOGGER.debug(
+            "Calling createNetworkWirelessSsidIdentityPsk with networkId=%s, "
+            "number=%s, kwargs=%s",
+            network_id,
+            number,
+            {k: v if k != "passphrase" else "***" for k, v in kwargs.items()},
+        )
+
+        psk = await self._api_client.run_sync(
+            self._api_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk,
+            networkId=network_id,
+            number=number,
+            **kwargs,
+        )
+        validated = validate_response(psk)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("create_identity_psk did not return a dict")
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    async def delete_identity_psk(
+        self,
+        network_id: str,
+        number: str,
+        identity_psk_id: str,
+    ) -> None:
+        """
+        Delete an Identity PSK.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+            number: The SSID number.
+            identity_psk_id: The ID of the Identity PSK to delete.
+
+        """
+        if self._api_client.dashboard is None:
+            return
+        await self._api_client.run_sync(
+            self._api_client.dashboard.wireless.deleteNetworkWirelessSsidIdentityPsk,
+            networkId=network_id,
+            number=number,
+            identityPskId=identity_psk_id,
+        )
 
     @handle_meraki_errors
     async def update_network_wireless_ssid_l7_firewall_rules(
@@ -332,7 +422,7 @@ class WirelessEndpoints:
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.updateNetworkWirelessSsidL7FirewallRules,
+            self._api_client.dashboard.wireless.updateNetworkWirelessSsidFirewallL7FirewallRules,
             networkId=network_id,
             number=number,
             **kwargs,

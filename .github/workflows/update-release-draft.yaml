@@ -1,0 +1,20 @@
+name: Update Release Draft
+
+on:
+  push:
+    branches:
+      - main
+      - beta
+
+jobs:
+  update_release_draft:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      # No checkout needed - release-drafter uses GitHub API
+      - uses: release-drafter/release-drafter@v6
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

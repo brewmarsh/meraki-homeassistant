@@ -102,11 +102,11 @@ class MerakiAuthentication:
             return {"valid": True, "org_name": fetched_org_name}
 
         except MerakiAuthenticationError as e:
-            _LOGGER.error("Authentication failed: %s", e.message)
-            raise ConfigEntryAuthFailed(f"Authentication failed: {e.message}") from e
+            _LOGGER.error("Authentication failed: %s", e)
+            raise ConfigEntryAuthFailed(f"Authentication failed: {e}") from e
         except MerakiConnectionError as e:
-            _LOGGER.error("Connection error: %s", e.message)
-            raise MerakiConnectionError(f"Connection error: {e.message}") from e
+            _LOGGER.error("Connection error: %s", e)
+            raise MerakiConnectionError(f"Connection error: {e}") from e
         except MerakiSDKAPIError as e:
             if e.status == 401:
                 _LOGGER.error(

@@ -9,6 +9,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
+from ...core.utils.naming_utils import format_device_name
 from ...helpers.entity_helpers import format_entity_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
@@ -38,12 +39,20 @@ class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity)
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
+        org_name = self.coordinator.data.get("organization", {}).get(
+            "name", "Meraki Organization"
+        )
+        org_device_data = {"name": org_name, "productType": "organization"}
+        formatted_name = format_device_name(
+            device=org_device_data,
+            config=self.coordinator.config_entry.options,
+        )
         return DeviceInfo(
-            identifiers={(DOMAIN, self._org_id)},
-            name=self.coordinator.data.get("organization", {}).get(
-                "name", "Meraki Organization"
-            ),
+            # Use org_ prefix to prevent collisions with other entity types
+            identifiers={(DOMAIN, f"org_{self._org_id}")},
+            name=formatted_name,
             manufacturer="Cisco Meraki",
+            model="Organization",
         )
 
     @callback

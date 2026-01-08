@@ -10,6 +10,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+from .errors import ApiClientCommunicationError
+
 if TYPE_CHECKING:
     from .api.client import MerakiAPIClient
 
@@ -39,7 +41,7 @@ class MerakiRepository:
         try:
             response = await self._api_client.async_reboot_device(serial)
             return response
-        except Exception as e:
+        except ApiClientCommunicationError as e:
             _LOGGER.error("Failed to reboot device %s: %s", serial, e)
             return None
 
@@ -61,6 +63,6 @@ class MerakiRepository:
         try:
             response = await self._api_client.async_get_switch_port_statuses(serial)
             return response
-        except Exception as e:
+        except ApiClientCommunicationError as e:
             _LOGGER.error("Failed to get switch port statuses for %s: %s", serial, e)
             return None

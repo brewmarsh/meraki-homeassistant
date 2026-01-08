@@ -17,7 +17,6 @@ The integration is divided into the following components:
 - **`entities`**: The base classes for the entities in the integration. These are implemented in the `core/entities` directory.
 - **`platforms`**: The platform-specific implementations of the entities, such as sensors, switches, and device trackers.
 - **`const.py`**: A file that contains all of the constants used in the integration.
-- **`AGENTS.md`**: A file that contains guidelines for agents working on the codebase.
 
 ## Error Handling
 

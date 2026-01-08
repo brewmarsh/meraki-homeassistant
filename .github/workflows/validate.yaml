@@ -11,7 +11,10 @@ jobs:
   validate-hacs:
     runs-on: 'ubuntu-latest'
     steps:
+      - uses: actions/checkout@v4
       - name: HACS validation
         uses: 'hacs/action@main'
         with:
           category: 'integration'
+          # Ignore repository settings that may differ on forks
+          ignore: topics

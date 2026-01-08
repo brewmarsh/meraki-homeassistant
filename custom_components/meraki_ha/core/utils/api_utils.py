@@ -82,6 +82,11 @@ def handle_meraki_errors(
         except ClientError as err:
             _LOGGER.error("Connection error: %s", err)
             raise MerakiConnectionError(f"Connection error: {err}") from err
+        except MerakiInformationalError:
+            # Allow informational errors (traffic analysis disabled, VLANs disabled,
+            # etc.) to propagate without logging as errors - they are handled
+            # gracefully upstream.
+            raise
         except Exception as err:
             _LOGGER.error("Unexpected error: %s", err)
             raise MerakiConnectionError(f"Unexpected error: {err}") from err
@@ -183,7 +188,7 @@ def validate_response(response: Any) -> dict[str, Any] | list[Any]:
     if isinstance(response, list):
         return response
 
-    if isinstance(response, (str, int, float, bool)):
+    if isinstance(response, str | int | float | bool):
         return {"value": response}
 
     raise MerakiConnectionError(

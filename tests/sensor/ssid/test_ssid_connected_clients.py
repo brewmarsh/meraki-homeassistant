@@ -90,4 +90,5 @@ def test_ssid_connected_clients_sensor(mock_data_coordinator):
     # Expects 2: the two online clients on "My SSID 1" and "net1"
     assert sensor.native_value == 2
     assert sensor.name == "My SSID 1 Connected Clients"
-    assert sensor.device_info["identifiers"] == {(DOMAIN, "net1_0")}
+    # SSID identifiers use ssid_{network_id}_{ssid_number} format
+    assert sensor.device_info["identifiers"] == {(DOMAIN, "ssid_net1_0")}

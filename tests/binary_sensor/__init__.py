@@ -1,1 +1,1 @@
-"""Tests for the Meraki binary sensors."""
+"""Tests for binary sensor module."""

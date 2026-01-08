@@ -1,174 +1,589 @@
-import React, { useState, useEffect, useRef } from 'react';
-import NetworkView from './components/NetworkView';
-import DeviceView from './components/DeviceView';
+/**
+ * Meraki Home Assistant Panel - Main Application Component
+ *
+ * This component is the root of the React application. It receives the
+ * Home Assistant `hass` object from the Web Component wrapper and uses
+ * it to communicate with the backend via WebSocket.
+ */
 
-// Define the types for our data
-interface MerakiData {
-  [key: string]: any;
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
+import Dashboard from './components/Dashboard';
+import DeviceView from './components/DeviceView';
+import ClientsView from './components/ClientsView';
+import SSIDsListView from './components/SSIDsListView';
+import SSIDView from './components/SSIDView';
+import Settings from './components/Settings';
+import { useHaTheme } from './hooks/useHaTheme';
+import type { HomeAssistant, PanelInfo, RouteInfo } from './types/hass';
+
+// Data types
+interface SSID {
+  number: number;
+  name: string;
+  enabled: boolean;
+  networkId: string;
+  entity_id?: string;
 }
 
-interface AppProps {}
+interface Network {
+  id: string;
+  name: string;
+  ssids: SSID[];
+  is_enabled: boolean;
+}
 
-const App: React.FC<AppProps> = () => {
+interface Device {
+  entity_id: string;
+  name: string;
+  model: string;
+  serial: string;
+  status: string;
+  lanIp?: string;
+  mac?: string;
+  networkId?: string;
+  productType?: string;
+  firmware?: string;
+  status_messages?: string[];
+  entities?: Array<{ entity_id: string; name: string; state: string }>;
+  ports_statuses?: Array<{
+    portId: string;
+    status: string;
+    enabled: boolean;
+    isUplink?: boolean;
+    speed?: string;
+    duplex?: string;
+    poe?: { isAllocated?: boolean; enabled?: boolean };
+    powerUsageInWh?: number;
+    usageInKb?: { total?: number; sent?: number; recv?: number };
+    trafficInKbps?: { total?: number; sent?: number; recv?: number };
+    clientName?: string;
+    clientMac?: string;
+    clientCount?: number;
+    vlan?: number;
+    errors?: string[];
+    warnings?: string[];
+    lldp?: {
+      systemName?: string;
+      systemDescription?: string;
+      portId?: string;
+      managementAddress?: string;
+      portDescription?: string;
+      chassisId?: string;
+    };
+    cdp?: {
+      deviceId?: string;
+      platform?: string;
+      portId?: string;
+      address?: string;
+      nativeVlan?: number;
+      managementAddress?: string;
+    };
+    securePort?: {
+      enabled?: boolean;
+      active?: boolean;
+      authenticationStatus?: string;
+    };
+  }>;
+  readings?: {
+    temperature?: number;
+    humidity?: number;
+    battery?: number;
+  };
+  basicServiceSets?: Array<{
+    ssidName?: string;
+    ssidNumber?: number;
+    enabled?: boolean;
+    band?: string;
+    bssid?: string;
+    channel?: number;
+    channelWidth?: string;
+    power?: string;
+    visible?: boolean;
+    broadcasting?: boolean;
+  }>;
+}
+
+interface Client {
+  id: string;
+  mac: string;
+  description?: string;
+  ip?: string;
+  ip6?: string;
+  user?: string;
+  firstSeen?: string;
+  lastSeen?: string;
+  manufacturer?: string;
+  os?: string;
+  recentDeviceSerial?: string;
+  recentDeviceName?: string;
+  ssid?: string;
+  vlan?: number;
+  switchport?: string;
+  status?: string;
+  usage?: { sent: number; recv: number };
+  networkId?: string;
+}
+
+interface MerakiData {
+  networks: Network[];
+  devices: Device[];
+  ssids: SSID[];
+  clients: Client[];
+  enabled_networks: string[];
+  config_entry_id: string;
+  version?: string;
+  // Dashboard settings from integration options
+  dashboard_view_mode?: 'network' | 'type';
+  dashboard_device_type_filter?: string;
+  dashboard_status_filter?: string;
+  camera_link_integration?: string;
+  temperature_unit?: 'celsius' | 'fahrenheit';
+  [key: string]: unknown;
+}
+
+interface AppProps {
+  hass: HomeAssistant | null;
+  panel: PanelInfo | null;
+  narrow: boolean;
+  route: RouteInfo | null;
+}
+
+/**
+ * Loading spinner component
+ */
+const LoadingSpinner: React.FC = () => (
+  <div className="loading-container">
+    <div className="loading-spinner"></div>
+    <span className="loading-text">Loading Meraki data...</span>
+  </div>
+);
+
+/**
+ * Error display component
+ */
+const ErrorDisplay: React.FC<{ message: string; onRetry?: () => void }> = ({
+  message,
+  onRetry,
+}) => (
+  <div className="error-container">
+    <span className="error-icon">⚠️</span>
+    <div className="error-content">
+      <h3>Error Loading Data</h3>
+      <p>{message}</p>
+      {onRetry && (
+        <button onClick={onRetry} className="retry-button">
+          Retry
+        </button>
+      )}
+    </div>
+  </div>
+);
+
+/**
+ * Header component with logo, version, and settings button
+ */
+const Header: React.FC<{
+  version?: string;
+  onSettingsClick?: () => void;
+}> = ({ version, onSettingsClick }) => (
+  <div className="meraki-header">
+    <div className="logo">🌐</div>
+    <h1>Meraki Dashboard</h1>
+    {version && <span className="version">v{version}</span>}
+    <div className="header-actions">
+      {onSettingsClick && (
+        <button
+          onClick={onSettingsClick}
+          className="settings-btn"
+          title="Settings"
+        >
+          ⚙️ Settings
+        </button>
+      )}
+    </div>
+  </div>
+);
+
+/**
+ * Main App Component
+ */
+const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState({
-    view: 'dashboard',
-    deviceId: undefined,
-  });
-  const socketRef = useRef<WebSocket | null>(null);
+  const [activeView, setActiveView] = useState<{
+    view: string;
+    deviceId?: string;
+    ssidNetworkId?: string;
+    ssidNumber?: number;
+  }>({ view: 'dashboard' });
+  const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [retryCount, setRetryCount] = useState<number>(0);
 
-  useEffect(() => {
-    if (window.location.hostname === 'localhost') {
-        setData({
-          "networks": [
-            { "id": "N_12345", "name": "Main Office", "is_enabled": true, "ssids": [] }
-          ],
-          devices: [
-            { name: 'Living Room AP', model: 'MR33', serial: 'Q2JD-XXXX-XXXX', status: 'online', entity_id: 'switch.living_room_ap', networkId: 'N_12345' },
-            { name: 'Office Switch', model: 'MS220-8P', serial: 'Q2HD-XXXX-XXXX', status: 'online', entity_id: 'switch.office_switch', networkId: 'N_12345' },
-            { name: 'Front Door Camera', model: 'MV12', serial: 'Q2FD-XXXX-XXXX', status: 'online', entity_id: 'camera.front_door_camera', networkId: 'N_12345' },
-          ],
-          ssids: [],
-        });
-        setLoading(false);
-        return;
+  // Apply HA theme variables to the panel
+  const { style: themeStyle } = useHaTheme(hass);
+
+  // Retry connection by incrementing retry count to trigger re-subscription
+  const retryConnection = useCallback(() => {
+    hasLoadedRef.current = false;
+    setRetryCount((c) => c + 1);
+  }, []);
+
+  // Use a ref for hass to avoid re-renders when hass object changes
+  // The hass object changes on every HA state update, which would cause constant refetches
+  const hassRef = useRef(hass);
+  hassRef.current = hass;
+
+  // Track if we've already loaded data to prevent duplicate fetches
+  const hasLoadedRef = useRef(false);
+
+  // Get the config entry ID from panel config
+  const configEntryId = panel?.config?.config_entry_id;
+
+  /**
+   * Process incoming data to add is_enabled flag to networks
+   */
+  const processData = useCallback((result: MerakiData): MerakiData => {
+    if (result.networks && result.enabled_networks) {
+      const processedNetworks = result.networks.map((network) => ({
+        ...network,
+        is_enabled: result.enabled_networks.includes(network.id),
+      }));
+      return { ...result, networks: processedNetworks };
     }
-    let accessToken = localStorage.getItem('meraki_ha_llat');
-    if (!accessToken) {
-      accessToken = prompt(
-        'Please enter your Home Assistant Long-Lived Access Token:'
-      );
-      if (accessToken) {
-        localStorage.setItem('meraki_ha_llat', accessToken);
-      } else {
-        setError('No access token provided.');
-        setLoading(false);
-        return;
+    return result;
+  }, []);
+
+  /**
+   * Compare two data objects to check if they are meaningfully different
+   * Only triggers re-render if actual data changed, not just timestamps
+   */
+  const hasDataChanged = useCallback(
+    (oldData: MerakiData | null, newData: MerakiData): boolean => {
+      if (!oldData) return true;
+
+      // Compare key data counts
+      if (
+        oldData.devices?.length !== newData.devices?.length ||
+        oldData.networks?.length !== newData.networks?.length ||
+        oldData.clients?.length !== newData.clients?.length ||
+        oldData.ssids?.length !== newData.ssids?.length
+      ) {
+        return true;
       }
+
+      // Compare device statuses (quick check for status changes)
+      const oldDeviceStates = oldData.devices
+        ?.map((d) => `${d.serial}:${d.status}`)
+        .sort()
+        .join('|');
+      const newDeviceStates = newData.devices
+        ?.map((d) => `${d.serial}:${d.status}`)
+        .sort()
+        .join('|');
+      if (oldDeviceStates !== newDeviceStates) {
+        return true;
+      }
+
+      // Compare client count per device (for port visualizations)
+      const oldClientDevices = oldData.clients
+        ?.map((c) => c.recentDeviceSerial)
+        .sort()
+        .join('|');
+      const newClientDevices = newData.clients
+        ?.map((c) => c.recentDeviceSerial)
+        .sort()
+        .join('|');
+      if (oldClientDevices !== newClientDevices) {
+        return true;
+      }
+
+      // Always accept if last_updated changed (for timestamp display)
+      // but don't force full re-render - handled by memoized components
+      return false;
+    },
+    []
+  );
+
+  // Store the last update timestamp separately to avoid re-renders
+  const lastUpdatedRef = useRef<string | null>(null);
+
+  /**
+   * Subscribe to real-time Meraki data updates via WebSocket
+   * Uses refs to avoid re-subscribing when hass object updates
+   */
+  useEffect(() => {
+    const currentHass = hassRef.current;
+    if (!currentHass || !configEntryId) {
+      return;
     }
 
-    const haUrl = (window as any).HA_URL.replace(/^http/, 'ws');
-    const wsUrl = `${haUrl}/api/websocket`;
-    socketRef.current = new WebSocket(wsUrl);
-    const socket = socketRef.current;
-    let messageId = 1;
+    let unsubscribe: (() => void) | null = null;
+    let isSubscribed = true;
 
-    socket.onopen = () => {
-      console.log('WebSocket connection established');
-      socket.send(
-        JSON.stringify({
-          type: 'auth',
-          access_token: accessToken,
-        })
-      );
-    };
+    const setupSubscription = async () => {
+      try {
+        // Only show loading on initial load, not on data updates
+        if (!hasLoadedRef.current) {
+          setLoading(true);
+        }
+        setError(null);
 
-    socket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
+        // Subscribe to meraki data updates - this sends initial data and pushes updates
+        unsubscribe =
+          await currentHass.connection.subscribeMessage<MerakiData>(
+            (message: MerakiData) => {
+              if (isSubscribed && message) {
+                console.log('[Meraki] Received data update:', {
+                  last_updated: message.last_updated,
+                  scan_interval: message.scan_interval,
+                  networks: message.networks?.length,
+                  devices: message.devices?.length,
+                });
 
-      if (message.type === 'auth_ok') {
-        console.log('Authenticated successfully');
-        socket.send(
-          JSON.stringify({
-            id: messageId,
-            type: 'meraki_ha/get_config',
-            config_entry_id: (window as any).CONFIG_ENTRY_ID,
-          })
-        );
-      } else if (message.type === 'auth_invalid') {
-        console.error('Authentication failed:', message.message);
-        setError('Authentication failed. Please check your token.');
-        setLoading(false);
-        localStorage.removeItem('meraki_ha_llat');
-      } else if (message.id === messageId) {
-        if (message.type === 'result') {
-          if (message.success) {
-            const resultData = message.result;
-            const { networks, enabled_networks } = resultData;
+                const processed = processData(message);
 
-            if (networks && enabled_networks) {
-              const processedNetworks = networks.map((network: any) => ({
-                ...network,
-                is_enabled: enabled_networks.includes(network.id),
-              }));
-              resultData.networks = processedNetworks;
+                // Update timestamp ref (doesn't trigger re-render)
+                lastUpdatedRef.current =
+                  (message.last_updated as string) || null;
+
+                // Only update state if data actually changed
+                setData((prevData) => {
+                  if (hasDataChanged(prevData, processed)) {
+                    console.log(
+                      '[Meraki] Data changed, updating state',
+                      processed.last_updated
+                    );
+                    return processed;
+                  }
+                  // Data hasn't meaningfully changed, but update timestamps
+                  if (
+                    prevData &&
+                    prevData.last_updated !== processed.last_updated
+                  ) {
+                    console.log(
+                      '[Meraki] Only timestamp changed, light update'
+                    );
+                    return { ...prevData, ...processed };
+                  }
+                  console.log('[Meraki] No changes detected, skipping update');
+                  return prevData;
+                });
+
+                setLoading(false);
+                hasLoadedRef.current = true;
+              }
+            },
+            {
+              type: 'meraki_ha/subscribe_meraki_data',
+              config_entry_id: configEntryId,
             }
-            setData(resultData);
-          } else {
-            console.error('Failed to fetch Meraki data:', message.error);
-            setError(`Failed to fetch Meraki data: ${message.error.message}`);
-          }
+          );
+      } catch (err) {
+        console.error('Failed to subscribe to Meraki data:', err);
+        if (isSubscribed) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : 'Failed to connect to Meraki integration'
+          );
           setLoading(false);
         }
       }
     };
 
-    socket.onerror = (err) => {
-      console.error('WebSocket error:', err);
-      setError('WebSocket connection error. See console for details.');
-      setLoading(false);
-    };
+    setupSubscription();
 
-    socket.onclose = () => {
-      console.log('WebSocket connection closed');
-    };
-
+    // Cleanup subscription on unmount or when config entry changes
     return () => {
-      if (socket && socket.readyState === 1) {
-        socket.close();
+      isSubscribed = false;
+      if (unsubscribe) {
+        unsubscribe();
       }
     };
-  }, []);
+    // Only re-subscribe when configEntryId changes or retry is requested
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [configEntryId, retryCount]);
 
-  if (loading) {
-    return <div className="p-4">Loading...</div>;
-  }
+  // Memoize filtered networks to prevent recalculation on every render
+  // NOTE: These hooks must be before any early returns to comply with Rules of Hooks
+  const enabledNetworks = useMemo(
+    () => data?.networks?.filter((network) => network.is_enabled) || [],
+    [data?.networks]
+  );
 
-  if (error) {
-    return <div className="p-4 text-red-500">Error: {error}</div>;
-  }
+  // Memoize processed data with only enabled networks
+  const processedData = useMemo(
+    () =>
+      data
+        ? {
+            ...data,
+            networks: enabledNetworks,
+          }
+        : null,
+    [data, enabledNetworks]
+  );
 
-  const handleToggle = (networkId: string, enabled: boolean) => {
-    if (!data) return;
-
-    const updatedNetworks = data.networks.map((network: any) =>
-      network.id === networkId ? { ...network, is_enabled: enabled } : network
+  // Show loading state while waiting for hass
+  if (!hass) {
+    return (
+      <div className="meraki-panel" style={themeStyle}>
+        <LoadingSpinner />
+        <p className="loading-message">
+          Waiting for Home Assistant connection...
+        </p>
+      </div>
     );
+  }
 
-    const updatedData = { ...data, networks: updatedNetworks };
-    setData(updatedData);
+  // Show loading state while fetching data
+  if (loading) {
+    return (
+      <div className="meraki-panel" style={themeStyle}>
+        <Header />
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
-    const enabledNetworkIds = updatedNetworks
-      .filter((network: any) => network.is_enabled)
-      .map((network: any) => network.id);
+  // Show error state
+  if (error) {
+    return (
+      <div className="meraki-panel" style={themeStyle}>
+        <Header />
+        <ErrorDisplay message={error} onRetry={retryConnection} />
+      </div>
+    );
+  }
 
-    const socket = socketRef.current;
-    if (socket && socket.readyState === 1) {
-      socket.send(
-        JSON.stringify({
-          id: Date.now(),
-          type: 'meraki_ha/update_enabled_networks',
-          config_entry_id: (window as any).CONFIG_ENTRY_ID,
-          enabled_networks: enabledNetworkIds,
-        })
-      );
-    } else {
-      console.error('WebSocket is not connected.');
+  // Show empty state
+  if (!data || !processedData) {
+    return (
+      <div className="meraki-panel" style={themeStyle}>
+        <Header />
+        <div className="empty-state">
+          <div className="icon">📡</div>
+          <h3>No Data Available</h3>
+          <p>Could not load Meraki data. Please try again.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Render the appropriate view
+  const renderView = () => {
+    switch (activeView.view) {
+      case 'clients':
+        return (
+          <ClientsView
+            clients={data.clients || []}
+            setActiveView={setActiveView}
+            onBack={() => setActiveView({ view: 'dashboard' })}
+          />
+        );
+      case 'device':
+        return (
+          <DeviceView
+            activeView={activeView}
+            setActiveView={setActiveView}
+            data={data}
+            hass={hass}
+            configEntryId={configEntryId}
+            cameraLinkIntegration={data.camera_link_integration}
+            configEntryOptions={{
+              temperature_unit: data.temperature_unit,
+            }}
+          />
+        );
+      case 'ssids':
+        return (
+          <SSIDsListView
+            ssids={data.ssids || []}
+            clients={data.clients || []}
+            networks={data.networks || []}
+            onBack={() => setActiveView({ view: 'dashboard' })}
+            onSSIDClick={(ssid) =>
+              setActiveView({
+                view: 'ssid',
+                ssidNetworkId: ssid.networkId,
+                ssidNumber: ssid.number,
+              })
+            }
+          />
+        );
+      case 'ssid': {
+        // Find the SSID from data
+        const selectedSSID = data.ssids?.find(
+          (s) =>
+            s.networkId === activeView.ssidNetworkId &&
+            s.number === activeView.ssidNumber
+        );
+        if (!selectedSSID) {
+          return (
+            <div className="error-container">
+              <span className="error-icon">⚠️</span>
+              <p>SSID not found</p>
+              <button
+                onClick={() => setActiveView({ view: 'ssids' })}
+                className="retry-button"
+              >
+                Back to SSIDs
+              </button>
+            </div>
+          );
+        }
+        const ssidNetwork = data.networks?.find(
+          (n) => n.id === selectedSSID.networkId
+        );
+        return (
+          <SSIDView
+            ssid={selectedSSID}
+            clients={data.clients || []}
+            network={ssidNetwork}
+            hass={hass}
+            onBack={() => setActiveView({ view: 'ssids' })}
+            onClientClick={(clientId) =>
+              setActiveView({ view: 'clients', deviceId: clientId })
+            }
+          />
+        );
+      }
+      default:
+        return (
+          <Dashboard
+            data={processedData}
+            setActiveView={setActiveView}
+            hass={hass}
+            defaultViewMode={data.dashboard_view_mode}
+            defaultDeviceTypeFilter={data.dashboard_device_type_filter}
+            defaultStatusFilter={data.dashboard_status_filter}
+            temperatureUnit={data.temperature_unit}
+          />
+        );
     }
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Meraki HA Web UI</h1>
-      {activeView.view === 'dashboard' ? (
-        <NetworkView data={data} onToggle={handleToggle} setActiveView={setActiveView} />
-      ) : (
-        <DeviceView
-          activeView={activeView}
-          setActiveView={setActiveView}
-          data={data}
+    <div className="meraki-panel" style={themeStyle}>
+      <Header
+        version={data.version}
+        onSettingsClick={() => setShowSettings(true)}
+      />
+      {renderView()}
+
+      {/* Settings Modal */}
+      {showSettings && configEntryId && (
+        <Settings
+          hass={hass}
+          options={data}
+          configEntryId={configEntryId}
+          onClose={() => setShowSettings(false)}
         />
       )}
     </div>

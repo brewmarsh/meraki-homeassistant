@@ -1,6 +1,7 @@
 """Switch entities for controlling Meraki Camera profiles."""
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntityDescription
@@ -21,7 +22,7 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
         self,
         coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: dict[str, Any],
+        device_data: Mapping[str, Any],
     ) -> None:
         """Initialize the Camera Sense switch."""
         super().__init__(
@@ -38,9 +39,12 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
     @property
     def name(self) -> str:
         """Return the explicit name of the switch."""
-        if self.entity_description.name is UNDEFINED:
+        if (
+            self.entity_description.name is UNDEFINED
+            or self.entity_description.name is None
+        ):
             return ""
-        return self.entity_description.name or ""
+        return str(self.entity_description.name)
 
     async def _async_update_setting(self, is_on: bool) -> None:
         """Update the setting via the Meraki API.
@@ -61,7 +65,7 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
         self,
         coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: dict[str, Any],
+        device_data: Mapping[str, Any],
     ) -> None:
         """Initialize the Camera Audio Detection switch."""
         super().__init__(
@@ -78,9 +82,12 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
     @property
     def name(self) -> str:
         """Return the explicit name of the switch."""
-        if self.entity_description.name is UNDEFINED:
+        if (
+            self.entity_description.name is UNDEFINED
+            or self.entity_description.name is None
+        ):
             return ""
-        return self.entity_description.name or ""
+        return str(self.entity_description.name)
 
     async def _async_update_setting(self, is_on: bool) -> None:
         """Update the setting via the Meraki API.

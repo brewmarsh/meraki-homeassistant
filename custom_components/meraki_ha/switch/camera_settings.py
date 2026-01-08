@@ -1,13 +1,16 @@
 """Base classes for Meraki camera switch entities."""
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from ..const import DOMAIN
 from ..core.api.client import MerakiAPIClient
+from ..core.utils.naming_utils import format_device_name
 from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..types import MerakiDevice
 
@@ -24,7 +27,7 @@ class MerakiCameraSettingSwitchBase(
         self,
         coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: dict[str, Any],
+        device_data: Mapping[str, Any],
         key: str,
         api_field: str,
     ) -> None:
@@ -92,6 +95,13 @@ class MerakiCameraSettingSwitchBase(
         """Return the current state of the switch."""
         return self._attr_is_on
 
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        if not self.coordinator.last_update_success:
+            return False
+        return self.coordinator.get_device(self._device_data["serial"]) is not None
+
     async def async_turn_on(self, **kwargs: Any) -> None:
         """
         Turn the setting on.
@@ -129,8 +139,10 @@ class MerakiCameraSettingSwitchBase(
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
-            identifiers={("meraki_ha", self._device_data["serial"])},
-            name=self._device_data["name"],
+            identifiers={(DOMAIN, self._device_data["serial"])},
+            name=format_device_name(
+                self._device_data, self.coordinator.config_entry.options
+            ),
             manufacturer="Cisco Meraki",
-            model=self._device_data["model"],
+            model=self._device_data.get("model", "Unknown"),
         )

@@ -18,12 +18,12 @@ The key architectural pillars are:
 The heart of the integration is the `MerakiDataCoordinator`, located in `custom_components/meraki_ha/core/coordinators/meraki_data_coordinator.py`.
 
 - **Responsibilities:**
-    - Manages a single, periodic refresh of all data from the Meraki API via the `MerakiAPIClient`.
-    - Holds the complete state of the integration in its `data` attribute.
-    - After fetching data, it creates several lookup tables for efficient data retrieval by entities:
-        - `devices_by_serial`: A dictionary mapping device serial numbers to device data.
-        - `networks_by_id`: A dictionary mapping network IDs to network data.
-        - `ssids_by_network_and_number`: A dictionary mapping a `(network_id, ssid_number)` tuple to SSID data.
+  - Manages a single, periodic refresh of all data from the Meraki API via the `MerakiAPIClient`.
+  - Holds the complete state of the integration in its `data` attribute.
+  - After fetching data, it creates several lookup tables for efficient data retrieval by entities:
+    - `devices_by_serial`: A dictionary mapping device serial numbers to device data.
+    - `networks_by_id`: A dictionary mapping network IDs to network data.
+    - `ssids_by_network_and_number`: A dictionary mapping a `(network_id, ssid_number)` tuple to SSID data.
 - **Entity Interaction:** Entities in Home Assistant are subclasses of `CoordinatorEntity` and are linked to the `MerakiDataCoordinator`. They should not fetch their own data. Instead, they access the coordinator's `data` or use the efficient `get_device()`, `get_network()`, and `get_ssid()` methods to retrieve their state. When the coordinator updates its data, it notifies all listening entities, which then update their state via their `_handle_coordinator_update()` method.
 
 ### 2.2. `MerakiAPIClient`
@@ -48,7 +48,7 @@ If the `MerakiDataCoordinator` fails to fetch an update from the Meraki API, it 
 
 ### 3.2. Partial Data Merging
 
-The `MerakiAPIClient` fetches data from multiple endpoints concurrently. If one of these sub-requests fails, the integration does not discard all the data from the successful requests. Instead, it will use the data from the last successful coordinator run for the specific slice of data that failed. For example, if fetching VLAN information fails but device statuses succeed, the VLAN sensors will continue to show their previous state, while the device status sensors will show the latest information. This prevents a single, non-critical API failure from causing an entire category of sensors to become unavailable.
+The `MerakiAPIClient` fetches data from multiple endpoints concurrently. If one of these sub-requests fails, the integration does not discard all the data from the successful requests. Instead, it will use the data from the last successful coordinator run for the specific slice of data that failed. For example, if fetching VLAN information fails but device statuses succeed, the VLAN sensors will continue to show their previous state, while the device status sensors will show the latest information.
 
 ### 3.3. Persistent Caching
 

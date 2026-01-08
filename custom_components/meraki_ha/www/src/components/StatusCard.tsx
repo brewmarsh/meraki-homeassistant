@@ -1,26 +1,40 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 interface StatusCardProps {
   title: string;
   value: number | string;
   icon?: React.ReactNode;
+  variant?: 'default' | 'success' | 'warning' | 'error';
   onClick?: () => void;
+  clickable?: boolean;
 }
 
-const StatusCard: React.FC<StatusCardProps> = ({ title, value, icon, onClick }) => {
+const StatusCardComponent: React.FC<StatusCardProps> = ({
+  title,
+  value,
+  icon,
+  variant = 'default',
+  onClick,
+  clickable = false,
+}) => {
+  const valueClass = variant === 'default' ? '' : variant;
+  const isClickable = onClick || clickable;
+
   return (
     <div
-      className="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md flex items-center transition-shadow duration-200"
+      className={`stat-card ${isClickable ? 'clickable' : ''}`}
       onClick={onClick}
-      style={{ cursor: onClick ? 'pointer' : 'default' }}
     >
-      {icon && <div className="mr-4 text-cisco-blue">{icon}</div>}
-      <div>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
-        <p className="text-2xl font-bold text-dark-text dark:text-light-text">{value}</p>
+      <div className="label">{title}</div>
+      <div className={`value ${valueClass}`}>
+        {icon && <span className="stat-icon">{icon}</span>}
+        {value}
       </div>
     </div>
   );
 };
+
+// Memoize StatusCard - re-render only when value changes
+const StatusCard = memo(StatusCardComponent);
 
 export default StatusCard;

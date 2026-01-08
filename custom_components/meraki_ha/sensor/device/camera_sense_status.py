@@ -1,6 +1,7 @@
 """Sensor entity for Meraki camera sense status."""
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
@@ -24,7 +25,7 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device_data: dict[str, Any],
+        device_data: Mapping[str, Any],
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the Meraki Camera Sense Status sensor."""
@@ -60,15 +61,25 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
         current_device_data = self._get_current_device_data()
 
         if not current_device_data:
-            self._attr_native_value = None
+            self._attr_native_value = "unavailable"
             self._attr_icon = "mdi:help-rhombus"
+            self._attr_extra_state_attributes = {
+                "serial_number": self._device_serial,
+            }
             return
 
-        sense_enabled_value = current_device_data.get("senseEnabled")
+        # sense_settings contains the senseEnabled field from the API
+        sense_settings = current_device_data.get("sense_settings", {})
+        sense_enabled_value = (
+            sense_settings.get("senseEnabled")
+            if isinstance(sense_settings, dict)
+            else None
+        )
 
         if sense_enabled_value is None:
-            self._attr_native_value = None
-            self._attr_icon = "mdi:camera-question"
+            # Sense not configured/licensed for this camera
+            self._attr_native_value = "not_configured"
+            self._attr_icon = "mdi:camera-off-outline"
         else:
             sense_enabled = bool(sense_enabled_value)
             self._attr_native_value = "enabled" if sense_enabled else "disabled"
@@ -88,12 +99,10 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def available(self) -> bool:
-        """Return True if entity is available and data is present."""
+        """Return True if entity is available (device exists in coordinator)."""
         if not super().available:
             return False
 
+        # Available as long as the device exists in coordinator data
         current_device_data = self._get_current_device_data()
-        if not current_device_data:
-            return False
-
-        return current_device_data.get("senseEnabled") is not None
+        return current_device_data is not None

@@ -36,7 +36,7 @@ def test_config_schema():
     assert CONFIG_SCHEMA({"api_key": "0" * 40, "meraki_org_id": "123456"}) == {
         "api_key": "0" * 40,
         "meraki_org_id": "123456",
-        "scan_interval": 300,
+        "scan_interval": 90,  # DEFAULT_SCAN_INTERVAL
     }
 
 

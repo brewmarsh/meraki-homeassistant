@@ -54,7 +54,8 @@ def test_ssid_device_unification(
 
     # The unique ID for the SSID "device" itself
     # This is based on the logic in device_info_helpers.py
-    expected_device_identifier = ("meraki_ha", "net1_0")
+    # SSID identifiers use ssid_{network_id}_{ssid_number} format
+    expected_device_identifier = ("meraki_ha", "ssid_net1_0")
 
     # --- Instantiate one of each type of SSID entity ---
 

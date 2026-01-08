@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from homeassistant.helpers.entity import Entity
+from typing import Any
 
 from .sensor.device.camera_audio_detection import MerakiCameraAudioDetectionSensor
 from .sensor.device.camera_sense_status import MerakiCameraSenseStatusSensor
@@ -14,7 +14,8 @@ from .sensor.device.meraki_wan1_connectivity import MerakiWAN1ConnectivitySensor
 from .sensor.device.meraki_wan2_connectivity import MerakiWAN2ConnectivitySensor
 from .sensor.device.poe_usage import MerakiPoeUsageSensor
 
-SensorClassList = list[type[Entity]]
+# Using Any to allow sensor classes with varying constructor signatures
+SensorClassList = list[Any]
 
 # Sensors with __init__(coordinator, device_info)
 SENSORS_COORD_DEV: dict[str, SensorClassList] = {
@@ -52,6 +53,9 @@ SENSORS_COORD_DEV_CONF: dict[str, SensorClassList] = {
 COMMON_SENSORS_COORD_DEV_CONF: SensorClassList = [
     MerakiDeviceStatusSensor,
 ]
+
+# Alias for backwards compatibility
+COMMON_DEVICE_SENSORS = COMMON_SENSORS_COORD_DEV_CONF
 
 
 def get_sensors_for_device_type(

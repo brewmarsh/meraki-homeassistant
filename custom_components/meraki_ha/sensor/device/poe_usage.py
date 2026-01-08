@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
@@ -24,10 +25,16 @@ class MerakiPoeUsageSensor(
     SensorEntity,
 ):
     """
-    Representation of a Meraki switch PoE usage sensor.
+    Representation of a Meraki switch PoE average power sensor.
 
-    This sensor displays the aggregated PoE usage for a Meraki MS switch
-    in watts. The attributes provide a breakdown of PoE usage per port.
+    This sensor displays the 24-hour average PoE power draw for a Meraki MS
+    switch in watts. The Meraki API provides cumulative energy usage in
+    Watt-hours (Wh) over the last 24 hours. This sensor divides by 24 to
+    calculate the average power draw in Watts.
+
+    Note: This is NOT real-time/instantaneous power draw - it's an average
+    over the last 24 hours. Individual port Wh values are available in
+    the sensor attributes.
     """
 
     _attr_state_class = SensorStateClass.MEASUREMENT
@@ -37,7 +44,7 @@ class MerakiPoeUsageSensor(
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        device: Mapping[str, Any],
     ) -> None:
         """
         Initialize the sensor.
@@ -51,7 +58,10 @@ class MerakiPoeUsageSensor(
         super().__init__(coordinator)
         self._device = device
         self._attr_unique_id = f"{self._device['serial']}_poe_usage"
-        self._attr_name = format_entity_name(self._device["name"], "PoE Usage")
+        # Clarify that this is average power, not instantaneous
+        self._attr_name = format_entity_name(
+            self._device["name"], "PoE Average Power (24h)"
+        )
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -66,25 +76,38 @@ class MerakiPoeUsageSensor(
             manufacturer="Cisco Meraki",
         )
 
+    def _get_current_device_data(self) -> dict[str, Any] | None:
+        """Retrieve the latest data for this device from the coordinator."""
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            for dev_data in self.coordinator.data["devices"]:
+                if dev_data.get("serial") == self._device["serial"]:
+                    return dev_data
+        return None
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        device = next(
-            (
-                d
-                for d in self.coordinator.data.get("devices", [])
-                if d["serial"] == self._device["serial"]
-            ),
-            None,
-        )
-        if device:
-            self._device = device
-            self.async_write_ha_state()
+        current_data = self._get_current_device_data()
+        if current_data:
+            self._device = current_data
+        self.async_write_ha_state()
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        if not self.coordinator.last_update_success:
+            return False
+        return self._get_current_device_data() is not None
 
     @property
     def native_value(self) -> float | None:
         """Return the state of the sensor."""
-        ports_statuses = self._device.get("ports_statuses")
+        # Always get fresh data from coordinator
+        device = self._get_current_device_data()
+        if not device:
+            return None
+
+        ports_statuses = device.get("ports_statuses")
         if not isinstance(ports_statuses, list):
             return None
 
@@ -101,11 +124,34 @@ class MerakiPoeUsageSensor(
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        ports_statuses = self._device.get("ports_statuses")
+        # Always get fresh data from coordinator
+        device = self._get_current_device_data()
+        if not device:
+            return {}
+
+        ports_statuses = device.get("ports_statuses")
         if not isinstance(ports_statuses, list):
             return {}
 
-        return {
-            f"port_{port['portId']}_power_usage_wh": port.get("powerUsageInWh")
-            for port in ports_statuses
+        attrs: dict[str, Any] = {
+            # Total energy usage over 24 hours
+            "total_energy_wh_24h": sum(
+                port.get("powerUsageInWh", 0) or 0 for port in ports_statuses
+            ),
+            # Note explaining the sensor value
+            "note": "Value shows 24h average power (Wh/24). Not real-time draw.",
         }
+
+        # Add per-port Wh values
+        for port in ports_statuses:
+            port_wh = port.get("powerUsageInWh")
+            if port_wh is not None:
+                attrs[f"port_{port['portId']}_power_usage_wh"] = port_wh
+
+        # Add coordinator update timestamp
+        if self.coordinator.last_successful_update:
+            attrs["last_meraki_update"] = (
+                self.coordinator.last_successful_update.isoformat()
+            )
+
+        return attrs

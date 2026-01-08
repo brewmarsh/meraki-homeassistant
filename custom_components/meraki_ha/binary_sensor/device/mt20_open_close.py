@@ -56,7 +56,10 @@ class MerakiMt20OpenCloseSensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def _door_reading(self) -> Any | None:
         """Get the 'door' reading value from the device data."""
-        readings = self._device_info.get("readings")
+        # Use readings_raw (list format) for sensor entities
+        readings = self._device_info.get("readings_raw") or self._device_info.get(
+            "readings"
+        )
         if not isinstance(readings, list):
             return None
         for reading in readings:

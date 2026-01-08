@@ -16,6 +16,12 @@ class MerakiConnectionError(MerakiError):
     pass
 
 
+class ApiClientCommunicationError(MerakiConnectionError):
+    """Error to indicate an API communication problem."""
+
+    pass
+
+
 class MerakiAuthenticationError(MerakiError):
     """Error to indicate an authentication problem."""
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from ..core.api.client import MerakiAPIClient
@@ -21,7 +22,7 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
         self,
         coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: dict[str, Any],
+        device_data: Mapping[str, Any],
     ) -> None:
         """
         Initialize the analytics switch.

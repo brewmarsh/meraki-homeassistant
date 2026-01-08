@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -31,7 +33,7 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device_data: dict[str, Any],
+        device_data: Mapping[str, Any],
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
@@ -53,20 +55,37 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
         # Set initial state
         self._update_state()
 
+    def _get_current_device_data(self) -> dict[str, Any] | None:
+        """Retrieve the latest data for this device from the coordinator."""
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            for dev_data in self.coordinator.data["devices"]:
+                if dev_data.get("serial") == self._device_data["serial"]:
+                    return dev_data
+        return None
+
+    @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        # Find the updated device data from the coordinator's payload
-        for device in self.coordinator.data.get("devices", []):
-            if device.get("serial") == self._device_data["serial"]:
-                self._device_data = device
-                break
+        current_data = self._get_current_device_data()
+        if current_data:
+            self._device_data = current_data
         self._update_state()
         self.async_write_ha_state()
 
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        if not self.coordinator.last_update_success:
+            return False
+        return self._get_current_device_data() is not None
+
     def _update_state(self) -> None:
         """Update the sensor's state based on the latest device data."""
-        video_settings = self._device_data.get("video_settings", {})
-        lan_ip = self._device_data.get("lanIp")
+        # Always get fresh data from coordinator
+        device_data = self._get_current_device_data() or self._device_data
+
+        video_settings = device_data.get("video_settings", {})
+        lan_ip = device_data.get("lanIp")
         if lan_ip:
             self._attr_native_value = construct_rtsp_url(lan_ip)
             return
