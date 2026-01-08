@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import DeviceTable from './DeviceTable';
 import SSIDView from './SSIDView';
 import EventLog from './EventLog';
-import HaSwitch from './HaSwitch';
 import VlanTable from './VlanTable';
 
 // Define the types for our data
@@ -50,7 +49,6 @@ interface NetworkViewProps {
     devices: Device[];
     vlans?: { [key: string]: Vlan[] };
   };
-  onToggle: (networkId: string, enabled: boolean) => void;
   setActiveView: (view: { view: string; deviceId?: string }) => void;
   configEntryId: string;
 }
@@ -58,7 +56,6 @@ interface NetworkViewProps {
 const NetworkView: React.FC<NetworkViewProps> = ({
   hass,
   data,
-  onToggle,
   setActiveView,
   configEntryId,
 }) => {
@@ -228,23 +225,6 @@ const NetworkView: React.FC<NetworkViewProps> = ({
                 style={{ marginLeft: '8px' }}
                 icon={isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}
               ></ha-icon>
-              <div
-                style={{
-                  marginLeft: 'auto',
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-              >
-                <span style={{ marginRight: '8px' }}>Track in</span>
-                <ha-icon
-                  icon="hass:home-assistant"
-                  style={{ color: 'var(--primary-color)', marginRight: '8px' }}
-                ></ha-icon>
-                <HaSwitch
-                  checked={network.is_enabled}
-                  onChange={(checked) => onToggle(network.id, checked)}
-                />
-              </div>
             </div>
             {isOpen && network.is_enabled && (
               <div className="card-content">
