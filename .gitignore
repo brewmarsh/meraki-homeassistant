@@ -3,6 +3,13 @@
 *$py.class
 __pycache__/
 
+# Agent specific artifacts
+archive/agent-artifacts/
+.jules/
+.venv/
+__pycache__/
+*.log
+
 # Node/npm
 node_modules/
 .cache/
@@ -13,3 +20,18 @@ node_modules/
 .coverage
 coverage.xml
 custom_components/meraki_ha/www/node_modules
+
+# Home Assistant Testing & Config
+.storage/
+.cloud/
+test-output/
+dist/
+
+# Development Tools
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# System/OS Junk
+.DS_Store
+Thumbs.db
