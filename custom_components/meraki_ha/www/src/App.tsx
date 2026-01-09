@@ -161,7 +161,7 @@ interface MerakiData {
   version?: string;
   // Dashboard settings from integration options
   dashboard_view_mode?: 'network' | 'type';
-  dashboard_device_type_filter?: string;
+  dashboard_device_type_filter?: string[] | string;
   dashboard_status_filter?: string;
   camera_link_integration?: string;
   temperature_unit?: 'celsius' | 'fahrenheit';
