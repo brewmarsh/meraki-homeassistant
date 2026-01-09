@@ -66,5 +66,5 @@ This plan builds on the existing architecture to implement a dynamic and feature
 
 #### Phase 4: Testing and Cleanup
 
-1.  **Create Model-Specific Mock Data**: When testing, use mock API responses that represent different camera models (e.g., one mock for an MV12, another for an MV93 with 360° view and analytics). This will allow you to test that the `MVHandler` correctly creates the right entities for each model. 
+1.  **Create Model-Specific Mock Data**: When testing, use mock API responses that represent different camera models (e.g., one mock for an MV12, another for an MV93 with 360° view and analytics). This will allow you to test that the `MVHandler` correctly creates the right entities for each model.
 2.  **Remove Legacy Code**: Delete any old code that handles MV cameras in a monolithic or non-modular way, ensuring all new logic is routed through the repository and the new `CameraService`.
