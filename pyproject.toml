@@ -1,8 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "meraki-homeassistant"
 version = "0.0.0"
 description = "Meraki integration for Home Assistant"
 requires-python = ">=3.13.2"
+readme = "README.md"
+license = {text = "MIT"}
+
+[tool.hatch.build.targets.wheel]
+packages = ["custom_components/meraki_ha"]
 
 [project.optional-dependencies]
 dev = [
@@ -41,6 +50,8 @@ asyncio_mode = "auto"
 [tool.mypy]
 follow_imports = "silent"
 ignore_missing_imports = true
+incremental = true
+cache_dir = ".mypy_cache"
 
 [[tool.mypy.overrides]]
 module = "aiofiles"

@@ -17,16 +17,16 @@ This project uses **`uv`** as the Python package manager and **`pyproject.toml`*
 2.  **Install dependencies:**
 
     ```bash
-    uv sync
+    uv sync --all-extras
     ```
 
-    This reads `pyproject.toml` and creates/updates `uv.lock` with exact versions.
+    This reads `pyproject.toml` and installs all dev dependencies from `[project.optional-dependencies].dev`. The `uv.lock` file ensures reproducible builds.
 
 3.  **Adding new dependencies:**
     ```bash
     uv add <package-name>
     # Or edit pyproject.toml directly under [project.optional-dependencies].dev
-    uv sync
+    uv sync --all-extras
     ```
 
 ### 1.2. Docker Test Environment
@@ -45,33 +45,51 @@ For a more isolated and consistent testing environment, you can use the provided
 
 ## 2. Running Quality Checks
 
-Before submitting, you **must** run all quality checks. These are also enforced by pre-commit hooks.
+Before submitting, you **must** run all quality checks.
 
 **All tool configurations are centralized in `pyproject.toml`** - never create separate config files.
+
+### 2.1. Recommended: Use the Helper Script
+
+The easiest way to run all checks is with the helper script:
+
+```bash
+./run_checks.sh
+```
+
+This script will:
+
+- Auto-install `uv` if not present
+- Sync all dependencies
+- Run ruff, bandit, mypy, and pytest
+
+### 2.2. Running Checks Individually
+
+If you need to run checks individually, use `uv run` to ensure tools run in the virtual environment:
 
 1.  **Linting & Formatting (Ruff):** - configured in `[tool.ruff]`
 
     ```bash
-    ruff check --fix .
-    ruff format .
+    uv run ruff check --fix .
+    uv run ruff format .
     ```
 
 2.  **Type Checking (mypy):** - configured in `[tool.mypy]`
 
     ```bash
-    mypy custom_components/meraki_ha/ tests/
+    uv run mypy custom_components/meraki_ha/ tests/
     ```
 
 3.  **Security Analysis (bandit):** - configured in `[tool.bandit]`
 
     ```bash
-    bandit -c pyproject.toml -r .
+    uv run bandit -c pyproject.toml -r custom_components/meraki_ha/
     ```
 
 4.  **Run Tests (pytest):** - configured in `[tool.pytest.ini_options]`
 
     ```bash
-    pytest
+    uv run pytest
     ```
 
 5.  **Home Assistant Validation (hassfest):**
@@ -170,10 +188,10 @@ The `main` branch is for **production releases only** and requires a separate PR
 
 ```bash
 # Run all tests
-pytest
+uv run pytest
 
 # Run with coverage
-pytest --cov=custom_components/meraki_ha --cov-report=term-missing
+uv run pytest --cov=custom_components/meraki_ha --cov-report=term-missing
 ```
 
 - All code changes **require corresponding unit tests**

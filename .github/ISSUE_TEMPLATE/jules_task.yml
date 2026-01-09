@@ -9,7 +9,7 @@ body:
     attributes:
       value: |
         ### 🤖 AI Agent Instructions
-        When this issue is created, Jules will automatically begin analyzing the requirements based on the `ROADMAP.md` and the `beta` branch.
+        When this issue is created, Jules will automatically begin analyzing the requirements based on `AGENTS.md`, `DEVELOPMENT.md`, and the `beta` branch.
   - type: input
     id: milestone
     attributes:

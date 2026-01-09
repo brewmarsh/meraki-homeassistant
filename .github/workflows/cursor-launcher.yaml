@@ -1,10 +1,10 @@
 name: Cursor Code Review
 
-run-name: 'Cursor: Review ${{ github.event.workflow_run.head_branch || github.event.inputs.pr_number }}'
+run-name: 'Cursor: Review ${{ github.event.workflow_run.head_branch }}'
 
-# Triggers AFTER Beta CI passes on a Jules PR
-# Cursor creates a separate PR targeting the Jules branch for review changes
-# Can also be triggered manually with a PR number
+# When Beta CI passes on a Jules PR, launch Cursor to review
+# Cursor creates a PR targeting the Jules branch for isolated review
+# Skips if Cursor is already reviewing
 
 on:
   workflow_run:
@@ -12,6 +12,7 @@ on:
     types:
       - completed
 
+  # Manual trigger for testing
   workflow_dispatch:
     inputs:
       pr_number:
@@ -19,18 +20,18 @@ on:
         required: true
         type: string
 
-# Prevent multiple Cursor reviews on the same branch
+# Prevent multiple Cursor reviews on same branch
 concurrency:
   group: cursor-review-${{ github.event.workflow_run.head_branch || github.event.inputs.pr_number }}
   cancel-in-progress: false
 
 jobs:
-  cursor-review:
-    # Run when CI passes OR when manually triggered
-    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+  launch-cursor-review:
     runs-on: ubuntu-latest
+    # Only run on CI success (or manual trigger)
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
       issues: write
     steps:
@@ -39,99 +40,90 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Handle both automatic and manual triggers
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            # Manual trigger - get branch from PR number
+            # Manual trigger - get PR by number
             PR_NUMBER="${{ github.event.inputs.pr_number }}"
-            HEAD_BRANCH=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json headRefName -q '.headRefName')
-            echo "Manual trigger for PR #$PR_NUMBER"
+            PR_JSON=$(gh pr view "$PR_NUMBER" \
+              --repo "${{ github.repository }}" \
+              --json number,title,body,author,headRefName,labels)
           else
-            # Automatic trigger from workflow_run
+            # Automatic trigger - find PR by branch
             HEAD_BRANCH="${{ github.event.workflow_run.head_branch }}"
+            echo "Branch: $HEAD_BRANCH"
+
+            PR_JSON=$(gh pr list \
+              --repo "${{ github.repository }}" \
+              --head "$HEAD_BRANCH" \
+              --state open \
+              --json number,title,body,author,headRefName,labels \
+              --limit 1 | jq '.[0] // {}')
           fi
 
-          echo "Branch: $HEAD_BRANCH"
+          PR_NUMBER=$(echo "$PR_JSON" | jq -r '.number // empty')
+          PR_TITLE=$(echo "$PR_JSON" | jq -r '.title // empty')
+          PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.author.login // empty')
+          PR_HEAD_REF=$(echo "$PR_JSON" | jq -r '.headRefName // empty')
+          PR_LABELS=$(echo "$PR_JSON" | jq -r '[.labels[].name] | join(" ")' 2>/dev/null || echo "")
 
-          # Find the PR for this branch
-          PR_JSON=$(gh pr list \
-            --repo "${{ github.repository }}" \
-            --head "$HEAD_BRANCH" \
-            --state open \
-            --json number,title,body,author,headRefName,baseRefName \
-            --limit 1)
-
-          PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number // empty')
+          echo "PR #$PR_NUMBER: $PR_TITLE"
+          echo "Author: $PR_AUTHOR"
+          echo "Branch: $PR_HEAD_REF"
+          echo "Labels: $PR_LABELS"
 
           if [[ -z "$PR_NUMBER" ]]; then
-            echo "No open PR found"
+            echo "No open PR found - skipping"
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.[0].author.login // empty')
-          PR_BASE=$(echo "$PR_JSON" | jq -r '.[0].baseRefName // empty')
-
-          echo "PR Author: $PR_AUTHOR"
-          echo "PR Base: $PR_BASE"
-
-          # Only process Jules PRs that target beta (not Cursor PRs)
-          IS_JULES="false"
-          if [[ "$PR_AUTHOR" == *"jules"* ]] || [[ "$PR_AUTHOR" == *"google-labs"* ]]; then
-            IS_JULES="true"
+          # Skip if already Cursor-reviewed or Cursor is reviewing
+          if echo "$PR_LABELS" | grep -qE "(cursor-reviewing|cursor-reviewed)"; then
+            echo "⏭️ Cursor already processed this PR"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
-          if [[ "$IS_JULES" != "true" ]]; then
+          # Only review Jules PRs
+          if [[ "$PR_AUTHOR" != *"jules"* ]] && [[ "$PR_AUTHOR" != *"google-labs"* ]]; then
             echo "Not a Jules PR - skipping"
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          # Skip if this is a Cursor PR (targeting a Jules branch, not beta)
-          if [[ "$PR_BASE" != "beta" && "$PR_BASE" != "main" ]]; then
-            echo "This is a Cursor PR targeting Jules branch - handled by cursor-fix workflow"
+          # Skip if this is a Cursor branch (shouldn't happen, but safety check)
+          if [[ "$PR_HEAD_REF" == cursor-review/* ]]; then
+            echo "This is already a Cursor branch - skipping"
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
-          fi
-
-          # Check if Cursor has already reviewed (look for cursor-reviewed label)
-          HAS_CURSOR_REVIEW=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json labels \
-            --jq '[.labels[].name] | any(. == "cursor-reviewed")')
-
-          if [[ "$HAS_CURSOR_REVIEW" == "true" ]]; then
-            echo "Cursor already reviewed this PR"
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          PR_TITLE=$(echo "$PR_JSON" | jq -r '.[0].title // empty')
-          PR_BODY=$(echo "$PR_JSON" | jq -r '.[0].body // empty')
-          PR_HEAD_REF=$(echo "$PR_JSON" | jq -r '.[0].headRefName // empty')
-
-          # Extract issue number
-          ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
-          if [[ -z "$ISSUE_NUM" ]]; then
-            ISSUE_NUM=$(echo "$PR_HEAD_REF" | grep -oE '[-/][0-9]+[-/]' | grep -oE '[0-9]+' | head -1)
           fi
 
           echo "skip=false" >> "$GITHUB_OUTPUT"
           echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
           echo "title=$PR_TITLE" >> "$GITHUB_OUTPUT"
           echo "head_ref=$PR_HEAD_REF" >> "$GITHUB_OUTPUT"
+
+          # Extract issue number
+          PR_BODY=$(echo "$PR_JSON" | jq -r '.body // empty')
+          ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
+          if [[ -z "$ISSUE_NUM" ]]; then
+            ISSUE_NUM=$(echo "$PR_HEAD_REF" | grep -oE '[-/][0-9]+[-/]' | grep -oE '[0-9]+' | head -1)
+          fi
           echo "issue_number=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
 
-          # Save PR body for later
-          echo "$PR_BODY" > /tmp/pr_body.txt
+          # Save issue body for context
+          if [[ -n "$ISSUE_NUM" ]]; then
+            gh issue view "$ISSUE_NUM" --repo "${{ github.repository }}" --json body --jq '.body // ""' > /tmp/issue_body.txt 2>/dev/null || true
+          fi
 
-      - name: Get issue details
-        id: issue
-        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.issue_number != ''
+      - name: Add cursor-reviewing label
+        if: steps.pr.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ISSUE_BODY=$(gh issue view ${{ steps.pr.outputs.issue_number }} \
+          # Add label BEFORE launching agent to prevent Jules from re-triggering
+          gh pr edit ${{ steps.pr.outputs.number }} \
             --repo "${{ github.repository }}" \
-            --json body -q '.body')
-          echo "$ISSUE_BODY" > /tmp/issue_body.txt
+            --add-label "cursor-reviewing" 2>/dev/null || true
 
       - name: Launch Cursor Agent
         id: cursor
@@ -147,30 +139,40 @@ jobs:
             ISSUE_BODY=$(cat /tmp/issue_body.txt)
           fi
 
-          PROMPT="You are reviewing code for the meraki-homeassistant Home Assistant integration.
+          PROMPT="You are reviewing Jules' code for the meraki-homeassistant Home Assistant integration.
 
           ## Context
           - Jules PR: #${{ steps.pr.outputs.number }} - ${{ steps.pr.outputs.title }}
           - Jules Branch: $JULES_BRANCH
-          - Your Branch: $CURSOR_BRANCH (targeting Jules branch)
+          - Your Branch: $CURSOR_BRANCH
+          - Python Version: 3.13.2
 
-          ## Issue Requirements
+          ## Original Issue Requirements
           ${ISSUE_BODY}
 
           ## Your Task
           1. Read AGENTS.md for project standards
-          2. Review Jules' code for:
+          2. Read DEVELOPMENT.md for environment setup
+          3. Review Jules' code thoroughly for:
              - Code quality and best practices
              - Proper error handling
              - Type hints and documentation
              - Test coverage
-          3. Make improvements and fixes
-          4. Run: ruff check --fix . && ruff format . && mypy && pytest
-          5. Commit with: review(cursor): <description>
-          6. CREATE A NEW PR targeting: $JULES_BRANCH
+             - Any regressions or bugs
+          4. Make improvements and fixes
+          5. Run ./run_checks.sh to verify all checks pass
+             - Or run individually: uv run ruff check --fix . && uv run ruff format .
+          6. Commit with: review(cursor): <description of improvements>
+          7. CREATE A PR from $CURSOR_BRANCH targeting $JULES_BRANCH
+
+          ## Test Environment Notes
+          - Home Assistant is NOT installed in the test environment
+          - Tests use pytest-homeassistant-custom-component fixtures
+          - Check tests/conftest.py for fixture patterns
+          - All HA imports must be properly mocked
 
           Focus on custom_components/meraki_ha/ and tests/.
-          Keep changes minimal and focused on quality improvements."
+          Keep changes focused on quality improvements."
 
           ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
 
@@ -189,8 +191,7 @@ jobs:
               },
               \"target\": {
                 \"branchName\": \"$CURSOR_BRANCH\",
-                \"autoCreatePr\": true,
-                \"openAsCursorGithubApp\": true
+                \"autoCreatePr\": true
               }
             }")
 
@@ -217,22 +218,18 @@ jobs:
             --repo "${{ github.repository }}" \
             --body "## 🔍 Cursor Code Review Started
 
-          Cursor is reviewing your code and will create a separate PR with improvements.
+          CI passed! Cursor is now reviewing your code.
 
           **Agent ID**: \`${{ steps.cursor.outputs.agent_id }}\`
           **Review Branch**: \`${{ steps.cursor.outputs.cursor_branch }}\`
 
-          Once Cursor's PR passes CI, it will be auto-merged into this branch.
+          Cursor will create a PR targeting this branch with improvements.
+          Once Cursor's PR passes checks, it will be auto-merged here.
 
           ---
           *[View Agent](https://cursor.com/agents?id=${{ steps.cursor.outputs.agent_id }})*"
 
-          # Mark as cursor-pending
-          gh pr edit ${{ steps.pr.outputs.number }} \
-            --repo "${{ github.repository }}" \
-            --add-label "cursor-pending" 2>/dev/null || true
-
-      - name: Comment on issue
+      - name: Update issue with progress
         if: steps.pr.outputs.skip != 'true' && steps.cursor.outputs.agent_id != '' && steps.pr.outputs.issue_number != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -241,7 +238,9 @@ jobs:
             --repo "${{ github.repository }}" \
             --body "## 🔍 Cursor Review Started
 
-          Cursor is reviewing Jules' code on PR #${{ steps.pr.outputs.number }}.
+          Jules' PR #${{ steps.pr.outputs.number }} passed CI. Cursor is now reviewing the code for quality and potential issues.
+
+          **Review Branch**: \`${{ steps.cursor.outputs.cursor_branch }}\`
 
           ---
           *[View Agent](https://cursor.com/agents?id=${{ steps.cursor.outputs.agent_id }})*"
