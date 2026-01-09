@@ -237,6 +237,7 @@ class TestMerakiCamera:
         )
         device_info = camera.device_info
 
+        assert device_info is not None
         assert (DOMAIN, MOCK_CAMERA_DEVICE["serial"]) in device_info["identifiers"]
         assert device_info["model"] == "MV12W"
         assert device_info["manufacturer"] == "Cisco Meraki"
