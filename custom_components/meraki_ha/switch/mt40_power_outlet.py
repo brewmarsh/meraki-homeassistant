@@ -20,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiMt40PowerOutlet(
-    CoordinatorEntity,
+    CoordinatorEntity[MerakiDataCoordinator],
     SwitchEntity,
     RestoreEntity,
 ):
@@ -28,6 +28,8 @@ class MerakiMt40PowerOutlet(
 
     Uses RestoreEntity to preserve state across Home Assistant restarts.
     """
+
+    coordinator: MerakiDataCoordinator
 
     def __init__(
         self,

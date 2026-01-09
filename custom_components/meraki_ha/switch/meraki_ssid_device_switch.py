@@ -19,9 +19,10 @@ from ..meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
+class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntity):
     """Base class for Meraki SSID Switches."""
 
+    coordinator: MerakiDataCoordinator
     entity_category = EntityCategory.CONFIG
     _attr_has_entity_name = True
 
