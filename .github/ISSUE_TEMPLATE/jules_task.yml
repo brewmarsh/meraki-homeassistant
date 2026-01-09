@@ -1,7 +1,7 @@
 name: 🤖 Ask Jules (AI Agent)
 description: Create a structured task for the Jules coding agent.
 title: '[Jules]: '
-labels: ['jules-work', 'status: todo', 'type: feature']
+labels: ['jules-issue', 'status: todo', 'type: feature']
 assignees: ['jules']
 
 body:
