@@ -101,14 +101,13 @@ jobs:
         run: |
           FIX_ATTEMPTS="${{ steps.check.outputs.fix_attempts }}"
 
-          if [[ "$FIX_ATTEMPTS" -ge 5 ]]; then
-            echo "should_escalate=true" >> "$GITHUB_OUTPUT"
-            echo "handoff_to_cursor=false" >> "$GITHUB_OUTPUT"
-            echo "🚨 5+ fix attempts - escalating to human"
-          elif [[ "$FIX_ATTEMPTS" -ge 3 ]]; then
+          # Jules only tries 3 times, then hands off to Cursor
+          # After handoff, the cursor-reviewing label prevents Jules from running again
+          # Human escalation is handled separately by Cursor workflow
+          if [[ "$FIX_ATTEMPTS" -ge 3 ]]; then
             echo "should_escalate=false" >> "$GITHUB_OUTPUT"
             echo "handoff_to_cursor=true" >> "$GITHUB_OUTPUT"
-            echo "🔄 3 Jules attempts - handing off to Cursor"
+            echo "🔄 3+ Jules attempts - handing off to Cursor"
           else
             echo "should_escalate=false" >> "$GITHUB_OUTPUT"
             echo "handoff_to_cursor=false" >> "$GITHUB_OUTPUT"
@@ -199,49 +198,11 @@ jobs:
             *Automated handoff*"
           fi
 
-      - name: Escalate to human
-        if: steps.escalate.outputs.should_escalate == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_NUM="${{ steps.check.outputs.pr_number }}"
-          ISSUE_NUM="${{ steps.check.outputs.issue_number }}"
-
-          gh pr comment "$PR_NUM" \
-            --repo "${{ github.repository }}" \
-            --body "## 🚨 Escalation Required
-
-          Both Jules and Cursor have attempted fixes but CI still fails.
-
-          **Manual intervention required.**
-
-          ---
-          *Escalated by Jules workflow*"
-
-          gh pr edit "$PR_NUM" \
-            --repo "${{ github.repository }}" \
-            --add-label "needs-human-review" 2>/dev/null || true
-
-          if [[ -n "$ISSUE_NUM" ]]; then
-            gh issue comment "$ISSUE_NUM" \
-              --repo "${{ github.repository }}" \
-              --body "## 🚨 Escalation to Human
-
-            Both Jules (3 attempts) and Cursor couldn't fix CI. Human intervention required.
-
-            **PR**: #$PR_NUM
-
-            ---
-            *Escalated by automation*"
-
-            gh issue edit "$ISSUE_NUM" \
-              --repo "${{ github.repository }}" \
-              --add-label "needs-human-review" 2>/dev/null || true
-          fi
+      # Note: Human escalation is handled by cursor-fix.yaml after Cursor attempts fail
 
       - name: Get CI failure details
         id: ci_failure
-        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true'
+        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -262,7 +223,7 @@ jobs:
 
       - name: Read CI error logs
         id: errors
-        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true'
+        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true'
         run: |
           CI_ERRORS=""
           if [[ -f /tmp/logs/ci_errors.txt ]]; then
@@ -277,7 +238,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Invoke Jules to fix CI
-        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true'
+        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true'
         uses: google-labs-code/jules-action@v1.0.0
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
@@ -314,7 +275,7 @@ jobs:
             This runs ruff, bandit, mypy, and pytest. All must pass.
 
       - name: Comment on PR about fix attempt
-        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true'
+        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -334,7 +295,7 @@ jobs:
           *[View CI Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})*"
 
       - name: Update issue with progress
-        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true' && steps.check.outputs.issue_number != ''
+        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true' && steps.check.outputs.issue_number != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
