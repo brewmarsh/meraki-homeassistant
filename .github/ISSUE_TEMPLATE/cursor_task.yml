@@ -1,0 +1,57 @@
+name: 🖱️ Ask Cursor (AI Agent)
+description: Create a structured task for the Cursor coding agent.
+title: '[Cursor]: '
+labels: ['cursor-work', 'status: todo', 'type: feature']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### 🖱️ Cursor AI Agent Instructions
+
+        When this issue is created and labeled, Cursor will automatically begin analyzing
+        the requirements based on the DEVELOPMENT.md and the beta branch.
+
+  - type: input
+    id: milestone
+    attributes:
+      label: Milestone
+      value: 'v2.3.0 (2026.1 Infrastructure Update)'
+    validations:
+      required: true
+
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Task Requirements
+      description: Describe exactly what you want Cursor to build or refactor.
+      placeholder: 'e.g., Refactor the sensor platform to use a base class...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Specific Constraints
+      description: List any technical constraints (e.g., specific files to modify, patterns to follow).
+      value: 'Follow DEVELOPMENT.md standards. Use existing patterns in the codebase.'
+
+  - type: dropdown
+    id: task_type
+    attributes:
+      label: Task Type
+      options:
+        - Feature Implementation
+        - Bug Fix
+        - Refactoring
+        - Code Review
+        - Documentation
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: target
+    attributes:
+      label: Target Branch
+      options:
+        - label: This work must target the 'beta' branch.
+          required: true

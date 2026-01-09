@@ -1,0 +1,206 @@
+# Cursor Issue Handler
+# Triggers when an issue is labeled for Cursor to work on directly
+# This bypasses Jules and goes straight to Cursor for the task
+
+name: Cursor Issue Handler
+
+on:
+  issues:
+    types: [labeled]
+
+concurrency:
+  group: cursor-issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: '3.13.2'
+
+jobs:
+  # Check if this is a Cursor task
+  check-cursor-task:
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'cursor-work'
+    outputs:
+      should_process: ${{ steps.check.outputs.should_process }}
+      issue_number: ${{ github.event.issue.number }}
+      issue_title: ${{ github.event.issue.title }}
+    steps:
+      - name: Check if issue should be processed
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check if already in progress
+          LABELS=$(gh issue view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json labels -q '.labels[].name')
+
+          if echo "$LABELS" | grep -q "in-progress"; then
+            echo "Issue already in progress, skipping"
+            echo "should_process=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_process=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Launch Cursor agent for the task
+  launch-cursor:
+    needs: check-cursor-task
+    if: needs.check-cursor-task.outputs.should_process == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - name: Update issue labels
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue edit ${{ github.event.issue.number }} \
+            --repo ${{ github.repository }} \
+            --remove-label "status: todo" \
+            --add-label "in-progress" 2>/dev/null || true
+
+      - name: Comment on issue - Starting
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} \
+            --repo ${{ github.repository }} \
+            --body "## 🖱️ Cursor Agent Starting
+
+          Cursor is now analyzing this task and will begin working on it.
+
+          **Issue:** #${{ github.event.issue.number }}
+          **Title:** ${{ github.event.issue.title }}
+
+          ---
+          *Cursor will create a PR when the work is complete.*"
+
+      - name: Launch Cursor agent
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          ISSUE_NUM="${{ github.event.issue.number }}"
+          ISSUE_TITLE="${{ github.event.issue.title }}"
+          ISSUE_BODY=$(gh issue view "$ISSUE_NUM" --repo "${{ github.repository }}" --json body -q '.body' || echo "")
+
+          # Build the prompt for Cursor
+          PROMPT="You are working on issue #${ISSUE_NUM}: ${ISSUE_TITLE}
+
+          ## Issue Details
+          ${ISSUE_BODY}
+
+          ## Instructions
+
+          1. Read DEVELOPMENT.md and AGENTS.md to understand project standards
+          2. Analyze the requirements in this issue
+          3. Implement the requested changes following project conventions
+          4. Use Python 3.13.2 for all Python code
+          5. Run ./run_checks.sh to verify all checks pass before committing
+          6. Create commits with conventional commit format: type(scope): description
+          7. Reference this issue in your commits: Fixes #${ISSUE_NUM}
+
+          ## Testing Environment Notes
+
+          When running tests with pytest, you may encounter:
+          - ModuleNotFoundError: No module named 'homeassistant'
+
+          This is expected - the pytest-homeassistant-custom-component plugin provides
+          the Home Assistant test fixtures. Use the fixtures from conftest.py and mock
+          any direct HA imports in your tests.
+
+          ## Quality Checks
+
+          Run: ./run_checks.sh
+
+          This runs ruff, bandit, mypy, and pytest. All checks must pass.
+
+          ## Branch Strategy
+
+          Create a feature branch from beta:
+          - feat/cursor-${ISSUE_NUM}-description
+          - fix/cursor-${ISSUE_NUM}-description
+          - refactor/cursor-${ISSUE_NUM}-description"
+
+          # Call Cursor API
+          RESPONSE=$(curl -s -X POST "https://api.cursor.com/v1/agents" \
+            -H "Authorization: Bearer $CURSOR_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"prompt\": $(echo "$PROMPT" | jq -Rs .),
+              \"source\": {
+                \"type\": \"github\",
+                \"owner\": \"${{ github.repository_owner }}\",
+                \"repo\": \"$(echo '${{ github.repository }}' | cut -d'/' -f2)\",
+                \"ref\": \"beta\"
+              },
+              \"target\": {
+                \"type\": \"github\",
+                \"autoCreatePr\": true,
+                \"openAsCursorGithubApp\": true
+              }
+            }")
+
+          echo "Cursor API Response: $RESPONSE"
+
+          # Check for errors
+          if echo "$RESPONSE" | jq -e '.error' > /dev/null 2>&1; then
+            echo "Error launching Cursor agent"
+            exit 1
+          fi
+
+          AGENT_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+          if [[ -n "$AGENT_ID" ]]; then
+            echo "Cursor agent launched with ID: $AGENT_ID"
+          fi
+
+      - name: Comment on issue - Agent launched
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} \
+            --repo ${{ github.repository }} \
+            --body "## ✅ Cursor Agent Launched
+
+          Cursor is now working on this issue. A PR will be created when complete.
+
+          **Next Steps:**
+          1. Cursor will analyze the codebase
+          2. Implement the requested changes
+          3. Run quality checks
+          4. Create a PR targeting beta
+
+          ---
+          *You will be notified when the PR is ready for review.*"
+
+  # Handle errors
+  handle-error:
+    needs: [check-cursor-task, launch-cursor]
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Comment on issue - Error
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} \
+            --repo ${{ github.repository }} \
+            --body "## ⚠️ Cursor Agent Error
+
+          There was an error launching the Cursor agent for this issue.
+
+          **Possible reasons:**
+          - API key configuration issue
+          - Rate limiting
+          - Temporary service unavailability
+
+          Please check the [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
+
+          ---
+          *You may need to manually trigger the workflow or assign to Jules instead.*"
+
+          # Remove in-progress label on failure
+          gh issue edit ${{ github.event.issue.number }} \
+            --repo ${{ github.repository }} \
+            --remove-label "in-progress" \
+            --add-label "status: todo" 2>/dev/null || true

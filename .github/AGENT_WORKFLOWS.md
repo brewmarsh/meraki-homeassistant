@@ -9,6 +9,11 @@ We use two AI agents:
 - **Jules** (Google Labs) - Primary coding agent for implementing features and fixing bugs
 - **Cursor** - Code review agent for quality assurance and validation
 
+Both agents can be assigned issues directly:
+
+- Label an issue with `jules-issue` → Jules handles it
+- Label an issue with `cursor-work` → Cursor handles it directly (bypasses Jules)
+
 ## Workflow Diagram
 
 ```text
@@ -127,28 +132,30 @@ We use two AI agents:
 
 ## Workflow Files
 
-| Workflow                   | Trigger                      | Purpose                          |
-| -------------------------- | ---------------------------- | -------------------------------- |
-| `jules-issue-handler.yaml` | Issue labeled `jules-issue`  | Launch Jules to work on issue    |
-| `jules-pr-linker.yaml`     | PR opened by Jules           | Link PR to issue, update labels  |
-| `jules-ci-fix.yaml`        | Beta CI fails on Jules PR    | Self-heal: Jules fixes CI errors |
-| `cursor-launcher.yaml`     | Beta CI passes on Jules PR   | Launch Cursor for code review    |
-| `cursor-fix.yaml`          | Beta CI on Cursor PR         | Handle Cursor PR: fix or merge   |
-| `beta-ci.yaml`             | PR to any branch except main | Run all CI checks                |
-| `beta-version-update.yaml` | PR merged to beta            | Cleanup, version bump, release   |
+| Workflow                    | Trigger                      | Purpose                          |
+| --------------------------- | ---------------------------- | -------------------------------- |
+| `jules-issue-handler.yaml`  | Issue labeled `jules-issue`  | Launch Jules to work on issue    |
+| `cursor-issue-handler.yaml` | Issue labeled `cursor-work`  | Launch Cursor directly on issue  |
+| `jules-pr-linker.yaml`      | PR opened by Jules           | Link PR to issue, update labels  |
+| `jules-ci-fix.yaml`         | Beta CI fails on Jules PR    | Self-heal: Jules fixes CI errors |
+| `cursor-launcher.yaml`      | Beta CI passes on Jules PR   | Launch Cursor for code review    |
+| `cursor-fix.yaml`           | Beta CI on Cursor PR         | Handle Cursor PR: fix or merge   |
+| `beta-ci.yaml`              | PR to any branch except main | Run all CI checks                |
+| `beta-version-update.yaml`  | PR merged to beta            | Cleanup, version bump, release   |
 
 ## Labels
 
-| Label                | Color  | Meaning                        |
-| -------------------- | ------ | ------------------------------ |
-| `jules-issue`        | Purple | Issue assigned to Jules        |
-| `in-progress`        | Yellow | Agent is working on this       |
-| `pr-pending`         | Green  | PR created, awaiting review    |
-| `cursor-reviewing`   | Blue   | Cursor is reviewing the PR     |
-| `cursor-reviewed`    | Green  | Cursor completed review        |
-| `ready-for-review`   | Green  | Ready for human review         |
-| `needs-human-review` | Red    | Escalated - agent couldn't fix |
-| `released-beta`      | Green  | Merged and released in beta    |
+| Label                | Color  | Meaning                           |
+| -------------------- | ------ | --------------------------------- |
+| `jules-issue`        | Purple | Issue assigned to Jules           |
+| `cursor-work`        | Blue   | Issue assigned directly to Cursor |
+| `in-progress`        | Yellow | Agent is working on this          |
+| `pr-pending`         | Green  | PR created, awaiting review       |
+| `cursor-reviewing`   | Blue   | Cursor is reviewing the PR        |
+| `cursor-reviewed`    | Green  | Cursor completed review           |
+| `ready-for-review`   | Green  | Ready for human review            |
+| `needs-human-review` | Red    | Escalated - agent couldn't fix    |
+| `released-beta`      | Green  | Merged and released in beta       |
 
 ## Branch Naming
 
@@ -321,9 +328,10 @@ workflow_dispatch:
 
 Each workflow uses concurrency groups to prevent duplicate runs:
 
-| Workflow              | Concurrency Group            |
-| --------------------- | ---------------------------- |
-| `jules-issue-handler` | `jules-issue-{issue_number}` |
-| `jules-ci-fix`        | `jules-fix-{branch}`         |
-| `cursor-launcher`     | `cursor-review-{branch}`     |
-| `cursor-fix`          | `cursor-fix-{branch}`        |
+| Workflow               | Concurrency Group             |
+| ---------------------- | ----------------------------- |
+| `jules-issue-handler`  | `jules-issue-{issue_number}`  |
+| `cursor-issue-handler` | `cursor-issue-{issue_number}` |
+| `jules-ci-fix`         | `jules-fix-{branch}`          |
+| `cursor-launcher`      | `cursor-review-{branch}`      |
+| `cursor-fix`           | `cursor-fix-{branch}`         |
