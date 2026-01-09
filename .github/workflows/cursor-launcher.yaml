@@ -123,7 +123,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ISSUE_BODY=$(gh issue view ${{ steps.pr.outputs.issue_number }} --json body -q '.body')
+          ISSUE_BODY=$(gh issue view ${{ steps.pr.outputs.issue_number }} \
+            --repo "${{ github.repository }}" \
+            --json body -q '.body')
           echo "$ISSUE_BODY" > /tmp/issue_body.txt
 
       - name: Launch Cursor Agent
@@ -221,7 +223,9 @@ jobs:
           *[View Agent](https://cursor.com/agents?id=${{ steps.cursor.outputs.agent_id }})*"
 
           # Mark as cursor-pending
-          gh pr edit ${{ steps.pr.outputs.number }} --add-label "cursor-pending" 2>/dev/null || true
+          gh pr edit ${{ steps.pr.outputs.number }} \
+            --repo "${{ github.repository }}" \
+            --add-label "cursor-pending" 2>/dev/null || true
 
       - name: Comment on issue
         if: steps.pr.outputs.skip != 'true' && steps.cursor.outputs.agent_id != '' && steps.pr.outputs.issue_number != ''
