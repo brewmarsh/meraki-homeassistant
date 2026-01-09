@@ -187,103 +187,90 @@ class MerakiAPIClient:
         """
         Process the initial data, handling errors and merging.
 
+        This method now only returns data for keys that were successfully
+        fetched and are of the expected type (list), preventing accidental
+        clearing of data during partial updates.
+
         Args:
             results: The raw initial data from the API.
 
         Returns
         -------
-            The processed initial data.
+            A dictionary containing only the successfully processed initial data.
 
         """
-        networks_res = results.get("networks")
-        devices_res = results.get("devices")
-        devices_availabilities_res = results.get("devices_availabilities")
-        appliance_uplink_statuses_res = results.get("appliance_uplink_statuses")
-        sensor_readings_res = results.get("sensor_readings")
+        processed_data: dict[str, Any] = {}
 
-        networks: list[MerakiNetwork] = (
-            networks_res if isinstance(networks_res, list) else []
-        )
-        if not isinstance(networks_res, list):
+        # Networks
+        networks_res = results.get("networks")
+        if isinstance(networks_res, list):
+            processed_data["networks"] = networks_res
+        elif "networks" in results:
             _LOGGER.warning("Could not fetch Meraki networks: %s", networks_res)
 
-        devices: list[MerakiDevice] = (
-            devices_res if isinstance(devices_res, list) else []
-        )
-        if not isinstance(devices_res, list):
+        # Devices and related data
+        devices_res = results.get("devices")
+        if isinstance(devices_res, list):
+            devices = devices_res
+            processed_data["devices"] = devices
+
+            # Only process related data if devices were fetched successfully
+            devices_availabilities_res = results.get("devices_availabilities")
+            sensor_readings_res = results.get("sensor_readings")
+            cellular_uplink_statuses_res = results.get("cellular_uplink_statuses")
+
+            if isinstance(devices_availabilities_res, list):
+                availabilities_by_serial = {
+                    a["serial"]: a
+                    for a in devices_availabilities_res
+                    if isinstance(a, dict) and "serial" in a
+                }
+                for device in devices:
+                    if availability := availabilities_by_serial.get(device["serial"]):
+                        device["status"] = availability["status"]
+            elif "devices_availabilities" in results:
+                _LOGGER.warning(
+                    "Could not fetch Meraki device availabilities: %s",
+                    devices_availabilities_res,
+                )
+
+            if isinstance(sensor_readings_res, list):
+                readings_by_serial = {
+                    r["serial"]: r.get("readings", [])
+                    for r in sensor_readings_res
+                    if isinstance(r, dict) and "serial" in r
+                }
+                for device in devices:
+                    if readings := readings_by_serial.get(device["serial"]):
+                        device["readings"] = readings
+            elif "sensor_readings" in results:
+                _LOGGER.warning(
+                    "Could not fetch Meraki sensor readings: %s", sensor_readings_res
+                )
+
+            if isinstance(cellular_uplink_statuses_res, list):
+                cellular_uplinks_by_serial = {
+                    u["serial"]: u.get("uplinks", [])
+                    for u in cellular_uplink_statuses_res
+                    if isinstance(u, dict) and "serial" in u
+                }
+                for device in devices:
+                    if uplinks := cellular_uplinks_by_serial.get(device["serial"]):
+                        device["cellular_uplinks"] = uplinks
+        elif "devices" in results:
             _LOGGER.warning("Could not fetch Meraki devices: %s", devices_res)
 
-        devices_availabilities: list[dict[str, Any]] = (
-            devices_availabilities_res
-            if isinstance(devices_availabilities_res, list)
-            else []
-        )
-        if not isinstance(devices_availabilities_res, list):
-            _LOGGER.warning(
-                "Could not fetch Meraki device availabilities: %s",
-                devices_availabilities_res,
-            )
-
-        appliance_uplink_statuses: list[dict[str, Any]] = (
-            appliance_uplink_statuses_res
-            if isinstance(appliance_uplink_statuses_res, list)
-            else []
-        )
-        if not isinstance(appliance_uplink_statuses_res, list):
+        # Appliance Uplink Statuses
+        appliance_uplink_statuses_res = results.get("appliance_uplink_statuses")
+        if isinstance(appliance_uplink_statuses_res, list):
+            processed_data["appliance_uplink_statuses"] = appliance_uplink_statuses_res
+        elif "appliance_uplink_statuses" in results:
             _LOGGER.warning(
                 "Could not fetch Meraki appliance uplink statuses: %s",
                 appliance_uplink_statuses_res,
             )
 
-        sensor_readings: list[dict[str, Any]] = (
-            sensor_readings_res if isinstance(sensor_readings_res, list) else []
-        )
-        if not isinstance(sensor_readings_res, list):
-            _LOGGER.warning(
-                "Could not fetch Meraki sensor readings: %s", sensor_readings_res
-            )
-
-        # Process cellular gateway uplink statuses
-        cellular_uplink_statuses_res = results.get("cellular_uplink_statuses")
-        cellular_uplink_statuses: list[dict[str, Any]] = (
-            cellular_uplink_statuses_res
-            if isinstance(cellular_uplink_statuses_res, list)
-            else []
-        )
-
-        availabilities_by_serial = {
-            availability["serial"]: availability
-            for availability in devices_availabilities
-            if isinstance(availability, dict) and "serial" in availability
-        }
-
-        readings_by_serial = {
-            reading["serial"]: reading.get("readings", [])
-            for reading in sensor_readings
-            if isinstance(reading, dict) and "serial" in reading
-        }
-
-        # Index cellular uplink statuses by serial
-        cellular_uplinks_by_serial = {
-            uplink["serial"]: uplink.get("uplinks", [])
-            for uplink in cellular_uplink_statuses
-            if isinstance(uplink, dict) and "serial" in uplink
-        }
-
-        for device in devices:
-            if availability := availabilities_by_serial.get(device["serial"]):
-                device["status"] = availability["status"]
-            if readings := readings_by_serial.get(device["serial"]):
-                device["readings"] = readings
-            # Merge cellular uplink data into device
-            if uplinks := cellular_uplinks_by_serial.get(device["serial"]):
-                device["cellular_uplinks"] = uplinks
-
-        return {
-            "networks": networks,
-            "devices": devices,
-            "appliance_uplink_statuses": appliance_uplink_statuses,
-        }
+        return processed_data
 
     async def _async_fetch_network_clients(
         self,
@@ -643,17 +630,16 @@ class MerakiAPIClient:
             previous_data = {}
 
         _LOGGER.debug("Fetching fresh Meraki data from API")
+        # Start with a copy of previous data, fetch new data, and merge it in
+        merged_data = previous_data.copy()
         initial_results = await self._async_fetch_initial_data(
             fetch_networks, fetch_devices
         )
         processed_initial_data = self._process_initial_data(initial_results)
+        merged_data.update(processed_initial_data)
 
-        all_networks = processed_initial_data.get(
-            "networks", previous_data.get("networks", [])
-        )
-        all_devices = processed_initial_data.get(
-            "devices", previous_data.get("devices", [])
-        )
+        all_networks = merged_data.get("networks", [])
+        all_devices = merged_data.get("devices", [])
 
         if enabled_network_ids is not None:
             networks = [n for n in all_networks if n.get("id") in enabled_network_ids]
@@ -689,20 +675,8 @@ class MerakiAPIClient:
             previous_data,
         )
 
-        # Start with previous data and update with new data
-        merged_data = previous_data.copy()
-        appliance_uplinks = processed_initial_data.get(
-            "appliance_uplink_statuses",
-            previous_data.get("appliance_uplink_statuses", []),
-        )
-        merged_data.update(
-            {
-                "networks": all_networks,
-                "devices": devices,
-                "appliance_uplink_statuses": appliance_uplinks,
-                **processed_detailed_data,
-            }
-        )
+        # Update the merged data with detailed and client info
+        merged_data.update(processed_detailed_data)
         if fetch_clients:
             merged_data["clients"] = (
                 network_clients if isinstance(network_clients, list) else []
@@ -710,6 +684,9 @@ class MerakiAPIClient:
             merged_data["clients_by_serial"] = (
                 device_clients if isinstance(device_clients, dict) else {}
             )
+
+        # Ensure the 'devices' key reflects any filtering that was done
+        merged_data["devices"] = devices
 
         return merged_data
 
