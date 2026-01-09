@@ -1,5 +1,7 @@
 name: Beta CI
 
+run-name: 'CI: ${{ github.event.pull_request.title }} (#${{ github.event.pull_request.number }})'
+
 on:
   pull_request:
     branches: ['beta']
@@ -9,8 +11,66 @@ env:
   NODE_VERSION: '20'
 
 jobs:
+  # Extract issue number and notify start
+  setup:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: read
+    outputs:
+      issue_number: ${{ steps.extract.outputs.issue_number }}
+      is_jules_pr: ${{ steps.extract.outputs.is_jules_pr }}
+    steps:
+      - name: Extract linked issue number
+        id: extract
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_BODY="${{ github.event.pull_request.body }}"
+          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+
+          # Check if Jules PR
+          if [[ "$PR_AUTHOR" == *"jules"* || "$PR_AUTHOR" == "github-actions[bot]" ]]; then
+            echo "is_jules_pr=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_jules_pr=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Extract issue number
+          ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
+
+          if [[ -z "$ISSUE_NUM" ]]; then
+            ISSUE_NUM=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | grep -oE '[0-9]+' | head -1)
+          fi
+
+          echo "issue_number=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
+          echo "Found issue: #$ISSUE_NUM"
+
+      - name: Comment on issue - CI started
+        if: steps.extract.outputs.issue_number != '' && steps.extract.outputs.is_jules_pr == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ steps.extract.outputs.issue_number }} \
+            --repo "${{ github.repository }}" \
+            --body "## ⏳ CI Running
+
+          **PR**: [#${{ github.event.pull_request.number }}](${{ github.event.pull_request.html_url }})
+          **Commit**: \`${{ github.event.pull_request.head.sha }}\`
+
+          **Checks in progress:**
+          - 🔍 Linting (ruff, bandit)
+          - 📝 Type checking (mypy)
+          - 🧪 Tests (pytest)
+          - 🏠 Home Assistant validation (hassfest)
+          - 🎨 Frontend build
+
+          ---
+          *[View CI run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})*"
+
   # Fast linting checks
   lint:
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +91,7 @@ jobs:
 
   # Type checking and security audit
   type-check:
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -68,6 +129,7 @@ jobs:
 
   # Tests with coverage
   test:
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -111,6 +173,7 @@ jobs:
 
   # HA manifest validation
   hassfest:
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -119,6 +182,7 @@ jobs:
 
   # Frontend build check
   frontend-build:
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -153,10 +217,96 @@ jobs:
             git push
           fi
 
-  # Final gate
+  # Final gate - notify success
   ci-success:
-    needs: [lint, type-check, test, hassfest, frontend-build]
+    needs: [setup, lint, type-check, test, hassfest, frontend-build]
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
       - name: All checks passed
         run: echo "✅ All CI checks passed!"
+
+      - name: Comment on issue - CI passed
+        if: needs.setup.outputs.issue_number != '' && needs.setup.outputs.is_jules_pr == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ needs.setup.outputs.issue_number }} \
+            --repo "${{ github.repository }}" \
+            --body "## ✅ CI Passed
+
+          **All quality checks passed!**
+
+          | Check | Status |
+          |-------|--------|
+          | Linting (ruff, bandit) | ✅ Passed |
+          | Type checking (mypy) | ✅ Passed |
+          | Tests (pytest) | ✅ Passed |
+          | Home Assistant (hassfest) | ✅ Passed |
+          | Frontend build | ✅ Passed |
+
+          **Next Step:** 🤖 Cursor will now review the code for quality and requirements.
+
+          ---
+          *[View CI run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})*"
+
+  # Notify on failure
+  ci-failure:
+    needs: [setup, lint, type-check, test, hassfest, frontend-build]
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Determine failed jobs
+        id: failed
+        run: |
+          FAILED_JOBS=""
+          if [[ "${{ needs.lint.result }}" == "failure" ]]; then
+            FAILED_JOBS="$FAILED_JOBS- ❌ Linting\n"
+          else
+            FAILED_JOBS="$FAILED_JOBS- ✅ Linting\n"
+          fi
+          if [[ "${{ needs.type-check.result }}" == "failure" ]]; then
+            FAILED_JOBS="$FAILED_JOBS- ❌ Type checking\n"
+          else
+            FAILED_JOBS="$FAILED_JOBS- ✅ Type checking\n"
+          fi
+          if [[ "${{ needs.test.result }}" == "failure" ]]; then
+            FAILED_JOBS="$FAILED_JOBS- ❌ Tests\n"
+          else
+            FAILED_JOBS="$FAILED_JOBS- ✅ Tests\n"
+          fi
+          if [[ "${{ needs.hassfest.result }}" == "failure" ]]; then
+            FAILED_JOBS="$FAILED_JOBS- ❌ Hassfest\n"
+          else
+            FAILED_JOBS="$FAILED_JOBS- ✅ Hassfest\n"
+          fi
+          if [[ "${{ needs.frontend-build.result }}" == "failure" ]]; then
+            FAILED_JOBS="$FAILED_JOBS- ❌ Frontend build\n"
+          else
+            FAILED_JOBS="$FAILED_JOBS- ✅ Frontend build\n"
+          fi
+          echo "jobs<<EOF" >> "$GITHUB_OUTPUT"
+          echo -e "$FAILED_JOBS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Comment on issue - CI failed
+        if: needs.setup.outputs.issue_number != '' && needs.setup.outputs.is_jules_pr == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ needs.setup.outputs.issue_number }} \
+            --repo "${{ github.repository }}" \
+            --body "## ❌ CI Failed
+
+          **Some quality checks failed.**
+
+          **Check Results:**
+          ${{ steps.failed.outputs.jobs }}
+
+          **Next Step:** 🤖 Jules Self-Healing CI will attempt to fix the failures automatically.
+
+          ---
+          *[View CI logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})*"

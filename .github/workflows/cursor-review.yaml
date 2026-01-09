@@ -1,0 +1,629 @@
+name: Cursor Code Review & Fix
+
+run-name: 'Cursor Review: ${{ github.event.workflow_run.head_branch }}'
+
+# Triggers AFTER Beta CI completes (success or failure)
+# - On success after Jules: Initial review & fix
+# - On failure after Cursor changes: Re-fix attempt
+# - On success after Cursor changes: Final verification
+on:
+  workflow_run:
+    workflows: ['Beta CI']
+    types:
+      - completed
+
+jobs:
+  cursor-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: read
+    steps:
+      - name: Get PR details from workflow run
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the PR associated with this workflow run
+          HEAD_BRANCH="${{ github.event.workflow_run.head_branch }}"
+          HEAD_SHA="${{ github.event.workflow_run.head_sha }}"
+          CI_CONCLUSION="${{ github.event.workflow_run.conclusion }}"
+
+          echo "Looking for PR with head branch: $HEAD_BRANCH"
+          echo "CI conclusion: $CI_CONCLUSION"
+
+          # Find the PR for this branch
+          PR_JSON=$(gh pr list \
+            --repo "${{ github.repository }}" \
+            --head "$HEAD_BRANCH" \
+            --state open \
+            --json number,title,body,author,headRefName,comments \
+            --limit 1)
+
+          PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number // empty')
+
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "No open PR found for branch $HEAD_BRANCH"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          PR_TITLE=$(echo "$PR_JSON" | jq -r '.[0].title // empty')
+          PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.[0].author.login // empty')
+          PR_BODY=$(echo "$PR_JSON" | jq -r '.[0].body // empty')
+          PR_HEAD_REF=$(echo "$PR_JSON" | jq -r '.[0].headRefName // empty')
+
+          echo "Found PR #$PR_NUMBER by $PR_AUTHOR"
+
+          # Check if this is a Jules PR
+          if [[ "$PR_AUTHOR" != *"jules"* && "$PR_AUTHOR" != "github-actions[bot]" ]]; then
+            echo "PR author ($PR_AUTHOR) is not Jules - skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Extract issue number from PR body
+          ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
+          if [[ -z "$ISSUE_NUM" ]]; then
+            ISSUE_NUM=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | grep -oE '[0-9]+' | head -1)
+          fi
+
+          # Check if Cursor has already reviewed (look for our comment marker)
+          CURSOR_REVIEWS=$(gh pr view $PR_NUMBER --repo "${{ github.repository }}" --json comments \
+            --jq '[.comments[] | select(.body | contains("🤖 Cursor Agent"))] | length')
+
+          echo "Cursor has reviewed this PR $CURSOR_REVIEWS time(s)"
+
+          # Determine the review mode
+          if [[ "$CURSOR_REVIEWS" -eq 0 ]]; then
+            REVIEW_MODE="initial"
+          elif [[ "$CURSOR_REVIEWS" -ge 3 ]]; then
+            echo "Cursor has already reviewed 3+ times - escalating to human"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "escalate=true" >> "$GITHUB_OUTPUT"
+            echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+            echo "issue_number=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
+            exit 0
+          elif [[ "$CI_CONCLUSION" == "success" ]]; then
+            REVIEW_MODE="final_verification"
+          else
+            REVIEW_MODE="fix_retry"
+          fi
+
+          echo "Review mode: $REVIEW_MODE"
+
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "escalate=false" >> "$GITHUB_OUTPUT"
+          echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "title=$PR_TITLE" >> "$GITHUB_OUTPUT"
+          echo "author=$PR_AUTHOR" >> "$GITHUB_OUTPUT"
+          echo "head_ref=$PR_HEAD_REF" >> "$GITHUB_OUTPUT"
+          echo "ci_conclusion=$CI_CONCLUSION" >> "$GITHUB_OUTPUT"
+          echo "review_mode=$REVIEW_MODE" >> "$GITHUB_OUTPUT"
+          echo "cursor_reviews=$CURSOR_REVIEWS" >> "$GITHUB_OUTPUT"
+          echo "issue_number=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
+
+          # Save PR body to file for multiline handling
+          echo "$PR_BODY" > /tmp/pr_body.txt
+
+      - name: Escalate to human review
+        if: steps.pr.outputs.escalate == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Comment on PR
+          gh pr comment ${{ steps.pr.outputs.pr_number }} \
+            --repo "${{ github.repository }}" \
+            --body "## 🚨 Escalation: Human Review Required
+
+          Cursor has attempted to review and fix this PR 3+ times but issues persist.
+
+          **Please review manually:**
+          - Check the Cursor agent comments above for context
+          - Review the CI failures
+          - Make necessary fixes or provide guidance
+
+          ---
+          *Escalated by Cursor Code Review workflow*"
+
+          gh pr edit ${{ steps.pr.outputs.pr_number }} --add-label "needs-human-review"
+
+          # Comment on Issue
+          if [[ -n "${{ steps.pr.outputs.issue_number }}" ]]; then
+            gh issue comment ${{ steps.pr.outputs.issue_number }} \
+              --repo "${{ github.repository }}" \
+              --body "## 🚨 Escalation: Human Review Required
+
+            **PR #${{ steps.pr.outputs.pr_number }}** has been escalated after 3+ Cursor review attempts.
+
+            **Action needed:** Please review the PR manually and provide guidance.
+
+            ---
+            *[View PR](https://github.com/${{ github.repository }}/pull/${{ steps.pr.outputs.pr_number }})*"
+
+            gh issue edit ${{ steps.pr.outputs.issue_number }} \
+              --repo "${{ github.repository }}" \
+              --remove-label "pr-pending" \
+              --add-label "needs-human-review" 2>/dev/null || true
+          fi
+
+      - name: Skip if not applicable
+        if: steps.pr.outputs.skip == 'true' && steps.pr.outputs.escalate != 'true'
+        run: |
+          echo "Skipping Cursor review - not a Jules PR or no PR found"
+
+      - name: Handle final verification (CI passed after Cursor fixes)
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.review_mode == 'final_verification'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REVIEW_COUNT=$(( ${{ steps.pr.outputs.cursor_reviews }} + 1 ))
+
+          # Comment on PR
+          gh pr comment ${{ steps.pr.outputs.number }} \
+            --repo "${{ github.repository }}" \
+            --body "## ✅ Cursor Agent: Final Verification Passed
+
+          **Status**: All CI checks passed after Cursor's fixes!
+
+          **Review Summary**:
+          - 🔍 Reviews completed: $REVIEW_COUNT
+          - 🔧 Fixes applied: Yes (see previous comments)
+          - ✅ CI Status: **All checks passing**
+          - 📋 Ready for: Human review and merge
+
+          This PR is now ready for final human review before merging.
+
+          ---
+          *Verified by Cursor Code Review workflow*"
+
+          gh pr edit ${{ steps.pr.outputs.number }} --add-label "cursor-approved" 2>/dev/null || true
+
+          # Comment on Issue
+          if [[ -n "${{ steps.pr.outputs.issue_number }}" ]]; then
+            gh issue comment ${{ steps.pr.outputs.issue_number }} \
+              --repo "${{ github.repository }}" \
+              --body "## ✅ Ready for Human Review
+
+            **PR #${{ steps.pr.outputs.number }}** has passed all checks!
+
+            **Status:**
+            - ✅ CI: All checks passing
+            - ✅ Cursor: Code reviewed and fixes applied
+            - 📋 Next: Human review and merge
+
+            ---
+            *[View PR](https://github.com/${{ github.repository }}/pull/${{ steps.pr.outputs.number }})*"
+
+            gh issue edit ${{ steps.pr.outputs.issue_number }} \
+              --repo "${{ github.repository }}" \
+              --remove-label "pr-pending" \
+              --add-label "ready-for-review" 2>/dev/null || true
+          fi
+
+      - name: Checkout repository
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.review_mode != 'final_verification'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr.outputs.head_ref }}
+          fetch-depth: 0
+
+      - name: Get issue details
+        id: issue_details
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.review_mode != 'final_verification' && steps.pr.outputs.issue_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_BODY=$(gh issue view ${{ steps.pr.outputs.issue_number }} --json body -q '.body')
+          ISSUE_TITLE=$(gh issue view ${{ steps.pr.outputs.issue_number }} --json title -q '.title')
+
+          echo "$ISSUE_BODY" > /tmp/issue_body.txt
+          echo "$ISSUE_TITLE" > /tmp/issue_title.txt
+
+          echo "title=$ISSUE_TITLE" >> "$GITHUB_OUTPUT"
+
+      - name: Get CI failure details
+        id: ci_failure
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.review_mode == 'fix_retry'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RUN_ID="${{ github.event.workflow_run.id }}"
+          FAILED_JOBS=$(gh run view $RUN_ID --repo "${{ github.repository }}" --json jobs \
+            --jq '[.jobs[] | select(.conclusion == "failure") | .name] | join(", ")')
+
+          echo "Failed jobs: $FAILED_JOBS"
+          echo "failed_jobs=$FAILED_JOBS" >> "$GITHUB_OUTPUT"
+          echo "logs_url=${{ github.event.workflow_run.html_url }}" >> "$GITHUB_OUTPUT"
+
+      - name: Comment on issue - Cursor starting review
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.review_mode != 'final_verification' && steps.pr.outputs.issue_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REVIEW_MODE="${{ steps.pr.outputs.review_mode }}"
+          REVIEW_NUM=$(( ${{ steps.pr.outputs.cursor_reviews }} + 1 ))
+
+          if [[ "$REVIEW_MODE" == "initial" ]]; then
+            COMMENT="## 🤖 Cursor Code Review Starting
+
+            CI passed! Cursor is now reviewing the code.
+
+            **What's happening:**
+            1. 📖 Reading project standards
+            2. 🔍 Verifying requirements are met
+            3. ✅ Checking code quality
+            4. 🧪 Verifying test coverage
+            5. 🔧 Applying any needed fixes
+
+            ---
+            *Review #$REVIEW_NUM*"
+          else
+            COMMENT="## 🔧 Cursor Fix Retry #$REVIEW_NUM
+
+            CI failed after previous changes. Cursor is analyzing and fixing.
+
+            **Failed checks:** ${{ steps.ci_failure.outputs.failed_jobs }}
+
+            ---
+            *[View CI logs](${{ steps.ci_failure.outputs.logs_url }})*"
+          fi
+
+          gh issue comment ${{ steps.pr.outputs.issue_number }} \
+            --repo "${{ github.repository }}" \
+            --body "$COMMENT"
+
+      - name: Launch Cursor Agent
+        id: cursor
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.review_mode != 'final_verification'
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          # Read issue details if available
+          ISSUE_TITLE=""
+          ISSUE_BODY=""
+          if [[ -f /tmp/issue_title.txt ]]; then
+            ISSUE_TITLE=$(cat /tmp/issue_title.txt)
+          fi
+          if [[ -f /tmp/issue_body.txt ]]; then
+            ISSUE_BODY=$(cat /tmp/issue_body.txt)
+          fi
+
+          REVIEW_MODE="${{ steps.pr.outputs.review_mode }}"
+          REVIEW_NUM=$(( ${{ steps.pr.outputs.cursor_reviews }} + 1 ))
+
+          if [[ "$REVIEW_MODE" == "initial" ]]; then
+            MODE_CONTEXT="This is the INITIAL review of Jules' code. CI has passed."
+            TASK_FOCUS="Review the code quality and verify all requirements are met."
+          else
+            MODE_CONTEXT="This is a FIX RETRY (attempt #$REVIEW_NUM). CI FAILED after previous Cursor changes.
+
+            **Failed Jobs**: ${{ steps.ci_failure.outputs.failed_jobs }}
+            **CI Logs**: ${{ steps.ci_failure.outputs.logs_url }}"
+            TASK_FOCUS="Focus on fixing the CI failures. Check the failed job logs for specific errors."
+          fi
+
+          PROMPT="You are a code reviewer and fixer for the meraki-homeassistant project.
+
+          ## Context
+          - **PR Title**: ${{ steps.pr.outputs.title }}
+          - **PR Number**: #${{ steps.pr.outputs.number }}
+          - **Branch**: ${{ steps.pr.outputs.head_ref }}
+          - **Author**: ${{ steps.pr.outputs.author }} (Jules AI agent)
+          - **Review Mode**: $REVIEW_MODE (Review #$REVIEW_NUM)
+
+          ${MODE_CONTEXT}
+
+          ## Original Issue
+          - **Issue Number**: #${{ steps.pr.outputs.issue_number }}
+          - **Issue Title**: ${ISSUE_TITLE}
+          - **Requirements**:
+          ${ISSUE_BODY}
+
+          ## Your Task: ${TASK_FOCUS}
+
+          ### Step 1: Read Project Standards
+          Read \`AGENTS.md\` first - understand all project standards and conventions.
+
+          ### Step 2: Analyze & Fix
+          For INITIAL review:
+          - Verify all requirements from the issue are implemented
+          - Check code quality (type hints, async/await, docstrings)
+          - Verify test coverage exists
+          - Check Home Assistant patterns (DeviceInfo, CoordinatorEntity, etc.)
+
+          For FIX RETRY:
+          - Check the CI logs at the URL provided
+          - Identify the specific failures (lint, type-check, test, etc.)
+          - Fix ONLY what's broken - minimal changes
+
+          ### Step 3: Apply Fixes
+          **FIX any issues you find directly** - don't just report them:
+          - Add missing type hints
+          - Fix linting issues (\`ruff check --fix .\`)
+          - Fix type errors shown by mypy
+          - Add missing tests in \`tests/\` directory
+          - Fix failing tests
+
+          ### Step 4: Verify Your Fixes
+          ALWAYS run these checks before committing:
+          \`\`\`bash
+          ruff check --fix . && ruff format .
+          mypy custom_components/meraki_ha/ tests/
+          pytest
+          \`\`\`
+
+          ### Step 5: Commit With Details
+          Use this commit format:
+          \`\`\`
+          fix(review): <brief description>
+
+          Changes made:
+          - <specific change 1>
+          - <specific change 2>
+
+          Review #$REVIEW_NUM for PR #${{ steps.pr.outputs.number }}
+          Related to #${{ steps.pr.outputs.issue_number }}
+          \`\`\`
+
+          ## CRITICAL: Push directly to the existing branch
+          DO NOT create a new branch or PR. Push your fixes directly to:
+          Branch: ${{ steps.pr.outputs.head_ref }}
+
+          ## Important
+          - Focus only on \`custom_components/meraki_ha/\` and \`tests/\`
+          - Keep fixes minimal - don't refactor unrelated code
+          - If no fixes needed, confirm this clearly
+          - Run ALL checks before committing to avoid CI failures
+          - PUSH TO THE SAME BRANCH - no new PRs"
+
+          ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
+
+          RESPONSE=$(curl -sS -X POST \
+            -u "${CURSOR_API_KEY}:" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"repository\": \"https://github.com/${{ github.repository }}\",
+              \"ref\": \"${{ steps.pr.outputs.head_ref }}\",
+              \"prompt\": { \"text\": ${ESCAPED_PROMPT} },
+              \"name\": \"Review #$REVIEW_NUM: PR #${{ steps.pr.outputs.number }}\",
+              \"target\": {
+                \"branchName\": \"${{ steps.pr.outputs.head_ref }}\",
+                \"autoCreatePr\": false
+              }
+            }" \
+            "https://api.cursor.com/v0/agents")
+
+          echo "API Response: $RESPONSE"
+
+          AGENT_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+
+          if [[ -z "$AGENT_ID" ]]; then
+            echo "::error::Failed to launch Cursor agent"
+            echo "$RESPONSE"
+            exit 1
+          fi
+
+          echo "agent_id=$AGENT_ID" >> "$GITHUB_OUTPUT"
+          echo "review_num=$REVIEW_NUM" >> "$GITHUB_OUTPUT"
+          echo "✅ Launched Cursor agent: $AGENT_ID"
+          echo "🔗 View at: https://cursor.com/agents?id=$AGENT_ID"
+
+      - name: Wait for Cursor Agent to Complete
+        id: wait
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.review_mode != 'final_verification'
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          AGENT_ID: ${{ steps.cursor.outputs.agent_id }}
+        run: |
+          echo "Waiting for Cursor agent to complete..."
+
+          MAX_ATTEMPTS=60
+          ATTEMPT=0
+
+          while [[ $ATTEMPT -lt $MAX_ATTEMPTS ]]; do
+            RESPONSE=$(curl -sS -X GET \
+              -u "${CURSOR_API_KEY}:" \
+              "https://api.cursor.com/v0/agents/${AGENT_ID}")
+
+            STATUS=$(echo "$RESPONSE" | jq -r '.status // "UNKNOWN"')
+            echo "Attempt $((ATTEMPT+1))/$MAX_ATTEMPTS: Status = $STATUS"
+
+            case "$STATUS" in
+              "FINISHED")
+                echo "✅ Agent completed successfully"
+                SUMMARY=$(echo "$RESPONSE" | jq -r '.summary // "No summary available"')
+                echo "summary<<EOF" >> "$GITHUB_OUTPUT"
+                echo "$SUMMARY" >> "$GITHUB_OUTPUT"
+                echo "EOF" >> "$GITHUB_OUTPUT"
+                echo "status=success" >> "$GITHUB_OUTPUT"
+                exit 0
+                ;;
+              "FAILED"|"ERROR")
+                echo "::error::Agent failed"
+                echo "status=failed" >> "$GITHUB_OUTPUT"
+                exit 1
+                ;;
+              "STOPPED")
+                echo "::warning::Agent was stopped"
+                echo "status=stopped" >> "$GITHUB_OUTPUT"
+                exit 0
+                ;;
+              "RUNNING"|"PENDING"|"QUEUED")
+                sleep 30
+                ;;
+              *)
+                echo "Unknown status: $STATUS"
+                sleep 30
+                ;;
+            esac
+
+            ATTEMPT=$((ATTEMPT+1))
+          done
+
+          echo "::warning::Agent did not complete within timeout"
+          echo "status=timeout" >> "$GITHUB_OUTPUT"
+
+      - name: Check for and merge any fix PRs from Cursor
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.review_mode != 'final_verification' && steps.wait.outputs.status == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ORIGINAL_BRANCH="${{ steps.pr.outputs.head_ref }}"
+
+          echo "Checking for fix PRs targeting $ORIGINAL_BRANCH..."
+
+          # Find any PRs that Cursor might have created targeting the original branch
+          FIX_PRS=$(gh pr list \
+            --repo "${{ github.repository }}" \
+            --base "$ORIGINAL_BRANCH" \
+            --state open \
+            --json number,headRefName \
+            --jq '.[].number')
+
+          if [[ -n "$FIX_PRS" ]]; then
+            for PR_NUM in $FIX_PRS; do
+              echo "Found fix PR #$PR_NUM - auto-merging..."
+
+              # Get the branch name for cleanup
+              FIX_BRANCH=$(gh pr view $PR_NUM --json headRefName -q '.headRefName')
+
+              # Enable auto-merge with squash
+              gh pr merge $PR_NUM \
+                --repo "${{ github.repository }}" \
+                --squash \
+                --auto \
+                --delete-branch \
+                --body "Auto-merged Cursor fix for PR #${{ steps.pr.outputs.number }}"
+
+              echo "✅ PR #$PR_NUM set to auto-merge and delete branch: $FIX_BRANCH"
+            done
+          else
+            echo "No separate fix PRs found - Cursor pushed directly to $ORIGINAL_BRANCH"
+          fi
+
+      - name: Get Agent Conversation
+        id: conversation
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.review_mode != 'final_verification' && steps.wait.outputs.status == 'success'
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          AGENT_ID: ${{ steps.cursor.outputs.agent_id }}
+        run: |
+          RESPONSE=$(curl -sS -X GET \
+            -u "${CURSOR_API_KEY}:" \
+            "https://api.cursor.com/v0/agents/${AGENT_ID}/conversation")
+
+          REVIEW=$(echo "$RESPONSE" | jq -r '
+            .messages
+            | map(select(.type == "assistant_message"))
+            | map(.text)
+            | join("\n\n---\n\n")
+            | if . == "" then "No detailed review available" else . end
+          ')
+
+          if [[ ${#REVIEW} -gt 60000 ]]; then
+            REVIEW="${REVIEW:0:60000}
+
+          ... (truncated - see full conversation in Cursor agent)"
+          fi
+
+          echo "review<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$REVIEW" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Comment on PR with Review Results
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.review_mode != 'final_verification' && steps.wait.outputs.status == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REVIEW_MODE="${{ steps.pr.outputs.review_mode }}"
+          REVIEW_NUM="${{ steps.cursor.outputs.review_num }}"
+
+          if [[ "$REVIEW_MODE" == "initial" ]]; then
+            MODE_EMOJI="🔍"
+            MODE_TITLE="Initial Review & Fix"
+          else
+            MODE_EMOJI="🔧"
+            MODE_TITLE="Fix Retry #$REVIEW_NUM"
+          fi
+
+          COMMENT="## ${MODE_EMOJI} Cursor Agent: ${MODE_TITLE}
+
+          **Agent ID**: \`${{ steps.cursor.outputs.agent_id }}\`
+          **Review Number**: #$REVIEW_NUM
+
+          ### Summary
+          ${{ steps.wait.outputs.summary }}
+
+          ### What Was Done
+
+          <details>
+          <summary>Click to expand full review details</summary>
+
+          ${{ steps.conversation.outputs.review }}
+
+          </details>
+
+          ### Next Steps
+          - ⏳ **CI is running** on any changes made
+          - ✅ If CI passes → Final verification
+          - ❌ If CI fails → Another fix attempt (max 3)
+          - 🚨 After 3 attempts → Human review
+
+          ---
+          *[View Cursor Agent](https://cursor.com/agents?id=${{ steps.cursor.outputs.agent_id }})*"
+
+          gh pr comment ${{ steps.pr.outputs.number }} --body "$COMMENT"
+
+      - name: Comment on issue - Cursor review complete
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.review_mode != 'final_verification' && steps.wait.outputs.status == 'success' && steps.pr.outputs.issue_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REVIEW_NUM="${{ steps.cursor.outputs.review_num }}"
+
+          gh issue comment ${{ steps.pr.outputs.issue_number }} \
+            --repo "${{ github.repository }}" \
+            --body "## ✅ Cursor Review #$REVIEW_NUM Complete
+
+          **Summary:** ${{ steps.wait.outputs.summary }}
+
+          **Next:** ⏳ CI running to verify changes.
+
+          ---
+          *[View PR](https://github.com/${{ github.repository }}/pull/${{ steps.pr.outputs.number }})*"
+
+      - name: Comment on PR if Agent Failed
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.review_mode != 'final_verification' && (steps.wait.outputs.status == 'failed' || steps.wait.outputs.status == 'timeout')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ steps.pr.outputs.number }} \
+            --repo "${{ github.repository }}" \
+            --body "## ⚠️ Cursor Agent: Review #${{ steps.cursor.outputs.review_num }} - Issue
+
+          **Agent ID**: \`${{ steps.cursor.outputs.agent_id }}\`
+          **Status**: ${{ steps.wait.outputs.status }}
+
+          The Cursor agent encountered an issue. Please check the [agent status](https://cursor.com/agents?id=${{ steps.cursor.outputs.agent_id }}) or review manually.
+
+          ---
+          *Cursor Code Review workflow*"
+
+      - name: Comment on issue if Agent Failed
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.review_mode != 'final_verification' && (steps.wait.outputs.status == 'failed' || steps.wait.outputs.status == 'timeout') && steps.pr.outputs.issue_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ steps.pr.outputs.issue_number }} \
+            --repo "${{ github.repository }}" \
+            --body "## ⚠️ Cursor Review Issue
+
+          The Cursor agent encountered a problem (${{ steps.wait.outputs.status }}).
+
+          **Action:** May need manual review of PR #${{ steps.pr.outputs.number }}.
+
+          ---
+          *[View PR](https://github.com/${{ github.repository }}/pull/${{ steps.pr.outputs.number }})*"
