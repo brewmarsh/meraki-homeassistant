@@ -40,8 +40,10 @@ class MerakiOrganizationDeviceTypeClientsSensor(
         self._attr_name = format_entity_name(self._device_type.capitalize(), "Clients")
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
+        if self.coordinator.config_entry is None:
+            return None
         org_name = self.coordinator.data.get("organization", {}).get(
             "name", "Meraki Organization"
         )

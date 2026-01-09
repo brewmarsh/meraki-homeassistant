@@ -59,26 +59,29 @@ class BaseMerakiEntity(CoordinatorEntity[MerakiDataCoordinator], Entity, ABC):
         if self._network_id and not self._serial:
             network = self.coordinator.get_network(self._network_id)
             if network:
+                firmware = network.get("firmware")
                 return DeviceInfo(
                     identifiers={(DOMAIN, f"network_{self._network_id}")},
                     name=format_device_name(network, self._config_entry.options),
                     manufacturer=MANUFACTURER,
                     model="Network",
-                    sw_version=network.get("firmware", "unknown"),
+                    sw_version=str(firmware) if firmware else None,
                 )
 
         # Handle device-based entities
         if self._serial:
             device = self.coordinator.get_device(self._serial)
             if device:
-                model = device.get("model", "unknown")
+                model = str(device.get("model", "unknown"))
+                firmware = device.get("firmware")
+                address = device.get("address")
                 return DeviceInfo(
                     identifiers={(DOMAIN, self._serial)},
                     name=format_device_name(device, self._config_entry.options),
                     manufacturer=MANUFACTURER,
                     model=model,
-                    sw_version=device.get("firmware", "unknown"),
-                    suggested_area=device.get("address", ""),
+                    sw_version=str(firmware) if firmware else None,
+                    suggested_area=str(address) if address else None,
                     hw_version=model,
                     configuration_url=f"https://dashboard.meraki.com/devices/{self._serial}",
                 )

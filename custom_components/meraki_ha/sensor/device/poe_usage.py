@@ -65,8 +65,10 @@ class MerakiPoeUsageSensor(
         )
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
+        if self.coordinator.config_entry is None:
+            return None
         return DeviceInfo(
             identifiers={(DOMAIN, self._device["serial"])},
             name=format_device_name(
