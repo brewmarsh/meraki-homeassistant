@@ -1,0 +1,137 @@
+name: Jules PR Linker
+
+run-name: 'Link PR #${{ github.event.pull_request.number }} to Issue'
+
+# This workflow links Jules-created PRs back to their source issues
+# Triggers when any PR is opened and checks if it's from Jules
+
+on:
+  pull_request:
+    types:
+      - opened
+
+jobs:
+  link-pr-to-issue:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Check if Jules PR
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+          PR_BODY="${{ github.event.pull_request.body }}"
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+
+          echo "PR Author: $PR_AUTHOR"
+          echo "Branch: $BRANCH"
+
+          # Check if this is a Jules PR (author contains 'jules' or is a bot)
+          IS_JULES="false"
+          if [[ "$PR_AUTHOR" == *"jules"* ]] || [[ "$PR_AUTHOR" == *"[bot]"* ]]; then
+            IS_JULES="true"
+          fi
+
+          # Also check branch name pattern (jules often uses descriptive branches)
+          if [[ "$BRANCH" == *"jules"* ]] || [[ "$BRANCH" == *"fix/"* ]] || [[ "$BRANCH" == *"feat/"* ]]; then
+            # Check if PR body references an issue
+            if echo "$PR_BODY" | grep -qiE '(closes|fixes|resolves) #[0-9]+'; then
+              IS_JULES="true"
+            fi
+          fi
+
+          echo "is_jules=$IS_JULES" >> "$GITHUB_OUTPUT"
+
+          if [[ "$IS_JULES" != "true" ]]; then
+            echo "Not a Jules PR - skipping"
+            exit 0
+          fi
+
+          # Extract issue number from PR body
+          ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
+
+          if [[ -z "$ISSUE_NUM" ]]; then
+            # Try to find any issue reference
+            ISSUE_NUM=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | grep -oE '[0-9]+' | head -1)
+          fi
+
+          if [[ -n "$ISSUE_NUM" ]]; then
+            echo "issue_number=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
+            echo "Found linked issue: #$ISSUE_NUM"
+          else
+            echo "No issue reference found in PR body"
+            echo "issue_number=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment on issue - PR created
+        if: steps.check.outputs.is_jules == 'true' && steps.check.outputs.issue_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUM="${{ steps.check.outputs.issue_number }}"
+          PR_NUM="${{ github.event.pull_request.number }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+
+          gh issue comment "$ISSUE_NUM" \
+            --repo "${{ github.repository }}" \
+            --body "## ✅ Jules Created a Pull Request
+
+          **PR**: [#${PR_NUM} - ${PR_TITLE}](${PR_URL})
+          **Branch**: \`${BRANCH}\`
+          **Author**: @${PR_AUTHOR}
+
+          **Next Steps:**
+          1. ⏳ CI is running quality checks
+          2. 🤖 Automated code review
+          3. 📋 Human review before merge
+
+          ---
+          *This PR will automatically close this issue when merged.*"
+
+      - name: Update issue labels
+        if: steps.check.outputs.is_jules == 'true' && steps.check.outputs.issue_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUM="${{ steps.check.outputs.issue_number }}"
+
+          # Remove in-progress, add pr-pending
+          gh issue edit "$ISSUE_NUM" \
+            --repo "${{ github.repository }}" \
+            --remove-label "in-progress" \
+            --add-label "pr-pending" 2>/dev/null || true
+
+      - name: Add issue reference to PR if missing
+        if: steps.check.outputs.is_jules == 'true' && steps.check.outputs.issue_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUM="${{ steps.check.outputs.issue_number }}"
+          PR_NUM="${{ github.event.pull_request.number }}"
+
+          # Get current PR body
+          CURRENT_BODY=$(gh pr view "$PR_NUM" --repo "${{ github.repository }}" --json body -q '.body')
+
+          # Check if it already has a proper closing reference
+          if ! echo "$CURRENT_BODY" | grep -qiE '^(closes|fixes|resolves) #'; then
+            # Append proper closing reference
+            NEW_BODY="${CURRENT_BODY}
+
+          ---
+          Closes #${ISSUE_NUM}"
+
+            gh pr edit "$PR_NUM" \
+              --repo "${{ github.repository }}" \
+              --body "$NEW_BODY"
+
+            echo "Added 'Closes #${ISSUE_NUM}' to PR body"
+          else
+            echo "PR already has proper issue closing reference"
+          fi

@@ -385,10 +385,11 @@ jobs:
             -u "${CURSOR_API_KEY}:" \
             -H "Content-Type: application/json" \
             -d "{
-              \"repository\": \"https://github.com/${{ github.repository }}\",
-              \"ref\": \"${{ steps.pr.outputs.head_ref }}\",
+              \"source\": {
+                \"repository\": \"https://github.com/${{ github.repository }}\",
+                \"ref\": \"${{ steps.pr.outputs.head_ref }}\"
+              },
               \"prompt\": { \"text\": ${ESCAPED_PROMPT} },
-              \"name\": \"Review #$REVIEW_NUM: PR #${{ steps.pr.outputs.number }}\",
               \"target\": {
                 \"branchName\": \"${{ steps.pr.outputs.head_ref }}\",
                 \"autoCreatePr\": false
