@@ -11,10 +11,10 @@ on:
 
 jobs:
   handle-jules-task:
-    # Trigger when issue is created with 'jules-work' label (from Jules task template)
-    # or when 'jules-work' label is added
+    # Trigger when issue is created with 'jules-issue' label (from Jules task template)
+    # or when 'jules-issue' label is added
     if: |
-      contains(github.event.issue.labels.*.name, 'jules-work')
+      contains(github.event.issue.labels.*.name, 'jules-issue')
     runs-on: ubuntu-latest
     permissions:
       contents: read
