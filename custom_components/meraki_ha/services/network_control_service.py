@@ -39,3 +39,87 @@ class NetworkControlService:
             if client.get("networkId") == network_id:
                 count += 1
         return count
+
+    def get_guest_client_count(self, network_id: str) -> int:
+        """Get the number of clients on guest SSIDs for a specific network."""
+        if not self._coordinator.data or not self._coordinator.data.get("clients"):
+            return 0
+
+        ssids = self._coordinator.data.get("ssids", [])
+        clients = self._coordinator.data.get("clients", [])
+
+        guest_ssid_names = {
+            ssid["name"]
+            for ssid in ssids
+            if ssid.get("networkId") == network_id
+            and ssid.get("authMode") == "open"
+            and "name" in ssid
+        }
+
+        if not guest_ssid_names:
+            return 0
+
+        count = 0
+        for client in clients:
+            if (
+                client.get("networkId") == network_id
+                and client.get("ssid") in guest_ssid_names
+            ):
+                count += 1
+        return count
+
+    def get_guest_client_count(self, network_id: str) -> int:
+        """Get the number of clients on guest SSIDs for a specific network."""
+        if not self._coordinator.data or not self._coordinator.data.get("clients"):
+            return 0
+
+        ssids = self._coordinator.data.get("ssids", [])
+        clients = self._coordinator.data.get("clients", [])
+
+        guest_ssid_names = {
+            ssid["name"]
+            for ssid in ssids
+            if ssid.get("networkId") == network_id
+            and ssid.get("authMode") == "open"
+            and "name" in ssid
+        }
+
+        if not guest_ssid_names:
+            return 0
+
+        count = 0
+        for client in clients:
+            if (
+                client.get("networkId") == network_id
+                and client.get("ssid") in guest_ssid_names
+            ):
+                count += 1
+        return count
+
+    def get_guest_client_count(self, network_id: str) -> int:
+        """Get the number of clients on guest SSIDs for a specific network."""
+        if not self._coordinator.data or not self._coordinator.data.get("clients"):
+            return 0
+
+        ssids = self._coordinator.data.get("ssids", [])
+        clients = self._coordinator.data.get("clients", [])
+
+        guest_ssid_names = {
+            ssid["name"]
+            for ssid in ssids
+            if ssid.get("networkId") == network_id
+            and ssid.get("authMode") == "open"
+            and "name" in ssid
+        }
+
+        if not guest_ssid_names:
+            return 0
+
+        count = 0
+        for client in clients:
+            if (
+                client.get("networkId") == network_id
+                and client.get("ssid") in guest_ssid_names
+            ):
+                count += 1
+        return count

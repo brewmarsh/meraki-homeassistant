@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from ...sensor.network.guest_clients import MerakiGuestClientsSensor
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
 from ...switch.content_filtering import MerakiContentFilteringSwitch
 from .base import BaseHandler
@@ -67,13 +68,21 @@ class NetworkHandler(BaseHandler):
             return entities
 
         for network in networks:
-            entities.append(
-                MerakiNetworkClientsSensor(
-                    coordinator=self._coordinator,
-                    config_entry=self._config_entry,
-                    network_data=network,
-                    network_control_service=self._network_control_service,
-                )
+            entities.extend(
+                [
+                    MerakiNetworkClientsSensor(
+                        coordinator=self._coordinator,
+                        config_entry=self._config_entry,
+                        network_data=network,
+                        network_control_service=self._network_control_service,
+                    ),
+                    MerakiGuestClientsSensor(
+                        coordinator=self._coordinator,
+                        config_entry=self._config_entry,
+                        network_data=network,
+                        network_control_service=self._network_control_service,
+                    ),
+                ]
             )
             if "appliance" in network.get("productTypes", []):
                 try:

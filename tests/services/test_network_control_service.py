@@ -56,3 +56,30 @@ def test_get_network_client_count_no_clients_data(
     service = NetworkControlService(mock_api_client, coordinator)
     count = service.get_network_client_count("N_1234")
     assert count == 0
+
+
+def test_get_guest_client_count(mock_api_client: MagicMock) -> None:
+    """Test get_guest_client_count."""
+    coordinator = MagicMock()
+    coordinator.data = {
+        "ssids": [
+            {
+                "networkId": "N_1234",
+                "name": "Guest SSID",
+                "splashPage": "Click-through splash page",
+            },
+            {
+                "networkId": "N_1234",
+                "name": "Private SSID",
+                "splashPage": "None",
+            },
+        ],
+        "clients": [
+            {"networkId": "N_1234", "ssid": "Guest SSID"},
+            {"networkId": "N_1234", "ssid": "Guest SSID"},
+            {"networkId": "N_1234", "ssid": "Private SSID"},
+        ],
+    }
+    service = NetworkControlService(mock_api_client, coordinator)
+    count = service.get_guest_client_count("N_1234")
+    assert count == 2

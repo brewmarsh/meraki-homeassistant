@@ -119,6 +119,9 @@
   },
   "entity": {
     "sensor": {
+      "guest_client_count": {
+        "name": "Guest Client Count"
+      },
       "meraki_wan1_connectivity": {
         "name": "WAN 1 Connectivity"
       },

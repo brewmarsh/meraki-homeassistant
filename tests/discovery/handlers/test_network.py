@@ -5,6 +5,9 @@ from unittest.mock import MagicMock
 import pytest
 
 from custom_components.meraki_ha.discovery.handlers.network import NetworkHandler
+from custom_components.meraki_ha.sensor.network.guest_clients import (
+    MerakiGuestClientsSensor,
+)
 from custom_components.meraki_ha.sensor.network.network_clients import (
     MerakiNetworkClientsSensor,
 )
@@ -41,8 +44,12 @@ async def test_discover_entities_creates_network_sensors(
 
     entities = await handler.discover_entities()
 
-    assert len(entities) == 2
+    assert len(entities) == 4
     assert isinstance(entities[0], MerakiNetworkClientsSensor)
-    assert isinstance(entities[1], MerakiNetworkClientsSensor)
+    assert isinstance(entities[1], MerakiGuestClientsSensor)
+    assert isinstance(entities[2], MerakiNetworkClientsSensor)
+    assert isinstance(entities[3], MerakiGuestClientsSensor)
     assert entities[0]._network_id == "N_1234"
-    assert entities[1]._network_id == "N_5678"
+    assert entities[1]._network_id == "N_1234"
+    assert entities[2]._network_id == "N_5678"
+    assert entities[3]._network_id == "N_5678"
