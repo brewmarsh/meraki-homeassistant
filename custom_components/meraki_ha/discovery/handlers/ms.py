@@ -59,9 +59,16 @@ class MSHandler(BaseDeviceHandler):
     async def discover_entities(self) -> list[Entity]:
         """Discover entities for the MS switch."""
         from ...binary_sensor.switch_port import SwitchPortSensor
+        from ...switch.poe_switch import MerakiPoESwitch
 
         entities: list[Entity] = []
         if self.device and self.device.get("ports_statuses"):
             for port in self.device["ports_statuses"]:
                 entities.append(SwitchPortSensor(self._coordinator, self.device, port))
+                if port.get("poeEnabled") is not None:
+                    entities.append(
+                        MerakiPoESwitch(
+                            self._coordinator, self.device, port, self._config_entry
+                        )
+                    )
         return entities

@@ -165,6 +165,9 @@
       },
       "meraki_camera_rtsp_switch": {
         "name": "RTSP Server"
+      },
+      "meraki_poe_switch": {
+        "name": "PoE"
       }
     },
     "text": {

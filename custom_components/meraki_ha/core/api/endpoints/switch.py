@@ -87,3 +87,87 @@ class SwitchEndpoints:
             _LOGGER.warning("get_switch_ports did not return a list.")
             return []
         return validated
+
+    @handle_meraki_errors
+    async def update_device_switch_port(
+        self, serial: str, port_id: str, **kwargs: Any
+    ) -> dict[str, Any] | None:
+        """
+        Update a switch port.
+
+        Args:
+        ----
+            serial: The serial number of the switch.
+            port_id: The ID of the port to update.
+            **kwargs: The settings to update.
+
+        Returns
+        -------
+            The updated port configuration.
+
+        """
+        if self._api_client.dashboard is None:
+            return None
+        port = await self._api_client.run_sync(
+            self._api_client.dashboard.switch.updateDeviceSwitchPort,
+            serial=serial,
+            portId=port_id,
+            **kwargs,
+        )
+        return validate_response(port)
+
+    @handle_meraki_errors
+    async def update_device_switch_port(
+        self, serial: str, port_id: str, **kwargs: Any
+    ) -> dict[str, Any] | None:
+        """
+        Update a switch port.
+
+        Args:
+        ----
+            serial: The serial number of the switch.
+            port_id: The ID of the port to update.
+            **kwargs: The settings to update.
+
+        Returns
+        -------
+            The updated port configuration.
+
+        """
+        if self._api_client.dashboard is None:
+            return None
+        port = await self._api_client.run_sync(
+            self._api_client.dashboard.switch.updateDeviceSwitchPort,
+            serial=serial,
+            portId=port_id,
+            **kwargs,
+        )
+        return validate_response(port)
+
+    @handle_meraki_errors
+    async def update_device_switch_port(
+        self, serial: str, port_id: str, **kwargs: Any
+    ) -> dict[str, Any] | None:
+        """
+        Update a switch port.
+
+        Args:
+        ----
+            serial: The serial number of the switch.
+            port_id: The ID of the port to update.
+            **kwargs: The settings to update.
+
+        Returns
+        -------
+            The updated port configuration.
+
+        """
+        if self._api_client.dashboard is None:
+            return None
+        port = await self._api_client.run_sync(
+            self._api_client.dashboard.switch.updateDeviceSwitchPort,
+            serial=serial,
+            portId=port_id,
+            **kwargs,
+        )
+        return validate_response(port)

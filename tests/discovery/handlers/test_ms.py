@@ -1,6 +1,6 @@
 """Tests for the MSHandler."""
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -20,8 +20,8 @@ async def test_discover_entities():
         "name": "My Switch",
         "model": "MS220-8P",
         "ports_statuses": [
-            {"portId": 1, "enabled": True},
-            {"portId": 2, "enabled": True},
+            {"portId": 1, "enabled": True, "poeEnabled": True},
+            {"portId": 2, "enabled": True, "poeEnabled": True},
         ],
     }
 
@@ -34,7 +34,11 @@ async def test_discover_entities():
     )
 
     # Act
-    entities = await handler.discover_entities()
+    with patch(
+        "custom_components.meraki_ha.discovery.handlers.ms.MerakiPoESwitch",
+        new_callable=MagicMock,
+    ):
+        entities = await handler.discover_entities()
 
     # Assert
-    assert len(entities) == 2
+    assert len(entities) == 4

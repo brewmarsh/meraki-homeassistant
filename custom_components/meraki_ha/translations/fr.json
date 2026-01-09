@@ -38,5 +38,27 @@
         }
       }
     }
+  },
+  "entity": {
+    "switch": {
+      "meraki_poe_switch": {
+        "name": "PoE"
+      },
+      "meraki_ssid_enabled_switch": {
+        "name": "SSID Activé"
+      },
+      "meraki_ssid_broadcast_switch": {
+        "name": "Diffusion SSID"
+      },
+      "meraki_camera_sense_switch": {
+        "name": "Capteur MV"
+      },
+      "meraki_camera_audio_detection_switch": {
+        "name": "Détection Audio"
+      },
+      "meraki_camera_rtsp_switch": {
+        "name": "Serveur RTSP"
+      }
+    }
   }
 }
