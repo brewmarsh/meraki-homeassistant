@@ -172,7 +172,7 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
             "enabled",
             "enabled",
         )
-        self._attr_name = "Enabled Control"
+        self._attr_translation_key = "meraki_ssid_enabled_switch"
 
     @property
     def available(self) -> bool:
@@ -205,4 +205,4 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
             "broadcast",
             "visible",
         )
-        self._attr_name = "Broadcast Control"
+        self._attr_translation_key = "meraki_ssid_broadcast_switch"

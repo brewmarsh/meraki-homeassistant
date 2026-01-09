@@ -84,7 +84,7 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
         # _attr_name is not explicitly set
         self.entity_description = SensorEntityDescription(
             key="device_status",
-            name="Status",
+            translation_key="device_status",
             native_unit_of_measurement=None,  # Categorical status, no unit
             state_class=None,  # Categorical status
             device_class=SensorDeviceClass.ENUM,

@@ -25,7 +25,13 @@ class MerakiFirmwareStatusSensor(CoordinatorEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.ENUM
     _attr_options = ["up_to_date", "update_available", "unknown"]
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
     _attr_translation_key = "meraki_firmware_status"
+>>>>>>> 0e01d86 (Apply patch /tmp/4b374460-ecdd-452e-a049-8bb2c19996ca.patch)
+=======
+>>>>>>> origin/beta
 
     def __init__(
         self,
