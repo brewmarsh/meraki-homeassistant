@@ -62,30 +62,16 @@ jobs:
           echo "Synchronizing package.json version to: ${{ steps.increment.outputs.new_version }}"
           npm version ${{ steps.increment.outputs.new_version }} --no-git-tag-version --allow-same-version
 
-      - name: Generate Changelog
-        if: steps.increment.outputs.new_version != ''
-        run: |
-          npx conventional-changelog -p angular -i CHANGELOG.md -s
-          # Generate release notes for the current version
-          npx conventional-changelog -p angular -r 1 > RELEASE_NOTES.md
-
       - name: Commit and push changes
         if: steps.increment.outputs.new_version != ''
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }} and CHANGELOG'
-          file_pattern: 'custom_components/meraki_ha/manifest.json CHANGELOG.md package.json .bumpversion.cfg package-lock.json'
+          commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }}'
+          file_pattern: 'custom_components/meraki_ha/manifest.json package.json .bumpversion.cfg package-lock.json'
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
           commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
           branch: ${{ github.base_ref }}
-
-      - name: Upload Release Notes
-        if: steps.increment.outputs.new_version != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-notes
-          path: RELEASE_NOTES.md
 
   release:
     runs-on: ubuntu-latest
@@ -94,16 +80,11 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download Release Notes
-        uses: actions/download-artifact@v4
-        with:
-          name: release-notes
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: 'v${{ needs.version.outputs.new_version }}'
           name: 'Release v${{ needs.version.outputs.new_version }}'
-          body_path: 'RELEASE_NOTES.md'
+          generate_release_notes: true
           draft: false
           prerelease: ${{ github.base_ref == 'beta' }}
