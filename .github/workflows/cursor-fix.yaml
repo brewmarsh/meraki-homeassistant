@@ -254,21 +254,24 @@ jobs:
 
           ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
 
-          RESPONSE=$(curl -sS -X POST \
+          # API call per https://cursor.com/docs/cloud-agent/api/endpoints#launch-an-agent
+          RESPONSE=$(curl -sS --request POST \
+            --url "https://api.cursor.com/v0/agents" \
             -u "${CURSOR_API_KEY}:" \
-            -H "Content-Type: application/json" \
-            -d "{
+            --header "Content-Type: application/json" \
+            --data "{
               \"source\": {
                 \"repository\": \"https://github.com/${{ github.repository }}\",
                 \"ref\": \"$CURSOR_BRANCH\"
               },
-              \"prompt\": { \"text\": ${ESCAPED_PROMPT} },
+              \"prompt\": {
+                \"text\": ${ESCAPED_PROMPT}
+              },
               \"target\": {
                 \"branchName\": \"$CURSOR_BRANCH\",
                 \"autoCreatePr\": false
               }
-            }" \
-            "https://api.cursor.com/v0/agents")
+            }")
 
           echo "API Response: $RESPONSE"
 
