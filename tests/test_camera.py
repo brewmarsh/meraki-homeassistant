@@ -452,10 +452,23 @@ class TestMerakiCamera:
         camera.hass = mock_hass
         camera._cached_snapshot = b"cached_image"
 
-        # When async_camera_image encounters an error, it should return cached
-        # The mock hass doesn't have all required attributes, so it will error
-        # and fall back to the cached snapshot
-        result = await camera.async_camera_image()
+        # Mock the _get_linked_camera_entity and _fetch_snapshot to avoid
+        # creating real HTTP sessions that cause lingering timer issues
+        with (
+            patch.object(
+                camera,
+                "_get_linked_camera_entity",
+                new_callable=AsyncMock,
+                return_value=None,
+            ),
+            patch.object(
+                camera,
+                "_fetch_snapshot",
+                new_callable=AsyncMock,
+                side_effect=Exception("Simulated error"),
+            ),
+        ):
+            result = await camera.async_camera_image()
 
         # Should return cached image on error
         assert result == b"cached_image"
