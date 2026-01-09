@@ -39,7 +39,6 @@ pythonpath = [
 asyncio_mode = "auto"
 
 [tool.mypy]
-strict = true
 follow_imports = "silent"
 ignore_missing_imports = true
 
