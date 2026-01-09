@@ -16,9 +16,12 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity):
+class MerakiOrganizationDeviceTypeClientsSensor(
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
+):
     """Representation of a Meraki organization-level client counter by device type."""
 
+    coordinator: MerakiDataCoordinator
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_has_entity_name = True
 
@@ -32,7 +35,7 @@ class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity)
         super().__init__(coordinator)
         self._config_entry = config_entry
         self._device_type = device_type
-        self._org_id = self.coordinator.api_client.organization_id
+        self._org_id = self.coordinator.api.organization_id
         self._attr_unique_id = f"{self._org_id}_{self._device_type}_clients"
         self._attr_name = format_entity_name(self._device_type.capitalize(), "Clients")
 

@@ -16,7 +16,7 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 from ..utils.naming_utils import format_device_name
 
 
-class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
+class BaseMerakiEntity(CoordinatorEntity[MerakiDataCoordinator], Entity, ABC):
     """
     Base entity class for Meraki entities.
 
@@ -25,6 +25,8 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
     - State availability tracking
     - Common properties and attributes
     """
+
+    coordinator: MerakiDataCoordinator
 
     def __init__(
         self,

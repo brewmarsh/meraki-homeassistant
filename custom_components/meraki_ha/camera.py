@@ -24,13 +24,13 @@ from .const import (
 )
 from .core.utils.naming_utils import format_device_name
 from .helpers.entity_helpers import format_entity_name
+from .meraki_data_coordinator import MerakiDataCoordinator
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-    from .meraki_data_coordinator import MerakiDataCoordinator
     from .services.camera_service import CameraService
 
 
@@ -75,13 +75,14 @@ async def async_setup_entry(
                 await asyncio.sleep(1)
 
 
-class MerakiCamera(CoordinatorEntity, Camera):
+class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
     """
     Representation of a Meraki camera.
 
     This entity is state-driven by the central MerakiDataCoordinator.
     """
 
+    coordinator: MerakiDataCoordinator
     _attr_brand = "Cisco Meraki"
 
     def __init__(

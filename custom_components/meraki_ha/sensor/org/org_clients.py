@@ -18,11 +18,12 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiOrganizationSSIDClientsSensor(
-    CoordinatorEntity,
+    CoordinatorEntity[MerakiDataCoordinator],
     SensorEntity,
 ):
     """Representation of a Meraki Organization SSID Clients sensor."""
 
+    coordinator: MerakiDataCoordinator
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = "clients"
     _attr_icon = "mdi:wifi"

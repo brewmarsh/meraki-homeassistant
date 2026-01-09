@@ -84,7 +84,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def register_pending_update(
         self,
-        unique_id: str,
+        unique_id: str | None,
         expiry_seconds: int = 150,
     ) -> None:
         """
@@ -99,6 +99,8 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             expiry_seconds: The duration of the cooldown period.
 
         """
+        if unique_id is None:
+            return
         expiry_time = datetime.now() + timedelta(seconds=expiry_seconds)
         self._pending_updates[unique_id] = expiry_time
         _LOGGER.debug(
@@ -107,7 +109,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             expiry_time,
         )
 
-    def is_update_pending(self, unique_id: str) -> bool:
+    def is_update_pending(self, unique_id: str | None) -> bool:
         """
         Check if an entity update is in a pending (cooldown) state.
 
@@ -120,7 +122,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             True if the entity is in a pending state, False otherwise.
 
         """
-        if unique_id not in self._pending_updates:
+        if unique_id is None or unique_id not in self._pending_updates:
             return False
 
         now = datetime.now()
@@ -136,7 +138,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         _LOGGER.debug("Update for %s is still pending (on cooldown)", unique_id)
         return True
 
-    def is_pending(self, unique_id: str) -> bool:
+    def is_pending(self, unique_id: str | None) -> bool:
         """
         Check if an entity update is in a pending (cooldown) state.
 
@@ -153,7 +155,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def register_pending(
         self,
-        unique_id: str,
+        unique_id: str | None,
         expiry_seconds: int = 150,
     ) -> None:
         """
@@ -169,6 +171,21 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         """
         self.register_pending_update(unique_id, expiry_seconds)
+
+    def cancel_pending_update(self, unique_id: str | None) -> None:
+        """
+        Cancel a pending update for an entity.
+
+        Args:
+        ----
+            unique_id: The unique ID of the entity.
+
+        """
+        if unique_id is None:
+            return
+        if unique_id in self._pending_updates:
+            del self._pending_updates[unique_id]
+            _LOGGER.debug("Cancelled pending update for %s", unique_id)
 
     @property
     def mqtt_enabled(self) -> bool:

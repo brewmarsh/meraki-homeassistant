@@ -28,7 +28,9 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
+class MerakiDeviceStatusSensor(
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity, RestoreEntity
+):
     """
     Representation of a Meraki Device Status sensor.
 
@@ -48,6 +50,7 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
     Uses RestoreEntity to preserve state across Home Assistant restarts.
     """
 
+    coordinator: MerakiDataCoordinator
     _attr_has_entity_name = True
     _attr_native_value: str | None = None
 

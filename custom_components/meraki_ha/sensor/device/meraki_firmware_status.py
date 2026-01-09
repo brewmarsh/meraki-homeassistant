@@ -17,9 +17,12 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiFirmwareStatusSensor(CoordinatorEntity, SensorEntity):
+class MerakiFirmwareStatusSensor(
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
+):
     """Representation of a Meraki Device Firmware Status Sensor."""
 
+    coordinator: MerakiDataCoordinator
     _attr_icon = "mdi:package-up"
     _attr_has_entity_name = True
     _attr_device_class = SensorDeviceClass.ENUM

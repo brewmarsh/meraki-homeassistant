@@ -18,11 +18,12 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiClientBlockerSwitch(
-    CoordinatorEntity,
+    CoordinatorEntity[SsidFirewallCoordinator],
     SwitchEntity,
 ):
     """Representation of a Meraki Client Blocker switch entity."""
 
+    coordinator: SsidFirewallCoordinator
     entity_category = EntityCategory.CONFIG
     _attr_has_entity_name = True
 
