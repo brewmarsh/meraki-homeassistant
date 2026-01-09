@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from ..client import MerakiAPIClient
@@ -46,11 +46,12 @@ class SensorEndpoints:
         _LOGGER.debug("Sending command '%s' to sensor %s", operation, serial)
         if self._client.dashboard is None:
             return {}
-        return await self._client.run_sync(
+        result = await self._client.run_sync(
             self._client.dashboard.sensor.createDeviceSensorCommand,
             serial=serial,
             operation=operation,
         )
+        return cast(dict[str, Any], result)
 
     async def get_organization_sensor_readings_latest(
         self,
@@ -66,8 +67,9 @@ class SensorEndpoints:
         _LOGGER.debug("Getting latest sensor readings for organization")
         if self._client.dashboard is None:
             return []
-        return await self._client.run_sync(
+        result = await self._client.run_sync(
             self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
             organizationId=self._client.organization_id,
             total_pages="all",
         )
+        return cast(list[dict[str, Any]], result)

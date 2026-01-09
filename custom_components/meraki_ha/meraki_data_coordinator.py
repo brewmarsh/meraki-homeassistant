@@ -69,7 +69,9 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.last_ssid_update: datetime | None = None
 
         # MQTT-related state
-        self._mqtt_enabled = entry.options.get(CONF_ENABLE_MQTT, DEFAULT_ENABLE_MQTT)
+        self._mqtt_enabled: bool = bool(
+            entry.options.get(CONF_ENABLE_MQTT, DEFAULT_ENABLE_MQTT)
+        )
         self._mqtt_last_updates: dict[str, datetime] = {}  # serial -> last MQTT update
 
         # Set a short update interval for the coordinator to run frequently

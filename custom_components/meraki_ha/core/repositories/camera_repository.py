@@ -8,7 +8,7 @@ fetching and processing camera-related data from the Meraki API.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from ..errors import MerakiInformationalError
 
@@ -82,12 +82,12 @@ class CameraRepository:
             url = video_link_data.get("url")
 
             # Return any valid HTTPS URL (cloud video links)
-            if url and url.startswith("https://"):
-                return url
+            if url and isinstance(url, str) and url.startswith("https://"):
+                return cast(str, url)
 
             # Also accept HTTP URLs (less common but possible)
-            if url and url.startswith("http://"):
-                return url
+            if url and isinstance(url, str) and url.startswith("http://"):
+                return cast(str, url)
 
             return None
         except MerakiInformationalError as e:
@@ -133,8 +133,8 @@ class CameraRepository:
             url = video_link_data.get("url")
 
             # Validate that we received a valid RTSP URL
-            if url and url.startswith("rtsp://"):
-                return url
+            if url and isinstance(url, str) and url.startswith("rtsp://"):
+                return cast(str, url)
 
             # If we get a non-RTSP URL, log it and return None
             if url:

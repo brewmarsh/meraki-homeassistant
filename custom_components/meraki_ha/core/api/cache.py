@@ -3,7 +3,7 @@
 import time
 from collections.abc import Awaitable, Callable
 from functools import wraps
-from typing import Any, Concatenate, ParamSpec, TypeVar
+from typing import Any, ParamSpec, TypeVar, cast
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -11,10 +11,7 @@ T = TypeVar("T")
 
 def async_timed_cache(
     timeout: int = 300,
-) -> Callable[
-    [Callable[Concatenate[Any, P], Awaitable[T]]],
-    Callable[Concatenate[Any, P], Awaitable[T]],
-]:
+) -> Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]:
     """
     Decorate to cache the result of an async method on an instance.
 
@@ -30,17 +27,17 @@ def async_timed_cache(
     """
 
     def decorator(
-        func: Callable[Concatenate[Any, P], Awaitable[T]],
-    ) -> Callable[Concatenate[Any, P], Awaitable[T]]:
+        func: Callable[..., Awaitable[T]],
+    ) -> Callable[..., Awaitable[T]]:
         """Return the decorator."""
 
         @wraps(func)
-        async def wrapper(self: Any, *args: P.args, **kwargs: P.kwargs) -> T:
+        async def wrapper(self: Any, *args: Any, **kwargs: Any) -> T:
             """Wrap the original function."""
             if not hasattr(self, "_cache_storage"):
-                self._cache_storage = {}
+                object.__setattr__(self, "_cache_storage", {})
             if not hasattr(self, "_cache_last_update"):
-                self._cache_last_update = {}
+                object.__setattr__(self, "_cache_last_update", {})
 
             # Create a unique key for the function call
             key_parts = [func.__name__]
@@ -54,7 +51,7 @@ def async_timed_cache(
             if cache_key in self._cache_storage:
                 last_update = self._cache_last_update.get(cache_key, 0)
                 if time.time() - last_update < timeout:
-                    return self._cache_storage[cache_key]
+                    return cast(T, self._cache_storage[cache_key])
 
             # If not, call the original function and cache the result
             result = await func(self, *args, **kwargs)

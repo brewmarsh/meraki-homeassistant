@@ -29,7 +29,7 @@ from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg]
+class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):
     """Handle a config flow for Meraki."""
 
     VERSION = 1
