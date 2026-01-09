@@ -82,9 +82,13 @@ class MerakiOptionsFlowHandler(OptionsFlow):
                 if network := networks_by_id.get(network_id):
                     if isinstance(vlans, list):
                         for vlan in vlans:
+                            label = (
+                                f"{network['name']} - "
+                                f"{vlan.get('name', 'Unnamed VLAN')} ({vlan['id']})"
+                            )
                             vlan_options.append(
                                 {
-                                    "label": f"{network['name']} - {vlan.get('name', 'Unnamed VLAN')} ({vlan['id']})",
+                                    "label": label,
                                     "value": vlan["id"],
                                 }
                             )

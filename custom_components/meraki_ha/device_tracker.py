@@ -68,7 +68,7 @@ async def async_setup_entry(
     update_entities()
 
 
-class MerakiClientDeviceTracker(CoordinatorEntity[MerakiDataCoordinator], ScannerEntity):
+class MerakiClientDeviceTracker(CoordinatorEntity, ScannerEntity):
     """Representation of a tracked Meraki client."""
 
     _attr_translation_key = "presence"
@@ -82,7 +82,9 @@ class MerakiClientDeviceTracker(CoordinatorEntity[MerakiDataCoordinator], Scanne
         super().__init__(coordinator)
         self._client_data = client_data
         self._attr_unique_id = f"meraki_client_{self._client_data['id']}"
-        self._attr_name = self._client_data.get("description") or self._client_data["mac"]
+        self._attr_name = (
+            client_data.get("description") or client_data["mac"]
+        )
 
     @property
     def is_connected(self) -> bool:
