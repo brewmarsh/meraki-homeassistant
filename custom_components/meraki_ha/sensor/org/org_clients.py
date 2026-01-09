@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiOrganizationSSIDClientsSensor(
-    CoordinatorEntity[MerakiDataCoordinator],
+    CoordinatorEntity,  # type: ignore[type-arg]
     SensorEntity,
 ):
     """Representation of a Meraki Organization SSID Clients sensor."""

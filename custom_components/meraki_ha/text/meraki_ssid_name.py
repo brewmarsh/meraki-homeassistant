@@ -18,7 +18,7 @@ from ..meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDNameText(CoordinatorEntity[MerakiDataCoordinator], TextEntity):
+class MerakiSSIDNameText(CoordinatorEntity, TextEntity):  # type: ignore[type-arg]
     """Representation of a Meraki SSID Name text entity."""
 
     coordinator: MerakiDataCoordinator

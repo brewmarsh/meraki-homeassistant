@@ -24,7 +24,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiCellularUplinkSensor(
-    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
+    CoordinatorEntity,
+    SensorEntity,  # type: ignore[type-arg]
 ):
     """Representation of a Meraki Cellular Gateway Uplink sensor."""
 
@@ -140,7 +141,8 @@ class MerakiCellularUplinkSensor(
 
 
 class MerakiCellularSignalSensor(
-    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
+    CoordinatorEntity,
+    SensorEntity,  # type: ignore[type-arg]
 ):
     """Representation of a Meraki Cellular Gateway Signal Strength sensor."""
 

@@ -11,7 +11,7 @@ from ...types import MerakiNetwork
 from ..utils.naming_utils import format_device_name
 
 
-class MerakiNetworkEntity(CoordinatorEntity[MerakiDataCoordinator]):
+class MerakiNetworkEntity(CoordinatorEntity):  # type: ignore[type-arg]
     """Representation of a Meraki Network."""
 
     coordinator: MerakiDataCoordinator

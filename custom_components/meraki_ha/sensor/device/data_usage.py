@@ -18,7 +18,7 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDataUsageSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
+class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):  # type: ignore[type-arg]
     """Representation of a Meraki appliance data usage sensor."""
 
     coordinator: MerakiDataCoordinator

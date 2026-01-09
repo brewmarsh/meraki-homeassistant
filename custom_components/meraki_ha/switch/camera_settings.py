@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiCameraSettingSwitchBase(
-    CoordinatorEntity[MerakiDataCoordinator],
+    CoordinatorEntity,  # type: ignore[type-arg]
     SwitchEntity,
 ):
     """Base class for a Meraki Camera Setting Switch."""

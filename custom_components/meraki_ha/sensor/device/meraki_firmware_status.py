@@ -18,7 +18,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiFirmwareStatusSensor(
-    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
+    CoordinatorEntity,
+    SensorEntity,  # type: ignore[type-arg]
 ):
     """Representation of a Meraki Device Firmware Status Sensor."""
 

@@ -22,7 +22,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiMtBinarySensor(
-    CoordinatorEntity[MerakiDataCoordinator], BinarySensorEntity
+    CoordinatorEntity,
+    BinarySensorEntity,  # type: ignore[type-arg]
 ):
     """Representation of a Meraki MT binary sensor."""
 

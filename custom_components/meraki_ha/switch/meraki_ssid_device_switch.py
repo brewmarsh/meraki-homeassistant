@@ -19,7 +19,7 @@ from ..meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDBaseSwitch(CoordinatorEntity[MerakiDataCoordinator], SwitchEntity):
+class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):  # type: ignore[type-arg]
     """Base class for Meraki SSID Switches."""
 
     coordinator: MerakiDataCoordinator

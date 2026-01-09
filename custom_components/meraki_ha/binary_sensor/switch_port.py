@@ -19,7 +19,7 @@ from ..meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class SwitchPortSensor(CoordinatorEntity[MerakiDataCoordinator], BinarySensorEntity):
+class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):  # type: ignore[type-arg]
     """Representation of a Meraki switch port sensor."""
 
     coordinator: MerakiDataCoordinator

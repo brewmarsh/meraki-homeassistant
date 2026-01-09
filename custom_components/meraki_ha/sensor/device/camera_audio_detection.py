@@ -18,7 +18,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiCameraAudioDetectionSensor(
-    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
+    CoordinatorEntity,
+    SensorEntity,  # type: ignore[type-arg]
 ):
     """Representation of a Meraki Camera Audio Detection Status sensor."""
 

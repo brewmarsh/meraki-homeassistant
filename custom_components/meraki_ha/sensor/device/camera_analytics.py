@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAnalyticsSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
+class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):  # type: ignore[type-arg]
     """Base class for Meraki analytics sensors."""
 
     coordinator: MerakiDataCoordinator

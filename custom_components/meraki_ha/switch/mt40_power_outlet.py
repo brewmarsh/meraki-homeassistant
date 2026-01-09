@@ -20,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiMt40PowerOutlet(
-    CoordinatorEntity[MerakiDataCoordinator],
+    CoordinatorEntity,  # type: ignore[type-arg]
     SwitchEntity,
     RestoreEntity,
 ):

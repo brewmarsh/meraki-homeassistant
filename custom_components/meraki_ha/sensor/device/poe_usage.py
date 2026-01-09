@@ -21,7 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiPoeUsageSensor(
-    CoordinatorEntity[MerakiDataCoordinator],
+    CoordinatorEntity,  # type: ignore[type-arg]
     SensorEntity,
 ):
     """

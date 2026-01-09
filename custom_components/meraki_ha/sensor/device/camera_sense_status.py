@@ -18,7 +18,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiCameraSenseStatusSensor(
-    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
+    CoordinatorEntity,
+    SensorEntity,  # type: ignore[type-arg]
 ):
     """Representation of a Meraki Camera Sense Status sensor."""
 

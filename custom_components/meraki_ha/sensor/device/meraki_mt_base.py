@@ -26,7 +26,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiMtSensor(
-    CoordinatorEntity, SensorEntity, RestoreEntity  # type: ignore[type-arg]
+    CoordinatorEntity,
+    SensorEntity,
+    RestoreEntity,  # type: ignore[type-arg]
 ):
     """Representation of a Meraki MT sensor.
 

@@ -16,7 +16,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiDeviceConnectedClientsSensor(
-    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
+    CoordinatorEntity,
+    SensorEntity,  # type: ignore[type-arg]
 ):
     """Representation of a Meraki Connected Clients sensor."""
 
