@@ -16,7 +16,7 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 from ..utils.naming_utils import format_device_name
 
 
-class BaseMerakiEntity(CoordinatorEntity[MerakiDataCoordinator], Entity, ABC):
+class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):  # type: ignore[type-arg]
     """
     Base entity class for Meraki entities.
 

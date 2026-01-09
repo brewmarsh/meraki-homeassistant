@@ -75,7 +75,7 @@ async def async_setup_entry(
                 await asyncio.sleep(1)
 
 
-class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
+class MerakiCamera(CoordinatorEntity, Camera):  # type: ignore[type-arg]
     """
     Representation of a Meraki camera.
 
