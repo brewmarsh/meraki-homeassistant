@@ -17,6 +17,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
@@ -88,6 +89,7 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
             state_class=None,  # Categorical status
             device_class=SensorDeviceClass.ENUM,
             icon="mdi:help-network-outline",
+            entity_category=EntityCategory.DIAGNOSTIC,
         )
         self._attr_options = ["online", "offline", "alerting", "dormant", "unknown"]
 

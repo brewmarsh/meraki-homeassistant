@@ -148,6 +148,39 @@
       },
       "radio_settings": {
         "name": "Radio Settings"
+      },
+      "meraki_serial": {
+        "name": "Serial number"
+      },
+      "meraki_publicIp": {
+        "name": "Public IP"
+      },
+      "meraki_firmware": {
+        "name": "Firmware version"
+      },
+      "meraki_networkId": {
+        "name": "Network ID"
+      },
+      "meraki_mac": {
+        "name": "MAC address"
+      },
+      "meraki_lanIp": {
+        "name": "LAN IP"
+      },
+      "meraki_wan1Ip": {
+        "name": "WAN 1 IP"
+      },
+      "meraki_wan2Ip": {
+        "name": "WAN 2 IP"
+      },
+      "meraki_productType": {
+        "name": "Product type"
+      },
+      "meraki_model": {
+        "name": "Model"
+      },
+      "meraki_tags": {
+        "name": "Tags"
       }
     },
     "switch": {

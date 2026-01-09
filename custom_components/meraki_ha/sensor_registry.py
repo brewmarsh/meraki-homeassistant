@@ -10,6 +10,19 @@ from .sensor.device.connected_clients import MerakiDeviceConnectedClientsSensor
 from .sensor.device.data_usage import MerakiDataUsageSensor
 from .sensor.device.device_status import MerakiDeviceStatusSensor
 from .sensor.device.meraki_firmware_status import MerakiFirmwareStatusSensor
+from .sensor.device.meraki_metadata import (
+    MerakiFirmwareVersionSensor,
+    MerakiLanIpSensor,
+    MerakiMacAddressSensor,
+    MerakiModelSensor,
+    MerakiNetworkIdSensor,
+    MerakiProductTypeSensor,
+    MerakiPublicIpSensor,
+    MerakiSerialNumberSensor,
+    MerakiTagsSensor,
+    MerakiWan1IpSensor,
+    MerakiWan2IpSensor,
+)
 from .sensor.device.meraki_wan1_connectivity import MerakiWAN1ConnectivitySensor
 from .sensor.device.meraki_wan2_connectivity import MerakiWAN2ConnectivitySensor
 from .sensor.device.poe_usage import MerakiPoeUsageSensor
@@ -51,6 +64,17 @@ SENSORS_COORD_DEV_CONF: dict[str, SensorClassList] = {
 # Common sensors for all devices
 COMMON_SENSORS_COORD_DEV_CONF: SensorClassList = [
     MerakiDeviceStatusSensor,
+    MerakiSerialNumberSensor,
+    MerakiPublicIpSensor,
+    MerakiFirmwareVersionSensor,
+    MerakiNetworkIdSensor,
+    MerakiMacAddressSensor,
+    MerakiLanIpSensor,
+    MerakiWan1IpSensor,
+    MerakiWan2IpSensor,
+    MerakiProductTypeSensor,
+    MerakiModelSensor,
+    MerakiTagsSensor,
 ]
 
 
