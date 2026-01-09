@@ -16,3 +16,5 @@ pytest==8.4.2
 pytest-cov==7.0.0
 pytest-asyncio==1.2.0
 codecov
+aiohttp==3.13.3
+urllib3==2.6.3
