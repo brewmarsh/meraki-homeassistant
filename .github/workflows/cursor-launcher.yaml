@@ -1,9 +1,10 @@
 name: Cursor Code Review
 
-run-name: 'Cursor: Review ${{ github.event.workflow_run.head_branch }}'
+run-name: 'Cursor: Review ${{ github.event.workflow_run.head_branch || github.event.inputs.pr_number }}'
 
 # Triggers AFTER Beta CI passes on a Jules PR
 # Cursor creates a separate PR targeting the Jules branch for review changes
+# Can also be triggered manually with a PR number
 
 on:
   workflow_run:
@@ -11,10 +12,17 @@ on:
     types:
       - completed
 
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to review'
+        required: true
+        type: string
+
 jobs:
   cursor-review:
-    # Only run when CI PASSES on a Jules PR (Jules handles its own failures)
-    if: github.event.workflow_run.conclusion == 'success'
+    # Run when CI passes OR when manually triggered
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -26,7 +34,17 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          HEAD_BRANCH="${{ github.event.workflow_run.head_branch }}"
+          # Handle both automatic and manual triggers
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            # Manual trigger - get branch from PR number
+            PR_NUMBER="${{ github.event.inputs.pr_number }}"
+            HEAD_BRANCH=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json headRefName -q '.headRefName')
+            echo "Manual trigger for PR #$PR_NUMBER"
+          else
+            # Automatic trigger from workflow_run
+            HEAD_BRANCH="${{ github.event.workflow_run.head_branch }}"
+          fi
+
           echo "Branch: $HEAD_BRANCH"
 
           # Find the PR for this branch
