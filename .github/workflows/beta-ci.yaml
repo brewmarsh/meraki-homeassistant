@@ -47,10 +47,8 @@ jobs:
           echo "Found issue: #$ISSUE_NUM"
 
       - name: Install GitHub CLI
-        uses: cli/action-backend@v1
-        with:
-          owner: ${{ github.repository_owner }}
-          repo: ${{ github.event.repository.name }}
+        uses:
+          github/setup-gh@v2
       - name: Comment on issue - CI started
         if: steps.extract.outputs.issue_number != '' && steps.extract.outputs.is_jules_pr == 'true'
         env:
