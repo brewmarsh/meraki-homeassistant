@@ -70,5 +70,7 @@ class MerakiDevice(TypedDict, total=False):
     dynamicDns: dict
     rtsp_url: str | None
     sense_settings: dict
-    readings: list[dict]
+    readings: list[dict] | dict  # Can be list (raw) or dict (processed for frontend)
+    readings_raw: list[dict]  # Original raw readings list
+    readings_meta: dict  # Metadata about readings (last_updated, data_source)
     cellular_uplinks: list[dict]
