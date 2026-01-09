@@ -1,6 +1,5 @@
 """Switch platform for Meraki."""
 
-import asyncio
 import logging
 
 from homeassistant.config_entries import ConfigEntry
@@ -31,15 +30,9 @@ async def async_setup_entry(
 
     switch_entities = async_setup_switches(hass, config_entry, coordinator, api_client)
 
-    _LOGGER.debug("Found %d switch entities", len(switch_entities))
     if switch_entities:
         _LOGGER.debug("Adding %d switch entities", len(switch_entities))
-        chunk_size = 50
-        for i in range(0, len(switch_entities), chunk_size):
-            chunk = switch_entities[i : i + chunk_size]
-            async_add_entities(chunk)
-            if len(switch_entities) > chunk_size:
-                await asyncio.sleep(1)
+        async_add_entities(switch_entities)
 
     return True
 
