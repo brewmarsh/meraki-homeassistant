@@ -689,7 +689,10 @@ const DashboardComponent: React.FC<DashboardProps> = ({
       {viewMode === 'type' &&
         DEVICE_TYPES.filter((t) => t.value !== 'all').map((type) => {
           const typeDevices = getDevicesByType(type.value);
-          if (typeDevices.length === 0 && deviceTypeFilter !== 'all')
+          if (
+            typeDevices.length === 0 &&
+            !(deviceTypeFilter.length === 1 && deviceTypeFilter[0] === 'all')
+          )
             return null;
 
           const onlineCount = typeDevices.filter(
@@ -744,7 +747,9 @@ const DashboardComponent: React.FC<DashboardProps> = ({
           <div className="icon">📡</div>
           <h3>No Devices Found</h3>
           <p>
-            {deviceTypeFilter !== 'all' || statusFilter !== 'all'
+            {!(
+              deviceTypeFilter.length === 1 && deviceTypeFilter[0] === 'all'
+            ) || statusFilter !== 'all'
               ? 'No devices match your current filters.'
               : 'Your Meraki devices will appear here once discovered.'}
           </p>

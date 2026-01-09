@@ -1,3 +1,0 @@
-  × No solution found when resolving tool dependencies:
-  ╰─▶ Because hass was not found in the package registry and you require hass,
-      we can conclude that your requirements are unsatisfiable.
