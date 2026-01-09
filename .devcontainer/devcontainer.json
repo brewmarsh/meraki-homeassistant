@@ -1,0 +1,14 @@
+{
+	"name": "Meraki HA Dev Container",
+	"image": "ghcr.io/home-assistant/devcontainer:stable",
+	"postCreateCommand": "pip install -r requirements_dev.txt",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"charliermarsh.ruff"
+			]
+		}
+	}
+}
