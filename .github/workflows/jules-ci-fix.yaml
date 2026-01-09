@@ -11,6 +11,12 @@ on:
     types:
       - completed
 
+# Prevent multiple Jules fix agents on the same branch
+# cancel-in-progress: false ensures we wait for the current fix to complete
+concurrency:
+  group: jules-fix-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
 jobs:
   invoke-jules:
     # Only run if the CI workflow failed

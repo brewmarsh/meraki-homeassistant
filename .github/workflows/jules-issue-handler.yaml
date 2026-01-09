@@ -11,6 +11,11 @@ on:
       - labeled
       - opened # For jules_task template which auto-applies labels
 
+# Prevent multiple Jules agents working on the same issue
+concurrency:
+  group: jules-issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
 jobs:
   handle-jules-task:
     # Trigger when issue is created with 'jules-issue' label (from Jules task template)
