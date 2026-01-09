@@ -63,6 +63,34 @@ class SwitchEndpoints:
         return validated
 
     @handle_meraki_errors
+    @async_timed_cache(timeout=60)
+    async def get_organization_switch_ports_statuses_by_switch(
+        self,
+    ) -> list[dict[str, Any]]:
+        """
+        Get statuses for all switch ports in the organization.
+
+        Returns
+        -------
+            A list of switch port statuses.
+
+        """
+        if self._api_client.dashboard is None:
+            return []
+        statuses = await self._api_client.run_sync(
+            self._api_client.dashboard.switch.getOrganizationSwitchPortsStatusesBySwitch,
+            organizationId=self._api_client.organization_id,
+            total_pages="all",
+        )
+        validated = validate_response(statuses)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_organization_switch_ports_statuses_by_switch did not return a list"
+            )
+            return []
+        return validated
+
+    @handle_meraki_errors
     @async_timed_cache()
     async def get_switch_ports(self, serial: str) -> list[dict[str, Any]]:
         """

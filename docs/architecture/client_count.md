@@ -6,7 +6,7 @@ Your task is to refactor how client counts are retrieved, ensuring the data is c
 
 1.  **Strictly use a more reliable API endpoint**: The API provides specific endpoints for retrieving client count history and details. The most reliable way to get an accurate count is to use the `getNetworkWirelessClientCountHistory` endpoint or similar ones that provide aggregated data. Avoid using endpoints that simply list clients, as they often don't provide a real-time total.
 2.  **Modularize the count logic**: Create a dedicated service or module specifically for handling client count logic. This will prevent the `NetworkHub` from becoming too complex.
-3.  **Aggregate data correctly**: The logic must correctly handle data from different sources (MX, MR, VLANs, SSIDs) and sum them up to get a correct total. 
+3.  **Aggregate data correctly**: The logic must correctly handle data from different sources (MX, MR, VLANs, SSIDs) and sum them up to get a correct total.
 
 ***
 

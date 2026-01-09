@@ -42,7 +42,7 @@ jobs:
           sudo mkdir -p "${DestinationPath}"
 
           # 2. Copy files using rsync for robustness
-          # rsync -ah --delete: 
+          # rsync -ah --delete:
           #   -a: archive mode (preserves permissions, timestamps, etc.)
           #   -h: human-readable output
           #   --delete: removes files from destination that aren't in source (ensures clean state)
@@ -140,7 +140,7 @@ jobs:
               -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
               -H "Content-Type: application/json" \
               -d "{}" \
-              "$HA_URL/api/services/home_assistant/restart")
+              "$HA_URL/api/services/homeassistant/restart")
 
           if [[ "$RESTART_STATUS" -lt 200 || "$RESTART_STATUS" -ge 300 ]]; then
               echo "Error: API call to restart failed with HTTP status code $RESTART_STATUS."
