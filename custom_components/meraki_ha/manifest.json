@@ -4,7 +4,13 @@
   "after_dependencies": [],
   "codeowners": ["@brewmarsh"],
   "config_flow": true,
-  "dependencies": ["frontend", "http", "panel_custom", "stream", "webrtc"],
+  "dependencies": [
+    "frontend",
+    "http",
+    "panel_custom",
+    "stream",
+    "webrtc"
+  ],
   "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
