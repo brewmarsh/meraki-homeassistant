@@ -102,9 +102,9 @@ class MqttRelayDestination:
         self._client: aiomqtt.Client | None = None
         self._status = ConnectionStatus.DISCONNECTED
         self._retry_count = 0
-        self._connect_task: asyncio.Task | None = None
+        self._connect_task: asyncio.Task[None] | None = None
         self._message_queue: asyncio.Queue[tuple[str, bytes]] = asyncio.Queue()
-        self._publisher_task: asyncio.Task | None = None
+        self._publisher_task: asyncio.Task[None] | None = None
         self._running = False
         # Statistics tracking
         self._messages_relayed: int = 0

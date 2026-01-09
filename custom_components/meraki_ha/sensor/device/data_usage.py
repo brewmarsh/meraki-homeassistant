@@ -18,9 +18,10 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):
+class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):  # type: ignore[type-arg]
     """Representation of a Meraki appliance data usage sensor."""
 
+    coordinator: MerakiDataCoordinator
     _attr_state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement: UnitOfInformation | None = (
         UnitOfInformation.MEGABYTES
@@ -94,6 +95,10 @@ class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):
             "received_mb": round(total_recv_kb / 1024, 2),
             "timespan_seconds": 86400,
         }
+        if self.coordinator.last_successful_update:
+            self._attr_extra_state_attributes["last_meraki_update"] = (
+                self.coordinator.last_successful_update.isoformat()
+            )
 
     @callback
     def _handle_coordinator_update(self) -> None:

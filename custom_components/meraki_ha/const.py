@@ -7,7 +7,7 @@ including domain names, configuration keys, default values, and platform types.
 
 from __future__ import annotations
 
-from typing import Final
+from typing import Any, Final
 
 DOMAIN: Final = "meraki_ha"
 """Domain for the component."""
@@ -213,7 +213,7 @@ CONF_ENABLE_MQTT: Final = "enable_mqtt"
 DEFAULT_ENABLE_MQTT: Final = False
 """Default value for MQTT enable toggle."""
 
-DEFAULT_MQTT_RELAY_DESTINATIONS: Final[list[dict]] = []
+DEFAULT_MQTT_RELAY_DESTINATIONS: Final[list[dict[str, Any]]] = []
 """Default empty list of relay destinations."""
 
 # MQTT Relay Destination Keys

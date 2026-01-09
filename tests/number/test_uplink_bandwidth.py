@@ -149,7 +149,7 @@ async def test_uplink_bandwidth_set_value(
     )
 
     # Mock async_write_ha_state
-    number.async_write_ha_state = MagicMock()
+    object.__setattr__(number, "async_write_ha_state", MagicMock())
 
     await number.async_set_native_value(2500.0)
 

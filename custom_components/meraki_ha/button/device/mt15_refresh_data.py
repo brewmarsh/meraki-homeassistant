@@ -55,6 +55,7 @@ class MerakiMt15RefreshDataButton(CoordinatorEntity, ButtonEntity):
     @property
     def available(self) -> bool:
         """Return if the entity is available."""
-        return (
-            self._device_info.get("model", "").startswith("MT15") and super().available
-        )
+        model = self._device_info.get("model")
+        if not isinstance(model, str):
+            return False
+        return model.startswith("MT15") and super().available

@@ -46,8 +46,9 @@ def get_device_from_coordinator(
     """Get a device from the coordinator by serial number."""
     if not coordinator.data:
         return None
-    devices = coordinator.data.get("devices", [])
-    for device in devices:
-        if device.get("serial") == serial:
-            return device
+    devices = coordinator.data.get("devices")
+    if devices:
+        for device in devices:
+            if device.get("serial") == serial:
+                return device
     return None

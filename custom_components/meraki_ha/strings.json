@@ -203,6 +203,11 @@
           "ignored_networks": "A comma-separated list of network IDs to ignore."
         }
       }
+    },
+    "error": {
+      "host_required": "Broker hostname is required.",
+      "name_required": "Destination name is required.",
+      "invalid_port": "Invalid port number. Must be between 1 and 65535."
     }
   },
   "entity": {

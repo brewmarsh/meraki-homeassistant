@@ -25,10 +25,9 @@ jobs:
         id: extract
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
         run: |
-          PR_BODY="${{ github.event.pull_request.body }}"
-          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
-
           # Check if Jules PR
           if [[ "$PR_AUTHOR" == *"jules"* || "$PR_AUTHOR" == "github-actions[bot]" ]]; then
             echo "is_jules_pr=true" >> "$GITHUB_OUTPUT"

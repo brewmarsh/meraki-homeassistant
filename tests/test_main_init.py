@@ -74,7 +74,7 @@ async def test_async_setup_entry_success(
             return_value=mock_api_client,
         ),
         patch(
-            "custom_components.meraki_ha.MerakiDataCoordinator",
+            "custom_components.meraki_ha.meraki_data_coordinator.MerakiDataCoordinator",
             return_value=mock_coordinator,
         ),
         patch(
@@ -150,7 +150,7 @@ async def test_async_setup_entry_coordinator_not_ready(
             return_value=mock_api_client,
         ),
         patch(
-            "custom_components.meraki_ha.MerakiDataCoordinator",
+            "custom_components.meraki_ha.meraki_data_coordinator.MerakiDataCoordinator",
             return_value=mock_coordinator,
         ),
         pytest.raises(ConfigEntryNotReady),

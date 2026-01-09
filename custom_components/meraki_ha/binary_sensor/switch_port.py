@@ -19,9 +19,10 @@ from ..meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
+class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):  # type: ignore[type-arg]
     """Representation of a Meraki switch port sensor."""
 
+    coordinator: MerakiDataCoordinator
     _attr_state_color = True
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
 
@@ -41,6 +42,8 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return device information."""
+        if self.coordinator.config_entry is None:
+            return None
         return resolve_device_info(self._device, self.coordinator.config_entry)
 
     def _get_current_port_data(self) -> dict[str, Any] | None:

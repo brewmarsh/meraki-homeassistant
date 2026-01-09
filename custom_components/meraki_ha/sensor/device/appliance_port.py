@@ -17,8 +17,10 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
+class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):  # type: ignore[type-arg]
     """Representation of a Meraki appliance port sensor."""
+
+    coordinator: MerakiDataCoordinator
 
     def __init__(
         self,
@@ -38,8 +40,10 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
         self._attr_icon = "mdi:ethernet-port"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
+        if self.coordinator.config_entry is None:
+            return None
         return DeviceInfo(
             identifiers={(DOMAIN, self._device["serial"])},
             name=format_device_name(

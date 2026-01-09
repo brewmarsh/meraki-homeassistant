@@ -17,8 +17,13 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
+class MerakiApplianceUplinkSensor(
+    CoordinatorEntity,
+    SensorEntity,  # type: ignore[type-arg]
+):
     """Representation of a Meraki appliance uplink sensor."""
+
+    coordinator: MerakiDataCoordinator
 
     def __init__(
         self,
@@ -62,18 +67,26 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
         uplink_data = self._get_current_uplink_data()
         if uplink_data:
             self._attr_native_value = uplink_data.get("status")
-            self._attr_extra_state_attributes = {
+            attributes = {
                 "ip": uplink_data.get("ip"),
                 "gateway": uplink_data.get("gateway"),
-                "public_ip": uplink_data.get("public_ip"),
-                "primary_dns": uplink_data.get("primary_dns"),
-                "secondary_dns": uplink_data.get("secondary_dns"),
+                "public_ip": uplink_data.get("publicIp"),
+                "primary_dns": uplink_data.get("primaryDns"),
+                "secondary_dns": uplink_data.get("secondaryDns"),
+            }
+            self._attr_extra_state_attributes = {
+                k: v for k, v in attributes.items() if v is not None
             }
             self._attr_icon = "mdi:wan" if self.native_value == "active" else "mdi:wan"
         else:
             self._attr_native_value = "unknown"
             self._attr_extra_state_attributes = {}
             self._attr_icon = "mdi:help-rhombus"
+
+        if self.coordinator.last_successful_update:
+            self._attr_extra_state_attributes["last_meraki_update"] = (
+                self.coordinator.last_successful_update.isoformat()
+            )
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -84,4 +97,4 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        return super().available
+        return super().available and self._get_current_uplink_data() is not None

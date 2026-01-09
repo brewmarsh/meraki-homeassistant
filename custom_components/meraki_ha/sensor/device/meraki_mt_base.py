@@ -25,7 +25,11 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
+class MerakiMtSensor(
+    CoordinatorEntity,
+    SensorEntity,
+    RestoreEntity,  # type: ignore[type-arg]
+):
     """Representation of a Meraki MT sensor.
 
     Uses RestoreEntity to preserve state across Home Assistant restarts.
@@ -65,17 +69,20 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
                 self._restored_value = last_state.state
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
         options = (
             self.coordinator.config_entry.options
             if self.coordinator.config_entry
             else {}
         )
+        serial = self._device.get("serial")
+        if not serial:
+            return None
         return DeviceInfo(
-            identifiers={(DOMAIN, self._device["serial"])},
+            identifiers={(DOMAIN, serial)},
             name=format_device_name(self._device, options),
-            model=self._device["model"],
+            model=str(self._device.get("model", "Unknown")),
             manufacturer="Cisco Meraki",
         )
 
@@ -110,11 +117,9 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
     @property
     def _use_fahrenheit(self) -> bool:
         """Check if Fahrenheit should be used for temperature."""
-        options = (
-            self.coordinator.config_entry.options
-            if self.coordinator.config_entry
-            else {}
-        )
+        if not self.coordinator.config_entry:
+            return False
+        options = self.coordinator.config_entry.options
         temp_unit = options.get(CONF_TEMPERATURE_UNIT, DEFAULT_TEMPERATURE_UNIT)
         return temp_unit == TEMPERATURE_UNIT_FAHRENHEIT
 
@@ -152,10 +157,11 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
                 if isinstance(metric_data, dict):
                     # Handle temperature specially based on user preference
                     if self.entity_description.key == "temperature":
-                        if self._use_fahrenheit:
-                            value = metric_data.get("fahrenheit")
-                        else:
-                            value = metric_data.get("celsius")
+                        value = (
+                            metric_data.get("fahrenheit")
+                            if self._use_fahrenheit
+                            else metric_data.get("celsius")
+                        )
                         return self._sanitize_value(value)
 
                     # Map metric to the key holding its value
@@ -164,9 +170,8 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
                         "pm25": "concentration",
                         "tvoc": "concentration",
                         "co2": "concentration",
-                        "noise": "ambient",
                         "water": "present",
-                        "realPower": "draw",  # API uses realPower
+                        "realPower": "draw",
                         "apparentPower": "draw",
                         "voltage": "level",
                         "current": "draw",
@@ -178,12 +183,18 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
                         "indoorAirQuality": "score",
                         "gateway_rssi": "rssi",
                     }
+
+                    # Handle noise specially - nested under "ambient"
+                    if self.entity_description.key == "noise":
+                        ambient_data = metric_data.get("ambient")
+                        if isinstance(ambient_data, dict):
+                            value = ambient_data.get("level")
+                            return self._sanitize_value(value)
+                        return None
+
                     value_key = key_map.get(self.entity_description.key)
                     if value_key:
-                        if value_key == "ambient":
-                            value = metric_data.get("ambient", {}).get("level")
-                        else:
-                            value = metric_data.get(value_key)
+                        value = metric_data.get(value_key)
                         return self._sanitize_value(value)
         # Fall back to sanitized restored value
         return self._sanitize_value(self._restored_value)
@@ -196,8 +207,8 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
 
         for reading in readings:
             if reading.get("metric") == self.entity_description.key:
-                # Meraki readings include 'ts' field with ISO timestamp
-                return reading.get("ts")
+                ts = reading.get("ts")
+                return str(ts) if ts else None
         return None
 
     @property
@@ -211,16 +222,16 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
             attrs["last_updated"] = reading_ts
 
         # Determine data source and add relevant timestamps
-        serial = self._device.get("serial", "")
-        mqtt_update = self.coordinator.get_mqtt_last_update(serial) if serial else None
-
-        if mqtt_update:
-            attrs["data_source"] = "mqtt"
-            attrs["last_mqtt_update"] = mqtt_update.isoformat()
-        elif self.coordinator.mqtt_enabled:
-            attrs["data_source"] = "mqtt_pending"
-        else:
-            attrs["data_source"] = "api"
+        serial = self._device.get("serial")
+        if serial:
+            mqtt_update = self.coordinator.get_mqtt_last_update(serial)
+            if mqtt_update:
+                attrs["data_source"] = "mqtt"
+                attrs["last_mqtt_update"] = mqtt_update.isoformat()
+            elif self.coordinator.mqtt_enabled:
+                attrs["data_source"] = "mqtt_pending"
+            else:
+                attrs["data_source"] = "api"
 
         # Add coordinator update timestamp for reference
         if self.coordinator.last_successful_update:

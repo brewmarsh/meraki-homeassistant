@@ -84,7 +84,7 @@ class DevicesEndpoints:
         return validated
 
     @handle_meraki_errors
-    async def update_device(self, serial: str, **kwargs) -> dict[str, Any]:
+    async def update_device(self, serial: str, **kwargs: Any) -> dict[str, Any]:
         """
         Update a device.
 

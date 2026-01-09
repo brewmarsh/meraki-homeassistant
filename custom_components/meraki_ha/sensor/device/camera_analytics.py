@@ -21,9 +21,10 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
+class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):  # type: ignore[type-arg]
     """Base class for Meraki analytics sensors."""
 
+    coordinator: MerakiDataCoordinator
     # Enable polling so async_update() is called in addition to coordinator updates
     _attr_should_poll = True
 
@@ -46,6 +47,8 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return device information."""
+        if self.coordinator.config_entry is None:
+            return None
         return resolve_device_info(self._device, self.coordinator.config_entry)
 
     def _get_current_device_data(self) -> dict[str, Any] | None:

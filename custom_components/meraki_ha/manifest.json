@@ -10,7 +10,7 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/liptonj/meraki-homeassistant/issues",
   "loggers": ["meraki_ha"],
-  "quality_scale": "platinum",
+  "quality_scale": "gold",
   "requirements": [
     "meraki>=1.36.0",
     "aiohttp",

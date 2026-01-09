@@ -8,9 +8,9 @@ import logging
 import time
 from collections.abc import Mapping
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
-import aiofiles  # type: ignore[import-untyped]
+import aiofiles
 import aiohttp
 from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -24,13 +24,13 @@ from .const import (
 )
 from .core.utils.naming_utils import format_device_name
 from .helpers.entity_helpers import format_entity_name
+from .meraki_data_coordinator import MerakiDataCoordinator
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-    from .meraki_data_coordinator import MerakiDataCoordinator
     from .services.camera_service import CameraService
 
 
@@ -75,13 +75,14 @@ async def async_setup_entry(
                 await asyncio.sleep(1)
 
 
-class MerakiCamera(CoordinatorEntity, Camera):
+class MerakiCamera(CoordinatorEntity, Camera):  # type: ignore[type-arg]
     """
     Representation of a Meraki camera.
 
     This entity is state-driven by the central MerakiDataCoordinator.
     """
 
+    coordinator: MerakiDataCoordinator
     _attr_brand = "Cisco Meraki"
 
     def __init__(
@@ -99,7 +100,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self._camera_service = camera_service
         self._attr_unique_id = f"{self._device_serial}-camera"
         self._attr_name = format_entity_name(
-            format_device_name(self.device_data, self.coordinator.config_entry.options),
+            format_device_name(self.device_data, config_entry.options),
             "",
         )
         self._attr_model = self.device_data.get("model")
@@ -113,11 +114,14 @@ class MerakiCamera(CoordinatorEntity, Camera):
     @property
     def device_data(self) -> dict[str, Any]:
         """Return the device data from the coordinator."""
-        return self.coordinator.get_device(self._device_serial) or {}
+        device = self.coordinator.get_device(self._device_serial)
+        return cast(dict[str, Any], device or {})
 
     @property
     def _snapshot_interval(self) -> int:
         """Return the configured snapshot refresh interval in seconds."""
+        if self._config_entry is None:
+            return DEFAULT_CAMERA_SNAPSHOT_INTERVAL
         return int(
             self._config_entry.options.get(
                 CONF_CAMERA_SNAPSHOT_INTERVAL, DEFAULT_CAMERA_SNAPSHOT_INTERVAL
@@ -125,8 +129,10 @@ class MerakiCamera(CoordinatorEntity, Camera):
         )
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
+        if self.coordinator.config_entry is None:
+            return None
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(

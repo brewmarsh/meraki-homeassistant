@@ -21,7 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiPoeUsageSensor(
-    CoordinatorEntity,
+    CoordinatorEntity,  # type: ignore[type-arg]
     SensorEntity,
 ):
     """
@@ -37,6 +37,7 @@ class MerakiPoeUsageSensor(
     the sensor attributes.
     """
 
+    coordinator: MerakiDataCoordinator
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfPower.WATT
     _attr_icon = "mdi:power-plug"
@@ -64,8 +65,10 @@ class MerakiPoeUsageSensor(
         )
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
+        if self.coordinator.config_entry is None:
+            return None
         return DeviceInfo(
             identifiers={(DOMAIN, self._device["serial"])},
             name=format_device_name(

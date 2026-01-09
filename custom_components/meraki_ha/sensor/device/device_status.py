@@ -28,7 +28,11 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
+class MerakiDeviceStatusSensor(
+    CoordinatorEntity,
+    SensorEntity,
+    RestoreEntity,  # type: ignore[type-arg]
+):
     """
     Representation of a Meraki Device Status sensor.
 
@@ -48,6 +52,7 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
     Uses RestoreEntity to preserve state across Home Assistant restarts.
     """
 
+    coordinator: MerakiDataCoordinator
     _attr_has_entity_name = True
     _attr_native_value: str | None = None
 
@@ -148,11 +153,9 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
             self._attr_native_value = "unknown"  # Default if status is not a string
 
         # Populate attributes from the latest device data
-        self._attr_extra_state_attributes = {
+        attributes = {
             "model": current_device_data.get("model"),
-            "serial_number": current_device_data.get(
-                "serial"
-            ),  # Should match self._device_serial
+            "serial_number": current_device_data.get("serial"),
             "firmware_version": current_device_data.get("firmware"),
             "product_type": current_device_data.get("productType"),
             "mac_address": current_device_data.get("mac"),
@@ -165,7 +168,7 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
         }
         # Filter out None values from attributes
         self._attr_extra_state_attributes = {
-            k: v for k, v in self._attr_extra_state_attributes.items() if v is not None
+            k: v for k, v in attributes.items() if v is not None
         }
 
         # Add coordinator update timestamp

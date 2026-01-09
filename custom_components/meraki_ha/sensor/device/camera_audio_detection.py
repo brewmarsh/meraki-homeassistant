@@ -17,9 +17,13 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
+class MerakiCameraAudioDetectionSensor(
+    CoordinatorEntity,
+    SensorEntity,  # type: ignore[type-arg]
+):
     """Representation of a Meraki Camera Audio Detection Status sensor."""
 
+    coordinator: MerakiDataCoordinator
     _attr_has_entity_name = True
 
     def __init__(
@@ -93,6 +97,10 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
         self._attr_extra_state_attributes = {
             "serial_number": self._device_serial,
         }
+        if self.coordinator.last_successful_update:
+            self._attr_extra_state_attributes["last_meraki_update"] = (
+                self.coordinator.last_successful_update.isoformat()
+            )
 
     @callback
     def _handle_coordinator_update(self) -> None:

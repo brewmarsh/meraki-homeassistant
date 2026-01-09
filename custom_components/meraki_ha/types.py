@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import Any, TypedDict
 
 
 class MerakiVlan(TypedDict):
@@ -12,7 +12,7 @@ class MerakiVlan(TypedDict):
     name: str
     subnet: str | None
     applianceIp: str | None
-    ipv6: dict | None
+    ipv6: dict[str, Any] | None
 
 
 class MerakiNetwork(TypedDict):
@@ -43,15 +43,15 @@ class MerakiTrafficShaping(TypedDict):
     """Represents Meraki Traffic Shaping settings."""
 
     enabled: bool
-    rules: list
+    rules: list[dict[str, Any]]
 
 
 class MerakiVpn(TypedDict):
     """Represents Meraki Site-to-Site VPN settings."""
 
     mode: str
-    hubs: list
-    subnets: list
+    hubs: list[dict[str, Any]]
+    subnets: list[dict[str, Any]]
 
 
 class MerakiDevice(TypedDict, total=False):
@@ -64,13 +64,13 @@ class MerakiDevice(TypedDict, total=False):
     status: str | None
     productType: str
     lanIp: str | None
-    video_settings: dict
-    ports_statuses: list
-    radio_settings: dict
-    dynamicDns: dict
+    video_settings: dict[str, Any]
+    ports_statuses: list[dict[str, Any]]
+    radio_settings: dict[str, Any]
+    dynamicDns: dict[str, Any]
     rtsp_url: str | None
-    sense_settings: dict
-    readings: list[dict] | dict  # Can be list (raw) or dict (processed for frontend)
-    readings_raw: list[dict]  # Original raw readings list
-    readings_meta: dict  # Metadata about readings (last_updated, data_source)
-    cellular_uplinks: list[dict]
+    sense_settings: dict[str, Any]
+    readings: list[dict[str, Any]] | dict[str, Any]
+    readings_raw: list[dict[str, Any]]
+    readings_meta: dict[str, Any]
+    cellular_uplinks: list[dict[str, Any]]

@@ -1,7 +1,7 @@
 """Helper function for setting up all sensor entities."""
 
 import logging
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -60,7 +60,7 @@ def _setup_device_sensors(
         for sensor_class in COMMON_SENSORS_COORD_DEV_CONF:
             unique_id = f"{serial}_{sensor_class.__name__}"
             if unique_id not in added_entities:
-                entities.append(sensor_class(coordinator, device_info, config_entry))  # type: ignore[call-arg]
+                entities.append(sensor_class(coordinator, device_info, config_entry))
                 added_entities.add(unique_id)
 
         product_type = device_info.get("productType")
@@ -68,7 +68,7 @@ def _setup_device_sensors(
             unique_id = f"{serial}_rtsp_url"
             if unique_id not in added_entities:
                 entities.append(
-                    MerakiRtspUrlSensor(coordinator, device_info, config_entry)  # type: ignore[call-arg]
+                    MerakiRtspUrlSensor(coordinator, device_info, config_entry)
                 )
                 added_entities.add(unique_id)
 
@@ -78,7 +78,7 @@ def _setup_device_sensors(
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
                     entities.append(
-                        sensor_class(coordinator, device_info, config_entry)  # type: ignore[call-arg]
+                        sensor_class(coordinator, device_info, config_entry)
                     )
                     added_entities.add(unique_id)
 
@@ -86,7 +86,7 @@ def _setup_device_sensors(
             for sensor_class in get_sensors_for_device_type(product_type, False):
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
-                    entities.append(sensor_class(coordinator, device_info))  # type: ignore[call-arg]
+                    entities.append(sensor_class(coordinator, device_info))
                     added_entities.add(unique_id)
 
         # Appliance port sensors
@@ -95,7 +95,7 @@ def _setup_device_sensors(
                 unique_id = f"{serial}_port_{port['number']}"
                 if unique_id not in added_entities:
                     entities.append(
-                        MerakiAppliancePortSensor(coordinator, device_info, port)  # type: ignore[call-arg]
+                        MerakiAppliancePortSensor(coordinator, device_info, port)
                     )
                     added_entities.add(unique_id)
 
@@ -145,7 +145,7 @@ def _setup_client_tracker_sensors(
         for client_data in clients:
             if "mac" in client_data:
                 entities.append(
-                    MerakiClientSensor(coordinator, config_entry, client_data)  # type: ignore[call-arg]
+                    MerakiClientSensor(coordinator, config_entry, client_data)
                 )
     return entities
 
@@ -217,9 +217,10 @@ def _setup_uplink_sensors(
 
             unique_id = f"{serial}_uplink_{interface}"
             if unique_id not in added_entities:
+                device_info_dict = cast(dict[str, Any], device_info)
                 entities.append(
                     MerakiApplianceUplinkSensor(
-                        coordinator, cast(dict, device_info), config_entry, uplink
+                        coordinator, device_info_dict, config_entry, uplink
                     )
                 )
                 added_entities.add(unique_id)

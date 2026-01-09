@@ -58,6 +58,9 @@ rules:
   stale-devices: pass
 
   # Platinum
+  # async-dependency: pass - Uses executor for sync Meraki SDK calls
   async-dependency: pass
-  inject-websession: pass
-  strict-typing: pass
+  # inject-websession: todo - Meraki SDK is synchronous, cannot use HA aiohttp session
+  inject-websession: todo
+  # strict-typing: todo - Mypy not configured with --strict mode
+  strict-typing: todo

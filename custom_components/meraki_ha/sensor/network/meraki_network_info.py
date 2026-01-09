@@ -41,7 +41,9 @@ class MerakiNetworkInfoSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Return the state of the sensor."""
-        return self._network_name
+        if self._network_name:
+            return str(self._network_name)
+        return None
 
     @property
     def device_info(self) -> DeviceInfo:

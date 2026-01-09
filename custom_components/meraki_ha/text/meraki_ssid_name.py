@@ -5,10 +5,10 @@ from typing import Any
 
 from homeassistant.components.text import TextEntity, TextEntityDescription, TextMode
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..core.api.client import MerakiAPIClient
@@ -18,9 +18,10 @@ from ..meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
+class MerakiSSIDNameText(CoordinatorEntity, TextEntity):  # type: ignore[type-arg]
     """Representation of a Meraki SSID Name text entity."""
 
+    coordinator: MerakiDataCoordinator
     _attr_mode = TextMode.TEXT  # Or TextMode.PASSWORD if it were a password
     entity_category = EntityCategory.CONFIG
     _attr_has_entity_name = True

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...meraki_data_coordinator import MerakiDataCoordinator
@@ -11,8 +11,10 @@ from ...types import MerakiNetwork
 from ..utils.naming_utils import format_device_name
 
 
-class MerakiNetworkEntity(CoordinatorEntity):
+class MerakiNetworkEntity(CoordinatorEntity):  # type: ignore[type-arg]
     """Representation of a Meraki Network."""
+
+    coordinator: MerakiDataCoordinator
 
     def __init__(
         self,

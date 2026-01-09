@@ -9,7 +9,7 @@ from json import JSONDecodeError
 from typing import Any, TypeVar, cast
 
 from aiohttp import ClientError
-from meraki.exceptions import APIError  # type: ignore
+from meraki.exceptions import APIError
 
 from ..errors import (
     MerakiAuthenticationError,

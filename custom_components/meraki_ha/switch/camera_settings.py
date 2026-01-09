@@ -18,10 +18,12 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiCameraSettingSwitchBase(
-    CoordinatorEntity,
+    CoordinatorEntity,  # type: ignore[type-arg]
     SwitchEntity,
 ):
     """Base class for a Meraki Camera Setting Switch."""
+
+    coordinator: MerakiDataCoordinator
 
     def __init__(
         self,
@@ -136,8 +138,10 @@ class MerakiCameraSettingSwitchBase(
         raise NotImplementedError
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
+        if self.coordinator.config_entry is None:
+            return None
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_data["serial"])},
             name=format_device_name(

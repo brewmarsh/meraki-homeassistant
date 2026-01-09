@@ -6,9 +6,9 @@ from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..core.api.client import MerakiAPIClient
@@ -19,9 +19,10 @@ from ..meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
+class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):  # type: ignore[type-arg]
     """Base class for Meraki SSID Switches."""
 
+    coordinator: MerakiDataCoordinator
     entity_category = EntityCategory.CONFIG
     _attr_has_entity_name = True
 

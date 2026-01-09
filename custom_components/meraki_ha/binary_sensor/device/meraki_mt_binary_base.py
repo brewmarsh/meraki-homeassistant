@@ -21,8 +21,13 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
+class MerakiMtBinarySensor(
+    CoordinatorEntity,
+    BinarySensorEntity,  # type: ignore[type-arg]
+):
     """Representation of a Meraki MT binary sensor."""
+
+    coordinator: MerakiDataCoordinator
 
     def __init__(
         self,
@@ -38,8 +43,10 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
         self._attr_name = f"{self._device['name']} {entity_description.name}"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
+        if self.coordinator.config_entry is None:
+            return None
         return DeviceInfo(
             identifiers={(DOMAIN, self._device["serial"])},
             name=format_device_name(
@@ -105,7 +112,7 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
         return None
 
     @property
-    def extra_state_attributes(self) -> dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any] | None:
         """Return entity state attributes with update source and timestamps."""
         attrs: dict[str, Any] = {}
 
@@ -116,15 +123,15 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
 
         # Determine data source and add relevant timestamps
         serial = self._device.get("serial")
-        mqtt_update = self.coordinator.get_mqtt_last_update(serial) if serial else None
-
-        if mqtt_update:
-            attrs["data_source"] = "mqtt"
-            attrs["last_mqtt_update"] = mqtt_update.isoformat()
-        elif self.coordinator.mqtt_enabled:
-            attrs["data_source"] = "mqtt_pending"
-        else:
-            attrs["data_source"] = "api"
+        if serial:
+            mqtt_update = self.coordinator.get_mqtt_last_update(serial)
+            if mqtt_update:
+                attrs["data_source"] = "mqtt"
+                attrs["last_mqtt_update"] = mqtt_update.isoformat()
+            elif self.coordinator.mqtt_enabled:
+                attrs["data_source"] = "mqtt_pending"
+            else:
+                attrs["data_source"] = "api"
 
         # Add coordinator update timestamp for reference
         if self.coordinator.last_successful_update:
@@ -132,7 +139,7 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
                 self.coordinator.last_successful_update.isoformat()
             )
 
-        return attrs
+        return attrs if attrs else None
 
     @property
     def is_on(self) -> bool | None:

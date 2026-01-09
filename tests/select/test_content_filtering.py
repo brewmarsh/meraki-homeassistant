@@ -109,7 +109,7 @@ async def test_content_filtering_select_option(
     )
 
     # Mock async_write_ha_state
-    select.async_write_ha_state = MagicMock()
+    object.__setattr__(select, "async_write_ha_state", MagicMock())
 
     await select.async_select_option("fullList")
 
@@ -216,7 +216,7 @@ def test_content_filtering_coordinator_update(
     )
 
     # Mock async_write_ha_state
-    select.async_write_ha_state = MagicMock()
+    object.__setattr__(select, "async_write_ha_state", MagicMock())
 
     # Initial state
     assert select._attr_current_option == "topSites"

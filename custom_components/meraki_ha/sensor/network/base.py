@@ -15,12 +15,17 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDBaseSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
+class MerakiSSIDBaseSensor(
+    CoordinatorEntity,
+    SensorEntity,
+    RestoreEntity,  # type: ignore[type-arg]
+):
     """Base class for Meraki SSID sensors.
 
     Uses RestoreEntity to preserve state across Home Assistant restarts.
     """
 
+    coordinator: MerakiDataCoordinator
     _attr_has_entity_name = True
 
     def __init__(
@@ -78,14 +83,15 @@ class MerakiSSIDBaseSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
         return self._get_current_ssid_data() is not None
 
     @property
-    def extra_state_attributes(self) -> dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any] | None:
         """Return entity state attributes with update timestamp."""
         attrs: dict[str, Any] = {}
         if self.coordinator.last_successful_update:
             attrs["last_meraki_update"] = (
                 self.coordinator.last_successful_update.isoformat()
             )
-        return attrs
+            return attrs
+        return None
 
     @callback
     def _handle_coordinator_update(self) -> None:

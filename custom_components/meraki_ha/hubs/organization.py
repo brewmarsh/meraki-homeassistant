@@ -29,7 +29,9 @@ class OrganizationHub:
         """Return the organization ID."""
         if self._coordinator.data and self._coordinator.data.get("networks"):
             # All networks belong to the same org, so we can take the first one
-            return self._coordinator.data["networks"][0].get("organizationId")
+            networks = self._coordinator.data["networks"]
+            if networks and len(networks) > 0:
+                return networks[0].get("organizationId")
         return None
 
     async def async_update_data(self) -> None:
