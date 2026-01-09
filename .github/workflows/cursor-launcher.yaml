@@ -19,6 +19,11 @@ on:
         required: true
         type: string
 
+# Prevent multiple Cursor reviews on the same branch
+concurrency:
+  group: cursor-review-${{ github.event.workflow_run.head_branch || github.event.inputs.pr_number }}
+  cancel-in-progress: false
+
 jobs:
   cursor-review:
     # Run when CI passes OR when manually triggered

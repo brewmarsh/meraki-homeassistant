@@ -44,10 +44,9 @@ jobs:
       - name: Update linked issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          PR_BODY="${{ github.event.pull_request.body }}"
-
-          # Extract issue number
+          # Extract issue number (PR_BODY is in env to avoid shell injection)
           ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
 
           if [[ -n "$ISSUE_NUM" ]]; then

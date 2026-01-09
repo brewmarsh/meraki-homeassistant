@@ -12,6 +12,11 @@ on:
     types:
       - completed
 
+# Prevent multiple handlers on the same branch
+concurrency:
+  group: cursor-fix-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
 jobs:
   handle-cursor-pr:
     runs-on: ubuntu-latest
