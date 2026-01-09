@@ -4,13 +4,29 @@ This document provides a comprehensive guide for developers who want to contribu
 
 ## 1. Getting Started
 
-### 1.1. Local Development Environment
+### 1.1. Package Manager: uv
 
-This project uses standard `pip` for dependency management.
+This project uses **`uv`** as the Python package manager and **`pyproject.toml`** for all dependency management. Never use `requirements.txt` files.
 
-1.  **Install dependencies:**
+1.  **Install uv** (if not already installed):
+
     ```bash
-    pip install -r requirements_dev.txt
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    ```
+
+2.  **Install dependencies:**
+
+    ```bash
+    uv sync
+    ```
+
+    This reads `pyproject.toml` and creates/updates `uv.lock` with exact versions.
+
+3.  **Adding new dependencies:**
+    ```bash
+    uv add <package-name>
+    # Or edit pyproject.toml directly under [project.optional-dependencies].dev
+    uv sync
     ```
 
 ### 1.2. Docker Test Environment
@@ -31,26 +47,28 @@ For a more isolated and consistent testing environment, you can use the provided
 
 Before submitting, you **must** run all quality checks. These are also enforced by pre-commit hooks.
 
-1.  **Linting & Formatting (Ruff):**
+**All tool configurations are centralized in `pyproject.toml`** - never create separate config files.
+
+1.  **Linting & Formatting (Ruff):** - configured in `[tool.ruff]`
 
     ```bash
     ruff check --fix .
     ruff format .
     ```
 
-2.  **Type Checking (mypy):**
+2.  **Type Checking (mypy):** - configured in `[tool.mypy]`
 
     ```bash
     mypy custom_components/meraki_ha/ tests/
     ```
 
-3.  **Security Analysis (bandit):**
+3.  **Security Analysis (bandit):** - configured in `[tool.bandit]`
 
     ```bash
-    bandit -c .bandit.yaml -r .
+    bandit -c pyproject.toml -r .
     ```
 
-4.  **Run Tests (pytest):**
+4.  **Run Tests (pytest):** - configured in `[tool.pytest.ini_options]`
 
     ```bash
     pytest
@@ -128,7 +146,43 @@ This is the **most critical pattern** in this codebase for all entities that mod
 - **Configuration Validation:**
   - All configuration data must be validated using `voluptuous` schemas.
 
-## 6. Versioning and Releases
+## 6. Git Branching Strategy
+
+**Always create new branches FROM the `beta` branch, never from `main`.**
+
+```bash
+# Create a new feature branch from beta
+git checkout beta
+git pull origin beta
+git checkout -b feat/my-new-feature
+
+# When work is complete and all checks pass, merge back into beta
+git checkout beta
+git merge feat/my-new-feature
+git push origin beta
+```
+
+The `main` branch is for **production releases only** and requires a separate PR process from `beta` to `main`.
+
+## 7. Testing Requirements
+
+**Never break existing functionality.** Always run the full test suite before completing work.
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=custom_components/meraki_ha --cov-report=term-missing
+```
+
+- All code changes **require corresponding unit tests**
+- New features need tests proving they work
+- Bug fixes need tests proving the bug is fixed
+- Place tests in `tests/` mirroring the source structure
+- If any previously passing test fails after your changes, **fix it before marking the task complete**
+
+## 8. Versioning and Releases
 
 This project uses an automated versioning and release process based on PR titles:
 
@@ -137,3 +191,21 @@ This project uses an automated versioning and release process based on PR titles
 - `[patch]` or no prefix: Patch version update (e.g., `1.2.3` -> `1.2.4`).
 
 A `CHANGELOG.md` is automatically updated, and a new GitHub Release is created.
+
+## 9. Commit Message Format
+
+Use **Conventional Commits** format:
+
+```
+type(scope): description
+
+feat(sensor): add humidity threshold alert
+fix(api): handle rate limiting gracefully
+docs(readme): update installation instructions
+refactor(sensor): consolidate MT sensor base class
+test(switch): add SSID toggle tests
+build(deps): update homeassistant to 2025.11
+ci(workflow): add beta branch workflow
+```
+
+**Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `build`, `ci`, `style`, `perf`, `chore`

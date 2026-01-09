@@ -10,13 +10,14 @@ This is a **Cisco Meraki integration for Home Assistant**. It allows users to mo
 
 ### Key Technologies
 
-| Layer    | Technologies                                                      |
-| -------- | ----------------------------------------------------------------- |
-| Backend  | Python 3.13, Home Assistant Core, `meraki` SDK, `aiohttp`         |
-| Frontend | React, TypeScript, Vite, Home Assistant custom panel architecture |
-| Testing  | pytest, pytest-asyncio, pytest-homeassistant-custom-component     |
-| Linting  | Ruff, mypy, bandit, pylint                                        |
-| CI/CD    | GitHub Actions, semantic-release, HACS                            |
+| Layer       | Technologies                                                      |
+| ----------- | ----------------------------------------------------------------- |
+| Backend     | Python 3.13, Home Assistant Core, `meraki` SDK, `aiohttp`         |
+| Frontend    | React, TypeScript, Vite, Home Assistant custom panel architecture |
+| Testing     | pytest, pytest-asyncio, pytest-homeassistant-custom-component     |
+| Linting     | Ruff, mypy, bandit, pylint                                        |
+| CI/CD       | GitHub Actions, semantic-release, HACS                            |
+| **Package** | **`uv` with `pyproject.toml`** (NOT pip/requirements.txt)         |
 
 ### Repository Structure
 
@@ -44,9 +45,27 @@ meraki-homeassistant/
 ├── docs/                            # Architecture & design documentation
 ├── DEVELOPMENT.md                   # Developer setup guide
 ├── CONTRIBUTING.md                  # Contribution guidelines
-├── pyproject.toml                   # Python dependencies & tool config
+├── pyproject.toml                   # Python dependencies & tool config (uv)
+├── uv.lock                          # Lock file for reproducible builds
 └── run_checks.sh                    # Quality check script
 ```
+
+### Dependency Management: uv + pyproject.toml
+
+This project uses **`uv`** as the Python package manager. **Never use `requirements.txt` files.**
+
+```bash
+# Install all dev dependencies
+uv sync
+
+# Add a new dependency
+uv add <package-name>
+
+# Or edit pyproject.toml directly, then:
+uv sync
+```
+
+All dependencies are defined in `pyproject.toml` under `[project.optional-dependencies].dev`. The `uv.lock` file ensures reproducible builds across environments.
 
 ---
 
@@ -191,11 +210,45 @@ Each relay destination can be configured with:
 
 ---
 
-## 6. Development Workflow
+## 6. Git Branching Strategy
 
-### 6.1. Running Quality Checks
+### Critical Rule: Always Branch from Beta
+
+**Always create new branches FROM the `beta` branch, never from `main`.**
+
+```bash
+# Correct workflow
+git checkout beta
+git pull origin beta
+git checkout -b feat/my-new-feature
+
+# Do your work...
+
+# When complete, merge back into beta
+git checkout beta
+git merge feat/my-new-feature
+git push origin beta
+```
+
+The `main` branch is for **production releases only** and requires a separate PR process from `beta` to `main`.
+
+### Branch Naming Conventions
+
+- `feat/description` - New features
+- `fix/description` or `bugfix/description` - Bug fixes
+- `refactor/description` - Code refactoring
+- `docs/description` - Documentation updates
+- `test/description` - Test additions/fixes
+
+---
+
+## 7. Development Workflow
+
+### 7.1. Running Quality Checks
 
 Before submitting changes, you **must** run all quality checks. Use the helper script or individual commands:
+
+**All tool configurations are centralized in `pyproject.toml`** - never create separate config files (no `.bandit.yaml`, `.ruff.toml`, `mypy.ini`, `pytest.ini`, etc.).
 
 ```bash
 # All-in-one check script
@@ -203,24 +256,24 @@ Before submitting changes, you **must** run all quality checks. Use the helper s
 
 # Or run individually:
 
-# Linting & Formatting
+# Linting & Formatting (configured in [tool.ruff])
 ruff check --fix .
 ruff format .
 
-# Type Checking
+# Type Checking (configured in [tool.mypy])
 mypy custom_components/meraki_ha/ tests/
 
-# Security Analysis
-bandit -c .bandit.yaml -r .
+# Security Analysis (configured in [tool.bandit])
+bandit -c pyproject.toml -r .
 
-# Run Tests
+# Run Tests (configured in [tool.pytest.ini_options])
 pytest
 
 # Home Assistant Validation
 docker run --rm -v "$(pwd)":/github/workspace ghcr.io/home-assistant/hassfest
 ```
 
-### 6.2. Frontend Development
+### 7.2. Frontend Development
 
 The Meraki side panel is a React application in `custom_components/meraki_ha/www/`.
 
@@ -238,7 +291,7 @@ npm run dev
 
 **Important:** After any frontend changes, you must run `npm run build` and commit the built assets (`meraki-panel.js`, `style.css`).
 
-### 6.3. Docker Test Environment
+### 7.3. Docker Test Environment
 
 For isolated testing with a real Home Assistant instance:
 
@@ -249,7 +302,7 @@ docker compose up
 
 ---
 
-## 7. Tool Usage Guidelines
+## 8. Tool Usage Guidelines
 
 - **Be precise with your tool calls.** Do not use vague or ambiguous parameters.
 - **Use the `read_file` tool** to get the exact content of a file before modifying it.
@@ -259,9 +312,9 @@ docker compose up
 
 ---
 
-## 8. Code Contribution Standards
+## 9. Code Contribution Standards
 
-### 8.1. Python Code Style
+### 9.1. Python Code Style
 
 - Follow **PEP 8** and all rules enforced by Ruff.
 - Use **NumPy-style docstrings** (configured in `pyproject.toml`).
@@ -269,7 +322,7 @@ docker compose up
 - Prefer **async/await** for I/O-bound operations.
 - Use **early returns** for error conditions; place the happy path last.
 
-### 8.2. Entity Naming Conventions
+### 9.2. Entity Naming Conventions
 
 ```python
 # Device name format
@@ -282,7 +335,7 @@ f"{device_name} {sensor_type}"
 # sensor.{network}_{device}_{type}
 ```
 
-### 8.3. Commit Messages
+### 9.3. Commit Messages
 
 Use **Conventional Commits** format:
 
@@ -293,9 +346,14 @@ feat(camera): add configurable snapshot refresh interval
 fix(api): filter networks before making API calls
 docs(readme): update installation instructions
 refactor(sensor): consolidate MT sensor base class
+test(switch): add SSID toggle tests
+build(deps): update homeassistant to 2025.11
+ci(workflow): add beta branch workflow
 ```
 
-### 8.4. Versioning
+**Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `build`, `ci`, `style`, `perf`, `chore`
+
+### 9.4. Versioning
 
 This project uses an automated versioning and release process based on PR titles:
 
@@ -305,18 +363,33 @@ This project uses an automated versioning and release process based on PR titles
 
 ---
 
-## 9. Home Assistant Integration Quality Scale
+## 10. Home Assistant Integration Quality Scale
 
 This integration follows the [Home Assistant Integration Quality Scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/) and targets **🏆 Platinum tier**.
 
-### Quality Scale Tiers
+### Quality Scale Tiers (Detailed)
 
-| Tier        | Requirements                                                                |
-| ----------- | --------------------------------------------------------------------------- |
-| 🥉 Bronze   | UI config flow, unique entity IDs, basic tests, documentation               |
-| 🥈 Silver   | Error handling, reauthentication, 95%+ test coverage, code owners           |
-| 🥇 Gold     | Discovery, diagnostics, translations, entity categories, comprehensive docs |
-| 🏆 Platinum | Async dependencies, websession injection, strict typing                     |
+| Tier        | Requirements                                                                                                                      |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| 🥉 Bronze   | UI config flow (not YAML), unique entity IDs, basic tests, documentation                                                          |
+| 🥈 Silver   | Error handling, reauthentication when credentials fail, 95%+ test coverage, code owners, auto-recovery from errors                |
+| 🥇 Gold     | Discovery, diagnostics, translations, entity categories, comprehensive docs, firmware updates, full test coverage                 |
+| 🏆 Platinum | All dependencies are async (`async-dependency`), websession injection (`inject-websession`), strict typing, optimized performance |
+
+**This integration should meet Gold tier standards minimum, targeting Platinum.**
+
+### Key Integration Patterns
+
+Follow these Home Assistant integration patterns:
+
+1. **Use config entries** (not YAML configuration)
+2. **Implement proper async code** throughout
+3. **Handle device offline states gracefully** - mark entities unavailable, don't throw errors
+4. **Use `CoordinatorEntity`** for data updates - centralized polling with automatic refresh
+5. **Implement reauthentication** when credentials fail (re-auth flow)
+6. **Provide `DeviceInfo`** for device registry integration
+7. **Use entity naming conventions** (`_attr_has_entity_name = True`)
+8. **Ensure entities recover automatically** from errors without filling logs
 
 ### Key Rules to Maintain
 
@@ -337,12 +410,28 @@ Track compliance in `quality_scale.yaml`. Reference the [full rules documentatio
 
 ---
 
-## 10. Testing Requirements
+## 11. Testing Requirements
 
-- **Unit tests are mandatory** for new features and bug fixes.
-- Tests should be placed in the `tests/` directory, mirroring the source structure.
-- Use `pytest-asyncio` for async tests (configured with `asyncio_mode = "auto"`).
-- Mock external API calls; never make real Meraki API calls in tests.
+### Critical Rule: Never Break Existing Functionality
+
+**Always run the full test suite before completing work.** If any previously passing test fails after your changes, you must fix it before marking the task complete.
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage report
+pytest --cov=custom_components/meraki_ha --cov-report=term-missing
+```
+
+### Test Requirements
+
+- **Unit tests are mandatory** for new features and bug fixes
+- New features need tests proving they work
+- Bug fixes need tests proving the bug is fixed
+- Tests should be placed in the `tests/` directory, mirroring the source structure
+- Use `pytest-asyncio` for async tests (configured with `asyncio_mode = "auto"`)
+- Mock external API calls; never make real Meraki API calls in tests
 
 **Test file naming:** `test_{module_name}.py`
 
@@ -376,15 +465,15 @@ async def test_ssid_switch_turn_on(mock_coordinator):
 
 ---
 
-## 11. Security Guidelines
+## 12. Security Guidelines
 
-### 10.1. Credentials
+### 12.1. Credentials
 
 - **NEVER** hardcode API keys, tokens, or credentials in source code.
 - Use environment variables or Home Assistant's `config_entry` for secrets.
 - The Meraki API key is stored in `entry.data[CONF_API_KEY]`.
 
-### 10.2. Cryptography
+### 12.2. Cryptography
 
 - Use only modern, secure algorithms (SHA-256+, AES-GCM, ECDHE).
 - Never use MD5, SHA-1, DES, 3DES, or RC4.
@@ -392,7 +481,7 @@ async def test_ssid_switch_turn_on(mock_coordinator):
 
 ---
 
-## 12. Common Tasks
+## 13. Common Tasks
 
 ### Adding a New Sensor
 
@@ -418,7 +507,7 @@ async def test_ssid_switch_turn_on(mock_coordinator):
 
 ---
 
-## 13. Troubleshooting
+## 14. Troubleshooting
 
 ### Common Issues
 
@@ -443,7 +532,7 @@ logger:
 
 ---
 
-## 14. Self-Correction and Learning
+## 15. Self-Correction and Learning
 
 - If you make a mistake, acknowledge it and correct it.
 - If you discover a new technique or a better way of doing something, incorporate it into your future work.
@@ -452,7 +541,7 @@ logger:
 
 ---
 
-## 15. Quick Reference
+## 16. Quick Reference
 
 | What                    | Where                                                    |
 | ----------------------- | -------------------------------------------------------- |
@@ -468,6 +557,8 @@ logger:
 | Frontend build output   | `custom_components/meraki_ha/www/meraki-panel.js`        |
 | Test configuration      | `pyproject.toml` → `[tool.pytest.ini_options]`           |
 | Ruff configuration      | `pyproject.toml` → `[tool.ruff]`                         |
+| Mypy configuration      | `pyproject.toml` → `[tool.mypy]`                         |
+| Bandit configuration    | `pyproject.toml` → `[tool.bandit]`                       |
 | CI workflows            | `.github/workflows/`                                     |
 
 ---
