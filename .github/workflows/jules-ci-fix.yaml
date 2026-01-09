@@ -164,7 +164,7 @@ jobs:
           All checks (ruff, bandit, mypy, pytest) must pass."
 
           # Call Cursor API
-          RESPONSE=$(curl -s -X POST "https://api.cursor.com/v1/agents" \
+          RESPONSE=$(curl -s -X POST "https://api.cursor.com/v0/agents" \
             -H "Authorization: Bearer $CURSOR_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{

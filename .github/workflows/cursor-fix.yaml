@@ -298,7 +298,7 @@ jobs:
             ### Quality Checks
             Run: ./run_checks.sh (ruff, bandit, mypy, pytest must pass)"
 
-            curl -s -X POST "https://api.cursor.com/v1/agents" \
+            curl -s -X POST "https://api.cursor.com/v0/agents" \
               -H "Authorization: Bearer $CURSOR_API_KEY" \
               -H "Content-Type: application/json" \
               -d "{
