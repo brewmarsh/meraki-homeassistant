@@ -100,7 +100,7 @@ class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
         self._camera_service = camera_service
         self._attr_unique_id = f"{self._device_serial}-camera"
         self._attr_name = format_entity_name(
-            format_device_name(self.device_data, self.coordinator.config_entry.options),
+            format_device_name(self.device_data, config_entry.options),
             "",
         )
         self._attr_model = self.device_data.get("model")
@@ -114,11 +114,14 @@ class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
     @property
     def device_data(self) -> dict[str, Any]:
         """Return the device data from the coordinator."""
-        return self.coordinator.get_device(self._device_serial) or {}
+        device = self.coordinator.get_device(self._device_serial)
+        return dict(device) if device else {}
 
     @property
     def _snapshot_interval(self) -> int:
         """Return the configured snapshot refresh interval in seconds."""
+        if self._config_entry is None:
+            return DEFAULT_CAMERA_SNAPSHOT_INTERVAL
         return int(
             self._config_entry.options.get(
                 CONF_CAMERA_SNAPSHOT_INTERVAL, DEFAULT_CAMERA_SNAPSHOT_INTERVAL
@@ -126,8 +129,10 @@ class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
         )
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
+        if self.coordinator.config_entry is None:
+            return None
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(

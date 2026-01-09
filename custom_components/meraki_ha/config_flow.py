@@ -1,6 +1,7 @@
 """Config flow for the Meraki Home Assistant integration."""
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
@@ -135,7 +136,7 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):
     def _populate_schema_defaults(
         self,
         schema: vol.Schema,
-        defaults: dict[str, Any],
+        defaults: Mapping[str, Any],
         network_options: list[dict[str, str]] | None = None,
     ) -> vol.Schema:
         """Populate a schema with default values from a dictionary."""
@@ -143,17 +144,20 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):
         if network_options is None:
             network_options = []
 
+        # Convert to dict for easier handling
+        defaults_dict = dict(defaults)
+
         for key, value in schema.schema.items():
             key_name = key.schema
             target_key = key
 
-            if key_name in defaults:
-                target_key = type(key)(key.schema, default=defaults[key.schema])
+            if key_name in defaults_dict:
+                target_key = type(key)(key.schema, default=defaults_dict[key.schema])
 
             if key_name == CONF_ENABLED_NETWORKS and isinstance(
                 value, selector.SelectSelector
             ):
-                current_values = defaults.get(CONF_ENABLED_NETWORKS, [])
+                current_values = defaults_dict.get(CONF_ENABLED_NETWORKS, [])
                 existing_option_values = {opt["value"] for opt in network_options}
 
                 combined_options = list(network_options)
@@ -162,7 +166,11 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):
                         combined_options.append({"label": val, "value": val})
 
                 new_config = value.config.copy()
-                new_config["options"] = combined_options
+                # Use selector.SelectOptionDict for proper typing
+                new_config["options"] = [
+                    selector.SelectOptionDict(label=opt["label"], value=opt["value"])
+                    for opt in combined_options
+                ]
                 value = selector.SelectSelector(new_config)
 
             new_schema_keys[target_key] = value

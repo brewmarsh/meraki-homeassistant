@@ -52,9 +52,14 @@ class MerakiOrganizationSSIDClientsSensor(
         self._attr_unique_id = f"{org_id}_clients_ssid"
 
         org_device_data = {"name": org_name, "productType": "organization"}
+        config_options = (
+            self.coordinator.config_entry.options
+            if self.coordinator.config_entry
+            else {}
+        )
         formatted_name = format_device_name(
             device=org_device_data,
-            config=self.coordinator.config_entry.options,
+            config=config_options,
         )
         self._attr_device_info = DeviceInfo(
             # Use org_ prefix to prevent collisions with other entity types
@@ -116,9 +121,14 @@ class MerakiOrganizationWirelessClientsSensor(
         self._attr_unique_id = f"{org_id}_clients_wireless"
 
         org_device_data = {"name": org_name, "productType": "organization"}
+        config_options = (
+            self.coordinator.config_entry.options
+            if self.coordinator.config_entry
+            else {}
+        )
         formatted_name = format_device_name(
             device=org_device_data,
-            config=self.coordinator.config_entry.options,
+            config=config_options,
         )
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"org_{org_id}")},
@@ -178,9 +188,14 @@ class MerakiOrganizationApplianceClientsSensor(
         self._attr_unique_id = f"{org_id}_clients_appliance"
 
         org_device_data = {"name": org_name, "productType": "organization"}
+        config_options = (
+            self.coordinator.config_entry.options
+            if self.coordinator.config_entry
+            else {}
+        )
         formatted_name = format_device_name(
             device=org_device_data,
-            config=self.coordinator.config_entry.options,
+            config=config_options,
         )
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"org_{org_id}")},

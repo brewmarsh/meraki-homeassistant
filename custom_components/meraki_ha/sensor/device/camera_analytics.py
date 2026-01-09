@@ -47,6 +47,8 @@ class MerakiAnalyticsSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEnti
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return device information."""
+        if self.coordinator.config_entry is None:
+            return None
         return resolve_device_info(self._device, self.coordinator.config_entry)
 
     def _get_current_device_data(self) -> dict[str, Any] | None:
