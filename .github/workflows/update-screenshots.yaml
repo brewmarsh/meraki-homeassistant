@@ -88,7 +88,15 @@ jobs:
         run: npm run build
 
       - name: Generate screenshots
+        id: generate-screenshots
+        continue-on-error: true
         run: python scripts/generate_screenshots.py
+
+      - name: Log screenshot generation result
+        if: steps.generate-screenshots.outcome == 'failure'
+        run: |
+          echo "::warning::Screenshot generation failed or was incomplete. Some screenshots may not have been updated."
+          echo "This is non-blocking - the workflow will continue."
 
       - name: Check for screenshot changes
         id: check-changes

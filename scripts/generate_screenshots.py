@@ -632,12 +632,22 @@ def generate_screenshots() -> None:
 
             # Screenshot 8: SSID View
             print("Capturing SSID view...")
-            # Go back to clients view first
-            page.click("text=Back to Clients")
-            page.wait_for_timeout(500)
-            # Then back to dashboard
-            page.click("text=Back to Dashboard")
-            page.wait_for_timeout(1500)
+            # Go back to dashboard - use the back button (with arrow character)
+            # Try multiple selectors to handle different button text formats
+            try:
+                # First try to click Back to Clients (may have arrow prefix)
+                page.click("button:has-text('Back to Clients')", timeout=5000)
+                page.wait_for_timeout(500)
+            except Exception:
+                pass  # May already be on clients view or navigation changed
+            try:
+                # Then back to dashboard
+                page.click("button:has-text('Back to Dashboard')", timeout=5000)
+                page.wait_for_timeout(1500)
+            except Exception:
+                # If we can't find back button, try navigating via dashboard link
+                page.goto(f"http://127.0.0.1:{TEST_PORT}/screenshot.html")
+                page.wait_for_timeout(2000)
             # Set viewport
             page.set_viewport_size({"width": 1400, "height": 1000})
             # Click on "Active SSIDs" stat card to go to SSID view
