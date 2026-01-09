@@ -80,7 +80,7 @@ class SSIDHandler(BaseHandler):
 
     async def discover_entities(self) -> list[Entity]:
         """Discover entities for all SSIDs."""
-        from ...switch.meraki_ssid_device_switch import (
+        from ...switch.meraki_ssid_status import (
             MerakiSSIDBroadcastSwitch,
             MerakiSSIDEnabledSwitch,
         )

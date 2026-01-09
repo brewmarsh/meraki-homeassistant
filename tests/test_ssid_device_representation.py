@@ -13,7 +13,7 @@ from custom_components.meraki_ha.sensor.network.ssid_availability import (
 from custom_components.meraki_ha.sensor.network.ssid_details import (
     MerakiSSIDWalledGardenSensor,
 )
-from custom_components.meraki_ha.switch.meraki_ssid_device_switch import (
+from custom_components.meraki_ha.switch.meraki_ssid_status import (
     MerakiSSIDEnabledSwitch,
 )
 from custom_components.meraki_ha.text.meraki_ssid_name import MerakiSSIDNameText
