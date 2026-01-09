@@ -30,6 +30,7 @@ interface ClientsViewProps {
     clientId?: string;
   }) => void;
   onBack: () => void;
+  initialClientId?: string;
 }
 
 /**
@@ -100,9 +101,16 @@ const ClientsViewComponent: React.FC<ClientsViewProps> = ({
   clients,
   setActiveView,
   onBack,
+  initialClientId,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+
+  // Find the selected client from initialClientId (passed via navigation)
+  const selectedClient = initialClientId
+    ? clients.find(
+        (c) => c.id === initialClientId || c.mac === initialClientId
+      ) || null
+    : null;
 
   // Filter clients based on search
   const filteredClients = clients.filter((client) => {
@@ -147,16 +155,19 @@ const ClientsViewComponent: React.FC<ClientsViewProps> = ({
     return '🔌';
   }, []);
 
-  // Memoized click handler
-  const handleClientClick = useCallback((client: Client) => {
-    setSelectedClient(client);
-  }, []);
+  // Navigate to client detail view using setActiveView for proper routing
+  const handleClientClick = useCallback(
+    (client: Client) => {
+      setActiveView({ view: 'clients', clientId: client.id || client.mac });
+    },
+    [setActiveView]
+  );
 
   if (selectedClient) {
     return (
       <div>
         <button
-          onClick={() => setSelectedClient(null)}
+          onClick={() => setActiveView({ view: 'clients' })}
           className="back-button"
         >
           ← Back to Clients

@@ -13,6 +13,7 @@ from ..const import (
     CONF_DASHBOARD_DEVICE_TYPE_FILTER,
     CONF_DASHBOARD_STATUS_FILTER,
     CONF_DASHBOARD_VIEW_MODE,
+    CONF_ENABLE_MQTT,
     CONF_ENABLED_NETWORKS,
     CONF_SCAN_INTERVAL,
     CONF_TEMPERATURE_UNIT,
@@ -20,6 +21,7 @@ from ..const import (
     DEFAULT_DASHBOARD_DEVICE_TYPE_FILTER,
     DEFAULT_DASHBOARD_STATUS_FILTER,
     DEFAULT_DASHBOARD_VIEW_MODE,
+    DEFAULT_ENABLE_MQTT,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_TEMPERATURE_UNIT,
     DOMAIN,
@@ -55,6 +57,18 @@ def _build_enriched_data(
         else None
     )
 
+    # Build MQTT status data for frontend dashboard
+    mqtt_enabled = config_entry.options.get(CONF_ENABLE_MQTT, DEFAULT_ENABLE_MQTT)
+    mqtt_data: dict[str, Any] = {"enabled": mqtt_enabled}
+    if mqtt_enabled:
+        entry_data = hass.data.get(DOMAIN, {}).get(config_entry_id, {})
+        mqtt_service = entry_data.get("mqtt_service")
+        mqtt_relay_manager = entry_data.get("mqtt_relay_manager")
+        if mqtt_service:
+            mqtt_data["stats"] = mqtt_service.get_statistics()
+        if mqtt_relay_manager:
+            mqtt_data["relay_destinations"] = mqtt_relay_manager.get_health_status()
+
     return {
         **coordinator.data,
         "enabled_networks": enabled_networks,
@@ -76,6 +90,7 @@ def _build_enriched_data(
         "temperature_unit": config_entry.options.get(
             CONF_TEMPERATURE_UNIT, DEFAULT_TEMPERATURE_UNIT
         ),
+        "mqtt": mqtt_data,
     }
 
 

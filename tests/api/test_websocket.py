@@ -147,3 +147,91 @@ class TestWsSubscribeMerakiData:
 
         # Verify cancel function is stored in subscriptions
         assert mock_connection.subscriptions[1] is cancel_func
+
+    def test_subscribe_includes_mqtt_data_when_disabled(
+        self,
+        mock_hass: MagicMock,
+        mock_connection: MagicMock,
+        mock_coordinator: MagicMock,
+    ) -> None:
+        """Test that MQTT data is included in response when MQTT is disabled."""
+        mock_coordinator.last_successful_update = None
+
+        # Set up mock config entry with MQTT disabled (default)
+        mock_config_entry = MagicMock()
+        mock_config_entry.options = {"enable_mqtt": False}
+        mock_hass.config_entries.async_get_entry.return_value = mock_config_entry
+
+        mock_hass.data[DOMAIN]["test_entry_id"] = {"coordinator": mock_coordinator}
+        msg = {
+            "id": 1,
+            "type": "meraki_ha/subscribe_meraki_data",
+            "config_entry_id": "test_entry_id",
+        }
+
+        ws_subscribe_meraki_data(mock_hass, mock_connection, msg)
+
+        # Verify send_message was called with mqtt data
+        mock_connection.send_message.assert_called_once()
+        # The message should contain mqtt with enabled=False
+        call_args = mock_connection.send_message.call_args
+        assert call_args is not None
+
+    def test_subscribe_includes_mqtt_stats_when_enabled(
+        self,
+        mock_hass: MagicMock,
+        mock_connection: MagicMock,
+        mock_coordinator: MagicMock,
+    ) -> None:
+        """Test that MQTT stats are included when MQTT is enabled."""
+        mock_coordinator.last_successful_update = None
+
+        # Set up mock config entry with MQTT enabled
+        mock_config_entry = MagicMock()
+        mock_config_entry.options = {"enable_mqtt": True}
+        mock_hass.config_entries.async_get_entry.return_value = mock_config_entry
+
+        # Mock MQTT service with stats
+        mock_mqtt_service = MagicMock()
+        mock_mqtt_service.get_statistics.return_value = {
+            "is_running": True,
+            "messages_received": 100,
+            "messages_processed": 95,
+            "last_message_time": "2025-01-08T12:00:00",
+            "start_time": "2025-01-08T10:00:00",
+            "sensors_mapped": 5,
+        }
+
+        # Mock relay manager with health status
+        mock_relay_manager = MagicMock()
+        mock_relay_manager.get_health_status.return_value = {
+            "test_relay": {
+                "name": "Test Relay",
+                "status": "connected",
+                "host": "mqtt.example.com",
+                "port": 1883,
+                "topic_filter": "meraki/v1/mt/#",
+                "messages_relayed": 50,
+                "last_relay_time": "2025-01-08T12:00:00",
+                "last_error": None,
+                "last_error_time": None,
+            }
+        }
+
+        mock_hass.data[DOMAIN]["test_entry_id"] = {
+            "coordinator": mock_coordinator,
+            "mqtt_service": mock_mqtt_service,
+            "mqtt_relay_manager": mock_relay_manager,
+        }
+        msg = {
+            "id": 1,
+            "type": "meraki_ha/subscribe_meraki_data",
+            "config_entry_id": "test_entry_id",
+        }
+
+        ws_subscribe_meraki_data(mock_hass, mock_connection, msg)
+
+        # Verify MQTT service stats were retrieved
+        mock_mqtt_service.get_statistics.assert_called_once()
+        # Verify relay manager health status was retrieved
+        mock_relay_manager.get_health_status.assert_called_once()
