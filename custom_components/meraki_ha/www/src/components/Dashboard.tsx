@@ -94,7 +94,7 @@ interface DashboardProps {
   };
   // Default settings from integration options
   defaultViewMode?: 'network' | 'type';
-  defaultDeviceTypeFilter?: string;
+  defaultDeviceTypeFilter?: string[] | string;
   defaultStatusFilter?: string;
   temperatureUnit?: 'celsius' | 'fahrenheit';
 }
@@ -208,7 +208,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({
   data,
   hass: _hass,
   defaultViewMode = 'network',
-  defaultDeviceTypeFilter = 'all',
+  defaultDeviceTypeFilter = ['all'],
   defaultStatusFilter = 'all',
   temperatureUnit = 'celsius',
 }) => {
@@ -218,9 +218,12 @@ const DashboardComponent: React.FC<DashboardProps> = ({
   const [expandedTypes, setExpandedTypes] = useState<Set<string>>(
     new Set(['switch', 'camera', 'wireless', 'sensor', 'appliance'])
   );
-  // expandedSSIDs removed - SSIDs now navigate to dedicated view
-  const [deviceTypeFilter, setDeviceTypeFilter] = useState<DeviceTypeFilter>(
-    (defaultDeviceTypeFilter as DeviceTypeFilter) || 'all'
+  // Ensure deviceTypeFilter is always an array
+  const [deviceTypeFilter, setDeviceTypeFilter] = useState<DeviceTypeFilter[]>(
+    (Array.isArray(defaultDeviceTypeFilter)
+      ? defaultDeviceTypeFilter
+      : [defaultDeviceTypeFilter]
+    ).map((f) => f as DeviceTypeFilter)
   );
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(
     (defaultStatusFilter as StatusFilter) || 'all'
@@ -351,8 +354,8 @@ const DashboardComponent: React.FC<DashboardProps> = ({
     return deviceList.filter((device) => {
       // Type filter
       if (
-        deviceTypeFilter !== 'all' &&
-        getDeviceType(device) !== deviceTypeFilter
+        !deviceTypeFilter.includes('all') &&
+        !deviceTypeFilter.includes(getDeviceType(device))
       ) {
         return false;
       }
@@ -603,9 +606,11 @@ const DashboardComponent: React.FC<DashboardProps> = ({
 
         {/* Device Type Filter */}
         <select
-          value={deviceTypeFilter}
+          value={
+            deviceTypeFilter.length > 1 ? 'all' : deviceTypeFilter[0] || 'all'
+          }
           onChange={(e) =>
-            setDeviceTypeFilter(e.target.value as DeviceTypeFilter)
+            setDeviceTypeFilter([e.target.value as DeviceTypeFilter])
           }
           className="filter-select"
         >
@@ -630,10 +635,13 @@ const DashboardComponent: React.FC<DashboardProps> = ({
         </select>
 
         {/* Filter indicator */}
-        {(deviceTypeFilter !== 'all' || statusFilter !== 'all') && (
+        {(!(
+          deviceTypeFilter.length === 1 && deviceTypeFilter[0] === 'all'
+        ) ||
+          statusFilter !== 'all') && (
           <button
             onClick={() => {
-              setDeviceTypeFilter('all');
+              setDeviceTypeFilter(['all']);
               setStatusFilter('all');
             }}
             className="clear-filters-btn"

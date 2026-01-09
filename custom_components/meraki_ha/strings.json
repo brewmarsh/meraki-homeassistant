@@ -125,28 +125,24 @@
       },
       "mqtt": {
         "title": "Meraki Options - MQTT Settings",
-        "description": "Step 4 of 4: Configure MQTT for MT sensor real-time updates.\n\n**Configured Relay Destinations ({destination_count}):** {relay_destinations}\n\nTo add or manage relay servers, check the appropriate option below and submit.",
+        "description": "Step 4 of 4: Configure MQTT for MT sensor real-time updates.\n\n**Configured Relay Destinations ({destination_count}):** {relay_destinations}",
         "data": {
           "enable_mqtt": "Enable MQTT for MT Sensors",
-          "add_relay_destination": "➕ Add New Relay Destination",
-          "manage_relay_destinations": "✏️ Edit/Delete Existing Destinations"
+          "action": "MQTT Relay Management"
         },
         "data_description": {
           "enable_mqtt": "Enable MQTT to receive real-time updates from MT sensors via Home Assistant's Mosquitto broker. When enabled, API polling for sensor readings is disabled.",
-          "add_relay_destination": "Check this box, then click Submit to add a new external MQTT broker.",
-          "manage_relay_destinations": "Check this box, then click Submit to edit or delete existing relay destinations."
+          "action": "Choose an action to manage external MQTT brokers that will receive relayed sensor data."
         }
       },
-      "mqtt_manage_relays": {
-        "title": "Manage MQTT Relay Destinations",
-        "description": "Select a relay destination to edit or delete.",
+      "mqtt_select_destination": {
+        "title": "{action} MQTT Relay Destination",
+        "description": "Select one or more destinations to {action}.",
         "data": {
-          "destination_index": "Select Destination",
-          "action": "Action"
+          "destinations": "Select Destination(s)"
         },
         "data_description": {
-          "destination_index": "Choose a relay destination from the list.",
-          "action": "Choose whether to edit, delete, or go back."
+          "destinations": "Choose a relay destination from the list."
         }
       },
       "mqtt_destination": {
