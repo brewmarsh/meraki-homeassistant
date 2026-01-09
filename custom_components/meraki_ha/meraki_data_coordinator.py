@@ -19,13 +19,11 @@ from .const import (
     CONF_ENABLE_MQTT,
     CONF_ENABLED_NETWORKS,
     CONF_NETWORK_SCAN_INTERVAL,
-    CONF_SCAN_INTERVAL,
     CONF_SSID_SCAN_INTERVAL,
     DEFAULT_CLIENT_SCAN_INTERVAL,
     DEFAULT_DEVICE_SCAN_INTERVAL,
     DEFAULT_ENABLE_MQTT,
     DEFAULT_NETWORK_SCAN_INTERVAL,
-    DEFAULT_SCAN_INTERVAL,
     DEFAULT_SSID_SCAN_INTERVAL,
     DOMAIN,
 )
@@ -825,16 +823,41 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         now = datetime.now()
 
         # Get intervals from config entry options
-        network_interval = timedelta(seconds=self.config_entry.options.get(CONF_NETWORK_SCAN_INTERVAL, DEFAULT_NETWORK_SCAN_INTERVAL))
-        device_interval = timedelta(seconds=self.config_entry.options.get(CONF_DEVICE_SCAN_INTERVAL, DEFAULT_DEVICE_SCAN_INTERVAL))
-        client_interval = timedelta(seconds=self.config_entry.options.get(CONF_CLIENT_SCAN_INTERVAL, DEFAULT_CLIENT_SCAN_INTERVAL))
-        ssid_interval = timedelta(seconds=self.config_entry.options.get(CONF_SSID_SCAN_INTERVAL, DEFAULT_SSID_SCAN_INTERVAL))
+        network_interval_seconds = self.config_entry.options.get(
+            CONF_NETWORK_SCAN_INTERVAL, DEFAULT_NETWORK_SCAN_INTERVAL
+        )
+        device_interval_seconds = self.config_entry.options.get(
+            CONF_DEVICE_SCAN_INTERVAL, DEFAULT_DEVICE_SCAN_INTERVAL
+        )
+        client_interval_seconds = self.config_entry.options.get(
+            CONF_CLIENT_SCAN_INTERVAL, DEFAULT_CLIENT_SCAN_INTERVAL
+        )
+        ssid_interval_seconds = self.config_entry.options.get(
+            CONF_SSID_SCAN_INTERVAL, DEFAULT_SSID_SCAN_INTERVAL
+        )
+
+        network_interval = timedelta(seconds=network_interval_seconds)
+        device_interval = timedelta(seconds=device_interval_seconds)
+        client_interval = timedelta(seconds=client_interval_seconds)
+        ssid_interval = timedelta(seconds=ssid_interval_seconds)
 
         # Determine which data to fetch
-        fetch_networks = self.last_network_update is None or (now - self.last_network_update) > network_interval
-        fetch_devices = self.last_device_update is None or (now - self.last_device_update) > device_interval
-        fetch_clients = self.last_client_update is None or (now - self.last_client_update) > client_interval
-        fetch_ssids = self.last_ssid_update is None or (now - self.last_ssid_update) > ssid_interval
+        fetch_networks = (
+            self.last_network_update is None
+            or (now - self.last_network_update) > network_interval
+        )
+        fetch_devices = (
+            self.last_device_update is None
+            or (now - self.last_device_update) > device_interval
+        )
+        fetch_clients = (
+            self.last_client_update is None
+            or (now - self.last_client_update) > client_interval
+        )
+        fetch_ssids = (
+            self.last_ssid_update is None
+            or (now - self.last_ssid_update) > ssid_interval
+        )
 
         if not any([fetch_networks, fetch_devices, fetch_clients, fetch_ssids]):
             _LOGGER.debug("No polling interval reached, skipping API call.")
@@ -869,26 +892,47 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             await self._async_remove_disabled_devices(data)
 
             # Process errors and update timers
-            for network_id, traffic_data in data.get("appliance_traffic", {}).items():
-                if isinstance(traffic_data, dict) and traffic_data.get("error") == "disabled":
-                    self.add_network_status_message(network_id, "Traffic Analysis is not enabled for this network.")
-                    self.mark_traffic_check_done(network_id)
-            for network_id, vlan_data in data.get("vlans", {}).items():
-                if isinstance(vlan_data, list) and not vlan_data:
-                    self.add_network_status_message(network_id, "VLANs are not enabled for this network.")
-                    self.mark_vlan_check_done(network_id)
+            for nid, traffic in data.get("appliance_traffic", {}).items():
+                is_disabled = (
+                    isinstance(traffic, dict) and traffic.get("error") == "disabled"
+                )
+                if is_disabled:
+                    self.add_network_status_message(
+                        nid, "Traffic Analysis is not enabled for this network."
+                    )
+                    self.mark_traffic_check_done(nid)
+
+            for nid, vlans in data.get("vlans", {}).items():
+                is_empty = isinstance(vlans, list) and not vlans
+                if is_empty:
+                    self.add_network_status_message(
+                        nid, "VLANs are not enabled for this network."
+                    )
+                    self.mark_vlan_check_done(nid)
 
             # Create lookup tables
-            self.devices_by_serial = {d["serial"]: d for d in data.get("devices", []) if "serial" in d}
-            self.networks_by_id = {n["id"]: n for n in data.get("networks", []) if "id" in n}
-            self.ssids_by_network_and_number = {(s["networkId"], s["number"]): s for s in data.get("ssids", []) if "networkId" in s and "number" in s}
+            self.devices_by_serial = {
+                d["serial"]: d for d in data.get("devices", []) if "serial" in d
+            }
+            self.networks_by_id = {
+                n["id"]: n for n in data.get("networks", []) if "id" in n
+            }
+            self.ssids_by_network_and_number = {
+                (s["networkId"], s["number"]): s
+                for s in data.get("ssids", [])
+                if "networkId" in s and "number" in s
+            }
 
             # Add SSIDs to each network
             all_ssids = data.get("ssids", [])
             for network in data.get("networks", []):
                 network_id = network.get("id")
                 if network_id:
-                    network["ssids"] = [ssid for ssid in all_ssids if ssid.get("networkId") == network_id]
+                    network["ssids"] = [
+                        ssid
+                        for ssid in all_ssids
+                        if ssid.get("networkId") == network_id
+                    ]
 
             self._populate_device_entities(data)
             self._populate_ssid_entities(data)
@@ -898,11 +942,16 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return data
         except ApiClientCommunicationError as err:
             if self.last_successful_data:
-                _LOGGER.warning("Could not connect to Meraki API, using stale data. Error: %s", err)
+                _LOGGER.warning(
+                    "Could not connect to Meraki API, using stale data. Error: %s",
+                    err,
+                )
                 return self.last_successful_data
             raise UpdateFailed(f"Could not connect to Meraki API: {err}") from err
         except Exception as err:
-            _LOGGER.error("Unexpected error fetching Meraki data: %s", err, exc_info=True)
+            _LOGGER.error(
+                "Unexpected error fetching Meraki data: %s", err, exc_info=True
+            )
             raise UpdateFailed(f"Error communicating with API: {err}") from err
 
     def get_device(self, serial: str) -> MerakiDevice | None:
