@@ -178,7 +178,7 @@ jobs:
             # Get first 100 lines of errors to keep comment manageable
             CI_ERRORS=$(cat /tmp/logs/ci_errors.txt | head -100)
           fi
-          # Save to env file for multiline
+          # Save to env file for multiline (accessed as shell var in next step)
           echo "CI_ERRORS<<EOF" >> "$GITHUB_ENV"
           echo "$CI_ERRORS" >> "$GITHUB_ENV"
           echo "EOF" >> "$GITHUB_ENV"
@@ -188,6 +188,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # CI_ERRORS is set via $GITHUB_ENV in previous step
           FIX_NUM=$(( ${{ steps.check.outputs.fix_attempts }} + 1 ))
           PR_NUM="${{ steps.check.outputs.pr_number }}"
           BRANCH="${{ steps.check.outputs.branch }}"
@@ -207,7 +208,7 @@ jobs:
 
           ### Error Logs
           \`\`\`
-          ${{ env.CI_ERRORS }}
+          $CI_ERRORS
           \`\`\`
 
           ### Instructions
