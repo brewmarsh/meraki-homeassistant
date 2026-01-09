@@ -14,12 +14,8 @@ permissions:
 jobs:
   heal:
     if: |
-      github.event_name == 'workflow_run' &&
-      github.event.workflow_run.conclusion == 'failure' &&
-      (
-        github.event.workflow_run.head_branch == 'beta' ||
-        github.event.workflow_run.actor == 'dependabot[bot]'
-      )
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure') ||
+      (github.event_name == 'pull_request' && github.actor == 'dependabot[bot]')
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Jules to Fix CI
@@ -27,14 +23,15 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           base_branch: "beta"
+          # Using top-level 'github' context variables ensures they work for ALL triggers
           instructions: |
-            The 'Validate Code' workflow failed.
-
+            The CI validation failed for this change. 
+            
             **Context:**
-            - **Triggering Actor:** ${{ github.event.workflow_run.actor }}
-            - **Branch:** ${{ github.event.workflow_run.head_branch }}
-
+            - **Triggering Actor:** ${{ github.actor }}
+            - **Event Type:** ${{ github.event_name }}
+            
             **Instructions:**
-            1. Analyze the logs from the failed workflow to identify the root cause.
-            2. **If the PR was opened by 'dependabot[bot]'**: Prioritize resolving version conflicts or linting issues introduced by the update.
-            3. Apply a fix and commit it to the correct branch.
+            1. Analyze the logs from the failed 'Validate Code' workflow to identify the root cause.
+            2. **If the PR was opened by 'dependabot[bot]'**: Prioritize resolving version conflicts or linting issues introduced by the dependency update.
+            3. Apply a fix and commit it directly to the branch associated with this PR.
