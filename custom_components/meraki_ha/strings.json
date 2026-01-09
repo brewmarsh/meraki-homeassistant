@@ -121,25 +121,52 @@
       },
       "mqtt": {
         "title": "Meraki Options - MQTT Settings",
-        "description": "Step 4 of 4: Configure MQTT relay destinations for MV Sense camera events.",
-        "menu_options": {
-          "mqtt_add_destination": "Add New Destination",
-          "mqtt_edit_destination": "Edit Existing Destination",
-          "mqtt_delete_destination": "Delete Destination"
-        }
-      },
-      "mqtt_destination_details": {
-        "title": "MQTT Destination Details",
-        "description": "Enter the details for the MQTT relay destination. This will be sent to the Meraki Dashboard to configure the MV Sense camera event relay.",
+        "description": "Step 4 of 4: Configure MQTT for MT sensor real-time updates.\n\n**Configured Relay Destinations ({destination_count}):** {relay_destinations}\n\nTo add or manage relay servers, check the appropriate option below and submit.",
         "data": {
-          "server_ip": "Server IP Address",
-          "port": "Port",
-          "topic": "Topic"
+          "enable_mqtt": "Enable MQTT for MT Sensors",
+          "add_relay_destination": "➕ Add New Relay Destination",
+          "manage_relay_destinations": "✏️ Edit/Delete Existing Destinations"
         },
         "data_description": {
-          "server_ip": "The IP address or hostname of your MQTT broker.",
-          "port": "The port number for your MQTT broker (e.g., 1883).",
-          "topic": "The MQTT topic to which events will be published."
+          "enable_mqtt": "Enable MQTT to receive real-time updates from MT sensors via Home Assistant's Mosquitto broker. When enabled, API polling for sensor readings is disabled.",
+          "add_relay_destination": "Check this box, then click Submit to add a new external MQTT broker.",
+          "manage_relay_destinations": "Check this box, then click Submit to edit or delete existing relay destinations."
+        }
+      },
+      "mqtt_manage_relays": {
+        "title": "Manage MQTT Relay Destinations",
+        "description": "Select a relay destination to edit or delete.",
+        "data": {
+          "destination_index": "Select Destination",
+          "action": "Action"
+        },
+        "data_description": {
+          "destination_index": "Choose a relay destination from the list.",
+          "action": "Choose whether to edit, delete, or go back."
+        }
+      },
+      "mqtt_destination": {
+        "title": "{action} MQTT Relay Destination",
+        "description": "Configure an external MQTT broker to relay Meraki sensor data to.",
+        "data": {
+          "name": "Destination Name",
+          "host": "Broker Hostname",
+          "port": "Broker Port",
+          "username": "Username (optional)",
+          "password": "Password (optional)",
+          "use_tls": "Use TLS",
+          "topic_filter": "Topic Filter",
+          "device_types": "Device Types (optional)"
+        },
+        "data_description": {
+          "name": "A friendly name for this relay destination (e.g., 'IoT Platform').",
+          "host": "The hostname or IP address of the external MQTT broker.",
+          "port": "The port of the MQTT broker (default: 1883, or 8883 for TLS).",
+          "username": "Username for broker authentication (if required).",
+          "password": "Password for broker authentication (if required).",
+          "use_tls": "Enable TLS encryption for the connection.",
+          "topic_filter": "Topic pattern to match (e.g., 'meraki/v1/mt/#' for all MT sensors).",
+          "device_types": "Optionally filter by specific device types."
         }
       },
       "features": {

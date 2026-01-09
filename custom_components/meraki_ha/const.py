@@ -181,6 +181,54 @@ DEFAULT_ENABLE_WEB_UI: Final = False
 CONF_WEB_UI_PORT: Final = "web_ui_port"
 DEFAULT_WEB_UI_PORT: Final = 9000
 
+# MQTT Configuration
+CONF_ENABLE_MQTT: Final = "enable_mqtt"
+"""Configuration key for enabling MQTT functionality."""
+
+DEFAULT_ENABLE_MQTT: Final = False
+"""Default value for MQTT enable toggle."""
+
+DEFAULT_MQTT_RELAY_DESTINATIONS: Final[list[dict]] = []
+"""Default empty list of relay destinations."""
+
+# MQTT Relay Destination Keys
+MQTT_DEST_NAME: Final = "name"
+"""Friendly name for the relay destination."""
+
+MQTT_DEST_HOST: Final = "host"
+"""Hostname of the external MQTT broker."""
+
+MQTT_DEST_PORT: Final = "port"
+"""Port of the external MQTT broker."""
+
+MQTT_DEST_USERNAME: Final = "username"
+"""Username for MQTT broker authentication."""
+
+MQTT_DEST_PASSWORD: Final = "password"
+"""Password for MQTT broker authentication."""
+
+MQTT_DEST_USE_TLS: Final = "use_tls"
+"""Enable TLS for the relay connection."""
+
+MQTT_DEST_TOPIC_FILTER: Final = "topic_filter"
+"""Topic pattern to match for routing (e.g., meraki/v1/mt/#)."""
+
+MQTT_DEST_DEVICE_TYPES: Final = "device_types"
+"""Optional list of device types to relay."""
+
+DEFAULT_MQTT_PORT: Final = 1883
+"""Default MQTT broker port."""
+
+DEFAULT_MQTT_TLS_PORT: Final = 8883
+"""Default MQTT broker TLS port."""
+
+# Meraki MQTT Topic Patterns
+MERAKI_MQTT_TOPIC_PREFIX: Final = "meraki/v1"
+"""Base prefix for all Meraki MQTT topics."""
+
+MERAKI_MQTT_MT_TOPIC_PATTERN: Final = "meraki/v1/mt/#"
+"""Topic pattern for MT sensor data."""
+
 # Platform types
 PLATFORM_BINARY_SENSOR: Final = "binary_sensor"
 """Represents the binary_sensor platform."""

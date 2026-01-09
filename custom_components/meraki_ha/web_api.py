@@ -19,6 +19,7 @@ from .const import (
     CONF_DASHBOARD_DEVICE_TYPE_FILTER,
     CONF_DASHBOARD_STATUS_FILTER,
     CONF_DASHBOARD_VIEW_MODE,
+    CONF_ENABLE_MQTT,
     CONF_ENABLED_NETWORKS,
     CONF_SCAN_INTERVAL,
     CONF_TEMPERATURE_UNIT,
@@ -27,6 +28,7 @@ from .const import (
     DEFAULT_DASHBOARD_DEVICE_TYPE_FILTER,
     DEFAULT_DASHBOARD_STATUS_FILTER,
     DEFAULT_DASHBOARD_VIEW_MODE,
+    DEFAULT_ENABLE_MQTT,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_TEMPERATURE_UNIT,
     DOMAIN,
@@ -263,6 +265,20 @@ async def handle_get_config(
         else None
     )
 
+    # Get MQTT status if enabled
+    mqtt_data: dict[str, Any] = {
+        "enabled": config_entry.options.get(CONF_ENABLE_MQTT, DEFAULT_ENABLE_MQTT),
+    }
+    if mqtt_data["enabled"]:
+        mqtt_service = hass.data[DOMAIN][config_entry_id].get("mqtt_service")
+        mqtt_relay_manager = hass.data[DOMAIN][config_entry_id].get(
+            "mqtt_relay_manager"
+        )
+        if mqtt_service:
+            mqtt_data["stats"] = mqtt_service.get_statistics()
+        if mqtt_relay_manager:
+            mqtt_data["relay_destinations"] = mqtt_relay_manager.get_health_status()
+
     connection.send_result(
         msg["id"],
         {
@@ -272,6 +288,7 @@ async def handle_get_config(
             "version": version,
             "scan_interval": scan_interval,
             "last_updated": last_updated,
+            "mqtt": mqtt_data,
             **dashboard_settings,
         },
     )

@@ -8,7 +8,6 @@ from homeassistant.helpers import selector
 
 from custom_components.meraki_ha.const import (
     CONF_ENABLED_NETWORKS,
-    CONF_MQTT_RELAY_DESTINATIONS,
     DOMAIN,
 )
 from custom_components.meraki_ha.options_flow import MerakiOptionsFlowHandler
@@ -89,6 +88,36 @@ async def test_async_step_dashboard_with_user_input_moves_to_camera(
     assert result["step_id"] == "camera"
 
 
+@pytest.mark.asyncio
+async def test_async_step_camera_with_user_input_moves_to_mqtt(
+    mock_options_config_entry: MagicMock,
+) -> None:
+    """Test options flow step camera with user input moves to mqtt step."""
+    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+
+    result = await handler.async_step_camera({"some_camera_option": True})
+
+    # Camera step should move to mqtt step, returning a form
+    assert result["type"].value == "form"
+    assert result["step_id"] == "mqtt"
+
+
+@pytest.mark.asyncio
+async def test_async_step_mqtt_with_user_input_creates_entry(
+    mock_options_config_entry: MagicMock,
+) -> None:
+    """Test options flow step mqtt with user input creates entry."""
+    from custom_components.meraki_ha.const import CONF_INTEGRATION_TITLE
+
+    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+
+    result = await handler.async_step_mqtt({"enable_mqtt": False})
+
+    # MQTT step with input should create entry
+    assert result["type"].value == "create_entry"
+    assert result["title"] == CONF_INTEGRATION_TITLE
+
+
 def test_populate_schema_defaults() -> None:
     """Test _populate_schema_defaults populates existing values."""
     mock_entry = MagicMock()
@@ -105,7 +134,7 @@ def test_populate_schema_defaults() -> None:
     )
 
     defaults = {"scan_interval": 45}
-    network_options: list[dict[str, str]] = []
+    network_options: list[selector.SelectOptionDict] = []
 
     result_schema = handler._populate_schema_defaults(schema, defaults, network_options)
 
@@ -135,132 +164,14 @@ def test_populate_schema_defaults_with_networks() -> None:
     )
 
     defaults: dict[str, object] = {}
-    network_options = [
-        {"label": "Main Office", "value": "N_123"},
-        {"label": "Branch Office", "value": "N_456"},
+    network_options: list[selector.SelectOptionDict] = [
+        selector.SelectOptionDict(label="Main Office", value="N_123"),
+        selector.SelectOptionDict(label="Branch Office", value="N_456"),
     ]
 
     result_schema = handler._populate_schema_defaults(schema, defaults, network_options)
 
     assert isinstance(result_schema, vol.Schema)
-
-
-@pytest.mark.asyncio
-async def test_async_step_camera_with_user_input_moves_to_mqtt(
-    mock_options_config_entry: MagicMock,
-) -> None:
-    """Test options flow step camera with user input moves to mqtt step."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
-
-    result = await handler.async_step_camera({"some_camera_option": True})
-
-    assert result["type"].value == "menu"
-    assert result["step_id"] == "mqtt"
-
-
-@pytest.mark.asyncio
-async def test_mqtt_add_destination(
-    mock_options_config_entry: MagicMock,
-) -> None:
-    """Test adding an MQTT destination."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
-
-    # First, show the form
-    result = await handler.async_step_mqtt_add_destination()
-    assert result["type"].value == "form"
-    assert result["step_id"] == "mqtt_add_destination"
-
-    # Then, submit the form
-    new_destination = {
-        "server_ip": "1.1.1.1",
-        "port": 1883,
-        "topic": "meraki/test",
-    }
-    result = await handler.async_step_mqtt_add_destination(new_destination)
-
-    assert result["type"].value == "create_entry"
-    assert CONF_MQTT_RELAY_DESTINATIONS in result["data"]
-    assert len(result["data"][CONF_MQTT_RELAY_DESTINATIONS]) == 1
-    assert result["data"][CONF_MQTT_RELAY_DESTINATIONS][0] == new_destination
-
-
-@pytest.mark.asyncio
-async def test_mqtt_edit_destination(
-    mock_options_config_entry: MagicMock,
-) -> None:
-    """Test editing an MQTT destination."""
-    # Pre-populate with existing destinations
-    mock_options_config_entry.options[CONF_MQTT_RELAY_DESTINATIONS] = [
-        {"server_ip": "1.1.1.1", "port": 1883, "topic": "meraki/first"},
-        {"server_ip": "2.2.2.2", "port": 1884, "topic": "meraki/second"},
-    ]
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
-
-    # Start the edit flow, should show a selection form
-    result = await handler.async_step_mqtt_edit_destination()
-    assert result["type"].value == "form"
-
-    # Select the first destination to edit
-    result = await handler.async_step_mqtt_edit_destination({"destination_index": 0})
-    assert result["type"].value == "form"
-
-    # Submit the updated details
-    updated_details = {
-        "server_ip": "1.1.1.2",
-        "port": 1885,
-        "topic": "meraki/updated",
-    }
-    result = await handler.async_step_mqtt_edit_destination(updated_details)
-
-    assert result["type"].value == "create_entry"
-    updated_destinations = result["data"][CONF_MQTT_RELAY_DESTINATIONS]
-    assert updated_destinations[0] == updated_details
-    assert (
-        updated_destinations[1]["server_ip"] == "2.2.2.2"
-    )  # Ensure others are untouched
-
-
-@pytest.mark.asyncio
-async def test_mqtt_delete_destination(
-    mock_options_config_entry: MagicMock,
-) -> None:
-    """Test deleting an MQTT destination."""
-    mock_options_config_entry.options[CONF_MQTT_RELAY_DESTINATIONS] = [
-        {"server_ip": "1.1.1.1", "port": 1883, "topic": "meraki/first"},
-        {"server_ip": "2.2.2.2", "port": 1884, "topic": "meraki/second"},
-    ]
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
-
-    result = await handler.async_step_mqtt_delete_destination(
-        {"destinations_to_delete": ["0"]}
-    )
-
-    assert result["type"].value == "create_entry"
-    remaining_destinations = result["data"][CONF_MQTT_RELAY_DESTINATIONS]
-    assert len(remaining_destinations) == 1
-    assert remaining_destinations[0]["server_ip"] == "2.2.2.2"
-
-
-@pytest.mark.asyncio
-async def test_mqtt_edit_no_destinations_aborts(
-    mock_options_config_entry: MagicMock,
-) -> None:
-    """Test that edit flow aborts if no destinations exist."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
-    result = await handler.async_step_mqtt_edit_destination()
-    assert result["type"].value == "abort"
-    assert result["reason"] == "no_destinations"
-
-
-@pytest.mark.asyncio
-async def test_mqtt_delete_no_destinations_aborts(
-    mock_options_config_entry: MagicMock,
-) -> None:
-    """Test that delete flow aborts if no destinations exist."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
-    result = await handler.async_step_mqtt_delete_destination()
-    assert result["type"].value == "abort"
-    assert result["reason"] == "no_destinations"
 
 
 @pytest.mark.asyncio
@@ -287,5 +198,13 @@ async def test_full_options_flow_creates_entry(
 
     # Step 3: camera -> goes to mqtt
     result = await handler.async_step_camera({})
-    assert result["type"].value == "menu"
     assert result["step_id"] == "mqtt"
+
+    # Step 4: mqtt -> creates entry
+    result = await handler.async_step_mqtt({"enable_mqtt": False})
+    assert result["type"].value == "create_entry"
+    # New value should be applied
+    assert result["data"]["scan_interval"] == 120
+    # Existing values should be preserved
+    assert result["data"]["enable_device_status"] is True
+    assert result["data"]["temperature_unit"] == "celsius"

@@ -173,6 +173,18 @@ wheels = [
 ]
 
 [[package]]
+name = "aiomqtt"
+version = "2.5.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "paho-mqtt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/db/b5/798e4855d17f0f3a2e2ed21c07473fcb4bb45993116693d0f68553927e2c/aiomqtt-2.5.0.tar.gz", hash = "sha256:70e181c140a54ae736394efe2b9e865f665551a5417f6957456cc46010487b21", size = 86453, upload-time = "2026-01-04T16:46:51.079Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/84/24/1d5d7d89906db1a94b5029942c2fd909cf8e8551b288f56c03053d5615f8/aiomqtt-2.5.0-py3-none-any.whl", hash = "sha256:65dabeafeeee7b88864361ae9a118d81bd27082093f32f670a5c5fab17de8cf2", size = 15983, upload-time = "2026-01-04T16:46:49.736Z" },
+]
+
+[[package]]
 name = "aiooui"
 version = "0.1.9"
 source = { registry = "https://pypi.org/simple" }
@@ -1585,6 +1597,7 @@ source = { virtual = "." }
 [package.optional-dependencies]
 dev = [
     { name = "aiofiles" },
+    { name = "aiomqtt" },
     { name = "bandit" },
     { name = "codecov" },
     { name = "homeassistant" },
@@ -1610,6 +1623,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiofiles", marker = "extra == 'dev'", specifier = "==23.2.1" },
+    { name = "aiomqtt", marker = "extra == 'dev'", specifier = ">=2.0.0" },
     { name = "bandit", extras = ["toml"], marker = "extra == 'dev'", specifier = "==1.7.9" },
     { name = "codecov", marker = "extra == 'dev'" },
     { name = "homeassistant", marker = "extra == 'dev'", specifier = "==2025.11.0" },

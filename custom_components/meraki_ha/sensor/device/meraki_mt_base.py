@@ -1,5 +1,7 @@
 """Base class for Meraki MT sensor entities."""
 
+from __future__ import annotations
+
 import logging
 from collections.abc import Mapping
 from typing import Any
@@ -29,6 +31,8 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
     Uses RestoreEntity to preserve state across Home Assistant restarts.
     """
 
+    coordinator: MerakiDataCoordinator
+
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
@@ -49,20 +53,28 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
 
         # Restore previous state on restart
         if (last_state := await self.async_get_last_state()) is not None:
+            # Skip invalid states like 'unknown', 'unavailable'
+            if last_state.state in ("unknown", "unavailable", None, ""):
+                self._restored_value = None
+                return
             # Try to restore numeric value for sensors
             try:
                 self._restored_value = float(last_state.state)
             except (ValueError, TypeError):
+                # For non-numeric sensors, store the string value
                 self._restored_value = last_state.state
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
+        options = (
+            self.coordinator.config_entry.options
+            if self.coordinator.config_entry
+            else {}
+        )
         return DeviceInfo(
             identifiers={(DOMAIN, self._device["serial"])},
-            name=format_device_name(
-                self._device, self.coordinator.config_entry.options
-            ),
+            name=format_device_name(self._device, options),
             model=self._device["model"],
             manufacturer="Cisco Meraki",
         )
@@ -98,9 +110,12 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
     @property
     def _use_fahrenheit(self) -> bool:
         """Check if Fahrenheit should be used for temperature."""
-        temp_unit = self.coordinator.config_entry.options.get(
-            CONF_TEMPERATURE_UNIT, DEFAULT_TEMPERATURE_UNIT
+        options = (
+            self.coordinator.config_entry.options
+            if self.coordinator.config_entry
+            else {}
         )
+        temp_unit = options.get(CONF_TEMPERATURE_UNIT, DEFAULT_TEMPERATURE_UNIT)
         return temp_unit == TEMPERATURE_UNIT_FAHRENHEIT
 
     @property
@@ -114,13 +129,22 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
         # For other sensors, use the entity description's unit
         return self.entity_description.native_unit_of_measurement
 
+    def _sanitize_value(
+        self, value: str | float | bool | None
+    ) -> str | float | bool | None:
+        """Sanitize value to avoid HA errors with non-numeric values."""
+        # Return None for invalid string values that HA can't handle
+        if isinstance(value, str) and value in ("unknown", "unavailable", ""):
+            return None
+        return value
+
     @property
     def native_value(self) -> str | float | bool | None:
         """Return the state of the sensor."""
         readings = self._get_readings()
         if not readings:
-            # Return restored value if no fresh readings
-            return self._restored_value
+            # Return sanitized restored value if no fresh readings
+            return self._sanitize_value(self._restored_value)
 
         for reading in readings:
             if reading.get("metric") == self.entity_description.key:
@@ -129,8 +153,10 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
                     # Handle temperature specially based on user preference
                     if self.entity_description.key == "temperature":
                         if self._use_fahrenheit:
-                            return metric_data.get("fahrenheit")
-                        return metric_data.get("celsius")
+                            value = metric_data.get("fahrenheit")
+                        else:
+                            value = metric_data.get("celsius")
+                        return self._sanitize_value(value)
 
                     # Map metric to the key holding its value
                     key_map = {
@@ -144,26 +170,64 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
                         "apparentPower": "draw",
                         "voltage": "level",
                         "current": "draw",
+                        "powerFactor": "percentage",
+                        "frequency": "level",
+                        "energy": "usage",
                         "battery": "percentage",
                         "button": "pressType",
                         "indoorAirQuality": "score",
+                        "gateway_rssi": "rssi",
                     }
                     value_key = key_map.get(self.entity_description.key)
                     if value_key:
                         if value_key == "ambient":
-                            return metric_data.get("ambient", {}).get("level")
-                        return metric_data.get(value_key)
-        # Fall back to restored value
-        return self._restored_value
+                            value = metric_data.get("ambient", {}).get("level")
+                        else:
+                            value = metric_data.get(value_key)
+                        return self._sanitize_value(value)
+        # Fall back to sanitized restored value
+        return self._sanitize_value(self._restored_value)
+
+    def _get_reading_timestamp(self) -> str | None:
+        """Get the timestamp from the current reading."""
+        readings = self._get_readings()
+        if not readings:
+            return None
+
+        for reading in readings:
+            if reading.get("metric") == self.entity_description.key:
+                # Meraki readings include 'ts' field with ISO timestamp
+                return reading.get("ts")
+        return None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Return entity state attributes with update timestamp."""
+        """Return entity state attributes with update source and timestamps."""
         attrs: dict[str, Any] = {}
+
+        # Get the actual reading timestamp from the data
+        reading_ts = self._get_reading_timestamp()
+        if reading_ts:
+            attrs["last_updated"] = reading_ts
+
+        # Determine data source and add relevant timestamps
+        serial = self._device.get("serial", "")
+        mqtt_update = self.coordinator.get_mqtt_last_update(serial) if serial else None
+
+        if mqtt_update:
+            attrs["data_source"] = "mqtt"
+            attrs["last_mqtt_update"] = mqtt_update.isoformat()
+        elif self.coordinator.mqtt_enabled:
+            attrs["data_source"] = "mqtt_pending"
+        else:
+            attrs["data_source"] = "api"
+
+        # Add coordinator update timestamp for reference
         if self.coordinator.last_successful_update:
-            attrs["last_meraki_update"] = (
+            attrs["last_coordinator_update"] = (
                 self.coordinator.last_successful_update.isoformat()
             )
+
         return attrs
 
     @property

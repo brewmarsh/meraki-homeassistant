@@ -14,8 +14,10 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import (
     CONF_DASHBOARD_DEVICE_TYPE_FILTER,
+    CONF_ENABLE_MQTT,
     CONF_ENABLED_NETWORKS,
     CONF_SCAN_INTERVAL,
+    DEFAULT_ENABLE_MQTT,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
@@ -53,6 +55,10 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._pending_updates: dict[str, datetime] = {}
         self._vlan_check_timestamps: dict[str, datetime] = {}
         self._traffic_check_timestamps: dict[str, datetime] = {}
+
+        # MQTT-related state
+        self._mqtt_enabled = entry.options.get(CONF_ENABLE_MQTT, DEFAULT_ENABLE_MQTT)
+        self._mqtt_last_updates: dict[str, datetime] = {}  # serial -> last MQTT update
 
         try:
             scan_interval = int(
@@ -157,6 +163,238 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         """
         self.register_pending_update(unique_id, expiry_seconds)
+
+    @property
+    def mqtt_enabled(self) -> bool:
+        """Return True if MQTT mode is enabled."""
+        return self._mqtt_enabled
+
+    def set_mqtt_enabled(self, enabled: bool) -> None:
+        """
+        Set the MQTT enabled state.
+
+        Args:
+        ----
+            enabled: Whether MQTT mode should be enabled.
+
+        """
+        self._mqtt_enabled = enabled
+
+    def get_mqtt_last_update(self, serial: str) -> datetime | None:
+        """
+        Get the timestamp of the last MQTT update for a device.
+
+        Args:
+        ----
+            serial: The device serial number.
+
+        Returns
+        -------
+            The timestamp of the last MQTT update, or None if never updated.
+
+        """
+        return self._mqtt_last_updates.get(serial)
+
+    async def async_update_from_mqtt(
+        self,
+        serial: str,
+        metric: str,
+        data: dict[str, Any],
+    ) -> None:
+        """
+        Update sensor data from an MQTT message.
+
+        This method is called by the MQTT service when a message is received.
+        It updates the device's readings in the coordinator data and notifies
+        all listeners.
+
+        Args:
+        ----
+            serial: The device serial number.
+            metric: The metric name (e.g., "temperature", "humidity").
+            data: The parsed MQTT payload data.
+
+        """
+        if not self.data or "devices" not in self.data:
+            _LOGGER.debug(
+                "Cannot update from MQTT - coordinator data not yet available"
+            )
+            return
+
+        # Find the device in coordinator data
+        device = None
+        device_idx = None
+        for idx, dev in enumerate(self.data["devices"]):
+            if dev.get("serial") == serial:
+                device = dev
+                device_idx = idx
+                break
+
+        if device is None:
+            _LOGGER.debug("Device %s not found in coordinator data", serial)
+            return
+
+        # Update the readings_raw list with the new MQTT data
+        readings_raw = device.get("readings_raw", [])
+        if not isinstance(readings_raw, list):
+            readings_raw = []
+
+        # Build the new reading in the Meraki API format
+        new_reading = self._mqtt_data_to_reading(metric, data)
+        if new_reading is None:
+            return
+
+        # Find and update existing reading for this metric, or append new one
+        found = False
+        for i, reading in enumerate(readings_raw):
+            if reading.get("metric") == metric:
+                readings_raw[i] = new_reading
+                found = True
+                break
+
+        if not found:
+            readings_raw.append(new_reading)
+
+        # Update device data
+        self.data["devices"][device_idx]["readings_raw"] = readings_raw
+        self.data["devices"][device_idx]["readings"] = (
+            self._process_sensor_readings_for_frontend(readings_raw)
+        )
+
+        # Track MQTT update timestamp
+        mqtt_update_time = datetime.now()
+        self._mqtt_last_updates[serial] = mqtt_update_time
+
+        # Update readings_meta with timestamp and data source
+        # Use the timestamp from the reading if available, otherwise use current time
+        reading_ts = data.get("ts") or mqtt_update_time.isoformat()
+        self.data["devices"][device_idx]["readings_meta"] = {
+            "last_updated": reading_ts,
+            "data_source": "mqtt",
+        }
+
+        # Update the lookup table
+        self.devices_by_serial[serial] = self.data["devices"][device_idx]
+
+        _LOGGER.debug(
+            "Updated device %s metric %s from MQTT",
+            serial,
+            metric,
+        )
+
+        # Notify all listeners that data has changed
+        self.async_update_listeners()
+
+    def _mqtt_data_to_reading(
+        self,
+        metric: str,
+        data: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        """
+        Convert MQTT payload data to Meraki API reading format.
+
+        Args:
+        ----
+            metric: The metric name.
+            data: The MQTT payload data.
+
+        Returns
+        -------
+            A reading dict in Meraki API format, or None if conversion fails.
+
+        """
+        # MQTT format examples from Meraki documentation:
+        # temperature: {"ts": "...", "fahrenheit": 72.6, "celsius": 22.6}
+        # humidity: {"ts": "...", "humidity": 62}
+        # waterDetection: {"ts": "...", "wet": false}
+        # etc.
+
+        # Include the timestamp from MQTT data if available
+        reading: dict[str, Any] = {"metric": metric}
+        if "ts" in data:
+            reading["ts"] = data["ts"]
+
+        if metric == "temperature":
+            reading["temperature"] = {
+                "celsius": data.get("celsius"),
+                "fahrenheit": data.get("fahrenheit"),
+            }
+        elif metric == "humidity":
+            reading["humidity"] = {"relativePercentage": data.get("humidity")}
+        elif metric == "waterDetection":
+            reading["water"] = {"present": data.get("wet")}
+        elif metric in ("pm25", "tvoc", "co2"):
+            # These share the same structure
+            reading[metric] = {"concentration": data.get(metric)}
+        elif metric == "noise":
+            reading["noise"] = {"ambient": {"level": data.get("noise")}}
+        elif metric == "indoorAirQuality":
+            reading["indoorAirQuality"] = {"score": data.get("indoorAirQuality")}
+        elif metric == "batteryPercentage":
+            reading["metric"] = "battery"
+            reading["battery"] = {"percentage": data.get("battery percentage")}
+        elif metric == "buttonPressed":
+            reading["metric"] = "button"
+            reading["button"] = {
+                "pressType": "short" if data.get("button pressed") else None
+            }
+        elif metric == "usbPowered":
+            reading["metric"] = "usb_powered"
+            reading["usb_powered"] = {"powered": data.get("usb powered", False)}
+        elif metric == "cableConnected":
+            reading["metric"] = "cable_connected"
+            reading["cable_connected"] = {
+                "connected": data.get("cable connected", False)
+            }
+        elif metric == "probeType":
+            reading["metric"] = "probe_type"
+            reading["probe_type"] = {"type": data.get("probe type")}
+        elif metric == "door":
+            reading["door"] = {"open": data.get("open")}
+        elif metric == "mainsVolts":
+            reading["metric"] = "voltage"
+            reading["voltage"] = {"level": data.get("mainsVolts")}
+        elif metric == "mainsCurrent":
+            reading["metric"] = "current"
+            reading["current"] = {"draw": data.get("mainsCurrent")}
+        elif metric == "mainsRealPower":
+            reading["metric"] = "realPower"
+            reading["realPower"] = {"draw": data.get("mainsRealPower")}
+        elif metric == "mainsApparentPower":
+            reading["metric"] = "apparentPower"
+            reading["apparentPower"] = {"draw": data.get("mainsApparentPower")}
+        elif metric == "mainsPowerFactor":
+            reading["metric"] = "powerFactor"
+            reading["powerFactor"] = {"percentage": data.get("mainsPowerFactor")}
+        elif metric == "mainsFrequency":
+            reading["metric"] = "frequency"
+            reading["frequency"] = {"level": data.get("mainsFrequency")}
+        elif metric == "mainsDeltaEnergy":
+            reading["metric"] = "energy"
+            reading["energy"] = {"usage": data.get("mainsDeltaEnergy")}
+        elif metric == "downstreamPowerStatus":
+            reading["metric"] = "downstream_power"
+            reading["value"] = data.get("downstreamPower") == "on"
+        elif metric.startswith("gateway/") and metric.endswith("/rssi"):
+            # Gateway RSSI metric: gateway/{ap_mac}/rssi
+            # Extract AP MAC from metric path
+            parts = metric.split("/")
+            if len(parts) == 3:
+                ap_mac = parts[1]
+                reading["metric"] = "gateway_rssi"
+                reading["gateway_rssi"] = {
+                    "ap_mac": ap_mac,
+                    "rssi": data.get("rssi"),
+                    "units": data.get("units", "dBm"),
+                }
+            else:
+                _LOGGER.debug("Malformed gateway RSSI metric: %s", metric)
+                return None
+        else:
+            _LOGGER.debug("Unknown MQTT metric: %s", metric)
+            return None
+
+        return reading
 
     def _filter_enabled_networks(self, data: dict[str, Any]) -> None:
         """
@@ -432,6 +670,26 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
                 # Keep original list for sensor entities under a different key
                 device["readings_raw"] = raw_readings
+
+                # Add readings_meta with timestamp and data source
+                # Check if this device has MQTT updates (preserve MQTT source if active)
+                serial = device.get("serial", "")
+                mqtt_update = self._mqtt_last_updates.get(serial)
+                if mqtt_update and self._mqtt_enabled:
+                    # MQTT is providing data - keep existing meta
+                    pass
+                else:
+                    # Extract timestamp from readings if available
+                    last_ts = None
+                    for reading in raw_readings:
+                        ts = reading.get("ts")
+                        if ts:
+                            last_ts = ts
+                            break
+                    device["readings_meta"] = {
+                        "last_updated": last_ts or datetime.now().isoformat(),
+                        "data_source": "api",
+                    }
 
             ha_device = dev_reg.async_get_device(
                 identifiers={(DOMAIN, device["serial"])},

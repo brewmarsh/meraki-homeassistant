@@ -130,6 +130,27 @@ interface Client {
   networkId?: string;
 }
 
+interface MqttServiceStats {
+  is_running: boolean;
+  messages_received: number;
+  messages_processed: number;
+  last_message_time: string | null;
+  start_time: string | null;
+  sensors_mapped: number;
+}
+
+interface RelayDestination {
+  name: string;
+  status: 'connected' | 'connecting' | 'disconnected' | 'error';
+  host: string;
+  port: number;
+  topic_filter: string;
+  messages_relayed: number;
+  last_relay_time: string | null;
+  last_error: string | null;
+  last_error_time: string | null;
+}
+
 interface MerakiData {
   networks: Network[];
   devices: Device[];
@@ -144,6 +165,12 @@ interface MerakiData {
   dashboard_status_filter?: string;
   camera_link_integration?: string;
   temperature_unit?: 'celsius' | 'fahrenheit';
+  // MQTT status data
+  mqtt?: {
+    enabled: boolean;
+    stats?: MqttServiceStats;
+    relay_destinations?: Record<string, RelayDestination>;
+  };
   [key: string]: unknown;
 }
 
@@ -220,6 +247,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
   const [activeView, setActiveView] = useState<{
     view: string;
     deviceId?: string;
+    clientId?: string;
     ssidNetworkId?: string;
     ssidNumber?: number;
   }>({ view: 'dashboard' });
@@ -485,6 +513,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
             clients={data.clients || []}
             setActiveView={setActiveView}
             onBack={() => setActiveView({ view: 'dashboard' })}
+            initialClientId={activeView.clientId}
           />
         );
       case 'device':
