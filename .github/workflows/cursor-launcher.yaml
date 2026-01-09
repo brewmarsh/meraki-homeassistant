@@ -1,0 +1,277 @@
+name: Cursor Agent Launcher
+
+run-name: 'Cursor: Launch for ${{ github.event.workflow_run.head_branch }}'
+
+# Triggers AFTER Beta CI completes - launches Cursor agent asynchronously
+on:
+  workflow_run:
+    workflows: ['Beta CI']
+    types:
+      - completed
+
+jobs:
+  launch-cursor:
+    # Only run for Jules PRs when CI passes (initial review)
+    # or when CI fails after Cursor has already reviewed (fix retry)
+    if: github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Get PR details
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          HEAD_BRANCH="${{ github.event.workflow_run.head_branch }}"
+          CI_CONCLUSION="${{ github.event.workflow_run.conclusion }}"
+
+          echo "Branch: $HEAD_BRANCH, CI: $CI_CONCLUSION"
+
+          # Find the PR for this branch
+          PR_JSON=$(gh pr list \
+            --repo "${{ github.repository }}" \
+            --head "$HEAD_BRANCH" \
+            --state open \
+            --json number,title,body,author,headRefName,comments \
+            --limit 1)
+
+          PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number // empty')
+
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "No open PR found"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.[0].author.login // empty')
+
+          # Only process Jules PRs
+          if [[ "$PR_AUTHOR" != *"jules"* && "$PR_AUTHOR" != "github-actions[bot]" ]]; then
+            echo "Not a Jules PR - skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          PR_TITLE=$(echo "$PR_JSON" | jq -r '.[0].title // empty')
+          PR_BODY=$(echo "$PR_JSON" | jq -r '.[0].body // empty')
+          PR_HEAD_REF=$(echo "$PR_JSON" | jq -r '.[0].headRefName // empty')
+
+          # Extract issue number
+          ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
+
+          # Count Cursor reviews
+          CURSOR_REVIEWS=$(gh pr view $PR_NUMBER --repo "${{ github.repository }}" --json comments \
+            --jq '[.comments[] | select(.body | contains("🤖 Cursor Agent"))] | length')
+
+          # Determine mode
+          if [[ "$CURSOR_REVIEWS" -ge 3 ]]; then
+            echo "escalate=true" >> "$GITHUB_OUTPUT"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$CURSOR_REVIEWS" -eq 0 && "$CI_CONCLUSION" == "success" ]]; then
+            echo "mode=initial" >> "$GITHUB_OUTPUT"
+          elif [[ "$CI_CONCLUSION" == "success" ]]; then
+            echo "mode=final_verification" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=fix_retry" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "escalate=false" >> "$GITHUB_OUTPUT"
+          echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "title=$PR_TITLE" >> "$GITHUB_OUTPUT"
+          echo "head_ref=$PR_HEAD_REF" >> "$GITHUB_OUTPUT"
+          echo "issue_number=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
+          echo "cursor_reviews=$CURSOR_REVIEWS" >> "$GITHUB_OUTPUT"
+          echo "ci_conclusion=$CI_CONCLUSION" >> "$GITHUB_OUTPUT"
+
+          # Save PR body for later
+          echo "$PR_BODY" > /tmp/pr_body.txt
+
+      - name: Handle escalation
+        if: steps.pr.outputs.escalate == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ steps.pr.outputs.number }} \
+            --repo "${{ github.repository }}" \
+            --body "## 🚨 Escalation: Human Review Required
+
+          Cursor has attempted 3+ reviews. Manual intervention needed.
+
+          ---
+          *Escalated by Cursor workflow*"
+
+          gh pr edit ${{ steps.pr.outputs.number }} --add-label "needs-human-review"
+
+      - name: Handle final verification (CI passed after fixes)
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.mode == 'final_verification'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ steps.pr.outputs.number }} \
+            --repo "${{ github.repository }}" \
+            --body "## ✅ CI Passed - Ready for Human Review
+
+          All automated checks have passed!
+
+          **Status:**
+          - ✅ CI: All checks passing
+          - ✅ Cursor: Code reviewed
+          - 📋 Next: Human review and merge
+
+          ---
+          *Verified by Cursor workflow*"
+
+          gh pr edit ${{ steps.pr.outputs.number }} --add-label "cursor-approved" 2>/dev/null || true
+
+          if [[ -n "${{ steps.pr.outputs.issue_number }}" ]]; then
+            gh issue edit ${{ steps.pr.outputs.issue_number }} \
+              --repo "${{ github.repository }}" \
+              --remove-label "pr-pending" \
+              --add-label "ready-for-review" 2>/dev/null || true
+          fi
+
+      - name: Get CI failure details
+        id: ci_failure
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.mode == 'fix_retry'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          FAILED_JOBS=$(gh run view ${{ github.event.workflow_run.id }} \
+            --repo "${{ github.repository }}" --json jobs \
+            --jq '[.jobs[] | select(.conclusion == "failure") | .name] | join(", ")')
+          echo "failed_jobs=$FAILED_JOBS" >> "$GITHUB_OUTPUT"
+
+      - name: Get issue details
+        id: issue
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.mode != 'final_verification' && steps.pr.outputs.issue_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_BODY=$(gh issue view ${{ steps.pr.outputs.issue_number }} --json body -q '.body')
+          echo "$ISSUE_BODY" > /tmp/issue_body.txt
+
+      - name: Launch Cursor Agent
+        id: cursor
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.mode != 'final_verification'
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          REVIEW_NUM=$(( ${{ steps.pr.outputs.cursor_reviews }} + 1 ))
+          MODE="${{ steps.pr.outputs.mode }}"
+
+          ISSUE_BODY=""
+          if [[ -f /tmp/issue_body.txt ]]; then
+            ISSUE_BODY=$(cat /tmp/issue_body.txt)
+          fi
+
+          if [[ "$MODE" == "initial" ]]; then
+            MODE_CONTEXT="INITIAL review. CI passed. Review code quality and verify requirements."
+          else
+            MODE_CONTEXT="FIX RETRY #$REVIEW_NUM. CI FAILED. Jobs: ${{ steps.ci_failure.outputs.failed_jobs }}"
+          fi
+
+          PROMPT="You are a code reviewer for meraki-homeassistant.
+
+          ## Context
+          - PR: #${{ steps.pr.outputs.number }} - ${{ steps.pr.outputs.title }}
+          - Branch: ${{ steps.pr.outputs.head_ref }}
+          - Mode: $MODE_CONTEXT
+
+          ## Issue Requirements
+          ${ISSUE_BODY}
+
+          ## Your Task
+          1. Read AGENTS.md for project standards
+          2. Review and fix any issues
+          3. Run: ruff check --fix . && ruff format . && mypy && pytest
+          4. Commit with: fix(review): <description>
+          5. PUSH TO SAME BRANCH: ${{ steps.pr.outputs.head_ref }}
+
+          Focus on custom_components/meraki_ha/ and tests/. Keep fixes minimal."
+
+          ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
+
+          RESPONSE=$(curl -sS -X POST \
+            -u "${CURSOR_API_KEY}:" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"source\": {
+                \"repository\": \"https://github.com/${{ github.repository }}\",
+                \"ref\": \"${{ steps.pr.outputs.head_ref }}\"
+              },
+              \"prompt\": { \"text\": ${ESCAPED_PROMPT} },
+              \"target\": {
+                \"branchName\": \"${{ steps.pr.outputs.head_ref }}\",
+                \"autoCreatePr\": false
+              }
+            }" \
+            "https://api.cursor.com/v0/agents")
+
+          AGENT_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+
+          if [[ -z "$AGENT_ID" ]]; then
+            echo "::error::Failed to launch Cursor agent"
+            echo "$RESPONSE"
+            exit 1
+          fi
+
+          echo "agent_id=$AGENT_ID" >> "$GITHUB_OUTPUT"
+          echo "review_num=$REVIEW_NUM" >> "$GITHUB_OUTPUT"
+          echo "✅ Launched: $AGENT_ID"
+
+      - name: Comment on PR - Agent launched
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.mode != 'final_verification' && steps.cursor.outputs.agent_id != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          MODE="${{ steps.pr.outputs.mode }}"
+          REVIEW_NUM="${{ steps.cursor.outputs.review_num }}"
+
+          if [[ "$MODE" == "initial" ]]; then
+            TITLE="🔍 Cursor Agent: Initial Review #$REVIEW_NUM"
+            DESC="CI passed! Reviewing code quality and requirements."
+          else
+            TITLE="🔧 Cursor Agent: Fix Retry #$REVIEW_NUM"
+            DESC="CI failed. Fixing: ${{ steps.ci_failure.outputs.failed_jobs }}"
+          fi
+
+          gh pr comment ${{ steps.pr.outputs.number }} \
+            --repo "${{ github.repository }}" \
+            --body "## $TITLE
+
+          $DESC
+
+          **Agent ID**: \`${{ steps.cursor.outputs.agent_id }}\`
+
+          Cursor is working asynchronously. CI will run again when fixes are pushed.
+
+          ---
+          *[View Agent](https://cursor.com/agents?id=${{ steps.cursor.outputs.agent_id }})*"
+
+      - name: Comment on issue
+        if: steps.pr.outputs.skip != 'true' && steps.pr.outputs.mode != 'final_verification' && steps.cursor.outputs.agent_id != '' && steps.pr.outputs.issue_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ steps.pr.outputs.issue_number }} \
+            --repo "${{ github.repository }}" \
+            --body "## 🤖 Cursor Review #${{ steps.cursor.outputs.review_num }} Started
+
+          Cursor is reviewing PR #${{ steps.pr.outputs.number }}.
+
+          ---
+          *[View Agent](https://cursor.com/agents?id=${{ steps.cursor.outputs.agent_id }})*"
+
+      - name: Save agent info for status checker
+        if: steps.cursor.outputs.agent_id != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Store agent info as a PR label for the status checker
+          # Format: cursor-agent-{agent_id}
+          gh pr edit ${{ steps.pr.outputs.number }} \
+            --add-label "cursor-pending" 2>/dev/null || true

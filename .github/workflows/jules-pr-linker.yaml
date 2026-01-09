@@ -30,18 +30,12 @@ jobs:
           echo "PR Author: $PR_AUTHOR"
           echo "Branch: $BRANCH"
 
-          # Check if this is a Jules PR (author contains 'jules' or is a bot)
+          # Check if this is a Jules PR
+          # Jules author formats: "app/google-labs-jules", "jules", or contains "jules"
           IS_JULES="false"
-          if [[ "$PR_AUTHOR" == *"jules"* ]] || [[ "$PR_AUTHOR" == *"[bot]"* ]]; then
+          if [[ "$PR_AUTHOR" == *"jules"* ]] || [[ "$PR_AUTHOR" == *"google-labs"* ]] || [[ "$PR_AUTHOR" == *"[bot]"* ]]; then
             IS_JULES="true"
-          fi
-
-          # Also check branch name pattern (jules often uses descriptive branches)
-          if [[ "$BRANCH" == *"jules"* ]] || [[ "$BRANCH" == *"fix/"* ]] || [[ "$BRANCH" == *"feat/"* ]]; then
-            # Check if PR body references an issue
-            if echo "$PR_BODY" | grep -qiE '(closes|fixes|resolves) #[0-9]+'; then
-              IS_JULES="true"
-            fi
+            echo "Detected Jules PR by author: $PR_AUTHOR"
           fi
 
           echo "is_jules=$IS_JULES" >> "$GITHUB_OUTPUT"
@@ -51,19 +45,51 @@ jobs:
             exit 0
           fi
 
-          # Extract issue number from PR body
-          ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
+          # Extract issue number - try multiple methods
+          ISSUE_NUM=""
 
+          # Method 1: Look for "Closes #XX" / "Fixes #XX" in body
           if [[ -z "$ISSUE_NUM" ]]; then
-            # Try to find any issue reference
-            ISSUE_NUM=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | grep -oE '[0-9]+' | head -1)
+            ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
+            if [[ -n "$ISSUE_NUM" ]]; then
+              echo "Found issue from body closing reference: #$ISSUE_NUM"
+            fi
           fi
+
+          # Method 2: Look for any "#XX" in body
+          if [[ -z "$ISSUE_NUM" ]]; then
+            ISSUE_NUM=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | grep -oE '[0-9]+' | head -1)
+            if [[ -n "$ISSUE_NUM" ]]; then
+              echo "Found issue from body reference: #$ISSUE_NUM"
+            fi
+          fi
+
+          # Method 3: Extract from branch name (e.g., "bugfix/something-59-randomid")
+          if [[ -z "$ISSUE_NUM" ]]; then
+            # Look for issue number pattern in branch name
+            ISSUE_NUM=$(echo "$BRANCH" | grep -oE '[-/][0-9]+[-/]' | grep -oE '[0-9]+' | head -1)
+            if [[ -n "$ISSUE_NUM" ]]; then
+              echo "Found issue from branch name: #$ISSUE_NUM"
+            fi
+          fi
+
+          # Method 4: Try just numbers in branch name after common prefixes
+          if [[ -z "$ISSUE_NUM" ]]; then
+            ISSUE_NUM=$(echo "$BRANCH" | sed -E 's/^(bugfix|fix|feat|feature)\///' | grep -oE '^[^-]+-[0-9]+' | grep -oE '[0-9]+' | head -1)
+            if [[ -n "$ISSUE_NUM" ]]; then
+              echo "Found issue from branch prefix pattern: #$ISSUE_NUM"
+            fi
+          fi
+
+          # Output the branch name for tracking
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
 
           if [[ -n "$ISSUE_NUM" ]]; then
             echo "issue_number=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
-            echo "Found linked issue: #$ISSUE_NUM"
+            echo "✅ Linked to issue: #$ISSUE_NUM"
+            echo "   Branch: $BRANCH"
           else
-            echo "No issue reference found in PR body"
+            echo "⚠️ No issue reference found"
             echo "issue_number=" >> "$GITHUB_OUTPUT"
           fi
 
@@ -79,12 +105,15 @@ jobs:
           BRANCH="${{ github.event.pull_request.head.ref }}"
           PR_AUTHOR="${{ github.event.pull_request.user.login }}"
 
+          REPO="${{ github.repository }}"
+          BRANCH_URL="https://github.com/${REPO}/tree/${BRANCH}"
+
           gh issue comment "$ISSUE_NUM" \
-            --repo "${{ github.repository }}" \
+            --repo "$REPO" \
             --body "## ✅ Jules Created a Pull Request
 
           **PR**: [#${PR_NUM} - ${PR_TITLE}](${PR_URL})
-          **Branch**: \`${BRANCH}\`
+          **Branch**: [\`${BRANCH}\`](${BRANCH_URL})
           **Author**: @${PR_AUTHOR}
 
           **Next Steps:**
