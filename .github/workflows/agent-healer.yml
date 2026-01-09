@@ -4,11 +4,22 @@ on:
   workflow_run:
     workflows: ["Validate Code"]
     types: [completed]
+  pull_request:
+    branches: [beta]
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   heal:
-    # Only trigger if the previous workflow failed on the beta branch
-    if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.head_branch == 'beta' }}
+    if: |
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'failure' &&
+      (
+        github.event.workflow_run.head_branch == 'beta' ||
+        github.event.workflow_run.actor == 'dependabot[bot]'
+      )
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Jules to Fix CI
@@ -16,9 +27,14 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           base_branch: "beta"
-          # This prompt gives Jules the specific context of the failure
           instructions: |
-            The 'Validate Code' workflow for the Meraki integration failed on the beta branch.
-            1. Read the logs from the failed workflow.
-            2. Identify the linting or test errors.
-            3. Apply fixes to the current branch to make the CI pass.
+            The 'Validate Code' workflow failed.
+
+            **Context:**
+            - **Triggering Actor:** ${{ github.event.workflow_run.actor }}
+            - **Branch:** ${{ github.event.workflow_run.head_branch }}
+
+            **Instructions:**
+            1. Analyze the logs from the failed workflow to identify the root cause.
+            2. **If the PR was opened by 'dependabot[bot]'**: Prioritize resolving version conflicts or linting issues introduced by the update.
+            3. Apply a fix and commit it to the correct branch.
