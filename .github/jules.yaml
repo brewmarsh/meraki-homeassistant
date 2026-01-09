@@ -1,4 +1,5 @@
 # .github/jules.yaml
+instructions: "ALL Pull Requests must target the beta branch unless explicitly told otherwise."
 project_context:
   primary_branch: main
   development_branch: beta
