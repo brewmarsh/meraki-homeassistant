@@ -46,6 +46,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.api = api_client
         self.devices_by_serial: dict[str, MerakiDevice] = {}
         self.networks_by_id: dict[str, MerakiNetwork] = {}
+        self.clients_by_mac: dict[str, dict[str, Any]] = {}
         self.ssids_by_network_and_number: dict[tuple[str, int], dict[str, Any]] = {}
         self.last_successful_update: datetime | None = None
         self.last_successful_data: dict[str, Any] = {}
@@ -341,6 +342,9 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             }
             self.networks_by_id = {
                 n["id"]: n for n in data.get("networks", []) if "id" in n
+            }
+            self.clients_by_mac = {
+                c["mac"]: c for c in data.get("clients", []) if "mac" in c
             }
             self.ssids_by_network_and_number = {
                 (s["networkId"], s["number"]): s

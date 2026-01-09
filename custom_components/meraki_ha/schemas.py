@@ -9,6 +9,8 @@ from .const import (
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_ENABLE_VLAN_MANAGEMENT,
     CONF_ENABLED_NETWORKS,
+    CONF_FILTER_CLIENTS_SSID,
+    CONF_FILTER_CLIENTS_VLAN,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
@@ -38,6 +40,8 @@ OPTIONS_SCHEMA = vol.Schema(
         vol.Required(
             CONF_ENABLE_DEVICE_TRACKER, default=True
         ): selector.BooleanSelector(),
+        vol.Optional(CONF_FILTER_CLIENTS_VLAN, default=""): selector.TextSelector(),
+        vol.Optional(CONF_FILTER_CLIENTS_SSID, default=""): selector.TextSelector(),
         vol.Required(
             CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
         ): selector.BooleanSelector(),

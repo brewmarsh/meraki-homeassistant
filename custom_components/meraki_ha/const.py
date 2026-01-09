@@ -54,6 +54,11 @@ CONF_RTSP_STREAM_ENABLED: Final = "rtsp_stream_enabled"
 CONF_ENABLE_DEVICE_TRACKER: Final = "enable_device_tracker"
 """Configuration key for enabling device tracker."""
 
+CONF_FILTER_CLIENTS_VLAN: Final = "filter_clients_vlan"
+"""Configuration key for filtering clients by VLAN."""
+
+CONF_FILTER_CLIENTS_SSID: Final = "filter_clients_ssid"
+"""Configuration key for filtering clients by SSID."""
 
 CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
 """Configuration key for enabling vlan management."""
@@ -117,6 +122,7 @@ PLATFORMS: Final = [
     PLATFORM_TEXT,
     PLATFORM_CAMERA,
     PLATFORM_NUMBER,
+    PLATFORM_DEVICE_TRACKER,
 ]
 """List of platforms supported by the integration."""
 
