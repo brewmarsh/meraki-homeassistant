@@ -15,7 +15,7 @@ from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..types import MerakiVlan
 from .access_point_leds import MerakiAPLEDSwitch
 from .camera_controls import AnalyticsSwitch
-from .meraki_ssid_device_switch import (
+from .meraki_ssid_status import (
     MerakiSSIDBroadcastSwitch,
     MerakiSSIDEnabledSwitch,
 )

@@ -38,5 +38,12 @@
         }
       }
     }
+  },
+  "entity": {
+    "switch": {
+      "ssid_status": {
+        "name": "Statut SSID"
+      }
+    }
   }
 }
