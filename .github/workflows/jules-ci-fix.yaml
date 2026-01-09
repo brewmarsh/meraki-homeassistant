@@ -1,0 +1,87 @@
+name: Jules Self-Healing CI
+
+# This workflow triggers Jules to automatically fix CI failures
+# Based on: https://github.com/google-labs-code/jules-action
+
+on:
+  workflow_run:
+    workflows: ['Beta CI', 'Main CI']
+    types:
+      - completed
+
+jobs:
+  invoke-jules:
+    # Only run if the CI workflow failed
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+
+      - name: Invoke Jules to fix CI failure
+        uses: google-labs-code/jules-invoke@v1
+        with:
+          starting_branch: ${{ github.event.workflow_run.head_branch }}
+          include_last_commit: true
+          include_commit_log: true
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          prompt: |
+            You are a CI failure remediation agent for the meraki-homeassistant project.
+            A CI workflow has failed and you need to diagnose and fix it.
+
+            ## Failed Workflow Information
+            - Workflow: ${{ github.event.workflow_run.name }}
+            - Branch: ${{ github.event.workflow_run.head_branch }}
+            - Commit: ${{ github.event.workflow_run.head_sha }}
+            - Run URL: ${{ github.event.workflow_run.html_url }}
+
+            ## Project Context
+            Read the AGENTS.md file first - it contains all project standards and conventions.
+
+            This is a Home Assistant custom integration for Cisco Meraki networks.
+            Key technologies: Python 3.13, Home Assistant Core, React/TypeScript frontend.
+
+            ## CI Checks to Fix
+            The CI pipeline includes these checks:
+            1. **Linting**: ruff check, ruff format
+            2. **Type checking**: mypy
+            3. **Security**: bandit, pip-audit
+            4. **Tests**: pytest with coverage
+            5. **Hassfest**: Home Assistant manifest validation
+            6. **Frontend**: npm build
+
+            ## Your Task
+
+            1. **Analyze the failure**: Look at the failed workflow run logs to understand what failed.
+
+            2. **Diagnose the root cause**: Examine the relevant source files.
+
+            3. **Fix the issue** following project standards:
+               - Use `uv` for Python package management (never requirements.txt)
+               - Follow PEP 8 and Ruff rules
+               - Ensure all functions have type hints
+               - Use async/await for I/O operations
+               - For frontend issues, run `npm run build` after fixes
+
+            4. **Verify your fix**: Run the appropriate check locally before creating a PR:
+               - Linting: `ruff check --fix . && ruff format .`
+               - Type checking: `mypy custom_components/meraki_ha/ tests/`
+               - Tests: `pytest`
+               - Frontend: `cd custom_components/meraki_ha/www && npm run build`
+
+            5. **Create a PR** with:
+               - Title: `fix(ci): [description of fix]`
+               - Description explaining what failed and how you fixed it
+               - Reference the failed workflow run
+
+            ## Constraints
+            - Keep changes minimal - only fix what's broken
+            - Don't refactor unrelated code
+            - All existing tests must pass
+            - Follow Conventional Commits format
+            - Branch from the failing branch, not main

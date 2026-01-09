@@ -1,0 +1,13 @@
+# Issue template chooser configuration
+blank_issues_enabled: false
+
+contact_links:
+  - name: 📖 Documentation
+    url: https://github.com/liptonj/meraki-homeassistant/blob/main/README.md
+    about: Check the documentation before opening an issue
+  - name: 💬 Discussions
+    url: https://github.com/liptonj/meraki-homeassistant/discussions
+    about: Ask questions and discuss ideas in GitHub Discussions
+  - name: 🏠 Home Assistant Community
+    url: https://community.home-assistant.io/
+    about: General Home Assistant questions (not specific to this integration)
