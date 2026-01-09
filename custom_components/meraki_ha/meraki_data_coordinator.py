@@ -823,6 +823,9 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         now = datetime.now()
 
         # Get intervals from config entry options
+        if not self.config_entry:
+            raise UpdateFailed("Configuration entry not available.")
+
         network_interval_seconds = self.config_entry.options.get(
             CONF_NETWORK_SCAN_INTERVAL, DEFAULT_NETWORK_SCAN_INTERVAL
         )

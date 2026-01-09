@@ -203,39 +203,27 @@ def test_coordinator_initialization_defaults(coordinator):
     assert coordinator.last_successful_data == {}
 
 
-def test_coordinator_custom_scan_interval(hass, mock_api_client):
-    """Test coordinator with custom scan interval."""
+def test_coordinator_update_interval_is_fixed(hass, mock_api_client):
+    """Test that the coordinator's update_interval is fixed, ignoring legacy options."""
     entry = MagicMock()
-    entry.options = {"scan_interval": 60}
     entry.entry_id = "test_entry_id"
 
+    # Test with a valid legacy option
+    entry.options = {"scan_interval": 120}
     coord = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
+    # The coordinator's internal update interval is fixed at 30 seconds
+    # to drive the tiered polling mechanism.
+    assert coord.update_interval == timedelta(seconds=30)
 
-    assert coord.update_interval == timedelta(seconds=60)
-
-
-def test_coordinator_invalid_scan_interval(hass, mock_api_client):
-    """Test coordinator with invalid scan interval falls back to default."""
-    entry = MagicMock()
+    # Test with an invalid legacy option
     entry.options = {"scan_interval": "invalid"}
-    entry.entry_id = "test_entry_id"
-
     coord = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
+    assert coord.update_interval == timedelta(seconds=30)
 
-    # Default is 300 seconds
-    assert coord.update_interval == timedelta(seconds=90)  # DEFAULT_SCAN_INTERVAL
-
-
-def test_coordinator_negative_scan_interval(hass, mock_api_client):
-    """Test coordinator with negative scan interval falls back to default."""
-    entry = MagicMock()
+    # Test with a negative legacy option
     entry.options = {"scan_interval": -10}
-    entry.entry_id = "test_entry_id"
-
     coord = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
-
-    # Default is 300 seconds
-    assert coord.update_interval == timedelta(seconds=90)  # DEFAULT_SCAN_INTERVAL
+    assert coord.update_interval == timedelta(seconds=30)
 
 
 def test_register_pending_update(coordinator):
