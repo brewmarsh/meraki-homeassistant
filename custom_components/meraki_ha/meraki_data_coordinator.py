@@ -1,9 +1,11 @@
 """Data update coordinator for the Meraki HA integration."""
 
+import asyncio
 import logging
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
+import meraki
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import device_registry as dr
 
@@ -310,76 +312,76 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Fetch data from API endpoint and apply filters."""
         try:
             data = await self.api.get_all_data(self.last_successful_data)
-            if not data:
-                _LOGGER.warning("API call to get_all_data returned no data.")
-                raise UpdateFailed("API call returned no data.")
-
-            self._filter_enabled_networks(data)
-            _LOGGER.debug("SSIDs after filtering: %s", data.get("ssids"))
-            await self._async_remove_disabled_devices(data)
-
-            # Process errors and update timers
-            for network_id, traffic_data in data.get("appliance_traffic", {}).items():
-                if (
-                    isinstance(traffic_data, dict)
-                    and traffic_data.get("error") == "disabled"
-                ):
-                    self.add_network_status_message(
-                        network_id, "Traffic Analysis is not enabled for this network."
-                    )
-                    self.mark_traffic_check_done(network_id)
-            for network_id, vlan_data in data.get("vlans", {}).items():
-                if isinstance(vlan_data, list) and not vlan_data:
-                    self.add_network_status_message(
-                        network_id, "VLANs are not enabled for this network."
-                    )
-                    self.mark_vlan_check_done(network_id)
-
-            # Create lookup tables for efficient access in entities
-            self.devices_by_serial = {
-                d["serial"]: d for d in data.get("devices", []) if "serial" in d
-            }
-            self.networks_by_id = {
-                n["id"]: n for n in data.get("networks", []) if "id" in n
-            }
-            self.ssids_by_network_and_number = {
-                (s["networkId"], s["number"]): s
-                for s in data.get("ssids", [])
-                if "networkId" in s and "number" in s
-            }
-
-            # Add SSIDs to each network for easier access in the UI
-            all_ssids = data.get("ssids", [])
-            for network in data.get("networks", []):
-                network_id = network.get("id")
-                if network_id:
-                    network["ssids"] = [
-                        ssid
-                        for ssid in all_ssids
-                        if ssid.get("networkId") == network_id
-                    ]
-
-            self._populate_device_entities(data)
-
-            self.last_successful_update = datetime.now()
-            self.last_successful_data = data
-            return data
-        except Exception as err:
-            if self.last_successful_update and (
-                datetime.now() - self.last_successful_update
-            ) < timedelta(minutes=30):
+        except meraki.APIError as err:
+            if err.status == 429 and hasattr(err, "response"):
+                retry_after = int(err.response.headers.get("Retry-After", 60))
                 _LOGGER.warning(
-                    "Failed to fetch new data, using stale data. Error: %s",
-                    err,
+                    "Meraki API rate limit exceeded; pausing updates for %s seconds.",
+                    retry_after,
                 )
-                return self.data
-
-            _LOGGER.error(
-                "Unexpected error fetching Meraki data: %s",
-                err,
-                exc_info=True,
-            )
+                await asyncio.sleep(retry_after)
+                return self.data  # Return stale data
+            raise UpdateFailed(
+                f"Meraki API error: {err}",
+            ) from err
+        except Exception as err:
+            _LOGGER.error("Unexpected error fetching Meraki data: %s", err)
             raise UpdateFailed(f"Error communicating with API: {err}") from err
+
+        if not data:
+            _LOGGER.warning("API call to get_all_data returned no data.")
+            raise UpdateFailed("API call returned no data.")
+
+        self._filter_enabled_networks(data)
+        _LOGGER.debug("SSIDs after filtering: %s", data.get("ssids"))
+        await self._async_remove_disabled_devices(data)
+
+        # Process errors and update timers
+        for network_id, traffic_data in data.get("appliance_traffic", {}).items():
+            if (
+                isinstance(traffic_data, dict)
+                and traffic_data.get("error") == "disabled"
+            ):
+                self.add_network_status_message(
+                    network_id, "Traffic Analysis is not enabled for this network."
+                )
+                self.mark_traffic_check_done(network_id)
+        for network_id, vlan_data in data.get("vlans", {}).items():
+            if isinstance(vlan_data, list) and not vlan_data:
+                self.add_network_status_message(
+                    network_id, "VLANs are not enabled for this network."
+                )
+                self.mark_vlan_check_done(network_id)
+
+        # Create lookup tables for efficient access in entities
+        self.devices_by_serial = {
+            d["serial"]: d for d in data.get("devices", []) if "serial" in d
+        }
+        self.networks_by_id = {
+            n["id"]: n for n in data.get("networks", []) if "id" in n
+        }
+        self.ssids_by_network_and_number = {
+            (s["networkId"], s["number"]): s
+            for s in data.get("ssids", [])
+            if "networkId" in s and "number" in s
+        }
+
+        # Add SSIDs to each network for easier access in the UI
+        all_ssids = data.get("ssids", [])
+        for network in data.get("networks", []):
+            network_id = network.get("id")
+            if network_id:
+                network["ssids"] = [
+                    ssid
+                    for ssid in all_ssids
+                    if ssid.get("networkId") == network_id
+                ]
+
+        self._populate_device_entities(data)
+
+        self.last_successful_update = datetime.now()
+        self.last_successful_data = data
+        return data
 
     def get_device(self, serial: str) -> MerakiDevice | None:
         """
