@@ -32,6 +32,32 @@ class DevicesEndpoints:
         self._api_client = api_client
 
     @handle_meraki_errors
+    async def get_device_clients(self, serial: str) -> list[dict[str, Any]]:
+        """
+        Get all clients for a device.
+
+        Args:
+        ----
+            serial: The serial number of the device.
+
+        Returns
+        -------
+            A list of clients.
+
+        """
+        if self._api_client.dashboard is None:
+            return []
+        clients = await self._api_client.run_sync(
+            self._api_client.dashboard.devices.getDeviceClients,
+            serial,
+            timespan=300,  # 5 minutes to get current clients
+        )
+        validated = validate_response(clients)
+        if isinstance(validated, list):
+            return validated
+        return []
+
+    @handle_meraki_errors
     async def get_device(self, serial: str) -> dict[str, Any]:
         """
         Get a single device.

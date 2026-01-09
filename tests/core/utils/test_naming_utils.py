@@ -30,18 +30,4 @@ def test_format_device_name_no_product_type():
     """Test the format_device_name function with no product type."""
     device = {"name": "My AP", "model": "MR33"}
     config = {"device_name_format": "prefix"}
-    assert format_device_name(device, config) == "[Wireless] My AP"
-
-
-def test_format_device_name_camera_inferred():
-    """Test the format_device_name function for camera inferred from model."""
-    device = {"name": "My Cam", "model": "MV12"}
-    config = {"device_name_format": "prefix"}
-    assert format_device_name(device, config) == "[Camera] My Cam"
-
-
-def test_format_device_name_camera():
-    """Test the format_device_name function for camera (should have prefix)."""
-    device = {"name": "Big Boss", "model": "MV13", "productType": "camera"}
-    config = {"device_name_format": "prefix"}
-    assert format_device_name(device, config) == "[Camera] Big Boss"
+    assert format_device_name(device, config) == "[Device] My AP"

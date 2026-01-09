@@ -274,33 +274,6 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
-    @async_timed_cache(timeout=3600)
-    async def get_organization_wireless_rf_profiles(
-        self,
-    ) -> list[dict[str, Any]]:
-        """
-        Get all RF profiles for the organization.
-
-        Returns
-        -------
-            A list of RF profiles.
-
-        """
-        if self._api_client.dashboard is None:
-            return []
-        profiles = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.getOrganizationWirelessRfProfiles,
-            organizationId=self._api_client.organization_id,
-        )
-        validated = validate_response(profiles)
-        if not isinstance(validated, list):
-            _LOGGER.warning(
-                "get_organization_wireless_rf_profiles did not return a list"
-            )
-            return []
-        return validated
-
-    @handle_meraki_errors
     @async_timed_cache()
     async def get_network_wireless_ssid_l7_firewall_rules(
         self,

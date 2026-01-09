@@ -4,9 +4,6 @@ import logging
 from collections.abc import Mapping
 from typing import Any
 
-from ._const import DeviceType
-from ._mappers import map_meraki_model_to_device_type
-
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -29,13 +26,8 @@ def format_device_name(device: dict[str, Any], config: Mapping[str, Any]) -> str
     if not product_type and "productTypes" in device:
         product_type = "network"
 
-    if not product_type or product_type == "device":
-        model = device.get("model")
-        inferred = map_meraki_model_to_device_type(model)
-        if inferred != DeviceType.UNKNOWN:
-            product_type = inferred
-        else:
-            product_type = "device"
+    if not product_type:
+        product_type = "device"  # default to device
 
     if product_type == "network":
         product_type_str = "Network"
