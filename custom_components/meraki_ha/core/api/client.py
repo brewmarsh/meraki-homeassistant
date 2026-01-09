@@ -399,6 +399,12 @@ class MerakiAPIClient:
                         ),
                     )
                 )
+            elif device.get("productType") == "wireless":
+                detail_tasks[f"wireless_settings_{device['serial']}"] = (
+                    self._run_with_semaphore(
+                        self.wireless.get_wireless_settings(device["serial"]),
+                    )
+                )
         return detail_tasks
 
     def _process_detailed_data(
@@ -436,14 +442,14 @@ class MerakiAPIClient:
         wireless_settings_by_network: dict[str, Any] = {}
 
         # Use bulk data directly
-        vpn_status_by_network: dict[str, Any] = (
-            bulk_data.get("vpn_statuses_by_network", {})
+        vpn_status_by_network: dict[str, Any] = bulk_data.get(
+            "vpn_statuses_by_network", {}
         )
-        rf_profiles_by_network: dict[str, Any] = (
-            bulk_data.get("rf_profiles_by_network", {})
+        rf_profiles_by_network: dict[str, Any] = bulk_data.get(
+            "rf_profiles_by_network", {}
         )
-        switch_ports_by_serial: dict[str, list[dict[str, Any]]] = (
-            bulk_data.get("switch_ports_by_serial", {})
+        switch_ports_by_serial: dict[str, list[dict[str, Any]]] = bulk_data.get(
+            "switch_ports_by_serial", {}
         )
 
         for network in networks:
@@ -556,6 +562,11 @@ class MerakiAPIClient:
                 ):
                     if isinstance(settings.get("dynamicDns"), dict):
                         device["dynamicDns"] = settings["dynamicDns"]
+            elif product_type == "wireless":
+                if settings := detail_data.get(
+                    f"wireless_settings_{device['serial']}",
+                ):
+                    device["radio_settings"] = settings
 
         return {
             "ssids": ssids,

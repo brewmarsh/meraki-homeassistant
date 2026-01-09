@@ -134,6 +134,7 @@ def test_build_detail_tasks_for_wireless_device(api_client):
     SSIDs are fetched per network.
     """
     # Arrange
+    api_client._run_with_semaphore = MagicMock()
     devices = [MOCK_DEVICE]
     networks = [MOCK_NETWORK]
 
@@ -154,6 +155,7 @@ def test_build_detail_tasks_for_switch_device(api_client):
     Updated: Switch ports statuses are now bulk fetched, so should NOT be in tasks.
     """
     # Arrange
+    api_client._run_with_semaphore = MagicMock()
     switch_device = {"serial": "s123", "productType": "switch"}
     devices = [switch_device]
     networks = []
@@ -169,6 +171,7 @@ def test_build_detail_tasks_for_switch_device(api_client):
 def test_build_detail_tasks_for_camera_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a camera device."""
     # Arrange
+    api_client._run_with_semaphore = MagicMock()
     camera_device = {"serial": "c123", "productType": "camera"}
     devices = [camera_device]
     networks = []
@@ -193,6 +196,7 @@ def test_build_detail_tasks_for_appliance_device(api_client):
     Updated: VPN status is bulk fetched, so should not be in tasks.
     """
     # Arrange
+    api_client._run_with_semaphore = MagicMock()
     appliance_device = {
         "serial": "a123",
         "productType": "appliance",
@@ -224,8 +228,8 @@ def test_build_detail_tasks_for_appliance_device(api_client):
     assert f"vpn_status_{network_with_appliance['id']}" not in tasks
 
 
-def test_process_detailed_data_merges_bulk_data(api_client):
-    """Test that _process_detailed_data merges bulk data."""
+def test_process_detailed_data_merges_device_info(api_client):
+    """Test that _process_detailed_data merges details into device objects."""
     # Arrange
     device = MOCK_DEVICE.copy()
     device["serial"] = "S_123"

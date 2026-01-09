@@ -31,6 +31,6 @@ async def async_setup_entry(
             chunk = sensor_entities[i : i + chunk_size]
             async_add_entities(chunk)
             if len(sensor_entities) > chunk_size:
-                await asyncio.sleep(1)
+                await asyncio.sleep(0)
 
     return True
