@@ -166,7 +166,6 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
                         "pm25": "concentration",
                         "tvoc": "concentration",
                         "co2": "concentration",
-                        "noise": "level",
                         "water": "present",
                         "realPower": "draw",
                         "apparentPower": "draw",
@@ -180,6 +179,15 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
                         "indoorAirQuality": "score",
                         "gateway_rssi": "rssi",
                     }
+
+                    # Handle noise specially - nested under "ambient"
+                    if self.entity_description.key == "noise":
+                        ambient_data = metric_data.get("ambient")
+                        if isinstance(ambient_data, dict):
+                            value = ambient_data.get("level")
+                            return self._sanitize_value(value)
+                        return None
+
                     value_key = key_map.get(self.entity_description.key)
                     if value_key:
                         value = metric_data.get(value_key)

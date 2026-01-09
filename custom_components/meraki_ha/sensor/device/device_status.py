@@ -168,9 +168,9 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
 
         # Add coordinator update timestamp
         if self.coordinator.last_successful_update:
-            self._attr_extra_state_attributes[
-                "last_meraki_update"
-            ] = self.coordinator.last_successful_update.isoformat()
+            self._attr_extra_state_attributes["last_meraki_update"] = (
+                self.coordinator.last_successful_update.isoformat()
+            )
 
         # If the device is an appliance, add uplink information as attributes
         if current_device_data.get("productType") == "appliance":

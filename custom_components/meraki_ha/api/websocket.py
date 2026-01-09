@@ -40,7 +40,8 @@ def _build_enriched_data(
         return coordinator.data or {}
 
     enabled_networks = config_entry.options.get(CONF_ENABLED_NETWORKS)
-    if enabled_networks is None and coordinator.data and coordinator.data.get("networks"):
+    has_networks = coordinator.data and coordinator.data.get("networks")
+    if enabled_networks is None and has_networks:
         enabled_networks = [
             n["id"] for n in coordinator.data.get("networks", []) if "id" in n
         ]

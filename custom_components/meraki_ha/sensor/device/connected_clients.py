@@ -98,9 +98,9 @@ class MerakiDeviceConnectedClientsSensor(CoordinatorEntity, SensorEntity):
         """Return entity state attributes with update timestamp."""
         attrs: dict[str, Any] = {}
         if self.coordinator.last_successful_update:
-            attrs[
-                "last_meraki_update"
-            ] = self.coordinator.last_successful_update.isoformat()
+            attrs["last_meraki_update"] = (
+                self.coordinator.last_successful_update.isoformat()
+            )
             return attrs
         return None
 

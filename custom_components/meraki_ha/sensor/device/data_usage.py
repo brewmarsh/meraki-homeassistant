@@ -95,9 +95,9 @@ class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):
             "timespan_seconds": 86400,
         }
         if self.coordinator.last_successful_update:
-            self._attr_extra_state_attributes[
-                "last_meraki_update"
-            ] = self.coordinator.last_successful_update.isoformat()
+            self._attr_extra_state_attributes["last_meraki_update"] = (
+                self.coordinator.last_successful_update.isoformat()
+            )
 
     @callback
     def _handle_coordinator_update(self) -> None:
