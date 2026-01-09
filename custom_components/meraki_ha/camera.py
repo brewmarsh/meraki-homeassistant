@@ -8,7 +8,7 @@ import logging
 import time
 from collections.abc import Mapping
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import aiofiles
 import aiohttp
@@ -114,7 +114,8 @@ class MerakiCamera(CoordinatorEntity[MerakiDataCoordinator], Camera):
     @property
     def device_data(self) -> dict[str, Any]:
         """Return the device data from the coordinator."""
-        return self.coordinator.get_device(self._device_serial) or {}
+        device = self.coordinator.get_device(self._device_serial)
+        return cast(dict[str, Any], device or {})
 
     @property
     def _snapshot_interval(self) -> int:
