@@ -81,6 +81,7 @@ class TestMerakiMtBinarySensor:
 
         device_info = sensor.device_info
 
+        assert device_info is not None
         assert (DOMAIN, MOCK_MT_DEVICE["serial"]) in device_info["identifiers"]
         assert device_info["model"] == "MT20"
         assert device_info["manufacturer"] == "Cisco Meraki"
