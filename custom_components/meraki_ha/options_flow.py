@@ -8,7 +8,13 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
 from homeassistant.helpers import selector
 
-from .const import CONF_ENABLED_NETWORKS, CONF_INTEGRATION_TITLE, DOMAIN
+from .const import (
+    CONF_ENABLED_NETWORKS,
+    CONF_FILTER_SSID,
+    CONF_FILTER_VLAN,
+    CONF_INTEGRATION_TITLE,
+    DOMAIN,
+)
 from .schemas import OPTIONS_SCHEMA
 
 
@@ -54,18 +60,52 @@ class MerakiOptionsFlowHandler(OptionsFlow):
         coordinator: MerakiDataCoordinator = self.hass.data[DOMAIN][
             self.config_entry.entry_id
         ]["coordinator"]
+
         network_options = []
-        if coordinator.data and coordinator.data.get("networks"):
-            network_options = [
-                {"label": network["name"], "value": network["id"]}
-                for network in coordinator.data["networks"]
-            ]
+        vlan_options = []
+        ssid_options = []
+
+        if coordinator.data:
+            networks_by_id = {
+                network["id"]: network
+                for network in coordinator.data.get("networks", [])
+            }
+
+            if networks_by_id:
+                network_options = [
+                    {"label": network["name"], "value": network["id"]}
+                    for network in networks_by_id.values()
+                ]
+
+            vlans_by_network = coordinator.data.get("vlans", {})
+            for network_id, vlans in vlans_by_network.items():
+                if network := networks_by_id.get(network_id):
+                    if isinstance(vlans, list):
+                        for vlan in vlans:
+                            label = (
+                                f"{network['name']} - "
+                                f"{vlan.get('name', 'Unnamed VLAN')} ({vlan['id']})"
+                            )
+                            vlan_options.append(
+                                {
+                                    "label": label,
+                                    "value": vlan["id"],
+                                }
+                            )
+
+            ssids = coordinator.data.get("ssids", [])
+            for ssid in ssids:
+                if network := networks_by_id.get(ssid.get("networkId")):
+                    ssid_options.append(
+                        {
+                            "label": f"{network['name']} - {ssid['name']}",
+                            "value": ssid["name"],
+                        }
+                    )
 
         # Populate the form with existing values from the config entry.
         schema_with_defaults = self._populate_schema_defaults(
-            OPTIONS_SCHEMA,
-            self.options,
-            network_options,
+            OPTIONS_SCHEMA, self.options, network_options, vlan_options, ssid_options
         )
 
         return self.async_show_form(step_id="init", data_schema=schema_with_defaults)
@@ -75,6 +115,8 @@ class MerakiOptionsFlowHandler(OptionsFlow):
         schema: vol.Schema,
         defaults: dict[str, Any],
         network_options: list[dict[str, str]],
+        vlan_options: list[dict[str, str]],
+        ssid_options: list[dict[str, str]],
     ) -> vol.Schema:
         """
         Populate a schema with default values.
@@ -87,6 +129,8 @@ class MerakiOptionsFlowHandler(OptionsFlow):
             schema: The schema to populate.
             defaults: The default values.
             network_options: The network options.
+            vlan_options: The VLAN options.
+            ssid_options: The SSID options.
 
         Returns
         -------
@@ -107,6 +151,20 @@ class MerakiOptionsFlowHandler(OptionsFlow):
             ):
                 new_config = value.config.copy()
                 new_config["options"] = network_options
+                value = selector.SelectSelector(new_config)
+
+            if key_name == CONF_FILTER_VLAN and isinstance(
+                value, selector.SelectSelector
+            ):
+                new_config = value.config.copy()
+                new_config["options"] = vlan_options
+                value = selector.SelectSelector(new_config)
+
+            if key_name == CONF_FILTER_SSID and isinstance(
+                value, selector.SelectSelector
+            ):
+                new_config = value.config.copy()
+                new_config["options"] = ssid_options
                 value = selector.SelectSelector(new_config)
 
             new_schema_keys[key] = value
