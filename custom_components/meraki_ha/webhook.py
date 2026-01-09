@@ -146,7 +146,7 @@ async def async_handle_webhook(
         webhook_id: The ID of the webhook.
         request: The request object.
 
-    Returns:
+    Returns
     -------
         A web response.
 
@@ -157,7 +157,9 @@ async def async_handle_webhook(
         if validator:
             _LOGGER.info("Successfully validated webhook for %s", webhook_id)
             return web.Response(text=validator)
-        _LOGGER.warning("Webhook validation failed for %s: No validator found", webhook_id)
+        _LOGGER.warning(
+            "Webhook validation failed for %s: No validator found", webhook_id
+        )
         return web.Response(status=400)
 
     if request.method != "POST":

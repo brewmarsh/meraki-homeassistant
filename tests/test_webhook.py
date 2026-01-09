@@ -66,7 +66,9 @@ async def test_handle_webhook_validation(
     request.query = {"validator": "test_validator"}
 
     # Act
-    response = await async_handle_webhook(mock_hass_with_webhook_data, webhook_id, request)
+    response = await async_handle_webhook(
+        mock_hass_with_webhook_data, webhook_id, request
+    )
 
     # Assert
     assert response.text == "test_validator"
