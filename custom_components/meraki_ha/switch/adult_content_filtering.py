@@ -15,8 +15,12 @@ from ..meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAdultContentFilteringSwitch(CoordinatorEntity, SwitchEntity):
+class MerakiAdultContentFilteringSwitch(
+    CoordinatorEntity[MerakiDataCoordinator], SwitchEntity
+):
     """Representation of a Meraki Adult Content Filtering switch."""
+
+    coordinator: MerakiDataCoordinator
 
     def __init__(
         self,

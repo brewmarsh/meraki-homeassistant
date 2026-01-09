@@ -18,10 +18,12 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiCameraSettingSwitchBase(
-    CoordinatorEntity,
+    CoordinatorEntity[MerakiDataCoordinator],
     SwitchEntity,
 ):
     """Base class for a Meraki Camera Setting Switch."""
+
+    coordinator: MerakiDataCoordinator
 
     def __init__(
         self,
