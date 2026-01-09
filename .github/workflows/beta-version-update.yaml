@@ -72,7 +72,9 @@ jobs:
               --repo "${{ github.repository }}" \
               --remove-label "pr-pending" \
               --remove-label "ready-for-review" \
-              --remove-label "cursor-approved" \
+              --remove-label "cursor-reviewed" \
+              --remove-label "cursor-reviewing" \
+              --remove-label "in-progress" \
               --add-label "released-beta" 2>/dev/null || true
           fi
 
@@ -97,22 +99,54 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.13.2'
 
       - name: Install uv
         uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: 'uv.lock'
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: custom_components/meraki_ha/www/package-lock.json
 
       - name: Install Python dependencies
         run: uv pip install --system bump2version playwright
 
+      - name: Get Playwright version
+        id: playwright-version
+        run: |
+          PLAYWRIGHT_VERSION=$(uv pip show playwright --system | grep Version | cut -d' ' -f2)
+          echo "version=$PLAYWRIGHT_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install Playwright Browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: playwright install --with-deps chromium
+
+      - name: Install Playwright deps (cached)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: playwright install-deps chromium
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: custom_components/meraki_ha/www/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('custom_components/meraki_ha/www/package-lock.json') }}
+
       - name: Install npm dependencies
+        if: steps.npm-cache.outputs.cache-hit != 'true'
         run: npm ci --prefix custom_components/meraki_ha/www
 
       - name: Increment Version
@@ -132,22 +166,6 @@ jobs:
         if: steps.increment.outputs.new_version != ''
         run: |
           npm run build --prefix custom_components/meraki_ha/www
-
-      - name: Cache Playwright browsers
-        if: steps.increment.outputs.new_version != ''
-        uses: actions/cache@v4
-        id: playwright-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-chromium
-
-      - name: Install Playwright Browsers
-        if: steps.increment.outputs.new_version != '' && steps.playwright-cache.outputs.cache-hit != 'true'
-        run: playwright install --with-deps chromium
-
-      - name: Install Playwright deps (cached)
-        if: steps.increment.outputs.new_version != '' && steps.playwright-cache.outputs.cache-hit == 'true'
-        run: playwright install-deps chromium
 
       - name: Generate Screenshots
         if: steps.increment.outputs.new_version != ''

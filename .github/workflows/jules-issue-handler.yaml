@@ -98,14 +98,14 @@ jobs:
 
             ## Project Context
             1. Read the `AGENTS.md` file first - it contains all project standards and conventions.
-            2. Read the `ROADMAP.md` file to understand the project roadmap and requirements.
+            2. Read the `DEVELOPMENT.md` file to understand the development environment and setup.
             3. This is a Home Assistant custom integration for Cisco Meraki networks.
 
             ## Technology Stack
-            - Backend: Python 3.13, Home Assistant Core, meraki SDK, aiohttp
+            - Backend: Python 3.13.2, Home Assistant Core, meraki SDK, aiohttp
             - Frontend: React, TypeScript, Vite
             - Package manager: uv with pyproject.toml (never requirements.txt)
-            - Tests: pytest, pytest-asyncio
+            - Tests: pytest, pytest-asyncio, pytest-homeassistant-custom-component
             - Linting: Ruff, mypy, bandit
 
             ## Key Directories
@@ -139,14 +139,25 @@ jobs:
                - Place tests in `tests/` mirroring the source structure
                - Use pytest-asyncio for async tests
                - Mock external API calls (never call real Meraki API)
+               - **IMPORTANT**: Home Assistant is NOT installed in the test environment
+               - Use `pytest-homeassistant-custom-component` fixtures (hass, mock_config_entry)
+               - Always mock HA components: `homeassistant.core`, `homeassistant.helpers`
+               - See `tests/conftest.py` for existing fixtures and patterns
+               - If tests fail with "ModuleNotFoundError: No module named 'homeassistant'",
+                 you need to mock the HA imports properly
 
             5. **Verify all checks pass**:
-               - `ruff check --fix . && ruff format .`
-               - `mypy custom_components/meraki_ha/ tests/`
-               - `pytest`
+               - Run `./run_checks.sh` to execute all checks (ruff, mypy, bandit, pytest)
+               - Or run individually: `uv run ruff check --fix . && uv run ruff format .`
                - If frontend changes: `cd custom_components/meraki_ha/www && npm run build`
 
-            6. **Create a PR** with:
+            6. **Handling Test Failures**:
+               - If pytest fails with import errors, check that you're mocking HA properly
+               - If mypy fails, ensure all functions have type hints
+               - If ruff fails, run `uv run ruff check --fix .` to auto-fix issues
+               - Check `tests/conftest.py` for the standard test fixtures
+
+            7. **Create a PR** with:
                - Title following Conventional Commits: `feat(<scope>): <description>` or `fix(<scope>): <description>`
                - Detailed description of what was implemented
                - **IMPORTANT**: The PR body MUST contain this exact line on its own: `Closes #${{ github.event.issue.number }}`
@@ -248,12 +259,13 @@ jobs:
 
             ## Project Context
             Read the AGENTS.md file first - it contains all project standards and conventions.
+            Read DEVELOPMENT.md for environment setup and development workflow.
 
             This is a Home Assistant custom integration for Cisco Meraki networks.
-            - Backend: Python 3.13, Home Assistant Core, meraki SDK
+            - Backend: Python 3.13.2, Home Assistant Core, meraki SDK
             - Frontend: React, TypeScript, Vite
             - Package manager: uv with pyproject.toml
-            - Tests: pytest, pytest-asyncio
+            - Tests: pytest, pytest-asyncio, pytest-homeassistant-custom-component
 
             ## Your Task
 
@@ -281,13 +293,20 @@ jobs:
                - Place in `tests/` mirroring the source structure
                - Use pytest-asyncio for async tests
                - Mock external API calls
+               - **IMPORTANT**: Home Assistant is NOT installed in tests
+               - Use fixtures from `tests/conftest.py` (hass, mock_config_entry)
+               - Mock HA imports: `homeassistant.core`, `homeassistant.helpers`
 
             5. **Verify all checks pass**:
-               - `ruff check --fix . && ruff format .`
-               - `mypy custom_components/meraki_ha/ tests/`
-               - `pytest`
+               - Run `./run_checks.sh` to execute all checks (ruff, mypy, bandit, pytest)
+               - Or run individually: `uv run ruff check --fix . && uv run ruff format .`
 
-            6. **Create a PR** with:
+            6. **Handling Test Failures**:
+               - Import errors → mock HA components properly
+               - Use `pytest -x` to stop on first failure
+               - Check `tests/conftest.py` for fixture patterns
+
+            7. **Create a PR** with:
                - Title: `fix(<scope>): <description>`
                - Description explaining the root cause and fix
                - **IMPORTANT**: The PR body MUST contain this exact line on its own: `Fixes #${{ github.event.issue.number }}`
@@ -383,12 +402,13 @@ jobs:
 
             ## Project Context
             Read the AGENTS.md file first - it contains all project standards and conventions.
+            Read DEVELOPMENT.md for environment setup and development workflow.
 
             This is a Home Assistant custom integration for Cisco Meraki networks.
-            - Backend: Python 3.13, Home Assistant Core, meraki SDK
+            - Backend: Python 3.13.2, Home Assistant Core, meraki SDK
             - Frontend: React, TypeScript, Vite
             - Package manager: uv with pyproject.toml
-            - Tests: pytest, pytest-asyncio
+            - Tests: pytest, pytest-asyncio, pytest-homeassistant-custom-component
 
             ## Your Task
 
@@ -413,14 +433,21 @@ jobs:
                - Unit tests for new functions
                - Integration tests if applicable
                - Mock external API calls
+               - **IMPORTANT**: Home Assistant is NOT installed in tests
+               - Use fixtures from `tests/conftest.py` (hass, mock_config_entry)
+               - Mock HA imports properly
 
             5. **Verify all checks pass**:
-               - `ruff check --fix . && ruff format .`
-               - `mypy custom_components/meraki_ha/ tests/`
-               - `pytest`
-               - If frontend: `npm run build`
+               - Run `./run_checks.sh` to execute all checks (ruff, mypy, bandit, pytest)
+               - Or run individually: `uv run ruff check --fix . && uv run ruff format .`
+               - If frontend: `cd custom_components/meraki_ha/www && npm run build`
 
-            6. **Create a PR** with:
+            6. **Handling Test Failures**:
+               - Import errors → mock HA components properly
+               - Use `pytest -x` to stop on first failure
+               - Check `tests/conftest.py` for fixture patterns
+
+            7. **Create a PR** with:
                - Title: `feat(<scope>): <description>`
                - Detailed description of the implementation
                - **IMPORTANT**: The PR body MUST contain this exact line on its own: `Closes #${{ github.event.issue.number }}`

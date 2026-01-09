@@ -2,12 +2,17 @@ name: Beta CI
 
 run-name: 'CI: ${{ github.event.pull_request.title }} (#${{ github.event.pull_request.number }})'
 
+# Runs on:
+# - PRs targeting beta (Jules PRs, human PRs)
+# - Cursor review PRs (cursor-review/* branches targeting Jules branches)
+# Does NOT run on PRs targeting main (use main-ci.yaml for that)
+
 on:
   pull_request:
-    branches: ['beta']
+    branches-ignore: ['main'] # Run on all PRs except those targeting main
 
 env:
-  PYTHON_VERSION: '3.13'
+  PYTHON_VERSION: '3.13.2'
   NODE_VERSION: '20'
 
 jobs:
@@ -20,34 +25,47 @@ jobs:
     outputs:
       issue_number: ${{ steps.extract.outputs.issue_number }}
       is_jules_pr: ${{ steps.extract.outputs.is_jules_pr }}
+      is_cursor_pr: ${{ steps.extract.outputs.is_cursor_pr }}
     steps:
       - name: Extract linked issue number
         id: extract
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
         run: |
-          PR_BODY="${{ github.event.pull_request.body }}"
-          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
-
-          # Check if Jules PR
-          if [[ "$PR_AUTHOR" == *"jules"* || "$PR_AUTHOR" == "github-actions[bot]" ]]; then
+          # Check if Jules PR (author is jules or google-labs)
+          if [[ "$PR_AUTHOR" == *"jules"* ]] || [[ "$PR_AUTHOR" == *"google-labs"* ]]; then
             echo "is_jules_pr=true" >> "$GITHUB_OUTPUT"
+            echo "is_cursor_pr=false" >> "$GITHUB_OUTPUT"
+          # Check if Cursor PR (branch starts with cursor-review/)
+          elif [[ "$PR_HEAD" == cursor-review/* ]]; then
+            echo "is_jules_pr=false" >> "$GITHUB_OUTPUT"
+            echo "is_cursor_pr=true" >> "$GITHUB_OUTPUT"
           else
             echo "is_jules_pr=false" >> "$GITHUB_OUTPUT"
+            echo "is_cursor_pr=false" >> "$GITHUB_OUTPUT"
           fi
 
-          # Extract issue number
+          # Extract issue number from PR body
           ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
 
           if [[ -z "$ISSUE_NUM" ]]; then
             ISSUE_NUM=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | grep -oE '[0-9]+' | head -1)
           fi
 
+          # For Cursor PRs, also check the base branch (Jules branch) for issue number
+          if [[ -z "$ISSUE_NUM" ]] && [[ "$PR_HEAD" == cursor-review/* ]]; then
+            JULES_BRANCH="${{ github.event.pull_request.base.ref }}"
+            ISSUE_NUM=$(echo "$JULES_BRANCH" | grep -oE '[-/][0-9]+[-/]' | grep -oE '[0-9]+' | head -1)
+          fi
+
           echo "issue_number=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
           echo "Found issue: #$ISSUE_NUM"
 
       - name: Comment on issue - CI started
-        if: steps.extract.outputs.issue_number != '' && steps.extract.outputs.is_jules_pr == 'true'
+        if: steps.extract.outputs.issue_number != '' && (steps.extract.outputs.is_jules_pr == 'true' || steps.extract.outputs.is_cursor_pr == 'true')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -80,6 +98,9 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install uv
         uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: 'uv.lock'
       - name: Install linters
         run: uv pip install --system ruff bandit
       - name: Run ruff check
@@ -101,8 +122,11 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install uv
         uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: 'uv.lock'
       - name: Install dependencies
-        run: uv pip install --system -e ".[dev]"
+        run: uv sync --all-extras --frozen
       - name: Cache mypy
         uses: actions/cache@v4
         with:
@@ -111,10 +135,10 @@ jobs:
           restore-keys: |
             mypy-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
       - name: Run mypy
-        run: mypy custom_components/meraki_ha/ tests/
+        run: uv run mypy custom_components/meraki_ha/ tests/
       - name: Run pip-audit
         run: |
-          pip-audit \
+          uv run pip-audit \
             --ignore-vuln PYSEC-2020-49 \
             --ignore-vuln PYSEC-2022-42969 \
             --ignore-vuln GHSA-g7vv-2v7x-gj9p \
@@ -139,31 +163,46 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install uv
         uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: 'uv.lock'
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: custom_components/meraki_ha/www/package-lock.json
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: custom_components/meraki_ha/www/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('custom_components/meraki_ha/www/package-lock.json') }}
       - name: Install Python dependencies
-        run: uv pip install --system -e ".[dev]"
+        run: uv sync --all-extras --frozen
       - name: Install npm dependencies
+        if: steps.npm-cache.outputs.cache-hit != 'true'
         working-directory: custom_components/meraki_ha/www
         run: npm ci
+      - name: Get Playwright version
+        id: playwright-version
+        run: |
+          PLAYWRIGHT_VERSION=$(uv run python -c "import playwright; print(playwright.__version__)")
+          echo "version=$PLAYWRIGHT_VERSION" >> "$GITHUB_OUTPUT"
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
       - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: playwright install --with-deps chromium
+        run: uv run playwright install --with-deps chromium
       - name: Install Playwright deps (cached)
         if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: playwright install-deps chromium
+        run: uv run playwright install-deps chromium
       - name: Run tests with coverage
-        run: pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
+        run: uv run pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
@@ -190,9 +229,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: custom_components/meraki_ha/www/package-lock.json
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: custom_components/meraki_ha/www/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('custom_components/meraki_ha/www/package-lock.json') }}
       - name: Install dependencies
+        if: steps.npm-cache.outputs.cache-hit != 'true'
         working-directory: custom_components/meraki_ha/www
         run: npm ci
       - name: Build frontend
@@ -228,7 +272,7 @@ jobs:
         run: echo "✅ All CI checks passed!"
 
       - name: Comment on issue - CI passed
-        if: needs.setup.outputs.issue_number != '' && needs.setup.outputs.is_jules_pr == 'true'
+        if: needs.setup.outputs.issue_number != '' && (needs.setup.outputs.is_jules_pr == 'true' || needs.setup.outputs.is_cursor_pr == 'true')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -293,7 +337,7 @@ jobs:
           echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Comment on issue - CI failed
-        if: needs.setup.outputs.issue_number != '' && needs.setup.outputs.is_jules_pr == 'true'
+        if: needs.setup.outputs.issue_number != '' && (needs.setup.outputs.is_jules_pr == 'true' || needs.setup.outputs.is_cursor_pr == 'true')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

@@ -1592,7 +1592,7 @@ wheels = [
 [[package]]
 name = "meraki-homeassistant"
 version = "0.0.0"
-source = { virtual = "." }
+source = { editable = "." }
 
 [package.optional-dependencies]
 dev = [

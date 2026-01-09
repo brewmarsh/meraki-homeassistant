@@ -1,9 +1,10 @@
-name: Jules Self-Healing CI
+name: Jules CI Self-Heal
 
-run-name: 'Jules Fix: ${{ github.event.workflow_run.head_branch }}'
+run-name: 'Jules: Fix CI on ${{ github.event.workflow_run.head_branch }}'
 
-# This workflow triggers Jules to automatically fix CI failures
-# Based on: https://github.com/google-labs-code/jules-action
+# When Beta CI fails on a Jules PR, comment @jules with error details
+# Jules will automatically see the mention and fix the issues
+# Skips if Cursor has taken over (cursor-reviewing label)
 
 on:
   workflow_run:
@@ -11,216 +12,230 @@ on:
     types:
       - completed
 
-jobs:
-  invoke-jules:
-    # Only run if the CI workflow failed
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-    outputs:
-      issue_number: ${{ steps.details.outputs.issue_number }}
-      pr_number: ${{ steps.details.outputs.pr_number }}
-      is_jules_pr: ${{ steps.details.outputs.is_jules_pr }}
-      original_branch: ${{ github.event.workflow_run.head_branch }}
-    steps:
-      - name: Check user authorization
-        run: |
-          # Jules CI fix should only run for Jules PRs
-          # The authorization is inherent - only Jules PRs trigger this
-          echo "✅ Jules Self-Healing CI triggered for branch: ${{ github.event.workflow_run.head_branch }}"
+# Prevent multiple Jules fix agents on same branch
+concurrency:
+  group: jules-fix-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
 
-      - name: Get PR and Issue details
-        id: details
+jobs:
+  jules-self-heal:
+    runs-on: ubuntu-latest
+    # Only run on CI failures
+    if: github.event.workflow_run.conclusion == 'failure'
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Check if Jules should fix
+        id: check
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           HEAD_BRANCH="${{ github.event.workflow_run.head_branch }}"
+
+          echo "Branch: $HEAD_BRANCH"
 
           # Find the PR for this branch
           PR_JSON=$(gh pr list \
             --repo "${{ github.repository }}" \
             --head "$HEAD_BRANCH" \
             --state open \
-            --json number,body,author \
+            --json number,body,author,labels \
             --limit 1)
 
           PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number // empty')
-          PR_BODY=$(echo "$PR_JSON" | jq -r '.[0].body // empty')
           PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.[0].author.login // empty')
+          PR_LABELS=$(echo "$PR_JSON" | jq -r '[.[0].labels[].name] | join(" ")' 2>/dev/null || echo "")
 
-          # Check if Jules PR (only fix Jules PRs)
-          if [[ "$PR_AUTHOR" == *"jules"* || "$PR_AUTHOR" == "github-actions[bot]" ]]; then
-            echo "is_jules_pr=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "is_jules_pr=false" >> "$GITHUB_OUTPUT"
-            echo "Not a Jules PR - skipping"
+          echo "PR #$PR_NUMBER by $PR_AUTHOR"
+          echo "Labels: $PR_LABELS"
+
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "No open PR found - skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
+          # Skip if Cursor has taken over
+          if echo "$PR_LABELS" | grep -q "cursor-reviewing"; then
+            echo "⏭️ Cursor is reviewing - Jules should not interfere"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Only fix Jules PRs
+          if [[ "$PR_AUTHOR" != *"jules"* ]] && [[ "$PR_AUTHOR" != *"google-labs"* ]]; then
+            echo "Not a Jules PR - skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Skip if this is a Cursor PR (cursor-review/* branch)
+          if [[ "$HEAD_BRANCH" == cursor-review/* ]]; then
+            echo "This is a Cursor PR - skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "branch=$HEAD_BRANCH" >> "$GITHUB_OUTPUT"
+
+          # Count fix attempts
+          FIX_ATTEMPTS=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json comments \
+            --jq '[.comments[] | select(.body | contains("Jules Fix Attempt"))] | length')
+          echo "fix_attempts=$FIX_ATTEMPTS" >> "$GITHUB_OUTPUT"
+
           # Extract issue number
+          PR_BODY=$(echo "$PR_JSON" | jq -r '.[0].body // empty')
           ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
           if [[ -z "$ISSUE_NUM" ]]; then
-            ISSUE_NUM=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | grep -oE '[0-9]+' | head -1)
+            ISSUE_NUM=$(echo "$HEAD_BRANCH" | grep -oE '[-/][0-9]+[-/]' | grep -oE '[0-9]+' | head -1)
           fi
-
-          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
           echo "issue_number=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
 
-      - name: Comment on issue - Jules fixing CI
-        if: steps.details.outputs.issue_number != '' && steps.details.outputs.is_jules_pr == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check escalation threshold
+        id: escalate
+        if: steps.check.outputs.skip != 'true'
         run: |
-          gh issue comment ${{ steps.details.outputs.issue_number }} \
-            --repo "${{ github.repository }}" \
-            --body "## 🔧 Jules Self-Healing CI Triggered
+          FIX_ATTEMPTS="${{ steps.check.outputs.fix_attempts }}"
 
-          CI failed on PR #${{ steps.details.outputs.pr_number }}.
-
-          **What's happening:**
-          1. 🔍 Analyzing the CI failure logs
-          2. 🔎 Identifying the root cause
-          3. 🔧 Applying fixes
-          4. 📝 Pushing corrected code
-
-          ---
-          *[View failed CI run](${{ github.event.workflow_run.html_url }})*"
-
-      - name: Checkout repository
-        if: steps.details.outputs.is_jules_pr == 'true'
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_branch }}
-          fetch-depth: 0
-
-      - name: Invoke Jules to fix CI failure
-        if: steps.details.outputs.is_jules_pr == 'true'
-        uses: google-labs-code/jules-action@v1.0.0
-        with:
-          starting_branch: ${{ github.event.workflow_run.head_branch }}
-          include_last_commit: false
-          include_commit_log: false
-          jules_api_key: ${{ secrets.JULES_API_KEY }}
-          prompt: |
-            You are a CI failure remediation agent for the meraki-homeassistant project.
-            A CI workflow has failed and you need to diagnose and fix it.
-
-            ## Failed Workflow Information
-            - Workflow: ${{ github.event.workflow_run.name }}
-            - Branch: ${{ github.event.workflow_run.head_branch }}
-            - Commit: ${{ github.event.workflow_run.head_sha }}
-            - Run URL: ${{ github.event.workflow_run.html_url }}
-
-            ## CRITICAL: Push directly to the existing branch
-            DO NOT create a new branch or PR. Push your fixes directly to:
-            Branch: ${{ github.event.workflow_run.head_branch }}
-
-            ## Project Context
-            Read the AGENTS.md file first - it contains all project standards and conventions.
-
-            This is a Home Assistant custom integration for Cisco Meraki networks.
-            Key technologies: Python 3.13, Home Assistant Core, React/TypeScript frontend.
-
-            ## CI Checks to Fix
-            The CI pipeline includes these checks:
-            1. **Linting**: ruff check, ruff format
-            2. **Type checking**: mypy
-            3. **Security**: bandit, pip-audit
-            4. **Tests**: pytest with coverage
-            5. **Hassfest**: Home Assistant manifest validation
-            6. **Frontend**: npm build
-
-            ## Your Task
-
-            1. **Analyze the failure**: Look at the failed workflow run logs to understand what failed.
-
-            2. **Diagnose the root cause**: Examine the relevant source files.
-
-            3. **Fix the issue** following project standards:
-               - Use `uv` for Python package management (never requirements.txt)
-               - Follow PEP 8 and Ruff rules
-               - Ensure all functions have type hints
-               - Use async/await for I/O operations
-               - For frontend issues, run `npm run build` after fixes
-
-            4. **Verify your fix**: Run the appropriate check locally before committing:
-               - Linting: `ruff check --fix . && ruff format .`
-               - Type checking: `mypy custom_components/meraki_ha/ tests/`
-               - Tests: `pytest`
-               - Frontend: `cd custom_components/meraki_ha/www && npm run build`
-
-            5. **Commit and push directly to the existing branch**:
-               - Message format: `fix(ci): [description of fix]`
-               - Include what failed and how you fixed it
-               - Push to: ${{ github.event.workflow_run.head_branch }}
-               - DO NOT create a new PR
-
-            ## Constraints
-            - Keep changes minimal - only fix what's broken
-            - Don't refactor unrelated code
-            - All existing tests must pass
-            - Follow Conventional Commits format
-            - PUSH TO THE SAME BRANCH - no new PRs
-
-      - name: Wait for Jules to complete
-        if: steps.details.outputs.is_jules_pr == 'true'
-        run: |
-          echo "Waiting for Jules to push fixes..."
-          sleep 30
-
-      - name: Check for and merge any fix PRs
-        if: steps.details.outputs.is_jules_pr == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          ORIGINAL_BRANCH="${{ github.event.workflow_run.head_branch }}"
-
-          echo "Checking for fix PRs targeting $ORIGINAL_BRANCH..."
-
-          # Find any PRs that Jules might have created targeting the original branch
-          FIX_PRS=$(gh pr list \
-            --repo "${{ github.repository }}" \
-            --base "$ORIGINAL_BRANCH" \
-            --state open \
-            --json number,headRefName,author \
-            --jq '.[] | select(.author.login | contains("jules") or . == "github-actions[bot]") | .number')
-
-          if [[ -n "$FIX_PRS" ]]; then
-            for PR_NUM in $FIX_PRS; do
-              echo "Found fix PR #$PR_NUM - auto-merging..."
-
-              # Get the branch name for cleanup
-              FIX_BRANCH=$(gh pr view $PR_NUM --json headRefName -q '.headRefName')
-
-              # Enable auto-merge
-              gh pr merge $PR_NUM \
-                --repo "${{ github.repository }}" \
-                --squash \
-                --auto \
-                --delete-branch \
-                --body "Auto-merged CI fix from Jules Self-Healing CI"
-
-              echo "✅ PR #$PR_NUM set to auto-merge and delete branch: $FIX_BRANCH"
-            done
+          if [[ "$FIX_ATTEMPTS" -ge 5 ]]; then
+            echo "should_escalate=true" >> "$GITHUB_OUTPUT"
+            echo "🚨 5+ fix attempts - escalating to human"
           else
-            echo "No separate fix PRs found - Jules pushed directly to $ORIGINAL_BRANCH"
+            echo "should_escalate=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Comment on issue - Jules fix pushed
-        if: steps.details.outputs.issue_number != '' && steps.details.outputs.is_jules_pr == 'true'
+      - name: Escalate to human
+        if: steps.escalate.outputs.should_escalate == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh issue comment ${{ steps.details.outputs.issue_number }} \
+          PR_NUM="${{ steps.check.outputs.pr_number }}"
+          ISSUE_NUM="${{ steps.check.outputs.issue_number }}"
+
+          gh pr comment "$PR_NUM" \
             --repo "${{ github.repository }}" \
-            --body "## ✅ Jules Pushed CI Fix
+            --body "## 🚨 Escalation Required
 
-          Jules has pushed a fix to branch \`${{ github.event.workflow_run.head_branch }}\`.
+          Jules has attempted 5+ fixes but CI still fails.
 
-          **Next:** ⏳ CI will run again to verify the fix.
+          **Manual intervention required.**
 
           ---
-          *Automated fix by Jules Self-Healing CI*"
+          *Escalated by Jules workflow*"
+
+          gh pr edit "$PR_NUM" \
+            --repo "${{ github.repository }}" \
+            --add-label "needs-human-review" 2>/dev/null || true
+
+          if [[ -n "$ISSUE_NUM" ]]; then
+            gh issue comment "$ISSUE_NUM" \
+              --repo "${{ github.repository }}" \
+              --body "## 🚨 Jules Escalated
+
+            Jules couldn't fix CI after 5 attempts. Human intervention required.
+
+            **PR**: #$PR_NUM
+
+            ---
+            *Escalated by automation*"
+
+            gh issue edit "$ISSUE_NUM" \
+              --repo "${{ github.repository }}" \
+              --add-label "needs-human-review" 2>/dev/null || true
+          fi
+
+      - name: Get CI failure details
+        id: ci_failure
+        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RUN_ID="${{ github.event.workflow_run.id }}"
+          REPO="${{ github.repository }}"
+
+          # Get failed job names
+          FAILED_JOBS=$(gh run view "$RUN_ID" --repo "$REPO" --json jobs \
+            --jq '[.jobs[] | select(.conclusion == "failure") | .name] | join(", ")')
+          echo "failed_jobs=$FAILED_JOBS" >> "$GITHUB_OUTPUT"
+
+          # Download detailed error logs
+          mkdir -p /tmp/logs
+          gh run view "$RUN_ID" --repo "$REPO" --log-failed 2>/dev/null | tail -300 > /tmp/logs/ci_errors.txt || true
+
+          # Save for the invoke step
+          echo "CI Errors captured: $(wc -l < /tmp/logs/ci_errors.txt) lines"
+
+      - name: Read CI error logs
+        id: errors
+        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true'
+        run: |
+          CI_ERRORS=""
+          if [[ -f /tmp/logs/ci_errors.txt ]]; then
+            # Get first 100 lines of errors to keep comment manageable
+            CI_ERRORS=$(cat /tmp/logs/ci_errors.txt | head -100)
+          fi
+          # Save to env file for multiline
+          echo "CI_ERRORS<<EOF" >> "$GITHUB_ENV"
+          echo "$CI_ERRORS" >> "$GITHUB_ENV"
+          echo "EOF" >> "$GITHUB_ENV"
+
+      - name: Comment @jules to request fix
+        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          FIX_NUM=$(( ${{ steps.check.outputs.fix_attempts }} + 1 ))
+          PR_NUM="${{ steps.check.outputs.pr_number }}"
+          BRANCH="${{ steps.check.outputs.branch }}"
+          FAILED_JOBS="${{ steps.ci_failure.outputs.failed_jobs }}"
+
+          # Comment with @jules mention - Jules will automatically pick this up
+          gh pr comment "$PR_NUM" \
+            --repo "${{ github.repository }}" \
+            --body "@jules
+
+          ## 🔧 CI Fix Required - Attempt #$FIX_NUM
+
+          The CI pipeline failed. Please fix the issues and push to branch: \`$BRANCH\`
+
+          ### Failed Jobs
+          $FAILED_JOBS
+
+          ### Error Logs
+          \`\`\`
+          ${{ env.CI_ERRORS }}
+          \`\`\`
+
+          ### Instructions
+          1. Analyze the error logs above
+          2. Fix ONLY the specific errors shown
+          3. Run \`./run_checks.sh\` to verify all checks pass
+          4. Commit with: \`fix(jules): resolve CI errors - attempt #$FIX_NUM\`
+          5. Push to branch: \`$BRANCH\`
+
+          ---
+          *Jules Fix Attempt #$FIX_NUM - [View CI Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})*"
+
+      - name: Update issue with progress
+        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true' && steps.check.outputs.issue_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          FIX_NUM=$(( ${{ steps.check.outputs.fix_attempts }} + 1 ))
+
+          gh issue comment ${{ steps.check.outputs.issue_number }} \
+            --repo "${{ github.repository }}" \
+            --body "## 🔧 Jules Fix Attempt #$FIX_NUM
+
+          CI failed on PR #${{ steps.check.outputs.pr_number }}.
+
+          **Failed:** ${{ steps.ci_failure.outputs.failed_jobs }}
+
+          @jules has been notified to fix the issues.
+
+          ---
+          *Automated progress update*"

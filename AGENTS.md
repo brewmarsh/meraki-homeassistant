@@ -12,7 +12,7 @@ This is a **Cisco Meraki integration for Home Assistant**. It allows users to mo
 
 | Layer       | Technologies                                                      |
 | ----------- | ----------------------------------------------------------------- |
-| Backend     | Python 3.13, Home Assistant Core, `meraki` SDK, `aiohttp`         |
+| Backend     | Python 3.13.2, Home Assistant Core, `meraki` SDK, `aiohttp`       |
 | Frontend    | React, TypeScript, Vite, Home Assistant custom panel architecture |
 | Testing     | pytest, pytest-asyncio, pytest-homeassistant-custom-component     |
 | Linting     | Ruff, mypy, bandit, pylint                                        |
@@ -55,17 +55,17 @@ meraki-homeassistant/
 This project uses **`uv`** as the Python package manager. **Never use `requirements.txt` files.**
 
 ```bash
-# Install all dev dependencies
-uv sync
+# Install all dev dependencies (--all-extras is required!)
+uv sync --all-extras
 
 # Add a new dependency
 uv add <package-name>
 
 # Or edit pyproject.toml directly, then:
-uv sync
+uv sync --all-extras
 ```
 
-All dependencies are defined in `pyproject.toml` under `[project.optional-dependencies].dev`. The `uv.lock` file ensures reproducible builds across environments.
+All dependencies are defined in `pyproject.toml` under `[project.optional-dependencies].dev`. The `--all-extras` flag is required to install these optional dependencies. The `uv.lock` file ensures reproducible builds across environments.
 
 ---
 
@@ -251,23 +251,23 @@ Before submitting changes, you **must** run all quality checks. Use the helper s
 **All tool configurations are centralized in `pyproject.toml`** - never create separate config files (no `.bandit.yaml`, `.ruff.toml`, `mypy.ini`, `pytest.ini`, etc.).
 
 ```bash
-# All-in-one check script
+# Recommended: All-in-one check script (auto-installs uv if needed)
 ./run_checks.sh
 
-# Or run individually:
+# Or run individually using uv run:
 
 # Linting & Formatting (configured in [tool.ruff])
-ruff check --fix .
-ruff format .
+uv run ruff check --fix .
+uv run ruff format .
 
 # Type Checking (configured in [tool.mypy])
-mypy custom_components/meraki_ha/ tests/
+uv run mypy custom_components/meraki_ha/ tests/
 
 # Security Analysis (configured in [tool.bandit])
-bandit -c pyproject.toml -r .
+uv run bandit -c pyproject.toml -r custom_components/meraki_ha/
 
 # Run Tests (configured in [tool.pytest.ini_options])
-pytest
+uv run pytest
 
 # Home Assistant Validation
 docker run --rm -v "$(pwd)":/github/workspace ghcr.io/home-assistant/hassfest
@@ -418,10 +418,10 @@ Track compliance in `quality_scale.yaml`. Reference the [full rules documentatio
 
 ```bash
 # Run all tests
-pytest
+uv run pytest
 
 # Run with coverage report
-pytest --cov=custom_components/meraki_ha --cov-report=term-missing
+uv run pytest --cov=custom_components/meraki_ha --cov-report=term-missing
 ```
 
 ### Test Requirements
@@ -560,7 +560,8 @@ logger:
 | Mypy configuration      | `pyproject.toml` → `[tool.mypy]`                         |
 | Bandit configuration    | `pyproject.toml` → `[tool.bandit]`                       |
 | CI workflows            | `.github/workflows/`                                     |
+| Agent workflow docs     | `.github/AGENT_WORKFLOWS.md`                             |
 
 ---
 
-_This document was last updated for version 2.2.1._
+_This document was last updated for version 2.3.0._
