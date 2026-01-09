@@ -47,6 +47,7 @@ class MerakiOptionsFlowHandler(OptionsFlow):
         """
         self.options = dict(config_entry.options)
         self._editing_destination_index: int | None = None
+        self._destination_action: str | None = None  # Tracks edit/delete action
 
     async def async_step_init(
         self,
@@ -166,9 +167,11 @@ class MerakiOptionsFlowHandler(OptionsFlow):
                 self._editing_destination_index = None  # Ensure we are in "add" mode
                 return await self.async_step_mqtt_destination()
             if action == "edit":
-                return await self.async_step_mqtt_select_destination(action="edit")
+                self._destination_action = "edit"
+                return await self.async_step_mqtt_select_destination()
             if action == "delete":
-                return await self.async_step_mqtt_select_destination(action="delete")
+                self._destination_action = "delete"
+                return await self.async_step_mqtt_select_destination()
 
             # Default action is "continue"
             return self.async_create_entry(
@@ -224,15 +227,16 @@ class MerakiOptionsFlowHandler(OptionsFlow):
 
     async def async_step_mqtt_select_destination(
         self,
-        action: str,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
         """Sub-step: Select a destination to edit or delete."""
+        action = self._destination_action or "edit"
         current_destinations = self.options.get(
             CONF_MQTT_RELAY_DESTINATIONS, DEFAULT_MQTT_RELAY_DESTINATIONS
         )
 
         if not current_destinations:
+            self._destination_action = None
             return await self.async_step_mqtt()
 
         destination_options: list[selector.SelectOptionDict] = [
@@ -253,7 +257,9 @@ class MerakiOptionsFlowHandler(OptionsFlow):
             if action == "edit":
                 if selected_indices:
                     self._editing_destination_index = selected_indices[0]
+                    self._destination_action = None
                     return await self.async_step_mqtt_destination()
+                self._destination_action = None
                 return await self.async_step_mqtt()  # Go back if nothing selected
 
             if action == "delete":
@@ -263,6 +269,7 @@ class MerakiOptionsFlowHandler(OptionsFlow):
                     if 0 <= idx < len(destinations):
                         del destinations[idx]
                 self.options[CONF_MQTT_RELAY_DESTINATIONS] = destinations
+                self._destination_action = None
                 return await self.async_step_mqtt()
 
         schema = vol.Schema(
