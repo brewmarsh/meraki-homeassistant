@@ -1,36 +1,35 @@
-# Python
+# --- Meraki HA & Jules Environment (v2.4.0) ---
+
+# Python & Core Bytecode
 *.py[cod]
 *$py.class
 __pycache__/
 
-# Agent specific artifacts
-archive/agent-artifacts/
-.jules/
+# Agent & Virtual Environment Artifacts
 .venv/
-__pycache__/
+.jules/
+archive/agent-artifacts/
 *.log
 
-# Node/npm
+# Testing & Linting Caches (The "File Multipliers")
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+test-output/
+
+# Node/npm & Frontend
 node_modules/
+custom_components/meraki_ha/www/node_modules/
 .cache/
 *.cache/
 .prettier-cache/
 
-# Coverage
-.coverage
-coverage.xml
-custom_components/meraki_ha/www/node_modules
-
-# Home Assistant Testing & Config
+# Home Assistant Local Storage & Builds
 .storage/
 .cloud/
-test-output/
 dist/
-
-# Development Tools
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
 
 # System/OS Junk
 .DS_Store
