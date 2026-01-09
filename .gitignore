@@ -13,3 +13,7 @@ node_modules/
 .coverage
 coverage.xml
 custom_components/meraki_ha/www/node_modules
+custom_components/meraki_ha/www/dist
+
+# Local configuration
+config/

@@ -7,6 +7,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
@@ -34,6 +35,7 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
 
         self._attr_unique_id = f"{self._device_serial}_uplink_{self._uplink_interface}"
         self._attr_name = f"Uplink {self._uplink_interface.upper()}"
+        self._attr_entity_category = EntityCategory.DIAGNOSTIC
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},

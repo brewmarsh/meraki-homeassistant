@@ -37,7 +37,7 @@ This plan focuses on making device controls stateless and declarative by central
 1.  **Refactor `MXHandler` and `GXHandler`**:
     * Update the handlers to accept the `DeviceControlService` via **Dependency Injection**.
     * Within the handler's entity creation logic, create new `homeassistant.components.button.ButtonEntity` or `switch` entities as appropriate.
-    * The `async_press` method of the button entity or the `async_turn_on`/`async_turn_off` methods of the switch entity must call the corresponding method on the **injected `DeviceControlService`**. For example, the button's `async_press` will call `await self._control_service.async_reboot(self.device_serial)`. 
+    * The `async_press` method of the button entity or the `async_turn_on`/`async_turn_off` methods of the switch entity must call the corresponding method on the **injected `DeviceControlService`**. For example, the button's `async_press` will call `await self._control_service.async_reboot(self.device_serial)`.
 
 #### Phase 4: Testing and Cleanup
 
@@ -46,4 +46,3 @@ This plan focuses on making device controls stateless and declarative by central
     * Test the `MXHandler` and `GXHandler` to ensure they correctly create the button or switch entities. Use a mock control service and verify that the entity's action method calls the service as expected.
 2.  **Remove Old Code**:
     * Delete any old, direct API calls for device control that may still exist in the `NetworkHub` or `DeviceHandlers`. Ensure all control actions are routed through the new service.
-
