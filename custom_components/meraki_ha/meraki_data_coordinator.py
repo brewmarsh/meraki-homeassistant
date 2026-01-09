@@ -225,15 +225,8 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             )
             return
 
-        # Find the device in coordinator data
-        device = None
-        device_idx = None
-        for idx, dev in enumerate(self.data["devices"]):
-            if dev.get("serial") == serial:
-                device = dev
-                device_idx = idx
-                break
-
+        # Find the device using O(1) lookup table instead of linear search
+        device = self.devices_by_serial.get(serial)
         if device is None:
             _LOGGER.debug("Device %s not found in coordinator data", serial)
             return
@@ -259,11 +252,10 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if not found:
             readings_raw.append(new_reading)
 
-        # Update device data
-        self.data["devices"][device_idx]["readings_raw"] = readings_raw
-        self.data["devices"][device_idx]["readings"] = (
-            self._process_sensor_readings_for_frontend(readings_raw)
-        )
+        # Update device data directly (device is a reference to the same object
+        # in self.data["devices"], so changes are reflected in both places)
+        device["readings_raw"] = readings_raw
+        device["readings"] = self._process_sensor_readings_for_frontend(readings_raw)
 
         # Track MQTT update timestamp
         mqtt_update_time = datetime.now()
@@ -272,13 +264,10 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Update readings_meta with timestamp and data source
         # Use the timestamp from the reading if available, otherwise use current time
         reading_ts = data.get("ts") or mqtt_update_time.isoformat()
-        self.data["devices"][device_idx]["readings_meta"] = {
+        device["readings_meta"] = {
             "last_updated": reading_ts,
             "data_source": "mqtt",
         }
-
-        # Update the lookup table
-        self.devices_by_serial[serial] = self.data["devices"][device_idx]
 
         _LOGGER.debug(
             "Updated device %s metric %s from MQTT",
