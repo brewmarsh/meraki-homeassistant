@@ -10,6 +10,16 @@ MOCK_CONFIG_ENTRY_ID = "test_entry"
 MOCK_CONFIG_ENTRY = MagicMock()
 MOCK_CONFIG_ENTRY.entry_id = MOCK_CONFIG_ENTRY_ID
 
+MOCK_MERAKI_CLIENT = {
+    "id": "12345",
+    "mac": "00:11:22:33:44:55",
+    "description": "Test Client",
+    "ip": "192.168.1.100",
+    "vlan": 10,
+    "ssid": "Test SSID",
+    "status": "Online",
+}
+
 
 MOCK_NETWORK: MerakiNetwork = {
     "id": "N_12345",

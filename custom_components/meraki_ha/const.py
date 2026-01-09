@@ -54,6 +54,12 @@ CONF_RTSP_STREAM_ENABLED: Final = "rtsp_stream_enabled"
 CONF_ENABLE_DEVICE_TRACKER: Final = "enable_device_tracker"
 """Configuration key for enabling device tracker."""
 
+CONF_FILTER_VLAN: Final = "filter_vlan"
+"""Configuration key for filtering device trackers by VLAN."""
+
+CONF_FILTER_SSID: Final = "filter_ssid"
+"""Configuration key for filtering device trackers by SSID."""
+
 
 CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
 """Configuration key for enabling vlan management."""
@@ -61,12 +67,6 @@ CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
 
 CONF_ENABLED_NETWORKS: Final = "enabled_networks"
 """Configuration key for a list of network IDs to enable."""
-
-CONF_FILTER_VLAN: Final = "filter_vlan"
-"""Configuration key for a list of VLANs to filter device trackers by."""
-
-CONF_FILTER_SSID: Final = "filter_ssid"
-"""Configuration key for a list of SSIDs to filter device trackers by."""
 
 DEFAULT_ENABLED_NETWORKS: Final[list[str]] = []
 """Default value for the ignored networks list."""

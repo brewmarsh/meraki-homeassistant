@@ -42,7 +42,7 @@ This plan will integrate switch port monitoring into the existing architecture b
     * During device discovery, after identifying a Meraki MS switch, the handler must iterate through all of its ports.
     * For each port, the handler will create a new **binary sensor** Home Assistant entity. A binary sensor is ideal for representing a simple "on/off" or "connected/disconnected" state.
     * The sensor's state will be set to `on` if the port status is 'Connected' and `off` if it's 'Disconnected'.
-    * **Implement the visual indicator**: When creating the binary sensor entity, use the `device_class` property with `connectivity`. This tells Home Assistant to use a specific icon set for connected devices. For a more direct visual, you can also set the `icon` attribute and the `state_color` attribute to `True` on the entity. Home Assistant will then automatically color the icon based on the state. For example, the icon will be green when the state is `on` and gray when the state is `off`. 
+    * **Implement the visual indicator**: When creating the binary sensor entity, use the `device_class` property with `connectivity`. This tells Home Assistant to use a specific icon set for connected devices. For a more direct visual, you can also set the `icon` attribute and the `state_color` attribute to `True` on the entity. Home Assistant will then automatically color the icon based on the state. For example, the icon will be green when the state is `on` and gray when the state is `off`.
 
 ---
 

@@ -46,7 +46,6 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.api = api_client
         self.devices_by_serial: dict[str, MerakiDevice] = {}
         self.networks_by_id: dict[str, MerakiNetwork] = {}
-        self.clients_by_id: dict[str, dict[str, Any]] = {}
         self.ssids_by_network_and_number: dict[tuple[str, int], dict[str, Any]] = {}
         self.last_successful_update: datetime | None = None
         self.last_successful_data: dict[str, Any] = {}
@@ -62,6 +61,8 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 scan_interval = DEFAULT_SCAN_INTERVAL
         except (ValueError, TypeError):
             scan_interval = DEFAULT_SCAN_INTERVAL
+
+        self.config_entry = entry
 
         super().__init__(
             hass,
@@ -269,8 +270,20 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if not (data and "devices" in data):
             return
 
+        if not self.config_entry:
+            return
+
         ent_reg = er.async_get(self.hass)
         dev_reg = dr.async_get(self.hass)
+
+        # Pre-fetch entities for this config entry to avoid O(N*M) lookups
+        entities = er.async_entries_for_config_entry(
+            ent_reg, self.config_entry.entry_id
+        )
+        entities_by_device_id: dict[str, list[er.RegistryEntry]] = {}
+        for entity in entities:
+            if entity.device_id:
+                entities_by_device_id.setdefault(entity.device_id, []).append(entity)
 
         for device in data["devices"]:
             device.setdefault("status_messages", [])
@@ -279,10 +292,8 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 identifiers={(DOMAIN, device["serial"])},
             )
             if ha_device:
-                entities_for_device = er.async_entries_for_device(
-                    ent_reg,
-                    ha_device.id,
-                )
+                entities_for_device = entities_by_device_id.get(ha_device.id, [])
+
                 if entities_for_device:
                     # Prioritize more representative entities
                     primary_entity = None
@@ -315,8 +326,6 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 _LOGGER.warning("API call to get_all_data returned no data.")
                 raise UpdateFailed("API call returned no data.")
 
-            _LOGGER.debug("Client data from API: %s", data.get("clients"))
-
             self._filter_enabled_networks(data)
             _LOGGER.debug("SSIDs after filtering: %s", data.get("ssids"))
             await self._async_remove_disabled_devices(data)
@@ -344,9 +353,6 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             }
             self.networks_by_id = {
                 n["id"]: n for n in data.get("networks", []) if "id" in n
-            }
-            self.clients_by_id = {
-                c["id"]: c for c in data.get("clients", []) if "id" in c
             }
             self.ssids_by_network_and_number = {
                 (s["networkId"], s["number"]): s

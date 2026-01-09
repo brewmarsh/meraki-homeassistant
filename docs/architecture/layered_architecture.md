@@ -83,8 +83,8 @@ The architecture is based on a clean separation of concerns, ensuring each compo
     * Remove all old, deprecated polling logic.
     * Ensure all new files and directories are correctly added to version control.
     * Confirm docstrings and inline comments are clear and concise.
-  
-A common source of these issues is **monolithic files** that contain too much logic. While the previous plan focused on architectural patterns, we can refine the implementation details to specifically combat file complexity. The solution is to prioritize **function decomposition** and **separation of concerns** at a granular level. 
+
+A common source of these issues is **monolithic files** that contain too much logic. While the previous plan focused on architectural patterns, we can refine the implementation details to specifically combat file complexity. The solution is to prioritize **function decomposition** and **separation of concerns** at a granular level.
 
 ***
 
@@ -122,7 +122,7 @@ The core architectural plan remains sound, but this update adds an additional la
     * **Enforce the 300-Line Limit:** If a handler file (e.g., `MRHandler.py`) becomes too large, it suggests that the handler is trying to do too much. Break its entity creation logic into multiple, separate functions.
 
 2.  **Create `DeviceDiscoveryService` (`meraki_ha/discovery/service.py`)**:
-    * **Simplify the Core Loop:** Ensure the `discover_entities` method is a simple loop that delegates all complex work to the `DeviceHandlers`. The code should be clear and have a low cyclomatic complexity. 
+    * **Simplify the Core Loop:** Ensure the `discover_entities` method is a simple loop that delegates all complex work to the `DeviceHandlers`. The code should be clear and have a low cyclomatic complexity.
 
 #### Phase 4: Testing and Project Cleanup
 

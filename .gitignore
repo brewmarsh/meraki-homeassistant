@@ -13,3 +13,14 @@ node_modules/
 .coverage
 coverage.xml
 custom_components/meraki_ha/www/node_modules
+custom_components/meraki_ha/www/dist
+
+# Home Assistant
+config/
+home-assistant_v2.db
+*.db
+*.log
+*.sqlite3
+.storage/
+tts/
+deps/

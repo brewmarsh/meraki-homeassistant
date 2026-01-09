@@ -1,21 +1,23 @@
-"""Support for Meraki device tracking."""
-
+"""Support for Meraki client device tracking."""
 from __future__ import annotations
 
 import logging
 from typing import Any
 
 from homeassistant.components.device_tracker import SourceType
-from homeassistant.components.device_tracker.config_entry import ScannerEntity
+from homeassistant.components.device_tracker.config_entry import (
+    ScannerEntity,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+)
 
 from .const import (
     CONF_FILTER_SSID,
     CONF_FILTER_VLAN,
-    DATA_COORDINATOR,
     DOMAIN,
 )
 from .meraki_data_coordinator import MerakiDataCoordinator
@@ -28,99 +30,106 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the Meraki device tracker platform."""
-    coordinator: MerakiDataCoordinator = hass.data[DOMAIN][entry.entry_id][
-        DATA_COORDINATOR
-    ]
-
-    tracked: dict[str, MerakiClientDeviceTracker] = {}
+    """Set up Meraki device trackers from a config entry."""
+    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+    ssid_filter = entry.options.get(CONF_FILTER_SSID)
+    vlan_filter = entry.options.get(CONF_FILTER_VLAN)
 
     @callback
-    def update_entities() -> None:
-        """Update the device tracker entities."""
-        if not coordinator.data or "clients" not in coordinator.data:
-            _LOGGER.debug("No client data available from coordinator.")
+    def async_update_scanners() -> None:
+        """Update the list of device trackers."""
+        if coordinator.data is None:
             return
 
+        active_clients = {
+            entity.unique_id for entity in hass.data[DOMAIN].get("entities", {}).get("device_tracker", [])
+        }
+
         new_entities = []
-
-        filter_vlans = entry.options.get(CONF_FILTER_VLAN, [])
-        filter_ssids = entry.options.get(CONF_FILTER_SSID, [])
-
-        for client in coordinator.data["clients"]:
-            if client["id"] in tracked:
+        clients = coordinator.data.get("clients", {})
+        for client_id, client in clients.items():
+            if f"meraki-client-{client_id}" in active_clients:
                 continue
-
-            # Apply filters
-            vlan = client.get("vlan")
-            if filter_vlans and (vlan is None or vlan not in filter_vlans):
+            if vlan_filter and client.get("vlan") not in vlan_filter:
                 continue
-
-            ssid = client.get("ssid")
-            if filter_ssids and (ssid is None or ssid not in filter_ssids):
+            if ssid_filter and client.get("ssid") not in ssid_filter:
                 continue
+            new_entities.append(
+                MerakiClientTracker(hass, coordinator, entry, client)
+            )
+
+        async_add_entities(new_entities)
+
+    entry.async_on_unload(coordinator.async_add_listener(async_update_scanners))
+    async_update_scanners()
 
 
-            entity = MerakiClientDeviceTracker(coordinator, client)
-            tracked[client["id"]] = entity
-            new_entities.append(entity)
-
-        if new_entities:
-            async_add_entities(new_entities)
-
-    entry.async_on_unload(coordinator.async_add_listener(update_entities))
-    update_entities()
-
-
-class MerakiClientDeviceTracker(CoordinatorEntity, ScannerEntity):
-    """Representation of a tracked Meraki client."""
-
-    _attr_translation_key = "presence"
+class MerakiClientTracker(
+    CoordinatorEntity[MerakiDataCoordinator], ScannerEntity
+):
+    """Representation of a Meraki client."""
 
     def __init__(
         self,
+        hass: HomeAssistant,
         coordinator: MerakiDataCoordinator,
-        client_data: dict[str, Any],
+        entry: ConfigEntry,
+        client: dict[str, Any],
     ) -> None:
         """Initialize the client tracker."""
         super().__init__(coordinator)
-        self._client_id = client_data["id"]
-        self._attr_unique_id = f"meraki_client_{self._client_id}"
-        self._attr_name = (
-            client_data.get("description") or client_data["mac"]
-        )
+        self.hass = hass
+        self.config_entry = entry
+        self._client_id = client["id"]
+        self._attr_unique_id = f"meraki-client-{self._client_id}"
+        self._attr_name = client.get("description") or client.get("mac")
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, self._attr_unique_id)},
+            "name": self.name,
+        }
 
     @property
     def is_connected(self) -> bool:
         """Return true if the client is connected to the network."""
-        client = self._get_client_data()
+        client = self._get_client()
         return client is not None and client.get("status") == "Online"
 
     @property
     def source_type(self) -> SourceType:
-        """Return the source type of the client."""
+        """Return the source type, will be SourceType.ROUTER."""
         return SourceType.ROUTER
 
     @property
+    def ip_address(self) -> str | None:
+        """Return the primary ip address of the device."""
+        client = self._get_client()
+        return client.get("ip") if client else None
+
+    @property
+    def mac_address(self) -> str | None:
+        """Return the mac address of the device."""
+        client = self._get_client()
+        return client.get("mac") if client else None
+
+    @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Return the state attributes of the client."""
-        client = self._get_client_data()
+        """Return the device state attributes."""
+        client = self._get_client()
         if not client:
             return {}
-
         return {
-            "mac_address": client.get("mac"),
-            "ip_address": client.get("ip"),
-            "ssid": client.get("ssid"),
             "vlan": client.get("vlan"),
-            "last_seen": client.get("lastSeen"),
+            "ssid": client.get("ssid"),
+            "status": client.get("status"),
         }
+
+    def _get_client(self) -> dict[str, Any] | None:
+        """Get the client data from the coordinator."""
+        return self.coordinator.data.get("clients_by_id", {}).get(
+            self._client_id
+        )
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self.async_write_ha_state()
-
-    def _get_client_data(self) -> dict[str, Any] | None:
-        """Fetch the client's data from the coordinator."""
-        return self.coordinator.clients_by_id.get(self._client_id)

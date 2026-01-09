@@ -9,8 +9,6 @@ from .const import (
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_ENABLE_VLAN_MANAGEMENT,
     CONF_ENABLED_NETWORKS,
-    CONF_FILTER_SSID,
-    CONF_FILTER_VLAN,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
@@ -51,24 +49,6 @@ OPTIONS_SCHEMA = vol.Schema(
                 multiple=True,
                 custom_value=False,
                 mode=selector.SelectSelectorMode.DROPDOWN,
-            )
-        ),
-        vol.Optional(CONF_FILTER_VLAN, default=[]): selector.SelectSelector(
-            selector.SelectSelectorConfig(
-                options=[],
-                multiple=True,
-                custom_value=False,
-                mode=selector.SelectSelectorMode.DROPDOWN,
-                translation_key=CONF_FILTER_VLAN,
-            )
-        ),
-        vol.Optional(CONF_FILTER_SSID, default=[]): selector.SelectSelector(
-            selector.SelectSelectorConfig(
-                options=[],
-                multiple=True,
-                custom_value=False,
-                mode=selector.SelectSelectorMode.DROPDOWN,
-                translation_key=CONF_FILTER_SSID,
             )
         ),
     }
