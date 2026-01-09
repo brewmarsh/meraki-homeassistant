@@ -17,11 +17,71 @@ on:
           - 'true'
 
 jobs:
+  # Clean up the merged branch
+  cleanup-branch:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    permissions:
+      contents: write
+    steps:
+      - name: Delete merged branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+
+          # Don't delete protected branches
+          if [[ "$BRANCH" == "main" || "$BRANCH" == "beta" ]]; then
+            echo "Skipping deletion of protected branch: $BRANCH"
+            exit 0
+          fi
+
+          echo "Deleting merged branch: $BRANCH"
+          gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/$BRANCH" || true
+          echo "✅ Branch $BRANCH deleted"
+
+      - name: Update linked issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_BODY="${{ github.event.pull_request.body }}"
+
+          # Extract issue number
+          ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
+
+          if [[ -n "$ISSUE_NUM" ]]; then
+            echo "Updating issue #$ISSUE_NUM with merge notification"
+
+            gh issue comment $ISSUE_NUM \
+              --repo "${{ github.repository }}" \
+              --body "## 🎉 Merged to Beta!
+
+            **PR #${{ github.event.pull_request.number }}** has been merged.
+
+            **Branch:** \`${{ github.event.pull_request.head.ref }}\` → deleted ✅
+            **Merged by:** @${{ github.event.pull_request.merged_by.login }}
+
+            This issue will be automatically closed.
+
+            ---
+            *A new beta release will be created shortly.*"
+
+            # Update labels
+            gh issue edit $ISSUE_NUM \
+              --repo "${{ github.repository }}" \
+              --remove-label "pr-pending" \
+              --remove-label "ready-for-review" \
+              --remove-label "cursor-approved" \
+              --add-label "released-beta" 2>/dev/null || true
+          fi
+
   version:
     runs-on: ubuntu-latest
-    if: >
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.confirm == 'true') ||
-      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    needs: [cleanup-branch]
+    if: |
+      always() &&
+      ((github.event_name == 'workflow_dispatch' && github.event.inputs.confirm == 'true') ||
+       (github.event_name == 'pull_request' && github.event.pull_request.merged == true))
     permissions:
       contents: write
     outputs:

@@ -163,9 +163,101 @@ jobs:
             --generate-notes \
             --target main
 
-  deploy:
+  # Clean up beta releases, tags, and reset beta branch
+  cleanup-beta:
     runs-on: ubuntu-latest
     needs: [version, release]
+    if: needs.version.outputs.new_version != ''
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: 'main'
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete beta releases for this version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.version.outputs.new_version }}"
+          echo "Cleaning up beta releases for version $VERSION..."
+
+          # List all releases and find beta pre-releases related to this version
+          # Beta versions look like: v2.3.0-beta.1, v2.3.0-beta.2, etc.
+          BETA_RELEASES=$(gh release list \
+            --repo "${{ github.repository }}" \
+            --limit 100 \
+            --json tagName,isPrerelease \
+            --jq ".[] | select(.isPrerelease == true) | select(.tagName | startswith(\"v${VERSION}-beta\")) | .tagName")
+
+          if [[ -n "$BETA_RELEASES" ]]; then
+            echo "Found beta releases to delete:"
+            echo "$BETA_RELEASES"
+
+            for TAG in $BETA_RELEASES; do
+              echo "Deleting release: $TAG"
+              gh release delete "$TAG" \
+                --repo "${{ github.repository }}" \
+                --yes \
+                --cleanup-tag || true
+            done
+            echo "✅ Beta releases cleaned up"
+          else
+            echo "No beta releases found for version $VERSION"
+          fi
+
+      - name: Delete orphaned beta tags
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.version.outputs.new_version }}"
+          echo "Cleaning up orphaned beta tags for version $VERSION..."
+
+          # Find and delete any remaining beta tags
+          git fetch --tags
+          BETA_TAGS=$(git tag -l "v${VERSION}-beta.*")
+
+          if [[ -n "$BETA_TAGS" ]]; then
+            echo "Found beta tags to delete:"
+            echo "$BETA_TAGS"
+
+            for TAG in $BETA_TAGS; do
+              echo "Deleting tag: $TAG"
+              git push origin --delete "$TAG" 2>/dev/null || true
+            done
+            echo "✅ Beta tags cleaned up"
+          else
+            echo "No orphaned beta tags found"
+          fi
+
+      - name: Reset beta branch to main
+        run: |
+          echo "Resetting beta branch to main..."
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Fetch all branches
+          git fetch origin main
+          git fetch origin beta || true
+
+          # Force update beta to match main
+          git checkout main
+          git branch -D beta 2>/dev/null || true
+          git checkout -b beta
+          git push origin beta --force
+
+          echo "✅ Beta branch reset to main"
+          echo ""
+          echo "Beta is now ready for new development!"
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [version, release, cleanup-beta]
     if: needs.version.outputs.new_version != '' && vars.ENABLE_HACS_DEPLOY == 'true'
     steps:
       - name: Deploy via HACS

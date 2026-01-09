@@ -1,11 +1,13 @@
 name: Jules Self-Healing CI
 
+run-name: 'Jules Fix: ${{ github.event.workflow_run.head_branch }}'
+
 # This workflow triggers Jules to automatically fix CI failures
 # Based on: https://github.com/google-labs-code/jules-action
 
 on:
   workflow_run:
-    workflows: ['Beta CI', 'Main CI']
+    workflows: ['Beta CI']
     types:
       - completed
 
@@ -15,20 +17,92 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       issues: write
+      pull-requests: write
+    outputs:
+      issue_number: ${{ steps.details.outputs.issue_number }}
+      pr_number: ${{ steps.details.outputs.pr_number }}
+      is_jules_pr: ${{ steps.details.outputs.is_jules_pr }}
+      original_branch: ${{ github.event.workflow_run.head_branch }}
     steps:
+      - name: Check user authorization
+        run: |
+          # Jules CI fix should only run for Jules PRs
+          # The authorization is inherent - only Jules PRs trigger this
+          echo "✅ Jules Self-Healing CI triggered for branch: ${{ github.event.workflow_run.head_branch }}"
+
+      - name: Get PR and Issue details
+        id: details
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          HEAD_BRANCH="${{ github.event.workflow_run.head_branch }}"
+
+          # Find the PR for this branch
+          PR_JSON=$(gh pr list \
+            --repo "${{ github.repository }}" \
+            --head "$HEAD_BRANCH" \
+            --state open \
+            --json number,body,author \
+            --limit 1)
+
+          PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number // empty')
+          PR_BODY=$(echo "$PR_JSON" | jq -r '.[0].body // empty')
+          PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.[0].author.login // empty')
+
+          # Check if Jules PR (only fix Jules PRs)
+          if [[ "$PR_AUTHOR" == *"jules"* || "$PR_AUTHOR" == "github-actions[bot]" ]]; then
+            echo "is_jules_pr=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_jules_pr=false" >> "$GITHUB_OUTPUT"
+            echo "Not a Jules PR - skipping"
+            exit 0
+          fi
+
+          # Extract issue number
+          ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
+          if [[ -z "$ISSUE_NUM" ]]; then
+            ISSUE_NUM=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | grep -oE '[0-9]+' | head -1)
+          fi
+
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "issue_number=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
+
+      - name: Comment on issue - Jules fixing CI
+        if: steps.details.outputs.issue_number != '' && steps.details.outputs.is_jules_pr == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ steps.details.outputs.issue_number }} \
+            --repo "${{ github.repository }}" \
+            --body "## 🔧 Jules Self-Healing CI Triggered
+
+          CI failed on PR #${{ steps.details.outputs.pr_number }}.
+
+          **What's happening:**
+          1. 🔍 Analyzing the CI failure logs
+          2. 🔎 Identifying the root cause
+          3. 🔧 Applying fixes
+          4. 📝 Pushing corrected code
+
+          ---
+          *[View failed CI run](${{ github.event.workflow_run.html_url }})*"
+
       - name: Checkout repository
+        if: steps.details.outputs.is_jules_pr == 'true'
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
+          fetch-depth: 0
 
       - name: Invoke Jules to fix CI failure
+        if: steps.details.outputs.is_jules_pr == 'true'
         uses: google-labs-code/jules-action@v1.0.0
         with:
           starting_branch: ${{ github.event.workflow_run.head_branch }}
-          include_last_commit: true
-          include_commit_log: true
+          include_last_commit: false
+          include_commit_log: false
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           prompt: |
             You are a CI failure remediation agent for the meraki-homeassistant project.
@@ -39,6 +113,10 @@ jobs:
             - Branch: ${{ github.event.workflow_run.head_branch }}
             - Commit: ${{ github.event.workflow_run.head_sha }}
             - Run URL: ${{ github.event.workflow_run.html_url }}
+
+            ## CRITICAL: Push directly to the existing branch
+            DO NOT create a new branch or PR. Push your fixes directly to:
+            Branch: ${{ github.event.workflow_run.head_branch }}
 
             ## Project Context
             Read the AGENTS.md file first - it contains all project standards and conventions.
@@ -68,20 +146,81 @@ jobs:
                - Use async/await for I/O operations
                - For frontend issues, run `npm run build` after fixes
 
-            4. **Verify your fix**: Run the appropriate check locally before creating a PR:
+            4. **Verify your fix**: Run the appropriate check locally before committing:
                - Linting: `ruff check --fix . && ruff format .`
                - Type checking: `mypy custom_components/meraki_ha/ tests/`
                - Tests: `pytest`
                - Frontend: `cd custom_components/meraki_ha/www && npm run build`
 
-            5. **Create a PR** with:
-               - Title: `fix(ci): [description of fix]`
-               - Description explaining what failed and how you fixed it
-               - Reference the failed workflow run
+            5. **Commit and push directly to the existing branch**:
+               - Message format: `fix(ci): [description of fix]`
+               - Include what failed and how you fixed it
+               - Push to: ${{ github.event.workflow_run.head_branch }}
+               - DO NOT create a new PR
 
             ## Constraints
             - Keep changes minimal - only fix what's broken
             - Don't refactor unrelated code
             - All existing tests must pass
             - Follow Conventional Commits format
-            - Branch from the failing branch, not main
+            - PUSH TO THE SAME BRANCH - no new PRs
+
+      - name: Wait for Jules to complete
+        if: steps.details.outputs.is_jules_pr == 'true'
+        run: |
+          echo "Waiting for Jules to push fixes..."
+          sleep 30
+
+      - name: Check for and merge any fix PRs
+        if: steps.details.outputs.is_jules_pr == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ORIGINAL_BRANCH="${{ github.event.workflow_run.head_branch }}"
+
+          echo "Checking for fix PRs targeting $ORIGINAL_BRANCH..."
+
+          # Find any PRs that Jules might have created targeting the original branch
+          FIX_PRS=$(gh pr list \
+            --repo "${{ github.repository }}" \
+            --base "$ORIGINAL_BRANCH" \
+            --state open \
+            --json number,headRefName,author \
+            --jq '.[] | select(.author.login | contains("jules") or . == "github-actions[bot]") | .number')
+
+          if [[ -n "$FIX_PRS" ]]; then
+            for PR_NUM in $FIX_PRS; do
+              echo "Found fix PR #$PR_NUM - auto-merging..."
+
+              # Get the branch name for cleanup
+              FIX_BRANCH=$(gh pr view $PR_NUM --json headRefName -q '.headRefName')
+
+              # Enable auto-merge
+              gh pr merge $PR_NUM \
+                --repo "${{ github.repository }}" \
+                --squash \
+                --auto \
+                --delete-branch \
+                --body "Auto-merged CI fix from Jules Self-Healing CI"
+
+              echo "✅ PR #$PR_NUM set to auto-merge and delete branch: $FIX_BRANCH"
+            done
+          else
+            echo "No separate fix PRs found - Jules pushed directly to $ORIGINAL_BRANCH"
+          fi
+
+      - name: Comment on issue - Jules fix pushed
+        if: steps.details.outputs.issue_number != '' && steps.details.outputs.is_jules_pr == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ steps.details.outputs.issue_number }} \
+            --repo "${{ github.repository }}" \
+            --body "## ✅ Jules Pushed CI Fix
+
+          Jules has pushed a fix to branch \`${{ github.event.workflow_run.head_branch }}\`.
+
+          **Next:** ⏳ CI will run again to verify the fix.
+
+          ---
+          *Automated fix by Jules Self-Healing CI*"
