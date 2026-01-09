@@ -25,8 +25,10 @@ archive/
 
 # Build artifacts
 custom_components/meraki_ha/www/dist/
+*.egg-info/
 
 # Local configuration
 config/
 blocked_message.md
 .venv/
+*.egg-info/
