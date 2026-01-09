@@ -1,6 +1,5 @@
 """Button platform for the Meraki Home Assistant integration."""
 
-import asyncio
 import logging
 
 from homeassistant.components.button import ButtonEntity
@@ -26,11 +25,6 @@ async def async_setup_entry(
 
     if button_entities:
         _LOGGER.debug("Adding %d button entities", len(button_entities))
-        chunk_size = 50
-        for i in range(0, len(button_entities), chunk_size):
-            chunk = button_entities[i : i + chunk_size]
-            async_add_entities(chunk)
-            if len(button_entities) > chunk_size:
-                await asyncio.sleep(1)
+        async_add_entities(button_entities)
 
     return True

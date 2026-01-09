@@ -20,6 +20,8 @@ class MerakiCameraSettingSwitchBase(
 ):
     """Base class for a Meraki Camera Setting Switch."""
 
+    _attr_has_entity_name = True
+
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,

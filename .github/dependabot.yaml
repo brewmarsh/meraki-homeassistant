@@ -14,7 +14,7 @@ updates:
     # Check for updates every week
     schedule:
       interval: "weekly"
-    # The image to monitor for new releases. 
+    # The image to monitor for new releases.
     # Dependabot tracks the versions of the 'actions/runner' on GitHub.
     # It detects that the ARG is tied to this dependency.
     target-branch: "beta"

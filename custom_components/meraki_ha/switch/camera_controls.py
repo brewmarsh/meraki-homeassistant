@@ -6,8 +6,6 @@ import logging
 from typing import Any
 
 from ..core.api.client import MerakiAPIClient
-from ..core.utils.naming_utils import format_device_name
-from ..helpers.entity_helpers import format_entity_name
 from ..meraki_data_coordinator import MerakiDataCoordinator
 from .camera_settings import MerakiCameraSettingSwitchBase
 
@@ -40,13 +38,7 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             "sense_enabled",
             "sense.analyticsEnabled",
         )
-        config_options = (
-            coordinator.config_entry.options if coordinator.config_entry else {}
-        )
-        self._attr_name = format_entity_name(
-            format_device_name(device_data, config_options),
-            "Analytics",
-        )
+        self._attr_translation_key = "meraki_camera_sense_switch"
         self._attr_icon = "mdi:chart-bar"
 
     async def _async_update_setting(self, is_on: bool) -> None:

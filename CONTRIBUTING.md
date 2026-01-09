@@ -39,7 +39,7 @@ The required logic is as follows:
     def _update_internal_state(self) -> None:
         if self.coordinator.is_pending(self.unique_id):
             return  # Ignore update, optimistic state is in control
-        
+
         # ... rest of the update logic ...
     ```
 

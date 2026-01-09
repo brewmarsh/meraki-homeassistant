@@ -565,6 +565,32 @@ class ApplianceEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
+    async def get_organization_appliance_vpn_statuses(self) -> list[dict[str, Any]]:
+        """
+        Get VPN statuses for the organization.
+
+        Returns
+        -------
+            A list of VPN statuses.
+
+        """
+        if self._api_client.dashboard is None:
+            return []
+        statuses = await self._api_client.run_sync(
+            self._api_client.dashboard.appliance.getOrganizationApplianceVpnStatuses,
+            organizationId=self._api_client.organization_id,
+            total_pages="all",
+        )
+        validated = validate_response(statuses)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_organization_appliance_vpn_statuses did not return a list",
+            )
+            return []
+        return validated
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=60)
     async def get_organization_appliance_uplink_statuses(self) -> list[dict[str, Any]]:
         """
         Get uplink status for all appliances in the organization.

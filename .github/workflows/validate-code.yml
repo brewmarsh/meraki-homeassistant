@@ -2,9 +2,9 @@ name: Validate Code
 
 on:
   push:
-    branches: ['beta']
+    branches: ['main', 'beta']
   pull_request:
-    branches: ['beta']
+    branches: ['main', 'beta']
 
 jobs:
   setup:

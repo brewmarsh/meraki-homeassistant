@@ -64,6 +64,8 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except (ValueError, TypeError):
             scan_interval = DEFAULT_SCAN_INTERVAL
 
+        self.config_entry = entry
+
         super().__init__(
             hass,
             _LOGGER,
@@ -270,8 +272,20 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if not (data and "devices" in data):
             return
 
+        if not self.config_entry:
+            return
+
         ent_reg = er.async_get(self.hass)
         dev_reg = dr.async_get(self.hass)
+
+        # Pre-fetch entities for this config entry to avoid O(N*M) lookups
+        entities = er.async_entries_for_config_entry(
+            ent_reg, self.config_entry.entry_id
+        )
+        entities_by_device_id: dict[str, list[er.RegistryEntry]] = {}
+        for entity in entities:
+            if entity.device_id:
+                entities_by_device_id.setdefault(entity.device_id, []).append(entity)
 
         for device in data["devices"]:
             device.setdefault("status_messages", [])
@@ -280,10 +294,8 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 identifiers={(DOMAIN, device["serial"])},
             )
             if ha_device:
-                entities_for_device = er.async_entries_for_device(
-                    ent_reg,
-                    ha_device.id,
-                )
+                entities_for_device = entities_by_device_id.get(ha_device.id, [])
+
                 if entities_for_device:
                     # Prioritize more representative entities
                     primary_entity = None
