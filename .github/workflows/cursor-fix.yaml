@@ -99,6 +99,9 @@ jobs:
 
           echo "✅ Checks passed! Auto-merging Cursor PR #$PR_NUMBER into $JULES_BRANCH"
 
+          # Mark PR as ready (in case it's a draft)
+          gh pr ready "$PR_NUMBER" --repo "${{ github.repository }}" 2>/dev/null || true
+
           # Comment on Cursor PR
           gh pr comment "$PR_NUMBER" \
             --repo "${{ github.repository }}" \
