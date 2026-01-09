@@ -46,6 +46,13 @@ jobs:
           echo "issue_number=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
           echo "Found issue: #$ISSUE_NUM"
 
+      - name: Install GitHub CLI
+        run: |
+          type -p gpg >/dev/null || (sudo apt-get update && sudo apt-get install -y gpg)
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-key.asc | sudo gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y gh
       - name: Comment on issue - CI started
         if: steps.extract.outputs.issue_number != '' && steps.extract.outputs.is_jules_pr == 'true'
         env:
