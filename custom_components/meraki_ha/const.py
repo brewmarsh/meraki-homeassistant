@@ -62,6 +62,12 @@ CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
 CONF_ENABLED_NETWORKS: Final = "enabled_networks"
 """Configuration key for a list of network IDs to enable."""
 
+CONF_FILTER_VLAN: Final = "filter_vlan"
+"""Configuration key for a list of VLANs to filter device trackers by."""
+
+CONF_FILTER_SSID: Final = "filter_ssid"
+"""Configuration key for a list of SSIDs to filter device trackers by."""
+
 DEFAULT_ENABLED_NETWORKS: Final[list[str]] = []
 """Default value for the ignored networks list."""
 
@@ -117,6 +123,7 @@ PLATFORMS: Final = [
     PLATFORM_TEXT,
     PLATFORM_CAMERA,
     PLATFORM_NUMBER,
+    PLATFORM_DEVICE_TRACKER,
 ]
 """List of platforms supported by the integration."""
 
