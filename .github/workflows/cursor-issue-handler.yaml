@@ -94,9 +94,22 @@ jobs:
           2. Analyze the requirements in this issue
           3. Implement the requested changes following project conventions
           4. Use Python 3.13.2 for all Python code
-          5. Run ./run_checks.sh to verify all checks pass before committing
-          6. Create commits with conventional commit format: type(scope): description
-          7. Reference this issue in your commits: Fixes #${ISSUE_NUM}
+
+          ## CRITICAL: Testing Requirements
+
+          5. **Regression Testing**
+             - Run the FULL test suite: uv run pytest
+             - Ensure ALL existing tests still pass
+             - Do NOT skip or delete existing tests
+          6. **Test Coverage**
+             - CREATE tests for all new functionality
+             - Each new function/class needs corresponding tests
+             - Test edge cases and error conditions
+             - New entities need state/attribute/availability tests
+             - New API calls need mock tests
+          7. Run ./run_checks.sh to verify ALL checks pass
+          8. Create commits with conventional commit format: type(scope): description
+          9. Reference this issue in your commits: Fixes #${ISSUE_NUM}
 
           ## Testing Environment Notes
 
@@ -111,7 +124,7 @@ jobs:
 
           Run: ./run_checks.sh
 
-          This runs ruff, bandit, mypy, and pytest. All checks must pass.
+          This runs ruff, bandit, mypy, and pytest. ALL checks must pass.
 
           ## Branch Strategy
 

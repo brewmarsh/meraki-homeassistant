@@ -153,17 +153,48 @@ jobs:
           ## Your Task
           1. Read AGENTS.md for project standards
           2. Read DEVELOPMENT.md for environment setup
-          3. Review Jules' code thoroughly for:
+
+          3. **CRITICAL: Requirements Validation**
+             - Review the original issue requirements above
+             - Verify Jules' implementation meets ALL requirements
+             - Check for missing functionality or incomplete features
+             - Ensure the solution addresses the root cause, not just symptoms
+
+          4. **CRITICAL: Design Review**
+             - Is this the BEST way to implement this feature?
+             - Does it follow existing patterns in the codebase?
+             - Are there simpler or more maintainable approaches?
+             - Does it integrate well with existing code?
+             - If improvements needed, implement them WITHOUT breaking existing functionality
+
+          5. **CRITICAL: Regression Testing**
+             - Run the FULL test suite: uv run pytest
+             - Ensure ALL existing tests still pass
+             - If any test fails that was passing before, FIX it
+             - Do NOT skip or delete existing tests
+             - Any changes you make must NOT introduce new regressions
+
+          6. **CRITICAL: Test Coverage Validation**
+             - Check that Jules created tests for new functionality
+             - If new code lacks tests, CREATE them
+             - Each new function/class should have corresponding tests
+             - Test edge cases and error conditions
+
+          7. Review Jules' code thoroughly for:
              - Code quality and best practices
              - Proper error handling
              - Type hints and documentation
-             - Test coverage
-             - Any regressions or bugs
-          4. Make improvements and fixes
-          5. Run ./run_checks.sh to verify all checks pass
-             - Or run individually: uv run ruff check --fix . && uv run ruff format .
-          6. Commit with: review(cursor): <description of improvements>
-          7. CREATE A PR from $CURSOR_BRANCH targeting $JULES_BRANCH
+             - Security issues (no hardcoded secrets, proper input validation)
+             - Any logic bugs or regressions
+
+          8. Make improvements and fixes
+          9. Run ./run_checks.sh to verify ALL checks pass
+             - ruff check (linting)
+             - ruff format (formatting)
+             - mypy (type checking)
+             - pytest (ALL tests must pass)
+          10. Commit with: review(cursor): <description of improvements>
+          11. CREATE A PR from $CURSOR_BRANCH targeting $JULES_BRANCH
 
           ## Test Environment Notes
           - Home Assistant is NOT installed in the test environment
@@ -171,8 +202,20 @@ jobs:
           - Check tests/conftest.py for fixture patterns
           - All HA imports must be properly mocked
 
+          ## Test Coverage Requirements
+          - New entities need entity tests (state, attributes, availability)
+          - New API calls need mock tests
+          - New config options need validation tests
+          - Error handling paths need negative tests
+
           Focus on custom_components/meraki_ha/ and tests/.
-          Keep changes focused on quality improvements."
+
+          ## Priority Order
+          1. Requirements met - all issue requirements fulfilled
+          2. No regressions - existing tests pass, no broken functionality
+          3. Test coverage - new code has proper tests
+          4. Design quality - implementation is optimal and maintainable
+          5. Code quality - follows project standards"
 
           ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
 

@@ -76,6 +76,12 @@ jobs:
               --remove-label "cursor-reviewing" \
               --remove-label "in-progress" \
               --add-label "released-beta" 2>/dev/null || true
+
+            # Close the issue (GitHub only auto-closes on merge to default branch)
+            gh issue close $ISSUE_NUM \
+              --repo "${{ github.repository }}" \
+              --reason completed \
+              --comment "Closed automatically after merge to beta."
           fi
 
   version:

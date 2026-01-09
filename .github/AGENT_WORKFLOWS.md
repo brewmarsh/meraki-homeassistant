@@ -64,10 +64,10 @@ Both agents can be assigned issues directly:
 │ jules-ci-fix.yaml │                    │ cursor-launcher   │
 │                   │                    │ .yaml             │
 │ • Gets error logs │                    │                   │
-│ • Comments @jules │                    │ • Adds label:     │
-│   with errors     │                    │   cursor-reviewing│
-│ • Jules sees      │                    │ • Creates branch: │
-│   mention & fixes │                    │   cursor-review/* │
+│ • Invokes Jules   │                    │ • Adds label:     │
+│   API with errors │                    │   cursor-reviewing│
+│ • Jules analyzes  │                    │ • Creates branch: │
+│   and pushes fix  │                    │   cursor-review/* │
 │ • Max 5 attempts  │                    │ • Cursor creates  │
 └────────┬──────────┘                    │   PR → Jules      │
          │                               │   branch          │
@@ -167,16 +167,21 @@ Both agents can be assigned issues directly:
 
 ## Escalation Thresholds
 
-- **Jules**: 5 fix attempts (via @jules comments) before escalating to human
-- **Cursor**: Self-corrects automatically (no escalation needed)
+- **Jules**: 3 fix attempts before handing off to Cursor
+- **Cursor**: Self-corrects automatically; if still failing after Jules handoff, escalates to human after 5 total attempts
 
-When Jules escalates:
+### Handoff Flow
 
-1. `needs-human-review` label is added
-2. Comment posted explaining the situation
-3. No further automated fix attempts
+1. **Jules attempts 1-3**: Jules tries to fix CI failures
+2. **Attempt 3 fails**: Jules hands off to Cursor
+   - `cursor-reviewing` label added (prevents Jules from trying again)
+   - Cursor invoked via API to try with fresh perspective
+3. **Cursor attempts**: Cursor tries to fix on the same branch
+4. **Attempt 5+ fails**: Escalate to human
+   - `needs-human-review` label added
+   - Comment posted explaining the situation
 
-**Note**: Cursor agents automatically fix their own failures and push again. The workflow just waits for CI to pass, then auto-merges.
+**Note**: Cursor agents automatically fix their own failures and push again. The workflow waits for CI to pass, then auto-merges.
 
 ## Agent Protections
 

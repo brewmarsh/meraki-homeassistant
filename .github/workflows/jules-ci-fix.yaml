@@ -2,8 +2,8 @@ name: Jules CI Self-Heal
 
 run-name: 'Jules: Fix CI on ${{ github.event.workflow_run.head_branch }}'
 
-# When Beta CI fails on a Jules PR, comment @jules with error details
-# Jules will automatically see the mention and fix the issues
+# When Beta CI fails on a Jules PR, invoke Jules via API to fix the errors
+# Jules will analyze the failures and push fixes to the same branch
 # Skips if Cursor has taken over (cursor-reviewing label)
 
 on:
@@ -103,9 +103,100 @@ jobs:
 
           if [[ "$FIX_ATTEMPTS" -ge 5 ]]; then
             echo "should_escalate=true" >> "$GITHUB_OUTPUT"
+            echo "handoff_to_cursor=false" >> "$GITHUB_OUTPUT"
             echo "🚨 5+ fix attempts - escalating to human"
+          elif [[ "$FIX_ATTEMPTS" -ge 3 ]]; then
+            echo "should_escalate=false" >> "$GITHUB_OUTPUT"
+            echo "handoff_to_cursor=true" >> "$GITHUB_OUTPUT"
+            echo "🔄 3 Jules attempts - handing off to Cursor"
           else
             echo "should_escalate=false" >> "$GITHUB_OUTPUT"
+            echo "handoff_to_cursor=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Hand off to Cursor
+        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.handoff_to_cursor == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          PR_NUM="${{ steps.check.outputs.pr_number }}"
+          BRANCH="${{ steps.check.outputs.branch }}"
+          ISSUE_NUM="${{ steps.check.outputs.issue_number }}"
+
+          echo "🔄 Jules couldn't fix after 3 attempts - handing off to Cursor"
+
+          # Comment on PR
+          gh pr comment "$PR_NUM" \
+            --repo "${{ github.repository }}" \
+            --body "## 🔄 Handoff to Cursor
+
+          Jules attempted 3 fixes but CI still fails.
+          Handing off to Cursor for a fresh perspective.
+
+          ---
+          *Automated handoff*"
+
+          # Add cursor-reviewing label to prevent Jules from trying again
+          gh pr edit "$PR_NUM" \
+            --repo "${{ github.repository }}" \
+            --add-label "cursor-reviewing" 2>/dev/null || true
+
+          # Launch Cursor agent
+          PROMPT="## 🔧 CI Fix Required (Handoff from Jules)
+
+          Jules attempted 3 fixes but CI still fails on branch \`$BRANCH\`.
+          Please analyze the issues with fresh eyes and fix them.
+
+          ### Instructions
+          1. Read DEVELOPMENT.md and AGENTS.md to understand project standards
+          2. Checkout branch: $BRANCH
+          3. Run ./run_checks.sh to see the current failures
+          4. Fix the issues - Jules may have been going in the wrong direction
+          5. Commit with: fix(cursor): resolve CI errors after Jules handoff
+          6. Push to branch: $BRANCH
+
+          ### Testing Notes
+          When running tests, you may see: ModuleNotFoundError: No module named 'homeassistant'
+          This is expected. Use fixtures from conftest.py and mock HA imports.
+
+          ### Quality Checks
+          Run: ./run_checks.sh
+          All checks (ruff, bandit, mypy, pytest) must pass."
+
+          # Call Cursor API
+          RESPONSE=$(curl -s -X POST "https://api.cursor.com/v1/agents" \
+            -H "Authorization: Bearer $CURSOR_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"prompt\": $(echo "$PROMPT" | jq -Rs .),
+              \"source\": {
+                \"type\": \"github\",
+                \"owner\": \"${{ github.repository_owner }}\",
+                \"repo\": \"$(echo '${{ github.repository }}' | cut -d'/' -f2)\",
+                \"ref\": \"$BRANCH\"
+              },
+              \"target\": {
+                \"type\": \"github\",
+                \"autoCreatePr\": false,
+                \"openAsCursorGithubApp\": true
+              }
+            }")
+
+          echo "Cursor API Response: $RESPONSE"
+
+          if [[ -n "$ISSUE_NUM" ]]; then
+            gh issue comment "$ISSUE_NUM" \
+              --repo "${{ github.repository }}" \
+              --body "## 🔄 Handoff to Cursor
+
+            Jules couldn't fix CI after 3 attempts.
+            Cursor has been invoked to try with a fresh perspective.
+
+            **PR**: #$PR_NUM
+
+            ---
+            *Automated handoff*"
           fi
 
       - name: Escalate to human
@@ -120,7 +211,7 @@ jobs:
             --repo "${{ github.repository }}" \
             --body "## 🚨 Escalation Required
 
-          Jules has attempted 5+ fixes but CI still fails.
+          Both Jules and Cursor have attempted fixes but CI still fails.
 
           **Manual intervention required.**
 
@@ -134,9 +225,9 @@ jobs:
           if [[ -n "$ISSUE_NUM" ]]; then
             gh issue comment "$ISSUE_NUM" \
               --repo "${{ github.repository }}" \
-              --body "## 🚨 Jules Escalated
+              --body "## 🚨 Escalation to Human
 
-            Jules couldn't fix CI after 5 attempts. Human intervention required.
+            Both Jules (3 attempts) and Cursor couldn't fix CI. Human intervention required.
 
             **PR**: #$PR_NUM
 
@@ -150,7 +241,7 @@ jobs:
 
       - name: Get CI failure details
         id: ci_failure
-        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true'
+        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -171,58 +262,79 @@ jobs:
 
       - name: Read CI error logs
         id: errors
-        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true'
+        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true'
         run: |
           CI_ERRORS=""
           if [[ -f /tmp/logs/ci_errors.txt ]]; then
             # Get first 100 lines of errors to keep comment manageable
             CI_ERRORS=$(cat /tmp/logs/ci_errors.txt | head -100)
           fi
-          # Save to env file for multiline (accessed as shell var in next step)
-          echo "CI_ERRORS<<EOF" >> "$GITHUB_ENV"
-          echo "$CI_ERRORS" >> "$GITHUB_ENV"
-          echo "EOF" >> "$GITHUB_ENV"
+          # Save to output (delimiter approach for multiline)
+          {
+            echo "ci_errors<<ERRORS_EOF"
+            echo "$CI_ERRORS"
+            echo "ERRORS_EOF"
+          } >> "$GITHUB_OUTPUT"
 
-      - name: Comment @jules to request fix
-        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true'
+      - name: Invoke Jules to fix CI
+        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true'
+        uses: google-labs-code/jules-action@v1.0.0
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          prompt: |
+            ## 🔧 CI Fix Required - Attempt #$(( ${{ steps.check.outputs.fix_attempts }} + 1 ))
+
+            The CI pipeline failed on branch `${{ steps.check.outputs.branch }}`.
+            Fix the issues and push to the same branch.
+
+            ### Failed Jobs
+            ${{ steps.ci_failure.outputs.failed_jobs }}
+
+            ### Error Logs
+            ```
+            ${{ steps.errors.outputs.ci_errors }}
+            ```
+
+            ### Instructions
+            1. Read DEVELOPMENT.md and AGENTS.md to understand project standards
+            2. Analyze the error logs above
+            3. Fix ONLY the specific errors shown - do not refactor unrelated code
+            4. Use Python 3.13.2 for all Python code
+            5. Run `./run_checks.sh` to verify all checks pass
+            6. Commit with: `fix(jules): resolve CI errors`
+            7. Push to branch: `${{ steps.check.outputs.branch }}`
+
+            ### Testing Notes
+            When running tests, you may see: ModuleNotFoundError: No module named 'homeassistant'
+            This is expected. The pytest-homeassistant-custom-component plugin provides HA fixtures.
+            Use fixtures from conftest.py and mock direct HA imports.
+
+            ### Quality Checks
+            Run: ./run_checks.sh
+            This runs ruff, bandit, mypy, and pytest. All must pass.
+
+      - name: Comment on PR about fix attempt
+        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # CI_ERRORS is set via $GITHUB_ENV in previous step
           FIX_NUM=$(( ${{ steps.check.outputs.fix_attempts }} + 1 ))
           PR_NUM="${{ steps.check.outputs.pr_number }}"
-          BRANCH="${{ steps.check.outputs.branch }}"
           FAILED_JOBS="${{ steps.ci_failure.outputs.failed_jobs }}"
 
-          # Comment with @jules mention - Jules will automatically pick this up
           gh pr comment "$PR_NUM" \
             --repo "${{ github.repository }}" \
-            --body "@jules
+            --body "## 🔧 Jules Fix Attempt #$FIX_NUM
 
-          ## 🔧 CI Fix Required - Attempt #$FIX_NUM
+          CI failed. Jules has been invoked to fix the issues.
 
-          The CI pipeline failed. Please fix the issues and push to branch: \`$BRANCH\`
-
-          ### Failed Jobs
-          $FAILED_JOBS
-
-          ### Error Logs
-          \`\`\`
-          $CI_ERRORS
-          \`\`\`
-
-          ### Instructions
-          1. Analyze the error logs above
-          2. Fix ONLY the specific errors shown
-          3. Run \`./run_checks.sh\` to verify all checks pass
-          4. Commit with: \`fix(jules): resolve CI errors - attempt #$FIX_NUM\`
-          5. Push to branch: \`$BRANCH\`
+          **Failed Jobs:** $FAILED_JOBS
 
           ---
-          *Jules Fix Attempt #$FIX_NUM - [View CI Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})*"
+          *[View CI Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})*"
 
       - name: Update issue with progress
-        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true' && steps.check.outputs.issue_number != ''
+        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.should_escalate != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true' && steps.check.outputs.issue_number != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
