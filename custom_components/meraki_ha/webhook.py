@@ -136,7 +136,7 @@ async def async_handle_webhook(
     hass: HomeAssistant,
     webhook_id: str,
     request: web.Request,
-) -> None:
+) -> web.Response:
     """
     Handle a webhook from the Meraki API.
 
@@ -146,28 +146,44 @@ async def async_handle_webhook(
         webhook_id: The ID of the webhook.
         request: The request object.
 
+    Returns:
+    -------
+        A web response.
+
     """
+    # Handle Meraki's validation GET request
+    if request.method == "GET":
+        validator = request.query.get("validator")
+        if validator:
+            _LOGGER.info("Successfully validated webhook for %s", webhook_id)
+            return web.Response(text=validator)
+        _LOGGER.warning("Webhook validation failed for %s: No validator found", webhook_id)
+        return web.Response(status=400)
+
+    if request.method != "POST":
+        return web.Response(status=405)
+
     try:
         data = await request.json()
         _LOGGER.debug("Webhook %s received: %s", webhook_id, data)
     except ValueError:
         _LOGGER.warning("Received invalid JSON in webhook %s", webhook_id)
-        return
+        return web.Response(status=400)
 
     entry_data = hass.data.get(DOMAIN, {}).get(webhook_id)
     if not entry_data:
         _LOGGER.warning("Received webhook for unknown config entry: %s", webhook_id)
-        return
+        return web.Response(status=404)
 
     secret = entry_data.get("secret")
     if not secret or data.get("sharedSecret") != secret:
         _LOGGER.warning("Received webhook with invalid secret: %s", webhook_id)
-        return
+        return web.Response(status=401)
 
     coordinator = entry_data.get("coordinator")
     if not coordinator:
         _LOGGER.warning("Coordinator not found for webhook: %s", webhook_id)
-        return
+        return web.Response(status=500)
 
     alert_type = data.get("alertType")
     if alert_type == "APs went down":
@@ -199,3 +215,4 @@ async def async_handle_webhook(
                     break
     else:
         _LOGGER.debug("Ignoring webhook alert type: %s", alert_type)
+    return web.Response(status=200)
