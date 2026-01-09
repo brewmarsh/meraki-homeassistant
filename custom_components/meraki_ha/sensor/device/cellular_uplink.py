@@ -23,9 +23,12 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiCellularUplinkSensor(CoordinatorEntity, SensorEntity):
+class MerakiCellularUplinkSensor(
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
+):
     """Representation of a Meraki Cellular Gateway Uplink sensor."""
 
+    coordinator: MerakiDataCoordinator
     _attr_has_entity_name = True
 
     def __init__(
@@ -136,9 +139,12 @@ class MerakiCellularUplinkSensor(CoordinatorEntity, SensorEntity):
         return self._get_current_device_data() is not None
 
 
-class MerakiCellularSignalSensor(CoordinatorEntity, SensorEntity):
+class MerakiCellularSignalSensor(
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
+):
     """Representation of a Meraki Cellular Gateway Signal Strength sensor."""
 
+    coordinator: MerakiDataCoordinator
     _attr_has_entity_name = True
 
     def __init__(

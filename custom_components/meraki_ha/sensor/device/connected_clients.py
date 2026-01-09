@@ -15,9 +15,12 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDeviceConnectedClientsSensor(CoordinatorEntity, SensorEntity):
+class MerakiDeviceConnectedClientsSensor(
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
+):
     """Representation of a Meraki Connected Clients sensor."""
 
+    coordinator: MerakiDataCoordinator
     _attr_icon = "mdi:account-network"
     _attr_native_unit_of_measurement = "clients"
     _attr_state_class = SensorStateClass.MEASUREMENT

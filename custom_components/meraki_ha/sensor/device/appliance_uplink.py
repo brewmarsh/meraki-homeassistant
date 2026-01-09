@@ -17,8 +17,12 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
+class MerakiApplianceUplinkSensor(
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
+):
     """Representation of a Meraki appliance uplink sensor."""
+
+    coordinator: MerakiDataCoordinator
 
     def __init__(
         self,

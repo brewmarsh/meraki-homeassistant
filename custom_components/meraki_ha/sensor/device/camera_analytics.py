@@ -21,9 +21,10 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
+class MerakiAnalyticsSensor(CoordinatorEntity[MerakiDataCoordinator], SensorEntity):
     """Base class for Meraki analytics sensors."""
 
+    coordinator: MerakiDataCoordinator
     # Enable polling so async_update() is called in addition to coordinator updates
     _attr_should_poll = True
 

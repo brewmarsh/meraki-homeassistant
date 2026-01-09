@@ -25,7 +25,9 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
+class MerakiMtSensor(
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity, RestoreEntity
+):
     """Representation of a Meraki MT sensor.
 
     Uses RestoreEntity to preserve state across Home Assistant restarts.

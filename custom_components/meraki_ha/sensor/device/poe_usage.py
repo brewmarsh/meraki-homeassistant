@@ -21,7 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiPoeUsageSensor(
-    CoordinatorEntity,
+    CoordinatorEntity[MerakiDataCoordinator],
     SensorEntity,
 ):
     """
@@ -37,6 +37,7 @@ class MerakiPoeUsageSensor(
     the sensor attributes.
     """
 
+    coordinator: MerakiDataCoordinator
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfPower.WATT
     _attr_icon = "mdi:power-plug"

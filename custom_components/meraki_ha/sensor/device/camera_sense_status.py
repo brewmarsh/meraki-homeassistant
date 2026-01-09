@@ -17,9 +17,12 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
+class MerakiCameraSenseStatusSensor(
+    CoordinatorEntity[MerakiDataCoordinator], SensorEntity
+):
     """Representation of a Meraki Camera Sense Status sensor."""
 
+    coordinator: MerakiDataCoordinator
     _attr_has_entity_name = True
 
     def __init__(

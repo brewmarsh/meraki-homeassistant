@@ -54,3 +54,48 @@ class SsidFirewallCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return {"rules": rules}
         except Exception as err:
             raise UpdateFailed(f"Error fetching SSID firewall data: {err}") from err
+
+    async def async_block_client(self, client_ip: str) -> None:
+        """
+        Block a client by adding a deny rule.
+
+        Args:
+        ----
+            client_ip: The IP address of the client to block.
+
+        """
+        current_rules = self.data.get("rules", []) if self.data else []
+        new_rule = {
+            "policy": "deny",
+            "type": "ipRange",
+            "value": client_ip,
+        }
+        updated_rules = current_rules + [new_rule]
+        await self.api_client.wireless.update_network_wireless_ssid_l7_firewall_rules(
+            network_id=self.network_id,
+            number=str(self.ssid_number),
+            rules=updated_rules,
+        )
+        await self.async_request_refresh()
+
+    async def async_unblock_client(self, client_ip: str) -> None:
+        """
+        Unblock a client by removing the deny rule.
+
+        Args:
+        ----
+            client_ip: The IP address of the client to unblock.
+
+        """
+        current_rules = self.data.get("rules", []) if self.data else []
+        updated_rules = [
+            rule
+            for rule in current_rules
+            if not (rule.get("policy") == "deny" and client_ip in rule.get("value", ""))
+        ]
+        await self.api_client.wireless.update_network_wireless_ssid_l7_firewall_rules(
+            network_id=self.network_id,
+            number=str(self.ssid_number),
+            rules=updated_rules,
+        )
+        await self.async_request_refresh()

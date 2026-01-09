@@ -21,8 +21,12 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
+class MerakiMtBinarySensor(
+    CoordinatorEntity[MerakiDataCoordinator], BinarySensorEntity
+):
     """Representation of a Meraki MT binary sensor."""
+
+    coordinator: MerakiDataCoordinator
 
     def __init__(
         self,
