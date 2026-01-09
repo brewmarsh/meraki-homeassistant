@@ -36,41 +36,59 @@ jobs:
           echo "Branch: $HEAD_BRANCH"
           echo "CI Result: $CI_CONCLUSION"
 
-          # Only handle cursor-review/* branches
-          if [[ "$HEAD_BRANCH" != cursor-review/* ]]; then
-            echo "Not a Cursor review branch - skipping"
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # Find the PR for this Cursor branch
+          # Find PR for this branch
           PR_JSON=$(gh pr list \
             --repo "${{ github.repository }}" \
             --head "$HEAD_BRANCH" \
             --state open \
-            --json number,title,body,baseRefName \
+            --json number,title,body,baseRefName,labels \
             --limit 1)
 
           PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number // empty')
           PR_BASE=$(echo "$PR_JSON" | jq -r '.[0].baseRefName // empty')
+          PR_LABELS=$(echo "$PR_JSON" | jq -r '[.[0].labels[].name] | join(" ")' 2>/dev/null || echo "")
 
           if [[ -z "$PR_NUMBER" ]]; then
-            echo "No open Cursor PR found - skipping"
+            echo "No open PR found - skipping"
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          echo "Cursor PR #$PR_NUMBER targeting Jules branch: $PR_BASE"
+          echo "PR #$PR_NUMBER, Labels: $PR_LABELS"
+
+          # Handle if: cursor-review/* branch OR has cursor-reviewing label
+          IS_CURSOR_BRANCH="false"
+          IS_CURSOR_LABEL="false"
+
+          if [[ "$HEAD_BRANCH" == cursor-review/* ]]; then
+            IS_CURSOR_BRANCH="true"
+            echo "This is a Cursor review branch"
+          fi
+
+          if echo "$PR_LABELS" | grep -q "cursor-reviewing"; then
+            IS_CURSOR_LABEL="true"
+            echo "This PR has cursor-reviewing label (handoff from Jules)"
+          fi
+
+          if [[ "$IS_CURSOR_BRANCH" == "false" && "$IS_CURSOR_LABEL" == "false" ]]; then
+            echo "Not a Cursor-handled PR - skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Cursor handling PR #$PR_NUMBER"
 
           echo "skip=false" >> "$GITHUB_OUTPUT"
           echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
           echo "cursor_branch=$HEAD_BRANCH" >> "$GITHUB_OUTPUT"
           echo "jules_branch=$PR_BASE" >> "$GITHUB_OUTPUT"
           echo "ci_conclusion=$CI_CONCLUSION" >> "$GITHUB_OUTPUT"
+          echo "is_cursor_branch=$IS_CURSOR_BRANCH" >> "$GITHUB_OUTPUT"
+          echo "is_handoff=$IS_CURSOR_LABEL" >> "$GITHUB_OUTPUT"
 
-          # Count fix attempts
+          # Count fix attempts (look for both "Cursor Fix" and general fix comments)
           FIX_ATTEMPTS=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json comments \
-            --jq '[.comments[] | select(.body | contains("Cursor Fix Attempt"))] | length')
+            --jq '[.comments[] | select(.body | test("Cursor Fix|Cursor has tried|CI Fix Required"))] | length')
           echo "fix_attempts=$FIX_ATTEMPTS" >> "$GITHUB_OUTPUT"
 
           # Find the Jules PR (targets beta from jules_branch)
@@ -86,8 +104,8 @@ jobs:
           ISSUE_NUM=$(echo "$PR_BASE" | grep -oE '[-/][0-9]+[-/]' | grep -oE '[0-9]+' | head -1)
           echo "issue_number=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
 
-      # ============ CI PASSED: Auto-merge into Jules branch ============
-      - name: Auto-merge Cursor PR
+      # ============ CI PASSED: Handle success ============
+      - name: Handle CI success
         if: steps.check.outputs.skip != 'true' && steps.check.outputs.ci_conclusion == 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -96,45 +114,71 @@ jobs:
           JULES_PR="${{ steps.check.outputs.jules_pr }}"
           JULES_BRANCH="${{ steps.check.outputs.jules_branch }}"
           CURSOR_BRANCH="${{ steps.check.outputs.cursor_branch }}"
+          IS_CURSOR_BRANCH="${{ steps.check.outputs.is_cursor_branch }}"
+          IS_HANDOFF="${{ steps.check.outputs.is_handoff }}"
 
-          echo "✅ Checks passed! Auto-merging Cursor PR #$PR_NUMBER into $JULES_BRANCH"
+          echo "✅ Checks passed!"
 
-          # Mark PR as ready (in case it's a draft)
-          gh pr ready "$PR_NUMBER" --repo "${{ github.repository }}" 2>/dev/null || true
+          if [[ "$IS_CURSOR_BRANCH" == "true" ]]; then
+            # This is a cursor-review/* branch - merge it into Jules branch
+            echo "Merging Cursor PR #$PR_NUMBER into $JULES_BRANCH"
 
-          # Comment on Cursor PR
-          gh pr comment "$PR_NUMBER" \
-            --repo "${{ github.repository }}" \
-            --body "## ✅ Checks Passed - Auto-Merging
+            # Mark PR as ready (in case it's a draft)
+            gh pr ready "$PR_NUMBER" --repo "${{ github.repository }}" 2>/dev/null || true
 
-          All checks passed! Merging into Jules branch \`$JULES_BRANCH\`.
+            gh pr comment "$PR_NUMBER" \
+              --repo "${{ github.repository }}" \
+              --body "## ✅ Checks Passed - Auto-Merging
 
-          ---
-          *Auto-merged by Cursor workflow*"
+            All checks passed! Merging into Jules branch \`$JULES_BRANCH\`.
 
-          # Merge the Cursor PR
-          gh pr merge "$PR_NUMBER" \
-            --repo "${{ github.repository }}" \
-            --squash \
-            --delete-branch
+            ---
+            *Auto-merged by Cursor workflow*"
 
-          # Comment on Jules PR
-          if [[ -n "$JULES_PR" ]]; then
-            gh pr comment "$JULES_PR" \
+            # Merge the Cursor PR
+            gh pr merge "$PR_NUMBER" \
+              --repo "${{ github.repository }}" \
+              --squash \
+              --delete-branch
+
+            # Comment on Jules PR
+            if [[ -n "$JULES_PR" ]]; then
+              gh pr comment "$JULES_PR" \
+                --repo "${{ github.repository }}" \
+                --body "## ✅ Cursor Review Complete
+
+            Cursor's code improvements have been merged into this branch.
+
+            **Cursor Branch**: \`$CURSOR_BRANCH\` → deleted ✅
+
+            This PR is now ready for human review.
+
+            ---
+            *Cursor review completed*"
+
+              gh pr edit "$JULES_PR" \
+                --repo "${{ github.repository }}" \
+                --remove-label "cursor-reviewing" \
+                --add-label "cursor-reviewed" \
+                --add-label "ready-for-review" 2>/dev/null || true
+            fi
+
+          elif [[ "$IS_HANDOFF" == "true" ]]; then
+            # This is a handoff case - Cursor pushed directly to Jules branch
+            echo "Cursor fixed the Jules PR directly - marking ready for review"
+
+            gh pr comment "$PR_NUMBER" \
               --repo "${{ github.repository }}" \
               --body "## ✅ Cursor Review Complete
 
-          Cursor's code improvements have been merged into this branch.
+            All checks passed! Cursor has fixed the issues.
 
-          **Cursor Branch**: \`$CURSOR_BRANCH\` → deleted ✅
+            This PR is now ready for human review.
 
-          This PR is now ready for human review.
+            ---
+            *Cursor review completed*"
 
-          ---
-          *Cursor review completed*"
-
-            # Update labels on Jules PR
-            gh pr edit "$JULES_PR" \
+            gh pr edit "$PR_NUMBER" \
               --repo "${{ github.repository }}" \
               --remove-label "cursor-reviewing" \
               --add-label "cursor-reviewed" \
@@ -147,6 +191,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ISSUE_NUM="${{ steps.check.outputs.issue_number }}"
+          PR_NUMBER="${{ steps.check.outputs.pr_number }}"
+          JULES_PR="${{ steps.check.outputs.jules_pr }}"
+
+          # Use jules_pr if available (cursor-review branch case), otherwise use pr_number (handoff case)
+          DISPLAY_PR="${JULES_PR:-$PR_NUMBER}"
 
           gh issue comment "$ISSUE_NUM" \
             --repo "${{ github.repository }}" \
@@ -154,7 +203,7 @@ jobs:
 
           Both Jules and Cursor have completed their work.
 
-          **Jules PR**: #${{ steps.check.outputs.jules_pr }}
+          **PR**: #$DISPLAY_PR
           **Status**: Ready for human review and merge to beta
 
           ---
@@ -165,12 +214,109 @@ jobs:
             --remove-label "pr-pending" \
             --add-label "ready-for-review" 2>/dev/null || true
 
-      # ============ CI FAILED: Cursor will self-correct ============
-      # Cursor agents automatically fix their own failures and push again.
-      # We just log for visibility - no action needed.
-      - name: Log CI failure (Cursor will self-fix)
+      # ============ CI FAILED: Check if escalation or re-invoke needed ============
+      - name: Handle CI failure
         if: steps.check.outputs.skip != 'true' && steps.check.outputs.ci_conclusion == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
         run: |
-          echo "⏳ Cursor PR #${{ steps.check.outputs.pr_number }} failed CI"
-          echo "Cursor will automatically fix and push again."
-          echo "No action needed - waiting for next CI run."
+          PR_NUMBER="${{ steps.check.outputs.pr_number }}"
+          BRANCH="${{ steps.check.outputs.cursor_branch }}"
+          ISSUE_NUM="${{ steps.check.outputs.issue_number }}"
+          FIX_ATTEMPTS="${{ steps.check.outputs.fix_attempts }}"
+          IS_HANDOFF="${{ steps.check.outputs.is_handoff }}"
+
+          echo "⏳ PR #$PR_NUMBER failed CI (attempt $FIX_ATTEMPTS, handoff=$IS_HANDOFF)"
+
+          # After 10 Cursor attempts, escalate to human
+          if [[ "$FIX_ATTEMPTS" -ge 10 ]]; then
+            echo "🚨 Cursor has tried 10+ times - escalating to human"
+
+            gh pr comment "$PR_NUMBER" \
+              --repo "${{ github.repository }}" \
+              --body "## 🚨 Escalation to Human Required
+
+            Cursor has attempted 10+ fixes but CI still fails.
+
+            **Manual intervention required.**
+
+            ---
+            *Escalated by Cursor workflow*"
+
+            gh pr edit "$PR_NUMBER" \
+              --repo "${{ github.repository }}" \
+              --remove-label "cursor-reviewing" \
+              --add-label "needs-human-review" 2>/dev/null || true
+
+            if [[ -n "$ISSUE_NUM" ]]; then
+              gh issue comment "$ISSUE_NUM" \
+                --repo "${{ github.repository }}" \
+                --body "## 🚨 Escalation to Human
+
+            Cursor couldn't fix CI after 10+ attempts. Manual intervention required.
+
+            **PR**: #$PR_NUMBER
+
+            ---
+            *Escalated by automation*"
+
+              gh issue edit "$ISSUE_NUM" \
+                --repo "${{ github.repository }}" \
+                --add-label "needs-human-review" 2>/dev/null || true
+            fi
+
+          # If this is a handoff from Jules, we need to invoke Cursor
+          elif [[ "$IS_HANDOFF" == "true" ]]; then
+            echo "🔄 Invoking Cursor to fix (handoff from Jules, attempt $((FIX_ATTEMPTS + 1)))"
+
+            # Comment on PR
+            gh pr comment "$PR_NUMBER" \
+              --repo "${{ github.repository }}" \
+              --body "## 🔧 Cursor Fix Attempt #$((FIX_ATTEMPTS + 1))
+
+            CI failed. Invoking Cursor to fix.
+
+            ---
+            *Cursor workflow*"
+
+            # Invoke Cursor API
+            PROMPT="## 🔧 CI Fix Required - Attempt #$((FIX_ATTEMPTS + 1))
+
+            CI failed on branch \`$BRANCH\`. Fix the issues and push.
+
+            ### Instructions
+            1. Read DEVELOPMENT.md and AGENTS.md for project standards
+            2. Run ./run_checks.sh to see failures
+            3. Fix the issues
+            4. Commit with: fix(cursor): resolve CI errors
+            5. Push to branch: $BRANCH
+
+            ### Testing Notes
+            If you see ModuleNotFoundError for homeassistant, use pytest fixtures from conftest.py.
+
+            ### Quality Checks
+            Run: ./run_checks.sh (ruff, bandit, mypy, pytest must pass)"
+
+            curl -s -X POST "https://api.cursor.com/v1/agents" \
+              -H "Authorization: Bearer $CURSOR_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"prompt\": $(echo "$PROMPT" | jq -Rs .),
+                \"source\": {
+                  \"type\": \"github\",
+                  \"owner\": \"${{ github.repository_owner }}\",
+                  \"repo\": \"$(echo '${{ github.repository }}' | cut -d'/' -f2)\",
+                  \"ref\": \"$BRANCH\"
+                },
+                \"target\": {
+                  \"type\": \"github\",
+                  \"autoCreatePr\": false,
+                  \"openAsCursorGithubApp\": true
+                }
+              }" || echo "Cursor API call completed"
+
+          else
+            echo "Cursor will automatically fix and push again."
+            echo "No action needed - waiting for next CI run."
+          fi

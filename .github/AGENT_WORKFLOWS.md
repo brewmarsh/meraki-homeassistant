@@ -168,18 +168,22 @@ Both agents can be assigned issues directly:
 ## Escalation Thresholds
 
 - **Jules**: 3 fix attempts before handing off to Cursor
-- **Cursor**: Self-corrects automatically; if still failing after Jules handoff, escalates to human after 5 total attempts
+- **Cursor**: 10 fix attempts before escalating to human (Cursor is more capable)
 
 ### Handoff Flow
 
-1. **Jules attempts 1-3**: Jules tries to fix CI failures
-2. **Attempt 3 fails**: Jules hands off to Cursor
-   - `cursor-reviewing` label added (prevents Jules from trying again)
-   - Cursor invoked via API to try with fresh perspective
-3. **Cursor attempts**: Cursor tries to fix on the same branch
-4. **Attempt 5+ fails**: Escalate to human
+1. **Jules attempts 1-3**: Jules tries to fix CI failures via Jules API
+2. **Attempt 3+ fails**: Jules hands off to Cursor permanently
+   - `cursor-reviewing` label added (prevents Jules from running again)
+   - Cursor invoked via API to take over
+3. **Cursor handles remaining attempts (up to 10)**: Cursor works on the same branch
+   - Cursor self-corrects and pushes fixes
+   - Once CI passes, Cursor's changes are merged
+4. **If Cursor fails 10+ times**: `cursor-fix.yaml` escalates to human
    - `needs-human-review` label added
-   - Comment posted explaining the situation
+   - Comment posted requesting manual intervention
+
+**Important**: Once `cursor-reviewing` label is added, Jules is completely out of the loop. Only Cursor and humans can work on it.
 
 **Note**: Cursor agents automatically fix their own failures and push again. The workflow waits for CI to pass, then auto-merges.
 
