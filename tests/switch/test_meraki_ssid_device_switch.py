@@ -1,6 +1,6 @@
 """Tests for the Meraki SSID device switch."""
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -60,7 +60,7 @@ async def test_meraki_ssid_enabled_switch(
     )
 
     assert switch.is_on is True
-    assert switch.name == "Enabled Control"
+    assert switch._attr_translation_key == "meraki_ssid_enabled_switch"
     device_info = switch.device_info
     assert device_info is not None
     assert device_info["name"] == "[SSID] Test SSID"
@@ -73,14 +73,15 @@ async def test_meraki_ssid_enabled_switch(
         mock_config_entry,
         ssid_data,
     )
-    assert switch.name == "Enabled Control"
+    assert switch._attr_translation_key == "meraki_ssid_enabled_switch"
     device_info = switch.device_info
     assert device_info is not None
     assert device_info["name"] == "Test SSID"
 
     switch.hass = hass
     switch.entity_id = "switch.test"
-    await switch.async_turn_off()
+    with patch.object(switch, "async_write_ha_state"):
+        await switch.async_turn_off()
     mock_meraki_client.wireless.update_network_wireless_ssid.assert_called_with(
         network_id="net-123", number=0, enabled=False
     )
@@ -105,7 +106,7 @@ async def test_meraki_ssid_broadcast_switch(
     )
 
     assert switch.is_on is True
-    assert switch.name == "Broadcast Control"
+    assert switch._attr_translation_key == "meraki_ssid_broadcast_switch"
     device_info = switch.device_info
     assert device_info is not None
     assert device_info["name"] == "[SSID] Test SSID"
@@ -118,14 +119,15 @@ async def test_meraki_ssid_broadcast_switch(
         mock_config_entry,
         ssid_data,
     )
-    assert switch.name == "Broadcast Control"
+    assert switch._attr_translation_key == "meraki_ssid_broadcast_switch"
     device_info = switch.device_info
     assert device_info is not None
     assert device_info["name"] == "Test SSID"
 
     switch.hass = hass
     switch.entity_id = "switch.test"
-    await switch.async_turn_off()
+    with patch.object(switch, "async_write_ha_state"):
+        await switch.async_turn_off()
     mock_meraki_client.wireless.update_network_wireless_ssid.assert_called_with(
         network_id="net-123", number=0, visible=False
     )
