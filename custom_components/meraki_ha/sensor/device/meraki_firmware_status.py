@@ -7,6 +7,7 @@ from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
@@ -23,6 +24,7 @@ class MerakiFirmwareStatusSensor(CoordinatorEntity, SensorEntity):
     _attr_has_entity_name = True
     _attr_device_class = SensorDeviceClass.ENUM
     _attr_options = ["up_to_date", "update_available", "unknown"]
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
