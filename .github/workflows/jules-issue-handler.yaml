@@ -33,7 +33,7 @@ jobs:
           ref: beta
 
       - name: Invoke Jules for structured task
-        uses: google-labs-code/jules-action@v1
+        uses: google-labs-code/jules-action@v1.0.0
         with:
           starting_branch: beta
           jules_api_key: ${{ secrets.JULES_API_KEY }}
@@ -136,7 +136,7 @@ jobs:
           ref: beta
 
       - name: Invoke Jules for bug fix
-        uses: google-labs-code/jules-action@v1
+        uses: google-labs-code/jules-action@v1.0.0
         with:
           starting_branch: beta
           jules_api_key: ${{ secrets.JULES_API_KEY }}
@@ -226,7 +226,7 @@ jobs:
           ref: beta
 
       - name: Invoke Jules for feature implementation
-        uses: google-labs-code/jules-action@v1
+        uses: google-labs-code/jules-action@v1.0.0
         with:
           starting_branch: beta
           jules_api_key: ${{ secrets.JULES_API_KEY }}
