@@ -76,15 +76,11 @@
         "description": "Step 1 of 3: General Settings",
         "data": {
           "scan_interval": "Scan Interval (seconds)",
-          "device_name_format": "Device Name Format",
-          "filter_vlan": "Filter Trackers by VLAN",
-          "filter_ssid": "Filter Trackers by SSID"
+          "device_name_format": "Device Name Format"
         },
         "data_description": {
           "scan_interval": "How often to poll the Meraki API for updates, in seconds.",
-          "device_name_format": "Choose how devices should be named in Home Assistant.",
-          "filter_vlan": "Only create device trackers for clients on the selected VLANs.",
-          "filter_ssid": "Only create device trackers for clients on the selected SSIDs."
+          "device_name_format": "Choose how devices should be named in Home Assistant."
         }
       },
       "features": {
@@ -169,11 +165,6 @@
       },
       "meraki_camera_rtsp_switch": {
         "name": "RTSP Server"
-      }
-    },
-    "device_tracker": {
-      "presence": {
-        "name": "Presence"
       }
     },
     "text": {

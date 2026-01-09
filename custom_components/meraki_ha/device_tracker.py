@@ -52,10 +52,14 @@ async def async_setup_entry(
                 continue
 
             # Apply filters
-            if filter_vlans and client.get("vlan") not in filter_vlans:
+            vlan = client.get("vlan")
+            if filter_vlans and (vlan is None or vlan not in filter_vlans):
                 continue
-            if filter_ssids and client.get("ssid") not in filter_ssids:
+
+            ssid = client.get("ssid")
+            if filter_ssids and (ssid is None or ssid not in filter_ssids):
                 continue
+
 
             entity = MerakiClientDeviceTracker(coordinator, client)
             tracked[client["id"]] = entity
@@ -80,8 +84,8 @@ class MerakiClientDeviceTracker(CoordinatorEntity, ScannerEntity):
     ) -> None:
         """Initialize the client tracker."""
         super().__init__(coordinator)
-        self._client_data = client_data
-        self._attr_unique_id = f"meraki_client_{self._client_data['id']}"
+        self._client_id = client_data["id"]
+        self._attr_unique_id = f"meraki_client_{self._client_id}"
         self._attr_name = (
             client_data.get("description") or client_data["mac"]
         )
@@ -115,14 +119,8 @@ class MerakiClientDeviceTracker(CoordinatorEntity, ScannerEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._get_client_data()
         self.async_write_ha_state()
 
     def _get_client_data(self) -> dict[str, Any] | None:
         """Fetch the client's data from the coordinator."""
-        if self.coordinator.data and "clients" in self.coordinator.data:
-            for client in self.coordinator.data["clients"]:
-                if client["id"] == self._client_data["id"]:
-                    self._client_data = client
-                    return self._client_data
-        return None
+        return self.coordinator.clients_by_id.get(self._client_id)
