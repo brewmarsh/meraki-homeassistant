@@ -24,7 +24,7 @@ jobs:
           ref: ${{ github.event.workflow_run.head_branch }}
 
       - name: Invoke Jules to fix CI failure
-        uses: google-labs-code/jules-invoke@v1
+        uses: google-labs-code/jules-action@v1
         with:
           starting_branch: ${{ github.event.workflow_run.head_branch }}
           include_last_commit: true
