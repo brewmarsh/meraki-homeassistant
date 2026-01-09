@@ -67,8 +67,8 @@ class MerakiFirmwareStatusSensor(CoordinatorEntity, SensorEntity):
             self._attr_extra_state_attributes = {}
             return
 
-        firmware_upgrades = current_device_data.get("firmware_upgrades", {})
-        if firmware_upgrades.get("available"):
+        firmware_upgrades = current_device_data.get("firmware_upgrades")
+        if firmware_upgrades and firmware_upgrades.get("available"):
             self._attr_native_value = "update_available"
         else:
             self._attr_native_value = "up_to_date"
@@ -77,11 +77,17 @@ class MerakiFirmwareStatusSensor(CoordinatorEntity, SensorEntity):
             "current_firmware_version": current_device_data.get("firmware"),
             "latest_available_firmware_version": firmware_upgrades.get(
                 "latestVersion", {}
-            ).get("shortName"),
+            ).get("shortName")
+            if firmware_upgrades
+            else None,
             "next_upgrade_version": firmware_upgrades.get("nextUpgrade", {})
             .get("toVersion", {})
-            .get("shortName"),
-            "next_upgrade_time": firmware_upgrades.get("nextUpgrade", {}).get("time"),
+            .get("shortName")
+            if firmware_upgrades
+            else None,
+            "next_upgrade_time": firmware_upgrades.get("nextUpgrade", {}).get("time")
+            if firmware_upgrades
+            else None,
             "model": current_device_data.get("model"),
         }
 

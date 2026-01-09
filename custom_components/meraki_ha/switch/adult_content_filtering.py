@@ -43,7 +43,7 @@ class MerakiAdultContentFilteringSwitch(CoordinatorEntity, SwitchEntity):
         )
 
     @property
-    def device_info(self):
+    def device_info(self) -> dict[str, Any] | None:
         """Return the device info."""
         return resolve_device_info(self._ssid, self._config_entry)
 
@@ -53,7 +53,9 @@ class MerakiAdultContentFilteringSwitch(CoordinatorEntity, SwitchEntity):
         ssid_data = self.coordinator.get_ssid(
             self._ssid["networkId"], self._ssid["number"]
         )
-        return ssid_data.get("adultContentFilteringEnabled", False)
+        if ssid_data:
+            return ssid_data.get("adultContentFilteringEnabled", False)
+        return False
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""

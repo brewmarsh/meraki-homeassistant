@@ -30,7 +30,7 @@ class MerakiWAN2ConnectivitySensor(
 
     _attr_icon = "mdi:wan"
     _attr_has_entity_name = True
-    _attr_device_class = "connectivity"  # type: ignore[assignment]
+    _attr_device_class = "connectivity"
 
     def __init__(
         self,

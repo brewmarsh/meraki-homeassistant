@@ -37,10 +37,10 @@ def _build_enriched_data(
     """Build enriched data payload with coordinator data and config options."""
     config_entry = hass.config_entries.async_get_entry(config_entry_id)
     if not config_entry:
-        return coordinator.data
+        return coordinator.data or {}
 
     enabled_networks = config_entry.options.get(CONF_ENABLED_NETWORKS)
-    if enabled_networks is None:
+    if enabled_networks is None and coordinator.data and coordinator.data.get("networks"):
         enabled_networks = [
             n["id"] for n in coordinator.data.get("networks", []) if "id" in n
         ]

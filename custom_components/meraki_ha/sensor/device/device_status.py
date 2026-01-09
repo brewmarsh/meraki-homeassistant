@@ -148,11 +148,9 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
             self._attr_native_value = "unknown"  # Default if status is not a string
 
         # Populate attributes from the latest device data
-        self._attr_extra_state_attributes = {
+        attributes = {
             "model": current_device_data.get("model"),
-            "serial_number": current_device_data.get(
-                "serial"
-            ),  # Should match self._device_serial
+            "serial_number": current_device_data.get("serial"),
             "firmware_version": current_device_data.get("firmware"),
             "product_type": current_device_data.get("productType"),
             "mac_address": current_device_data.get("mac"),
@@ -165,14 +163,14 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
         }
         # Filter out None values from attributes
         self._attr_extra_state_attributes = {
-            k: v for k, v in self._attr_extra_state_attributes.items() if v is not None
+            k: v for k, v in attributes.items() if v is not None
         }
 
         # Add coordinator update timestamp
         if self.coordinator.last_successful_update:
-            self._attr_extra_state_attributes["last_meraki_update"] = (
-                self.coordinator.last_successful_update.isoformat()
-            )
+            self._attr_extra_state_attributes[
+                "last_meraki_update"
+            ] = self.coordinator.last_successful_update.isoformat()
 
         # If the device is an appliance, add uplink information as attributes
         if current_device_data.get("productType") == "appliance":

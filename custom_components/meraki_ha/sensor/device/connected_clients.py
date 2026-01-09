@@ -94,6 +94,17 @@ class MerakiDeviceConnectedClientsSensor(CoordinatorEntity, SensorEntity):
         self.async_write_ha_state()
 
     @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return entity state attributes with update timestamp."""
+        attrs: dict[str, Any] = {}
+        if self.coordinator.last_successful_update:
+            attrs[
+                "last_meraki_update"
+            ] = self.coordinator.last_successful_update.isoformat()
+            return attrs
+        return None
+
+    @property
     def available(self) -> bool:
         """Return if entity is available."""
         return super().available and self._get_current_device_data() is not None

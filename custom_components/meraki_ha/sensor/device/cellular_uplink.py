@@ -98,11 +98,14 @@ class MerakiCellularUplinkSensor(CoordinatorEntity, SensorEntity):
             self._attr_icon = "mdi:signal-cellular-3"
 
         # Get signal stats
-        signal_stat = uplink.get("signalStat", {})
-        rsrp = signal_stat.get("rsrp")
-        rsrq = signal_stat.get("rsrq")
+        signal_stat = uplink.get("signalStat")
+        rsrp = signal_stat.get("rsrp") if signal_stat else None
+        rsrq = signal_stat.get("rsrq") if signal_stat else None
 
-        self._attr_extra_state_attributes = {
+        roaming = uplink.get("roaming")
+        roaming_status = roaming.get("status") if roaming else None
+
+        attributes = {
             "provider": uplink.get("provider"),
             "connection_type": uplink.get("connectionType"),
             "signal_type": uplink.get("signalType"),
@@ -112,8 +115,11 @@ class MerakiCellularUplinkSensor(CoordinatorEntity, SensorEntity):
             "rsrq": rsrq,
             "apn": uplink.get("apn"),
             "iccid": uplink.get("iccid"),
-            "roaming_status": uplink.get("roaming", {}).get("status"),
+            "roaming_status": roaming_status,
             "interface": uplink.get("interface"),
+        }
+        self._attr_extra_state_attributes = {
+            k: v for k, v in attributes.items() if v is not None
         }
 
     @callback

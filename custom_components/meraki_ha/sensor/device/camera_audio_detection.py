@@ -93,6 +93,10 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
         self._attr_extra_state_attributes = {
             "serial_number": self._device_serial,
         }
+        if self.coordinator.last_successful_update:
+            self._attr_extra_state_attributes[
+                "last_meraki_update"
+            ] = self.coordinator.last_successful_update.isoformat()
 
     @callback
     def _handle_coordinator_update(self) -> None:
