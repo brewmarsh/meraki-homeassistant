@@ -1,4 +1,4 @@
-name: Beta CI
+name: Validate Code
 
 on:
   push:
