@@ -48,8 +48,15 @@ jobs:
 
           PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.[0].author.login // empty')
 
-          # Only process Jules PRs
-          if [[ "$PR_AUTHOR" != *"jules"* && "$PR_AUTHOR" != "github-actions[bot]" ]]; then
+          echo "PR Author: $PR_AUTHOR"
+
+          # Only process Jules PRs (author: app/google-labs-jules, jules, or google-labs*)
+          IS_JULES="false"
+          if [[ "$PR_AUTHOR" == *"jules"* ]] || [[ "$PR_AUTHOR" == *"google-labs"* ]]; then
+            IS_JULES="true"
+          fi
+
+          if [[ "$IS_JULES" != "true" ]]; then
             echo "Not a Jules PR - skipping"
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
@@ -140,10 +147,27 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          FAILED_JOBS=$(gh run view ${{ github.event.workflow_run.id }} \
-            --repo "${{ github.repository }}" --json jobs \
+          RUN_ID="${{ github.event.workflow_run.id }}"
+          REPO="${{ github.repository }}"
+
+          # Get failed job names
+          FAILED_JOBS=$(gh run view "$RUN_ID" --repo "$REPO" --json jobs \
             --jq '[.jobs[] | select(.conclusion == "failure") | .name] | join(", ")')
           echo "failed_jobs=$FAILED_JOBS" >> "$GITHUB_OUTPUT"
+
+          # Download the log for the failed run (last 200 lines of each failed job)
+          mkdir -p /tmp/logs
+          gh run view "$RUN_ID" --repo "$REPO" --log-failed 2>/dev/null | tail -200 > /tmp/logs/ci_errors.txt || true
+
+          # Save for prompt
+          if [[ -s /tmp/logs/ci_errors.txt ]]; then
+            echo "has_logs=true" >> "$GITHUB_OUTPUT"
+            echo "Failed jobs: $FAILED_JOBS"
+            echo "Log preview:"
+            head -50 /tmp/logs/ci_errors.txt
+          else
+            echo "has_logs=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Get issue details
         id: issue
@@ -168,10 +192,20 @@ jobs:
             ISSUE_BODY=$(cat /tmp/issue_body.txt)
           fi
 
+          CI_ERRORS=""
+          if [[ -f /tmp/logs/ci_errors.txt ]]; then
+            CI_ERRORS=$(cat /tmp/logs/ci_errors.txt | head -100)
+          fi
+
           if [[ "$MODE" == "initial" ]]; then
             MODE_CONTEXT="INITIAL review. CI passed. Review code quality and verify requirements."
           else
-            MODE_CONTEXT="FIX RETRY #$REVIEW_NUM. CI FAILED. Jobs: ${{ steps.ci_failure.outputs.failed_jobs }}"
+            MODE_CONTEXT="FIX RETRY #$REVIEW_NUM. CI FAILED.
+          Failed Jobs: ${{ steps.ci_failure.outputs.failed_jobs }}
+
+          === CI Error Logs ===
+          ${CI_ERRORS}
+          === End Logs ==="
           fi
 
           PROMPT="You are a code reviewer for meraki-homeassistant.
