@@ -40,7 +40,6 @@ from .frontend import (
     async_register_static_path,
     async_unregister_frontend,
 )
-from .meraki_data_coordinator import MerakiDataCoordinator
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .services.mqtt_relay import MqttRelayManager
@@ -103,6 +102,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         scan_interval = DEFAULT_SCAN_INTERVAL
 
     if "coordinator" not in entry_data:
+        from .meraki_data_coordinator import MerakiDataCoordinator
+
         entry_data["coordinator"] = MerakiDataCoordinator(
             hass=hass,
             api_client=api_client,
