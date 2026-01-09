@@ -15,14 +15,14 @@ jobs:
   heal:
     if: |
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure') ||
-      (github.event_name == 'pull_request' && (github.actor == 'dependabot[bot]' || github.actor == 'brewmarsh'))    runs-on: ubuntu-latest
+      (github.event_name == 'pull_request' && (github.actor == 'dependabot[bot]' || github.actor == 'brewmarsh'))
+    runs-on: ubuntu-latest
     steps:
       - name: Trigger Jules to Fix CI
         uses: google-labs-code/jules-invoke@main
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           base_branch: "beta"
-          # Using top-level 'github' context variables ensures they work for ALL triggers
           instructions: |
             The CI validation failed for this change. 
 
