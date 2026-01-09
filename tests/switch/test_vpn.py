@@ -92,7 +92,7 @@ async def test_vpn_switch_turn_on(
     )
 
     # Mock async_write_ha_state
-    switch.async_write_ha_state = MagicMock()
+    object.__setattr__(switch, "async_write_ha_state", MagicMock())
 
     await switch.async_turn_on()
 
@@ -117,7 +117,7 @@ async def test_vpn_switch_turn_off(
     )
 
     # Mock async_write_ha_state
-    switch.async_write_ha_state = MagicMock()
+    object.__setattr__(switch, "async_write_ha_state", MagicMock())
 
     await switch.async_turn_off()
 
@@ -141,7 +141,8 @@ def test_vpn_switch_handle_coordinator_update(
     )
 
     # Mock async_write_ha_state
-    switch.async_write_ha_state = MagicMock()
+    mock_async_write = MagicMock()
+    object.__setattr__(switch, "async_write_ha_state", mock_async_write)
 
     # Initial state is on (mode=hub)
     assert switch._attr_is_on is True
@@ -155,7 +156,7 @@ def test_vpn_switch_handle_coordinator_update(
     switch._handle_coordinator_update()
 
     assert switch._attr_is_on is False
-    switch.async_write_ha_state.assert_called()
+    mock_async_write.assert_called()
 
 
 def test_vpn_switch_pending_update_skips_state_update(

@@ -190,7 +190,8 @@ class TestMerakiMtBinarySensor:
         sensor = MerakiMtBinarySensor(
             mock_coordinator, MOCK_MT_DEVICE, door_entity_description
         )
-        sensor.async_write_ha_state = MagicMock()
+        mock_async_write = MagicMock()
+        object.__setattr__(sensor, "async_write_ha_state", mock_async_write)
 
         # Update coordinator with new data
         new_device = dict(MOCK_MT_DEVICE)
@@ -199,7 +200,7 @@ class TestMerakiMtBinarySensor:
 
         sensor._handle_coordinator_update()
 
-        sensor.async_write_ha_state.assert_called_once()
+        mock_async_write.assert_called_once()
 
     def test_available_true_when_metric_exists(
         self,

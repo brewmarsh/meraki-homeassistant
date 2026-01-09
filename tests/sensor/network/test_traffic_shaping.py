@@ -51,7 +51,7 @@ def test_traffic_shaping_sensor_handle_update_enabled(
         config_entry=mock_config_entry,
         network_id="N_123",
     )
-    sensor.async_write_ha_state = MagicMock()
+    object.__setattr__(sensor, "async_write_ha_state", MagicMock())
     sensor._handle_coordinator_update()
 
     assert sensor._attr_native_value == "Enabled"
@@ -72,7 +72,7 @@ def test_traffic_shaping_sensor_handle_update_disabled(
         config_entry=mock_config_entry,
         network_id="N_123",
     )
-    sensor.async_write_ha_state = MagicMock()
+    object.__setattr__(sensor, "async_write_ha_state", MagicMock())
     sensor._handle_coordinator_update()
 
     assert sensor._attr_native_value == "Disabled"

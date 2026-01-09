@@ -212,12 +212,13 @@ class TestMerakiSnapshotButton:
         mock_coordinator.data = {"devices": [updated_device]}
 
         # Mock async_write_ha_state to avoid HA dependency
-        button.async_write_ha_state = MagicMock()
+        mock_async_write = MagicMock()
+        object.__setattr__(button, "async_write_ha_state", mock_async_write)
 
         button._handle_coordinator_update()
 
         assert button._device["name"] == "Updated Camera"
-        button.async_write_ha_state.assert_called_once()
+        mock_async_write.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_async_press_success(
