@@ -182,9 +182,7 @@ class MerakiLanIpSensor(MerakiMetadataSensor):
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(
-            coordinator, device_data, config_entry, "lanIp", "mdi:ip"
-        )
+        super().__init__(coordinator, device_data, config_entry, "lanIp", "mdi:ip")
 
 
 class MerakiWan1IpSensor(MerakiMetadataSensor):
@@ -197,9 +195,7 @@ class MerakiWan1IpSensor(MerakiMetadataSensor):
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(
-            coordinator, device_data, config_entry, "wan1Ip", "mdi:wan"
-        )
+        super().__init__(coordinator, device_data, config_entry, "wan1Ip", "mdi:wan")
 
 
 class MerakiWan2IpSensor(MerakiMetadataSensor):
@@ -212,9 +208,7 @@ class MerakiWan2IpSensor(MerakiMetadataSensor):
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(
-            coordinator, device_data, config_entry, "wan2Ip", "mdi:wan"
-        )
+        super().__init__(coordinator, device_data, config_entry, "wan2Ip", "mdi:wan")
 
 
 class MerakiProductTypeSensor(MerakiMetadataSensor):
