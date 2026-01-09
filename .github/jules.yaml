@@ -1,7 +1,8 @@
 # .github/jules.yaml
 instructions: |
-  ALL Pull Requests must target the beta branch unless explicitly told otherwise.
-  You must run `ruff check .` and `pytest` locally in your VM. If they fail, fix the code before pushing.
+  CRITICAL: All Pull Requests MUST target the beta branch.
+  Before pushing any code, you MUST run pip install -r requirements.txt, ruff check ., and pytest locally in your VM.
+  Always check .github/workflows/ for the latest CI definitions (e.g., validate-code.yml) before diagnosing failures.
 project_context:
   primary_branch: main
   development_branch: beta
