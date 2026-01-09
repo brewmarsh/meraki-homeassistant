@@ -152,11 +152,8 @@ class MerakiAPIClient:
             "networks": self._run_with_semaphore(
                 self.organization.get_organization_networks(),
             ),
-            "devices": self._run_with_semaphore(
-                self.organization.get_organization_devices(),
-            ),
-            "devices_availabilities": self._run_with_semaphore(
-                self.organization.get_organization_devices_availabilities(),
+            "devices_statuses": self._run_with_semaphore(
+                self.organization.get_organization_devices_statuses(),
             ),
             "appliance_uplink_statuses": self._run_with_semaphore(
                 self.appliance.get_organization_appliance_uplink_statuses(),
@@ -181,8 +178,7 @@ class MerakiAPIClient:
 
         """
         networks_res = results.get("networks")
-        devices_res = results.get("devices")
-        devices_availabilities_res = results.get("devices_availabilities")
+        devices_statuses_res = results.get("devices_statuses")
         appliance_uplink_statuses_res = results.get("appliance_uplink_statuses")
         sensor_readings_res = results.get("sensor_readings")
 
@@ -193,21 +189,10 @@ class MerakiAPIClient:
             _LOGGER.warning("Could not fetch Meraki networks: %s", networks_res)
 
         devices: list[MerakiDevice] = (
-            devices_res if isinstance(devices_res, list) else []
+            devices_statuses_res if isinstance(devices_statuses_res, list) else []
         )
-        if not isinstance(devices_res, list):
-            _LOGGER.warning("Could not fetch Meraki devices: %s", devices_res)
-
-        devices_availabilities: list[dict[str, Any]] = (
-            devices_availabilities_res
-            if isinstance(devices_availabilities_res, list)
-            else []
-        )
-        if not isinstance(devices_availabilities_res, list):
-            _LOGGER.warning(
-                "Could not fetch Meraki device availabilities: %s",
-                devices_availabilities_res,
-            )
+        if not isinstance(devices_statuses_res, list):
+            _LOGGER.warning("Could not fetch Meraki devices: %s", devices_statuses_res)
 
         appliance_uplink_statuses: list[dict[str, Any]] = (
             appliance_uplink_statuses_res
@@ -228,12 +213,6 @@ class MerakiAPIClient:
                 "Could not fetch Meraki sensor readings: %s", sensor_readings_res
             )
 
-        availabilities_by_serial = {
-            availability["serial"]: availability
-            for availability in devices_availabilities
-            if isinstance(availability, dict) and "serial" in availability
-        }
-
         readings_by_serial = {
             reading["serial"]: reading.get("readings", [])
             for reading in sensor_readings
@@ -241,8 +220,6 @@ class MerakiAPIClient:
         }
 
         for device in devices:
-            if availability := availabilities_by_serial.get(device["serial"]):
-                device["status"] = availability["status"]
             if readings := readings_by_serial.get(device["serial"]):
                 device["readings"] = readings
 

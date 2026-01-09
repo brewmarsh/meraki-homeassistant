@@ -68,15 +68,14 @@ async def test_get_all_data_orchestration(api_client):
     api_client._process_detailed_data.assert_called_once()
 
 
-def test_process_initial_data_merges_availability(api_client):
-    """Test that _process_initial_data merges device availability."""
+def test_process_initial_data_with_device_statuses(api_client):
+    """Test that _process_initial_data correctly handles the device statuses payload."""
     # Arrange
     device_with_status = MOCK_DEVICE.copy()
-    availabilities = [{"serial": MOCK_DEVICE["serial"], "status": "online"}]
+    device_with_status["status"] = "online"
     results = {
         "networks": [MOCK_NETWORK],
-        "devices": [device_with_status],
-        "devices_availabilities": availabilities,
+        "devices_statuses": [device_with_status],
         "appliance_uplink_statuses": [],
     }
 
@@ -84,7 +83,9 @@ def test_process_initial_data_merges_availability(api_client):
     data = api_client._process_initial_data(results)
 
     # Assert
+    assert len(data["devices"]) == 1
     assert data["devices"][0]["status"] == "online"
+    assert data["devices"][0]["serial"] == MOCK_DEVICE["serial"]
 
 
 def test_process_initial_data_handles_errors(api_client, caplog):
