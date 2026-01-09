@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, cast
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..helpers.device_info_helpers import resolve_device_info
 

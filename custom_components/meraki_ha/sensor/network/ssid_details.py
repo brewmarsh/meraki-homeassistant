@@ -7,8 +7,7 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfDataRate
-from homeassistant.helpers.entity import EntityCategory
+from homeassistant.const import EntityCategory, UnitOfDataRate
 
 from ...helpers.device_info_helpers import resolve_device_info
 from ...meraki_data_coordinator import MerakiDataCoordinator

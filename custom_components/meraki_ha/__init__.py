@@ -5,7 +5,7 @@ import secrets
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ConfigEntryNotReady
 
 from .api.websocket import async_setup_websocket_api
@@ -222,7 +222,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry_data["timed_access_manager"] = TimedAccessManager(api_client)
 
     # Register service
-    async def handle_create_timed_access(call):
+    async def handle_create_timed_access(call: ServiceCall) -> None:
         ssid_number = call.data["ssid_number"]
         duration = call.data["duration"]
         name = call.data.get("name")

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
@@ -28,7 +30,7 @@ class VlansListSensor(MerakiNetworkEntity, SensorEntity):
         self._attr_native_value = 0
 
     @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         return {"vlans": self._vlan_list}
 
