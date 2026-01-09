@@ -1,0 +1,132 @@
+name: 🐛 Bug Report
+description: Report a bug or unexpected behavior
+title: '[Bug]: '
+labels: ['bug', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the form below.
+
+        **Note**: If you're requesting a new feature, please use the Feature Request template instead.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: 'When I try to... I expect... but instead...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed steps to reproduce the behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which part of the integration is affected?
+      options:
+        - Sensors (device status, metrics)
+        - Switches (SSID, port control)
+        - Camera (snapshots, streaming)
+        - Frontend Panel (React UI)
+        - Config Flow (setup/options)
+        - API Client (Meraki communication)
+        - MQTT (real-time updates)
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: device-type
+    attributes:
+      label: Meraki Device Type
+      description: Which Meraki device types are involved?
+      multiple: true
+      options:
+        - MR (Wireless Access Points)
+        - MS (Switches)
+        - MX (Security Appliances)
+        - MV (Cameras)
+        - MT (Environmental Sensors)
+        - MG (Cellular Gateways)
+        - Not device-specific
+
+  - type: input
+    id: version
+    attributes:
+      label: Integration Version
+      description: What version of the integration are you running?
+      placeholder: 'e.g., 2.2.1'
+    validations:
+      required: true
+
+  - type: input
+    id: ha-version
+    attributes:
+      label: Home Assistant Version
+      description: What version of Home Assistant are you running?
+      placeholder: 'e.g., 2025.1.0'
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Log Output
+      description: |
+        Please copy and paste any relevant log output.
+        Enable debug logging first:
+        ```yaml
+        logger:
+          logs:
+            custom_components.meraki_ha: debug
+        ```
+      render: shell
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Configuration
+      description: Any relevant configuration details (redact sensitive info like API keys)
+      render: yaml
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I am running the latest version of the integration
+          required: false
+        - label: I have enabled debug logging and included relevant logs
+          required: false

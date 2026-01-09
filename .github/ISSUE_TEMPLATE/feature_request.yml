@@ -1,0 +1,102 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement
+title: '[Feature]: '
+labels: ['enhancement', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Please fill out the form below to help us understand your request.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: "I'm always frustrated when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like to see.
+      placeholder: 'I would like to be able to...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe any alternative solutions or features you've considered.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which part of the integration would this affect?
+      options:
+        - Sensors (new sensors or sensor improvements)
+        - Switches (new controls or switch improvements)
+        - Camera (snapshot or streaming features)
+        - Frontend Panel (React UI improvements)
+        - Config Flow (setup/options improvements)
+        - API Client (new API features)
+        - MQTT (real-time updates)
+        - New Platform (button, select, number, etc.)
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: device-type
+    attributes:
+      label: Meraki Device Type
+      description: Which Meraki device types would this feature apply to?
+      multiple: true
+      options:
+        - MR (Wireless Access Points)
+        - MS (Switches)
+        - MX (Security Appliances)
+        - MV (Cameras)
+        - MT (Environmental Sensors)
+        - MG (Cellular Gateways)
+        - All devices
+        - Not device-specific
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Nice to have
+        - Would improve my workflow
+        - Critical for my use case
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe your specific use case for this feature.
+      placeholder: 'In my home/office network, I need to...'
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context, screenshots, or references about the feature request.
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to help implement this feature
+          required: false
+        - label: I have searched existing issues and this is not a duplicate
+          required: true

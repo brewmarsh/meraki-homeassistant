@@ -1,0 +1,70 @@
+# Jules AI Agent Configuration
+# https://jules.google/docs/api/reference/
+
+project_context:
+  # Branch configuration
+  primary_branch: main
+  development_branch: beta
+
+  # Project description
+  description: |
+    Cisco Meraki integration for Home Assistant. Allows users to monitor and manage
+    Meraki network infrastructure (access points, switches, cameras, security appliances,
+    and environmental sensors) directly from Home Assistant.
+
+  # Technology stack
+  technologies:
+    - Python 3.13
+    - Home Assistant Core
+    - meraki SDK
+    - aiohttp
+    - React
+    - TypeScript
+    - Vite
+
+  # Coding standards
+  coding_standards: |
+    - Follow Home Assistant Core integration standards
+    - PEP 8 and Ruff linting rules
+    - Use async/await for all I/O operations
+    - Type hints required for all function signatures
+    - NumPy-style docstrings
+    - Use uv for package management (never requirements.txt)
+    - All configurations in pyproject.toml
+    - Conventional Commits format for commit messages
+
+  # Important project patterns
+  patterns: |
+    - Optimistic UI with Cooldown: For entities that modify Meraki config, update state
+      immediately, make fire-and-forget API call, register pending update with coordinator
+      (default 150 seconds cooldown)
+    - Use CoordinatorEntity for data updates
+    - API client uses snake_case methods
+    - Constants defined in const.py
+    - Validation using voluptuous schemas
+
+  # Files to read for context
+  context_files:
+    - AGENTS.md
+    - DEVELOPMENT.md
+    - pyproject.toml
+
+  # Key directories
+  key_directories:
+    integration: custom_components/meraki_ha/
+    tests: tests/
+    frontend: custom_components/meraki_ha/www/
+    workflows: .github/workflows/
+
+  # Ignored errors - focus only on meraki_ha integration
+  ignored_errors: |
+    Ignore all errors not related to the meraki_ha integration.
+    Ignore pip-audit vulnerabilities that are already acknowledged in CI.
+
+  # Quality requirements
+  quality_requirements: |
+    - 95%+ test coverage
+    - All tests must pass
+    - No ruff or mypy errors
+    - No bandit security warnings
+    - Frontend must build without errors

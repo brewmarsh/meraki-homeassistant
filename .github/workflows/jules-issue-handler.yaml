@@ -1,0 +1,294 @@
+name: Jules Issue Handler
+
+# This workflow invokes Jules to work on issues when labeled
+# Based on: https://github.com/google-labs-code/jules-action
+
+on:
+  issues:
+    types:
+      - labeled
+      - opened # For jules_task template which auto-applies labels
+
+jobs:
+  handle-jules-task:
+    # Trigger when issue is created with 'jules-work' label (from Jules task template)
+    # or when 'jules-work' label is added
+    if: |
+      contains(github.event.issue.labels.*.name, 'jules-work')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      # Security: Only allow trusted users to trigger Jules
+      - name: Check user authorization
+        if: ${{ !contains(fromJSON('["liptonj", "dependabot[bot]"]'), github.event.sender.login) }}
+        run: |
+          echo "::warning::User ${{ github.event.sender.login }} is not authorized to trigger Jules"
+          exit 1
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: beta
+
+      - name: Invoke Jules for structured task
+        uses: google-labs-code/jules-invoke@v1
+        with:
+          starting_branch: beta
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          prompt: |
+            You are the primary coding agent for the meraki-homeassistant project.
+
+            ## Task Assignment
+            **Title**: ${{ github.event.issue.title }}
+            **Issue Number**: #${{ github.event.issue.number }}
+            **URL**: ${{ github.event.issue.html_url }}
+
+            **Task Details**:
+            ${{ github.event.issue.body }}
+
+            ## Project Context
+            1. Read the `AGENTS.md` file first - it contains all project standards and conventions.
+            2. Read the `ROADMAP.md` file to understand the project roadmap and requirements.
+            3. This is a Home Assistant custom integration for Cisco Meraki networks.
+
+            ## Technology Stack
+            - Backend: Python 3.13, Home Assistant Core, meraki SDK, aiohttp
+            - Frontend: React, TypeScript, Vite
+            - Package manager: uv with pyproject.toml (never requirements.txt)
+            - Tests: pytest, pytest-asyncio
+            - Linting: Ruff, mypy, bandit
+
+            ## Key Directories
+            - Integration code: `custom_components/meraki_ha/`
+            - Tests: `tests/`
+            - Frontend: `custom_components/meraki_ha/www/`
+
+            ## Your Task
+
+            1. **Parse the task requirements** from the issue body:
+               - Identify the milestone and specific requirements
+               - Note any constraints specified
+               - Understand what needs to be built or refactored
+
+            2. **Plan your implementation**:
+               - Review existing code patterns in the codebase
+               - Identify files to modify or create
+               - Consider edge cases and error handling
+
+            3. **Implement the task** following project standards:
+               - Use type hints for all function signatures
+               - Use async/await for all I/O operations
+               - Follow PEP 8 and Ruff linting rules
+               - Use NumPy-style docstrings
+               - Follow Home Assistant Sentence Case standards for entity names
+               - Add constants to `const.py`
+               - Use early returns for error conditions
+
+            4. **Write comprehensive tests**:
+               - Unit tests for all new functions
+               - Place tests in `tests/` mirroring the source structure
+               - Use pytest-asyncio for async tests
+               - Mock external API calls (never call real Meraki API)
+
+            5. **Verify all checks pass**:
+               - `ruff check --fix . && ruff format .`
+               - `mypy custom_components/meraki_ha/ tests/`
+               - `pytest`
+               - If frontend changes: `cd custom_components/meraki_ha/www && npm run build`
+
+            6. **Create a PR** with:
+               - Title following Conventional Commits: `feat(<scope>): <description>` or `fix(<scope>): <description>`
+               - Detailed description of what was implemented
+               - Reference: Closes #${{ github.event.issue.number }}
+               - Target branch: beta
+
+            ## Constraints
+            - Ignore all errors not related to the meraki_ha integration
+            - Follow Home Assistant Sentence Case standards
+            - All existing tests must pass
+            - Maintain 95%+ test coverage
+            - Keep implementation focused - don't over-engineer
+            - Target branch must be `beta`
+
+  handle-bug:
+    # Trigger when 'jules' label is added to a bug
+    if: |
+      github.event.label.name == 'jules' &&
+      contains(github.event.issue.labels.*.name, 'bug')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      # Security: Only allow trusted users to trigger Jules via labels
+      # Add your GitHub usernames to this allowlist
+      - name: Check user authorization
+        if: ${{ !contains(fromJSON('["liptonj", "dependabot[bot]"]'), github.event.sender.login) }}
+        run: |
+          echo "::warning::User ${{ github.event.sender.login }} is not authorized to trigger Jules"
+          exit 1
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: beta
+
+      - name: Invoke Jules for bug fix
+        uses: google-labs-code/jules-invoke@v1
+        with:
+          starting_branch: beta
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          prompt: |
+            You are a bug-fixing agent for the meraki-homeassistant project.
+
+            ## Issue to Fix
+            **Title**: ${{ github.event.issue.title }}
+            **Number**: #${{ github.event.issue.number }}
+            **URL**: ${{ github.event.issue.html_url }}
+
+            **Description**:
+            ${{ github.event.issue.body }}
+
+            ## Project Context
+            Read the AGENTS.md file first - it contains all project standards and conventions.
+
+            This is a Home Assistant custom integration for Cisco Meraki networks.
+            - Backend: Python 3.13, Home Assistant Core, meraki SDK
+            - Frontend: React, TypeScript, Vite
+            - Package manager: uv with pyproject.toml
+            - Tests: pytest, pytest-asyncio
+
+            ## Your Task
+
+            1. **Understand the bug**: Parse the issue description to understand:
+               - What component is affected
+               - Steps to reproduce
+               - Expected vs actual behavior
+
+            2. **Locate the relevant code**: Use the affected component info to find:
+               - Sensors: `custom_components/meraki_ha/sensor/`
+               - Switches: `custom_components/meraki_ha/switch/`
+               - Camera: `custom_components/meraki_ha/camera.py`
+               - Frontend: `custom_components/meraki_ha/www/src/`
+               - Config: `custom_components/meraki_ha/config_flow.py`, `options_flow.py`
+               - API: `custom_components/meraki_ha/core/`
+               - MQTT: `custom_components/meraki_ha/services/mqtt_service.py`
+
+            3. **Fix the bug** following project standards:
+               - Use type hints for all functions
+               - Use async/await for I/O operations
+               - Follow the "Optimistic UI with Cooldown" pattern for state changes
+               - Use early returns for error conditions
+
+            4. **Write a test** that proves the bug is fixed:
+               - Place in `tests/` mirroring the source structure
+               - Use pytest-asyncio for async tests
+               - Mock external API calls
+
+            5. **Verify all checks pass**:
+               - `ruff check --fix . && ruff format .`
+               - `mypy custom_components/meraki_ha/ tests/`
+               - `pytest`
+
+            6. **Create a PR** with:
+               - Title: `fix(<scope>): <description>`
+               - Description explaining the root cause and fix
+               - Reference: Fixes #${{ github.event.issue.number }}
+               - Target branch: beta
+
+            ## Constraints
+            - Keep changes focused on the bug
+            - All existing tests must pass
+            - Maintain 95%+ test coverage
+            - Follow Conventional Commits format
+
+  handle-feature:
+    # Trigger when 'jules' label is added to an enhancement
+    if: |
+      github.event.label.name == 'jules' &&
+      contains(github.event.issue.labels.*.name, 'enhancement')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Check user authorization
+        if: ${{ !contains(fromJSON('["liptonj", "dependabot[bot]"]'), github.event.sender.login) }}
+        run: |
+          echo "::warning::User ${{ github.event.sender.login }} is not authorized to trigger Jules"
+          exit 1
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: beta
+
+      - name: Invoke Jules for feature implementation
+        uses: google-labs-code/jules-invoke@v1
+        with:
+          starting_branch: beta
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          prompt: |
+            You are a feature implementation agent for the meraki-homeassistant project.
+
+            ## Feature Request
+            **Title**: ${{ github.event.issue.title }}
+            **Number**: #${{ github.event.issue.number }}
+            **URL**: ${{ github.event.issue.html_url }}
+
+            **Description**:
+            ${{ github.event.issue.body }}
+
+            ## Project Context
+            Read the AGENTS.md file first - it contains all project standards and conventions.
+
+            This is a Home Assistant custom integration for Cisco Meraki networks.
+            - Backend: Python 3.13, Home Assistant Core, meraki SDK
+            - Frontend: React, TypeScript, Vite
+            - Package manager: uv with pyproject.toml
+            - Tests: pytest, pytest-asyncio
+
+            ## Your Task
+
+            1. **Understand the feature request**:
+               - What problem does it solve?
+               - What component is affected?
+               - What's the proposed solution?
+
+            2. **Plan the implementation**:
+               - Identify files to modify or create
+               - Consider edge cases
+               - Check for similar existing patterns in the codebase
+
+            3. **Implement the feature** following project standards:
+               - Use type hints for all functions
+               - Use async/await for I/O operations
+               - Add constants to `const.py`
+               - For entities: use `CoordinatorEntity`, `DeviceInfo`, proper naming
+               - For frontend: React with TypeScript, CSS variables for themes
+
+            4. **Write comprehensive tests**:
+               - Unit tests for new functions
+               - Integration tests if applicable
+               - Mock external API calls
+
+            5. **Verify all checks pass**:
+               - `ruff check --fix . && ruff format .`
+               - `mypy custom_components/meraki_ha/ tests/`
+               - `pytest`
+               - If frontend: `npm run build`
+
+            6. **Create a PR** with:
+               - Title: `feat(<scope>): <description>`
+               - Detailed description of the implementation
+               - Reference: Closes #${{ github.event.issue.number }}
+               - Target branch: beta
+
+            ## Constraints
+            - Keep implementation simple and focused
+            - All existing tests must pass
+            - Maintain 95%+ test coverage
+            - Follow Conventional Commits format
+            - Don't over-engineer - implement only what's requested
