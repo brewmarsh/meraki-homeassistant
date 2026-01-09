@@ -208,7 +208,7 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
         return None
 
     @property
-    def extra_state_attributes(self) -> dict[str, Any] | None:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return entity state attributes with update source and timestamps."""
         attrs: dict[str, Any] = {}
 
@@ -235,7 +235,7 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
                 self.coordinator.last_successful_update.isoformat()
             )
 
-        return attrs if attrs else None
+        return attrs
 
     @property
     def available(self) -> bool:
