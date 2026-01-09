@@ -203,39 +203,27 @@ def test_coordinator_initialization_defaults(coordinator):
     assert coordinator.last_successful_data == {}
 
 
-def test_coordinator_custom_scan_interval(hass, mock_api_client):
-    """Test coordinator with custom scan interval."""
+def test_coordinator_update_interval_is_fixed(hass, mock_api_client):
+    """Test that the coordinator's update_interval is fixed, ignoring legacy options."""
     entry = MagicMock()
-    entry.options = {"scan_interval": 60}
     entry.entry_id = "test_entry_id"
 
+    # Test with a valid legacy option
+    entry.options = {"scan_interval": 120}
     coord = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
+    # The coordinator's internal update interval is fixed at 30 seconds
+    # to drive the tiered polling mechanism.
+    assert coord.update_interval == timedelta(seconds=30)
 
-    assert coord.update_interval == timedelta(seconds=60)
-
-
-def test_coordinator_invalid_scan_interval(hass, mock_api_client):
-    """Test coordinator with invalid scan interval falls back to default."""
-    entry = MagicMock()
+    # Test with an invalid legacy option
     entry.options = {"scan_interval": "invalid"}
-    entry.entry_id = "test_entry_id"
-
     coord = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
+    assert coord.update_interval == timedelta(seconds=30)
 
-    # Default is 300 seconds
-    assert coord.update_interval == timedelta(seconds=90)  # DEFAULT_SCAN_INTERVAL
-
-
-def test_coordinator_negative_scan_interval(hass, mock_api_client):
-    """Test coordinator with negative scan interval falls back to default."""
-    entry = MagicMock()
+    # Test with a negative legacy option
     entry.options = {"scan_interval": -10}
-    entry.entry_id = "test_entry_id"
-
     coord = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
-
-    # Default is 300 seconds
-    assert coord.update_interval == timedelta(seconds=90)  # DEFAULT_SCAN_INTERVAL
+    assert coord.update_interval == timedelta(seconds=30)
 
 
 def test_register_pending_update(coordinator):
@@ -652,3 +640,145 @@ def test_populate_ssid_entities_empty_data(coordinator):
     coordinator._populate_ssid_entities({})
     coordinator._populate_ssid_entities({"ssids": []})
     # Should not raise any exceptions
+
+
+# =============================================================================
+# Tiered Polling Tests
+# =============================================================================
+
+
+@pytest.fixture
+def coordinator_with_tiered_polling(hass, mock_api_client):
+    """Fixture for coordinator with tiered polling intervals configured."""
+    entry = MagicMock()
+    entry.options = {
+        "network_scan_interval": 600,  # 10 minutes
+        "device_scan_interval": 300,  # 5 minutes
+        "client_scan_interval": 60,  # 1 minute
+        "ssid_scan_interval": 300,  # 5 minutes
+    }
+    entry.entry_id = "test_entry_id"
+    coord = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
+    coord.config_entry = entry
+    return coord
+
+
+@pytest.mark.asyncio
+async def test_tiered_polling_first_call_fetches_all(
+    coordinator_with_tiered_polling, mock_api_client
+):
+    """Test that the first call fetches all data types."""
+    mock_api_client.get_all_data.return_value = {
+        "networks": [{"id": "N_123", "name": "Test"}],
+        "devices": [],
+        "appliance_traffic": {},
+        "vlans": {},
+    }
+
+    # All timestamps should be None initially
+    assert coordinator_with_tiered_polling.last_network_update is None
+    assert coordinator_with_tiered_polling.last_device_update is None
+    assert coordinator_with_tiered_polling.last_client_update is None
+    assert coordinator_with_tiered_polling.last_ssid_update is None
+
+    await coordinator_with_tiered_polling._async_update_data()
+
+    # Verify get_all_data was called with all fetch flags True
+    mock_api_client.get_all_data.assert_called_once()
+    call_kwargs = mock_api_client.get_all_data.call_args[1]
+    assert call_kwargs["fetch_networks"] is True
+    assert call_kwargs["fetch_devices"] is True
+    assert call_kwargs["fetch_clients"] is True
+    assert call_kwargs["fetch_ssids"] is True
+
+    # All timestamps should be set
+    assert coordinator_with_tiered_polling.last_network_update is not None
+    assert coordinator_with_tiered_polling.last_device_update is not None
+    assert coordinator_with_tiered_polling.last_client_update is not None
+    assert coordinator_with_tiered_polling.last_ssid_update is not None
+
+
+@pytest.mark.asyncio
+async def test_tiered_polling_skips_when_intervals_not_exceeded(
+    coordinator_with_tiered_polling, mock_api_client
+):
+    """Test that polling is skipped when no intervals have been exceeded."""
+    mock_data = {
+        "networks": [{"id": "N_123", "name": "Test"}],
+        "devices": [],
+        "appliance_traffic": {},
+        "vlans": {},
+    }
+    mock_api_client.get_all_data.return_value = mock_data
+
+    # First call to set timestamps
+    await coordinator_with_tiered_polling._async_update_data()
+    mock_api_client.get_all_data.reset_mock()
+
+    # Set last_successful_data so the coordinator returns cached data
+    coordinator_with_tiered_polling.last_successful_data = mock_data
+
+    # Immediately call again - no intervals should be exceeded
+    result = await coordinator_with_tiered_polling._async_update_data()
+
+    # Should return cached data without calling API
+    mock_api_client.get_all_data.assert_not_called()
+    assert result == mock_data
+
+
+@pytest.mark.asyncio
+async def test_tiered_polling_respects_individual_intervals(
+    coordinator_with_tiered_polling, mock_api_client
+):
+    """Test that each data type respects its own interval."""
+    mock_data = {
+        "networks": [{"id": "N_123", "name": "Test"}],
+        "devices": [],
+        "appliance_traffic": {},
+        "vlans": {},
+    }
+    mock_api_client.get_all_data.return_value = mock_data
+
+    # First call to set timestamps
+    await coordinator_with_tiered_polling._async_update_data()
+    mock_api_client.get_all_data.reset_mock()
+
+    # Simulate client interval exceeded but others not
+    coordinator_with_tiered_polling.last_client_update = (
+        datetime.now() - timedelta(seconds=120)  # 2 minutes ago
+    )
+    # Keep other timestamps recent
+    now = datetime.now()
+    coordinator_with_tiered_polling.last_network_update = now
+    coordinator_with_tiered_polling.last_device_update = now
+    coordinator_with_tiered_polling.last_ssid_update = now
+
+    await coordinator_with_tiered_polling._async_update_data()
+
+    # Verify only clients are fetched
+    mock_api_client.get_all_data.assert_called_once()
+    call_kwargs = mock_api_client.get_all_data.call_args[1]
+    assert call_kwargs["fetch_networks"] is False
+    assert call_kwargs["fetch_devices"] is False
+    assert call_kwargs["fetch_clients"] is True
+    assert call_kwargs["fetch_ssids"] is False
+
+
+@pytest.mark.asyncio
+async def test_tiered_polling_uses_default_intervals(coordinator, mock_api_client):
+    """Test that default intervals are used when not configured."""
+    mock_api_client.get_all_data.return_value = {
+        "networks": [],
+        "devices": [],
+        "appliance_traffic": {},
+        "vlans": {},
+    }
+
+    # First call to set timestamps
+    await coordinator._async_update_data()
+
+    # Verify the coordinator used default intervals by checking timestamps were set
+    assert coordinator.last_network_update is not None
+    assert coordinator.last_device_update is not None
+    assert coordinator.last_client_update is not None
+    assert coordinator.last_ssid_update is not None

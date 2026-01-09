@@ -39,7 +39,7 @@ $RUFF format --check custom_components/meraki_ha/
 
 echo ""
 echo "3/5 Running bandit security check..."
-$BANDIT -r custom_components/meraki_ha/ -c .bandit.yaml -q
+$BANDIT -r custom_components/meraki_ha/ -c pyproject.toml -q
 
 echo ""
 echo "4/5 Running mypy type check..."
