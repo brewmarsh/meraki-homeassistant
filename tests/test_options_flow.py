@@ -8,7 +8,6 @@ from homeassistant.helpers import selector
 
 from custom_components.meraki_ha.const import (
     CONF_ENABLED_NETWORKS,
-    CONF_INTEGRATION_TITLE,
     DOMAIN,
 )
 from custom_components.meraki_ha.options_flow import MerakiOptionsFlowHandler
@@ -108,6 +107,8 @@ async def test_async_step_mqtt_with_user_input_creates_entry(
     mock_options_config_entry: MagicMock,
 ) -> None:
     """Test options flow step mqtt with user input creates entry."""
+    from custom_components.meraki_ha.const import CONF_INTEGRATION_TITLE
+
     handler = MerakiOptionsFlowHandler(mock_options_config_entry)
 
     result = await handler.async_step_mqtt({"enable_mqtt": False})
@@ -133,7 +134,7 @@ def test_populate_schema_defaults() -> None:
     )
 
     defaults = {"scan_interval": 45}
-    network_options: list[dict[str, str]] = []
+    network_options: list[selector.SelectOptionDict] = []
 
     result_schema = handler._populate_schema_defaults(schema, defaults, network_options)
 
@@ -163,9 +164,9 @@ def test_populate_schema_defaults_with_networks() -> None:
     )
 
     defaults: dict[str, object] = {}
-    network_options = [
-        {"label": "Main Office", "value": "N_123"},
-        {"label": "Branch Office", "value": "N_456"},
+    network_options: list[selector.SelectOptionDict] = [
+        selector.SelectOptionDict(label="Main Office", value="N_123"),
+        selector.SelectOptionDict(label="Branch Office", value="N_456"),
     ]
 
     result_schema = handler._populate_schema_defaults(schema, defaults, network_options)

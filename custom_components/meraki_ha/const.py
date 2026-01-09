@@ -27,6 +27,12 @@ CONF_MERAKI_ORG_ID: Final = "meraki_org_id"
 CONF_SCAN_INTERVAL: Final = "scan_interval"
 """Configuration key for the scan interval in seconds."""
 
+CONF_SCAN_INTERVAL_DEVICE_STATUS: Final = "scan_interval_device_status"
+"""Configuration key for the device status scan interval in seconds."""
+
+CONF_SCAN_INTERVAL_CLIENTS: Final = "scan_interval_clients"
+"""Configuration key for the clients scan interval in seconds."""
+
 DATA_CLIENT: Final = "client"
 """Key for storing the Meraki API client in Home Assistant's data."""
 
@@ -65,6 +71,9 @@ DEFAULT_CAMERA_SNAPSHOT_INTERVAL: Final = 0
 
 CONF_CAMERA_ENTITY_MAPPINGS: Final = "camera_entity_mappings"
 """Configuration key for camera entity mappings (Meraki serial -> HA entity_id)."""
+
+CONF_MQTT_RELAY_DESTINATIONS: Final = "mqtt_relay_destinations"
+"""Configuration key for MQTT relay destinations."""
 
 # Dashboard display settings
 CONF_DASHBOARD_VIEW_MODE: Final = "dashboard_view_mode"
@@ -150,6 +159,13 @@ MERAKI_API_CLIENT: Final = "meraki_api_client"
 DEFAULT_SCAN_INTERVAL: Final = 90
 """Default scan interval in seconds for the Meraki API data."""
 
+DEFAULT_SCAN_INTERVAL_DEVICE_STATUS: Final = 60
+"""Default scan interval in seconds for device status."""
+
+DEFAULT_SCAN_INTERVAL_CLIENTS: Final = 120
+"""Default scan interval in seconds for clients."""
+
+
 # Defaults for new options
 DEFAULT_ENABLE_DEVICE_STATUS: Final = True
 DEFAULT_ENABLE_ORG_SENSORS: Final = True
@@ -171,9 +187,6 @@ CONF_ENABLE_MQTT: Final = "enable_mqtt"
 
 DEFAULT_ENABLE_MQTT: Final = False
 """Default value for MQTT enable toggle."""
-
-CONF_MQTT_RELAY_DESTINATIONS: Final = "mqtt_relay_destinations"
-"""Configuration key for list of MQTT relay destinations."""
 
 DEFAULT_MQTT_RELAY_DESTINATIONS: Final[list[dict]] = []
 """Default empty list of relay destinations."""

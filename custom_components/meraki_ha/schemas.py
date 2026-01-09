@@ -18,6 +18,8 @@ from .const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
+    CONF_SCAN_INTERVAL_CLIENTS,
+    CONF_SCAN_INTERVAL_DEVICE_STATUS,
     CONF_TEMPERATURE_UNIT,
     DASHBOARD_VIEW_MODE_NETWORK,
     DASHBOARD_VIEW_MODE_TYPE,
@@ -31,6 +33,8 @@ from .const import (
     DEFAULT_ENABLED_NETWORKS,
     DEFAULT_MQTT_PORT,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SCAN_INTERVAL_CLIENTS,
+    DEFAULT_SCAN_INTERVAL_DEVICE_STATUS,
     DEFAULT_TEMPERATURE_UNIT,
     MQTT_DEST_DEVICE_TYPES,
     MQTT_DEST_HOST,
@@ -58,6 +62,29 @@ OPTIONS_SCHEMA_BASIC = vol.Schema(
     {
         vol.Required(
             CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
+        ): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=30,
+                max=300,
+                step=5,
+                unit_of_measurement="seconds",
+                mode=selector.NumberSelectorMode.SLIDER,
+            )
+        ),
+        vol.Required(
+            CONF_SCAN_INTERVAL_DEVICE_STATUS,
+            default=DEFAULT_SCAN_INTERVAL_DEVICE_STATUS,
+        ): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=30,
+                max=300,
+                step=5,
+                unit_of_measurement="seconds",
+                mode=selector.NumberSelectorMode.SLIDER,
+            )
+        ),
+        vol.Required(
+            CONF_SCAN_INTERVAL_CLIENTS, default=DEFAULT_SCAN_INTERVAL_CLIENTS
         ): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=30,
@@ -106,7 +133,7 @@ OPTIONS_SCHEMA_DASHBOARD = vol.Schema(
         ),
         vol.Required(
             CONF_DASHBOARD_DEVICE_TYPE_FILTER,
-            default=DEFAULT_DASHBOARD_DEVICE_TYPE_FILTER,
+            default=[DEFAULT_DASHBOARD_DEVICE_TYPE_FILTER],
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=[
@@ -117,6 +144,7 @@ OPTIONS_SCHEMA_DASHBOARD = vol.Schema(
                     selector.SelectOptionDict(value="sensor", label="Sensors"),
                     selector.SelectOptionDict(value="appliance", label="Appliances"),
                 ],
+                multiple=True,
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
         ),
@@ -188,6 +216,17 @@ OPTIONS_SCHEMA_CAMERA = vol.Schema(
                 custom_value=True,
             )
         ),
+    }
+)
+MQTT_DESTINATION_SCHEMA = vol.Schema(
+    {
+        vol.Required("server_ip"): selector.TextSelector(),
+        vol.Required("port"): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=1, max=65535, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
+        vol.Required("topic"): selector.TextSelector(),
     }
 )
 

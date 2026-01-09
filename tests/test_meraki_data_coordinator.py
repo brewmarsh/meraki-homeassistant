@@ -442,6 +442,26 @@ def test_filter_enabled_networks_no_config(coordinator):
     assert "is_enabled" not in data["networks"][0]
 
 
+def test_filter_device_types(coordinator):
+    """Test _filter_device_types filters correctly."""
+    coordinator.config_entry.options = {
+        "dashboard_device_type_filter": ["camera", "switch"]
+    }
+    data = {
+        "devices": [
+            {"serial": "A", "model": "MV12"},
+            {"serial": "B", "model": "MS120"},
+            {"serial": "C", "model": "MR33"},
+        ]
+    }
+
+    coordinator._filter_device_types(data)
+
+    assert len(data["devices"]) == 2
+    assert data["devices"][0]["serial"] == "A"
+    assert data["devices"][1]["serial"] == "B"
+
+
 def test_filter_enabled_networks_with_filter(coordinator):
     """Test _filter_enabled_networks filters correctly."""
     coordinator.config_entry.options = {"enabled_networks": ["N_123"]}
