@@ -14,8 +14,13 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
+from ...coordinator import MerakiDataUpdateCoordinator
+from ...helpers.device_info_helpers import resolve_device_info
+=======
 from ...helpers.device_info_helpers import resolve_device_info
 from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,7 +32,11 @@ class MerakiMt20OpenCloseSensor(CoordinatorEntity, BinarySensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
         device_info: dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:

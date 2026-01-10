@@ -90,8 +90,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
         # 3. Create a temporary index.html to host the panel
         with open("index.html", "w") as f:
+<<<<<<< HEAD
+            f.write("""
+=======
             f.write(
                 """
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
                 <!DOCTYPE html>
                 <html lang="en">
                 <head>
@@ -104,8 +108,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                     <script type="module" src="meraki-panel.js"></script>
                 </body>
                 </html>
+<<<<<<< HEAD
+            """)
+=======
             """
             )
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 
         # 4. Use Playwright to take a screenshot
         async with async_playwright() as p:

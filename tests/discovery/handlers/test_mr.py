@@ -20,18 +20,24 @@ def mock_camera_service() -> AsyncMock:
     return AsyncMock()
 
 
+<<<<<<< HEAD
+=======
 @pytest.fixture
 def mock_network_control_service() -> MagicMock:
     """Fixture for a mock NetworkControlService."""
     return MagicMock()
 
 
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 @pytest.mark.asyncio
 async def test_mr_handler_discover_entities(
     mock_coordinator: MagicMock,
     mock_config_entry: MagicMock,
     mock_control_service: MagicMock,
+<<<<<<< HEAD
+=======
     mock_network_control_service: MagicMock,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 ) -> None:
     """Test that the MRHandler's discover_entities returns an empty list (for now)."""
     handler = MRHandler(
@@ -39,7 +45,10 @@ async def test_mr_handler_discover_entities(
         MOCK_DEVICE,
         mock_config_entry,
         mock_control_service,
+<<<<<<< HEAD
+=======
         mock_network_control_service,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
     )
     entities = await handler.discover_entities()
     assert entities == []

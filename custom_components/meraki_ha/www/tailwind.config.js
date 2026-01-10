@@ -1,5 +1,16 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+<<<<<<< HEAD
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+=======
   darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
@@ -23,3 +34,4 @@ export default {
   },
   plugins: [],
 };
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)

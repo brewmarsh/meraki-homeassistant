@@ -11,6 +11,13 @@ mypy==1.11.0
 voluptuous==0.15.2
 pyyaml==6.0.3
 playwright
+<<<<<<< HEAD
+pytest-homeassistant-custom-component==0.13.294
+pytest==8.4.2
+pytest-cov==7.0.0
+pytest-asyncio==1.2.0
+codecov
+=======
 pytest-homeassistant-custom-component
 pytest
 pytest-cov==7.0.0
@@ -20,5 +27,4 @@ aiohttp>=3.13.2
 urllib3>=2.6.2
 aiodns>=3.2.0
 pycares==4.4.0
-webrtc-models==0.3.0
-webrtc-models==0.3.0
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)

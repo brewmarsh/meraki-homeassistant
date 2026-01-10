@@ -9,7 +9,11 @@ from custom_components.meraki_ha.sensor.setup_helpers import async_setup_sensors
 
 @pytest.fixture
 def mock_coordinator():
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+=======
     """Fixture for a mocked MerakiDataCoordinator."""
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     mock_device_data = {

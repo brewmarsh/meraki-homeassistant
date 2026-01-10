@@ -12,7 +12,11 @@ from ...const import MOCK_CONFIG_ENTRY, MOCK_MX_DEVICE
 
 @pytest.fixture
 def mock_coordinator():
+<<<<<<< HEAD
+    """Fixture for a mock MerakiDataUpdateCoordinator."""
+=======
     """Fixture for a mock MerakiDataCoordinator."""
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
     coordinator = MagicMock()
     coordinator.data = {"devices": [MOCK_MX_DEVICE]}
     return coordinator

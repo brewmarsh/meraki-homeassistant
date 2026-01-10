@@ -55,7 +55,11 @@ async def setup_integration_fixture(
 
     with (
         patch(
+<<<<<<< HEAD
+            "custom_components.meraki_ha.MerakiDataUpdateCoordinator._async_update_data",
+=======
             "custom_components.meraki_ha.MerakiDataCoordinator._async_update_data",
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
             return_value=MOCK_ALL_DATA,
         ),
         patch(

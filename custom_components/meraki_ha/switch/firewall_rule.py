@@ -9,9 +9,15 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
+<<<<<<< HEAD
+from ..coordinator import MerakiDataUpdateCoordinator
+from ..core.entities.meraki_firewall_rule_entity import MerakiFirewallRuleEntity
+from ..core.utils.entity_id_utils import get_firewall_rule_entity_id
+=======
 from ..core.entities.meraki_firewall_rule_entity import MerakiFirewallRuleEntity
 from ..core.utils.entity_id_utils import get_firewall_rule_entity_id
 from ..meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 from ..types import MerakiFirewallRule
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,7 +28,11 @@ class MerakiFirewallRuleSwitch(MerakiFirewallRuleEntity, SwitchEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
         config_entry: ConfigEntry,
         network_id: str,
         rule: MerakiFirewallRule,

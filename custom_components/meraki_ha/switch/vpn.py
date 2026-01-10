@@ -9,8 +9,13 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
+<<<<<<< HEAD
+from ..coordinator import MerakiDataUpdateCoordinator
+from ..core.entities.meraki_network_entity import MerakiNetworkEntity
+=======
 from ..core.entities.meraki_network_entity import MerakiNetworkEntity
 from ..meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 from ..types import MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
@@ -21,7 +26,11 @@ class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
         config_entry: ConfigEntry,
         network: MerakiNetwork,
     ) -> None:

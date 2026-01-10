@@ -12,7 +12,11 @@ from ...const import (
     DOMAIN,
     MANUFACTURER,
 )
+<<<<<<< HEAD
+from ...coordinator import MerakiDataUpdateCoordinator
+=======
 from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 from ..utils.naming_utils import format_device_name
 
 
@@ -28,7 +32,11 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
         config_entry: ConfigEntry,
         serial: str | None = None,
         network_id: str | None = None,

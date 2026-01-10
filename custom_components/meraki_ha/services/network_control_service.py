@@ -10,8 +10,13 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
+    from ..coordinator import MerakiDataUpdateCoordinator
+    from ..core.api.client import MerakiAPIClient
+=======
     from ..core.api.client import MerakiAPIClient
     from ..meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -23,7 +28,11 @@ class NetworkControlService:
     def __init__(
         self,
         api_client: MerakiAPIClient,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
     ) -> None:
         """Initialize the network control service."""
         self._api_client = api_client

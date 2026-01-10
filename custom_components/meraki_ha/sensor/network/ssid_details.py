@@ -10,8 +10,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfDataRate
 from homeassistant.helpers.entity import EntityCategory
 
+<<<<<<< HEAD
+from ...coordinator import MerakiDataUpdateCoordinator
+from ...helpers.device_info_helpers import resolve_device_info
+=======
 from ...helpers.device_info_helpers import resolve_device_info
 from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,7 +29,11 @@ class MerakiSSIDDetailSensor(SensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
         rf_profile: dict[str, Any] | None,

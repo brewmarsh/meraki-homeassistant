@@ -17,7 +17,11 @@ MOCK_NETWORK_2 = {"id": "N_5678", "name": "Network 2"}
 
 @pytest.fixture
 def mock_coordinator():
+<<<<<<< HEAD
+    """Fixture for a mock MerakiDataUpdateCoordinator."""
+=======
     """Fixture for a mock MerakiDataCoordinator."""
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
     coordinator = MagicMock()
     coordinator.data = {"networks": [MOCK_NETWORK_1, MOCK_NETWORK_2]}
     return coordinator

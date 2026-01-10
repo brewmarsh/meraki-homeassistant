@@ -7,8 +7,14 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
+from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+
+from ..core.api.client import MerakiAPIClient
+=======
 from ..core.api.client import MerakiAPIClient
 from ..meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 from ..types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,7 +28,11 @@ class MerakiCameraSettingSwitchBase(
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
         meraki_client: MerakiAPIClient,
         device_data: dict[str, Any],
         key: str,

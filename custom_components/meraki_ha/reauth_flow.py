@@ -14,14 +14,22 @@ from .authentication import validate_meraki_credentials
 from .const import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
+    from .config_flow import ConfigFlowHandler
+=======
     from .config_flow import MerakiConfigFlow
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_step_reauth(
+<<<<<<< HEAD
+    self: ConfigFlowHandler,
+=======
     self: MerakiConfigFlow,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
     user_input: dict[str, Any] | None = None,
 ) -> data_entry_flow.FlowResult:
     """

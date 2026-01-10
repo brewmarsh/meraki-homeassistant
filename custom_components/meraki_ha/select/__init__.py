@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+<<<<<<< HEAD
+=======
 import asyncio
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 import logging
 
 from homeassistant.config_entries import ConfigEntry
@@ -36,6 +39,9 @@ async def async_setup_entry(
                     network,
                 )
             )
+<<<<<<< HEAD
+        async_add_entities(select_entities)
+=======
 
         if select_entities:
             _LOGGER.debug("Adding %d select entities", len(select_entities))
@@ -45,3 +51,4 @@ async def async_setup_entry(
                 async_add_entities(chunk)
                 if len(select_entities) > chunk_size:
                     await asyncio.sleep(1)
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)

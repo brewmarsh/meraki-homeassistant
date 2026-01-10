@@ -5,9 +5,12 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+<<<<<<< HEAD
+=======
 import meraki
 
 from custom_components.meraki_ha.core.errors import MerakiTrafficAnalysisError
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
     validate_response,
@@ -35,6 +38,10 @@ class NetworkEndpoints:
 
         """
         self._api_client = api_client
+<<<<<<< HEAD
+        self._dashboard = api_client.dashboard
+=======
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
@@ -51,10 +58,15 @@ class NetworkEndpoints:
             A list of clients.
 
         """
+<<<<<<< HEAD
+        clients = await self._api_client.run_sync(
+            self._dashboard.networks.getNetworkClients,
+=======
         if self._api_client.dashboard is None:
             return []
         clients = await self._api_client.run_sync(
             self._api_client.dashboard.networks.getNetworkClients,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
             networkId=network_id,
             total_pages="all",
         )
@@ -82,6 +94,14 @@ class NetworkEndpoints:
             A list of traffic data.
 
         """
+<<<<<<< HEAD
+        traffic = await self._api_client.run_sync(
+            self._dashboard.networks.getNetworkTraffic,
+            networkId=network_id,
+            deviceType=device_type,
+            timespan=86400,  # 24 hours
+        )
+=======
         if self._api_client.dashboard is None:
             return []
         try:
@@ -103,6 +123,7 @@ class NetworkEndpoints:
                     f"Traffic analysis not enabled for network {network_id}"
                 ) from e
             raise
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
         validated = validate_response(traffic)
         if not isinstance(validated, list):
             _LOGGER.warning("get_network_traffic did not return a list.")
@@ -124,10 +145,15 @@ class NetworkEndpoints:
             A list of webhooks.
 
         """
+<<<<<<< HEAD
+        webhooks = await self._api_client.run_sync(
+            self._dashboard.networks.getNetworkWebhooksHttpServers,
+=======
         if self._api_client.dashboard is None:
             return []
         webhooks = await self._api_client.run_sync(
             self._api_client.dashboard.networks.getNetworkWebhooksHttpServers,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
             networkId=network_id,
         )
         validated = validate_response(webhooks)
@@ -147,10 +173,15 @@ class NetworkEndpoints:
             webhook_id: The ID of the webhook.
 
         """
+<<<<<<< HEAD
+        await self._api_client.run_sync(
+            self._dashboard.networks.deleteNetworkWebhooksHttpServer,
+=======
         if self._api_client.dashboard is None:
             return
         await self._api_client.run_sync(
             self._api_client.dashboard.networks.deleteNetworkWebhooksHttpServer,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
             networkId=network_id,
             httpServerId=webhook_id,
         )
@@ -196,10 +227,15 @@ class NetworkEndpoints:
             if existing_webhook:
                 await self.delete_webhook(network_id, existing_webhook["id"])
 
+<<<<<<< HEAD
+            await self._api_client.run_sync(
+                self._dashboard.networks.createNetworkWebhooksHttpServer,
+=======
             if self._api_client.dashboard is None:
                 return
             await self._api_client.run_sync(
                 self._api_client.dashboard.networks.createNetworkWebhooksHttpServer,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
                 networkId=network_id,
                 url=webhook_url,
                 sharedSecret=secret,
@@ -207,17 +243,32 @@ class NetworkEndpoints:
             )
 
     @handle_meraki_errors
+<<<<<<< HEAD
+    async def unregister_webhook(self, webhook_id: str) -> None:
+=======
     async def unregister_webhook(self, webhook_url: str) -> None:
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
         """
         Unregister a webhook with the Meraki API.
 
         Args:
         ----
+<<<<<<< HEAD
+            webhook_id: The ID of the webhook.
+=======
             webhook_url: The URL of the webhook to unregister.
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 
         """
         networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
+<<<<<<< HEAD
+            await self._api_client.run_sync(
+                self._dashboard.networks.deleteNetworkWebhooksHttpServer,
+                networkId=network["id"],
+                httpServerId=webhook_id,
+            )
+=======
             network_id = network["id"]
             webhook_to_delete = await self.find_webhook_by_url(network_id, webhook_url)
             if webhook_to_delete and "id" in webhook_to_delete:
@@ -227,6 +278,7 @@ class NetworkEndpoints:
                     network_id,
                 )
                 await self.delete_webhook(network_id, webhook_to_delete["id"])
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
@@ -246,10 +298,15 @@ class NetworkEndpoints:
             A list of analytics history.
 
         """
+<<<<<<< HEAD
+        history = await self._api_client.run_sync(
+            self._dashboard.camera.getNetworkCameraAnalyticsRecent,
+=======
         if self._api_client.dashboard is None:
             return []
         history = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getNetworkCameraAnalyticsRecent,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
             networkId=network_id,
             objectType=object_type,
         )
@@ -260,6 +317,8 @@ class NetworkEndpoints:
             )
             return []
         return validated
+<<<<<<< HEAD
+=======
 
     @handle_meraki_errors
     @async_timed_cache(timeout=300)
@@ -287,3 +346,4 @@ class NetworkEndpoints:
             _LOGGER.warning("get_network_group_policies did not return a list.")
             return []
         return validated
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
