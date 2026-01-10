@@ -45,6 +45,12 @@ def mock_config_entry() -> MagicMock:
 
 
 @pytest.fixture(autouse=True)
+def mock_dns_resolution(monkeypatch):
+    """Mock DNS resolution to prevent test crashes."""
+    monkeypatch.setattr("aiodns.DNSResolver", MagicMock())
+
+
+@pytest.fixture(autouse=True)
 def prevent_socket_and_camera_load() -> Generator[None, None, None]:
     """Patch asyncio to prevent opening a real socket."""
     from unittest.mock import MagicMock, patch
