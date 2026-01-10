@@ -7,7 +7,11 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
-from homeassistant.components.camera import Camera, CameraEntityFeature
+from homeassistant.components.camera import (
+    Camera,
+    CameraEntityFeature,
+    StreamType,
+)
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -57,6 +61,8 @@ class MerakiCamera(CoordinatorEntity, Camera):
     """
 
     _attr_brand = "Cisco Meraki"
+    _attr_supported_features = CameraEntityFeature.STREAM
+    _attr_frontend_stream_type = StreamType.WEB_RTC
 
     def __init__(
         self,
@@ -67,7 +73,6 @@ class MerakiCamera(CoordinatorEntity, Camera):
     ) -> None:
         """Initialize the camera."""
         super().__init__(coordinator)
-        Camera.__init__(self)
         self._config_entry = config_entry
         self._device_serial = device["serial"]
         self._camera_service = camera_service
@@ -126,6 +131,16 @@ class MerakiCamera(CoordinatorEntity, Camera):
         if self.is_streaming:
             return self.device_data.get("rtsp_url")
         return None
+
+    async def async_handle_webrtc_offer(self, offer_sdp: str) -> str | None:
+        """Handle a WebRTC offer."""
+        stream_source = await self.stream_source()
+        if not stream_source:
+            return None
+
+        from homeassistant.components.stream import async_handle_web_rtc_offer
+
+        return await async_handle_web_rtc_offer(self.hass, offer_sdp, stream_source)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
