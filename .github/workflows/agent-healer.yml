@@ -1,0 +1,21 @@
+﻿name: Agent Healer
+on:
+  workflow_run:
+    workflows: ["Validate Code"]
+    types: [completed]
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  heal:
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Jules to Fix CI
+        uses: google-labs-code/jules-action@main
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          starting_branch: ${{ github.event.workflow_run.head_branch }}
+          include_last_commit: true
+          include_commit_log: true
+          prompt: "The CI build failed. Please fix the pycares/aiodns conflict by using the range >=4.9.0,<5.0.0 and ensure webrtc-models==0.3.0 is in the manifest requirements."
