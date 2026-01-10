@@ -21,8 +21,8 @@
   ],
   "quality_scale": "platinum",
   "requirements": [
-    "aiohttp==3.13.3",
-    "urllib3>=2.6.3",
+    "aiohttp>=3.13.2",
+    "urllib3>=2.6.2",
     "aiodns>=3.2.0",
     "pycares>=4.0.0"
   ],
