@@ -31,7 +31,7 @@ jobs:
 
           sudo mkdir -p "${DestinationPath}"
 
-          # Preserving your specific rsync flags and excludes exactly as they are
+          # Preserving your specific rsync flags and excludes
           sudo rsync -rltpD --inplace --delete \
             --exclude '.git' \
             --exclude 'node_modules' \
@@ -53,7 +53,7 @@ jobs:
         run: |
           echo "Attempting to restart Home Assistant..."
 
-          # 1. SANITIZE TOKEN (Fixes the 'Missing expected CR' error)
+          # 1. SANITIZE TOKEN (Removes hidden newlines/spaces)
           CLEAN_TOKEN=$(echo "$HA_TOKEN" | tr -d '\r\n ')
 
           # 2. Check Configuration
@@ -74,21 +74,21 @@ jobs:
 
           ERRORS=$(echo "$BODY" | jq -r '.errors // empty')
           if [ "$ERRORS" != "" ] && [ "$ERRORS" != "null" ]; then
-            echo "Config check failed! Errors detected in Home Assistant:"
+            echo "Config check failed! Errors detected:"
             echo "$BODY" | jq .
             exit 1
           else
             echo "Config check passed."
           fi
 
-          # 3. Trigger Restart (Hardened for 2026.1 API standards)
+          # 3. Trigger Restart (Using the Standard JSON object payload)
           echo "Triggering Home Assistant restart..."
-          # Using -d '' and Content-Length: 0 is the most robust way to trigger a parameterless POST service
+          # Note: We use -d '{}' because the service handler validates for a JSON map
           RESTART_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
                -H "Authorization: Bearer $CLEAN_TOKEN" \
                -H "Content-Type: application/json" \
-               -H "Content-Length: 0" \
-               -d '' \
+               -H "Content-Length: 2" \
+               -d '{}' \
                "$HA_URL/api/services/home_assistant/restart")
 
           RESTART_STATUS=$(echo "$RESTART_RESPONSE" | tail -n1)
