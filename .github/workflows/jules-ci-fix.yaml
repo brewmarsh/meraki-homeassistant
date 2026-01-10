@@ -41,8 +41,16 @@ jobs:
             --repo "${{ github.repository }}" \
             --head "$HEAD_BRANCH" \
             --state open \
-            --json number,body,author,labels \
+            --json number,body,author,labels,baseRefName \
             --limit 1)
+
+          # Only fix PRs targeting beta
+          PR_BASE=$(echo "$PR_JSON" | jq -r '.[0].baseRefName // empty')
+          if [[ -n "$PR_BASE" ]] && [[ "$PR_BASE" != "beta" ]]; then
+            echo "PR targets $PR_BASE (not beta) - skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
           PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number // empty')
           PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.[0].author.login // empty')
@@ -243,11 +251,13 @@ jobs:
         uses: google-labs-code/jules-action@v1.0.0
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
+          starting_branch: ${{ steps.check.outputs.branch }}
           prompt: |
             ## 🔧 CI Fix Required - Attempt #$(( ${{ steps.check.outputs.fix_attempts }} + 1 ))
 
             The CI pipeline failed on branch `${{ steps.check.outputs.branch }}`.
-            Fix the issues and push to the same branch.
+            Fix the issues and push commits directly to this same branch.
+            Do NOT create a new PR - a PR already exists for this branch.
 
             ### Failed Jobs
             ${{ steps.ci_failure.outputs.failed_jobs }}
@@ -264,7 +274,8 @@ jobs:
             4. Use Python 3.13.2 for all Python code
             5. Run `./run_checks.sh` to verify all checks pass
             6. Commit with: `fix(jules): resolve CI errors`
-            7. Push to branch: `${{ steps.check.outputs.branch }}`
+            7. Push commits to branch: `${{ steps.check.outputs.branch }}`
+            8. Do NOT create a new PR - just push to the existing branch
 
             ### Testing Notes
             When running tests, you may see: ModuleNotFoundError: No module named 'homeassistant'
