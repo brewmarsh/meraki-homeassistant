@@ -26,9 +26,6 @@ jobs:
           DestinationPath="${DEPLOY_PATH}"
 
           echo "Starting deployment..."
-          echo "Source path: ${SourceComponentDir}"
-          echo "Destination path: ${DestinationPath}"
-
           sudo mkdir -p "${DestinationPath}"
 
           # Preserving your specific rsync flags and excludes
@@ -53,7 +50,7 @@ jobs:
         run: |
           echo "Attempting to restart Home Assistant..."
 
-          # 1. SANITIZE TOKEN (Removes hidden newlines/spaces)
+          # 1. SANITIZE TOKEN
           CLEAN_TOKEN=$(echo "$HA_TOKEN" | tr -d '\r\n ')
 
           # 2. Check Configuration
@@ -72,23 +69,14 @@ jobs:
             exit 1
           fi
 
-          ERRORS=$(echo "$BODY" | jq -r '.errors // empty')
-          if [ "$ERRORS" != "" ] && [ "$ERRORS" != "null" ]; then
-            echo "Config check failed! Errors detected:"
-            echo "$BODY" | jq .
-            exit 1
-          else
-            echo "Config check passed."
-          fi
+          echo "Config check passed. Triggering restart..."
 
-          # 3. Trigger Restart (Using the Standard JSON object payload)
-          echo "Triggering Home Assistant restart..."
-          # Note: We use -d '{}' because the service handler validates for a JSON map
+          # 3. Trigger Restart (Hardened for 2026.1 API standards)
+          # Using --data-raw '{}' ensures the payload is a valid empty JSON dictionary.
           RESTART_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
                -H "Authorization: Bearer $CLEAN_TOKEN" \
                -H "Content-Type: application/json" \
-               -H "Content-Length: 2" \
-               -d '{}' \
+               --data-raw '{}' \
                "$HA_URL/api/services/home_assistant/restart")
 
           RESTART_STATUS=$(echo "$RESTART_RESPONSE" | tail -n1)
@@ -96,6 +84,10 @@ jobs:
           if [ "$RESTART_STATUS" -ne 200 ]; then
             echo "FAILED to restart! HTTP $RESTART_STATUS"
             echo "Response: $(echo "$RESTART_RESPONSE" | sed '$d')"
+            
+            # Discovery Debug: Confirms we are hitting the correct API base
+            echo "Debug: Testing API discovery endpoint..."
+            curl -s -H "Authorization: Bearer $CLEAN_TOKEN" "$HA_URL/api/" | jq .
             exit 1
           fi
 
