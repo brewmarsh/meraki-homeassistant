@@ -298,21 +298,22 @@ jobs:
             ### Quality Checks
             Run: ./run_checks.sh (ruff, bandit, mypy, pytest must pass)"
 
-            curl -s -X POST "https://api.cursor.com/v0/agents" \
-              -H "Authorization: Bearer $CURSOR_API_KEY" \
+            ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
+
+            curl -sS -X POST "https://api.cursor.com/v0/agents" \
+              -u "${CURSOR_API_KEY}:" \
               -H "Content-Type: application/json" \
               -d "{
-                \"prompt\": $(echo "$PROMPT" | jq -Rs .),
                 \"source\": {
-                  \"type\": \"github\",
-                  \"owner\": \"${{ github.repository_owner }}\",
-                  \"repo\": \"$(echo '${{ github.repository }}' | cut -d'/' -f2)\",
+                  \"repository\": \"https://github.com/${{ github.repository }}\",
                   \"ref\": \"$BRANCH\"
                 },
+                \"prompt\": {
+                  \"text\": ${ESCAPED_PROMPT}
+                },
                 \"target\": {
-                  \"type\": \"github\",
-                  \"autoCreatePr\": false,
-                  \"openAsCursorGithubApp\": true
+                  \"branchName\": \"$BRANCH\",
+                  \"autoCreatePr\": false
                 }
               }" || echo "Cursor API call completed"
 
