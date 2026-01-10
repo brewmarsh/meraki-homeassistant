@@ -46,7 +46,8 @@ jobs:
       - name: Run Bandit
         run: bandit -r custom_components/meraki_ha/ -c .bandit.yaml
       - name: Run Pip-Audit
-        run: pip-audit
+        # Explicitly pointing to the config file to ensure suppressions are loaded
+        run: pip-audit --config .pip-audit.json
 
   # Job 4: Unit Tests
   test:
