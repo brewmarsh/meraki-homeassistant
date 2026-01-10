@@ -97,8 +97,13 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
-        """Get the options flow for this handler."""
-        return MerakiOptionsFlowHandler(config_entry)
+        """Get the options flow for this handler.
+
+        Note: As of Home Assistant 2025.x, we should NOT pass config_entry
+        to the OptionsFlow constructor. The framework sets up config_entry
+        after initialization via the handler property.
+        """
+        return MerakiOptionsFlowHandler()
 
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None

@@ -1,5 +1,6 @@
 """Tests for the options flow module."""
 
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -11,6 +12,60 @@ from custom_components.meraki_ha.const import (
     DOMAIN,
 )
 from custom_components.meraki_ha.options_flow import MerakiOptionsFlowHandler
+
+
+def create_options_flow_handler(
+    options: dict[str, Any] | None = None,
+    hass: MagicMock | None = None,
+    entry_id: str = "test_entry_id",
+) -> MerakiOptionsFlowHandler:
+    """Create an options flow handler with mocked config entry.
+
+    This helper simulates how Home Assistant sets up the options flow:
+    1. Creates the handler without passing config_entry
+    2. Sets up hass and handler properties as the framework would
+    3. Mocks config_entry property to return a mock with the given options
+    """
+    if options is None:
+        options = {"scan_interval": 30}
+
+    handler = MerakiOptionsFlowHandler()
+
+    # Create mock config entry
+    mock_entry = MagicMock()
+    mock_entry.entry_id = entry_id
+    mock_entry.options = options
+
+    # Set up hass mock if not provided
+    if hass is None:
+        hass = MagicMock()
+        mock_coordinator = MagicMock()
+        mock_coordinator.data = {
+            "networks": [
+                {"id": "N_123", "name": "Main Office"},
+                {"id": "N_456", "name": "Branch Office"},
+            ]
+        }
+        hass.data = {
+            DOMAIN: {
+                entry_id: {
+                    "coordinator": mock_coordinator,
+                }
+            }
+        }
+        # Mock config_entries.async_get_known_entry to return our mock entry
+        hass.config_entries.async_get_known_entry.return_value = mock_entry
+
+    handler.hass = hass
+
+    # Set the handler property (this is what the framework sets - it's the entry ID)
+    handler.handler = entry_id
+
+    # Mock the config_entry property to return our mock
+    # We need to patch it on the instance
+    handler._config_entry = mock_entry
+
+    return handler
 
 
 @pytest.fixture
@@ -45,19 +100,27 @@ def mock_hass_with_coordinator() -> MagicMock:
     return hass
 
 
-def test_options_flow_init(mock_options_config_entry: MagicMock) -> None:
-    """Test options flow initialization."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
-    assert handler.options == mock_options_config_entry.options
+def test_options_flow_init() -> None:
+    """Test options flow initialization with the new pattern."""
+    handler = MerakiOptionsFlowHandler()
+
+    # Initially options should be empty (lazy loading)
+    assert handler._options == {}
+    assert handler._options_initialized is False
+
+
+def test_options_flow_init_with_config_entry() -> None:
+    """Test that options are loaded lazily from config_entry."""
+    handler = create_options_flow_handler(options={"scan_interval": 30})
+
+    # After proper setup, options should be accessible
     assert handler.options["scan_interval"] == 30
 
 
 @pytest.mark.asyncio
-async def test_async_step_init_shows_menu(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_async_step_init_shows_menu() -> None:
     """Test the init step shows the main menu."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler()
     result: ConfigFlowResult = await handler.async_step_init()
 
     assert result["type"].value == "menu"
@@ -76,15 +139,11 @@ async def test_async_step_init_shows_menu(
     ],
 )
 async def test_menu_options_navigate_to_correct_step(
-    mock_options_config_entry: MagicMock,
-    mock_hass_with_coordinator: MagicMock,
     menu_option: str,
     expected_step_id: str,
 ) -> None:
     """Test that menu options navigate to the correct form."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
-    handler.hass = mock_hass_with_coordinator
-
+    handler = create_options_flow_handler()
     result: ConfigFlowResult = await getattr(handler, f"async_step_{menu_option}")()
 
     assert result["type"].value == "form"
@@ -92,13 +151,9 @@ async def test_menu_options_navigate_to_correct_step(
 
 
 @pytest.mark.asyncio
-async def test_network_selection_step(
-    mock_options_config_entry: MagicMock,
-    mock_hass_with_coordinator: MagicMock,
-) -> None:
+async def test_network_selection_step() -> None:
     """Test the network selection step saves data and creates entry."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
-    handler.hass = mock_hass_with_coordinator
+    handler = create_options_flow_handler()
 
     user_input = {
         CONF_ENABLED_NETWORKS: ["N_123"],
@@ -113,11 +168,9 @@ async def test_network_selection_step(
 
 
 @pytest.mark.asyncio
-async def test_polling_step(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_polling_step() -> None:
     """Test the polling step saves data and creates entry."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler()
 
     user_input = {
         "scan_interval": 120,
@@ -130,11 +183,9 @@ async def test_polling_step(
 
 
 @pytest.mark.asyncio
-async def test_camera_step(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_camera_step() -> None:
     """Test the camera step saves data and creates entry."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler()
 
     user_input = {"camera_snapshot_interval": 60}
     result: ConfigFlowResult = await handler.async_step_camera(user_input)
@@ -144,11 +195,9 @@ async def test_camera_step(
 
 
 @pytest.mark.asyncio
-async def test_display_preferences_step(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_display_preferences_step() -> None:
     """Test the display preferences step saves data and creates entry."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler()
 
     user_input = {"dashboard_view_mode": "type"}
     result: ConfigFlowResult = await handler.async_step_display_preferences(user_input)
@@ -158,11 +207,9 @@ async def test_display_preferences_step(
 
 
 @pytest.mark.asyncio
-async def test_notifications_step_shows_form(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_notifications_step_shows_form() -> None:
     """Test the notifications step shows a form with coming soon message."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler()
 
     result: ConfigFlowResult = await handler.async_step_notifications()
 
@@ -175,11 +222,9 @@ async def test_notifications_step_shows_form(
 
 
 @pytest.mark.asyncio
-async def test_notifications_step_returns_to_menu(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_notifications_step_returns_to_menu() -> None:
     """Test the notifications step returns to menu when submitted."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler()
 
     result: ConfigFlowResult = await handler.async_step_notifications({})
 
@@ -191,11 +236,9 @@ async def test_notifications_step_returns_to_menu(
 
 
 @pytest.mark.asyncio
-async def test_mqtt_add_destination_action(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_mqtt_add_destination_action() -> None:
     """Test MQTT 'add' action navigates to the destination form."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler()
     result: ConfigFlowResult = await handler.async_step_mqtt(
         {"enable_mqtt": True, "action": "add"}
     )
@@ -205,14 +248,16 @@ async def test_mqtt_add_destination_action(
 
 
 @pytest.mark.asyncio
-async def test_mqtt_edit_destination_action_with_destinations(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_mqtt_edit_destination_action_with_destinations() -> None:
     """Test MQTT 'edit' action navigates to destination selection."""
-    mock_options_config_entry.options[CONF_MQTT_RELAY_DESTINATIONS] = [
-        {"name": "Test Broker", "host": "mqtt.test.com"}
-    ]
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler(
+        options={
+            "scan_interval": 30,
+            CONF_MQTT_RELAY_DESTINATIONS: [
+                {"name": "Test Broker", "host": "mqtt.test.com"}
+            ],
+        }
+    )
 
     result: ConfigFlowResult = await handler.async_step_mqtt(
         {"enable_mqtt": True, "action": "edit"}
@@ -224,15 +269,17 @@ async def test_mqtt_edit_destination_action_with_destinations(
 
 
 @pytest.mark.asyncio
-async def test_mqtt_delete_destination_action(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_mqtt_delete_destination_action() -> None:
     """Test MQTT 'delete' action and removal of destinations."""
-    mock_options_config_entry.options[CONF_MQTT_RELAY_DESTINATIONS] = [
-        {"name": "Broker A", "host": "a.test.com"},
-        {"name": "Broker B", "host": "b.test.com"},
-    ]
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler(
+        options={
+            "scan_interval": 30,
+            CONF_MQTT_RELAY_DESTINATIONS: [
+                {"name": "Broker A", "host": "a.test.com"},
+                {"name": "Broker B", "host": "b.test.com"},
+            ],
+        }
+    )
 
     # Trigger delete action
     result: ConfigFlowResult = await handler.async_step_mqtt(
@@ -250,11 +297,9 @@ async def test_mqtt_delete_destination_action(
 
 
 @pytest.mark.asyncio
-async def test_mqtt_select_destination_with_empty_list_returns_to_mqtt(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_mqtt_select_destination_with_empty_list_returns_to_mqtt() -> None:
     """Test selecting a destination when none exist returns to the MQTT menu."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler()
     handler._destination_action = "edit"
     result: ConfigFlowResult = await handler.async_step_mqtt_select_destination()
 
@@ -262,11 +307,9 @@ async def test_mqtt_select_destination_with_empty_list_returns_to_mqtt(
 
 
 @pytest.mark.asyncio
-async def test_mqtt_add_new_destination_and_save(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_mqtt_add_new_destination_and_save() -> None:
     """Test adding a new MQTT destination via the form and saving."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler()
     handler._editing_destination_index = None  # Add mode
 
     destination_data = {
@@ -286,11 +329,9 @@ async def test_mqtt_add_new_destination_and_save(
 
 
 @pytest.mark.asyncio
-async def test_mqtt_destination_missing_host_shows_error(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_mqtt_destination_missing_host_shows_error() -> None:
     """Test MQTT destination form shows error when host is missing."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler()
     handler._editing_destination_index = None
 
     result: ConfigFlowResult = await handler.async_step_mqtt_destination(
@@ -305,11 +346,9 @@ async def test_mqtt_destination_missing_host_shows_error(
 
 
 @pytest.mark.asyncio
-async def test_mqtt_destination_missing_name_shows_error(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_mqtt_destination_missing_name_shows_error() -> None:
     """Test MQTT destination form shows error when name is missing."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler()
     handler._editing_destination_index = None
 
     result: ConfigFlowResult = await handler.async_step_mqtt_destination(
@@ -324,11 +363,9 @@ async def test_mqtt_destination_missing_name_shows_error(
 
 
 @pytest.mark.asyncio
-async def test_mqtt_destination_invalid_port_shows_error(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_mqtt_destination_invalid_port_shows_error() -> None:
     """Test MQTT destination form shows error when port is invalid."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler()
     handler._editing_destination_index = None
 
     result: ConfigFlowResult = await handler.async_step_mqtt_destination(
@@ -343,14 +380,16 @@ async def test_mqtt_destination_invalid_port_shows_error(
 
 
 @pytest.mark.asyncio
-async def test_mqtt_edit_existing_destination(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_mqtt_edit_existing_destination() -> None:
     """Test editing an existing MQTT destination."""
-    mock_options_config_entry.options[CONF_MQTT_RELAY_DESTINATIONS] = [
-        {"name": "Original", "host": "original.com", "port": 1883}
-    ]
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler(
+        options={
+            "scan_interval": 30,
+            CONF_MQTT_RELAY_DESTINATIONS: [
+                {"name": "Original", "host": "original.com", "port": 1883}
+            ],
+        }
+    )
     handler._editing_destination_index = 0  # Edit mode for first destination
 
     result: ConfigFlowResult = await handler.async_step_mqtt_destination(
@@ -366,11 +405,9 @@ async def test_mqtt_edit_existing_destination(
 
 
 @pytest.mark.asyncio
-async def test_mqtt_save_without_action(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_mqtt_save_without_action() -> None:
     """Test saving MQTT settings without any relay management action."""
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler()
 
     result: ConfigFlowResult = await handler.async_step_mqtt(
         {"enable_mqtt": True, "action": "save"}
@@ -381,16 +418,18 @@ async def test_mqtt_save_without_action(
 
 
 @pytest.mark.asyncio
-async def test_mqtt_delete_multiple_destinations(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_mqtt_delete_multiple_destinations() -> None:
     """Test deleting multiple MQTT destinations at once."""
-    mock_options_config_entry.options[CONF_MQTT_RELAY_DESTINATIONS] = [
-        {"name": "Broker A", "host": "a.test.com"},
-        {"name": "Broker B", "host": "b.test.com"},
-        {"name": "Broker C", "host": "c.test.com"},
-    ]
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler(
+        options={
+            "scan_interval": 30,
+            CONF_MQTT_RELAY_DESTINATIONS: [
+                {"name": "Broker A", "host": "a.test.com"},
+                {"name": "Broker B", "host": "b.test.com"},
+                {"name": "Broker C", "host": "c.test.com"},
+            ],
+        }
+    )
     handler._destination_action = "delete"
 
     # Delete first and third destinations
@@ -405,14 +444,16 @@ async def test_mqtt_delete_multiple_destinations(
 
 
 @pytest.mark.asyncio
-async def test_mqtt_edit_selection_navigates_to_destination_form(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_mqtt_edit_selection_navigates_to_destination_form() -> None:
     """Test selecting a destination for edit navigates to the form."""
-    mock_options_config_entry.options[CONF_MQTT_RELAY_DESTINATIONS] = [
-        {"name": "Broker A", "host": "a.test.com", "port": 1883}
-    ]
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler(
+        options={
+            "scan_interval": 30,
+            CONF_MQTT_RELAY_DESTINATIONS: [
+                {"name": "Broker A", "host": "a.test.com", "port": 1883}
+            ],
+        }
+    )
     handler._destination_action = "edit"
 
     result: ConfigFlowResult = await handler.async_step_mqtt_select_destination(
@@ -425,14 +466,14 @@ async def test_mqtt_edit_selection_navigates_to_destination_form(
 
 
 @pytest.mark.asyncio
-async def test_mqtt_edit_no_selection_returns_to_mqtt(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_mqtt_edit_no_selection_returns_to_mqtt() -> None:
     """Test edit with no selection returns to MQTT menu."""
-    mock_options_config_entry.options[CONF_MQTT_RELAY_DESTINATIONS] = [
-        {"name": "Broker A", "host": "a.test.com"}
-    ]
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    handler = create_options_flow_handler(
+        options={
+            "scan_interval": 30,
+            CONF_MQTT_RELAY_DESTINATIONS: [{"name": "Broker A", "host": "a.test.com"}],
+        }
+    )
     handler._destination_action = "edit"
 
     result: ConfigFlowResult = await handler.async_step_mqtt_select_destination(
@@ -443,13 +484,15 @@ async def test_mqtt_edit_no_selection_returns_to_mqtt(
 
 
 @pytest.mark.asyncio
-async def test_network_selection_with_empty_coordinator_data(
-    mock_options_config_entry: MagicMock,
-) -> None:
+async def test_network_selection_with_empty_coordinator_data() -> None:
     """Test network selection step with empty coordinator data."""
     hass = MagicMock()
     mock_coordinator = MagicMock()
     mock_coordinator.data = {}
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "test_entry_id"
+    mock_entry.options = {"scan_interval": 30}
+
     hass.data = {
         DOMAIN: {
             "test_entry_id": {
@@ -457,10 +500,84 @@ async def test_network_selection_with_empty_coordinator_data(
             }
         }
     }
-    handler = MerakiOptionsFlowHandler(mock_options_config_entry)
+    hass.config_entries.async_get_known_entry.return_value = mock_entry
+
+    handler = MerakiOptionsFlowHandler()
     handler.hass = hass
+    handler.handler = "test_entry_id"
+    handler._config_entry = mock_entry
 
     result: ConfigFlowResult = await handler.async_step_network_selection()
 
     assert result["type"].value == "form"
     assert result["step_id"] == "network_selection"
+
+
+# --- Tests for async_get_options_flow ---
+
+
+def test_async_get_options_flow_returns_handler() -> None:
+    """Test that async_get_options_flow returns a MerakiOptionsFlowHandler."""
+    from custom_components.meraki_ha.config_flow import MerakiConfigFlow
+
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "test_entry_id"
+    mock_entry.options = {"scan_interval": 30}
+
+    handler = MerakiConfigFlow.async_get_options_flow(mock_entry)
+
+    assert isinstance(handler, MerakiOptionsFlowHandler)
+    # Verify it was created without passing config_entry
+    assert handler._options == {}
+    assert handler._options_initialized is False
+
+
+# --- Integration test that simulates real HA behavior ---
+
+
+@pytest.mark.asyncio
+async def test_options_flow_simulates_real_ha_behavior() -> None:
+    """Test that options flow works when set up like HA does.
+
+    This test simulates the actual HA flow:
+    1. async_get_options_flow() is called with config_entry
+    2. Framework sets flow.hass and flow.handler after creation
+    3. async_step_init is called
+    """
+    from custom_components.meraki_ha.config_flow import MerakiConfigFlow
+
+    # Step 1: Create mock config entry
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "test_entry_id"
+    mock_entry.options = {"scan_interval": 60, "enable_mqtt": True}
+
+    # Step 2: Get the options flow handler (simulates what HA does)
+    handler = MerakiConfigFlow.async_get_options_flow(mock_entry)
+
+    # Step 3: Simulate what the HA framework does after creating the flow
+    mock_hass = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_coordinator.data = {"networks": []}
+    mock_hass.data = {
+        DOMAIN: {
+            "test_entry_id": {
+                "coordinator": mock_coordinator,
+            }
+        }
+    }
+    mock_hass.config_entries.async_get_known_entry.return_value = mock_entry
+
+    handler.hass = mock_hass
+    handler.handler = "test_entry_id"
+    # In real HA, the config_entry property uses handler to look up the entry
+    # For testing, we set _config_entry directly
+    handler._config_entry = mock_entry
+
+    # Step 4: Now the flow should work
+    result = await handler.async_step_init()
+    assert result["type"].value == "menu"
+    assert result["step_id"] == "init"
+
+    # Verify options are loaded correctly
+    assert handler.options["scan_interval"] == 60
+    assert handler.options["enable_mqtt"] is True

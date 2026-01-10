@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
+from homeassistant.config_entries import ConfigFlowResult, OptionsFlow
 from homeassistant.helpers import selector
 
 from .const import (
@@ -33,22 +33,43 @@ from .schemas import (
 
 
 class MerakiOptionsFlowHandler(OptionsFlow):
-    """Handle an options flow for the Meraki integration."""
+    """Handle an options flow for the Meraki integration.
 
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        """
-        Initialize options flow.
+    Note: As of Home Assistant 2025.x, the OptionsFlow class no longer accepts
+    config_entry as a constructor parameter. The config_entry is set by the
+    framework after initialization and is available through self.config_entry
+    property in async steps (but NOT in __init__).
+    """
 
-        Args:
-        ----
-            config_entry: The config entry.
-
-        """
+    def __init__(self) -> None:
+        """Initialize options flow."""
         super().__init__()
-        self.config_entry = config_entry
-        self.options = dict(config_entry.options)
+        self._options: dict[str, Any] = {}
         self._destination_action: str | None = None
         self._editing_destination_index: int | None = None
+        self._options_initialized: bool = False
+
+    @property
+    def options(self) -> dict[str, Any]:
+        """Return the current options.
+
+        Lazily initializes from config_entry.options on first access
+        in an async step context.
+        """
+        if not self._options_initialized and hasattr(self, "hass") and self.hass:
+            try:
+                self._options = dict(self.config_entry.options)
+                self._options_initialized = True
+            except ValueError:
+                # config_entry not available yet (during initialization)
+                pass
+        return self._options
+
+    @options.setter
+    def options(self, value: dict[str, Any]) -> None:
+        """Set the options dict."""
+        self._options = value
+        self._options_initialized = True
 
     async def async_step_init(
         self,
