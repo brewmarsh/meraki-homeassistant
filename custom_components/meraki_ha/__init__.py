@@ -5,14 +5,10 @@ from __future__ import annotations
 import logging
 import secrets
 from datetime import timedelta
-from typing import TYPE_CHECKING
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ConfigEntryNotReady
-
-if TYPE_CHECKING:
-    from .meraki_data_coordinator import MerakiDataCoordinator
 
 from .api.websocket import async_setup_websocket_api
 from .const import (
@@ -86,156 +82,132 @@ def _register_organization_device(
         _LOGGER.debug("Could not register organization device: %s", err)
 
 
-def _register_device_type_groups(
+def _cleanup_orphaned_devices(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    coordinator: MerakiDataCoordinator,
+    meraki_device_macs: set[str] | None = None,
 ) -> None:
-    """Register device type grouping devices for each network.
+    """Clean up orphaned devices from previous versions.
 
-    Creates hierarchy: Organization → Network → Device Type Group → Device
+    Removes:
+    1. Device type group devices (devicetype_*) - no longer used
+    2. Client devices that are actually Meraki hardware (APs, switches, etc.)
+    3. Duplicate client devices where entity now links to existing device
+
+    Parameters
+    ----------
+    hass : HomeAssistant
+        The Home Assistant instance.
+    entry : ConfigEntry
+        The config entry for this integration.
+    meraki_device_macs : set[str] | None
+        Set of Meraki device MAC addresses (normalized lowercase).
+        Used to identify client devices that are actually Meraki hardware.
+
     """
     from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+    from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 
     from .const import DOMAIN
-    from .helpers.device_info_helpers import (
-        DEVICE_TYPE_DISPLAY_NAMES,
-        DEVICE_TYPE_MODELS,
-    )
 
     try:
         device_registry = dr.async_get(hass)
+        entity_registry = er.async_get(hass)
     except (AttributeError, TypeError) as err:
-        _LOGGER.debug("Could not get device registry: %s", err)
+        _LOGGER.debug("Could not get registries for cleanup: %s", err)
         return
 
-    # Get all networks, devices, clients, VLANs, and SSIDs
-    networks = coordinator.data.get("networks", [])
-    devices = coordinator.data.get("devices", [])
-    clients = coordinator.data.get("clients", [])
-    vlans_by_network = coordinator.data.get("vlans", {})  # Dict: {network_id: [vlans]}
-    ssids_list = coordinator.data.get("ssids", [])  # List of all SSIDs (flat)
+    devices_to_remove: list[str] = []
+    meraki_macs = meraki_device_macs or set()
 
-    # Group devices by network and product type
-    network_product_types: dict[str, set[str]] = {}
-    network_names: dict[str, str] = {}
-    networks_with_clients: set[str] = set()
-    networks_with_vlans: set[str] = set()
-    networks_with_ssids: set[str] = set()
+    try:
+        all_devices = list(device_registry.devices.values())
+    except (AttributeError, TypeError):
+        # Device registry may not be fully initialized in tests
+        _LOGGER.debug("Device registry not available for cleanup")
+        return
 
-    for network in networks:
-        network_id = network.get("id")
-        if network_id:
-            network_names[network_id] = network.get("name", f"Network {network_id}")
-            network_product_types[network_id] = set()
+    for device in all_devices:
+        # Skip devices not from our integration
+        if entry.entry_id not in device.config_entries:
+            continue
 
-    for device in devices:
-        network_id = device.get("networkId")
-        product_type = device.get("productType")
-        if network_id and product_type:
-            if network_id not in network_product_types:
-                network_product_types[network_id] = set()
-            network_product_types[network_id].add(product_type)
+        # Track if this device should be removed
+        should_remove = False
+        remove_reason = ""
 
-    # Track networks that have clients
-    for client in clients:
-        network_id = client.get("networkId")
-        if network_id:
-            networks_with_clients.add(network_id)
+        for domain, identifier in device.identifiers:
+            if domain != DOMAIN:
+                continue
 
-    # Track networks that have VLANs
-    for network_id, vlans in vlans_by_network.items():
-        if vlans and isinstance(vlans, list) and len(vlans) > 0:
-            networks_with_vlans.add(network_id)
+            # Remove device type group devices (no longer used)
+            if identifier.startswith("devicetype_"):
+                should_remove = True
+                remove_reason = f"orphaned device type group: {identifier}"
+                break
 
-    # Track networks that have SSIDs (ssids is a flat list with networkId field)
-    for ssid in ssids_list:
-        network_id = ssid.get("networkId")
-        if network_id:
-            networks_with_ssids.add(network_id)
+            # Check for client devices
+            if identifier.startswith("client_"):
+                # Extract MAC from identifier (client_XX:XX:XX:XX:XX:XX)
+                mac = identifier.replace("client_", "").lower().replace("-", ":")
 
-    # Register device type groups for each network
-    for network_id, product_types in network_product_types.items():
-        network_name = network_names.get(network_id, f"Network {network_id}")
-        for product_type in product_types:
-            display_name = DEVICE_TYPE_DISPLAY_NAMES.get(
-                product_type, product_type.title()
+                # Check if this "client" is actually a Meraki device
+                if mac in meraki_macs:
+                    should_remove = True
+                    remove_reason = f"client is actually a Meraki device (MAC {mac})"
+                    break
+
+                # Check if there's another (non-Meraki) device with this MAC
+                for other_device in all_devices:
+                    if other_device.id == device.id:
+                        continue
+                    if not other_device.connections:
+                        continue
+
+                    for conn_type, conn_id in other_device.connections:
+                        if conn_type == CONNECTION_NETWORK_MAC:
+                            other_mac = conn_id.lower().replace("-", ":")
+                            if other_mac == mac:
+                                # Found another device with same MAC
+                                # Check if it's not a Meraki client device
+                                is_meraki_client = any(
+                                    d == DOMAIN and i.startswith("client_")
+                                    for d, i in other_device.identifiers
+                                )
+                                if not is_meraki_client:
+                                    # This is a duplicate - entity should
+                                    # be on the other device
+                                    should_remove = True
+                                    remove_reason = (
+                                        f"duplicate - MAC {mac} exists on "
+                                        f"'{other_device.name}'"
+                                    )
+                                    break
+                    if should_remove:
+                        break
+
+        if should_remove:
+            _LOGGER.info(
+                "Removing client device '%s': %s",
+                device.name,
+                remove_reason,
             )
-            model_name = DEVICE_TYPE_MODELS.get(product_type, "Meraki Devices")
+            devices_to_remove.append(device.id)
 
-            try:
-                device_registry.async_get_or_create(
-                    config_entry_id=entry.entry_id,
-                    identifiers={(DOMAIN, f"devicetype_{network_id}_{product_type}")},
-                    name=f"{network_name} {display_name}",
-                    manufacturer="Cisco Meraki",
-                    model=model_name,
-                    via_device=(DOMAIN, f"network_{network_id}"),
-                )
-            except (AttributeError, TypeError) as err:
-                _LOGGER.debug(
-                    "Could not register device type group %s for network %s: %s",
-                    product_type,
-                    network_id,
-                    err,
-                )
+    # Remove orphaned devices
+    for device_id in devices_to_remove:
+        # First remove any entities linked to this device
+        entities = er.async_entries_for_device(entity_registry, device_id)
+        for entity in entities:
+            _LOGGER.debug("Removing orphaned entity: %s", entity.entity_id)
+            entity_registry.async_remove(entity.entity_id)
 
-    # Register Clients group for networks that have clients
-    for network_id in networks_with_clients:
-        network_name = network_names.get(network_id, f"Network {network_id}")
-        try:
-            device_registry.async_get_or_create(
-                config_entry_id=entry.entry_id,
-                identifiers={(DOMAIN, f"devicetype_{network_id}_clients")},
-                name=f"{network_name} Clients",
-                manufacturer="Cisco Meraki",
-                model="Network Clients",
-                via_device=(DOMAIN, f"network_{network_id}"),
-            )
-        except (AttributeError, TypeError) as err:
-            _LOGGER.debug(
-                "Could not register Clients group for network %s: %s",
-                network_id,
-                err,
-            )
+        # Then remove the device
+        device_registry.async_remove_device(device_id)
 
-    # Register VLANs group for networks that have VLANs
-    for network_id in networks_with_vlans:
-        network_name = network_names.get(network_id, f"Network {network_id}")
-        try:
-            device_registry.async_get_or_create(
-                config_entry_id=entry.entry_id,
-                identifiers={(DOMAIN, f"devicetype_{network_id}_vlans")},
-                name=f"{network_name} VLANs",
-                manufacturer="Cisco Meraki",
-                model="Network VLANs",
-                via_device=(DOMAIN, f"network_{network_id}"),
-            )
-        except (AttributeError, TypeError) as err:
-            _LOGGER.debug(
-                "Could not register VLANs group for network %s: %s",
-                network_id,
-                err,
-            )
-
-    # Register SSIDs group for networks that have SSIDs
-    for network_id in networks_with_ssids:
-        network_name = network_names.get(network_id, f"Network {network_id}")
-        try:
-            device_registry.async_get_or_create(
-                config_entry_id=entry.entry_id,
-                identifiers={(DOMAIN, f"devicetype_{network_id}_ssids")},
-                name=f"{network_name} SSIDs",
-                manufacturer="Cisco Meraki",
-                model="Wireless SSIDs",
-                via_device=(DOMAIN, f"network_{network_id}"),
-            )
-        except (AttributeError, TypeError) as err:
-            _LOGGER.debug(
-                "Could not register SSIDs group for network %s: %s",
-                network_id,
-                err,
-            )
+    if devices_to_remove:
+        _LOGGER.info("Cleaned up %d orphaned devices", len(devices_to_remove))
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -302,13 +274,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     coordinator = entry_data["coordinator"]
 
     # Register the organization device as the top-level hub in the hierarchy
-    # Hierarchy: Organization → Network → Device Type Group → Devices
+    # Note: Device type groups (Access Points, Switches, etc.) are not registered
+    # as separate devices since HA doesn't support collapsible hierarchy in the UI.
+    # The via_device relationship only shows "Connected via" text.
     if coordinator.data:
         org_id = entry.data[CONF_MERAKI_ORG_ID]
         org_name = entry.data.get("org_name", f"Meraki Org {org_id}")
         _register_organization_device(hass, entry, org_id, org_name)
-        # Register device type groups (Access Points, Switches, Cameras, etc.)
-        _register_device_type_groups(hass, entry, coordinator)
+
+    # Clean up orphaned devices from previous versions
+    # This removes device type groups, Meraki devices that were created as clients,
+    # and duplicate client devices
+    meraki_device_macs: set[str] = set()
+    if coordinator.data:
+        for device in coordinator.data.get("devices", []):
+            device_mac = device.get("mac")
+            if device_mac:
+                meraki_device_macs.add(device_mac.lower().replace("-", ":"))
+    _cleanup_orphaned_devices(hass, entry, meraki_device_macs)
 
     if "meraki_repository" not in entry_data:
         entry_data["meraki_repository"] = MerakiRepository(api_client)

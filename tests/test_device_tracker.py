@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from homeassistant.components.device_tracker import SourceType
@@ -133,8 +133,12 @@ class TestMerakiClientDeviceTracker:
 
         assert tracker._client_mac == "00:11:22:33:44:55"
         assert tracker._attr_unique_id == "meraki_client_00:11:22:33:44:55"
-        assert tracker._attr_name == "Test Laptop"
+        # Entity name is "Meraki Connection" (shown within device context)
+        assert tracker._attr_name == "Meraki Connection"
         assert tracker._attr_has_entity_name is True
+        # Device name comes from client description
+        assert tracker._attr_device_info is not None
+        assert tracker._attr_device_info["name"] == "Test Laptop"
 
     def test_init_uses_dhcp_hostname_fallback(
         self,
@@ -142,7 +146,7 @@ class TestMerakiClientDeviceTracker:
         mock_coordinator: MagicMock,
         mock_config_entry: MagicMock,
     ) -> None:
-        """Test that dhcpHostname is used when description is missing."""
+        """Test that dhcpHostname is used for device name."""
         client_data = {
             "mac": "11:22:33:44:55:66",
             "dhcpHostname": "my-device",
@@ -155,7 +159,9 @@ class TestMerakiClientDeviceTracker:
             client_data=client_data,
         )
 
-        assert tracker._attr_name == "my-device"
+        # Device name uses dhcpHostname fallback
+        assert tracker._attr_device_info is not None
+        assert tracker._attr_device_info["name"] == "my-device"
 
     def test_init_uses_ip_fallback(
         self,
@@ -163,7 +169,7 @@ class TestMerakiClientDeviceTracker:
         mock_coordinator: MagicMock,
         mock_config_entry: MagicMock,
     ) -> None:
-        """Test that IP is used when description and hostname are missing."""
+        """Test that IP is used for device name as fallback."""
         client_data = {
             "mac": "11:22:33:44:55:66",
             "ip": "192.168.1.50",
@@ -175,7 +181,9 @@ class TestMerakiClientDeviceTracker:
             client_data=client_data,
         )
 
-        assert tracker._attr_name == "192.168.1.50"
+        # Device name uses IP fallback
+        assert tracker._attr_device_info is not None
+        assert tracker._attr_device_info["name"] == "192.168.1.50"
 
     def test_init_uses_mac_fallback(
         self,
@@ -183,7 +191,7 @@ class TestMerakiClientDeviceTracker:
         mock_coordinator: MagicMock,
         mock_config_entry: MagicMock,
     ) -> None:
-        """Test that MAC is used when all other identifiers are missing."""
+        """Test that MAC is used for device name as final fallback."""
         client_data = {
             "mac": "11:22:33:44:55:66",
         }
@@ -194,7 +202,9 @@ class TestMerakiClientDeviceTracker:
             client_data=client_data,
         )
 
-        assert tracker._attr_name == "11:22:33:44:55:66"
+        # Device name uses MAC fallback
+        assert tracker._attr_device_info is not None
+        assert tracker._attr_device_info["name"] == "11:22:33:44:55:66"
 
     def test_source_type(
         self,
@@ -472,15 +482,16 @@ class TestMerakiClientDeviceTracker:
         # Minimal client data has empty attributes
         assert attrs == {}
 
-    def test_device_info_with_network(
+    def test_device_info_for_clients(
         self,
         mock_hass: MagicMock,
         mock_coordinator: MagicMock,
         mock_config_entry: MagicMock,
     ) -> None:
-        """Test device_info links to Clients group under network.
+        """Test that device_info is created for clients.
 
-        Device Hierarchy: Organization → Network → Clients Group → Client
+        Each client gets a device entry so users can click on the device
+        and see all associated Meraki entity information.
         """
         tracker = MerakiClientDeviceTracker(
             hass=mock_hass,
@@ -494,32 +505,8 @@ class TestMerakiClientDeviceTracker:
         assert (DOMAIN, "client_00:11:22:33:44:55") in device_info["identifiers"]
         assert device_info["name"] == "Test Laptop"
         assert device_info["manufacturer"] == "Apple Inc."
-        # Clients are linked to their Clients group (under network)
-        assert device_info["via_device"] == (DOMAIN, "devicetype_N_12345_clients")
-
-    def test_device_info_without_parent(
-        self,
-        mock_hass: MagicMock,
-        mock_coordinator: MagicMock,
-        mock_config_entry: MagicMock,
-    ) -> None:
-        """Test device_info has no via_device when networkId missing."""
-        client_data = {
-            "mac": "00:11:22:33:44:55",
-            "description": "Test Device",
-            "manufacturer": "Test Manufacturer",
-        }
-        tracker = MerakiClientDeviceTracker(
-            hass=mock_hass,
-            coordinator=mock_coordinator,
-            config_entry=mock_config_entry,
-            client_data=client_data,
-        )
-
-        device_info = tracker._attr_device_info
-        assert device_info is not None
-        # via_device is not present when recentDeviceSerial is missing
-        assert "via_device" not in device_info
+        # Client is linked to its network
+        assert device_info["via_device"] == (DOMAIN, "network_N_12345")
 
     def test_handle_coordinator_update(
         self,
@@ -607,25 +594,30 @@ class TestAsyncSetupEntry:
         entities = async_add_entities.call_args[0][0]
         assert len(entities) == 1
 
-    async def test_setup_with_parent_device(
+    async def test_setup_creates_entity_with_device(
         self,
         mock_hass: MagicMock,
         mock_config_entry: MagicMock,
         mock_coordinator: MagicMock,
     ) -> None:
-        """Test setup includes via_device when client has networkId."""
+        """Test setup creates entities with device entries.
+
+        Each client gets a device entry so users can click on it
+        and see all associated Meraki entity information.
+        """
         mock_coordinator.data = {"clients": [MOCK_CLIENT_DATA]}
         async_add_entities = MagicMock()
 
         await async_setup_entry(mock_hass, mock_config_entry, async_add_entities)
 
-        # Should add entity with via_device linking to Clients group
+        # Should add entity with device_info
         async_add_entities.assert_called_once()
         entities = async_add_entities.call_args[0][0]
         assert len(entities) == 1
+        # Client should have device_info linked to its network
         device_info = entities[0]._attr_device_info
-        # Clients are linked to their Clients group (under network)
-        assert device_info["via_device"] == (DOMAIN, "devicetype_N_12345_clients")
+        assert device_info is not None
+        assert device_info["via_device"] == (DOMAIN, "network_N_12345")
 
     async def test_setup_no_clients(
         self,
@@ -659,3 +651,97 @@ class TestAsyncSetupEntry:
         mock_coordinator.async_add_listener.assert_called_once()
         # Should register unload handler
         mock_config_entry.async_on_unload.assert_called_once()
+
+    async def test_setup_filters_meraki_devices_from_clients(
+        self,
+        mock_hass: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_coordinator: MagicMock,
+    ) -> None:
+        """Test that Meraki devices are filtered out from the clients list.
+
+        Meraki devices (APs, switches, sensors) can appear as "clients"
+        on the network, but we don't want to create device trackers for them.
+        """
+        # Setup: A Meraki AP with a specific MAC
+        meraki_ap_mac = "aa:bb:cc:dd:ee:ff"
+        mock_coordinator.data = {
+            "devices": [
+                {
+                    "serial": "Q2AB-1234-CDEF",
+                    "mac": meraki_ap_mac,
+                    "model": "MR46",
+                    "name": "Office AP",
+                }
+            ],
+            "clients": [
+                MOCK_CLIENT_DATA,  # Real client - should be tracked
+                {
+                    "mac": meraki_ap_mac,  # Same MAC as the AP - should be filtered
+                    "description": "Office AP",
+                    "ip": "192.168.1.2",
+                    "networkId": "N_12345",
+                },
+            ],
+        }
+        async_add_entities = MagicMock()
+
+        await async_setup_entry(mock_hass, mock_config_entry, async_add_entities)
+
+        # Should only add 1 entity (the real client, not the AP)
+        async_add_entities.assert_called_once()
+        entities = async_add_entities.call_args[0][0]
+        assert len(entities) == 1
+        assert entities[0]._client_mac == MOCK_CLIENT_DATA["mac"]
+
+    def test_links_to_existing_device_by_mac(
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+    ) -> None:
+        """Test that client entity links to existing device with matching MAC.
+
+        When a Meraki client's MAC matches an existing Home Assistant device
+        (e.g., Sonos, Apple TV), the tracker entity should be added to that
+        device instead of creating a new one.
+        """
+        from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
+
+        # Create a mock device registry with an existing Sonos device
+        sonos_mac = "38:42:0b:23:60:09"
+        mock_sonos_device = MagicMock()
+        mock_sonos_device.name = "Patio"
+        mock_sonos_device.identifiers = {("sonos", "RINCON_12345")}
+        mock_sonos_device.connections = {(CONNECTION_NETWORK_MAC, sonos_mac)}
+
+        mock_device_registry = MagicMock()
+        mock_device_registry.devices.values.return_value = [mock_sonos_device]
+
+        # Patch the device registry
+        with patch(
+            "custom_components.meraki_ha.device_tracker.dr.async_get",
+            return_value=mock_device_registry,
+        ):
+            client_data = {
+                "mac": sonos_mac,
+                "description": "Patio",
+                "ip": "192.168.1.100",
+                "networkId": "N_12345",
+                "manufacturer": "Sonos",
+            }
+
+            tracker = MerakiClientDeviceTracker(
+                hass=mock_hass,
+                coordinator=mock_coordinator,
+                config_entry=mock_config_entry,
+                client_data=client_data,
+            )
+
+            # Should use the Sonos device's identifiers, not create new ones
+            assert tracker._attr_device_info is not None
+            assert tracker._attr_device_info["identifiers"] == {
+                ("sonos", "RINCON_12345")
+            }
+            # Entity name is "Meraki Connection"
+            assert tracker._attr_name == "Meraki Connection"

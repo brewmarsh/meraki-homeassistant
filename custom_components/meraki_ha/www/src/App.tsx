@@ -19,7 +19,12 @@ import ClientsView from './components/ClientsView';
 import SSIDsListView from './components/SSIDsListView';
 import SSIDView from './components/SSIDView';
 import { useHaTheme } from './hooks/useHaTheme';
-import type { HomeAssistant, PanelInfo, RouteInfo, HassEntity } from './types/hass';
+import type {
+  HomeAssistant,
+  PanelInfo,
+  RouteInfo,
+  HassEntity,
+} from './types/hass';
 
 // Data types from device/entity registry
 interface HaDevice {
@@ -288,8 +293,9 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
   // === State for HA device and entity registries ===
   const [haDevices, setHaDevices] = useState<HaDevice[]>([]);
   const [haEntities, setHaEntities] = useState<HaEntity[]>([]);
-  const [haEntityStates, setHaEntityStates] = useState<Record<string, HassEntity>>({});
-
+  const [haEntityStates, setHaEntityStates] = useState<
+    Record<string, HassEntity>
+  >({});
 
   // Apply HA theme variables to the panel
   const { style: themeStyle } = useHaTheme(hass);
@@ -311,32 +317,38 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
     if (!currentHass) return;
 
     const fetchHaData = async () => {
-        try {
-            const [devices, entities, entityStates] = await Promise.all([
-                currentHass.callWS<HaDevice[]>({ type: 'config/device_registry/list' }),
-                currentHass.callWS<HaEntity[]>({ type: 'config/entity_registry/list' }),
-                currentHass.callWS<HassEntity[]>({ type: 'get_states' })
-            ]);
+      try {
+        const [devices, entities, entityStates] = await Promise.all([
+          currentHass.callWS<HaDevice[]>({
+            type: 'config/device_registry/list',
+          }),
+          currentHass.callWS<HaEntity[]>({
+            type: 'config/entity_registry/list',
+          }),
+          currentHass.callWS<HassEntity[]>({ type: 'get_states' }),
+        ]);
 
-            setHaDevices(devices);
-            setHaEntities(entities);
+        setHaDevices(devices);
+        setHaEntities(entities);
 
-            const statesMap = entityStates.reduce((acc, state) => {
-                acc[state.entity_id] = state;
-                return acc;
-            }, {} as Record<string, HassEntity>);
-            setHaEntityStates(statesMap);
+        const statesMap = entityStates.reduce(
+          (acc, state) => {
+            acc[state.entity_id] = state;
+            return acc;
+          },
+          {} as Record<string, HassEntity>
+        );
+        setHaEntityStates(statesMap);
 
-            console.log('[Meraki] Fetched HA registries:', {
-                devices: devices.length,
-                entities: entities.length,
-                states: entityStates.length
-            });
-
-        } catch (err) {
-            console.error('Failed to fetch HA device/entity registries:', err);
-            setError('Could not load device and entity data from Home Assistant.');
-        }
+        console.log('[Meraki] Fetched HA registries:', {
+          devices: devices.length,
+          entities: entities.length,
+          states: entityStates.length,
+        });
+      } catch (err) {
+        console.error('Failed to fetch HA device/entity registries:', err);
+        setError('Could not load device and entity data from Home Assistant.');
+      }
     };
 
     fetchHaData();
@@ -349,13 +361,13 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
             if (event.event_type === 'state_changed') {
               const { entity_id, new_state } = event.data;
               if (new_state) {
-                setHaEntityStates(prevStates => ({
+                setHaEntityStates((prevStates) => ({
                   ...prevStates,
                   [entity_id]: new_state,
                 }));
               } else {
                 // Entity was removed
-                setHaEntityStates(prevStates => {
+                setHaEntityStates((prevStates) => {
                   const newStates = { ...prevStates };
                   delete newStates[entity_id];
                   return newStates;
@@ -374,9 +386,9 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
     const unsubscribe = subscribeEvents();
 
     return () => {
-      unsubscribe.then(unsub => unsub());
+      unsubscribe.then((unsub) => unsub());
     };
-}, [hassRef, retryCount]);
+  }, [hassRef, retryCount]);
 
   // Track if we've already loaded data to prevent duplicate fetches
   const hasLoadedRef = useRef(false);
@@ -453,48 +465,56 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
 
   // Memoize processed client data from HA registries
   const processedClients = useMemo((): Client[] => {
-    if (!haDevices.length || !haEntities.length || !Object.keys(haEntityStates).length) {
+    if (!haEntities.length || !Object.keys(haEntityStates).length) {
       return [];
     }
 
-    // Filter for Meraki client devices
-    const clientDevices = haDevices.filter(device =>
-        device.identifiers.some(id => id[0] === 'meraki_ha' && id[1].startsWith('client_'))
+    // Find all Meraki client tracker entities (device_tracker.meraki_client_*)
+    // This approach works for both:
+    // 1. Dedicated Meraki client devices (identifiers contain client_MAC)
+    // 2. Existing devices like Sonos/Apple TV where Meraki entity is linked
+    const clientTrackerEntities = haEntities.filter((e) =>
+      e.entity_id.startsWith('device_tracker.meraki_client_')
     );
 
-    return clientDevices.map(device => {
-        // Find entities linked to this device
-        const deviceEntities = haEntities.filter(entity => entity.device_id === device.id);
+    return clientTrackerEntities.map((trackerEntity) => {
+      const trackerState = haEntityStates[trackerEntity.entity_id];
+      const device = haDevices.find((d) => d.id === trackerEntity.device_id);
 
-        // Find the main device_tracker entity for connection info
-        const trackerEntity = deviceEntities.find(e => e.entity_id.startsWith('device_tracker.meraki_client_'));
-        const trackerState = trackerEntity ? haEntityStates[trackerEntity.entity_id] : null;
+      // Extract MAC from entity_id (device_tracker.meraki_client_XX_XX_XX_XX_XX_XX)
+      const macPart = trackerEntity.entity_id.replace(
+        'device_tracker.meraki_client_',
+        ''
+      );
+      const mac = macPart.replace(/_/g, ':');
 
-        // Find the block switch entity
-        const switchEntity = deviceEntities.find(e => e.entity_id.startsWith('switch.meraki_client_') && e.entity_id.endsWith('_block'));
-        const switchState = switchEntity ? haEntityStates[switchEntity.entity_id] : null;
+      // Find the block switch entity for this client
+      const switchEntityId = `switch.meraki_client_${macPart}_block`;
+      const switchState = haEntityStates[switchEntityId];
 
-        const mac = device.identifiers[0][1].replace('client_', '');
-
-        return {
-            id: device.id, // HA device ID
-            mac: mac,
-            ha_device_id: device.id,
-            description: device.name || mac,
-            ip: trackerState?.attributes.ip_address || '',
-            manufacturer: device.manufacturer || 'Unknown',
-            os: trackerState?.attributes.os || '',
-            status: trackerState?.state === 'home' ? 'Online' : 'Offline',
-            ssid: trackerState?.attributes.ssid || '',
-            switchport: trackerState?.attributes.switchport,
-            vlan: trackerState?.attributes.vlan,
-            recentDeviceSerial: trackerState?.attributes.connected_to_serial || '',
-            via_device_id: device.via_device_id,
-            is_blocked: switchState?.state === 'on',
-        };
+      return {
+        id: trackerEntity.device_id || trackerEntity.entity_id,
+        mac: mac,
+        ha_device_id: trackerEntity.device_id || '',
+        description:
+          device?.name || trackerState?.attributes?.friendly_name || mac,
+        ip: trackerState?.attributes?.ip_address || '',
+        manufacturer:
+          device?.manufacturer ||
+          trackerState?.attributes?.manufacturer ||
+          'Unknown',
+        os: trackerState?.attributes?.os || '',
+        status: trackerState?.state === 'home' ? 'Online' : 'Offline',
+        ssid: trackerState?.attributes?.ssid || '',
+        switchport: trackerState?.attributes?.switchport,
+        vlan: trackerState?.attributes?.vlan,
+        recentDeviceSerial:
+          trackerState?.attributes?.connected_to_serial || '',
+        via_device_id: device?.via_device_id,
+        is_blocked: switchState?.state === 'on',
+      };
     });
   }, [haDevices, haEntities, haEntityStates]);
-
 
   /**
    * Subscribe to real-time Meraki data updates via WebSocket
@@ -733,15 +753,15 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
             hass={hass}
             onBack={() => setActiveView({ view: 'ssids' })}
             onClientClick={(haDeviceId) => {
-                if (haDeviceId) {
-                    const path = `/config/devices/device/${haDeviceId}`;
-                    const event = new CustomEvent('hass-navigate', {
-                        detail: { path },
-                        bubbles: true,
-                        composed: true,
-                    });
-                    window.dispatchEvent(event);
-                }
+              if (haDeviceId) {
+                const path = `/config/devices/device/${haDeviceId}`;
+                const event = new CustomEvent('hass-navigate', {
+                  detail: { path },
+                  bubbles: true,
+                  composed: true,
+                });
+                window.dispatchEvent(event);
+              }
             }}
           />
         );
