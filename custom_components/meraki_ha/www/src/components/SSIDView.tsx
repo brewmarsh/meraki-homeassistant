@@ -99,6 +99,7 @@ interface Client {
   status?: string;
   usage?: { sent: number; recv: number };
   networkId?: string;
+  ha_device_id?: string;
 }
 
 interface Network {
@@ -114,7 +115,7 @@ interface SSIDViewProps {
   network?: Network;
   hass: any;
   onBack: () => void;
-  onClientClick?: (clientId: string) => void;
+  onClientClick?: (haDeviceId: string) => void;
 }
 
 const SSIDViewComponent: React.FC<SSIDViewProps> = ({
@@ -271,8 +272,8 @@ const SSIDViewComponent: React.FC<SSIDViewProps> = ({
                   key={client.id || client.mac}
                   client={client}
                   onClick={
-                    onClientClick
-                      ? () => onClientClick(client.id || client.mac)
+                    onClientClick && client.ha_device_id
+                      ? () => onClientClick(client.ha_device_id!)
                       : undefined
                   }
                   formatLastSeen={formatLastSeen}

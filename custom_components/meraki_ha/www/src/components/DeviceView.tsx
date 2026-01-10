@@ -205,6 +205,14 @@ interface Client {
   recentDeviceName?: string;
   ssid?: string;
   switchport?: string;
+  ha_device_id?: string;
+  via_device_id?: string | null;
+  is_blocked?: boolean;
+}
+
+interface HaDevice {
+  id: string;
+  identifiers: Array<[string, string]>;
 }
 
 interface Device {
@@ -261,8 +269,9 @@ interface DeviceViewProps {
   }) => void;
   data: {
     devices: Device[];
-    clients?: Client[];
   };
+  clients: Client[];
+  haDevices: HaDevice[];
   hass?: {
     callWS: <T = unknown>(params: {
       type: string;
@@ -281,6 +290,8 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
   activeView,
   setActiveView,
   data,
+  clients,
+  haDevices,
   hass,
   configEntryId,
   cameraLinkIntegration,
@@ -289,10 +300,16 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
   const temperatureUnit = configEntryOptions?.temperature_unit || 'celsius';
   const device = data.devices.find((d) => d.serial === activeView.deviceId);
 
-  // Get clients connected to this device
-  const deviceClients = (data.clients || []).filter(
-    (client) => client.recentDeviceSerial === device?.serial
+  // Find the HA device ID for the current Meraki device (AP/switch)
+  const merakiHaDevice = haDevices.find(d =>
+    d.identifiers.some(id => id[0] === 'meraki_ha' && id[1] === device?.serial)
   );
+
+  // Get clients connected to this device by matching via_device_id
+  const deviceClients = clients.filter(
+    (client) => client.via_device_id === merakiHaDevice?.id
+  );
+
   const [snapshotUrl, setSnapshotUrl] = React.useState<string | null>(null);
   const [snapshotLoading, setSnapshotLoading] = React.useState(false);
   const [cloudVideoUrl, setCloudVideoUrl] = React.useState<string | null>(
@@ -1389,9 +1406,15 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
           model={model}
           ports={ports_statuses}
           clients={deviceClients}
-          onClientClick={(clientId) =>
-            setActiveView({ view: 'clients', clientId })
-          }
+          onClientClick={(haDeviceId) => {
+            const path = `/config/devices/device/${haDeviceId}`;
+            const event = new CustomEvent('hass-navigate', {
+              detail: { path },
+              bubbles: true,
+              composed: true,
+            });
+            window.dispatchEvent(event);
+          }}
         />
       )}
 
@@ -1560,9 +1583,17 @@ const DeviceViewComponent: React.FC<DeviceViewProps> = ({
                 <DeviceClientRow
                   key={client.id || client.mac}
                   client={client}
-                  onClick={() =>
-                    setActiveView({ view: 'clients', clientId: client.id })
-                  }
+                  onClick={() => {
+                    if (client.ha_device_id) {
+                      const path = `/config/devices/device/${client.ha_device_id}`;
+                      const event = new CustomEvent('hass-navigate', {
+                        detail: { path },
+                        bubbles: true,
+                        composed: true,
+                      });
+                      window.dispatchEvent(event);
+                    }
+                  }}
                 />
               ))}
             </tbody>
@@ -1682,14 +1713,8 @@ const DeviceView = memo(DeviceViewComponent, (prevProps, nextProps) => {
     return false;
   }
 
-  // Compare client count
-  const prevClients = prevProps.data.clients?.filter(
-    (c) => c.recentDeviceSerial === prevDevice?.serial
-  ).length;
-  const nextClients = nextProps.data.clients?.filter(
-    (c) => c.recentDeviceSerial === nextDevice?.serial
-  ).length;
-  if (prevClients !== nextClients) {
+  // Compare overall client count (clients are filtered inside the component)
+  if (prevProps.clients?.length !== nextProps.clients?.length) {
     return false;
   }
 

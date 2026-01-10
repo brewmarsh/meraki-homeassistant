@@ -19,9 +19,39 @@ import ClientsView from './components/ClientsView';
 import SSIDsListView from './components/SSIDsListView';
 import SSIDView from './components/SSIDView';
 import { useHaTheme } from './hooks/useHaTheme';
-import type { HomeAssistant, PanelInfo, RouteInfo } from './types/hass';
+import type { HomeAssistant, PanelInfo, RouteInfo, HassEntity } from './types/hass';
 
-// Data types
+// Data types from device/entity registry
+interface HaDevice {
+  id: string;
+  config_entries: string[];
+  identifiers: Array<[string, string]>;
+  manufacturer: string | null;
+  model: string | null;
+  name: string | null;
+  via_device_id: string | null;
+  area_id: string | null;
+  disabled_by: string | null;
+  entry_type: 'service' | null;
+}
+
+interface HaEntity {
+  id: string;
+  entity_id: string;
+  device_id: string | null;
+  area_id: string | null;
+  platform: string;
+  config_entry_id: string | null;
+  disabled_by: string | null;
+  hidden_by: string | null;
+  entity_category: string | null;
+  has_entity_name: boolean;
+  name: string | null;
+  icon: string | null;
+  original_name?: string;
+  unique_id: string;
+}
+
 interface SSID {
   number: number;
   name: string;
@@ -127,6 +157,9 @@ interface Client {
   status?: string;
   usage?: { sent: number; recv: number };
   networkId?: string;
+  ha_device_id?: string;
+  via_device_id?: string | null;
+  is_blocked?: boolean;
 }
 
 interface MqttServiceStats {
@@ -252,6 +285,12 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
   }>({ view: 'dashboard' });
   const [retryCount, setRetryCount] = useState<number>(0);
 
+  // === State for HA device and entity registries ===
+  const [haDevices, setHaDevices] = useState<HaDevice[]>([]);
+  const [haEntities, setHaEntities] = useState<HaEntity[]>([]);
+  const [haEntityStates, setHaEntityStates] = useState<Record<string, HassEntity>>({});
+
+
   // Apply HA theme variables to the panel
   const { style: themeStyle } = useHaTheme(hass);
 
@@ -265,6 +304,79 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
   // The hass object changes on every HA state update, which would cause constant refetches
   const hassRef = useRef(hass);
   hassRef.current = hass;
+
+  // Fetch device/entity registry data
+  useEffect(() => {
+    const currentHass = hassRef.current;
+    if (!currentHass) return;
+
+    const fetchHaData = async () => {
+        try {
+            const [devices, entities, entityStates] = await Promise.all([
+                currentHass.callWS<HaDevice[]>({ type: 'config/device_registry/list' }),
+                currentHass.callWS<HaEntity[]>({ type: 'config/entity_registry/list' }),
+                currentHass.callWS<HassEntity[]>({ type: 'get_states' })
+            ]);
+
+            setHaDevices(devices);
+            setHaEntities(entities);
+
+            const statesMap = entityStates.reduce((acc, state) => {
+                acc[state.entity_id] = state;
+                return acc;
+            }, {} as Record<string, HassEntity>);
+            setHaEntityStates(statesMap);
+
+            console.log('[Meraki] Fetched HA registries:', {
+                devices: devices.length,
+                entities: entities.length,
+                states: entityStates.length
+            });
+
+        } catch (err) {
+            console.error('Failed to fetch HA device/entity registries:', err);
+            setError('Could not load device and entity data from Home Assistant.');
+        }
+    };
+
+    fetchHaData();
+
+    // Subscribe to all state changes to keep entity states fresh
+    const subscribeEvents = async () => {
+      try {
+        return await currentHass.connection.subscribeMessage(
+          (event: any) => {
+            if (event.event_type === 'state_changed') {
+              const { entity_id, new_state } = event.data;
+              if (new_state) {
+                setHaEntityStates(prevStates => ({
+                  ...prevStates,
+                  [entity_id]: new_state,
+                }));
+              } else {
+                // Entity was removed
+                setHaEntityStates(prevStates => {
+                  const newStates = { ...prevStates };
+                  delete newStates[entity_id];
+                  return newStates;
+                });
+              }
+            }
+          },
+          { type: 'subscribe_events', event_type: 'state_changed' }
+        );
+      } catch (err) {
+        console.error('Failed to subscribe to state changes:', err);
+        return () => {};
+      }
+    };
+
+    const unsubscribe = subscribeEvents();
+
+    return () => {
+      unsubscribe.then(unsub => unsub());
+    };
+}, [hassRef, retryCount]);
 
   // Track if we've already loaded data to prevent duplicate fetches
   const hasLoadedRef = useRef(false);
@@ -294,11 +406,10 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
     (oldData: MerakiData | null, newData: MerakiData): boolean => {
       if (!oldData) return true;
 
-      // Compare key data counts
+      // Compare key data counts (excluding clients, which are now from HA registry)
       if (
         oldData.devices?.length !== newData.devices?.length ||
         oldData.networks?.length !== newData.networks?.length ||
-        oldData.clients?.length !== newData.clients?.length ||
         oldData.ssids?.length !== newData.ssids?.length
       ) {
         return true;
@@ -339,6 +450,51 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
 
   // Store the last update timestamp separately to avoid re-renders
   const lastUpdatedRef = useRef<string | null>(null);
+
+  // Memoize processed client data from HA registries
+  const processedClients = useMemo((): Client[] => {
+    if (!haDevices.length || !haEntities.length || !Object.keys(haEntityStates).length) {
+      return [];
+    }
+
+    // Filter for Meraki client devices
+    const clientDevices = haDevices.filter(device =>
+        device.identifiers.some(id => id[0] === 'meraki_ha' && id[1].startsWith('client_'))
+    );
+
+    return clientDevices.map(device => {
+        // Find entities linked to this device
+        const deviceEntities = haEntities.filter(entity => entity.device_id === device.id);
+
+        // Find the main device_tracker entity for connection info
+        const trackerEntity = deviceEntities.find(e => e.entity_id.startsWith('device_tracker.meraki_client_'));
+        const trackerState = trackerEntity ? haEntityStates[trackerEntity.entity_id] : null;
+
+        // Find the block switch entity
+        const switchEntity = deviceEntities.find(e => e.entity_id.startsWith('switch.meraki_client_') && e.entity_id.endsWith('_block'));
+        const switchState = switchEntity ? haEntityStates[switchEntity.entity_id] : null;
+
+        const mac = device.identifiers[0][1].replace('client_', '');
+
+        return {
+            id: device.id, // HA device ID
+            mac: mac,
+            ha_device_id: device.id,
+            description: device.name || mac,
+            ip: trackerState?.attributes.ip_address || '',
+            manufacturer: device.manufacturer || 'Unknown',
+            os: trackerState?.attributes.os || '',
+            status: trackerState?.state === 'home' ? 'Online' : 'Offline',
+            ssid: trackerState?.attributes.ssid || '',
+            switchport: trackerState?.attributes.switchport,
+            vlan: trackerState?.attributes.vlan,
+            recentDeviceSerial: trackerState?.attributes.connected_to_serial || '',
+            via_device_id: device.via_device_id,
+            is_blocked: switchState?.state === 'on',
+        };
+    });
+  }, [haDevices, haEntities, haEntityStates]);
+
 
   /**
    * Subscribe to real-time Meraki data updates via WebSocket
@@ -508,8 +664,7 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
       case 'clients':
         return (
           <ClientsView
-            clients={data.clients || []}
-            setActiveView={setActiveView}
+            clients={processedClients}
             onBack={() => setActiveView({ view: 'dashboard' })}
             initialClientId={activeView.clientId}
           />
@@ -520,6 +675,8 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
             activeView={activeView}
             setActiveView={setActiveView}
             data={data}
+            clients={processedClients}
+            haDevices={haDevices}
             hass={hass}
             configEntryId={configEntryId}
             cameraLinkIntegration={data.camera_link_integration}
@@ -571,13 +728,21 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
         return (
           <SSIDView
             ssid={selectedSSID}
-            clients={data.clients || []}
+            clients={processedClients}
             network={ssidNetwork}
             hass={hass}
             onBack={() => setActiveView({ view: 'ssids' })}
-            onClientClick={(clientId) =>
-              setActiveView({ view: 'clients', deviceId: clientId })
-            }
+            onClientClick={(haDeviceId) => {
+                if (haDeviceId) {
+                    const path = `/config/devices/device/${haDeviceId}`;
+                    const event = new CustomEvent('hass-navigate', {
+                        detail: { path },
+                        bubbles: true,
+                        composed: true,
+                    });
+                    window.dispatchEvent(event);
+                }
+            }}
           />
         );
       }
