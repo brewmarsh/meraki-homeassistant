@@ -233,6 +233,13 @@ const DashboardComponent: React.FC<DashboardProps> = ({
   );
   const hasAutoExpandedRef = useRef(false);
 
+  // Update view mode if the default prop changes from the backend
+  useEffect(() => {
+    if (defaultViewMode) {
+      setViewMode(defaultViewMode);
+    }
+  }, [defaultViewMode]);
+
   // Auto-expand if there's only one network (or a few networks)
   useEffect(() => {
     if (!hasAutoExpandedRef.current && data?.networks) {
@@ -764,6 +771,11 @@ const DashboardComponent: React.FC<DashboardProps> = ({
 const Dashboard = memo(DashboardComponent, (prevProps, nextProps) => {
   // Return true if props are equal (skip re-render)
   // Return false if props are different (trigger re-render)
+
+  // Check if dashboard settings changed (fixes issue #77)
+  if (prevProps.defaultViewMode !== nextProps.defaultViewMode) {
+    return false; // View mode preference changed, re-render
+  }
 
   // Check if data reference changed
   if (prevProps.data === nextProps.data) {
