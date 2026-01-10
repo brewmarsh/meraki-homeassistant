@@ -15,6 +15,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -73,6 +74,100 @@ def _find_existing_device_by_mac(
     return None
 
 
+def _find_existing_device_by_ip(
+    hass: HomeAssistant,
+    ip_address: str,
+) -> dr.DeviceEntry | None:
+    """Find an existing Home Assistant device by IP address.
+
+    Searches the entity registry for entities with matching IP addresses
+    in their configuration, then returns the associated device.
+
+    Parameters
+    ----------
+    hass : HomeAssistant
+        The Home Assistant instance.
+    ip_address : str
+        The IP address to search for.
+
+    Returns
+    -------
+    dr.DeviceEntry | None
+        The matching device entry, or None if not found.
+
+    """
+    if not ip_address:
+        return None
+
+    try:
+        entity_registry = er.async_get(hass)
+        device_registry = dr.async_get(hass)
+    except (AttributeError, TypeError):
+        return None
+
+    # Search through entities that might have IP-based config
+    for entity in entity_registry.entities.values():
+        if not entity.device_id:
+            continue
+
+        if entity.config_entry_id:
+            try:
+                config_entry = hass.config_entries.async_get_entry(
+                    entity.config_entry_id
+                )
+                if config_entry and config_entry.data:
+                    for key in ("host", "ip_address", "address", "ip"):
+                        if config_entry.data.get(key) == ip_address:
+                            device = device_registry.async_get(entity.device_id)
+                            if device:
+                                if any(
+                                    DOMAIN in str(ident) and "client_" in str(ident)
+                                    for ident in device.identifiers
+                                ):
+                                    continue
+                                return device
+            except (AttributeError, KeyError):
+                continue
+
+    return None
+
+
+def _find_existing_device(
+    hass: HomeAssistant,
+    mac_address: str,
+    ip_address: str | None = None,
+) -> dr.DeviceEntry | None:
+    """Find an existing Home Assistant device by MAC or IP address.
+
+    Tries MAC first (more reliable), then falls back to IP matching.
+
+    Parameters
+    ----------
+    hass : HomeAssistant
+        The Home Assistant instance.
+    mac_address : str
+        The MAC address to search for.
+    ip_address : str | None
+        The IP address to search for (optional).
+
+    Returns
+    -------
+    dr.DeviceEntry | None
+        The matching device entry, or None if not found.
+
+    """
+    device = _find_existing_device_by_mac(hass, mac_address)
+    if device:
+        return device
+
+    if ip_address:
+        device = _find_existing_device_by_ip(hass, ip_address)
+        if device:
+            return device
+
+    return None
+
+
 class MerakiClientSensorBase(CoordinatorEntity, SensorEntity):
     """Base class for Meraki client sensor entities.
 
@@ -114,7 +209,9 @@ class MerakiClientSensorBase(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = f"meraki_client_{self._client_mac}_{sensor_key}"
 
         # Check if this client matches an existing Home Assistant device
-        existing_device = _find_existing_device_by_mac(hass, self._client_mac)
+        # Try MAC first, then IP address for devices without exposed MACs
+        client_ip = client_data.get("ip")
+        existing_device = _find_existing_device(hass, self._client_mac, client_ip)
 
         if existing_device:
             # Link to the existing device

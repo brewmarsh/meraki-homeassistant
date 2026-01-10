@@ -97,7 +97,7 @@ class TestMerakiClientVLANSensor:
     ) -> None:
         """Test sensor initialization."""
         with patch(
-            "custom_components.meraki_ha.sensor.client.base._find_existing_device_by_mac",
+            "custom_components.meraki_ha.sensor.client.base._find_existing_device",
             return_value=None,
         ):
             sensor = MerakiClientVLANSensor(
@@ -119,7 +119,7 @@ class TestMerakiClientVLANSensor:
     ) -> None:
         """Test that native_value returns the VLAN ID."""
         with patch(
-            "custom_components.meraki_ha.sensor.client.base._find_existing_device_by_mac",
+            "custom_components.meraki_ha.sensor.client.base._find_existing_device",
             return_value=None,
         ):
             sensor = MerakiClientVLANSensor(
@@ -139,7 +139,7 @@ class TestMerakiClientVLANSensor:
     ) -> None:
         """Test device_info when client is new (not linked to existing device)."""
         with patch(
-            "custom_components.meraki_ha.sensor.client.base._find_existing_device_by_mac",
+            "custom_components.meraki_ha.sensor.client.base._find_existing_device",
             return_value=None,
         ):
             sensor = MerakiClientVLANSensor(
@@ -167,7 +167,7 @@ class TestMerakiClientSSIDSensor:
     ) -> None:
         """Test that native_value returns the SSID for wireless clients."""
         with patch(
-            "custom_components.meraki_ha.sensor.client.base._find_existing_device_by_mac",
+            "custom_components.meraki_ha.sensor.client.base._find_existing_device",
             return_value=None,
         ):
             sensor = MerakiClientSSIDSensor(
@@ -187,7 +187,7 @@ class TestMerakiClientSSIDSensor:
     ) -> None:
         """Test that native_value returns None for wired clients."""
         with patch(
-            "custom_components.meraki_ha.sensor.client.base._find_existing_device_by_mac",
+            "custom_components.meraki_ha.sensor.client.base._find_existing_device",
             return_value=None,
         ):
             sensor = MerakiClientSSIDSensor(
@@ -211,7 +211,7 @@ class TestMerakiClientConnectedDeviceSensor:
     ) -> None:
         """Test that native_value returns the connected device name."""
         with patch(
-            "custom_components.meraki_ha.sensor.client.base._find_existing_device_by_mac",
+            "custom_components.meraki_ha.sensor.client.base._find_existing_device",
             return_value=None,
         ):
             sensor = MerakiClientConnectedDeviceSensor(
@@ -231,7 +231,7 @@ class TestMerakiClientConnectedDeviceSensor:
     ) -> None:
         """Test extra state attributes include device serial and MAC."""
         with patch(
-            "custom_components.meraki_ha.sensor.client.base._find_existing_device_by_mac",
+            "custom_components.meraki_ha.sensor.client.base._find_existing_device",
             return_value=None,
         ):
             sensor = MerakiClientConnectedDeviceSensor(
@@ -258,7 +258,7 @@ class TestMerakiClientConnectionTypeSensor:
     ) -> None:
         """Test that connection type is 'wireless' for clients with SSID."""
         with patch(
-            "custom_components.meraki_ha.sensor.client.base._find_existing_device_by_mac",
+            "custom_components.meraki_ha.sensor.client.base._find_existing_device",
             return_value=None,
         ):
             sensor = MerakiClientConnectionTypeSensor(
@@ -279,7 +279,7 @@ class TestMerakiClientConnectionTypeSensor:
     ) -> None:
         """Test that connection type is 'wired' for clients with switchport."""
         with patch(
-            "custom_components.meraki_ha.sensor.client.base._find_existing_device_by_mac",
+            "custom_components.meraki_ha.sensor.client.base._find_existing_device",
             return_value=None,
         ):
             sensor = MerakiClientConnectionTypeSensor(
@@ -304,7 +304,7 @@ class TestMerakiClientDataUsageSensors:
     ) -> None:
         """Test that sent bytes sensor returns correct value."""
         with patch(
-            "custom_components.meraki_ha.sensor.client.base._find_existing_device_by_mac",
+            "custom_components.meraki_ha.sensor.client.base._find_existing_device",
             return_value=None,
         ):
             sensor = MerakiClientSentBytesSensor(
@@ -326,7 +326,7 @@ class TestMerakiClientDataUsageSensors:
     ) -> None:
         """Test that received bytes sensor returns correct value."""
         with patch(
-            "custom_components.meraki_ha.sensor.client.base._find_existing_device_by_mac",
+            "custom_components.meraki_ha.sensor.client.base._find_existing_device",
             return_value=None,
         ):
             sensor = MerakiClientReceivedBytesSensor(
@@ -357,7 +357,7 @@ class TestMerakiClientSensorDeviceLinking:
         mock_device.name = "Living Room Speaker"
 
         with patch(
-            "custom_components.meraki_ha.sensor.client.base._find_existing_device_by_mac",
+            "custom_components.meraki_ha.sensor.client.base._find_existing_device",
             return_value=mock_device,
         ):
             sensor = MerakiClientVLANSensor(
@@ -379,7 +379,7 @@ class TestMerakiClientSensorDeviceLinking:
     ) -> None:
         """Test that sensor updates from coordinator data."""
         with patch(
-            "custom_components.meraki_ha.sensor.client.base._find_existing_device_by_mac",
+            "custom_components.meraki_ha.sensor.client.base._find_existing_device",
             return_value=None,
         ):
             sensor = MerakiClientVLANSensor(
@@ -410,7 +410,7 @@ class TestMerakiClientSensorDeviceLinking:
     ) -> None:
         """Test that sensor is available when client is in coordinator data."""
         with patch(
-            "custom_components.meraki_ha.sensor.client.base._find_existing_device_by_mac",
+            "custom_components.meraki_ha.sensor.client.base._find_existing_device",
             return_value=None,
         ):
             sensor = MerakiClientVLANSensor(
@@ -430,7 +430,7 @@ class TestMerakiClientSensorDeviceLinking:
     ) -> None:
         """Test that sensor is unavailable when client is not in coordinator data."""
         with patch(
-            "custom_components.meraki_ha.sensor.client.base._find_existing_device_by_mac",
+            "custom_components.meraki_ha.sensor.client.base._find_existing_device",
             return_value=None,
         ):
             sensor = MerakiClientVLANSensor(

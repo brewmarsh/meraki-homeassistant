@@ -745,3 +745,187 @@ class TestAsyncSetupEntry:
             }
             # Entity name is "Meraki Connection"
             assert tracker._attr_name == "Meraki Connection"
+
+
+class TestDeviceLinkingByIP:
+    """Tests for linking clients to existing devices by IP address."""
+
+    def test_link_to_existing_device_by_ip(
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+    ) -> None:
+        """Test that client links to existing device when IP matches config entry."""
+        # Create a mock device registry with an existing device (no MAC exposed)
+        mock_device = MagicMock()
+        mock_device.name = "Smart Thermostat"
+        mock_device.identifiers = {("nest", "device_12345")}
+        mock_device.connections = set()  # No MAC connection
+
+        mock_device_registry = MagicMock()
+        mock_device_registry.devices.values.return_value = []
+        mock_device_registry.async_get.return_value = mock_device
+
+        # Create a mock entity registry with an entity that has IP in config
+        mock_entity = MagicMock()
+        mock_entity.device_id = "device_id_123"
+        mock_entity.config_entry_id = "nest_entry_id"
+
+        mock_entity_registry = MagicMock()
+        mock_entity_registry.entities.values.return_value = [mock_entity]
+
+        # Create a mock config entry for the Nest device
+        mock_nest_config_entry = MagicMock()
+        mock_nest_config_entry.data = {"host": "192.168.1.150"}
+
+        # Patch the registries
+        with (
+            patch(
+                "custom_components.meraki_ha.device_tracker.dr.async_get",
+                return_value=mock_device_registry,
+            ),
+            patch(
+                "custom_components.meraki_ha.device_tracker.er.async_get",
+                return_value=mock_entity_registry,
+            ),
+            patch.object(
+                mock_hass.config_entries,
+                "async_get_entry",
+                return_value=mock_nest_config_entry,
+            ),
+        ):
+            client_data = {
+                "mac": "aa:bb:cc:dd:ee:ff",  # Unknown MAC
+                "ip": "192.168.1.150",  # Matches Nest device
+                "description": "Unknown Device",
+                "networkId": "N_12345",
+            }
+
+            tracker = MerakiClientDeviceTracker(
+                hass=mock_hass,
+                coordinator=mock_coordinator,
+                config_entry=mock_config_entry,
+                client_data=client_data,
+            )
+
+            # Should use the Nest device's identifiers
+            assert tracker._attr_device_info is not None
+            assert tracker._attr_device_info["identifiers"] == {
+                ("nest", "device_12345")
+            }
+            assert tracker._attr_name == "Meraki Connection"
+
+    def test_mac_takes_priority_over_ip(
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+    ) -> None:
+        """Test that MAC matching takes priority over IP matching."""
+        from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
+
+        # Create two mock devices: one with matching MAC, one with matching IP
+        mac_device = MagicMock()
+        mac_device.name = "MAC Device"
+        mac_device.identifiers = {("test", "mac_device")}
+        mac_device.connections = {(CONNECTION_NETWORK_MAC, "aa:bb:cc:dd:ee:ff")}
+
+        ip_device = MagicMock()
+        ip_device.name = "IP Device"
+        ip_device.identifiers = {("test", "ip_device")}
+        ip_device.connections = set()
+
+        mock_device_registry = MagicMock()
+        mock_device_registry.devices.values.return_value = [mac_device, ip_device]
+        mock_device_registry.async_get.return_value = ip_device
+
+        # Setup IP matching
+        mock_entity = MagicMock()
+        mock_entity.device_id = "ip_device_id"
+        mock_entity.config_entry_id = "ip_entry"
+
+        mock_entity_registry = MagicMock()
+        mock_entity_registry.entities.values.return_value = [mock_entity]
+
+        mock_ip_config_entry = MagicMock()
+        mock_ip_config_entry.data = {"host": "192.168.1.100"}
+
+        with (
+            patch(
+                "custom_components.meraki_ha.device_tracker.dr.async_get",
+                return_value=mock_device_registry,
+            ),
+            patch(
+                "custom_components.meraki_ha.device_tracker.er.async_get",
+                return_value=mock_entity_registry,
+            ),
+            patch.object(
+                mock_hass.config_entries,
+                "async_get_entry",
+                return_value=mock_ip_config_entry,
+            ),
+        ):
+            client_data = {
+                "mac": "aa:bb:cc:dd:ee:ff",  # Matches MAC device
+                "ip": "192.168.1.100",  # Also matches IP device
+                "description": "Test Client",
+                "networkId": "N_12345",
+            }
+
+            tracker = MerakiClientDeviceTracker(
+                hass=mock_hass,
+                coordinator=mock_coordinator,
+                config_entry=mock_config_entry,
+                client_data=client_data,
+            )
+
+            # Should use MAC device, not IP device (MAC has priority)
+            assert tracker._attr_device_info is not None
+            assert tracker._attr_device_info["identifiers"] == {("test", "mac_device")}
+
+    def test_no_matching_device(
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+    ) -> None:
+        """Test that new device is created when no match found."""
+        mock_device_registry = MagicMock()
+        mock_device_registry.devices.values.return_value = []
+
+        mock_entity_registry = MagicMock()
+        mock_entity_registry.entities.values.return_value = []
+
+        with (
+            patch(
+                "custom_components.meraki_ha.device_tracker.dr.async_get",
+                return_value=mock_device_registry,
+            ),
+            patch(
+                "custom_components.meraki_ha.device_tracker.er.async_get",
+                return_value=mock_entity_registry,
+            ),
+        ):
+            client_data = {
+                "mac": "aa:bb:cc:dd:ee:ff",
+                "ip": "192.168.1.200",
+                "description": "New Device",
+                "networkId": "N_12345",
+                "manufacturer": "Unknown",
+            }
+
+            tracker = MerakiClientDeviceTracker(
+                hass=mock_hass,
+                coordinator=mock_coordinator,
+                config_entry=mock_config_entry,
+                client_data=client_data,
+            )
+
+            # Should create a new Meraki client device
+            assert tracker._attr_device_info is not None
+            assert (
+                "meraki_ha",
+                "client_aa:bb:cc:dd:ee:ff",
+            ) in tracker._attr_device_info["identifiers"]
+            assert tracker._attr_device_info["name"] == "New Device"

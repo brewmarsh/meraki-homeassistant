@@ -4,9 +4,9 @@ This module implements proper ScannerEntity-based device tracking for
 Meraki network clients, following Home Assistant's device tracker entity
 documentation.
 
-When a Meraki client's MAC address matches an existing Home Assistant device
-(e.g., Sonos, Apple TV), the tracker entity is added to that existing device
-instead of creating a duplicate.
+When a Meraki client's MAC or IP address matches an existing Home Assistant
+device (e.g., Sonos, Apple TV), the tracker entity is added to that existing
+device instead of creating a duplicate.
 """
 
 from __future__ import annotations
@@ -19,6 +19,7 @@ from homeassistant.components.device_tracker.config_entry import ScannerEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -80,6 +81,115 @@ def _find_existing_device_by_mac(
                         mac_address,
                     )
                     return device
+    return None
+
+
+def _find_existing_device_by_ip(
+    hass: HomeAssistant,
+    ip_address: str,
+) -> dr.DeviceEntry | None:
+    """Find an existing Home Assistant device by IP address.
+
+    Searches the entity registry for entities with matching IP addresses
+    in their configuration, then returns the associated device.
+
+    This helps match devices that don't expose MAC addresses but are
+    configured with static IPs (e.g., some smart home devices).
+
+    Parameters
+    ----------
+    hass : HomeAssistant
+        The Home Assistant instance.
+    ip_address : str
+        The IP address to search for.
+
+    Returns
+    -------
+    dr.DeviceEntry | None
+        The matching device entry, or None if not found.
+
+    """
+    if not ip_address:
+        return None
+
+    try:
+        entity_registry = er.async_get(hass)
+        device_registry = dr.async_get(hass)
+    except (AttributeError, TypeError):
+        return None
+
+    # Search through entities that might have IP-based config
+    # Common patterns: host, ip_address, address, ip in config
+    for entity in entity_registry.entities.values():
+        if not entity.device_id:
+            continue
+
+        # Check entity's config entry data for IP matches
+        # This works for integrations that store IP in config
+        if entity.config_entry_id:
+            try:
+                config_entry = hass.config_entries.async_get_entry(
+                    entity.config_entry_id
+                )
+                if config_entry and config_entry.data:
+                    # Check common IP field names in config
+                    for key in ("host", "ip_address", "address", "ip"):
+                        if config_entry.data.get(key) == ip_address:
+                            device = device_registry.async_get(entity.device_id)
+                            if device:
+                                # Don't match our own Meraki client devices
+                                if any(
+                                    DOMAIN in str(ident) and "client_" in str(ident)
+                                    for ident in device.identifiers
+                                ):
+                                    continue
+                                _LOGGER.debug(
+                                    "Found existing device '%s' for IP %s",
+                                    device.name,
+                                    ip_address,
+                                )
+                                return device
+            except (AttributeError, KeyError):
+                continue
+
+    return None
+
+
+def _find_existing_device(
+    hass: HomeAssistant,
+    mac_address: str,
+    ip_address: str | None = None,
+) -> dr.DeviceEntry | None:
+    """Find an existing Home Assistant device by MAC or IP address.
+
+    Tries MAC first (more reliable), then falls back to IP matching.
+
+    Parameters
+    ----------
+    hass : HomeAssistant
+        The Home Assistant instance.
+    mac_address : str
+        The MAC address to search for.
+    ip_address : str | None
+        The IP address to search for (optional).
+
+    Returns
+    -------
+    dr.DeviceEntry | None
+        The matching device entry, or None if not found.
+
+    """
+    # Try MAC first - more reliable
+    device = _find_existing_device_by_mac(hass, mac_address)
+    if device:
+        return device
+
+    # Fall back to IP matching
+    if ip_address:
+        device = _find_existing_device_by_ip(hass, ip_address)
+        if device:
+            return device
+
     return None
 
 
@@ -222,7 +332,9 @@ class MerakiClientDeviceTracker(
 
         # Check if this client matches an existing Home Assistant device
         # (e.g., Sonos speaker, Apple TV, smart TV, etc.)
-        existing_device = _find_existing_device_by_mac(hass, self._client_mac)
+        # Try MAC first, then IP address for devices without exposed MACs
+        client_ip = client_data.get("ip")
+        existing_device = _find_existing_device(hass, self._client_mac, client_ip)
 
         if existing_device:
             # Link to the existing device - add our entity to that device
