@@ -4,11 +4,7 @@
   "after_dependencies": [],
   "codeowners": ["@brewmarsh"],
   "config_flow": true,
-  "dependencies": [
-    "frontend",
-    "panel_custom",
-    "http"
-  ],
+  "dependencies": ["frontend", "panel_custom", "http"],
   "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
@@ -20,7 +16,7 @@
     "aiohttp",
     "diskcache==5.6.3",
     "aiofiles",
-    "pycares>=4.9.0,<5.0.0",
+    "pycares==4.11.0",
     "webrtc-models==0.3.0"
   ],
   "version": "2.0.0"
