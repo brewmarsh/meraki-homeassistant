@@ -26,6 +26,9 @@ jobs:
           DestinationPath="${DEPLOY_PATH}"
 
           echo "Starting deployment..."
+          echo "Source path: ${SourceComponentDir}"
+          echo "Destination path: ${DestinationPath}"
+
           sudo mkdir -p "${DestinationPath}"
 
           sudo rsync -rltpD --inplace --delete \
@@ -47,16 +50,19 @@ jobs:
         run: |
           echo "Attempting to restart Home Assistant..."
 
-          # Step 1a: Check Configuration with status code validation
+          # --- SANITIZE TOKEN ---
+          # Removes hidden newlines (\n) or carriage returns (\r) from the secret
+          CLEAN_TOKEN=$(echo "$HA_TOKEN" | tr -d '\r\n ')
+
+          # Step 1a: Check Configuration
           echo "Checking Home Assistant configuration..."
 
-          # We use -s (silent) and -w to append the HTTP status code to the end of the body
+          # Use -s (silent) and -w to capture the status code
           RAW_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-               -H "Authorization: Bearer $HA_TOKEN" \
+               -H "Authorization: Bearer $CLEAN_TOKEN" \
                -H "Content-Type: application/json" \
                "$HA_URL/api/config/core/check_config")
 
-          # Split the body and the status code
           HTTP_STATUS=$(echo "$RAW_RESPONSE" | tail -n1)
           BODY=$(echo "$RAW_RESPONSE" | sed '$d')
 
@@ -67,7 +73,6 @@ jobs:
           fi
 
           # Safely check for errors in the JSON body
-          # Using '// empty' in jq prevents errors if the response is unexpected
           ERRORS=$(echo "$BODY" | jq -r '.errors // empty')
 
           if [ "$ERRORS" != "" ] && [ "$ERRORS" != "null" ]; then
@@ -80,7 +85,7 @@ jobs:
 
           # Step 1b: Trigger Restart
           echo "Triggering Home Assistant restart..."
-          curl -s -X POST -H "Authorization: Bearer $HA_TOKEN" \
+          curl -s -X POST -H "Authorization: Bearer $CLEAN_TOKEN" \
                -H "Content-Type: application/json" \
                "$HA_URL/api/services/home_assistant/restart"
 
