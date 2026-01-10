@@ -11,19 +11,19 @@ jobs:
     uses: ./.github/workflows/reusable-quality-checks.yaml
     with:
       python-version: '3.13'
-    secrets:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    secrets: inherit  # Implicitly passes all secrets to the reusable workflow
 
   release:
     needs: quality-checks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Get version
         id: get_version
-        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+        # Using jq is often more reliable than node in vanilla runners for package.json
+        run: echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_ENV
 
       - name: Create Release Asset
         run: |

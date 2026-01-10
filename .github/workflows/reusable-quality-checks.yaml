@@ -1,58 +1,43 @@
-name: Reusable Quality Checks
+name: Release
 
 on:
-  workflow_call:
-    inputs:
-      python-version:
-        required: true
-        type: string
+  push:
+    branches:
+      - main
+      - beta
 
 jobs:
   quality-checks:
+    uses: ./.github/workflows/reusable-quality-checks.yaml
+    with:
+      python-version: '3.13'
+    secrets: inherit  # <--- This is the key fix
+
+  release:
+    needs: quality-checks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
-      - name: Set up Python
-        id: setup-python
-        uses: actions/setup-python@v6
-        with:
-          python-version: ${{ inputs.python-version }}
+      - name: Get version
+        id: get_version
+        run: echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_ENV
 
-      - name: Cache pip dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ inputs.python-version }}-${{ hashFiles('**/requirements_dev.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-${{ inputs.python-version }}-
-
-      - name: Install dependencies
+      - name: Create Release Asset
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements_dev.txt
+          mkdir -p release/meraki_ha
+          cp -r custom_components/meraki_ha/* release/meraki_ha/
+          cd release
+          zip -r meraki_ha.zip meraki_ha
+          cd ..
 
-      - name: Run ruff
-        run: |
-          ruff check .
-          ruff format --check .
-
-      - name: Run mypy
-        run: mypy custom_components/meraki_ha/ tests/
-
-      - name: Run bandit
-        run: bandit -r custom_components/meraki_ha/ -c .bandit.yaml
-
-      - name: Run pip-audit
-        run: pip-audit --ignore-vuln PYSEC-2020-49 --ignore-vuln PYSEC-2022-42969 --ignore-vuln GHSA-g7vv-2v7x-gj9p
-
-      - name: Run tests with coverage
-        run: pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: brewmarsh/meraki-homeassistant
-          files: ./coverage.xml
+          files: release/meraki_ha.zip
+          tag_name: 'v${{ env.VERSION }}'
+          name: 'Release v${{ env.VERSION }}'
+          body: 'See CHANGELOG.md for details.'
+          prerelease: ${{ github.ref == 'refs/heads/beta' }}
