@@ -1,7 +1,7 @@
 {
   "domain": "meraki_ha",
   "name": "Meraki for Home Assistant",
-  "after_dependencies": [],
+  "after_dependencies": ["stream", "camera"],
   "codeowners": ["@brewmarsh"],
   "config_flow": true,
   "dependencies": ["frontend", "panel_custom", "http"],
