@@ -81,12 +81,14 @@ jobs:
             echo "Config check passed."
           fi
 
-          # 3. Trigger Restart (Fixes the 400 Bad Request by adding -d "{}")
+          # 3. Trigger Restart (Hardened for 2026.1 API standards)
           echo "Triggering Home Assistant restart..."
+          # Using -d '' and Content-Length: 0 is the most robust way to trigger a parameterless POST service
           RESTART_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
                -H "Authorization: Bearer $CLEAN_TOKEN" \
                -H "Content-Type: application/json" \
-               -d "{}" \
+               -H "Content-Length: 0" \
+               -d '' \
                "$HA_URL/api/services/home_assistant/restart")
 
           RESTART_STATUS=$(echo "$RESTART_RESPONSE" | tail -n1)
