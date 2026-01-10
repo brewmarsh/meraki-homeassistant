@@ -11,11 +11,15 @@ jobs:
     uses: ./.github/workflows/reusable-quality-checks.yaml
     with:
       python-version: '3.13'
-    secrets: inherit  # Implicitly passes all secrets to the reusable workflow
+    secrets: inherit # Implicitly passes all secrets to the reusable workflow
 
   release:
     needs: quality-checks
     runs-on: ubuntu-latest
+    # --- REQUIRED PERMISSIONS ---
+    permissions:
+      contents: write
+    # ----------------------------
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
