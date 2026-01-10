@@ -1,5 +1,4 @@
 homeassistant==2025.11.0
-aiohttp==3.13.3
 uv==0.9.6
 aiofiles==23.2.1
 types-aiofiles==25.1.0.20251011
