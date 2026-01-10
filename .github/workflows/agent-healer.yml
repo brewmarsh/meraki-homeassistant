@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Jules to Fix CI
-        uses: brewmarsh/jules-action@main
+        uses: google-labs-code/jules-action@main
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           starting_branch: ${{ github.head_ref || github.event.workflow_run.head_branch || github.ref_name }}
