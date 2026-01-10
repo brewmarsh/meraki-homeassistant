@@ -1,21 +1,48 @@
 ﻿name: Agent Healer
+
 on:
   workflow_run:
-    workflows: ["Validate Code"]
+    workflows: ['Validate Code']
     types: [completed]
+
 permissions:
   contents: write
   pull-requests: write
+
 jobs:
   heal:
-    if: github.event.workflow_run.conclusion == 'failure'
+    # 1. Only run if Validate Code failed
+    # 2. Prevent infinite loops (don't heal the healer's own runs)
+    # 3. Allow you, Dependabot, and Jules to trigger the healing
+    if: |
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.event != 'workflow_run' &&
+      (github.event.workflow_run.actor.login == 'brewmarsh' || 
+       github.event.workflow_run.actor.login == 'dependabot[bot]' || 
+       github.event.workflow_run.actor.login == 'google-labs-jules[bot]')
+
     runs-on: ubuntu-latest
+
     steps:
-      - name: Trigger Jules to Fix CI
-        uses: google-labs-code/jules-action@main
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Invoke Jules Agent
+        uses: google-labs-code/jules-invoke@main
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           starting_branch: ${{ github.event.workflow_run.head_branch }}
           include_last_commit: true
           include_commit_log: true
-          prompt: "The CI build failed. Please fix the pycares/aiodns conflict by using the range >=4.9.0,<5.0.0 and ensure webrtc-models==0.3.0 is in the manifest requirements."
+          prompt: |
+            The "Validate Code" CI failed. 
+            Actor: ${{ github.event.workflow_run.actor.login }}
+
+            Please analyze the logs and:
+            1. Resolve any pycares/aiodns conflicts (target range >=4.9.0,<5.0.0).
+            2. Ensure webrtc-models==0.3.0 is in manifest.json requirements.
+            3. Fix any linting or test errors.
+
+            Apply fixes directly to: ${{ github.event.workflow_run.head_branch }}
