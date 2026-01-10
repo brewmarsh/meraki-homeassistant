@@ -76,7 +76,7 @@ jobs:
 
           # Step 1a: Basic Connectivity Test
           echo "Testing basic connectivity to Home Assistant..."
-          API_STATUS=$(curl -sS -o /dev/null -w "%{http_code}" -X GET \
+          API_STATUS=$(curl -sSL -o /dev/null -w "%{http_code}" -X GET \
               -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
               -H "Content-Type: application/json" \
               "$HA_URL/api/")
@@ -94,14 +94,14 @@ jobs:
           echo "Checking Home Assistant configuration..."
           BODY_FILE=$(mktemp) # Create a temporary file to store the response body.
 
-          # Make the API call and capture the HTTP status code.
-          HTTP_STATUS=$(curl -sS -o "$BODY_FILE" -w "%{http_code}" -X POST \
+          # Make the API call and capture the HTTP status code. Use -L to follow redirects.
+          HTTP_STATUS=$(curl -sSL -o "$BODY_FILE" -w "%{http_code}" -X POST \
               -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
               -H "Content-Type: application/json" \
               -d "{}" \
               "$HA_URL/api/config/core/check_config")
 
-          CHECK_RESULT=$(cat "$BODY_FILE")
+          RESPONSE_BODY=$(cat "$BODY_FILE")
           rm "$BODY_FILE" # Clean up the temporary file.
 
           # Check for non-2xx status codes (e.g., 404 Not Found, 401 Unauthorized).
@@ -112,31 +112,35 @@ jobs:
               fi
               echo "Please check that the HA_URL secret is correct and the server is reachable."
               echo "URL: $HA_URL/api/config/core/check_config"
-              echo "Response: $CHECK_RESULT"
+              echo "Response: $RESPONSE_BODY"
               exit 1
           fi
 
           # Verify that the successful response is valid JSON before trying to parse it.
-          if ! echo "$CHECK_RESULT" | grep -q '^{'; then
-            echo "Error: API response with status $HTTP_STATUS does not appear to be valid JSON."
+          if ! echo "$RESPONSE_BODY" | jq -e . > /dev/null 2>&1; then
+            echo "Error: The API response was not valid JSON. JQ parse failed."
+            echo "HTTP Status: $HTTP_STATUS"
             echo "Received response:"
-            echo "$CHECK_RESULT"
+            echo "$RESPONSE_BODY"
             exit 1
           fi
 
-          ERRORS=$(echo "$CHECK_RESULT" | jq -r '.errors')
+          # Check if the configuration is valid
+          CONFIG_RESULT=$(echo "$RESPONSE_BODY" | jq -r '.result')
+          CONFIG_ERRORS=$(echo "$RESPONSE_BODY" | jq -r '.errors')
 
-          if [ "$ERRORS" != "null" ] && [ "$ERRORS" != "" ]; then
-            echo "Config check failed! Errors:"
-            echo "$CHECK_RESULT" | jq
+          if [ "$CONFIG_RESULT" != "valid" ]; then
+            echo "Config check failed! Result: $CONFIG_RESULT"
+            echo "Errors:"
+            echo "$CONFIG_ERRORS"
             exit 1 # Stop the pipeline
           else
             echo "Config check passed."
           fi
 
-          # Step 1b: Trigger Restart
+          # Step 1c: Trigger Restart
           echo "Triggering Home Assistant restart..."
-          RESTART_STATUS=$(curl -sS -o /dev/null -w "%{http_code}" -X POST \
+          RESTART_STATUS=$(curl -sSL -o /dev/null -w "%{http_code}" -X POST \
               -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
               -H "Content-Type: application/json" \
               -d "{}" \
