@@ -12,9 +12,9 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN
 from ...core.utils.naming_utils import format_device_name
 from ...core.utils.network_utils import construct_rtsp_url
+from ...helpers.device_info_helpers import resolve_device_info
 from ...helpers.entity_helpers import format_entity_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
@@ -98,13 +98,11 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
         self._attr_native_value = "Not available"
 
     @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._device_data["serial"])},
-            name=format_device_name(self._device_data, self._config_entry.options),
-            model=self._device_data.get("model"),
-            manufacturer="Cisco Meraki",
+    def device_info(self) -> DeviceInfo | None:
+        """Return device information with network hierarchy."""
+        return resolve_device_info(
+            entity_data=self._device_data,
+            config_entry=self._config_entry,
         )
 
     @property

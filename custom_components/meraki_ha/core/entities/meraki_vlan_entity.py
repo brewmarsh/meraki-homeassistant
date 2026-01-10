@@ -5,6 +5,7 @@ from __future__ import annotations
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 
+from ...const import DOMAIN
 from ...core.utils.naming_utils import format_device_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
 from ...types import MerakiVlan
@@ -12,7 +13,10 @@ from . import BaseMerakiEntity
 
 
 class MerakiVLANEntity(BaseMerakiEntity):
-    """Representation of a Meraki VLAN."""
+    """Representation of a Meraki VLAN.
+
+    Device Hierarchy: Organization → Network → VLANs Group → VLAN
+    """
 
     def __init__(
         self,
@@ -36,14 +40,13 @@ class MerakiVLANEntity(BaseMerakiEntity):
             config=self._config_entry.options,
         )
 
+        # Link VLAN to its VLANs group (under network)
         self._attr_device_info = DeviceInfo(
-            identifiers={
-                (self._config_entry.domain, f"vlan_{network_id}_{vlan['id']}")
-            },
+            identifiers={(DOMAIN, f"vlan_{network_id}_{vlan['id']}")},
             name=formatted_name,
             manufacturer="Cisco Meraki",
             model="VLAN",
-            via_device=(self._config_entry.domain, f"network_{network_id}"),
+            via_device=(DOMAIN, f"devicetype_{network_id}_vlans"),
         )
 
     @property

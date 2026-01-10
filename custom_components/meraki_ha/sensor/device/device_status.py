@@ -81,7 +81,10 @@ class MerakiDeviceStatusSensor(
 
         # Set device info for linking to HA device registry
         # This uses the initial device_data for static info.
-        self._attr_device_info = DeviceInfo(
+        # Hierarchy: Organization → Network → Device Type Group → Devices
+        network_id = device_data.get("networkId")
+        product_type = device_data.get("productType")
+        device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(device_data, config_entry.options),
             model=device_data.get("model"),
@@ -89,6 +92,16 @@ class MerakiDeviceStatusSensor(
             serial_number=self._device_serial,
             sw_version=device_data.get("firmware"),
         )
+        # Link device to its device type group (if product type known)
+        # Otherwise fall back to linking directly to network
+        if network_id and product_type:
+            device_info["via_device"] = (
+                DOMAIN,
+                f"devicetype_{network_id}_{product_type}",
+            )
+        elif network_id:
+            device_info["via_device"] = (DOMAIN, f"network_{network_id}")
+        self._attr_device_info = device_info
 
         # _attr_name is not explicitly set
         self.entity_description = SensorEntityDescription(

@@ -9,8 +9,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN
-from ...core.utils.naming_utils import format_device_name
+from ...helpers.device_info_helpers import resolve_device_info
 from ...helpers.entity_helpers import format_entity_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
@@ -41,16 +40,12 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):  # type: ignor
 
     @property
     def device_info(self) -> DeviceInfo | None:
-        """Return device information."""
+        """Return device information with network hierarchy."""
         if self.coordinator.config_entry is None:
             return None
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._device["serial"])},
-            name=format_device_name(
-                self._device, self.coordinator.config_entry.options
-            ),
-            model=self._device["model"],
-            manufacturer="Cisco Meraki",
+        return resolve_device_info(
+            entity_data=self._device,
+            config_entry=self.coordinator.config_entry,
         )
 
     def _get_current_device_data(self) -> dict[str, Any] | None:

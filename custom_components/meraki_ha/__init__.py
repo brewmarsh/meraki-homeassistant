@@ -1,12 +1,18 @@
 """The Meraki Home Assistant integration."""
 
+from __future__ import annotations
+
 import logging
 import secrets
 from datetime import timedelta
+from typing import TYPE_CHECKING
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ConfigEntryNotReady
+
+if TYPE_CHECKING:
+    from .meraki_data_coordinator import MerakiDataCoordinator
 
 from .api.websocket import async_setup_websocket_api
 from .const import (
@@ -53,6 +59,182 @@ from .webhook import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _register_organization_device(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    org_id: str,
+    org_name: str,
+) -> None:
+    """Register the organization device as the top-level hub."""
+    from homeassistant.helpers import device_registry as dr
+
+    from .const import DOMAIN
+
+    try:
+        device_registry = dr.async_get(hass)
+        device_registry.async_get_or_create(
+            config_entry_id=entry.entry_id,
+            identifiers={(DOMAIN, f"org_{org_id}")},
+            name=org_name,
+            manufacturer="Cisco Meraki",
+            model="Organization",
+        )
+        _LOGGER.debug("Registered organization device: %s", org_name)
+    except (AttributeError, TypeError) as err:
+        _LOGGER.debug("Could not register organization device: %s", err)
+
+
+def _register_device_type_groups(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    coordinator: MerakiDataCoordinator,
+) -> None:
+    """Register device type grouping devices for each network.
+
+    Creates hierarchy: Organization → Network → Device Type Group → Device
+    """
+    from homeassistant.helpers import device_registry as dr
+
+    from .const import DOMAIN
+    from .helpers.device_info_helpers import (
+        DEVICE_TYPE_DISPLAY_NAMES,
+        DEVICE_TYPE_MODELS,
+    )
+
+    try:
+        device_registry = dr.async_get(hass)
+    except (AttributeError, TypeError) as err:
+        _LOGGER.debug("Could not get device registry: %s", err)
+        return
+
+    # Get all networks, devices, clients, VLANs, and SSIDs
+    networks = coordinator.data.get("networks", [])
+    devices = coordinator.data.get("devices", [])
+    clients = coordinator.data.get("clients", [])
+    vlans_by_network = coordinator.data.get("vlans", {})
+    ssids_by_network = coordinator.data.get("ssids", {})
+
+    # Group devices by network and product type
+    network_product_types: dict[str, set[str]] = {}
+    network_names: dict[str, str] = {}
+    networks_with_clients: set[str] = set()
+    networks_with_vlans: set[str] = set()
+    networks_with_ssids: set[str] = set()
+
+    for network in networks:
+        network_id = network.get("id")
+        if network_id:
+            network_names[network_id] = network.get("name", f"Network {network_id}")
+            network_product_types[network_id] = set()
+
+    for device in devices:
+        network_id = device.get("networkId")
+        product_type = device.get("productType")
+        if network_id and product_type:
+            if network_id not in network_product_types:
+                network_product_types[network_id] = set()
+            network_product_types[network_id].add(product_type)
+
+    # Track networks that have clients
+    for client in clients:
+        network_id = client.get("networkId")
+        if network_id:
+            networks_with_clients.add(network_id)
+
+    # Track networks that have VLANs
+    for network_id, vlans in vlans_by_network.items():
+        if vlans and isinstance(vlans, list) and len(vlans) > 0:
+            networks_with_vlans.add(network_id)
+
+    # Track networks that have SSIDs
+    for network_id, ssids in ssids_by_network.items():
+        if ssids and isinstance(ssids, list) and len(ssids) > 0:
+            networks_with_ssids.add(network_id)
+
+    # Register device type groups for each network
+    for network_id, product_types in network_product_types.items():
+        network_name = network_names.get(network_id, f"Network {network_id}")
+        for product_type in product_types:
+            display_name = DEVICE_TYPE_DISPLAY_NAMES.get(
+                product_type, product_type.title()
+            )
+            model_name = DEVICE_TYPE_MODELS.get(product_type, "Meraki Devices")
+
+            try:
+                device_registry.async_get_or_create(
+                    config_entry_id=entry.entry_id,
+                    identifiers={(DOMAIN, f"devicetype_{network_id}_{product_type}")},
+                    name=f"{network_name} {display_name}",
+                    manufacturer="Cisco Meraki",
+                    model=model_name,
+                    via_device=(DOMAIN, f"network_{network_id}"),
+                )
+            except (AttributeError, TypeError) as err:
+                _LOGGER.debug(
+                    "Could not register device type group %s for network %s: %s",
+                    product_type,
+                    network_id,
+                    err,
+                )
+
+    # Register Clients group for networks that have clients
+    for network_id in networks_with_clients:
+        network_name = network_names.get(network_id, f"Network {network_id}")
+        try:
+            device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, f"devicetype_{network_id}_clients")},
+                name=f"{network_name} Clients",
+                manufacturer="Cisco Meraki",
+                model="Network Clients",
+                via_device=(DOMAIN, f"network_{network_id}"),
+            )
+        except (AttributeError, TypeError) as err:
+            _LOGGER.debug(
+                "Could not register Clients group for network %s: %s",
+                network_id,
+                err,
+            )
+
+    # Register VLANs group for networks that have VLANs
+    for network_id in networks_with_vlans:
+        network_name = network_names.get(network_id, f"Network {network_id}")
+        try:
+            device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, f"devicetype_{network_id}_vlans")},
+                name=f"{network_name} VLANs",
+                manufacturer="Cisco Meraki",
+                model="Network VLANs",
+                via_device=(DOMAIN, f"network_{network_id}"),
+            )
+        except (AttributeError, TypeError) as err:
+            _LOGGER.debug(
+                "Could not register VLANs group for network %s: %s",
+                network_id,
+                err,
+            )
+
+    # Register SSIDs group for networks that have SSIDs
+    for network_id in networks_with_ssids:
+        network_name = network_names.get(network_id, f"Network {network_id}")
+        try:
+            device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, f"devicetype_{network_id}_ssids")},
+                name=f"{network_name} SSIDs",
+                manufacturer="Cisco Meraki",
+                model="Wireless SSIDs",
+                via_device=(DOMAIN, f"network_{network_id}"),
+            )
+        except (AttributeError, TypeError) as err:
+            _LOGGER.debug(
+                "Could not register SSIDs group for network %s: %s",
+                network_id,
+                err,
+            )
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -117,6 +299,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry_data["coordinator"].update_interval = timedelta(seconds=scan_interval)
         await entry_data["coordinator"].async_refresh()
     coordinator = entry_data["coordinator"]
+
+    # Register the organization device as the top-level hub in the hierarchy
+    # Hierarchy: Organization → Network → Device Type Group → Devices
+    if coordinator.data:
+        org_id = entry.data[CONF_MERAKI_ORG_ID]
+        org_name = entry.data.get("org_name", f"Meraki Org {org_id}")
+        _register_organization_device(hass, entry, org_id, org_name)
+        # Register device type groups (Access Points, Switches, Cameras, etc.)
+        _register_device_type_groups(hass, entry, coordinator)
 
     if "meraki_repository" not in entry_data:
         entry_data["meraki_repository"] = MerakiRepository(api_client)

@@ -44,13 +44,25 @@ class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):  # type: ignore[ty
         self._attr_unique_id = f"{self._device_serial}_data_usage"
         self._attr_name = "Data Usage"
 
-        self._attr_device_info = DeviceInfo(
+        # Link device to its device type group for hierarchical display
+        # Hierarchy: Organization → Network → Device Type Group → Device
+        product_type = device_data.get("productType")
+        device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(device_data, self._config_entry.options),
             model=device_data.get("model"),
             manufacturer="Cisco Meraki",
             sw_version=device_data.get("firmware"),
         )
+        # Link device to its device type group (if product type known)
+        if self._network_id and product_type:
+            device_info["via_device"] = (
+                DOMAIN,
+                f"devicetype_{self._network_id}_{product_type}",
+            )
+        elif self._network_id:
+            device_info["via_device"] = (DOMAIN, f"network_{self._network_id}")
+        self._attr_device_info = device_info
         self._update_state()
 
     def _get_current_device_data(self) -> dict[str, Any] | None:

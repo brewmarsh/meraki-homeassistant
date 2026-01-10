@@ -118,10 +118,14 @@ class TestMerakiClientDeviceTracker:
     """Tests for the MerakiClientDeviceTracker entity."""
 
     def test_init_basic(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test basic initialization of the device tracker."""
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=MOCK_CLIENT_DATA,
@@ -133,7 +137,10 @@ class TestMerakiClientDeviceTracker:
         assert tracker._attr_has_entity_name is True
 
     def test_init_uses_dhcp_hostname_fallback(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test that dhcpHostname is used when description is missing."""
         client_data = {
@@ -142,6 +149,7 @@ class TestMerakiClientDeviceTracker:
             "ip": "192.168.1.50",
         }
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=client_data,
@@ -150,7 +158,10 @@ class TestMerakiClientDeviceTracker:
         assert tracker._attr_name == "my-device"
 
     def test_init_uses_ip_fallback(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test that IP is used when description and hostname are missing."""
         client_data = {
@@ -158,6 +169,7 @@ class TestMerakiClientDeviceTracker:
             "ip": "192.168.1.50",
         }
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=client_data,
@@ -166,13 +178,17 @@ class TestMerakiClientDeviceTracker:
         assert tracker._attr_name == "192.168.1.50"
 
     def test_init_uses_mac_fallback(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test that MAC is used when all other identifiers are missing."""
         client_data = {
             "mac": "11:22:33:44:55:66",
         }
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=client_data,
@@ -181,10 +197,14 @@ class TestMerakiClientDeviceTracker:
         assert tracker._attr_name == "11:22:33:44:55:66"
 
     def test_source_type(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test that source type is ROUTER."""
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=MOCK_CLIENT_DATA,
@@ -193,10 +213,14 @@ class TestMerakiClientDeviceTracker:
         assert tracker.source_type == SourceType.ROUTER
 
     def test_is_connected_when_online(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test is_connected returns True when client is in clients list."""
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=MOCK_CLIENT_DATA,
@@ -208,7 +232,10 @@ class TestMerakiClientDeviceTracker:
         assert tracker.is_connected is True
 
     def test_is_connected_when_present_no_status(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test is_connected returns True when client is present without status."""
         client_no_status = {
@@ -216,6 +243,7 @@ class TestMerakiClientDeviceTracker:
             "ip": "192.168.1.100",
         }
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=client_no_status,
@@ -226,10 +254,14 @@ class TestMerakiClientDeviceTracker:
         assert tracker.is_connected is True
 
     def test_is_connected_when_not_in_clients(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test is_connected returns False when client is not in clients list."""
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=MOCK_CLIENT_DATA_OFFLINE,
@@ -241,10 +273,14 @@ class TestMerakiClientDeviceTracker:
         assert tracker.is_connected is False
 
     def test_is_connected_when_different_client(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test is_connected returns False when client MAC not in list."""
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=MOCK_CLIENT_DATA,
@@ -256,10 +292,14 @@ class TestMerakiClientDeviceTracker:
         assert tracker.is_connected is False
 
     def test_is_connected_when_no_data(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test is_connected returns False when no coordinator data."""
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=MOCK_CLIENT_DATA,
@@ -270,10 +310,14 @@ class TestMerakiClientDeviceTracker:
         assert tracker.is_connected is False
 
     def test_mac_address(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test mac_address property."""
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=MOCK_CLIENT_DATA,
@@ -282,10 +326,14 @@ class TestMerakiClientDeviceTracker:
         assert tracker.mac_address == "00:11:22:33:44:55"
 
     def test_ip_address(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test ip_address property."""
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=MOCK_CLIENT_DATA,
@@ -294,10 +342,14 @@ class TestMerakiClientDeviceTracker:
         assert tracker.ip_address == "192.168.1.100"
 
     def test_hostname(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test hostname property uses dhcpHostname first."""
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=MOCK_CLIENT_DATA,
@@ -306,7 +358,10 @@ class TestMerakiClientDeviceTracker:
         assert tracker.hostname == "test-laptop"
 
     def test_hostname_fallback_to_description(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test hostname falls back to description."""
         client_data = {
@@ -314,6 +369,7 @@ class TestMerakiClientDeviceTracker:
             "description": "My Device",
         }
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=client_data,
@@ -322,10 +378,14 @@ class TestMerakiClientDeviceTracker:
         assert tracker.hostname == "My Device"
 
     def test_extra_state_attributes(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test extra_state_attributes property."""
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=MOCK_CLIENT_DATA,
@@ -365,10 +425,14 @@ class TestMerakiClientDeviceTracker:
         assert attrs["network_id"] == "N_12345"
 
     def test_extra_state_attributes_wired_client(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test extra_state_attributes for a wired client."""
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=MOCK_CLIENT_DATA_WIRED,
@@ -388,13 +452,17 @@ class TestMerakiClientDeviceTracker:
         assert attrs["connected_to_mac"] == "BB:CC:DD:EE:FF:00"
 
     def test_extra_state_attributes_minimal(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test extra_state_attributes with minimal client data."""
         client_data = {
             "mac": "00:11:22:33:44:55",
         }
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=client_data,
@@ -404,11 +472,18 @@ class TestMerakiClientDeviceTracker:
         # Minimal client data has empty attributes
         assert attrs == {}
 
-    def test_device_info_with_parent(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+    def test_device_info_with_network(
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
-        """Test device_info includes via_device when recentDeviceSerial exists."""
+        """Test device_info links to Clients group under network.
+
+        Device Hierarchy: Organization → Network → Clients Group → Client
+        """
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=MOCK_CLIENT_DATA,
@@ -419,18 +494,23 @@ class TestMerakiClientDeviceTracker:
         assert (DOMAIN, "client_00:11:22:33:44:55") in device_info["identifiers"]
         assert device_info["name"] == "Test Laptop"
         assert device_info["manufacturer"] == "Apple Inc."
-        assert device_info["via_device"] == (DOMAIN, "Q234-ABCD-5678")
+        # Clients are linked to their Clients group (under network)
+        assert device_info["via_device"] == (DOMAIN, "devicetype_N_12345_clients")
 
     def test_device_info_without_parent(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
-        """Test device_info has no via_device when recentDeviceSerial missing."""
+        """Test device_info has no via_device when networkId missing."""
         client_data = {
             "mac": "00:11:22:33:44:55",
             "description": "Test Device",
             "manufacturer": "Test Manufacturer",
         }
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=client_data,
@@ -442,10 +522,14 @@ class TestMerakiClientDeviceTracker:
         assert "via_device" not in device_info
 
     def test_handle_coordinator_update(
-        self, mock_coordinator: MagicMock, mock_config_entry: MagicMock
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
     ) -> None:
         """Test _handle_coordinator_update updates cached data."""
         tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
             coordinator=mock_coordinator,
             config_entry=mock_config_entry,
             client_data=MOCK_CLIENT_DATA,
@@ -529,18 +613,19 @@ class TestAsyncSetupEntry:
         mock_config_entry: MagicMock,
         mock_coordinator: MagicMock,
     ) -> None:
-        """Test setup includes via_device when client has recentDeviceSerial."""
+        """Test setup includes via_device when client has networkId."""
         mock_coordinator.data = {"clients": [MOCK_CLIENT_DATA]}
         async_add_entities = MagicMock()
 
         await async_setup_entry(mock_hass, mock_config_entry, async_add_entities)
 
-        # Should add entity with via_device in device_info
+        # Should add entity with via_device linking to Clients group
         async_add_entities.assert_called_once()
         entities = async_add_entities.call_args[0][0]
         assert len(entities) == 1
         device_info = entities[0]._attr_device_info
-        assert device_info["via_device"] == (DOMAIN, "Q234-ABCD-5678")
+        # Clients are linked to their Clients group (under network)
+        assert device_info["via_device"] == (DOMAIN, "devicetype_N_12345_clients")
 
     async def test_setup_no_clients(
         self,

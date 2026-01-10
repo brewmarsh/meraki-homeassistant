@@ -44,6 +44,32 @@
           "enable_ssid_sensors": "Create sensors for SSID metrics.",
           "enabled_networks": "Select which Meraki networks to include in Home Assistant."
         }
+      },
+      "reauth": {
+        "title": "Re-authenticate Meraki",
+        "description": "Your Meraki API credentials need to be updated. Please enter your new API key.",
+        "data": {
+          "meraki_api_key": "Meraki API Key",
+          "meraki_org_id": "Meraki Organization ID"
+        },
+        "data_description": {
+          "meraki_api_key": "Your personal API key for the Meraki Dashboard.",
+          "meraki_org_id": "The ID of the Meraki Organization."
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Meraki Integration",
+        "description": "Update the settings for your Meraki integration.",
+        "data": {
+          "enabled_networks": "Enabled Networks",
+          "enable_device_tracker": "Enable Client Tracker",
+          "enable_vlan_management": "Enable VLAN Management"
+        },
+        "data_description": {
+          "enabled_networks": "Select which networks to monitor. Leave empty for all networks.",
+          "enable_device_tracker": "Enable tracking of clients connected to the network.",
+          "enable_vlan_management": "Enable VLAN management features."
+        }
       }
     },
     "error": {
@@ -54,43 +80,140 @@
     },
     "abort": {
       "reauth_successful": "Re-authentication successful.",
-      "already_configured": "This Meraki organization is already configured."
+      "reconfigure_successful": "Reconfiguration successful.",
+      "already_configured": "This Meraki organization is already configured.",
+      "unknown_entry": "Unknown configuration entry."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Meraki Options",
-        "description": "Configure the Meraki integration settings.",
+        "title": "Meraki Integration Settings",
+        "description": "Select a category to configure:",
+        "menu_options": {
+          "network_selection": "Network Selection",
+          "polling": "Polling & Refresh",
+          "camera": "Camera Settings",
+          "mqtt": "MQTT Configuration",
+          "display_preferences": "Display Preferences",
+          "notifications": "Notifications"
+        }
+      },
+      "network_selection": {
+        "title": "Network Selection",
+        "description": "Configure which networks are monitored by this integration.",
         "data": {
-          "scan_interval": "Scan Interval (seconds)",
+          "enabled_networks": "Enabled Networks",
           "enable_device_tracker": "Enable Client Tracker",
-          "enable_vlan_management": "Enable VLAN Management",
-          "enable_device_status": "Enable Device Status Entities",
-          "enable_org_sensors": "Enable Organization Sensors",
-          "enable_camera_entities": "Enable Camera Entities",
-          "enable_device_sensors": "Enable Device Sensors",
-          "enable_network_sensors": "Enable Network Sensors",
-          "enable_vlan_sensors": "Enable VLAN Sensors",
-          "enable_port_sensors": "Enable Port Sensors",
-          "enable_ssid_sensors": "Enable SSID Sensors",
-          "enabled_networks": "Enabled Networks"
+          "enable_vlan_management": "Enable VLAN Management"
         },
         "data_description": {
-          "scan_interval": "How often to poll the Meraki API for updates, in seconds.",
-          "enable_device_tracker": "Track devices connected to your Meraki networks.",
-          "enable_vlan_management": "Allow management of VLANs.",
-          "enable_device_status": "Create binary sensors for device online/offline status.",
-          "enable_org_sensors": "Create sensors for organization-wide metrics.",
-          "enable_camera_entities": "Create entities for Meraki cameras.",
-          "enable_device_sensors": "Create sensors for device-specific metrics.",
-          "enable_network_sensors": "Create sensors for network-specific metrics.",
-          "enable_vlan_sensors": "Create sensors for VLAN metrics.",
-          "enable_port_sensors": "Create sensors for switch port metrics.",
-          "enable_ssid_sensors": "Create sensors for SSID metrics.",
-          "enabled_networks": "Select which Meraki networks to include in Home Assistant."
+          "enabled_networks": "Select which networks to monitor. Leave empty for all networks.",
+          "enable_device_tracker": "Enable tracking of clients connected to the network.",
+          "enable_vlan_management": "Enable VLAN management features."
+        }
+      },
+      "polling": {
+        "title": "Polling & Refresh Settings",
+        "description": "Configure how often the integration polls the Meraki API.",
+        "data": {
+          "scan_interval": "Device Status/Ports Polling Interval (seconds)",
+          "network_scan_interval": "Network/Org Polling Interval (seconds)",
+          "device_scan_interval": "Device Inventory Polling Interval (seconds)",
+          "client_scan_interval": "Client Polling Interval (seconds)",
+          "ssid_scan_interval": "SSID Polling Interval (seconds)"
+        },
+        "data_description": {
+          "scan_interval": "Polling interval for frequently changing data like device status and port statistics.",
+          "network_scan_interval": "Polling interval for rarely changing data like network and organization structure.",
+          "device_scan_interval": "Polling interval for infrequently changing data like device inventory.",
+          "client_scan_interval": "Polling interval for very frequently changing data like client information.",
+          "ssid_scan_interval": "Polling interval for infrequently changing data like SSID configuration."
+        }
+      },
+      "display_preferences": {
+        "title": "Display Preferences",
+        "description": "Configure how the dashboard displays information.",
+        "data": {
+          "dashboard_view_mode": "Default Dashboard View",
+          "dashboard_device_type_filter": "Default Device Type Filter",
+          "dashboard_status_filter": "Default Status Filter",
+          "temperature_unit": "Temperature Unit"
+        },
+        "data_description": {
+          "dashboard_view_mode": "Choose how devices are grouped on the dashboard (by network or by device type).",
+          "dashboard_device_type_filter": "Filter which device types are shown on the dashboard. You can select multiple types.",
+          "dashboard_status_filter": "Default filter for device status on the dashboard.",
+          "temperature_unit": "Choose the unit for temperature readings from Meraki sensors (Celsius or Fahrenheit)."
+        }
+      },
+      "notifications": {
+        "title": "Notification Settings",
+        "description": "Coming Soon\n\nNotification settings will be available in a future update.\n\nThis feature will allow you to configure alert settings and webhook notifications for Meraki events."
+      },
+      "camera": {
+        "title": "Camera Settings",
+        "description": "Configure camera-related settings.",
+        "data": {
+          "camera_snapshot_interval": "Camera Snapshot Refresh Interval (seconds)",
+          "camera_link_integration": "Camera Link Integration"
+        },
+        "data_description": {
+          "camera_snapshot_interval": "How often to refresh camera snapshots on the dashboard (0 = only on demand). Camera streaming uses RTSP and requires the RTSP server to be enabled in the Meraki Dashboard.",
+          "camera_link_integration": "Select an integration to filter which cameras are shown when linking Meraki cameras. Choose 'All Cameras' to see all available camera entities."
+        }
+      },
+      "mqtt": {
+        "title": "MQTT Configuration",
+        "description": "Configure MQTT for MT sensor real-time updates.\n\nConfigured Relay Destinations ({destination_count}): {relay_destinations}",
+        "data": {
+          "enable_mqtt": "Enable MQTT for MT Sensors",
+          "action": "MQTT Relay Management"
+        },
+        "data_description": {
+          "enable_mqtt": "Enable MQTT to receive real-time updates from MT sensors via Home Assistant's Mosquitto broker. When enabled, API polling for sensor readings is disabled.",
+          "action": "Choose an action to manage external MQTT brokers that will receive relayed sensor data."
+        }
+      },
+      "mqtt_select_destination": {
+        "title": "{action} MQTT Relay Destination",
+        "description": "Select one or more destinations to {action}.",
+        "data": {
+          "destinations": "Select Destination(s)"
+        },
+        "data_description": {
+          "destinations": "Choose a relay destination from the list."
+        }
+      },
+      "mqtt_destination": {
+        "title": "{action} MQTT Relay Destination",
+        "description": "Configure an external MQTT broker to relay Meraki sensor data to.",
+        "data": {
+          "name": "Destination Name",
+          "host": "Broker Hostname",
+          "port": "Broker Port",
+          "username": "Username (optional)",
+          "password": "Password (optional)",
+          "use_tls": "Use TLS",
+          "topic_filter": "Topic Filter",
+          "device_types": "Device Types (optional)"
+        },
+        "data_description": {
+          "name": "A friendly name for this relay destination (e.g., 'IoT Platform').",
+          "host": "The hostname or IP address of the external MQTT broker.",
+          "port": "The port of the MQTT broker (default: 1883, or 8883 for TLS).",
+          "username": "Username for broker authentication (if required).",
+          "password": "Password for broker authentication (if required).",
+          "use_tls": "Enable TLS encryption for the connection.",
+          "topic_filter": "Topic pattern to match (e.g., 'meraki/v1/mt/#' for all MT sensors).",
+          "device_types": "Optionally filter by specific device types."
         }
       }
+    },
+    "error": {
+      "host_required": "Broker hostname is required.",
+      "name_required": "Destination name is required.",
+      "invalid_port": "Invalid port number. Must be between 1 and 65535."
     }
   },
   "entity": {

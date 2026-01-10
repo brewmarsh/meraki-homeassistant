@@ -23,6 +23,7 @@ from .const import (
     DOMAIN,
 )
 from .core.utils.naming_utils import format_device_name
+from .helpers.device_info_helpers import resolve_device_info
 from .helpers.entity_helpers import format_entity_name
 from .meraki_data_coordinator import MerakiDataCoordinator
 
@@ -130,16 +131,12 @@ class MerakiCamera(CoordinatorEntity, Camera):  # type: ignore[type-arg]
 
     @property
     def device_info(self) -> DeviceInfo | None:
-        """Return device information."""
+        """Return device information with network hierarchy."""
         if self.coordinator.config_entry is None:
             return None
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._device_serial)},
-            name=format_device_name(
-                self.device_data, self.coordinator.config_entry.options
-            ),
-            model=self.device_data.get("model"),
-            manufacturer="Cisco Meraki",
+        return resolve_device_info(
+            entity_data=self.device_data,
+            config_entry=self.coordinator.config_entry,
         )
 
     async def async_camera_image(

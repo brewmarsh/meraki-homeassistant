@@ -6,6 +6,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from ...const import DOMAIN
 from ...meraki_data_coordinator import MerakiDataCoordinator
 from ...types import MerakiNetwork
 from ..utils.naming_utils import format_device_name
@@ -33,12 +34,18 @@ class MerakiNetworkEntity(CoordinatorEntity):  # type: ignore[type-arg]
             device=device_data_for_naming,
             config=config_entry.options,
         )
-        self._attr_device_info = DeviceInfo(
-            identifiers={(self._config_entry.domain, f"network_{network['id']}")},
+        # Link network to its parent organization
+        # Hierarchy: Organization → Network → Devices/VLANs/Clients
+        org_id = network.get("organizationId")
+        device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"network_{network['id']}")},
             name=formatted_name,
             manufacturer="Cisco Meraki",
             model="Network",
         )
+        if org_id:
+            device_info["via_device"] = (DOMAIN, f"org_{org_id}")
+        self._attr_device_info = device_info
 
     @property
     def device_info(self) -> DeviceInfo | None:
