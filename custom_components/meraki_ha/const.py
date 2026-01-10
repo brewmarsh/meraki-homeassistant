@@ -282,6 +282,7 @@ PLATFORMS: Final = [
     PLATFORM_TEXT,
     PLATFORM_CAMERA,
     PLATFORM_NUMBER,
+    PLATFORM_DEVICE_TRACKER,
 ]
 """List of platforms supported by the integration."""
 

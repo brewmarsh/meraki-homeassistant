@@ -287,6 +287,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Meraki config entry."""
     entry_data = hass.data[DOMAIN].get(entry.entry_id)
     if entry_data:
+        if DATA_CLIENT in entry_data:
+            client = entry_data[DATA_CLIENT]
+            await client.async_close()
+            _LOGGER.debug("Meraki API client session closed")
+
         # Stop MQTT service and relay manager
         if "mqtt_service" in entry_data:
             mqtt_service = entry_data["mqtt_service"]

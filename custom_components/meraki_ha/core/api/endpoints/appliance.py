@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+import meraki
 from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.core.utils.api_utils import (
@@ -12,6 +13,7 @@ from custom_components.meraki_ha.core.utils.api_utils import (
     validate_response,
 )
 
+from ....core.errors import MerakiVlansDisabledError
 from ..cache import async_timed_cache
 
 if TYPE_CHECKING:
@@ -38,33 +40,29 @@ class ApplianceEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
-    async def get_network_appliance_traffic(
+    async def get_organization_appliance_uplink_statuses(
         self,
-        network_id: str,
-        timespan: int = 86400,
     ) -> list[dict[str, Any]]:
         """
-        Get traffic data for a network appliance.
-
-        Args:
-            network_id: The ID of the network.
-            timespan: The timespan for the traffic data.
+        Get uplink statuses for all appliances in the organization.
 
         Returns
         -------
-            A list of traffic data.
+            A list of appliance uplink statuses.
 
         """
         if self._api_client.dashboard is None:
             return []
-        traffic = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.getNetworkApplianceTraffic,
-            networkId=network_id,
-            timespan=timespan,
+
+        api = self._api_client.dashboard.appliance
+        statuses = await api.getOrganizationApplianceUplinkStatuses(
+            self._api_client.organization_id, total_pages="all"
         )
-        validated = validate_response(traffic)
+        validated = validate_response(statuses)
         if not isinstance(validated, list):
-            _LOGGER.warning("get_network_appliance_traffic did not return a list")
+            _LOGGER.warning(
+                "get_organization_appliance_uplink_statuses did not return a list"
+            )
             return []
         return validated
 
@@ -84,15 +82,19 @@ class ApplianceEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        vlans = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.getNetworkApplianceVlans,
-            networkId=network_id,
-        )
-        validated = validate_response(vlans)
-        if not isinstance(validated, list):
-            _LOGGER.warning("get_network_vlans did not return a list")
-            return []
-        return validated
+        try:
+            vlans = await self._api_client.dashboard.appliance.getNetworkApplianceVlans(
+                networkId=network_id,
+            )
+            validated = validate_response(vlans)
+            if not isinstance(validated, list):
+                _LOGGER.warning("get_network_vlans did not return a list")
+                return []
+            return validated
+        except meraki.aio.AsyncAPIError as e:
+            if "VLANs are not enabled for this network" in str(e):
+                raise MerakiVlansDisabledError from e
+            raise
 
     @handle_meraki_errors
     async def update_network_vlan(
@@ -116,8 +118,7 @@ class ApplianceEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        vlan = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.updateNetworkApplianceVlan,
+        vlan = await self._api_client.dashboard.appliance.updateNetworkApplianceVlan(
             networkId=network_id,
             vlanId=vlan_id,
             **kwargs,
@@ -144,8 +145,8 @@ class ApplianceEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        rules = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules,
+        api = self._api_client.dashboard.appliance
+        rules = await api.getNetworkApplianceFirewallL3FirewallRules(
             networkId=network_id,
         )
         validated = validate_response(rules)
@@ -174,8 +175,8 @@ class ApplianceEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        rules = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules,
+        api = self._api_client.dashboard.appliance
+        rules = await api.updateNetworkApplianceFirewallL3FirewallRules(
             networkId=network_id,
             **kwargs,
         )
@@ -201,8 +202,8 @@ class ApplianceEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        settings = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.getNetworkApplianceTrafficShaping,
+        api = self._api_client.dashboard.appliance
+        settings = await api.getNetworkApplianceTrafficShaping(
             networkId=network_id,
         )
         validated = validate_response(settings)
@@ -231,8 +232,8 @@ class ApplianceEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        settings = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.updateNetworkApplianceTrafficShaping,
+        api = self._api_client.dashboard.appliance
+        settings = await api.updateNetworkApplianceTrafficShaping(
             networkId=network_id,
             **kwargs,
         )
@@ -258,8 +259,8 @@ class ApplianceEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        status = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn,
+        api = self._api_client.dashboard.appliance
+        status = await api.getNetworkApplianceVpnSiteToSiteVpn(
             networkId=network_id,
         )
         validated = validate_response(status)
@@ -284,8 +285,8 @@ class ApplianceEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        status = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn,
+        api = self._api_client.dashboard.appliance
+        status = await api.updateNetworkApplianceVpnSiteToSiteVpn(
             networkId=network_id,
             **kwargs,
         )
@@ -314,8 +315,8 @@ class ApplianceEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        uplinks = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.getDeviceApplianceUplinksSettings,
+        api = self._api_client.dashboard.appliance
+        uplinks = await api.getDeviceApplianceUplinksSettings(
             serial=serial,
         )
         validated = validate_response(uplinks)
@@ -345,8 +346,8 @@ class ApplianceEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        result = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.getNetworkApplianceContentFiltering,
+        api = self._api_client.dashboard.appliance
+        result = await api.getNetworkApplianceContentFiltering(
             networkId=network_id,
         )
         validated = validate_response(result)
@@ -376,8 +377,8 @@ class ApplianceEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        result = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.getNetworkApplianceContentFilteringCategories,
+        api = self._api_client.dashboard.appliance
+        result = await api.getNetworkApplianceContentFilteringCategories(
             networkId=network_id,
         )
         validated = validate_response(result)
@@ -386,31 +387,6 @@ class ApplianceEndpoints:
                 "get_network_appliance_content_filtering_categories "
                 "did not return a dict",
             )
-            return {}
-        return validated
-
-    @handle_meraki_errors
-    async def reboot_device(self, serial: str) -> dict[str, Any]:
-        """
-        Reboot a device.
-
-        Args:
-            serial: The serial number of the device.
-
-        Returns
-        -------
-            The response from the API.
-
-        """
-        if self._api_client.dashboard is None:
-            return {}
-        result = await self._api_client.run_sync(
-            self._api_client.dashboard.devices.rebootDevice,
-            serial=serial,
-        )
-        validated = validate_response(result)
-        if not isinstance(validated, dict):
-            _LOGGER.warning("reboot_device did not return a dict")
             return {}
         return validated
 
@@ -430,8 +406,7 @@ class ApplianceEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        ports = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.getNetworkAppliancePorts,
+        ports = await self._api_client.dashboard.appliance.getNetworkAppliancePorts(
             networkId=network_id,
         )
         validated = validate_response(ports)
@@ -456,9 +431,10 @@ class ApplianceEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        settings = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.getNetworkApplianceSettings,
-            networkId=network_id,
+        settings = (
+            await self._api_client.dashboard.appliance.getNetworkApplianceSettings(
+                networkId=network_id,
+            )
         )
         validated = validate_response(settings)
         if not isinstance(validated, dict):
@@ -485,8 +461,8 @@ class ApplianceEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        rules = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.getNetworkApplianceL7FirewallRules,
+        api = self._api_client.dashboard.appliance
+        rules = await api.getNetworkApplianceL7FirewallRules(
             networkId=network_id,
         )
         validated = validate_response(rules)
@@ -517,8 +493,8 @@ class ApplianceEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        rules = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.updateNetworkApplianceL7FirewallRules,
+        api = self._api_client.dashboard.appliance
+        rules = await api.updateNetworkApplianceL7FirewallRules(
             networkId=network_id,
             **kwargs,
         )
@@ -550,8 +526,8 @@ class ApplianceEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        result = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.updateNetworkApplianceContentFiltering,
+        api = self._api_client.dashboard.appliance
+        result = await api.updateNetworkApplianceContentFiltering(
             networkId=network_id,
             **kwargs,
         )
@@ -561,30 +537,4 @@ class ApplianceEndpoints:
                 "update_network_appliance_content_filtering did not return a dict",
             )
             return {}
-        return validated
-
-    @handle_meraki_errors
-    @async_timed_cache(timeout=60)
-    async def get_organization_appliance_uplink_statuses(self) -> list[dict[str, Any]]:
-        """
-        Get uplink status for all appliances in the organization.
-
-        Returns
-        -------
-            A list of uplink statuses.
-
-        """
-        if self._api_client.dashboard is None:
-            return []
-        statuses = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.getOrganizationApplianceUplinkStatuses,
-            organizationId=self._api_client.organization_id,
-            total_pages="all",
-        )
-        validated = validate_response(statuses)
-        if not isinstance(validated, list):
-            _LOGGER.warning(
-                "get_organization_appliance_uplink_statuses did not return a list",
-            )
-            return []
         return validated

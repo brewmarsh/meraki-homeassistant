@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-import meraki
+import meraki.aio
 
 from custom_components.meraki_ha.core.errors import MerakiTrafficAnalysisError
 from custom_components.meraki_ha.core.utils.api_utils import (
@@ -53,11 +53,8 @@ class NetworkEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        clients = await self._api_client.run_sync(
-            self._api_client.dashboard.networks.getNetworkClients,
-            networkId=network_id,
-            total_pages="all",
-        )
+        api = self._api_client.dashboard.networks
+        clients = await api.getNetworkClients(networkId=network_id, total_pages="all")
         validated = validate_response(clients)
         if not isinstance(validated, list):
             _LOGGER.warning("get_network_clients did not return a list.")
@@ -84,19 +81,21 @@ class NetworkEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
+        api = self._api_client.dashboard.networks
         try:
-            traffic = await self._api_client.run_sync(
-                self._api_client.dashboard.networks.getNetworkTraffic,
+            traffic = await api.getNetworkTraffic(
                 networkId=network_id,
                 deviceType=device_type,
                 timespan=86400,  # 24 hours
             )
-        except meraki.APIError as e:
+        except meraki.aio.AsyncAPIError as e:
             if "Traffic Analysis with Hostname Visibility must be enabled" in str(e):
                 _LOGGER.info(
                     "Traffic analysis is not enabled for network %s. "
                     "Please enable it at "
-                    "https://documentation.meraki.com/MX/Design_and_Configure/Configuration_Guides/Firewall_and_Traffic_Shaping/Traffic_Analysis_and_Classification",
+                    "https://documentation.meraki.com/MX/Design_and_Configure/"
+                    "Configuration_Guides/Firewall_and_Traffic_Shaping/"
+                    "Traffic_Analysis_and_Classification",
                     network_id,
                 )
                 raise MerakiTrafficAnalysisError(
@@ -126,10 +125,8 @@ class NetworkEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        webhooks = await self._api_client.run_sync(
-            self._api_client.dashboard.networks.getNetworkWebhooksHttpServers,
-            networkId=network_id,
-        )
+        api = self._api_client.dashboard.networks
+        webhooks = await api.getNetworkWebhooksHttpServers(networkId=network_id)
         validated = validate_response(webhooks)
         if not isinstance(validated, list):
             _LOGGER.warning("get_webhooks did not return a list.")
@@ -149,8 +146,8 @@ class NetworkEndpoints:
         """
         if self._api_client.dashboard is None:
             return
-        await self._api_client.run_sync(
-            self._api_client.dashboard.networks.deleteNetworkWebhooksHttpServer,
+        api = self._api_client.dashboard.networks
+        await api.deleteNetworkWebhooksHttpServer(
             networkId=network_id,
             httpServerId=webhook_id,
         )
@@ -236,6 +233,7 @@ class NetworkEndpoints:
         ----
             webhook_url: The URL of the webhook.
             secret: The secret for the webhook.
+            config_entry_id: The config entry ID.
 
         """
         networks = await self._api_client.organization.get_organization_networks()
@@ -250,8 +248,8 @@ class NetworkEndpoints:
 
             if self._api_client.dashboard is None:
                 return
-            await self._api_client.run_sync(
-                self._api_client.dashboard.networks.createNetworkWebhooksHttpServer,
+            api = self._api_client.dashboard.networks
+            await api.createNetworkWebhooksHttpServer(
                 networkId=network_id,
                 url=webhook_url,
                 sharedSecret=secret,
@@ -265,7 +263,7 @@ class NetworkEndpoints:
 
         Args:
         ----
-            webhook_url: The URL of the webhook to unregister.
+            config_entry_id: The config entry ID of the webhook to unregister.
 
         """
         webhook_name = f"Home Assistant Webhook - {config_entry_id}"
@@ -300,10 +298,8 @@ class NetworkEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        policies = await self._api_client.run_sync(
-            self._api_client.dashboard.networks.getNetworkGroupPolicies,
-            networkId=network_id,
-        )
+        api = self._api_client.dashboard.networks
+        policies = await api.getNetworkGroupPolicies(networkId=network_id)
         validated = validate_response(policies)
         if not isinstance(validated, list):
             _LOGGER.warning("get_group_policies did not return a list")
@@ -330,8 +326,8 @@ class NetworkEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        history = await self._api_client.run_sync(
-            self._api_client.dashboard.camera.getNetworkCameraAnalyticsRecent,
+        api = self._api_client.dashboard.camera
+        history = await api.getNetworkCameraAnalyticsRecent(
             networkId=network_id,
             objectType=object_type,
         )
@@ -360,10 +356,8 @@ class NetworkEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        policies = await self._api_client.run_sync(
-            self._api_client.dashboard.networks.getNetworkGroupPolicies,
-            networkId=network_id,
-        )
+        api = self._api_client.dashboard.networks
+        policies = await api.getNetworkGroupPolicies(networkId=network_id)
         validated = validate_response(policies)
         if not isinstance(validated, list):
             _LOGGER.warning("get_network_group_policies did not return a list.")

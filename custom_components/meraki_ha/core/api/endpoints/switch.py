@@ -52,10 +52,8 @@ class SwitchEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        statuses = await self._api_client.run_sync(
-            self._api_client.dashboard.switch.getDeviceSwitchPortsStatuses,
-            serial=serial,
-        )
+        api = self._api_client.dashboard.switch
+        statuses = await api.getDeviceSwitchPortsStatuses(serial=serial)
         validated = validate_response(statuses)
         if not isinstance(validated, list):
             _LOGGER.warning("get_device_switch_ports_statuses did not return a list.")
@@ -79,9 +77,8 @@ class SwitchEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        ports = await self._api_client.run_sync(
-            self._api_client.dashboard.switch.getDeviceSwitchPorts, serial=serial
-        )
+        api = self._api_client.dashboard.switch
+        ports = await api.getDeviceSwitchPorts(serial=serial)
         validated = validate_response(ports)
         if not isinstance(validated, list):
             _LOGGER.warning("get_switch_ports did not return a list.")

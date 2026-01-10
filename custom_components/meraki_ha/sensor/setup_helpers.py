@@ -17,7 +17,7 @@ from ..sensor_registry import (
     get_sensors_for_device_type,
 )
 from ..types import MerakiVlan
-from .client_tracker import ClientTrackerDeviceSensor, MerakiClientSensor
+from .client_tracker import ClientTrackerDeviceSensor
 from .device.appliance_port import MerakiAppliancePortSensor
 from .device.appliance_uplink import MerakiApplianceUplinkSensor
 from .device.rtsp_url import MerakiRtspUrlSensor
@@ -132,21 +132,21 @@ def _setup_client_tracker_sensors(
     config_entry: ConfigEntry,
     coordinator: MerakiDataCoordinator,
 ) -> list[Entity]:
-    """Set up client tracker sensors."""
+    """Set up client tracker count sensor.
+
+    Note: Individual client tracking is now handled by the device_tracker
+    platform using proper ScannerEntity implementation. This function only
+    creates the client count sensor.
+    """
     if not config_entry.options.get(CONF_ENABLE_DEVICE_TRACKER, True):
         return []
 
     entities: list[Entity] = []
     clients = coordinator.data.get("clients", [])
     if clients:
-        # Add the main device sensor for the tracker
+        # Add the main device sensor for tracking total client count
         entities.append(ClientTrackerDeviceSensor(coordinator, config_entry))
-        # Add a sensor for each client
-        for client_data in clients:
-            if "mac" in client_data:
-                entities.append(
-                    MerakiClientSensor(coordinator, config_entry, client_data)
-                )
+        # Individual client tracking is now in device_tracker.py
     return entities
 
 

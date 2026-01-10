@@ -58,8 +58,8 @@ class TestMerakiAPIClient:
     @pytest.mark.asyncio
     async def test_async_setup(self, api_client: MerakiAPIClient) -> None:
         """Test async setup creates dashboard API."""
-        with patch("meraki.DashboardAPI") as mock_dashboard:
-            mock_dashboard.return_value = MagicMock()
+        with patch("meraki.aio.AsyncDashboardAPI") as mock_dashboard:
+            mock_dashboard.return_value.__aenter__.return_value = mock_dashboard
             await api_client.async_setup()
 
             assert api_client.dashboard is not None
@@ -73,16 +73,7 @@ class TestMerakiAPIClient:
                 wait_on_rate_limit=True,
                 nginx_429_retry_wait_time=2,
             )
-
-    @pytest.mark.asyncio
-    async def test_run_sync(self, api_client: MerakiAPIClient) -> None:
-        """Test run_sync executes function in executor."""
-
-        def sync_func(a: int, b: int) -> int:
-            return a + b
-
-        result = await api_client.run_sync(sync_func, 1, 2)
-        assert result == 3
+            await api_client.async_close()
 
     @pytest.mark.asyncio
     async def test_run_with_semaphore(self, api_client: MerakiAPIClient) -> None:
@@ -552,7 +543,7 @@ class TestMerakiAPIClient:
     async def test_async_reboot_device(self, api_client: MerakiAPIClient) -> None:
         """Test async_reboot_device delegates to appliance endpoint."""
         mock_reboot = AsyncMock(return_value={"success": True})
-        with patch.object(api_client.appliance, "reboot_device", new=mock_reboot):
+        with patch.object(api_client.devices, "reboot_device", new=mock_reboot):
             result = await api_client.async_reboot_device("ABC-123")
 
         assert result == {"success": True}

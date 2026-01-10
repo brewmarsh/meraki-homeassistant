@@ -12,7 +12,7 @@ def mock_client():
     """Mock the Meraki API client."""
     client = MagicMock()
     client.dashboard = MagicMock()
-    client.run_sync = AsyncMock()
+    client.dashboard.networks.getNetworkGroupPolicies = AsyncMock()
     return client
 
 
@@ -25,11 +25,13 @@ def network(mock_client):
 async def test_get_group_policies(network, mock_client):
     """Test get_group_policies."""
     mock_data = [{"groupPolicyId": "gp1"}]
-    mock_client.run_sync.return_value = mock_data
+    mock_client.dashboard.networks.getNetworkGroupPolicies = AsyncMock(
+        return_value=mock_data
+    )
 
     result = await network.get_group_policies("net1")
 
     assert result == mock_data
-    mock_client.run_sync.assert_called_once()
-    args, kwargs = mock_client.run_sync.call_args
-    assert kwargs["networkId"] == "net1"
+    mock_client.dashboard.networks.getNetworkGroupPolicies.assert_called_once_with(
+        networkId="net1"
+    )

@@ -42,8 +42,8 @@ class CellularEndpoint:
         if self._api_client.dashboard is None:
             return []
         try:
-            statuses = await self._api_client.run_sync(
-                self._api_client.dashboard.cellularGateway.getOrganizationCellularGatewayUplinkStatuses,
+            api = self._api_client.dashboard.cellularGateway
+            statuses = await api.getOrganizationCellularGatewayUplinkStatuses(
                 organizationId=self._api_client.organization_id,
                 total_pages="all",
             )

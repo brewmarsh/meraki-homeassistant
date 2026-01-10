@@ -1,4 +1,4 @@
-"""Meraki API endpoints for wireless devices.."""
+"""Meraki API endpoints for wireless devices."""
 
 import logging
 from typing import TYPE_CHECKING, Any
@@ -40,10 +40,8 @@ class WirelessEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        ssids = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.getNetworkWirelessSsids,
-            networkId=network_id,
-        )
+        api = self._api_client.dashboard.wireless
+        ssids = await api.getNetworkWirelessSsids(networkId=network_id)
         validated = validate_response(ssids)
         if not isinstance(validated, list):
             _LOGGER.warning("get_network_ssids did not return a list")
@@ -67,10 +65,8 @@ class WirelessEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        settings = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.getDeviceWirelessRadioSettings,
-            serial=serial,
-        )
+        api = self._api_client.dashboard.wireless
+        settings = await api.getDeviceWirelessRadioSettings(serial=serial)
         validated = validate_response(settings)
         if not isinstance(validated, dict):
             _LOGGER.warning("get_wireless_settings did not return a dict")
@@ -104,8 +100,8 @@ class WirelessEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        psk = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk,
+        api = self._api_client.dashboard.wireless
+        psk = await api.createNetworkWirelessSsidIdentityPsk(
             network_id,
             number,
             name,
@@ -142,11 +138,8 @@ class WirelessEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        ssid = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.getNetworkWirelessSsid,
-            networkId=network_id,
-            number=number,
-        )
+        api = self._api_client.dashboard.wireless
+        ssid = await api.getNetworkWirelessSsid(networkId=network_id, number=number)
         validated = validate_response(ssid)
         if not isinstance(validated, dict):
             _LOGGER.warning("get_network_wireless_ssid did not return a dict")
@@ -169,10 +162,8 @@ class WirelessEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        settings = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.getNetworkWirelessSettings,
-            networkId=network_id,
-        )
+        api = self._api_client.dashboard.wireless
+        settings = await api.getNetworkWirelessSettings(networkId=network_id)
         validated = validate_response(settings)
         if not isinstance(validated, dict):
             _LOGGER.warning("get_network_wireless_settings did not return a dict")
@@ -197,8 +188,8 @@ class WirelessEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        settings = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.updateNetworkWirelessSettings,
+        api = self._api_client.dashboard.wireless
+        settings = await api.updateNetworkWirelessSettings(
             networkId=network_id,
             **kwargs,
         )
@@ -231,8 +222,8 @@ class WirelessEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        ssid = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.updateNetworkWirelessSsid,
+        api = self._api_client.dashboard.wireless
+        ssid = await api.updateNetworkWirelessSsid(
             networkId=network_id,
             number=number,
             **kwargs,
@@ -263,10 +254,8 @@ class WirelessEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        profiles = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.getNetworkWirelessRfProfiles,
-            networkId=network_id,
-        )
+        api = self._api_client.dashboard.wireless
+        profiles = await api.getNetworkWirelessRfProfiles(networkId=network_id)
         validated = validate_response(profiles)
         if not isinstance(validated, list):
             _LOGGER.warning("get_network_wireless_rf_profiles did not return a list")
@@ -295,11 +284,9 @@ class WirelessEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        # Method name includes "Firewall" in the path
-        wireless = self._api_client.dashboard.wireless
+        api = self._api_client.dashboard.wireless
         try:
-            rules = await self._api_client.run_sync(
-                wireless.getNetworkWirelessSsidFirewallL7FirewallRules,
+            rules = await api.getNetworkWirelessSsidFirewallL7FirewallRules(
                 networkId=network_id,
                 number=number,
             )
@@ -360,8 +347,8 @@ class WirelessEndpoints:
             {k: v if k != "passphrase" else "***" for k, v in kwargs.items()},
         )
 
-        psk = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk,
+        api = self._api_client.dashboard.wireless
+        psk = await api.createNetworkWirelessSsidIdentityPsk(
             networkId=network_id,
             number=number,
             **kwargs,
@@ -391,8 +378,8 @@ class WirelessEndpoints:
         """
         if self._api_client.dashboard is None:
             return
-        await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.deleteNetworkWirelessSsidIdentityPsk,
+        api = self._api_client.dashboard.wireless
+        await api.deleteNetworkWirelessSsidIdentityPsk(
             networkId=network_id,
             number=number,
             identityPskId=identity_psk_id,
@@ -421,8 +408,8 @@ class WirelessEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        rules = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.updateNetworkWirelessSsidFirewallL7FirewallRules,
+        api = self._api_client.dashboard.wireless
+        rules = await api.updateNetworkWirelessSsidFirewallL7FirewallRules(
             networkId=network_id,
             number=number,
             **kwargs,

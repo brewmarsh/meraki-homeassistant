@@ -53,16 +53,25 @@ def resolve_device_info(
                 manufacturer="Cisco Meraki",
             )
 
-    # Handle client devices, which are linked to a physical device
+    # Handle client devices, which may be linked to a physical device
     client_mac = entity_data.get("mac")
     parent_serial = entity_data.get("recentDeviceSerial")
-    if client_mac and parent_serial:
+    if client_mac:
+        # Use client_ prefix to prevent collisions with other entity types
+        client_name = str(entity_data.get("description") or client_mac)
+        client_manufacturer = str(entity_data.get("manufacturer") or "Unknown")
+        # Link to parent device if available
+        if parent_serial:
+            return DeviceInfo(
+                identifiers={(DOMAIN, f"client_{client_mac}")},
+                name=client_name,
+                manufacturer=client_manufacturer,
+                via_device=(DOMAIN, parent_serial),
+            )
         return DeviceInfo(
-            # Use client_ prefix to prevent collisions with other entity types
             identifiers={(DOMAIN, f"client_{client_mac}")},
-            name=str(entity_data.get("description") or client_mac),
-            manufacturer=str(entity_data.get("manufacturer") or "Unknown"),
-            via_device=(DOMAIN, parent_serial),
+            name=client_name,
+            manufacturer=client_manufacturer,
         )
 
     # Handle network devices
