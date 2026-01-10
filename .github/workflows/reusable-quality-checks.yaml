@@ -45,7 +45,7 @@ jobs:
         run: bandit -r custom_components/meraki_ha/ -c .bandit.yaml
 
       - name: Run pip-audit
-        run: pip-audit --ignore-vuln PYSEC-2020-49 --ignore-vuln PYSEC-2022-42969 --ignore-vuln GHSA-g7vv-2v7x-gj9p
+        run: pip-audit --local-suppressions .pip-audit.json
 
       - name: Run tests with coverage
         run: pytest --cov=custom_components.meraki_ha --cov-report=xml tests/

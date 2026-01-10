@@ -1,0 +1,15 @@
+{
+  "ignore": [
+    { "id": "GHSA-6mq8-rvhq-8wgg", "reason": "HA Core 2025.11 base dependency" },
+    { "id": "GHSA-69f9-5gxw-wvc2", "reason": "HA Core 2025.11 base dependency" },
+    { "id": "GHSA-6jhg-hg63-jvvf", "reason": "HA Core 2025.11 base dependency" },
+    { "id": "GHSA-g84x-mcqj-x9qq", "reason": "HA Core 2025.11 base dependency" },
+    { "id": "GHSA-fh55-r93g-j68g", "reason": "HA Core 2025.11 base dependency" },
+    { "id": "GHSA-54jq-c3m8-4m76", "reason": "HA Core 2025.11 base dependency" },
+    { "id": "GHSA-jj3x-wxrx-4x23", "reason": "HA Core 2025.11 base dependency" },
+    { "id": "GHSA-mqqc-3gqh-h2x8", "reason": "HA Core 2025.11 base dependency" },
+    { "id": "PYSEC-2020-49", "reason": "Legacy dependency ignore" },
+    { "id": "PYSEC-2022-42969", "reason": "Legacy dependency ignore" },
+    { "id": "GHSA-g7vv-2v7x-gj9p", "reason": "Legacy dependency ignore" }
+  ]
+}
