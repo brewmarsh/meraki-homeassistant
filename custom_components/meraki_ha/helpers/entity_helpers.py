@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
+<<<<<<< HEAD
+from ..coordinator import MerakiDataUpdateCoordinator
+=======
 from ..meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 
 
 def format_entity_name(
@@ -32,7 +36,11 @@ def format_entity_name(
 
 
 def get_device_from_coordinator(
+<<<<<<< HEAD
+    coordinator: MerakiDataUpdateCoordinator,
+=======
     coordinator: MerakiDataCoordinator,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
     serial: str,
 ) -> dict[str, Any] | None:
     """

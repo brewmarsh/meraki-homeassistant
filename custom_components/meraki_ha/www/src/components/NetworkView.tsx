@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+<<<<<<< HEAD
+import DeviceView from './DeviceView';
+=======
 import DeviceTable from './DeviceTable';
 import SSIDView from './SSIDView';
 
@@ -9,12 +12,16 @@ interface SSID {
   enabled: boolean;
   networkId: string;
 }
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 
 interface Network {
   id: string;
   name: string;
+<<<<<<< HEAD
+=======
   ssids: SSID[];
   is_enabled: boolean;
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 }
 
 interface Device {
@@ -33,11 +40,17 @@ interface NetworkViewProps {
     networks: Network[];
     devices: Device[];
   };
+<<<<<<< HEAD
+}
+
+const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
+=======
   onToggle: (networkId: string, enabled: boolean) => void;
   setActiveView: (view: { view: string; deviceId?: string }) => void;
 }
 
 const NetworkView: React.FC<NetworkViewProps> = ({ data, onToggle, setActiveView }) => {
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
   const [openNetworkId, setOpenNetworkId] = useState<string | null>(null);
 
   const handleNetworkClick = (networkId: string) => {
@@ -54,16 +67,31 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, onToggle, setActiveView
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {networks.map((network) => {
         const isOpen = openNetworkId === network.id;
+<<<<<<< HEAD
+=======
         const enabledSsids = network.ssids
           ? network.ssids.filter((s) => s.enabled).length
           : 0;
         const totalSsids = network.ssids ? network.ssids.length : 0;
 
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
         return (
           <ha-card key={network.id}>
             <div
               className="card-header"
               onClick={() => handleNetworkClick(network.id)}
+<<<<<<< HEAD
+              style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '16px' }}
+            >
+              <span>[Network] {network.name}</span>
+              <ha-icon style={{ marginLeft: '8px' }} icon={isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}></ha-icon>
+            </div>
+            {isOpen && (
+              <div className="card-content">
+                <DeviceView
+                  devices={devices.filter((d) => d.networkId === network.id)}
+                />
+=======
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -112,6 +140,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, onToggle, setActiveView
                     <SSIDView ssids={network.ssids} />
                   </>
                 )}
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
               </div>
             )}
           </ha-card>

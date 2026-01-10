@@ -1,10 +1,22 @@
 name: Deploy Latest Code to Local Folder on Linux Runner
 
+<<<<<<< HEAD
+=======
 # This workflow will run on 'push' events to the specified branches.
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 on:
   push:
     branches:
       - main
+<<<<<<< HEAD
+      - beta
+
+jobs:
+  deploy-to-linux-folder:
+    runs-on: self-hosted
+
+    env:
+=======
       - beta # Trigger deployment on pushes/merges to the beta branch
 
 jobs:
@@ -15,24 +27,39 @@ jobs:
     # Define environment variables
     env:
       # This is the path inside your runner container, mapping to the Host OS config.
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
       DESTINATION_PATH: '/ha_config/custom_components/meraki_ha'
 
     steps:
       - name: Checkout repository
+<<<<<<< HEAD
+        uses: actions/checkout@v5
+
+      - name: Copy files to destination folder (rsync)
+=======
         # Checks out your repository code into $GITHUB_WORKSPACE.
         uses: actions/checkout@v5
 
       - name: Copy files to destination folder (rsync)
         # Use 'bash' and 'sudo rsync' to bypass symlink and permission issues.
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
         shell: bash
         env:
           DEPLOY_PATH: ${{ env.DESTINATION_PATH }}
         run: |
+<<<<<<< HEAD
+=======
           # The source directory containing ONLY the component files (with trailing slash)
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
           SourceComponentDir="${GITHUB_WORKSPACE}/custom_components/meraki_ha/"
           DestinationPath="${DEPLOY_PATH}"
 
           echo "Starting deployment..."
+<<<<<<< HEAD
+          sudo mkdir -p "${DestinationPath}"
+
+          # Preserving your specific rsync flags and excludes
+=======
           echo "Source path: ${SourceComponentDir}"
           echo "Destination path: ${DestinationPath}"
 
@@ -48,6 +75,7 @@ jobs:
           #   --delete: removes files from destination that aren't in source (ensures clean state)
 
           # CRITICAL: Exclude development files/symlinks to avoid 'Operation not supported' errors.
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
           sudo rsync -rltpD --inplace --delete \
             --exclude '.git' \
             --exclude 'node_modules' \
@@ -58,16 +86,77 @@ jobs:
             "${SourceComponentDir}" "${DestinationPath}"
 
           echo "Successfully copied latest code to ${DestinationPath}."
+<<<<<<< HEAD
+=======
           echo "Deployment complete."
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 
       - name: Restart Home Assistant
         shell: bash
         env:
           HA_URL: ${{ secrets.HA_URL }}
           HA_TOKEN: ${{ secrets.HA_TOKEN }}
+<<<<<<< HEAD
+          # REPLACE with your actual phone entity name from HA
+          NOTIFY_SERVICE: 'mobile_app_your_phone_name'
+        run: |
+          echo "Attempting to restart Home Assistant..."
+
+          # 1. SANITIZE TOKEN
+          CLEAN_TOKEN=$(echo "$HA_TOKEN" | tr -d '\r\n ')
+
+          # 2. Check Configuration
+          echo "Checking Home Assistant configuration..."
+          RAW_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+               -H "Authorization: Bearer $CLEAN_TOKEN" \
+               -H "Content-Type: application/json" \
+               "$HA_URL/api/config/core/check_config")
+
+          HTTP_STATUS=$(echo "$RAW_RESPONSE" | tail -n1)
+          BODY=$(echo "$RAW_RESPONSE" | sed '$d')
+
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "FAILED: Home Assistant API returned HTTP $HTTP_STATUS"
+            echo "Response details: $BODY"
+            exit 1
+          fi
+
+          echo "Config check passed. Triggering restart..."
+
+          # 3. Trigger Restart (Hardened for 2026.1 API standards)
+          # Using --data-raw '{}' ensures the payload is a valid empty JSON dictionary.
+          RESTART_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+               -H "Authorization: Bearer $CLEAN_TOKEN" \
+               -H "Content-Type: application/json" \
+               --data-raw '{}' \
+               "$HA_URL/api/services/home_assistant/restart")
+
+          RESTART_STATUS=$(echo "$RESTART_RESPONSE" | tail -n1)
+
+          if [ "$RESTART_STATUS" -ne 200 ]; then
+            echo "FAILED to restart! HTTP $RESTART_STATUS"
+            echo "Response: $(echo "$RESTART_RESPONSE" | sed '$d')"
+
+            # Discovery Debug: Confirms we are hitting the correct API base
+            echo "Debug: Testing API discovery endpoint..."
+            curl -s -H "Authorization: Bearer $CLEAN_TOKEN" "$HA_URL/api/" | jq .
+            exit 1
+          fi
+
+          echo "Home Assistant restart command sent. Sending notification..."
+
+          # 4. Send Success Notification
+          curl -s -X POST -H "Authorization: Bearer $CLEAN_TOKEN" \
+               -H "Content-Type: application/json" \
+               -d "{\"title\": \"Meraki HA Deployed\", \"message\": \"Configuration check passed and restart initiated successfully.\"}" \
+               "$HA_URL/api/services/notify/$NOTIFY_SERVICE"
+
+          echo "Waiting 60s for reboot..."
+          sleep 60
+=======
         run: |
           echo "Attempting to restart Home Assistant..."
 
@@ -154,3 +243,4 @@ jobs:
           echo "Home Assistant restart command sent. Waiting for it to come back online..."
           # Add a sleep to allow Home Assistant to restart
           sleep 60 # Wait for 60 seconds. Adjust as needed.
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)

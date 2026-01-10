@@ -116,7 +116,11 @@ async def async_register_webhook(
 
 async def async_unregister_webhook(
     hass: HomeAssistant,
+<<<<<<< HEAD
+    webhook_id: str,
+=======
     webhook_url: str,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
     api_client: MerakiAPIClient,
 ) -> None:
     """
@@ -125,11 +129,19 @@ async def async_unregister_webhook(
     Args:
     ----
         hass: The Home Assistant instance.
+<<<<<<< HEAD
+        webhook_id: The httpServerId from Meraki.
+        api_client: The Meraki API client.
+
+    """
+    await api_client.unregister_webhook(webhook_id)
+=======
         webhook_url: The URL of the webhook to unregister.
         api_client: The Meraki API client.
 
     """
     await api_client.unregister_webhook(webhook_url)
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 
 
 async def async_handle_webhook(

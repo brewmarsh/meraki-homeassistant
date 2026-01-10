@@ -24,15 +24,22 @@ def auto_enable_custom_integrations(
 
 @pytest.fixture
 def mock_coordinator() -> MagicMock:
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+=======
     """Fixture for a mocked MerakiDataCoordinator."""
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     coordinator.data = MOCK_ALL_DATA
     coordinator.async_request_refresh = AsyncMock()
     coordinator.async_write_ha_state = MagicMock()
+<<<<<<< HEAD
+=======
     coordinator.is_update_pending = MagicMock(return_value=False)
     coordinator.register_update_pending = MagicMock()
     coordinator.async_request_refresh = AsyncMock()
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
     return coordinator
 
 
@@ -42,6 +49,8 @@ def mock_config_entry() -> MagicMock:
     entry = MagicMock()
     entry.options = {}
     return entry
+<<<<<<< HEAD
+=======
 
 
 @pytest.fixture(autouse=True)
@@ -62,3 +71,4 @@ def prevent_socket_and_camera_load() -> Generator[None, None, None]:
         patch("turbojpeg.TurboJPEG", MagicMock()),
     ):
         yield
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)

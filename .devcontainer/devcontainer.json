@@ -1,4 +1,28 @@
 {
+<<<<<<< HEAD
+  "name": "Meraki HA Dev Container",
+  "image": "mcr.microsoft.com/devcontainers/python:3.13-bookworm",
+  "postCreateCommand": "pip install --upgrade pip && pip install -r requirements_dev.txt",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "kevinrose.vsc-python-test-adapter",
+        "github.vscode-pull-request-github"
+      ],
+      "settings": {
+        "python.testing.pytestArgs": ["tests"],
+        "python.testing.unittestEnabled": false,
+        "python.testing.pytestEnabled": true,
+        "python.analysis.extraPaths": ["custom_components"]
+      }
+    }
+  },
+  "remoteUser": "vscode"
+}
+=======
 	"name": "Meraki HA Dev Container",
 	"image": "ghcr.io/home-assistant/devcontainer:stable",
 	"postCreateCommand": "pip install -r requirements_dev.txt",
@@ -12,3 +36,4 @@
 		}
 	}
 }
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)

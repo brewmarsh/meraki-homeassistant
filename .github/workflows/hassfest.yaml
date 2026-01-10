@@ -1,3 +1,17 @@
+<<<<<<< HEAD
+name: Hassfest
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+jobs:
+  hassfest:
+    name: "Hassfest"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v5"
+=======
 name: Validate with hassfest
 on:
   push:
@@ -9,4 +23,5 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v3"
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
       - uses: "home-assistant/actions/hassfest@master"

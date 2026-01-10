@@ -43,6 +43,9 @@ class MerakiNetworkError(MerakiError):
 class MerakiInformationalError(MerakiError):
     """Error to indicate an informational/non-critical problem."""
 
+<<<<<<< HEAD
+    pass
+=======
 
 class MerakiTrafficAnalysisError(MerakiInformationalError):
     """Error to indicate that traffic analysis is not enabled."""
@@ -50,3 +53,4 @@ class MerakiTrafficAnalysisError(MerakiInformationalError):
 
 class MerakiVlansDisabledError(MerakiInformationalError):
     """Error to indicate that VLANs are not enabled for a network."""
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)

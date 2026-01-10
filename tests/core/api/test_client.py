@@ -4,8 +4,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+<<<<<<< HEAD
+from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+from custom_components.meraki_ha.core.api.client import MerakiAPIClient
+from custom_components.meraki_ha.core.errors import MerakiInformationalError
+=======
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 from tests.const import MOCK_DEVICE, MOCK_NETWORK
 
 
@@ -25,7 +31,11 @@ def hass():
 @pytest.fixture
 def coordinator():
     """Fixture for a mocked coordinator."""
+<<<<<<< HEAD
+    mock = MagicMock(spec=MerakiDataUpdateCoordinator)
+=======
     mock = MagicMock(spec=MerakiDataCoordinator)
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
     mock.is_vlan_check_due.return_value = True
     mock.is_traffic_check_due.return_value = True
     return mock
@@ -34,7 +44,13 @@ def coordinator():
 @pytest.fixture
 def api_client(hass, mock_dashboard, coordinator):
     """Fixture for a MerakiAPIClient instance."""
+<<<<<<< HEAD
+    return MerakiAPIClient(
+        hass=hass, api_key="test-key", org_id="test-org", coordinator=coordinator
+    )
+=======
     return MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 
 
 @pytest.mark.asyncio
@@ -176,6 +192,45 @@ def test_build_detail_tasks_for_appliance_device(api_client):
     assert f"vlans_{network_with_appliance['id']}" in tasks
 
 
+<<<<<<< HEAD
+def test_process_detailed_data_handles_errors(api_client):
+    """Test that _process_detailed_data handles disabled features."""
+    # Arrange
+    detail_data = {
+        f"traffic_{MOCK_NETWORK['id']}": MerakiInformationalError(
+            "Traffic analysis is not enabled"
+        ),
+        f"vlans_{MOCK_NETWORK['id']}": MerakiInformationalError(
+            "VLANs are not enabled"
+        ),
+    }
+
+    # Act
+    processed_data = api_client._process_detailed_data(
+        detail_data, [MOCK_NETWORK], [], previous_data={}
+    )
+
+    # Assert
+    assert (
+        processed_data["appliance_traffic"][MOCK_NETWORK["id"]]["error"] == "disabled"
+    )
+    assert processed_data["vlans"][MOCK_NETWORK["id"]] == []
+    api_client.coordinator.add_network_status_message.assert_any_call(
+        MOCK_NETWORK["id"], "Traffic Analysis is not enabled for this network."
+    )
+    api_client.coordinator.mark_traffic_check_done.assert_called_once_with(
+        MOCK_NETWORK["id"]
+    )
+    api_client.coordinator.add_network_status_message.assert_any_call(
+        MOCK_NETWORK["id"], "VLANs are not enabled for this network."
+    )
+    api_client.coordinator.mark_vlan_check_done.assert_called_once_with(
+        MOCK_NETWORK["id"]
+    )
+
+
+=======
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 @pytest.mark.skip(reason="TODO: Fix this test")
 def test_process_detailed_data_merges_device_info(api_client):
     """Test that _process_detailed_data merges details into device objects."""

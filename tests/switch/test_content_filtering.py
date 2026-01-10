@@ -11,7 +11,11 @@ from custom_components.meraki_ha.switch.content_filtering import (
 
 @pytest.fixture
 def mock_coordinator_with_content_filtering(mock_coordinator: MagicMock) -> MagicMock:
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataUpdateCoordinator with content filtering data."""
+=======
     """Fixture for a mocked MerakiDataCoordinator with content filtering data."""
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
     mock_coordinator.data = {
         "content_filtering": {
             "net_1": {

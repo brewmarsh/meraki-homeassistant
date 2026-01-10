@@ -4,11 +4,18 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+<<<<<<< HEAD
+from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+=======
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.core.api.endpoints.appliance import (
     ApplianceEndpoints,
 )
+<<<<<<< HEAD
+=======
 from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 from tests.const import MOCK_NETWORK
 
 
@@ -28,18 +35,32 @@ def hass():
 @pytest.fixture
 def coordinator():
     """Fixture for a mocked coordinator."""
+<<<<<<< HEAD
+    mock = MagicMock(spec=MerakiDataUpdateCoordinator)
+=======
     mock = MagicMock(spec=MerakiDataCoordinator)
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
     mock.is_vlan_check_due.return_value = True
     mock.is_traffic_check_due.return_value = True
     return mock
 
 
 @pytest.fixture
+<<<<<<< HEAD
+def api_client(hass, mock_dashboard, coordinator):
+    """Fixture for a MerakiAPIClient instance."""
+    with patch("meraki.DashboardAPI", return_value=mock_dashboard):
+        client = MerakiAPIClient(
+            hass=hass, api_key="test-key", org_id="test-org", coordinator=coordinator
+        )
+        yield client
+=======
 def api_client(hass, mock_dashboard):
     """Fixture for a MerakiAPIClient instance."""
     client = MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
     client.dashboard = mock_dashboard
     yield client
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 
 
 @pytest.fixture

@@ -10,7 +10,11 @@ from tests.const import MOCK_NETWORK
 
 @pytest.fixture
 def mock_coordinator_with_network(mock_coordinator: MagicMock) -> MagicMock:
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataUpdateCoordinator with a network."""
+=======
     """Fixture for a mocked MerakiDataCoordinator with a network."""
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
     mock_coordinator.data = {"networks": [MOCK_NETWORK]}
     return mock_coordinator
 

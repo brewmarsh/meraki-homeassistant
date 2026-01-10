@@ -10,7 +10,11 @@ from custom_components.meraki_ha.switch.mt40_power_outlet import MerakiMt40Power
 
 @pytest.fixture
 def mock_coordinator_with_mt40_data(mock_coordinator: MagicMock) -> MagicMock:
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataUpdateCoordinator with MT40 data."""
+=======
     """Fixture for a mocked MerakiDataCoordinator with MT40 data."""
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
     mock_coordinator.data = {
         "devices": [
             {

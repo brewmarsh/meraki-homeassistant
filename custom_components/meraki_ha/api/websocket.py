@@ -43,7 +43,11 @@ def ws_subscribe_meraki_data(
     def async_send_update() -> None:
         """Send update to client."""
         connection.send_message(
+<<<<<<< HEAD
+            websocket_api.event_message(msg["id"], coordinator.data)
+=======
             websocket_api.event_message(msg["id"], {"data": coordinator.data})
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
         )
 
     # Send initial data

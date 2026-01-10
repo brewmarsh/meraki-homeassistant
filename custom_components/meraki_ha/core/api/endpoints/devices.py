@@ -30,6 +30,10 @@ class DevicesEndpoints:
 
         """
         self._api_client = api_client
+<<<<<<< HEAD
+        self._dashboard = api_client.dashboard
+=======
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
 
     @handle_meraki_errors
     async def get_device_clients(self, serial: str) -> list[dict[str, Any]]:
@@ -45,10 +49,15 @@ class DevicesEndpoints:
             A list of clients.
 
         """
+<<<<<<< HEAD
+        clients = await self._api_client.run_sync(
+            self._dashboard.devices.getDeviceClients,
+=======
         if self._api_client.dashboard is None:
             return []
         clients = await self._api_client.run_sync(
             self._api_client.dashboard.devices.getDeviceClients,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
             serial,
             timespan=300,  # 5 minutes to get current clients
         )
@@ -71,10 +80,15 @@ class DevicesEndpoints:
             The device details.
 
         """
+<<<<<<< HEAD
+        device = await self._api_client.run_sync(
+            self._dashboard.devices.getDevice,
+=======
         if self._api_client.dashboard is None:
             return {}
         device = await self._api_client.run_sync(
             self._api_client.dashboard.devices.getDevice,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
             serial=serial,
         )
         validated = validate_response(device)
@@ -98,10 +112,15 @@ class DevicesEndpoints:
             The updated device.
 
         """
+<<<<<<< HEAD
+        device = await self._api_client.run_sync(
+            self._dashboard.devices.updateDevice,
+=======
         if self._api_client.dashboard is None:
             return {}
         device = await self._api_client.run_sync(
             self._api_client.dashboard.devices.updateDevice,
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
             serial=serial,
             **kwargs,
         )

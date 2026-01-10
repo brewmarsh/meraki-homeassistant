@@ -44,8 +44,11 @@ class SensorEndpoints:
 
         """
         _LOGGER.debug("Sending command '%s' to sensor %s", operation, serial)
+<<<<<<< HEAD
+=======
         if self._client.dashboard is None:
             return {}
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
         return await self._client.run_sync(
             self._client.dashboard.sensor.createDeviceSensorCommand,
             serial=serial,
@@ -64,8 +67,11 @@ class SensorEndpoints:
 
         """
         _LOGGER.debug("Getting latest sensor readings for organization")
+<<<<<<< HEAD
+=======
         if self._client.dashboard is None:
             return []
+>>>>>>> d5ccb99 (Merge pull request #604 from brewmarsh/fix/resolve-jq-parse-error-in-deploy-local-workflow-2298884834713058677)
         return await self._client.run_sync(
             self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
             organizationId=self._client.organization_id,
