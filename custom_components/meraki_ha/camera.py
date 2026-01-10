@@ -127,6 +127,28 @@ class MerakiCamera(CoordinatorEntity, Camera):
             return self.device_data.get("rtsp_url")
         return None
 
+    async def async_handle_async_webrtc_offer(
+        self, offer_sdp: str, peer_id: str
+    ) -> str | None:
+        """Handle a WebRTC offer and return an answer."""
+        if not self.hass.components.get("stream"):
+            _LOGGER.error("Stream component is not enabled")
+            return None
+
+        source = await self.stream_source()
+        if not source:
+            _LOGGER.error("Camera has no stream source")
+            return None
+
+        try:
+            stream = self.hass.components.stream
+            return await stream.async_handle_webrtc_offer(
+                self.entity_id, offer_sdp, peer_id, source
+            )
+        except Exception:
+            _LOGGER.exception("Error handling WebRTC offer")
+            return None
+
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
