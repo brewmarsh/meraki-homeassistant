@@ -113,8 +113,8 @@ def _register_device_type_groups(
     networks = coordinator.data.get("networks", [])
     devices = coordinator.data.get("devices", [])
     clients = coordinator.data.get("clients", [])
-    vlans_by_network = coordinator.data.get("vlans", {})
-    ssids_by_network = coordinator.data.get("ssids", {})
+    vlans_by_network = coordinator.data.get("vlans", {})  # Dict: {network_id: [vlans]}
+    ssids_list = coordinator.data.get("ssids", [])  # List of all SSIDs (flat)
 
     # Group devices by network and product type
     network_product_types: dict[str, set[str]] = {}
@@ -148,9 +148,10 @@ def _register_device_type_groups(
         if vlans and isinstance(vlans, list) and len(vlans) > 0:
             networks_with_vlans.add(network_id)
 
-    # Track networks that have SSIDs
-    for network_id, ssids in ssids_by_network.items():
-        if ssids and isinstance(ssids, list) and len(ssids) > 0:
+    # Track networks that have SSIDs (ssids is a flat list with networkId field)
+    for ssid in ssids_list:
+        network_id = ssid.get("networkId")
+        if network_id:
             networks_with_ssids.add(network_id)
 
     # Register device type groups for each network
