@@ -18,7 +18,6 @@ import DeviceView from './components/DeviceView';
 import ClientsView from './components/ClientsView';
 import SSIDsListView from './components/SSIDsListView';
 import SSIDView from './components/SSIDView';
-import Settings from './components/Settings';
 import { useHaTheme } from './hooks/useHaTheme';
 import type { HomeAssistant, PanelInfo, RouteInfo } from './types/hass';
 
@@ -251,7 +250,6 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
     ssidNetworkId?: string;
     ssidNumber?: number;
   }>({ view: 'dashboard' });
-  const [showSettings, setShowSettings] = useState<boolean>(false);
   const [retryCount, setRetryCount] = useState<number>(0);
 
   // Apply HA theme variables to the panel
@@ -602,19 +600,13 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
     <div className="meraki-panel" style={themeStyle}>
       <Header
         version={data.version}
-        onSettingsClick={() => setShowSettings(true)}
+        onSettingsClick={() =>
+          hass?.showOptionsFlow(configEntryId || '', null, {
+            step_id: 'init',
+          })
+        }
       />
       {renderView()}
-
-      {/* Settings Modal */}
-      {showSettings && configEntryId && (
-        <Settings
-          hass={hass}
-          options={data}
-          configEntryId={configEntryId}
-          onClose={() => setShowSettings(false)}
-        />
-      )}
     </div>
   );
 };

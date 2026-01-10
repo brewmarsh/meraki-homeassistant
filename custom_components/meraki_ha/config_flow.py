@@ -25,7 +25,7 @@ from .const import (
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .options_flow import MerakiOptionsFlowHandler
-from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
+from .schemas import CONFIG_SCHEMA, SCHEMA_NETWORK_SELECTION
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -90,7 +90,9 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
                 options=self.options,
             )
 
-        return self.async_show_form(step_id="init", data_schema=OPTIONS_SCHEMA)
+        return self.async_show_form(
+            step_id="init", data_schema=SCHEMA_NETWORK_SELECTION
+        )
 
     @staticmethod
     @callback
@@ -126,7 +128,7 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
                 ]
 
         schema_with_defaults = self._populate_schema_defaults(
-            OPTIONS_SCHEMA, entry.options, network_options
+            SCHEMA_NETWORK_SELECTION, entry.options, network_options
         )
 
         return self.async_show_form(

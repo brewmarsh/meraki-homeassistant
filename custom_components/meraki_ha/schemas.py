@@ -61,8 +61,30 @@ CONFIG_SCHEMA = vol.Schema(
     }
 )
 
-# Step 1: Basic Settings
-OPTIONS_SCHEMA_BASIC = vol.Schema(
+# Section: Network Selection
+SCHEMA_NETWORK_SELECTION = vol.Schema(
+    {
+        vol.Optional(
+            CONF_ENABLED_NETWORKS, default=DEFAULT_ENABLED_NETWORKS
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[],
+                multiple=True,
+                custom_value=False,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Required(
+            CONF_ENABLE_DEVICE_TRACKER, default=True
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
+        ): selector.BooleanSelector(),
+    }
+)
+
+# Section: Polling & Refresh
+SCHEMA_POLLING = vol.Schema(
     {
         vol.Required(
             CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
@@ -119,27 +141,12 @@ OPTIONS_SCHEMA_BASIC = vol.Schema(
                 mode=selector.NumberSelectorMode.SLIDER,
             )
         ),
-        vol.Required(
-            CONF_ENABLE_DEVICE_TRACKER, default=True
-        ): selector.BooleanSelector(),
-        vol.Required(
-            CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
-        ): selector.BooleanSelector(),
-        vol.Optional(
-            CONF_ENABLED_NETWORKS, default=DEFAULT_ENABLED_NETWORKS
-        ): selector.SelectSelector(
-            selector.SelectSelectorConfig(
-                options=[],
-                multiple=True,
-                custom_value=False,
-                mode=selector.SelectSelectorMode.DROPDOWN,
-            )
-        ),
     }
 )
 
-# Step 2: Dashboard Settings
-OPTIONS_SCHEMA_DASHBOARD = vol.Schema(
+
+# Section: Display Preferences
+SCHEMA_DISPLAY_PREFERENCES = vol.Schema(
     {
         vol.Required(
             CONF_DASHBOARD_VIEW_MODE, default=DEFAULT_DASHBOARD_VIEW_MODE
@@ -205,8 +212,8 @@ OPTIONS_SCHEMA_DASHBOARD = vol.Schema(
     }
 )
 
-# Step 3: Camera Settings
-OPTIONS_SCHEMA_CAMERA = vol.Schema(
+# Section: Camera Settings
+SCHEMA_CAMERA = vol.Schema(
     {
         vol.Required(
             CONF_CAMERA_SNAPSHOT_INTERVAL, default=DEFAULT_CAMERA_SNAPSHOT_INTERVAL
@@ -255,10 +262,8 @@ MQTT_DESTINATION_SCHEMA = vol.Schema(
     }
 )
 
-# Step 4: MQTT Settings
-# Note: The MQTT relay destination management is now handled dynamically
-# in options_flow.py using a menu-based action selector, not this schema.
-OPTIONS_SCHEMA_MQTT = vol.Schema(
+# Section: MQTT Settings
+SCHEMA_MQTT = vol.Schema(
     {
         vol.Required(
             CONF_ENABLE_MQTT, default=DEFAULT_ENABLE_MQTT
@@ -318,15 +323,5 @@ MQTT_RELAY_DESTINATION_SCHEMA = vol.Schema(
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
         ),
-    }
-)
-
-# Combined schema for backwards compatibility
-OPTIONS_SCHEMA = vol.Schema(
-    {
-        **OPTIONS_SCHEMA_BASIC.schema,
-        **OPTIONS_SCHEMA_DASHBOARD.schema,
-        **OPTIONS_SCHEMA_CAMERA.schema,
-        **OPTIONS_SCHEMA_MQTT.schema,
     }
 )

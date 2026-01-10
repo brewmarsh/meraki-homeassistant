@@ -72,32 +72,52 @@
   "options": {
     "step": {
       "init": {
-        "title": "Meraki Options - Basic Settings",
-        "description": "Step 1 of 4: Configure basic integration settings.",
+        "title": "Meraki Integration Settings",
+        "description": "Select a category to configure:",
+        "menu_options": {
+          "network_selection": "🌐 Network Selection",
+          "polling": "📊 Polling & Refresh",
+          "camera": "📷 Camera Settings",
+          "mqtt": "📡 MQTT Configuration",
+          "display_preferences": "🎨 Display Preferences",
+          "notifications": "🔔 Notifications"
+        }
+      },
+      "network_selection": {
+        "title": "Network Selection",
+        "description": "Configure which networks are monitored by this integration.",
+        "data": {
+          "enabled_networks": "Enabled Networks",
+          "enable_device_tracker": "Enable Client Tracker",
+          "enable_vlan_management": "Enable VLAN Management"
+        },
+        "data_description": {
+          "enabled_networks": "Select which networks to monitor. Leave empty for all networks.",
+          "enable_device_tracker": "Enable tracking of clients connected to the network.",
+          "enable_vlan_management": "Enable VLAN management features."
+        }
+      },
+      "polling": {
+        "title": "Polling & Refresh Settings",
+        "description": "Configure how often the integration polls the Meraki API.",
         "data": {
           "scan_interval": "Device Status/Ports Polling Interval (seconds)",
           "network_scan_interval": "Network/Org Polling Interval (seconds)",
           "device_scan_interval": "Device Inventory Polling Interval (seconds)",
           "client_scan_interval": "Client Polling Interval (seconds)",
-          "ssid_scan_interval": "SSID Polling Interval (seconds)",
-          "enable_device_tracker": "Enable Client Tracker",
-          "enable_vlan_management": "Enable VLAN Management",
-          "enabled_networks": "Enabled Networks"
+          "ssid_scan_interval": "SSID Polling Interval (seconds)"
         },
         "data_description": {
           "scan_interval": "Polling interval for frequently changing data like device status and port statistics.",
           "network_scan_interval": "Polling interval for rarely changing data like network and organization structure.",
           "device_scan_interval": "Polling interval for infrequently changing data like device inventory.",
           "client_scan_interval": "Polling interval for very frequently changing data like client information.",
-          "ssid_scan_interval": "Polling interval for infrequently changing data like SSID configuration.",
-          "enable_device_tracker": "Enable tracking of clients connected to the network.",
-          "enable_vlan_management": "Enable VLAN management features.",
-          "enabled_networks": "Select which networks to monitor. Leave empty for all networks."
+          "ssid_scan_interval": "Polling interval for infrequently changing data like SSID configuration."
         }
       },
-      "dashboard": {
-        "title": "Meraki Options - Dashboard Settings",
-        "description": "Step 2 of 4: Configure dashboard display preferences.",
+      "display_preferences": {
+        "title": "Display Preferences",
+        "description": "Configure how the dashboard displays information.",
         "data": {
           "dashboard_view_mode": "Default Dashboard View",
           "dashboard_device_type_filter": "Default Device Type Filter",
@@ -111,9 +131,13 @@
           "temperature_unit": "Choose the unit for temperature readings from Meraki sensors (Celsius or Fahrenheit)."
         }
       },
+      "notifications": {
+        "title": "Notification Settings",
+        "description": "🚧 **Coming Soon**\n\n{message}\n\nThis feature will allow you to configure alert settings and webhook notifications for Meraki events."
+      },
       "camera": {
-        "title": "Meraki Options - Camera Settings",
-        "description": "Step 3 of 4: Configure camera-related settings.",
+        "title": "Camera Settings",
+        "description": "Configure camera-related settings.",
         "data": {
           "camera_snapshot_interval": "Camera Snapshot Refresh Interval (seconds)",
           "camera_link_integration": "Camera Link Integration"
@@ -124,8 +148,8 @@
         }
       },
       "mqtt": {
-        "title": "Meraki Options - MQTT Settings",
-        "description": "Step 4 of 4: Configure MQTT for MT sensor real-time updates.\n\n**Configured Relay Destinations ({destination_count}):** {relay_destinations}",
+        "title": "MQTT Configuration",
+        "description": "Configure MQTT for MT sensor real-time updates.\n\n**Configured Relay Destinations ({destination_count}):** {relay_destinations}",
         "data": {
           "enable_mqtt": "Enable MQTT for MT Sensors",
           "action": "MQTT Relay Management"

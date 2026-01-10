@@ -25,16 +25,15 @@ from .const import (
     MQTT_DEST_USERNAME,
 )
 from .schemas import (
-    OPTIONS_SCHEMA_BASIC,
-    OPTIONS_SCHEMA_CAMERA,
-    OPTIONS_SCHEMA_DASHBOARD,
+    SCHEMA_CAMERA,
+    SCHEMA_DISPLAY_PREFERENCES,
+    SCHEMA_NETWORK_SELECTION,
+    SCHEMA_POLLING,
 )
 
 
 class MerakiOptionsFlowHandler(OptionsFlow):
     """Handle an options flow for the Meraki integration."""
-
-    _destination_index_to_edit: int | None = None
 
     def __init__(self, config_entry: ConfigEntry) -> None:
         """
@@ -45,31 +44,41 @@ class MerakiOptionsFlowHandler(OptionsFlow):
             config_entry: The config entry.
 
         """
+        super().__init__()
+        self.config_entry = config_entry
         self.options = dict(config_entry.options)
+        self._destination_action: str | None = None
         self._editing_destination_index: int | None = None
-        self._destination_action: str | None = None  # Tracks edit/delete action
 
     async def async_step_init(
         self,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
-        """
-        Step 1: Basic Settings.
+        """Show the main menu."""
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=[
+                "network_selection",
+                "polling",
+                "camera",
+                "mqtt",
+                "display_preferences",
+                "notifications",
+            ],
+        )
 
-        Args:
-        ----
-            user_input: The user input.
-
-        Returns
-        -------
-            The flow result.
-
-        """
+    async def async_step_network_selection(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Handle network selection settings."""
         from .meraki_data_coordinator import MerakiDataCoordinator
 
         if user_input is not None:
             self.options.update(user_input)
-            return await self.async_step_dashboard()
+            return self.async_create_entry(
+                title=CONF_INTEGRATION_TITLE, data=self.options
+            )
 
         coordinator: MerakiDataCoordinator = self.hass.data[DOMAIN][
             self.config_entry.entry_id
@@ -82,44 +91,34 @@ class MerakiOptionsFlowHandler(OptionsFlow):
             ]
 
         schema_with_defaults = self._populate_schema_defaults(
-            OPTIONS_SCHEMA_BASIC,
+            SCHEMA_NETWORK_SELECTION,
             self.options,
             network_options,
         )
 
         return self.async_show_form(
-            step_id="init",
+            step_id="network_selection",
             data_schema=schema_with_defaults,
         )
 
-    async def async_step_dashboard(
+    async def async_step_polling(
         self,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
-        """
-        Step 2: Dashboard Settings.
-
-        Args:
-        ----
-            user_input: The user input.
-
-        Returns
-        -------
-            The flow result.
-
-        """
+        """Handle polling settings."""
         if user_input is not None:
             self.options.update(user_input)
-            return await self.async_step_camera()
+            return self.async_create_entry(
+                title=CONF_INTEGRATION_TITLE, data=self.options
+            )
 
         schema_with_defaults = self._populate_schema_defaults(
-            OPTIONS_SCHEMA_DASHBOARD,
+            SCHEMA_POLLING,
             self.options,
-            [],
         )
 
         return self.async_show_form(
-            step_id="dashboard",
+            step_id="polling",
             data_schema=schema_with_defaults,
         )
 
@@ -127,26 +126,16 @@ class MerakiOptionsFlowHandler(OptionsFlow):
         self,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
-        """
-        Step 3: Camera Settings.
-
-        Args:
-        ----
-            user_input: The user input.
-
-        Returns
-        -------
-            The flow result.
-
-        """
+        """Handle camera settings."""
         if user_input is not None:
             self.options.update(user_input)
-            return await self.async_step_mqtt()
+            return self.async_create_entry(
+                title=CONF_INTEGRATION_TITLE, data=self.options
+            )
 
         schema_with_defaults = self._populate_schema_defaults(
-            OPTIONS_SCHEMA_CAMERA,
+            SCHEMA_CAMERA,
             self.options,
-            [],
         )
 
         return self.async_show_form(
@@ -154,17 +143,55 @@ class MerakiOptionsFlowHandler(OptionsFlow):
             data_schema=schema_with_defaults,
         )
 
+    async def async_step_display_preferences(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Handle display preferences."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return self.async_create_entry(
+                title=CONF_INTEGRATION_TITLE, data=self.options
+            )
+
+        schema_with_defaults = self._populate_schema_defaults(
+            SCHEMA_DISPLAY_PREFERENCES,
+            self.options,
+        )
+
+        return self.async_show_form(
+            step_id="display_preferences",
+            data_schema=schema_with_defaults,
+        )
+
+    async def async_step_notifications(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Handle notifications settings (coming soon placeholder)."""
+        if user_input is not None:
+            # Return to menu when user clicks submit
+            return await self.async_step_init()
+
+        return self.async_show_form(
+            step_id="notifications",
+            data_schema=vol.Schema({}),
+            description_placeholders={
+                "message": "Notification settings will be available in a future update."
+            },
+        )
+
     async def async_step_mqtt(
         self,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
-        """Step 4: MQTT Settings Menu."""
+        """MQTT Settings Menu."""
         if user_input is not None:
             self.options[CONF_ENABLE_MQTT] = user_input[CONF_ENABLE_MQTT]
-            action = user_input.get("action", "continue")
+            action = user_input.get("action", "save")
 
             if action == "add":
-                self._editing_destination_index = None  # Ensure we are in "add" mode
+                self._editing_destination_index = None
                 return await self.async_step_mqtt_destination()
             if action == "edit":
                 self._destination_action = "edit"
@@ -173,7 +200,6 @@ class MerakiOptionsFlowHandler(OptionsFlow):
                 self._destination_action = "delete"
                 return await self.async_step_mqtt_select_destination()
 
-            # Default action is "continue"
             return self.async_create_entry(
                 title=CONF_INTEGRATION_TITLE, data=self.options
             )
@@ -183,26 +209,26 @@ class MerakiOptionsFlowHandler(OptionsFlow):
         )
 
         actions = [
-            selector.SelectOptionDict(value="continue", label="Save and Continue"),
-            selector.SelectOptionDict(value="add", label="Add a new relay destination"),
+            selector.SelectOptionDict(value="save", label="Save and Finish"),
+            selector.SelectOptionDict(value="add", label="Add new relay destination"),
         ]
         if current_destinations:
             actions.append(
                 selector.SelectOptionDict(
-                    value="edit", label="Edit an existing destination"
+                    value="edit", label="Edit existing destination"
                 )
             )
             actions.append(
                 selector.SelectOptionDict(value="delete", label="Delete a destination")
             )
 
-        schema = vol.Schema(
+        schema_with_defaults = vol.Schema(
             {
                 vol.Required(
                     CONF_ENABLE_MQTT,
                     default=self.options.get(CONF_ENABLE_MQTT, False),
                 ): selector.BooleanSelector(),
-                vol.Optional("action", default="continue"): selector.SelectSelector(
+                vol.Optional("action", default="save"): selector.SelectSelector(
                     selector.SelectSelectorConfig(
                         options=actions,
                         mode=selector.SelectSelectorMode.LIST,
@@ -218,7 +244,7 @@ class MerakiOptionsFlowHandler(OptionsFlow):
 
         return self.async_show_form(
             step_id="mqtt",
-            data_schema=schema,
+            data_schema=schema_with_defaults,
             description_placeholders={
                 "destination_count": str(len(current_destinations)),
                 "relay_destinations": destinations_summary or "None",
@@ -229,7 +255,7 @@ class MerakiOptionsFlowHandler(OptionsFlow):
         self,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
-        """Sub-step: Select a destination to edit or delete."""
+        """Select a destination to edit or delete."""
         action = self._destination_action or "edit"
         current_destinations = self.options.get(
             CONF_MQTT_RELAY_DESTINATIONS, DEFAULT_MQTT_RELAY_DESTINATIONS
@@ -248,11 +274,7 @@ class MerakiOptionsFlowHandler(OptionsFlow):
         ]
 
         if user_input is not None:
-            selected_indices_str: list[str] = user_input.get("destinations", [])
-            if not isinstance(selected_indices_str, list):
-                selected_indices_str = [selected_indices_str]
-
-            selected_indices = [int(i) for i in selected_indices_str]
+            selected_indices = [int(i) for i in user_input.get("destinations", [])]
 
             if action == "edit":
                 if selected_indices:
@@ -260,10 +282,9 @@ class MerakiOptionsFlowHandler(OptionsFlow):
                     self._destination_action = None
                     return await self.async_step_mqtt_destination()
                 self._destination_action = None
-                return await self.async_step_mqtt()  # Go back if nothing selected
+                return await self.async_step_mqtt()
 
             if action == "delete":
-                # Sort indices in reverse to avoid shifting issues
                 destinations = list(current_destinations)
                 for idx in sorted(selected_indices, reverse=True):
                     if 0 <= idx < len(destinations):
@@ -294,35 +315,17 @@ class MerakiOptionsFlowHandler(OptionsFlow):
         self,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
-        """
-        Sub-step: Add/Edit MQTT Relay Destination.
-
-        Args:
-        ----
-            user_input: The user input.
-
-        Returns
-        -------
-            The flow result.
-
-        """
+        """Add/Edit MQTT Relay Destination."""
         errors: dict[str, str] = {}
         is_editing = self._editing_destination_index is not None
 
         if user_input is not None:
-            # Validate the destination configuration
             if not user_input.get(MQTT_DEST_HOST):
                 errors["base"] = "host_required"
             elif not user_input.get(MQTT_DEST_NAME):
                 errors["base"] = "name_required"
             else:
-                current_destinations = list(
-                    self.options.get(
-                        CONF_MQTT_RELAY_DESTINATIONS, DEFAULT_MQTT_RELAY_DESTINATIONS
-                    )
-                )
-
-                # Ensure port is an integer
+                destinations = list(self.options.get(CONF_MQTT_RELAY_DESTINATIONS, []))
                 if MQTT_DEST_PORT in user_input:
                     try:
                         user_input[MQTT_DEST_PORT] = int(user_input[MQTT_DEST_PORT])
@@ -331,38 +334,29 @@ class MerakiOptionsFlowHandler(OptionsFlow):
 
                 if not errors:
                     if is_editing and self._editing_destination_index is not None:
-                        # Update existing destination
                         idx = self._editing_destination_index
-                        if 0 <= idx < len(current_destinations):
-                            current_destinations[idx] = user_input
+                        if 0 <= idx < len(destinations):
+                            destinations[idx] = user_input
                     else:
-                        # Add new destination
-                        current_destinations.append(user_input)
+                        destinations.append(user_input)
 
-                    self.options[CONF_MQTT_RELAY_DESTINATIONS] = current_destinations
+                    self.options[CONF_MQTT_RELAY_DESTINATIONS] = destinations
                     self._editing_destination_index = None
-
-                    # Return to MQTT step to show updated list or finish
                     return await self.async_step_mqtt()
 
-        # Build schema with defaults for editing
         defaults = {}
         if is_editing and self._editing_destination_index is not None:
-            current_destinations = self.options.get(
-                CONF_MQTT_RELAY_DESTINATIONS, DEFAULT_MQTT_RELAY_DESTINATIONS
-            )
-            if 0 <= self._editing_destination_index < len(current_destinations):
-                defaults = current_destinations[self._editing_destination_index]
+            destinations = self.options.get(CONF_MQTT_RELAY_DESTINATIONS, [])
+            if 0 <= self._editing_destination_index < len(destinations):
+                defaults = destinations[self._editing_destination_index]
 
         destination_schema = vol.Schema(
             {
                 vol.Required(
-                    MQTT_DEST_NAME,
-                    default=defaults.get(MQTT_DEST_NAME, ""),
+                    MQTT_DEST_NAME, default=defaults.get(MQTT_DEST_NAME, "")
                 ): selector.TextSelector(),
                 vol.Required(
-                    MQTT_DEST_HOST,
-                    default=defaults.get(MQTT_DEST_HOST, ""),
+                    MQTT_DEST_HOST, default=defaults.get(MQTT_DEST_HOST, "")
                 ): selector.TextSelector(),
                 vol.Optional(
                     MQTT_DEST_PORT,
@@ -373,18 +367,15 @@ class MerakiOptionsFlowHandler(OptionsFlow):
                     )
                 ),
                 vol.Optional(
-                    MQTT_DEST_USERNAME,
-                    default=defaults.get(MQTT_DEST_USERNAME, ""),
+                    MQTT_DEST_USERNAME, default=defaults.get(MQTT_DEST_USERNAME, "")
                 ): selector.TextSelector(),
                 vol.Optional(
-                    MQTT_DEST_PASSWORD,
-                    default=defaults.get(MQTT_DEST_PASSWORD, ""),
+                    MQTT_DEST_PASSWORD, default=defaults.get(MQTT_DEST_PASSWORD, "")
                 ): selector.TextSelector(
                     selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
                 ),
                 vol.Optional(
-                    MQTT_DEST_USE_TLS,
-                    default=defaults.get(MQTT_DEST_USE_TLS, False),
+                    MQTT_DEST_USE_TLS, default=defaults.get(MQTT_DEST_USE_TLS, False)
                 ): selector.BooleanSelector(),
                 vol.Optional(
                     MQTT_DEST_TOPIC_FILTER,
@@ -397,46 +388,28 @@ class MerakiOptionsFlowHandler(OptionsFlow):
             step_id="mqtt_destination",
             data_schema=destination_schema,
             errors=errors,
-            description_placeholders={
-                "action": "Edit" if is_editing else "Add",
-            },
+            description_placeholders={"action": "Edit" if is_editing else "Add"},
         )
 
     def _populate_schema_defaults(
         self,
         schema: vol.Schema,
         defaults: dict[str, Any],
-        network_options: list[selector.SelectOptionDict],
+        network_options: list[selector.SelectOptionDict] | None = None,
     ) -> vol.Schema:
-        """
-        Populate a schema with default values.
-
-        This is used to ensure that the options form is pre-filled with the
-        existing values from the config entry.
-
-        Args:
-        ----
-            schema: The schema to populate.
-            defaults: The default values.
-            network_options: The network options.
-
-        Returns
-        -------
-            The populated schema.
-
-        """
+        """Populate a schema with default values."""
         new_schema_keys = {}
         for key, value in schema.schema.items():
             key_name = key.schema
             if key_name in defaults:
-                key = type(key)(key.schema, default=defaults[key.schema])
+                key = type(key)(key_name, default=defaults[key_name])
 
-            if key_name == CONF_ENABLED_NETWORKS and isinstance(
-                value, selector.SelectSelector
+            if (
+                key_name == CONF_ENABLED_NETWORKS
+                and network_options is not None
+                and isinstance(value, selector.SelectSelector)
             ):
-                new_config = value.config.copy()
-                new_config["options"] = network_options
-                value = selector.SelectSelector(new_config)
+                value.config["options"] = network_options
 
             new_schema_keys[key] = value
         return vol.Schema(new_schema_keys)
