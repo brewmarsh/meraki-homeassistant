@@ -1,4 +1,5 @@
 import React, { useState, memo, useCallback } from 'react';
+import ClientDetailView from './ClientDetailView';
 
 interface Client {
   id: string;
@@ -21,6 +22,7 @@ interface Client {
   usage?: { sent: number; recv: number };
   networkId?: string;
   ha_device_id?: string;
+  is_blocked?: boolean;
 }
 
 interface ClientsViewProps {
@@ -99,16 +101,24 @@ const ClientsViewComponent: React.FC<ClientsViewProps> = ({
   initialClientId,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(
+    initialClientId || null
+  );
 
-  // Find the selected client from initialClientId (passed via navigation)
-  const selectedClient = initialClientId
+  // Find the selected client
+  const selectedClient = selectedClientId
     ? clients.find(
-        (c) => c.id === initialClientId || c.mac === initialClientId
+        (c) => c.id === selectedClientId || c.mac === selectedClientId
       ) || null
     : null;
 
-  // Navigate to the HA device page for a client
+  // Show client detail view when clicked
   const handleClientClick = useCallback((client: Client) => {
+    setSelectedClientId(client.id || client.mac);
+  }, []);
+
+  // Navigate to the HA device page for a client
+  const handleNavigateToDevice = useCallback((client: Client) => {
     if (client.ha_device_id) {
       const path = `/config/devices/device/${client.ha_device_id}`;
       const event = new CustomEvent('hass-navigate', {
@@ -121,7 +131,6 @@ const ClientsViewComponent: React.FC<ClientsViewProps> = ({
       console.warn('Cannot navigate: client is missing ha_device_id', client);
     }
   }, []);
-
 
   // Filter clients based on search
   const filteredClients = clients.filter((client) => {
@@ -166,11 +175,15 @@ const ClientsViewComponent: React.FC<ClientsViewProps> = ({
     return '🔌';
   }, []);
 
+  // Show client detail view if a client is selected
   if (selectedClient) {
-    // In the new flow, clicking a client navigates away, so a selected
-    // client view is no longer needed here. Instead, we'll just show the list.
-    // This block can be removed or repurposed if a detail view *within* the panel
-    // is desired again. For now, we always show the main list.
+    return (
+      <ClientDetailView
+        client={selectedClient}
+        onBack={() => setSelectedClientId(null)}
+        onNavigateToDevice={() => handleNavigateToDevice(selectedClient)}
+      />
+    );
   }
 
   return (

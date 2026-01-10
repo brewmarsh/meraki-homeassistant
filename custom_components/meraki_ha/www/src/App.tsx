@@ -464,7 +464,44 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
   const lastUpdatedRef = useRef<string | null>(null);
 
   // Memoize processed client data from HA registries
+  // Uses both device_tracker entities and client sensor entities for complete data
   const processedClients = useMemo((): Client[] => {
+    // First, try to use clients from the backend data (API)
+    // This is the most complete source as it comes directly from Meraki
+    if (data?.clients && data.clients.length > 0) {
+      return data.clients.map((client) => {
+        // Find the corresponding device_tracker entity for status
+        const macPart = client.mac.replace(/:/g, '_').toLowerCase();
+        const trackerEntityId = `device_tracker.meraki_client_${macPart}`;
+        const trackerState = haEntityStates[trackerEntityId];
+        const trackerEntity = haEntities.find(
+          (e) => e.entity_id === trackerEntityId
+        );
+        const device = trackerEntity?.device_id
+          ? haDevices.find((d) => d.id === trackerEntity.device_id)
+          : null;
+
+        // Find the block switch entity for this client
+        const switchEntityId = `switch.meraki_client_${macPart}_block`;
+        const switchState = haEntityStates[switchEntityId];
+
+        return {
+          ...client,
+          id: client.id || trackerEntity?.device_id || client.mac,
+          ha_device_id: trackerEntity?.device_id || '',
+          status:
+            trackerState?.state === 'home'
+              ? 'Online'
+              : trackerState?.state === 'not_home'
+              ? 'Offline'
+              : client.status || 'Unknown',
+          via_device_id: device?.via_device_id,
+          is_blocked: switchState?.state === 'on',
+        };
+      });
+    }
+
+    // Fallback: Build client list from HA entity registry
     if (!haEntities.length || !Object.keys(haEntityStates).length) {
       return [];
     }
@@ -492,6 +529,17 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
       const switchEntityId = `switch.meraki_client_${macPart}_block`;
       const switchState = haEntityStates[switchEntityId];
 
+      // Also check for client sensor entities for additional data
+      const vlanSensorId = `sensor.meraki_client_${macPart}_vlan`;
+      const ssidSensorId = `sensor.meraki_client_${macPart}_ssid`;
+      const connDeviceSensorId = `sensor.meraki_client_${macPart}_connected_device`;
+      const switchportSensorId = `sensor.meraki_client_${macPart}_switchport`;
+
+      const vlanState = haEntityStates[vlanSensorId];
+      const ssidState = haEntityStates[ssidSensorId];
+      const connDeviceState = haEntityStates[connDeviceSensorId];
+      const switchportState = haEntityStates[switchportSensorId];
+
       return {
         id: trackerEntity.device_id || trackerEntity.entity_id,
         mac: mac,
@@ -505,16 +553,25 @@ const App: React.FC<AppProps> = ({ hass, panel, narrow: _narrow }) => {
           'Unknown',
         os: trackerState?.attributes?.os || '',
         status: trackerState?.state === 'home' ? 'Online' : 'Offline',
-        ssid: trackerState?.attributes?.ssid || '',
-        switchport: trackerState?.attributes?.switchport,
-        vlan: trackerState?.attributes?.vlan,
+        // Use sensor entities if available, fall back to device_tracker attributes
+        ssid: ssidState?.state || trackerState?.attributes?.ssid || '',
+        switchport:
+          switchportState?.state || trackerState?.attributes?.switchport,
+        vlan:
+          (vlanState?.state ? parseInt(vlanState.state, 10) : undefined) ||
+          trackerState?.attributes?.vlan,
         recentDeviceSerial:
-          trackerState?.attributes?.connected_to_serial || '',
+          connDeviceState?.attributes?.device_serial ||
+          trackerState?.attributes?.connected_to_serial ||
+          '',
+        recentDeviceName:
+          connDeviceState?.state ||
+          trackerState?.attributes?.connected_to_device,
         via_device_id: device?.via_device_id,
         is_blocked: switchState?.state === 'on',
       };
     });
-  }, [haDevices, haEntities, haEntityStates]);
+  }, [data?.clients, haDevices, haEntities, haEntityStates]);
 
   /**
    * Subscribe to real-time Meraki data updates via WebSocket

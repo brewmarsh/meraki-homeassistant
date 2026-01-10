@@ -31,6 +31,7 @@ from .client import (
     MerakiClientReceivedBytesSensor,
     MerakiClientSentBytesSensor,
     MerakiClientSSIDSensor,
+    MerakiClientSwitchportSensor,
     MerakiClientVLANSensor,
 )
 from .device.appliance_port import MerakiAppliancePortSensor
@@ -51,6 +52,7 @@ __all__ = [
     "MerakiClientSSIDSensor",
     "MerakiClientConnectedDeviceSensor",
     "MerakiClientConnectionTypeSensor",
+    "MerakiClientSwitchportSensor",
     "MerakiClientSentBytesSensor",
     "MerakiClientReceivedBytesSensor",
 ]
@@ -211,6 +213,12 @@ def _create_client_sensors(
             client_data=client_data,
         ),
         MerakiClientConnectionTypeSensor(
+            hass=hass,
+            coordinator=coordinator,
+            config_entry=config_entry,
+            client_data=client_data,
+        ),
+        MerakiClientSwitchportSensor(
             hass=hass,
             coordinator=coordinator,
             config_entry=config_entry,
