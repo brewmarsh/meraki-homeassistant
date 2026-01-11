@@ -20,6 +20,14 @@ on:
         required: true
         type: string
 
+# IMPORTANT: Repository settings must also allow workflow permissions
+# Go to: Settings → Actions → General → Workflow permissions
+# Select: "Read and write permissions"
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 # Prevent multiple Cursor reviews on same branch
 concurrency:
   group: cursor-review-${{ github.event.workflow_run.head_branch || github.event.inputs.pr_number }}
@@ -30,10 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     # Only run on CI success (or manual trigger)
     if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
-    permissions:
-      contents: read
-      pull-requests: write
-      issues: write
+    # Inherits permissions from workflow level
     steps:
       - name: Get PR details
         id: pr
@@ -141,81 +146,38 @@ jobs:
 
           PROMPT="You are reviewing Jules' code for the meraki-homeassistant Home Assistant integration.
 
+          ## MANDATORY FIRST STEPS - DO THIS BEFORE ANYTHING ELSE
+          1. **READ AGENTS.md** - Contains ALL project standards and patterns
+          2. **READ DEVELOPMENT.md** - Contains environment setup instructions
+          3. Do NOT proceed until you have read both files
+
           ## Context
-          - Jules PR: #${{ steps.pr.outputs.number }} - ${{ steps.pr.outputs.title }}
+          - Jules PR: #${{ steps.pr.outputs.number }}
           - Jules Branch: $JULES_BRANCH
           - Your Branch: $CURSOR_BRANCH
-          - Python Version: 3.13.2
 
           ## Original Issue Requirements
           ${ISSUE_BODY}
 
+          ## COMMON ERRORS AND FIXES
+
+          ### 'Undefined name MagicMock' or similar
+          Add to test file: from unittest.mock import MagicMock, AsyncMock, patch
+
+          ### 'ModuleNotFoundError: homeassistant'
+          Use fixtures from tests/conftest.py, don't import HA directly
+
           ## Your Task
-          1. Read AGENTS.md for project standards
-          2. Read DEVELOPMENT.md for environment setup
+          1. Verify Jules' implementation meets requirements
+          2. Check design follows existing patterns
+          3. Run ./run_checks.sh - ALL checks must pass
+          4. Fix any test errors (add missing imports!)
+          5. Create PR from $CURSOR_BRANCH targeting $JULES_BRANCH
 
-          3. **CRITICAL: Requirements Validation**
-             - Review the original issue requirements above
-             - Verify Jules' implementation meets ALL requirements
-             - Check for missing functionality or incomplete features
-             - Ensure the solution addresses the root cause, not just symptoms
-
-          4. **CRITICAL: Design Review**
-             - Is this the BEST way to implement this feature?
-             - Does it follow existing patterns in the codebase?
-             - Are there simpler or more maintainable approaches?
-             - Does it integrate well with existing code?
-             - If improvements needed, implement them WITHOUT breaking existing functionality
-
-          5. **CRITICAL: Regression Testing**
-             - Run the FULL test suite: uv run pytest
-             - Ensure ALL existing tests still pass
-             - If any test fails that was passing before, FIX it
-             - Do NOT skip or delete existing tests
-             - Any changes you make must NOT introduce new regressions
-
-          6. **CRITICAL: Test Coverage Validation**
-             - Check that Jules created tests for new functionality
-             - If new code lacks tests, CREATE them
-             - Each new function/class should have corresponding tests
-             - Test edge cases and error conditions
-
-          7. Review Jules' code thoroughly for:
-             - Code quality and best practices
-             - Proper error handling
-             - Type hints and documentation
-             - Security issues (no hardcoded secrets, proper input validation)
-             - Any logic bugs or regressions
-
-          8. Make improvements and fixes
-          9. Run ./run_checks.sh to verify ALL checks pass
-             - ruff check (linting)
-             - ruff format (formatting)
-             - mypy (type checking)
-             - pytest (ALL tests must pass)
-          10. Commit with: review(cursor): <description of improvements>
-          11. CREATE A PR from $CURSOR_BRANCH targeting $JULES_BRANCH
-
-          ## Test Environment Notes
-          - Home Assistant is NOT installed in the test environment
-          - Tests use pytest-homeassistant-custom-component fixtures
-          - Check tests/conftest.py for fixture patterns
-          - All HA imports must be properly mocked
-
-          ## Test Coverage Requirements
-          - New entities need entity tests (state, attributes, availability)
-          - New API calls need mock tests
-          - New config options need validation tests
-          - Error handling paths need negative tests
-
-          Focus on custom_components/meraki_ha/ and tests/.
-
-          ## Priority Order
-          1. Requirements met - all issue requirements fulfilled
-          2. No regressions - existing tests pass, no broken functionality
-          3. Test coverage - new code has proper tests
-          4. Design quality - implementation is optimal and maintainable
-          5. Code quality - follows project standards"
+          ## Test Requirements
+          - ALWAYS include: from unittest.mock import MagicMock, AsyncMock, patch
+          - Use fixtures from tests/conftest.py
+          - Mock HA imports properly"
 
           ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
 

@@ -16,14 +16,20 @@ on:
           - 'false'
           - 'true'
 
+# IMPORTANT: Repository settings must also allow workflow permissions
+# Go to: Settings → Actions → General → Workflow permissions
+# Select: "Read and write permissions"
+permissions:
+  contents: write
+  issues: write
+  pull-requests: read
+
 jobs:
   # Clean up the merged branch
   cleanup-branch:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
-    permissions:
-      contents: write
-      issues: write
+    # Inherits permissions from workflow level
     steps:
       - name: Delete merged branch
         env:
@@ -91,8 +97,7 @@ jobs:
     if: |
       (github.event_name == 'workflow_dispatch' && github.event.inputs.confirm == 'true') ||
       (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
-    permissions:
-      contents: write
+    # Inherits permissions from workflow level
     outputs:
       new_version: ${{ steps.increment.outputs.new_version }}
     steps:
@@ -201,9 +206,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: version
     if: needs.version.outputs.new_version != ''
-    permissions:
-      contents: write
-      pull-requests: read
+    # Inherits permissions from workflow level
     steps:
       # Fresh checkout gets the just-pushed commit with version bump
       - name: Checkout code

@@ -11,6 +11,14 @@ on:
   pull_request:
     branches-ignore: ['main'] # Run on all PRs except those targeting main
 
+# IMPORTANT: Repository settings must also allow workflow permissions
+# Go to: Settings → Actions → General → Workflow permissions
+# Select: "Read and write permissions"
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 env:
   PYTHON_VERSION: '3.13.2'
   NODE_VERSION: '20'
@@ -19,9 +27,7 @@ jobs:
   # Extract issue number and notify start
   setup:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: read
+    # Inherits permissions from workflow level
     outputs:
       issue_number: ${{ steps.extract.outputs.issue_number }}
       is_jules_pr: ${{ steps.extract.outputs.is_jules_pr }}
@@ -265,8 +271,7 @@ jobs:
   ci-success:
     needs: [setup, lint, type-check, test, hassfest, frontend-build]
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
+    # Inherits permissions from workflow level
     steps:
       - name: All checks passed
         run: echo "✅ All CI checks passed!"
@@ -300,8 +305,7 @@ jobs:
     needs: [setup, lint, type-check, test, hassfest, frontend-build]
     if: failure()
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
+    # Inherits permissions from workflow level
     steps:
       - name: Determine failed jobs
         id: failed

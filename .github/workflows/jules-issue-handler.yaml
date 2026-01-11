@@ -11,6 +11,19 @@ on:
       - labeled
       - opened # For jules_task template which auto-applies labels
 
+# IMPORTANT: Repository settings must also allow workflow permissions
+# Go to: Settings → Actions → General → Workflow permissions
+# Select: "Read and write permissions"
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+# Prevent multiple Jules agents working on the same issue
+concurrency:
+  group: jules-issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
 jobs:
   handle-jules-task:
     # Trigger when issue is created with 'jules-issue' label (from Jules task template)
@@ -18,9 +31,7 @@ jobs:
     if: |
       contains(github.event.issue.labels.*.name, 'jules-issue')
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: write
+    # Inherits permissions from workflow level
     steps:
       # Security: Only allow liptonj or bot accounts to trigger Jules
       - name: Check user authorization
@@ -88,74 +99,62 @@ jobs:
           prompt: |
             You are the primary coding agent for the meraki-homeassistant project.
 
+            ## MANDATORY FIRST STEPS - DO THIS BEFORE ANYTHING ELSE
+            1. **READ `AGENTS.md`** - Contains ALL project standards, patterns, and conventions
+            2. **READ `DEVELOPMENT.md`** - Contains environment setup and workflow instructions
+            3. Do NOT proceed until you have read and understood both files
+
             ## Task Assignment
             **Title**: ${{ github.event.issue.title }}
             **Issue Number**: #${{ github.event.issue.number }}
-            **URL**: ${{ github.event.issue.html_url }}
 
             **Task Details**:
             ${{ github.event.issue.body }}
 
-            ## Project Context
-            1. Read the `AGENTS.md` file first - it contains all project standards and conventions.
-            2. Read the `DEVELOPMENT.md` file to understand the development environment and setup.
-            3. This is a Home Assistant custom integration for Cisco Meraki networks.
-
             ## Technology Stack
-            - Backend: Python 3.13.2, Home Assistant Core, meraki SDK, aiohttp
+            - Python 3.13.2, Home Assistant Core, meraki SDK, aiohttp
             - Frontend: React, TypeScript, Vite
-            - Package manager: uv with pyproject.toml (never requirements.txt)
+            - Package manager: uv with pyproject.toml (NEVER requirements.txt)
             - Tests: pytest, pytest-asyncio, pytest-homeassistant-custom-component
-            - Linting: Ruff, mypy, bandit
 
             ## Key Directories
-            - Integration code: `custom_components/meraki_ha/`
+            - Integration: `custom_components/meraki_ha/`
             - Tests: `tests/`
             - Frontend: `custom_components/meraki_ha/www/`
 
+            ## CRITICAL: Common Test Errors and Fixes
+
+            ### Error: "Undefined name `MagicMock`" or similar
+            **Cause**: Missing import in test file
+            **Fix**: Add at the top of the test file:
+            ```python
+            from unittest.mock import MagicMock, AsyncMock, patch
+            ```
+
+            ### Error: "ModuleNotFoundError: No module named 'homeassistant'"
+            **Cause**: Importing from HA outside of test fixtures
+            **Fix**:
+            - Use `TYPE_CHECKING` for type-only imports
+            - Use fixtures from `tests/conftest.py` instead of direct imports
+            - Mock HA modules in tests
+
+            ### Error: Import errors in conftest.py
+            **Cause**: Circular imports or missing mocks
+            **Fix**: Check `tests/conftest.py` patterns and follow them exactly
+
             ## Your Task
 
-            1. **Parse the task requirements** from the issue body:
-               - Identify the milestone and specific requirements
-               - Note any constraints specified
-               - Understand what needs to be built or refactored
+            1. **Parse requirements** from the issue body
+            2. **Plan implementation** - review existing code patterns
+            3. **Implement** following project standards (see AGENTS.md)
+            4. **Write tests** - follow patterns in `tests/conftest.py`
+            5. **Run `./run_checks.sh`** - ALL checks must pass
 
-            2. **Plan your implementation**:
-               - Review existing code patterns in the codebase
-               - Identify files to modify or create
-               - Consider edge cases and error handling
-
-            3. **Implement the task** following project standards:
-               - Use type hints for all function signatures
-               - Use async/await for all I/O operations
-               - Follow PEP 8 and Ruff linting rules
-               - Use NumPy-style docstrings
-               - Follow Home Assistant Sentence Case standards for entity names
-               - Add constants to `const.py`
-               - Use early returns for error conditions
-
-            4. **Write comprehensive tests**:
-               - Unit tests for all new functions
-               - Place tests in `tests/` mirroring the source structure
-               - Use pytest-asyncio for async tests
-               - Mock external API calls (never call real Meraki API)
-               - **IMPORTANT**: Home Assistant is NOT installed in the test environment
-               - Use `pytest-homeassistant-custom-component` fixtures (hass, mock_config_entry)
-               - Always mock HA components: `homeassistant.core`, `homeassistant.helpers`
-               - See `tests/conftest.py` for existing fixtures and patterns
-               - If tests fail with "ModuleNotFoundError: No module named 'homeassistant'",
-                 you need to mock the HA imports properly
-
-            5. **Verify all checks pass**:
-               - Run `./run_checks.sh` to execute all checks (ruff, mypy, bandit, pytest)
-               - Or run individually: `uv run ruff check --fix . && uv run ruff format .`
-               - If frontend changes: `cd custom_components/meraki_ha/www && npm run build`
-
-            6. **Handling Test Failures**:
-               - If pytest fails with import errors, check that you're mocking HA properly
-               - If mypy fails, ensure all functions have type hints
-               - If ruff fails, run `uv run ruff check --fix .` to auto-fix issues
-               - Check `tests/conftest.py` for the standard test fixtures
+            ## Test Requirements
+            - Use `pytest-homeassistant-custom-component` fixtures
+            - ALWAYS import mocks: `from unittest.mock import MagicMock, AsyncMock, patch`
+            - See `tests/conftest.py` for fixture patterns
+            - Mock external API calls (never real Meraki API)
 
             7. **Create a PR** with:
                - Title following Conventional Commits: `feat(<scope>): <description>` or `fix(<scope>): <description>`
@@ -170,6 +169,41 @@ jobs:
             - Maintain 95%+ test coverage
             - Keep implementation focused - don't over-engineer
             - Target branch must be `beta`
+
+            ## CRITICAL: If You Get Stuck - Hand Off to Cursor
+
+            **NEVER stop working without creating a PR.** If you encounter:
+            - CI failures you can't resolve after 2-3 attempts
+            - Errors you don't understand
+            - Architectural decisions you're unsure about
+            - Tests failing for unclear reasons
+
+            YOU MUST:
+            1. Create your PR with current progress (even if incomplete)
+            2. Use `gh pr edit` to add label: `jules-needs-help`
+            3. Comment on PR using this format:
+
+            ## 🆘 Jules Needs Cursor Help
+
+            **Where I Got Stuck:**
+            <Describe the specific problem>
+
+            **What I've Tried:**
+            <List your attempts>
+
+            **Current Progress:**
+            <What's done vs remaining>
+
+            **Files Changed:**
+            <Key files modified>
+
+            **Suggested Next Steps:**
+            <What Cursor should try>
+
+            ---
+            *Handing off to Cursor for assistance*
+
+            Cursor will take over and complete the task from your progress.
 
       # NOTE: PR linking is handled by jules-pr-linker.yaml workflow
       # Jules works asynchronously - the PR will be created later
@@ -249,74 +283,81 @@ jobs:
           prompt: |
             You are a bug-fixing agent for the meraki-homeassistant project.
 
+            ## MANDATORY FIRST STEPS - DO THIS BEFORE ANYTHING ELSE
+            1. **READ `AGENTS.md`** - Contains ALL project standards and patterns
+            2. **READ `DEVELOPMENT.md`** - Contains environment setup instructions
+            3. Do NOT proceed until you have read both files
+
             ## Issue to Fix
             **Title**: ${{ github.event.issue.title }}
             **Number**: #${{ github.event.issue.number }}
-            **URL**: ${{ github.event.issue.html_url }}
 
             **Description**:
             ${{ github.event.issue.body }}
 
-            ## Project Context
-            Read the AGENTS.md file first - it contains all project standards and conventions.
-            Read DEVELOPMENT.md for environment setup and development workflow.
+            ## CRITICAL: Common Test Errors and Fixes
 
-            This is a Home Assistant custom integration for Cisco Meraki networks.
-            - Backend: Python 3.13.2, Home Assistant Core, meraki SDK
-            - Frontend: React, TypeScript, Vite
-            - Package manager: uv with pyproject.toml
-            - Tests: pytest, pytest-asyncio, pytest-homeassistant-custom-component
+            ### Error: "Undefined name `MagicMock`" or `AsyncMock` or `patch`
+            **Fix**: Add at the top of the test file:
+            ```python
+            from unittest.mock import MagicMock, AsyncMock, patch
+            ```
+
+            ### Error: "ModuleNotFoundError: No module named 'homeassistant'"
+            **Fix**: Use fixtures from `tests/conftest.py`, don't import HA directly
 
             ## Your Task
 
-            1. **Understand the bug**: Parse the issue description to understand:
-               - What component is affected
-               - Steps to reproduce
-               - Expected vs actual behavior
-
-            2. **Locate the relevant code**: Use the affected component info to find:
-               - Sensors: `custom_components/meraki_ha/sensor/`
-               - Switches: `custom_components/meraki_ha/switch/`
-               - Camera: `custom_components/meraki_ha/camera.py`
-               - Frontend: `custom_components/meraki_ha/www/src/`
-               - Config: `custom_components/meraki_ha/config_flow.py`, `options_flow.py`
-               - API: `custom_components/meraki_ha/core/`
-               - MQTT: `custom_components/meraki_ha/services/mqtt_service.py`
-
-            3. **Fix the bug** following project standards:
-               - Use type hints for all functions
-               - Use async/await for I/O operations
-               - Follow the "Optimistic UI with Cooldown" pattern for state changes
-               - Use early returns for error conditions
-
-            4. **Write a test** that proves the bug is fixed:
-               - Place in `tests/` mirroring the source structure
-               - Use pytest-asyncio for async tests
-               - Mock external API calls
-               - **IMPORTANT**: Home Assistant is NOT installed in tests
-               - Use fixtures from `tests/conftest.py` (hass, mock_config_entry)
-               - Mock HA imports: `homeassistant.core`, `homeassistant.helpers`
-
-            5. **Verify all checks pass**:
-               - Run `./run_checks.sh` to execute all checks (ruff, mypy, bandit, pytest)
-               - Or run individually: `uv run ruff check --fix . && uv run ruff format .`
-
-            6. **Handling Test Failures**:
-               - Import errors → mock HA components properly
-               - Use `pytest -x` to stop on first failure
-               - Check `tests/conftest.py` for fixture patterns
-
-            7. **Create a PR** with:
-               - Title: `fix(<scope>): <description>`
-               - Description explaining the root cause and fix
-               - **IMPORTANT**: The PR body MUST contain this exact line on its own: `Fixes #${{ github.event.issue.number }}`
-               - Target branch: beta
+            1. **Understand the bug** from the issue description
+            2. **Locate the code** - see AGENTS.md for directory structure
+            3. **Fix the bug** following project standards
+            4. **Write a regression test** - ALWAYS include mock imports:
+               ```python
+               from unittest.mock import MagicMock, AsyncMock, patch
+               ```
+            5. **Run `./run_checks.sh`** - ALL checks must pass
+            6. **Create a PR** with `Fixes #${{ github.event.issue.number }}` in body
 
             ## Constraints
             - Keep changes focused on the bug
             - All existing tests must pass
             - Maintain 95%+ test coverage
             - Follow Conventional Commits format
+
+            ## CRITICAL: If You Get Stuck - Hand Off to Cursor
+
+            **NEVER stop working without creating a PR.** If you encounter:
+            - CI failures you can't resolve after 2-3 attempts
+            - Errors you don't understand
+            - Complex debugging you're unsure about
+            - Tests failing for unclear reasons
+
+            YOU MUST:
+            1. Create your PR with current progress (even if incomplete)
+            2. Use `gh pr edit` to add label: `jules-needs-help`
+            3. Comment on PR using this format:
+
+            ## 🆘 Jules Needs Cursor Help
+
+            **Where I Got Stuck:**
+            <Describe the specific problem>
+
+            **What I've Tried:**
+            <List your attempts>
+
+            **Current Progress:**
+            <What's done vs remaining>
+
+            **Files Changed:**
+            <Key files modified>
+
+            **Suggested Next Steps:**
+            <What Cursor should try>
+
+            ---
+            *Handing off to Cursor for assistance*
+
+            Cursor will take over and complete the task from your progress.
 
       # NOTE: PR linking is handled by jules-pr-linker.yaml workflow
 
@@ -392,66 +433,41 @@ jobs:
           prompt: |
             You are a feature implementation agent for the meraki-homeassistant project.
 
+            ## MANDATORY FIRST STEPS - DO THIS BEFORE ANYTHING ELSE
+            1. **READ `AGENTS.md`** - Contains ALL project standards and patterns
+            2. **READ `DEVELOPMENT.md`** - Contains environment setup instructions
+            3. Do NOT proceed until you have read both files
+
             ## Feature Request
             **Title**: ${{ github.event.issue.title }}
             **Number**: #${{ github.event.issue.number }}
-            **URL**: ${{ github.event.issue.html_url }}
 
             **Description**:
             ${{ github.event.issue.body }}
 
-            ## Project Context
-            Read the AGENTS.md file first - it contains all project standards and conventions.
-            Read DEVELOPMENT.md for environment setup and development workflow.
+            ## CRITICAL: Common Test Errors and Fixes
 
-            This is a Home Assistant custom integration for Cisco Meraki networks.
-            - Backend: Python 3.13.2, Home Assistant Core, meraki SDK
-            - Frontend: React, TypeScript, Vite
-            - Package manager: uv with pyproject.toml
-            - Tests: pytest, pytest-asyncio, pytest-homeassistant-custom-component
+            ### Error: "Undefined name `MagicMock`" or `AsyncMock` or `patch`
+            **Fix**: Add at the top of the test file:
+            ```python
+            from unittest.mock import MagicMock, AsyncMock, patch
+            ```
+
+            ### Error: "ModuleNotFoundError: No module named 'homeassistant'"
+            **Fix**: Use fixtures from `tests/conftest.py`, don't import HA directly
 
             ## Your Task
 
-            1. **Understand the feature request**:
-               - What problem does it solve?
-               - What component is affected?
-               - What's the proposed solution?
-
-            2. **Plan the implementation**:
-               - Identify files to modify or create
-               - Consider edge cases
-               - Check for similar existing patterns in the codebase
-
-            3. **Implement the feature** following project standards:
-               - Use type hints for all functions
-               - Use async/await for I/O operations
-               - Add constants to `const.py`
-               - For entities: use `CoordinatorEntity`, `DeviceInfo`, proper naming
-               - For frontend: React with TypeScript, CSS variables for themes
-
-            4. **Write comprehensive tests**:
-               - Unit tests for new functions
-               - Integration tests if applicable
-               - Mock external API calls
-               - **IMPORTANT**: Home Assistant is NOT installed in tests
-               - Use fixtures from `tests/conftest.py` (hass, mock_config_entry)
-               - Mock HA imports properly
-
-            5. **Verify all checks pass**:
-               - Run `./run_checks.sh` to execute all checks (ruff, mypy, bandit, pytest)
-               - Or run individually: `uv run ruff check --fix . && uv run ruff format .`
-               - If frontend: `cd custom_components/meraki_ha/www && npm run build`
-
-            6. **Handling Test Failures**:
-               - Import errors → mock HA components properly
-               - Use `pytest -x` to stop on first failure
-               - Check `tests/conftest.py` for fixture patterns
-
-            7. **Create a PR** with:
-               - Title: `feat(<scope>): <description>`
-               - Detailed description of the implementation
-               - **IMPORTANT**: The PR body MUST contain this exact line on its own: `Closes #${{ github.event.issue.number }}`
-               - Target branch: beta
+            1. **Understand the feature** from the issue description
+            2. **Plan implementation** - check existing patterns in codebase
+            3. **Implement** following project standards (see AGENTS.md)
+            4. **Write tests** - ALWAYS include mock imports:
+               ```python
+               from unittest.mock import MagicMock, AsyncMock, patch
+               ```
+            5. **Run `./run_checks.sh`** - ALL checks must pass
+            6. **Frontend changes**: Run `cd custom_components/meraki_ha/www && npm run build`
+            7. **Create a PR** with `Closes #${{ github.event.issue.number }}` in body
 
             ## Constraints
             - Keep implementation simple and focused
@@ -459,5 +475,40 @@ jobs:
             - Maintain 95%+ test coverage
             - Follow Conventional Commits format
             - Don't over-engineer - implement only what's requested
+
+            ## CRITICAL: If You Get Stuck - Hand Off to Cursor
+
+            **NEVER stop working without creating a PR.** If you encounter:
+            - CI failures you can't resolve after 2-3 attempts
+            - Errors you don't understand
+            - Architectural decisions you're unsure about
+            - Tests failing for unclear reasons
+
+            YOU MUST:
+            1. Create your PR with current progress (even if incomplete)
+            2. Use `gh pr edit` to add label: `jules-needs-help`
+            3. Comment on PR using this format:
+
+            ## 🆘 Jules Needs Cursor Help
+
+            **Where I Got Stuck:**
+            <Describe the specific problem>
+
+            **What I've Tried:**
+            <List your attempts>
+
+            **Current Progress:**
+            <What's done vs remaining>
+
+            **Files Changed:**
+            <Key files modified>
+
+            **Suggested Next Steps:**
+            <What Cursor should try>
+
+            ---
+            *Handing off to Cursor for assistance*
+
+            Cursor will take over and complete the task from your progress.
 
       # NOTE: PR linking is handled by jules-pr-linker.yaml workflow

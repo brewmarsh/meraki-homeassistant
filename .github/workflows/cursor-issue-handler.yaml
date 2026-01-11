@@ -8,6 +8,14 @@ on:
   issues:
     types: [labeled]
 
+# IMPORTANT: Repository settings must also allow workflow permissions
+# Go to: Settings → Actions → General → Workflow permissions
+# Select: "Read and write permissions"
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 concurrency:
   group: cursor-issue-${{ github.event.issue.number }}
   cancel-in-progress: false
@@ -45,9 +53,7 @@ jobs:
     needs: check-cursor-task
     if: needs.check-cursor-task.outputs.should_process == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      contents: read
+    # Inherits permissions from workflow level
     steps:
       - name: Update issue labels
         env:
@@ -85,53 +91,27 @@ jobs:
           # Build the prompt for Cursor
           PROMPT="You are working on issue #${ISSUE_NUM}: ${ISSUE_TITLE}
 
+          ## MANDATORY FIRST STEPS - DO THIS BEFORE ANYTHING ELSE
+          1. **READ AGENTS.md** - Contains ALL project standards and patterns
+          2. **READ DEVELOPMENT.md** - Contains environment setup instructions
+          3. Do NOT proceed until you have read both files
+
           ## Issue Details
           ${ISSUE_BODY}
 
-          ## Instructions
+          ## COMMON ERRORS AND FIXES
 
-          1. Read DEVELOPMENT.md and AGENTS.md to understand project standards
-          2. Analyze the requirements in this issue
-          3. Implement the requested changes following project conventions
-          4. Use Python 3.13.2 for all Python code
+          ### 'Undefined name MagicMock' or AsyncMock or patch
+          Add to test file: from unittest.mock import MagicMock, AsyncMock, patch
 
-          ## CRITICAL: Testing Requirements
+          ### 'ModuleNotFoundError: homeassistant'
+          Use fixtures from tests/conftest.py, don't import HA directly
 
-          5. **Regression Testing**
-             - Run the FULL test suite: uv run pytest
-             - Ensure ALL existing tests still pass
-             - Do NOT skip or delete existing tests
-          6. **Test Coverage**
-             - CREATE tests for all new functionality
-             - Each new function/class needs corresponding tests
-             - Test edge cases and error conditions
-             - New entities need state/attribute/availability tests
-             - New API calls need mock tests
-          7. Run ./run_checks.sh to verify ALL checks pass
-          8. Create commits with conventional commit format: type(scope): description
-          9. Reference this issue in your commits: Fixes #${ISSUE_NUM}
-
-          ## Testing Environment Notes
-
-          When running tests with pytest, you may encounter:
-          - ModuleNotFoundError: No module named 'homeassistant'
-
-          This is expected - the pytest-homeassistant-custom-component plugin provides
-          the Home Assistant test fixtures. Use the fixtures from conftest.py and mock
-          any direct HA imports in your tests.
-
-          ## Quality Checks
-
-          Run: ./run_checks.sh
-
-          This runs ruff, bandit, mypy, and pytest. ALL checks must pass.
-
-          ## Branch Strategy
-
-          Create a feature branch from beta:
-          - feat/cursor-${ISSUE_NUM}-description
-          - fix/cursor-${ISSUE_NUM}-description
-          - refactor/cursor-${ISSUE_NUM}-description"
+          ## Your Task
+          1. Implement the requested changes
+          2. Write tests - ALWAYS include: from unittest.mock import MagicMock, AsyncMock, patch
+          3. Run ./run_checks.sh - ALL checks must pass
+          4. Create PR with: Fixes #${ISSUE_NUM}"
 
           # Call Cursor API
           BRANCH_NAME="cursor/${ISSUE_NUM}-task"
@@ -191,8 +171,7 @@ jobs:
     needs: [check-cursor-task, launch-cursor]
     if: failure()
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
+    # Inherits permissions from workflow level
     steps:
       - name: Comment on issue - Error
         env:
