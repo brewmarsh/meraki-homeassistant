@@ -97,11 +97,12 @@ jobs:
           ${ISSUE_BODY}
 
           Steps:
-          1. Read AGENTS.md for project patterns
-          2. Implement the task following existing code patterns
-          3. Run ./run_checks.sh - must pass
-          4. Update issue: gh issue comment ${ISSUE_NUM} --body 'Done: <what> | Files: <list>'
-          5. Create PR with: Fixes #${ISSUE_NUM}
+          1. Read issue #${ISSUE_NUM} comments for any prior context
+          2. Read AGENTS.md for project patterns
+          3. Implement the task following existing code patterns
+          4. Run ./run_checks.sh - must pass
+          5. Update issue: gh issue comment ${ISSUE_NUM} --body 'Done: <what> | Files: <list>'
+          6. Create PR with: Fixes #${ISSUE_NUM}
 
           Constraints: Follow existing code style. All tests must pass."
 

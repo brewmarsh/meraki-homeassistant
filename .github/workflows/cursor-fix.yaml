@@ -252,11 +252,12 @@ jobs:
           Requirements: ${ISSUE_BODY:-See issue}
 
           Steps:
-          1. Read AGENTS.md for project patterns
-          2. Review code quality, patterns, and test coverage
-          3. Run ./run_checks.sh - must pass
-          4. Update issue: gh issue comment $ISSUE_NUM --body 'Review: <findings>'
-          5. Create PR targeting $BRANCH
+          1. Read issue #$ISSUE_NUM comments for context from previous agents
+          2. Read AGENTS.md for project patterns
+          3. Review code quality, patterns, and test coverage
+          4. Run ./run_checks.sh - must pass
+          5. Update issue: gh issue comment $ISSUE_NUM --body 'Review: <findings>'
+          6. Create PR targeting $BRANCH
 
           Constraints: Don't add unrelated changes. All tests must pass."
 
@@ -432,12 +433,13 @@ jobs:
             \`\`\`
 
             Steps:
-            1. Run ./run_checks.sh to reproduce errors
-            2. Read AGENTS.md for project patterns
-            3. Fix ONLY the errors shown above
-            4. Run ./run_checks.sh - must pass
-            5. Commit: fix(cursor): resolve CI errors
-            6. Update issue: gh issue comment $ISSUE_NUM --body 'Fixed: <what> because <why>'
+            1. Read issue #$ISSUE_NUM comments for context from previous attempts
+            2. Run ./run_checks.sh to reproduce errors
+            3. Read AGENTS.md for project patterns
+            4. Fix ONLY the errors shown above
+            5. Run ./run_checks.sh - must pass
+            6. Commit: fix(cursor): resolve CI errors
+            7. Update issue: gh issue comment $ISSUE_NUM --body 'Fixed: <what> because <why>'
 
             Constraints: Push to $BRANCH (no new PR). Don't refactor unrelated code."
 

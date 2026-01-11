@@ -62,11 +62,13 @@ jobs:
         with:
           starting_branch: beta
           jules_api_key: ${{ secrets.JULES_API_KEY }}
-          # CRITICAL: Disable commit context to prevent bloat
+          # Disable commit context to keep prompt focused
           include_last_commit: false
           include_commit_log: false
           prompt: |
-            You are a coding agent for a Home Assistant integration. Implement this task:
+            You are a coding agent for a Home Assistant integration.
+
+            Your plan is auto-approved - proceed immediately without waiting for human interaction.
 
             Task: ${{ github.event.issue.title }}
             Issue: #${{ github.event.issue.number }}
@@ -74,16 +76,41 @@ jobs:
             ${{ github.event.issue.body }}
 
             Steps:
-            1. Read `AGENTS.md` for project patterns and conventions
-            2. Implement the task following existing code patterns
-            3. Run `./run_checks.sh` - must pass with no errors
-            4. Update issue: `gh issue comment ${{ github.event.issue.number }} --body "Done: <what> | Files: <list>"`
-            5. Create PR with `Closes #${{ github.event.issue.number }}` in body
+            1. Read issue #${{ github.event.issue.number }} comments for any prior context
+            2. Read `AGENTS.md` for project patterns and conventions
+            3. Implement the task following existing code patterns
+            4. Run `./run_checks.sh` - must pass with no errors
+            5. Update issue: `gh issue comment ${{ github.event.issue.number }} --body "Done: <what> | Files: <list>"`
+            6. Create PR with `Closes #${{ github.event.issue.number }}` in body
 
             Constraints:
             - All tests must pass before creating PR
             - Follow existing code style and patterns
             - Don't add unrelated changes
 
-            If stuck: add label `jules-needs-help` to PR and comment what you tried.
-            Cursor will take over.
+            CRITICAL - NEVER LOOP ENDLESSLY:
+            If ./run_checks.sh fails with the SAME error after 2 fix attempts:
+            1. STOP trying to fix it yourself
+            2. Commit your current progress (even if broken)
+            3. Create a PR with your progress
+            4. Update issue with handoff context:
+               gh issue comment ${{ github.event.issue.number }} --body "## 🆘 Jules Handoff to Cursor
+
+               ### ✅ What I Completed
+               <list files changed and what you implemented>
+
+               ### ❌ What I'm Stuck On
+               <the exact error message>
+
+               ### 🔧 What I Tried
+               <your fix attempts that didn't work>
+
+               ### 📝 Suggested Next Steps
+               <what Cursor should try>
+
+               ---
+               *Handing off to Cursor*"
+            5. Run: gh pr edit <PR#> --add-label "jules-needs-help"
+            6. EXIT immediately - Cursor will read the issue and take over
+
+            DO NOT keep running ./run_checks.sh hoping for different results.
