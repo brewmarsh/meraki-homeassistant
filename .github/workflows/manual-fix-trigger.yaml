@@ -224,18 +224,29 @@ jobs:
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           starting_branch: ${{ steps.pr.outputs.pr_branch }}
+          # CRITICAL: Disable commit context to prevent bloat
+          include_last_commit: false
+          include_commit_log: false
           prompt: |
-            ## CI Fix - PR #${{ steps.pr.outputs.pr_number }}
-            Issue: #${{ steps.pr.outputs.issue_number }} | Branch: ${{ steps.pr.outputs.pr_branch }}
+            You are a CI fix agent for a Home Assistant integration. Fix the failing CI.
 
-            Failed: ${{ steps.ci.outputs.failed_jobs }}
+            PR: #${{ steps.pr.outputs.pr_number }}
+            Issue: #${{ steps.pr.outputs.issue_number }}
+            Failed jobs: ${{ steps.ci.outputs.failed_jobs }}
 
-            ---
-            1. Read AGENTS.md
-            2. Run ./run_checks.sh
-            3. Fix errors
-            4. Update issue: `gh issue comment ${{ steps.pr.outputs.issue_number }} --body '## 🔧 Fixed: <what/why>'`
-            5. Commit: fix(jules): resolve CI errors
+            Steps:
+            1. Run `./run_checks.sh` to reproduce errors locally
+            2. Read `AGENTS.md` for project patterns
+            3. Fix ONLY the CI errors
+            4. Run `./run_checks.sh` again - must pass with no errors
+            5. Commit: `fix(jules): resolve CI errors`
+            6. Update issue: `gh issue comment ${{ steps.pr.outputs.issue_number }} --body "Fixed: <what> because <why>"`
+
+            Constraints:
+            - Don't refactor unrelated code
+            - All tests must pass before committing
+
+            If stuck: add label `jules-needs-help` and comment what you tried.
 
       - name: Invoke Cursor to fix
         if: steps.action.outputs.action == 'cursor-fix'
@@ -258,19 +269,24 @@ jobs:
             --repo "${{ github.repository }}" \
             --add-label "cursor-reviewing" 2>/dev/null || true
 
-          PROMPT="## CI Fix - PR #$PR_NUMBER
-          Issue: #$ISSUE_NUM | Branch: $PR_BRANCH (push here)
+          PROMPT="You are a CI fix agent for a Home Assistant integration.
 
+          PR: #$PR_NUMBER | Issue: #$ISSUE_NUM | Branch: $PR_BRANCH
+
+          Error logs:
           \`\`\`
           $CI_ERRORS
           \`\`\`
 
-          ---
-          1. Read AGENTS.md
-          2. Run ./run_checks.sh
-          3. Fix errors
-          4. Update issue: \`gh issue comment $ISSUE_NUM --body '## 🔧 Fixed: <what/why>'\`
-          5. Commit: fix(cursor): resolve CI errors"
+          Steps:
+          1. Run ./run_checks.sh to reproduce errors
+          2. Read AGENTS.md for project patterns
+          3. Fix ONLY the errors shown above
+          4. Run ./run_checks.sh - must pass
+          5. Commit: fix(cursor): resolve CI errors
+          6. Update issue: gh issue comment $ISSUE_NUM --body 'Fixed: <what> because <why>'
+
+          Constraints: Push to $PR_BRANCH. Don't create a new PR."
 
           ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
 
@@ -324,17 +340,20 @@ jobs:
             --repo "${{ github.repository }}" \
             --add-label "cursor-reviewing" 2>/dev/null || true
 
-          PROMPT="## Code Review - PR #$PR_NUMBER
-          Issue: #$ISSUE_NUM | From: $PR_BRANCH → $CURSOR_BRANCH
+          PROMPT="You are a code review agent for a Home Assistant integration.
 
+          PR: #$PR_NUMBER | Issue: #$ISSUE_NUM
+          Source: $PR_BRANCH | Target: $CURSOR_BRANCH
           Requirements: ${ISSUE_BODY:-See issue}
 
-          ---
-          1. Read AGENTS.md, issue #$ISSUE_NUM comments
-          2. Review code quality
-          3. Run ./run_checks.sh
-          4. Update issue: \`gh issue comment $ISSUE_NUM --body '## 🔍 Review: <findings>'\`
-          5. Create PR → $PR_BRANCH"
+          Steps:
+          1. Read AGENTS.md for project patterns
+          2. Review code quality, patterns, and test coverage
+          3. Run ./run_checks.sh - must pass
+          4. Update issue: gh issue comment $ISSUE_NUM --body 'Review: <findings>'
+          5. Create PR targeting $PR_BRANCH
+
+          Constraints: Don't add unrelated changes. All tests must pass."
 
           ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
 

@@ -89,17 +89,21 @@ jobs:
           ISSUE_BODY=$(gh issue view "$ISSUE_NUM" --repo "${{ github.repository }}" --json body -q '.body' || echo "")
 
           # Build the prompt for Cursor
-          PROMPT="## Task: ${ISSUE_TITLE}
+          PROMPT="You are a coding agent for a Home Assistant integration.
+
+          Task: ${ISSUE_TITLE}
           Issue: #${ISSUE_NUM}
 
           ${ISSUE_BODY}
 
-          ---
-          1. Read AGENTS.md, DEVELOPMENT.md
-          2. Implement the task
-          3. Run ./run_checks.sh
-          4. Update issue: \`gh issue comment ${ISSUE_NUM} --body '## 🔧 Done: <what/why>'\`
-          5. Create PR with: Fixes #${ISSUE_NUM}"
+          Steps:
+          1. Read AGENTS.md for project patterns
+          2. Implement the task following existing code patterns
+          3. Run ./run_checks.sh - must pass
+          4. Update issue: gh issue comment ${ISSUE_NUM} --body 'Done: <what> | Files: <list>'
+          5. Create PR with: Fixes #${ISSUE_NUM}
+
+          Constraints: Follow existing code style. All tests must pass."
 
           # Call Cursor API
           BRANCH_NAME="cursor/${ISSUE_NUM}-task"

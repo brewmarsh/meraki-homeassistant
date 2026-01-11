@@ -148,17 +148,20 @@ jobs:
 
           ISSUE_NUM="${{ steps.pr.outputs.issue_number }}"
 
-          PROMPT="## Code Review - PR #${{ steps.pr.outputs.number }}
-          Issue: #$ISSUE_NUM | From: $JULES_BRANCH → $CURSOR_BRANCH
+          PROMPT="You are a code review agent for a Home Assistant integration.
 
+          PR: #${{ steps.pr.outputs.number }} | Issue: #$ISSUE_NUM
+          Source: $JULES_BRANCH | Target: $CURSOR_BRANCH
           Requirements: ${ISSUE_BODY:-See issue}
 
-          ---
-          1. Read AGENTS.md, DEVELOPMENT.md, issue #$ISSUE_NUM comments
-          2. Review Jules' implementation
-          3. Run ./run_checks.sh
-          4. Update issue: \`gh issue comment $ISSUE_NUM --body '## 🔍 Review: <findings>'\`
-          5. Create PR → $JULES_BRANCH"
+          Steps:
+          1. Read AGENTS.md for project patterns
+          2. Review implementation quality and test coverage
+          3. Run ./run_checks.sh - must pass
+          4. Update issue: gh issue comment $ISSUE_NUM --body 'Review: <findings>'
+          5. Create PR targeting $JULES_BRANCH
+
+          Constraints: Don't add unrelated changes. All tests must pass."
 
           ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
 
