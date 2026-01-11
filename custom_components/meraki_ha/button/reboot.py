@@ -7,7 +7,6 @@ for rebooting Meraki devices.
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, cast
 
 from homeassistant.components.button import ButtonEntity
@@ -15,12 +14,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..helpers.device_info_helpers import resolve_device_info
+from ..helpers.logging_helper import MerakiLoggers
 
 if TYPE_CHECKING:
     from ..services.device_control_service import DeviceControlService
     from ..types import MerakiDevice
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SWITCH
 
 
 class MerakiRebootButton(ButtonEntity):

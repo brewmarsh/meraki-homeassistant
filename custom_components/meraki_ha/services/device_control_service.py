@@ -7,13 +7,14 @@ handling device-specific control actions.
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
+
+from ..helpers.logging_helper import MerakiLoggers
 
 if TYPE_CHECKING:
     from ..core.repository import MerakiRepository
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.MAIN
 
 
 class DeviceControlService:

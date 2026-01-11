@@ -27,6 +27,7 @@ from .const import (
 from .schemas import (
     SCHEMA_CAMERA,
     SCHEMA_DISPLAY_PREFERENCES,
+    SCHEMA_LOGGING,
     SCHEMA_NETWORK_SELECTION,
     SCHEMA_POLLING,
 )
@@ -86,6 +87,7 @@ class MerakiOptionsFlowHandler(OptionsFlow):
                 "scanning_api",
                 "display_preferences",
                 "notifications",
+                "logging",
             ],
         )
 
@@ -94,21 +96,43 @@ class MerakiOptionsFlowHandler(OptionsFlow):
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
         """Handle Scanning API settings."""
+        from .const import (
+            CONF_SCANNING_API_EXTERNAL_URL,
+            CONF_SCANNING_API_VALIDATOR,
+            DEFAULT_SCANNING_API_EXTERNAL_URL,
+            DEFAULT_SCANNING_API_VALIDATOR,
+        )
         from .core.errors import MerakiConnectionError
         from .schemas import SCHEMA_SCANNING_API
         from .webhook import get_webhook_url
-
-        # Try to get webhook URL, provide helpful message if not available
-        try:
-            webhook_url = get_webhook_url(self.hass, self.config_entry.entry_id)
-        except MerakiConnectionError as err:
-            webhook_url = f"⚠️ {err}"
 
         if user_input is not None:
             self.options.update(user_input)
             return self.async_create_entry(
                 title=CONF_INTEGRATION_TITLE, data=self.options
             )
+
+        # Get current options for URL generation
+        custom_url = self.options.get(
+            CONF_SCANNING_API_EXTERNAL_URL, DEFAULT_SCANNING_API_EXTERNAL_URL
+        )
+        validator = self.options.get(
+            CONF_SCANNING_API_VALIDATOR, DEFAULT_SCANNING_API_VALIDATOR
+        )
+
+        # Generate the full webhook URL to display to the user
+        try:
+            # Use custom URL if provided, otherwise use HA's external URL
+            base_webhook_url = get_webhook_url(
+                self.hass, self.config_entry.entry_id, custom_url or None
+            )
+            # Append validator to the URL if configured
+            if validator:
+                webhook_url = f"{base_webhook_url}/{validator}"
+            else:
+                webhook_url = f"{base_webhook_url}/YOUR_VALIDATOR_HERE"
+        except MerakiConnectionError as err:
+            webhook_url = f"⚠️ {err}"
 
         schema_with_defaults = self._populate_schema_defaults(
             SCHEMA_SCANNING_API,
@@ -233,6 +257,31 @@ class MerakiOptionsFlowHandler(OptionsFlow):
             description_placeholders={
                 "message": "Notification settings will be available in a future update."
             },
+        )
+
+    async def async_step_logging(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Handle logging settings."""
+        from .helpers.logging_helper import apply_log_levels
+
+        if user_input is not None:
+            self.options.update(user_input)
+            # Apply the log levels immediately
+            apply_log_levels(self.options)
+            return self.async_create_entry(
+                title=CONF_INTEGRATION_TITLE, data=self.options
+            )
+
+        schema_with_defaults = self._populate_schema_defaults(
+            SCHEMA_LOGGING,
+            self.options,
+        )
+
+        return self.async_show_form(
+            step_id="logging",
+            data_schema=schema_with_defaults,
         )
 
     async def async_step_mqtt(

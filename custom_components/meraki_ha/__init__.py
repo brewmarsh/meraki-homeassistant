@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import logging
 import secrets
 from datetime import timedelta
 
+from homeassistant.components import webhook as ha_webhook
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ConfigEntryNotReady
@@ -19,6 +19,7 @@ from .const import (
     CONF_MERAKI_ORG_ID,
     CONF_MQTT_RELAY_DESTINATIONS,
     CONF_SCAN_INTERVAL,
+    CONF_SCANNING_API_VALIDATOR,
     CONF_WEB_UI_PORT,
     DATA_CLIENT,
     DEFAULT_ENABLE_MQTT,
@@ -26,6 +27,7 @@ from .const import (
     DEFAULT_ENABLE_WEB_UI,
     DEFAULT_MQTT_RELAY_DESTINATIONS,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SCANNING_API_VALIDATOR,
     DEFAULT_WEB_UI_PORT,
     DOMAIN,
     PLATFORMS,
@@ -44,6 +46,7 @@ from .frontend import (
     async_register_static_path,
     async_unregister_frontend,
 )
+from .helpers.logging_helper import MerakiLoggers
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .services.mqtt_relay import MqttRelayManager
@@ -52,11 +55,32 @@ from .services.network_control_service import NetworkControlService
 from .web_api import async_setup_api
 from .web_server import MerakiWebServer
 from .webhook import (
+    async_handle_scanning_api,
+    async_handle_webhook,
     async_register_webhook,
     async_unregister_webhook,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.MAIN
+
+
+def _create_scanning_api_handler(config_entry_id: str):
+    """Create a webhook handler closure for the Scanning API.
+
+    This creates a handler function that captures the config_entry_id,
+    allowing proper routing of webhook requests to the correct integration instance.
+    """
+    from aiohttp import web
+
+    async def handler(
+        hass: HomeAssistant,
+        webhook_id: str,
+        request: web.Request,
+    ) -> web.Response:
+        """Handle incoming Scanning API webhook requests."""
+        return await async_handle_scanning_api(hass, config_entry_id, request)
+
+    return handler
 
 
 def _register_organization_device(
@@ -234,6 +258,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """
     hass.data.setdefault(DOMAIN, {})
     entry_data = hass.data.setdefault(DOMAIN, {}).setdefault(entry.entry_id, {})
+
+    # Apply user-configured log levels for feature loggers
+    from .helpers.logging_helper import apply_log_levels
+
+    apply_log_levels(dict(entry.options))
 
     try:
         if DATA_CLIENT not in entry_data:
@@ -440,19 +469,58 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    # Register webhooks for legacy alerts if enabled
-    # Note: Scanning API does not use programmatic registration
-    if "webhook_id" not in entry.data and not entry.options.get(
+    # Register webhook with Home Assistant for Scanning API or legacy alerts
+    scanning_api_enabled = entry.options.get(
         CONF_ENABLE_SCANNING_API, DEFAULT_ENABLE_SCANNING_API
-    ):
+    )
+
+    if scanning_api_enabled:
+        # Register Scanning API webhook with Home Assistant
+        # The webhook ID includes the validator so the full URL is:
+        # /api/webhook/{config_entry_id}/{validator}
+        validator = entry.options.get(
+            CONF_SCANNING_API_VALIDATOR, DEFAULT_SCANNING_API_VALIDATOR
+        )
+        if validator:
+            # Compound webhook ID: entry_id/validator
+            scanning_webhook_id = f"{entry.entry_id}/{validator}"
+            ha_webhook.async_register(
+                hass,
+                DOMAIN,
+                "Meraki Scanning API",
+                scanning_webhook_id,
+                _create_scanning_api_handler(entry.entry_id),
+                allowed_methods=["GET", "POST"],
+            )
+            # Store the webhook_id for cleanup on unload
+            entry_data["scanning_webhook_id"] = scanning_webhook_id
+            _LOGGER.info(
+                "Registered Scanning API webhook: /api/webhook/%s",
+                scanning_webhook_id,
+            )
+        else:
+            _LOGGER.warning(
+                "Scanning API enabled but no validator configured for %s",
+                entry.entry_id,
+            )
+    elif "webhook_id" not in entry.data:
+        # Register legacy alerts webhook
         webhook_id = entry.entry_id
         secret = secrets.token_hex(16)
+        ha_webhook.async_register(
+            hass,
+            DOMAIN,
+            "Meraki Alerts",
+            webhook_id,
+            async_handle_webhook,
+        )
         await async_register_webhook(
             hass, webhook_id, secret, api_client, entry, entry.entry_id
         )
         hass.config_entries.async_update_entry(
             entry, data={**entry.data, "webhook_id": webhook_id, "secret": secret}
         )
+        _LOGGER.info("Registered legacy alerts webhook for config entry %s", webhook_id)
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
@@ -488,7 +556,17 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             server = entry_data["web_server"]
             await server.stop()
 
+        # Unregister Scanning API webhook
+        if "scanning_webhook_id" in entry_data:
+            ha_webhook.async_unregister(hass, entry_data["scanning_webhook_id"])
+            _LOGGER.info(
+                "Unregistered Scanning API webhook: %s",
+                entry_data["scanning_webhook_id"],
+            )
+
+        # Unregister legacy alerts webhook
         if "webhook_id" in entry.data:
+            ha_webhook.async_unregister(hass, entry.data["webhook_id"])
             api_client = entry_data[DATA_CLIENT]
             await async_unregister_webhook(hass, entry.entry_id, api_client)
 

@@ -1,6 +1,5 @@
 """Helper function for setting up all sensor entities."""
 
-import logging
 from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.config_entries import ConfigEntry
@@ -11,6 +10,7 @@ from ..const import (
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_ENABLE_VLAN_MANAGEMENT,
 )
+from ..helpers.logging_helper import MerakiLoggers
 from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..sensor_registry import (
     COMMON_SENSORS_COORD_DEV_CONF,
@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from ..services.camera_service import CameraService
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SENSOR
 
 
 def _setup_device_sensors(

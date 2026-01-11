@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
@@ -12,13 +11,14 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...helpers.device_info_helpers import resolve_device_info
+from ...helpers.logging_helper import MerakiLoggers
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.CAMERA
 
 
 class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):  # type: ignore[type-arg]

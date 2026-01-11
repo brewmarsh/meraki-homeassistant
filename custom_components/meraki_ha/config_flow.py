@@ -1,6 +1,5 @@
 """Config flow for the Meraki Home Assistant integration."""
 
-import logging
 from collections.abc import Mapping
 from typing import Any
 
@@ -24,10 +23,11 @@ from .const import (
     DOMAIN,
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
+from .helpers.logging_helper import MerakiLoggers
 from .options_flow import MerakiOptionsFlowHandler
 from .schemas import CONFIG_SCHEMA, SCHEMA_NETWORK_SELECTION
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.MAIN
 
 
 class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg]

@@ -225,6 +225,12 @@ DEFAULT_SCANNING_API_VALIDATOR: Final = ""
 DEFAULT_SCANNING_API_SECRET: Final = ""
 """Default value for Scanning API secret."""
 
+CONF_SCANNING_API_EXTERNAL_URL: Final = "scanning_api_external_url"
+"""Configuration key for custom external URL for Scanning API webhook."""
+
+DEFAULT_SCANNING_API_EXTERNAL_URL: Final = ""
+"""Default value for custom external URL (empty = use HA's external URL)."""
+
 CONF_ENABLE_MQTT: Final = "enable_mqtt"
 """Configuration key for enabling MQTT functionality."""
 
@@ -271,6 +277,58 @@ MERAKI_MQTT_TOPIC_PREFIX: Final = "meraki/v1"
 
 MERAKI_MQTT_MT_TOPIC_PATTERN: Final = "meraki/v1/mt/#"
 """Topic pattern for MT sensor data."""
+
+# Logging Configuration
+CONF_LOG_LEVEL_MQTT: Final = "log_level_mqtt"
+"""Configuration key for MQTT log level."""
+
+CONF_LOG_LEVEL_ALERTS: Final = "log_level_alerts"
+"""Configuration key for webhook alerts log level."""
+
+CONF_LOG_LEVEL_SCANNING_API: Final = "log_level_scanning_api"
+"""Configuration key for Scanning API log level."""
+
+CONF_LOG_LEVEL_API: Final = "log_level_api"
+"""Configuration key for API log level."""
+
+CONF_LOG_LEVEL_COORDINATOR: Final = "log_level_coordinator"
+"""Configuration key for coordinator log level."""
+
+CONF_LOG_LEVEL_DEVICE_TRACKER: Final = "log_level_device_tracker"
+"""Configuration key for device tracker log level."""
+
+CONF_LOG_LEVEL_DISCOVERY: Final = "log_level_discovery"
+"""Configuration key for discovery log level."""
+
+CONF_LOG_LEVEL_CAMERA: Final = "log_level_camera"
+"""Configuration key for camera log level."""
+
+CONF_LOG_LEVEL_SENSOR: Final = "log_level_sensor"
+"""Configuration key for sensor log level."""
+
+CONF_LOG_LEVEL_SWITCH: Final = "log_level_switch"
+"""Configuration key for switch/select/number/text entity log level."""
+
+CONF_LOG_LEVEL_FRONTEND: Final = "log_level_frontend"
+"""Configuration key for frontend panel log level."""
+
+LOG_LEVEL_DEBUG: Final = "debug"
+"""Debug log level - most verbose."""
+
+LOG_LEVEL_INFO: Final = "info"
+"""Info log level - normal operation."""
+
+LOG_LEVEL_WARNING: Final = "warning"
+"""Warning log level - only warnings and errors."""
+
+LOG_LEVEL_ERROR: Final = "error"
+"""Error log level - only errors."""
+
+LOG_LEVEL_CRITICAL: Final = "critical"
+"""Critical log level - only critical errors."""
+
+DEFAULT_LOG_LEVEL: Final = LOG_LEVEL_INFO
+"""Default log level for all features."""
 
 # Platform types
 PLATFORM_BINARY_SENSOR: Final = "binary_sensor"

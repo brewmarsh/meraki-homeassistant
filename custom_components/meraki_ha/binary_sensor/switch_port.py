@@ -1,6 +1,5 @@
 """Binary sensor for Meraki switch port status."""
 
-import logging
 from collections.abc import Mapping
 from typing import Any
 
@@ -14,9 +13,10 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..helpers.device_info_helpers import resolve_device_info
 from ..helpers.entity_helpers import get_device_from_coordinator
+from ..helpers.logging_helper import MerakiLoggers
 from ..meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SENSOR
 
 
 class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):  # type: ignore[type-arg]

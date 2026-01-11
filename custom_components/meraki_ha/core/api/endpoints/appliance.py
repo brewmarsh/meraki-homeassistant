@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
-import meraki
 from homeassistant.core import HomeAssistant
+from meraki.exceptions import AsyncAPIError
 
 from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
@@ -14,13 +13,14 @@ from custom_components.meraki_ha.core.utils.api_utils import (
 )
 
 from ....core.errors import MerakiVlansDisabledError
+from ....helpers.logging_helper import MerakiLoggers
 from ..cache import async_timed_cache
 
 if TYPE_CHECKING:
     from ..client import MerakiAPIClient
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.API
 
 
 class ApplianceEndpoints:
@@ -91,7 +91,7 @@ class ApplianceEndpoints:
                 _LOGGER.warning("get_network_vlans did not return a list")
                 return []
             return validated
-        except meraki.aio.AsyncAPIError as e:
+        except AsyncAPIError as e:
             if "VLANs are not enabled for this network" in str(e):
                 raise MerakiVlansDisabledError from e
             raise

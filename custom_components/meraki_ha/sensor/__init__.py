@@ -10,7 +10,6 @@ providing separate entities for VLAN, SSID, connected device, and data usage.
 from __future__ import annotations
 
 import asyncio
-import logging
 from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import SensorEntity
@@ -19,6 +18,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import CONF_ENABLE_DEVICE_TRACKER, DOMAIN
+from ..helpers.logging_helper import MerakiLoggers
 
 if TYPE_CHECKING:
     from ..meraki_data_coordinator import MerakiDataCoordinator
@@ -58,7 +58,7 @@ __all__ = [
 ]
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SENSOR
 
 
 async def async_setup_entry(

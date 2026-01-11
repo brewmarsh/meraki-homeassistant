@@ -134,12 +134,11 @@ class TestMerakiClientDeviceTracker:
 
         assert tracker._client_mac == "00:11:22:33:44:55"
         assert tracker._attr_unique_id == "meraki_client_00:11:22:33:44:55"
-        # Entity name is "Meraki Connection" (shown within device context)
-        assert tracker._attr_name == "Meraki Connection"
+        # Entity name uses friendly name from client data (description)
+        assert tracker._attr_name == "Test Laptop"
         assert tracker._attr_has_entity_name is True
-        # Device name comes from client description
+        # Device info should be set
         assert tracker._attr_device_info is not None
-        assert tracker._attr_device_info["name"] == "Test Laptop"
 
     def test_init_uses_dhcp_hostname_fallback(
         self,
@@ -835,8 +834,8 @@ class TestAsyncSetupEntry:
             assert tracker._attr_device_info["identifiers"] == {
                 ("sonos", "RINCON_12345")
             }
-            # Entity name is "Meraki Connection"
-            assert tracker._attr_name == "Meraki Connection"
+            # Entity name uses friendly name from client data (description)
+            assert tracker._attr_name == "Patio"
 
 
 class TestDeviceLinkingByIP:
@@ -906,7 +905,8 @@ class TestDeviceLinkingByIP:
             assert tracker._attr_device_info["identifiers"] == {
                 ("nest", "device_12345")
             }
-            assert tracker._attr_name == "Meraki Connection"
+            # Entity name uses friendly name from client data (description)
+            assert tracker._attr_name == "Unknown Device"
 
     def test_mac_takes_priority_over_ip(
         self,

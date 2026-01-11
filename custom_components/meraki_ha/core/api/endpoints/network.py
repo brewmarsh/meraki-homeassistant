@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
-import meraki.aio
+from meraki.exceptions import AsyncAPIError
 
 from custom_components.meraki_ha.core.errors import MerakiTrafficAnalysisError
 from custom_components.meraki_ha.core.utils.api_utils import (
@@ -13,13 +12,14 @@ from custom_components.meraki_ha.core.utils.api_utils import (
     validate_response,
 )
 
+from ....helpers.logging_helper import MerakiLoggers
 from ..cache import async_timed_cache
 
 if TYPE_CHECKING:
     from ..client import MerakiAPIClient
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.API
 
 
 class NetworkEndpoints:
@@ -88,7 +88,7 @@ class NetworkEndpoints:
                 deviceType=device_type,
                 timespan=86400,  # 24 hours
             )
-        except meraki.aio.AsyncAPIError as e:
+        except AsyncAPIError as e:
             if "Traffic Analysis with Hostname Visibility must be enabled" in str(e):
                 _LOGGER.info(
                     "Traffic analysis is not enabled for network %s. "

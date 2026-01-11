@@ -6,15 +6,16 @@ This service is responsible for handling all network-level actions and data.
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
+
+from ..helpers.logging_helper import MerakiLoggers
 
 if TYPE_CHECKING:
     from ..core.api.client import MerakiAPIClient
     from ..meraki_data_coordinator import MerakiDataCoordinator
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.MAIN
 
 
 class NetworkControlService:

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import logging
 import time
 from collections.abc import Mapping
 from pathlib import Path
@@ -25,6 +24,7 @@ from .const import (
 from .core.utils.naming_utils import format_device_name
 from .helpers.device_info_helpers import resolve_device_info
 from .helpers.entity_helpers import format_entity_name
+from .helpers.logging_helper import MerakiLoggers
 from .meraki_data_coordinator import MerakiDataCoordinator
 
 if TYPE_CHECKING:
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     from .services.camera_service import CameraService
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.CAMERA
 
 # Storage file for camera mappings (shared with web_api.py)
 CAMERA_MAPPINGS_STORAGE = "meraki_camera_mappings.json"

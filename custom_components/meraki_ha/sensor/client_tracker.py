@@ -5,8 +5,6 @@ platform (device_tracker.py) using proper ScannerEntity implementation.
 This module only provides the total client count sensor.
 """
 
-import logging
-
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
@@ -15,9 +13,10 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..const import DOMAIN
 from ..core.utils.naming_utils import format_device_name
+from ..helpers.logging_helper import MerakiLoggers
 from ..meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.DEVICE_TRACKER
 
 CLIENT_TRACKER_DEVICE_ID = "client_tracker"
 

@@ -227,3 +227,141 @@ ci(workflow): add beta branch workflow
 ```
 
 **Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `build`, `ci`, `style`, `perf`, `chore`
+
+## 10. Debugging & Logging
+
+This integration uses a **centralized logging system** with feature-specific loggers that can be individually controlled to reduce log noise while debugging specific components.
+
+### 10.1. Basic Debug Logging
+
+Enable debug logging for the entire integration:
+
+```yaml
+logger:
+  default: info
+  logs:
+    custom_components.meraki_ha: debug
+```
+
+### 10.2. Feature-Specific Logging
+
+Control individual features to reduce noise from chatty components (like MQTT):
+
+```yaml
+logger:
+  default: info
+  logs:
+    # Main integration - shows general info
+    custom_components.meraki_ha: info
+
+    # Feature-specific logging:
+    custom_components.meraki_ha.mqtt: warning # Silence MQTT spam
+    custom_components.meraki_ha.alerts: debug # Debug webhook alerts
+    custom_components.meraki_ha.scanning_api: debug # Debug Scanning API (CMX)
+    custom_components.meraki_ha.api: debug # Debug Meraki cloud API calls
+    custom_components.meraki_ha.coordinator: info # Data polling updates
+    custom_components.meraki_ha.device_tracker: warning # Client tracking
+    custom_components.meraki_ha.discovery: info # Device/entity discovery
+    custom_components.meraki_ha.camera: debug # Camera snapshots/streams
+    custom_components.meraki_ha.switch: debug # Switch/toggle entities
+    custom_components.meraki_ha.sensor: info # Sensor updates
+    custom_components.meraki_ha.frontend: debug # Web panel/UI
+```
+
+### 10.3. Available Feature Loggers
+
+| Logger Name      | Description                                  |
+| ---------------- | -------------------------------------------- |
+| `mqtt`           | MQTT service for MT sensor real-time updates |
+| `alerts`         | Webhook alerts from Meraki Dashboard         |
+| `scanning_api`   | Scanning API (CMX) client presence updates   |
+| `api`            | Meraki cloud API calls                       |
+| `coordinator`    | Data coordinator polling and updates         |
+| `device_tracker` | Client device tracking                       |
+| `camera`         | Camera operations (snapshots, streams)       |
+| `sensor`         | Sensor entity updates                        |
+| `switch`         | Switch/toggle entity operations              |
+| `discovery`      | Device and entity discovery                  |
+| `frontend`       | Frontend panel and web UI                    |
+
+### 10.4. Example: Debug Scanning API Only
+
+If you're troubleshooting the Scanning API but don't want MQTT or alert logs:
+
+```yaml
+logger:
+  default: info
+  logs:
+    custom_components.meraki_ha: info
+    custom_components.meraki_ha.scanning_api: debug
+    custom_components.meraki_ha.alerts: warning # Silence alerts
+    custom_components.meraki_ha.mqtt: warning # Silence MQTT
+```
+
+### 10.5. Using Loggers in Code (For Developers)
+
+**Never use `logging.getLogger(__name__)`** in this codebase. Always use the centralized `MerakiLoggers` class:
+
+```python
+from custom_components.meraki_ha.helpers.logging_helper import MerakiLoggers
+
+# Choose the appropriate logger for your module:
+_LOGGER = MerakiLoggers.SENSOR  # For sensor modules
+
+def setup_my_sensor():
+    _LOGGER.info("Setting up sensor")
+    _LOGGER.debug("Detailed debug info: %s", some_data)
+```
+
+**Logger Selection Guide:**
+
+| Module Type                                | Logger to Use                  |
+| ------------------------------------------ | ------------------------------ |
+| `__init__.py`, config flows, hubs, helpers | `MerakiLoggers.MAIN`           |
+| `core/api/endpoints/`, API utils           | `MerakiLoggers.API`            |
+| Coordinators, repositories                 | `MerakiLoggers.COORDINATOR`    |
+| `services/mqtt_*.py`                       | `MerakiLoggers.MQTT`           |
+| Webhook handlers                           | `MerakiLoggers.ALERTS`         |
+| Scanning API                               | `MerakiLoggers.SCANNING_API`   |
+| `discovery/` handlers                      | `MerakiLoggers.DISCOVERY`      |
+| Camera platform                            | `MerakiLoggers.CAMERA`         |
+| Sensor entities                            | `MerakiLoggers.SENSOR`         |
+| Switch, select, number, text entities      | `MerakiLoggers.SWITCH`         |
+| Frontend, web server                       | `MerakiLoggers.FRONTEND`       |
+| Device tracker                             | `MerakiLoggers.DEVICE_TRACKER` |
+
+### 10.6. Performance Timing with `async_log_time`
+
+For async methods that may be slow (API calls, coordinator updates), use the `async_log_time` decorator:
+
+```python
+from custom_components.meraki_ha.async_logging import async_log_time
+from custom_components.meraki_ha.helpers.logging_helper import MerakiLoggers
+
+class MyApiClient:
+    @async_log_time(MerakiLoggers.API, slow_threshold=2.0)
+    async def get_devices(self) -> list[dict]:
+        """Fetch devices - logs timing, warns if > 2 seconds."""
+        return await self._api.get_devices()
+```
+
+**Decorator Parameters:**
+
+| Parameter        | Default             | Description                                                |
+| ---------------- | ------------------- | ---------------------------------------------------------- |
+| `logger`         | `MerakiLoggers.API` | Logger instance to use                                     |
+| `level`          | `logging.DEBUG`     | Log level for timing messages                              |
+| `slow_threshold` | `None`              | If set, logs warning when execution exceeds this (seconds) |
+
+### 10.7. Configurable Log Levels via Options Flow
+
+Users can configure log levels per feature in the integration's options. These settings are in `const.py`:
+
+```python
+CONF_LOG_LEVEL_MQTT = "log_level_mqtt"
+CONF_LOG_LEVEL_API = "log_level_api"
+CONF_LOG_LEVEL_COORDINATOR = "log_level_coordinator"
+# ... etc.
+```
+
+Log levels are applied at integration load via `apply_log_levels()` in `logging_helper.py`.

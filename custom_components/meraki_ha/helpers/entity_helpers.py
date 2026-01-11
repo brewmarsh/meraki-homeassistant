@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 from ..const import (
@@ -10,11 +9,12 @@ from ..const import (
     DEVICE_NAME_FORMAT_PREFIX,
     DEVICE_NAME_FORMAT_SUFFIX,
 )
+from .logging_helper import MerakiLoggers
 
 if TYPE_CHECKING:
     from ..meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.MAIN
 
 
 def format_entity_name(

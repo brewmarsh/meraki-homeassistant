@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
@@ -10,9 +9,10 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory, UnitOfDataRate
 
 from ...helpers.device_info_helpers import resolve_device_info
+from ...helpers.logging_helper import MerakiLoggers
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SENSOR
 
 
 class MerakiSSIDDetailSensor(SensorEntity):

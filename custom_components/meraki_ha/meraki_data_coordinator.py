@@ -1,6 +1,5 @@
 """Data update coordinator for the Meraki HA integration."""
 
-import logging
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
@@ -12,6 +11,7 @@ if TYPE_CHECKING:
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
+from .async_logging import async_log_time
 from .const import (
     CONF_CLIENT_SCAN_INTERVAL,
     CONF_DASHBOARD_DEVICE_TYPE_FILTER,
@@ -29,9 +29,14 @@ from .const import (
 )
 from .core.api.client import MerakiAPIClient as ApiClient
 from .core.errors import ApiClientCommunicationError
+from .helpers.logging_helper import MerakiLoggers
 from .types import MerakiDevice, MerakiNetwork
 
-_LOGGER = logging.getLogger(__name__)
+# Use feature-specific logger - can be configured independently via:
+# logger:
+#   logs:
+#     custom_components.meraki_ha.coordinator: warning
+_LOGGER = MerakiLoggers.COORDINATOR
 
 
 class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
@@ -826,6 +831,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         return set(enabled_network_ids)
 
+    @async_log_time(MerakiLoggers.COORDINATOR, slow_threshold=10.0)
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint based on tiered polling intervals."""
         now = datetime.now()

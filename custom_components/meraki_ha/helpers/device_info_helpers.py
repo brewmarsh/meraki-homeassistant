@@ -1,6 +1,5 @@
 """Helper functions for creating Home Assistant DeviceInfo objects."""
 
-import logging
 from collections.abc import Mapping
 from typing import Any
 
@@ -9,8 +8,9 @@ from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..const import DOMAIN
 from ..core.utils.naming_utils import format_device_name
+from .logging_helper import MerakiLoggers
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.MAIN
 
 
 def create_organization_device_info(

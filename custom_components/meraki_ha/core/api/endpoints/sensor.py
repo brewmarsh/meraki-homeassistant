@@ -2,13 +2,19 @@
 
 from __future__ import annotations
 
-import logging
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
+
+from custom_components.meraki_ha.core.utils.api_utils import (
+    handle_meraki_errors,
+    validate_response,
+)
+
+from ....helpers.logging_helper import MerakiLoggers
 
 if TYPE_CHECKING:
     from ..client import MerakiAPIClient
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.API
 
 
 class SensorEndpoints:
@@ -25,6 +31,7 @@ class SensorEndpoints:
         """
         self._client = client
 
+    @handle_meraki_errors
     async def create_device_sensor_command(
         self,
         serial: str,
@@ -48,8 +55,13 @@ class SensorEndpoints:
             return {}
         api = self._client.dashboard.sensor
         result = await api.createDeviceSensorCommand(serial=serial, operation=operation)
-        return cast(dict[str, Any], result)
+        validated = validate_response(result)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("create_device_sensor_command did not return a dict")
+            return {}
+        return validated
 
+    @handle_meraki_errors
     async def get_organization_sensor_readings_latest(
         self,
     ) -> list[dict[str, Any]]:
@@ -69,4 +81,10 @@ class SensorEndpoints:
             organizationId=self._client.organization_id,
             total_pages="all",
         )
-        return cast(list[dict[str, Any]], result)
+        validated = validate_response(result)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_organization_sensor_readings_latest did not return a list"
+            )
+            return []
+        return validated

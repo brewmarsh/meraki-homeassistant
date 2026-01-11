@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN
+from ..helpers.logging_helper import MerakiLoggers
 from .meraki_content_filtering import MerakiContentFilteringSelect
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SWITCH
 
 
 async def async_setup_entry(

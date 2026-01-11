@@ -1,7 +1,6 @@
 """Text platform for Meraki."""
 
 import asyncio
-import logging
 
 from homeassistant.components.text import TextEntity
 from homeassistant.config_entries import ConfigEntry
@@ -9,8 +8,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN
+from ..helpers.logging_helper import MerakiLoggers
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SWITCH
 
 
 async def async_setup_entry(

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
@@ -16,6 +15,7 @@ from .const import (
     DOMAIN,
 )
 from .core.errors import MerakiConnectionError
+from .helpers.logging_helper import MerakiLoggers
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -24,7 +24,13 @@ if TYPE_CHECKING:
     from .meraki_data_coordinator import MerakiDataCoordinator
 
 
-_LOGGER = logging.getLogger(__name__)
+# Use feature-specific loggers - can be configured independently via:
+# logger:
+#   logs:
+#     custom_components.meraki_ha.alerts: debug
+#     custom_components.meraki_ha.scanning_api: debug
+_LOGGER_ALERTS = MerakiLoggers.ALERTS
+_LOGGER_SCANNING = MerakiLoggers.SCANNING_API
 
 
 async def async_handle_scanning_api(
@@ -51,7 +57,7 @@ async def async_handle_scanning_api(
         try:
             data = await request.json()
         except ValueError:
-            _LOGGER.warning("Received invalid JSON in Scanning API webhook")
+            _LOGGER_SCANNING.warning("Received invalid JSON in Scanning API webhook")
             return web.Response(status=400)
 
         return await _handle_scanning_api_data(hass, config_entry_id, data)
@@ -86,7 +92,7 @@ async def _handle_scanning_api_data(
 
     secret = config_entry.options.get(CONF_SCANNING_API_SECRET)
     if not secret or data.get("secret") != secret:
-        _LOGGER.warning("Received Scanning API webhook with invalid secret")
+        _LOGGER_SCANNING.warning("Received Scanning API webhook with invalid secret")
         return web.Response(status=401)
 
     if data.get("type") == "DevicesSeen":
@@ -188,12 +194,12 @@ async def async_register_webhook(
         webhook_url = get_webhook_url(hass, webhook_id, webhook_url_from_entry)
         if config_entry_id:
             await api_client.register_webhook(webhook_url, secret)
-    except Exception as err:
-        _LOGGER.error("Failed to register webhook: %s", err)
+    except (MerakiConnectionError, ValueError, TypeError) as err:
+        _LOGGER_ALERTS.error("Failed to register webhook: %s", err)
 
 
 async def async_unregister_webhook(
-    hass: HomeAssistant,
+    _hass: HomeAssistant,
     config_entry_id: str,
     api_client: MerakiAPIClient,
 ) -> None:
@@ -202,8 +208,8 @@ async def async_unregister_webhook(
 
     Args:
     ----
-        hass: The Home Assistant instance.
-        webhook_url: The URL of the webhook to unregister.
+        _hass: The Home Assistant instance (unused, kept for API consistency).
+        config_entry_id: The config entry ID.
         api_client: The Meraki API client.
 
     """
@@ -236,32 +242,36 @@ async def async_handle_webhook(
     """
     try:
         data = await request.json()
-        _LOGGER.debug("Webhook %s received: %s", webhook_id, data)
     except ValueError:
-        _LOGGER.warning("Received invalid JSON in webhook %s", webhook_id)
+        _LOGGER_ALERTS.warning("Received invalid JSON in webhook %s", webhook_id)
         return web.Response(status=400)
 
     # Differentiate between Scanning API and legacy alerts webhook
     # The Scanning API payload has a "type" field (e.g., "DevicesSeen")
     # and a "secret" field, whereas legacy alerts have "sharedSecret".
     if "type" in data and "secret" in data:
+        _LOGGER_SCANNING.debug("Scanning API webhook %s received: %s", webhook_id, data)
         # Handle Scanning API data directly (request already parsed above)
         return await _handle_scanning_api_data(hass, webhook_id, data)
 
     # --- Legacy Alerts Webhook Handling ---
+    _LOGGER_ALERTS.debug("Alerts webhook %s received: %s", webhook_id, data)
+
     entry_data = hass.data.get(DOMAIN, {}).get(webhook_id)
     if not entry_data:
-        _LOGGER.warning("Received webhook for unknown config entry: %s", webhook_id)
+        _LOGGER_ALERTS.warning(
+            "Received webhook for unknown config entry: %s", webhook_id
+        )
         return web.Response(status=404)
 
     secret = entry_data.get("secret")
     if not secret or data.get("sharedSecret") != secret:
-        _LOGGER.warning("Received webhook with invalid secret: %s", webhook_id)
+        _LOGGER_ALERTS.warning("Received webhook with invalid secret: %s", webhook_id)
         return web.Response(status=401)
 
     coordinator = entry_data.get("coordinator")
     if not coordinator:
-        _LOGGER.warning("Coordinator not found for webhook: %s", webhook_id)
+        _LOGGER_ALERTS.warning("Coordinator not found for webhook: %s", webhook_id)
         return web.Response(status=500)
 
     alert_type = data.get("alertType")
@@ -270,7 +280,7 @@ async def async_handle_webhook(
         if device_serial and coordinator.data:
             for i, device in enumerate(coordinator.data.get("devices", [])):
                 if device.get("serial") == device_serial:
-                    _LOGGER.info(
+                    _LOGGER_ALERTS.info(
                         "Device %s reported as down via webhook",
                         device_serial,
                     )
@@ -283,7 +293,7 @@ async def async_handle_webhook(
         if client_mac and coordinator.data:
             for i, client in enumerate(coordinator.data.get("clients", [])):
                 if client.get("mac") == client_mac:
-                    _LOGGER.info(
+                    _LOGGER_ALERTS.info(
                         "Client %s connectivity changed via webhook",
                         client_mac,
                     )
@@ -293,6 +303,6 @@ async def async_handle_webhook(
                     coordinator.async_update_listeners()
                     break
     else:
-        _LOGGER.debug("Ignoring webhook alert type: %s", alert_type)
+        _LOGGER_ALERTS.debug("Ignoring webhook alert type: %s", alert_type)
 
     return web.Response(status=200)

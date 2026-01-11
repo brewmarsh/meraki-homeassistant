@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from collections.abc import Mapping
 from typing import Any
 
@@ -16,9 +15,10 @@ from ...core.utils.naming_utils import format_device_name
 from ...core.utils.network_utils import construct_rtsp_url
 from ...helpers.device_info_helpers import resolve_device_info
 from ...helpers.entity_helpers import format_entity_name
+from ...helpers.logging_helper import MerakiLoggers
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.CAMERA
 
 
 class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):

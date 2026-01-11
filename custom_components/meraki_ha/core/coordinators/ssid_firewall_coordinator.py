@@ -2,18 +2,20 @@
 
 from __future__ import annotations
 
-import logging
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+
+from ...async_logging import async_log_time
+from ...helpers.logging_helper import MerakiLoggers
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
     from ..api.client import MerakiAPIClient
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.COORDINATOR
 
 
 class SsidFirewallCoordinator(DataUpdateCoordinator[dict[str, Any]]):
@@ -43,6 +45,7 @@ class SsidFirewallCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=timedelta(seconds=interval),
         )
 
+    @async_log_time(MerakiLoggers.COORDINATOR, slow_threshold=3.0)
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch SSID firewall data from the API."""
         try:

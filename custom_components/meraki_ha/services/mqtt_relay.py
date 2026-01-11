@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import asyncio
 import fnmatch
-import logging
 import ssl
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -30,8 +29,9 @@ from ..const import (
     MQTT_DEST_USE_TLS,
     MQTT_DEST_USERNAME,
 )
+from ..helpers.logging_helper import MerakiLoggers
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.MQTT
 
 # Connection retry settings
 RETRY_INTERVAL_SECONDS = 30

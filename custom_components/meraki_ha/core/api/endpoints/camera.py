@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 from custom_components.meraki_ha.core.utils.api_utils import (
@@ -10,13 +9,14 @@ from custom_components.meraki_ha.core.utils.api_utils import (
     validate_response,
 )
 
+from ....helpers.logging_helper import MerakiLoggers
 from ..cache import async_timed_cache
 
 if TYPE_CHECKING:
     from ..client import MerakiAPIClient
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.API
 
 
 class CameraEndpoints:

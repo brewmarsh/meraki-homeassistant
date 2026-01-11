@@ -1,15 +1,15 @@
 """A self-hosted web server for the Meraki integration."""
 
-import logging
 import os
 
 import aiofiles
 from aiohttp import web
 from homeassistant.core import HomeAssistant
 
+from .helpers.logging_helper import MerakiLoggers
 from .meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.FRONTEND
 
 
 class MerakiWebServer:

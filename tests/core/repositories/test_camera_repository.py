@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from meraki.exceptions import AsyncAPIError
 
 from custom_components.meraki_ha.core.errors import MerakiInformationalError
 from custom_components.meraki_ha.core.repositories.camera_repository import (
@@ -117,7 +118,7 @@ class TestCameraRepository:
     async def test_get_analytics_data_error(self, mock_api_client: MagicMock) -> None:
         """Test get_analytics_data handles errors."""
         mock_api_client.camera.get_device_camera_analytics_recent.side_effect = (
-            Exception("API Error")
+            AsyncAPIError(MagicMock(), MagicMock(), "API Error")
         )
         repo = CameraRepository(mock_api_client, "org_123")
 
@@ -197,9 +198,9 @@ class TestCameraRepository:
     async def test_async_get_cloud_video_url_generic_error(
         self, mock_api_client: MagicMock
     ) -> None:
-        """Test async_get_cloud_video_url handles generic error."""
-        mock_api_client.camera.get_device_camera_video_link.side_effect = Exception(
-            "API Error"
+        """Test async_get_cloud_video_url handles API error."""
+        mock_api_client.camera.get_device_camera_video_link.side_effect = AsyncAPIError(
+            MagicMock(), MagicMock(), "API Error"
         )
         repo = CameraRepository(mock_api_client, "org_123")
 
@@ -246,7 +247,9 @@ class TestCameraRepository:
         self, mock_api_client: MagicMock
     ) -> None:
         """Test async_get_rtsp_stream_url returns None on device check error."""
-        mock_api_client.devices.get_device.side_effect = Exception("Device error")
+        mock_api_client.devices.get_device.side_effect = AsyncAPIError(
+            MagicMock(), MagicMock(), "Device error"
+        )
         repo = CameraRepository(mock_api_client, "org_123")
 
         result = await repo.async_get_rtsp_stream_url("CAM-1234")
@@ -289,7 +292,7 @@ class TestCameraRepository:
     ) -> None:
         """Test get_analytics_history handles errors."""
         mock_api_client.network.get_network_camera_analytics_history.side_effect = (
-            Exception("API Error")
+            AsyncAPIError(MagicMock(), MagicMock(), "API Error")
         )
         repo = CameraRepository(mock_api_client, "org_123")
 
@@ -312,8 +315,8 @@ class TestCameraRepository:
     @pytest.mark.asyncio
     async def test_generate_snapshot_error(self, mock_api_client: MagicMock) -> None:
         """Test generate_snapshot handles errors."""
-        mock_api_client.camera.generate_device_camera_snapshot.side_effect = Exception(
-            "API Error"
+        mock_api_client.camera.generate_device_camera_snapshot.side_effect = (
+            AsyncAPIError(MagicMock(), MagicMock(), "API Error")
         )
         repo = CameraRepository(mock_api_client, "org_123")
 
@@ -350,8 +353,8 @@ class TestCameraRepository:
         self, mock_api_client: MagicMock
     ) -> None:
         """Test set_rtsp_stream_enabled handles errors."""
-        mock_api_client.camera.update_camera_video_settings.side_effect = Exception(
-            "API Error"
+        mock_api_client.camera.update_camera_video_settings.side_effect = AsyncAPIError(
+            MagicMock(), MagicMock(), "API Error"
         )
         repo = CameraRepository(mock_api_client, "org_123")
 

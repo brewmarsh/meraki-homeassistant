@@ -1,16 +1,16 @@
 """Switch platform for Meraki."""
 
 import asyncio
-import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DATA_CLIENT, DOMAIN, PLATFORM_SWITCH
+from ..helpers.logging_helper import MerakiLoggers
 from .setup_helpers import async_setup_switches
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SWITCH
 
 
 async def async_setup_entry(

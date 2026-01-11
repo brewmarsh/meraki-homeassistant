@@ -7,10 +7,10 @@ virtual devices and entities for each Meraki SSID.
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 from ...const import CONF_ENABLE_SSID_SENSORS
+from ...helpers.logging_helper import MerakiLoggers
 from ...sensor.network.ssid_auth_mode import MerakiSSIDAuthModeSensor
 
 # Import the specific sensor classes
@@ -49,7 +49,7 @@ if TYPE_CHECKING:
     from ...meraki_data_coordinator import MerakiDataCoordinator
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.DISCOVERY
 
 
 class SSIDHandler(BaseHandler):

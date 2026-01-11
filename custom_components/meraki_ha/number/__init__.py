@@ -1,15 +1,14 @@
 """Number platform for Meraki."""
 
-import logging
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN, PLATFORM_NUMBER
+from ..helpers.logging_helper import MerakiLoggers
 from .setup_helpers import async_setup_numbers
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SWITCH
 
 
 async def async_setup_entry(

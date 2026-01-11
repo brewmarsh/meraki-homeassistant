@@ -8,7 +8,6 @@ MQTT integration and processing incoming sensor data.
 from __future__ import annotations
 
 import json
-import logging
 import re
 from collections.abc import Callable
 from datetime import datetime
@@ -18,12 +17,17 @@ from homeassistant.components import mqtt
 from homeassistant.core import HomeAssistant, callback
 
 from ..const import MERAKI_MQTT_MT_TOPIC_PATTERN
+from ..helpers.logging_helper import MerakiLoggers
 
 if TYPE_CHECKING:
     from ..meraki_data_coordinator import MerakiDataCoordinator
     from .mqtt_relay import MqttRelayManager
 
-_LOGGER = logging.getLogger(__name__)
+# Use feature-specific logger - can be silenced independently via:
+# logger:
+#   logs:
+#     custom_components.meraki_ha.mqtt: warning
+_LOGGER = MerakiLoggers.MQTT
 
 # Regex to parse Meraki MQTT topic structure
 # Format: meraki/v1/mt/{network_id}/ble/{sensor_mac}/{metric}

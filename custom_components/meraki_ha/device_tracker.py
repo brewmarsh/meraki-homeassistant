@@ -11,7 +11,6 @@ device instead of creating a duplicate.
 
 from __future__ import annotations
 
-import logging
 from typing import Any
 
 from homeassistant.components.device_tracker import SourceType
@@ -25,9 +24,14 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import CONF_ENABLE_DEVICE_TRACKER, DOMAIN
+from .helpers.logging_helper import MerakiLoggers
 from .meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+# Use feature-specific logger - can be configured independently via:
+# logger:
+#   logs:
+#     custom_components.meraki_ha.device_tracker: warning
+_LOGGER = MerakiLoggers.DEVICE_TRACKER
 
 
 def _get_friendly_client_name(client_data: dict[str, Any]) -> str:

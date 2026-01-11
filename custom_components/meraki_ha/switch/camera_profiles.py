@@ -1,6 +1,5 @@
 """Switch entities for controlling Meraki Camera profiles."""
 
-import logging
 from collections.abc import Mapping
 from typing import Any
 
@@ -10,9 +9,10 @@ from homeassistant.helpers.typing import UNDEFINED
 from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
 
 from ..core.api.client import MerakiAPIClient
+from ..helpers.logging_helper import MerakiLoggers
 from .camera_settings import MerakiCameraSettingSwitchBase
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.CAMERA
 
 
 class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):

@@ -7,7 +7,6 @@ and coordinator updates.
 
 from __future__ import annotations
 
-import logging
 from abc import abstractmethod
 from typing import Any
 
@@ -20,9 +19,10 @@ from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC, Device
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
+from ...helpers.logging_helper import MerakiLoggers
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.DEVICE_TRACKER
 
 
 def _find_existing_device_by_mac(

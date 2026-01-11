@@ -3,14 +3,14 @@
 import asyncio
 import functools
 import inspect
-import logging
 from collections.abc import Awaitable, Callable
 from json import JSONDecodeError
 from typing import Any, TypeVar, cast
 
 from aiohttp import ClientError
-from meraki.exceptions import APIError
+from meraki.exceptions import APIError, AsyncAPIError
 
+from ...helpers.logging_helper import MerakiLoggers
 from ..errors import (
     MerakiAuthenticationError,
     MerakiConnectionError,
@@ -24,7 +24,7 @@ from ..errors import (
 # Type variable for generic function return type
 T = TypeVar("T")
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.API
 
 
 def handle_meraki_errors(
@@ -60,8 +60,25 @@ def handle_meraki_errors(
             ):
                 return cast(T, [])
             return cast(T, {})
-        except APIError as err:
+        except (APIError, AsyncAPIError) as err:
             _raise_if_informational_error(err)
+
+            # Check if this is a retry limit error (transient network issue)
+            if _is_retry_limit_error(err):
+                _LOGGER.warning(
+                    "API call %s reached retry limit (possible network issue): %s",
+                    func.__name__,
+                    err,
+                )
+                # Return empty value for retry limit errors (graceful degradation)
+                sig = inspect.signature(func)
+                return_type = sig.return_annotation
+                if return_type is list or getattr(return_type, "__origin__", None) in (
+                    list,
+                    list,
+                ):
+                    return cast(T, [])
+                return cast(T, {})
 
             _LOGGER.error("Meraki API error: %s", err)
             if _is_auth_error(err):
@@ -94,12 +111,17 @@ def handle_meraki_errors(
     return cast(Callable[..., Awaitable[T]], wrapper)
 
 
-def _is_rate_limit_error(err: APIError) -> bool:
+def _is_rate_limit_error(err: APIError | AsyncAPIError) -> bool:
     """Check if error is due to rate limiting."""
     return getattr(err, "status", None) == 429 or "rate limit" in str(err).lower()
 
 
-def _is_auth_error(err: APIError) -> bool:
+def _is_retry_limit_error(err: APIError | AsyncAPIError) -> bool:
+    """Check if error is due to retry limit being reached."""
+    return "reached retry limit" in str(err).lower()
+
+
+def _is_auth_error(err: APIError | AsyncAPIError) -> bool:
     """Check if error is an authentication error."""
     return getattr(err, "status", None) in (401, 403) or any(
         msg in str(err).lower()
@@ -112,7 +134,7 @@ def _is_auth_error(err: APIError) -> bool:
     )
 
 
-def _is_device_error(err: APIError) -> bool:
+def _is_device_error(err: APIError | AsyncAPIError) -> bool:
     """Check if error is device-related."""
     return any(
         msg in str(err).lower()
@@ -125,7 +147,7 @@ def _is_device_error(err: APIError) -> bool:
     )
 
 
-def _is_network_error(err: APIError) -> bool:
+def _is_network_error(err: APIError | AsyncAPIError) -> bool:
     """Check if error is network-related."""
     return any(
         msg in str(err).lower()
@@ -138,12 +160,12 @@ def _is_network_error(err: APIError) -> bool:
     )
 
 
-def _raise_if_informational_error(err: APIError) -> None:
+def _raise_if_informational_error(err: APIError | AsyncAPIError) -> None:
     """
     Check if an API error is informational and raise a specific exception.
 
     Args:
-        err: The APIError instance.
+        err: The APIError or AsyncAPIError instance.
 
     Raises
     ------

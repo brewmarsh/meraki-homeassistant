@@ -8,7 +8,6 @@ Meraki API endpoint categories.
 from __future__ import annotations
 
 import asyncio
-import logging
 from collections.abc import Awaitable
 from typing import TYPE_CHECKING, Any
 
@@ -21,6 +20,7 @@ from ...core.errors import (
     MerakiTrafficAnalysisError,
     MerakiVlansDisabledError,
 )
+from ...helpers.logging_helper import MerakiLoggers
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
@@ -32,7 +32,11 @@ from .endpoints.sensor import SensorEndpoints
 from .endpoints.switch import SwitchEndpoints
 from .endpoints.wireless import WirelessEndpoints
 
-_LOGGER = logging.getLogger(__name__)
+# Use feature-specific logger - can be configured independently via:
+# logger:
+#   logs:
+#     custom_components.meraki_ha.api: debug
+_LOGGER = MerakiLoggers.API
 
 
 class MerakiAPIClient:

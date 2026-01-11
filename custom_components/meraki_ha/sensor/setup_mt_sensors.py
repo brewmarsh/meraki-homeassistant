@@ -1,14 +1,13 @@
 """Setup helper for Meraki MT sensors."""
 
-import logging
-
 from homeassistant.helpers.entity import Entity
 
+from ..helpers.logging_helper import MerakiLoggers
 from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..sensor_defs.mt_sensors import MT_SENSOR_MODELS
 from .device.meraki_mt_base import MerakiMtSensor
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SENSOR
 
 
 def async_setup_mt_sensors(
