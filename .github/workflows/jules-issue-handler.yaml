@@ -2,513 +2,95 @@ name: Jules Issue Handler
 
 run-name: 'Jules: ${{ github.event.issue.title }} (#${{ github.event.issue.number }})'
 
-# This workflow invokes Jules to work on issues when labeled
-# Based on: https://github.com/google-labs-code/jules-action
+# Invokes Jules to work on issues labeled with 'jules-issue'
 
 on:
   issues:
     types:
       - labeled
-      - opened # For jules_task template which auto-applies labels
+      - opened
 
-# IMPORTANT: Repository settings must also allow workflow permissions
-# Go to: Settings → Actions → General → Workflow permissions
-# Select: "Read and write permissions"
 permissions:
   contents: read
   issues: write
   pull-requests: write
 
-# Prevent multiple Jules agents working on the same issue
 concurrency:
   group: jules-issue-${{ github.event.issue.number }}
   cancel-in-progress: false
 
 jobs:
-  handle-jules-task:
-    # Trigger when issue is created with 'jules-issue' label (from Jules task template)
-    # or when 'jules-issue' label is added
-    if: |
-      contains(github.event.issue.labels.*.name, 'jules-issue')
+  handle-issue:
+    if: contains(github.event.issue.labels.*.name, 'jules-issue')
     runs-on: ubuntu-latest
-    # Inherits permissions from workflow level
     steps:
-      # Security: Only allow liptonj or bot accounts to trigger Jules
-      - name: Check user authorization
+      - name: Check authorization
         run: |
           SENDER="${{ github.event.sender.login }}"
-
-          # Allow liptonj
-          if [[ "$SENDER" == "liptonj" ]]; then
+          if [[ "$SENDER" == "liptonj" ]] || [[ "$SENDER" == *"[bot]" ]]; then
             echo "✅ Authorized: $SENDER"
-            exit 0
+          else
+            echo "::error::User $SENDER not authorized"
+            exit 1
           fi
 
-          # Allow bot accounts (ending in [bot])
-          if [[ "$SENDER" == *"[bot]" ]]; then
-            echo "✅ Authorized bot: $SENDER"
-            exit 0
-          fi
-
-          # Reject all others
-          echo "::error::User $SENDER is not authorized to trigger Jules"
-          echo "Only liptonj or bot accounts can trigger Jules."
-          exit 1
-
-      - name: Comment on issue - Jules started
+      - name: Start issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh issue comment ${{ github.event.issue.number }} \
             --repo "${{ github.repository }}" \
-            --body "## 🤖 Jules AI Agent Assigned
+            --body "## 🤖 Jules Started
 
-          I'm starting work on this task now.
-
-          **What's happening:**
-          1. 📖 Reading project standards from \`AGENTS.md\`
-          2. 🔍 Analyzing the requirements
-          3. 💻 Implementing the solution
-          4. ✅ Running quality checks
-          5. 📝 Creating a PR
-
-          I'll update this issue when the PR is ready.
+          Working on this task. Updates will follow.
 
           ---
-          *Triggered by @${{ github.event.sender.login }}*"
+          *@${{ github.event.sender.login }}*"
 
-      - name: Add 'in-progress' label
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
           gh issue edit ${{ github.event.issue.number }} \
             --repo "${{ github.repository }}" \
             --add-label "in-progress"
 
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: beta
+          fetch-depth: 1
 
-      - name: Invoke Jules for structured task
-        id: jules
+      - name: Invoke Jules
         uses: google-labs-code/jules-action@v1.0.0
         with:
           starting_branch: beta
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           prompt: |
-            You are the primary coding agent for the meraki-homeassistant project.
+            ## Task: ${{ github.event.issue.title }}
+            **Issue**: #${{ github.event.issue.number }}
 
-            ## MANDATORY FIRST STEPS - DO THIS BEFORE ANYTHING ELSE
-            1. **READ `AGENTS.md`** - Contains ALL project standards, patterns, and conventions
-            2. **READ `DEVELOPMENT.md`** - Contains environment setup and workflow instructions
-            3. Do NOT proceed until you have read and understood both files
-
-            ## Task Assignment
-            **Title**: ${{ github.event.issue.title }}
-            **Issue Number**: #${{ github.event.issue.number }}
-
-            **Task Details**:
             ${{ github.event.issue.body }}
-
-            ## Technology Stack
-            - Python 3.13.2, Home Assistant Core, meraki SDK, aiohttp
-            - Frontend: React, TypeScript, Vite
-            - Package manager: uv with pyproject.toml (NEVER requirements.txt)
-            - Tests: pytest, pytest-asyncio, pytest-homeassistant-custom-component
-
-            ## Key Directories
-            - Integration: `custom_components/meraki_ha/`
-            - Tests: `tests/`
-            - Frontend: `custom_components/meraki_ha/www/`
-
-            ## CRITICAL: Common Test Errors and Fixes
-
-            ### Error: "Undefined name `MagicMock`" or similar
-            **Cause**: Missing import in test file
-            **Fix**: Add at the top of the test file:
-            ```python
-            from unittest.mock import MagicMock, AsyncMock, patch
-            ```
-
-            ### Error: "ModuleNotFoundError: No module named 'homeassistant'"
-            **Cause**: Importing from HA outside of test fixtures
-            **Fix**:
-            - Use `TYPE_CHECKING` for type-only imports
-            - Use fixtures from `tests/conftest.py` instead of direct imports
-            - Mock HA modules in tests
-
-            ### Error: Import errors in conftest.py
-            **Cause**: Circular imports or missing mocks
-            **Fix**: Check `tests/conftest.py` patterns and follow them exactly
-
-            ## Your Task
-
-            1. **Parse requirements** from the issue body
-            2. **Plan implementation** - review existing code patterns
-            3. **Implement** following project standards (see AGENTS.md)
-            4. **Write tests** - follow patterns in `tests/conftest.py`
-            5. **Run `./run_checks.sh`** - ALL checks must pass
-
-            ## Test Requirements
-            - Use `pytest-homeassistant-custom-component` fixtures
-            - ALWAYS import mocks: `from unittest.mock import MagicMock, AsyncMock, patch`
-            - See `tests/conftest.py` for fixture patterns
-            - Mock external API calls (never real Meraki API)
-
-            7. **Create a PR** with:
-               - Title following Conventional Commits: `feat(<scope>): <description>` or `fix(<scope>): <description>`
-               - Detailed description of what was implemented
-               - **IMPORTANT**: The PR body MUST contain this exact line on its own: `Closes #${{ github.event.issue.number }}`
-               - Target branch: beta
-
-            ## Constraints
-            - Ignore all errors not related to the meraki_ha integration
-            - Follow Home Assistant Sentence Case standards
-            - All existing tests must pass
-            - Maintain 95%+ test coverage
-            - Keep implementation focused - don't over-engineer
-            - Target branch must be `beta`
-
-            ## CRITICAL: If You Get Stuck - Hand Off to Cursor
-
-            **NEVER stop working without creating a PR.** If you encounter:
-            - CI failures you can't resolve after 2-3 attempts
-            - Errors you don't understand
-            - Architectural decisions you're unsure about
-            - Tests failing for unclear reasons
-
-            YOU MUST:
-            1. Create your PR with current progress (even if incomplete)
-            2. Use `gh pr edit` to add label: `jules-needs-help`
-            3. Comment on PR using this format:
-
-            ## 🆘 Jules Needs Cursor Help
-
-            **Where I Got Stuck:**
-            <Describe the specific problem>
-
-            **What I've Tried:**
-            <List your attempts>
-
-            **Current Progress:**
-            <What's done vs remaining>
-
-            **Files Changed:**
-            <Key files modified>
-
-            **Suggested Next Steps:**
-            <What Cursor should try>
 
             ---
-            *Handing off to Cursor for assistance*
 
-            Cursor will take over and complete the task from your progress.
+            ## Instructions
 
-      # NOTE: PR linking is handled by jules-pr-linker.yaml workflow
-      # Jules works asynchronously - the PR will be created later
-      # When Jules creates a PR, the linker workflow will:
-      # - Comment on this issue with PR details
-      # - Update labels (in-progress -> pr-pending)
-
-  handle-bug:
-    # Trigger when 'jules' label is added to a bug
-    if: |
-      github.event.label.name == 'jules' &&
-      contains(github.event.issue.labels.*.name, 'bug')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: write
-    steps:
-      - name: Check user authorization
-        run: |
-          SENDER="${{ github.event.sender.login }}"
-
-          # Allow liptonj
-          if [[ "$SENDER" == "liptonj" ]]; then
-            echo "✅ Authorized: $SENDER"
-            exit 0
-          fi
-
-          # Allow bot accounts (ending in [bot])
-          if [[ "$SENDER" == *"[bot]" ]]; then
-            echo "✅ Authorized bot: $SENDER"
-            exit 0
-          fi
-
-          # Reject all others
-          echo "::error::User $SENDER is not authorized to trigger Jules"
-          echo "Only liptonj or bot accounts can trigger Jules."
-          exit 1
-
-      - name: Comment on issue - Jules started
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh issue comment ${{ github.event.issue.number }} \
-            --repo "${{ github.repository }}" \
-            --body "## 🐛 Jules Bug Fix Agent Assigned
-
-          I'm investigating this bug now.
-
-          **What's happening:**
-          1. 🔍 Analyzing the bug report
-          2. 🔎 Locating the affected code
-          3. 🔧 Implementing the fix
-          4. ✅ Adding regression tests
-          5. 📝 Creating a PR
-
-          ---
-          *Triggered by @${{ github.event.sender.login }}*"
-
-      - name: Add 'in-progress' label
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh issue edit ${{ github.event.issue.number }} \
-            --repo "${{ github.repository }}" \
-            --add-label "in-progress"
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: beta
-
-      - name: Invoke Jules for bug fix
-        uses: google-labs-code/jules-action@v1.0.0
-        with:
-          starting_branch: beta
-          jules_api_key: ${{ secrets.JULES_API_KEY }}
-          prompt: |
-            You are a bug-fixing agent for the meraki-homeassistant project.
-
-            ## MANDATORY FIRST STEPS - DO THIS BEFORE ANYTHING ELSE
-            1. **READ `AGENTS.md`** - Contains ALL project standards and patterns
-            2. **READ `DEVELOPMENT.md`** - Contains environment setup instructions
-            3. Do NOT proceed until you have read both files
-
-            ## Issue to Fix
-            **Title**: ${{ github.event.issue.title }}
-            **Number**: #${{ github.event.issue.number }}
-
-            **Description**:
-            ${{ github.event.issue.body }}
-
-            ## CRITICAL: Common Test Errors and Fixes
-
-            ### Error: "Undefined name `MagicMock`" or `AsyncMock` or `patch`
-            **Fix**: Add at the top of the test file:
-            ```python
-            from unittest.mock import MagicMock, AsyncMock, patch
-            ```
-
-            ### Error: "ModuleNotFoundError: No module named 'homeassistant'"
-            **Fix**: Use fixtures from `tests/conftest.py`, don't import HA directly
-
-            ## Your Task
-
-            1. **Understand the bug** from the issue description
-            2. **Locate the code** - see AGENTS.md for directory structure
-            3. **Fix the bug** following project standards
-            4. **Write a regression test** - ALWAYS include mock imports:
-               ```python
-               from unittest.mock import MagicMock, AsyncMock, patch
+            1. **Read first**: `AGENTS.md` and `DEVELOPMENT.md`
+            2. **Implement** the task following project patterns
+            3. **Test**: Run `./run_checks.sh` - must pass
+            4. **Document**: Update issue #${{ github.event.issue.number }} with progress:
+               ```bash
+               gh issue comment ${{ github.event.issue.number }} --body "## 🤖 Update
+               ### Done: <what>
+               ### Why: <reasoning>
+               ### Files: <list>"
                ```
-            5. **Run `./run_checks.sh`** - ALL checks must pass
-            6. **Create a PR** with `Fixes #${{ github.event.issue.number }}` in body
+            5. **PR**: Create with `Closes #${{ github.event.issue.number }}` in body
 
-            ## Constraints
-            - Keep changes focused on the bug
-            - All existing tests must pass
-            - Maintain 95%+ test coverage
-            - Follow Conventional Commits format
+            ## If Stuck
 
-            ## CRITICAL: If You Get Stuck - Hand Off to Cursor
-
-            **NEVER stop working without creating a PR.** If you encounter:
-            - CI failures you can't resolve after 2-3 attempts
-            - Errors you don't understand
-            - Complex debugging you're unsure about
-            - Tests failing for unclear reasons
-
-            YOU MUST:
-            1. Create your PR with current progress (even if incomplete)
-            2. Use `gh pr edit` to add label: `jules-needs-help`
-            3. Comment on PR using this format:
-
-            ## 🆘 Jules Needs Cursor Help
-
-            **Where I Got Stuck:**
-            <Describe the specific problem>
-
-            **What I've Tried:**
-            <List your attempts>
-
-            **Current Progress:**
-            <What's done vs remaining>
-
-            **Files Changed:**
-            <Key files modified>
-
-            **Suggested Next Steps:**
-            <What Cursor should try>
-
-            ---
-            *Handing off to Cursor for assistance*
-
-            Cursor will take over and complete the task from your progress.
-
-      # NOTE: PR linking is handled by jules-pr-linker.yaml workflow
-
-  handle-feature:
-    # Trigger when 'jules' label is added to an enhancement
-    if: |
-      github.event.label.name == 'jules' &&
-      contains(github.event.issue.labels.*.name, 'enhancement')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: write
-    steps:
-      - name: Check user authorization
-        run: |
-          SENDER="${{ github.event.sender.login }}"
-
-          # Allow liptonj
-          if [[ "$SENDER" == "liptonj" ]]; then
-            echo "✅ Authorized: $SENDER"
-            exit 0
-          fi
-
-          # Allow bot accounts (ending in [bot])
-          if [[ "$SENDER" == *"[bot]" ]]; then
-            echo "✅ Authorized bot: $SENDER"
-            exit 0
-          fi
-
-          # Reject all others
-          echo "::error::User $SENDER is not authorized to trigger Jules"
-          echo "Only liptonj or bot accounts can trigger Jules."
-          exit 1
-
-      - name: Comment on issue - Jules started
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh issue comment ${{ github.event.issue.number }} \
-            --repo "${{ github.repository }}" \
-            --body "## ✨ Jules Feature Agent Assigned
-
-          I'm implementing this feature now.
-
-          **What's happening:**
-          1. 📖 Reading requirements
-          2. 🏗️ Planning implementation
-          3. 💻 Writing code
-          4. ✅ Adding tests
-          5. 📝 Creating a PR
-
-          ---
-          *Triggered by @${{ github.event.sender.login }}*"
-
-      - name: Add 'in-progress' label
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh issue edit ${{ github.event.issue.number }} \
-            --repo "${{ github.repository }}" \
-            --add-label "in-progress"
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: beta
-
-      - name: Invoke Jules for feature implementation
-        uses: google-labs-code/jules-action@v1.0.0
-        with:
-          starting_branch: beta
-          jules_api_key: ${{ secrets.JULES_API_KEY }}
-          prompt: |
-            You are a feature implementation agent for the meraki-homeassistant project.
-
-            ## MANDATORY FIRST STEPS - DO THIS BEFORE ANYTHING ELSE
-            1. **READ `AGENTS.md`** - Contains ALL project standards and patterns
-            2. **READ `DEVELOPMENT.md`** - Contains environment setup instructions
-            3. Do NOT proceed until you have read both files
-
-            ## Feature Request
-            **Title**: ${{ github.event.issue.title }}
-            **Number**: #${{ github.event.issue.number }}
-
-            **Description**:
-            ${{ github.event.issue.body }}
-
-            ## CRITICAL: Common Test Errors and Fixes
-
-            ### Error: "Undefined name `MagicMock`" or `AsyncMock` or `patch`
-            **Fix**: Add at the top of the test file:
-            ```python
-            from unittest.mock import MagicMock, AsyncMock, patch
+            Create PR with current progress, add label `jules-needs-help`, comment:
             ```
-
-            ### Error: "ModuleNotFoundError: No module named 'homeassistant'"
-            **Fix**: Use fixtures from `tests/conftest.py`, don't import HA directly
-
-            ## Your Task
-
-            1. **Understand the feature** from the issue description
-            2. **Plan implementation** - check existing patterns in codebase
-            3. **Implement** following project standards (see AGENTS.md)
-            4. **Write tests** - ALWAYS include mock imports:
-               ```python
-               from unittest.mock import MagicMock, AsyncMock, patch
-               ```
-            5. **Run `./run_checks.sh`** - ALL checks must pass
-            6. **Frontend changes**: Run `cd custom_components/meraki_ha/www && npm run build`
-            7. **Create a PR** with `Closes #${{ github.event.issue.number }}` in body
-
-            ## Constraints
-            - Keep implementation simple and focused
-            - All existing tests must pass
-            - Maintain 95%+ test coverage
-            - Follow Conventional Commits format
-            - Don't over-engineer - implement only what's requested
-
-            ## CRITICAL: If You Get Stuck - Hand Off to Cursor
-
-            **NEVER stop working without creating a PR.** If you encounter:
-            - CI failures you can't resolve after 2-3 attempts
-            - Errors you don't understand
-            - Architectural decisions you're unsure about
-            - Tests failing for unclear reasons
-
-            YOU MUST:
-            1. Create your PR with current progress (even if incomplete)
-            2. Use `gh pr edit` to add label: `jules-needs-help`
-            3. Comment on PR using this format:
-
-            ## 🆘 Jules Needs Cursor Help
-
-            **Where I Got Stuck:**
-            <Describe the specific problem>
-
-            **What I've Tried:**
-            <List your attempts>
-
-            **Current Progress:**
-            <What's done vs remaining>
-
-            **Files Changed:**
-            <Key files modified>
-
-            **Suggested Next Steps:**
-            <What Cursor should try>
-
-            ---
-            *Handing off to Cursor for assistance*
-
-            Cursor will take over and complete the task from your progress.
-
-      # NOTE: PR linking is handled by jules-pr-linker.yaml workflow
+            ## 🆘 Jules Needs Help
+            **Problem**: <issue>
+            **Tried**: <attempts>
+            **Files**: <changed>
+            ```
+            Cursor will take over.

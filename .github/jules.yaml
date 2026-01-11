@@ -69,42 +69,95 @@ project_context:
     - No bandit security warnings
     - Frontend must build without errors
 
+  # CRITICAL: Issue documentation requirements
+  issue_documentation: |
+    ## You MUST Document Your Work on the Issue
+
+    Future AI agents will read issue comments to understand what was done.
+    You MUST update the issue at key points using `gh issue comment`.
+
+    ### When to Comment on the Issue
+    1. When you START working - what you plan to do
+    2. After ANALYZING the problem - what you found
+    3. After making CHANGES - what you changed and WHY
+    4. If you encounter PROBLEMS - what went wrong
+    5. When you CREATE a PR - link to PR and summarize
+
+    ### How to Comment
+    ```bash
+    gh issue comment <ISSUE_NUMBER> --body "## 🤖 Jules Update
+
+    ### What I Did
+    <Describe the changes>
+
+    ### Why I Did It
+    <Explain your reasoning>
+
+    ### Files Changed
+    <List key files>
+
+    ### Next Steps
+    <What happens next>
+
+    ---
+    *Jules AI Agent*"
+    ```
+
+    ### PR/Branch Linking
+    - PR body MUST contain: `Closes #<issue_number>`
+    - Branch name should include issue number
+    - Use `gh pr edit` to add labels linking to issue
+
+    ### For Future Agents
+    Your comments help the next agent (Jules or Cursor) understand:
+    - What approaches were tried
+    - What worked and what didn't
+    - Why certain decisions were made
+    - What's left to do
+
   # CRITICAL: Handoff behavior when stuck
   handoff_when_stuck: |
-    ## NEVER GET STUCK AND STOP - ALWAYS HAND OFF TO CURSOR
+    ## ⚠️ NEVER WAIT FOR A HUMAN - ALWAYS HAND OFF TO CURSOR ⚠️
 
-    If you encounter any of these situations:
-    - You cannot resolve a CI failure after 2-3 attempts
-    - You don't understand an error or how to fix it
-    - You're unsure how to implement a requirement
-    - You're blocked by a complex architectural decision
-    - Tests are failing and you can't figure out why
-    - You've been going in circles on the same issue
+    You are NEVER allowed to stop and wait for human intervention.
+    If you encounter ANY difficulty, hand off to Cursor IMMEDIATELY.
 
-    YOU MUST:
-    1. ALWAYS create/update your PR with your current progress (even if incomplete)
-    2. Add the `jules-needs-help` label to the PR
-    3. Comment on the PR with this EXACT format:
+    ### When to Hand Off (after 1-2 attempts):
+    - CI failures you cannot resolve
+    - Errors you don't understand
+    - Unclear requirements
+    - Complex architectural decisions
+    - Tests failing for unknown reasons
+    - Going in circles on the same issue
+    - ANY situation where you're stuck
+
+    ### HOW TO HAND OFF:
+    1. Create/update PR with current progress (even if incomplete/broken)
+    2. Run: `gh pr edit <PR#> --add-label "jules-needs-help"`
+    3. Comment on PR with this format:
 
     ## 🆘 Jules Needs Cursor Help
 
     **Where I Got Stuck:**
-    <Describe the specific problem you encountered>
+    <The specific problem>
 
     **What I've Tried:**
-    <List the approaches you attempted>
+    <Your attempts>
 
     **Current Progress:**
-    <Describe what IS working and what's left to do>
+    <What's done vs remaining>
 
     **Files Changed:**
-    <List the key files you modified>
+    <Key files modified>
 
     **Suggested Next Steps:**
-    <Your best guess at what Cursor should try>
+    <What Cursor should try>
 
     ---
-    *Handing off to Cursor for assistance*
+    *Handing off to Cursor*
 
-    4. DO NOT stop working without creating a PR and requesting help
-    5. Cursor will take over from your progress and complete the task
+    ### CRITICAL RULES:
+    - NEVER stop without creating a PR
+    - NEVER wait for a human
+    - Cursor will take over IMMEDIATELY
+    - This is an AUTOMATED workflow - humans only review at the end

@@ -1,0 +1,201 @@
+name: Jules Fix Merger
+
+run-name: 'Merge Jules Fix PR into ${{ github.event.workflow_run.head_branch }}'
+
+# When Beta CI passes on a Jules fix PR (targeting another Jules branch),
+# auto-merge it back into the original branch to continue the workflow.
+# This handles the case where jules-ci-fix invokes Jules and Jules creates
+# a new fix PR instead of pushing to the existing branch.
+
+on:
+  workflow_run:
+    workflows: ['Beta CI']
+    types:
+      - completed
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: jules-fix-merger-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  merge-jules-fix:
+    runs-on: ubuntu-latest
+    # Only run on CI success
+    if: github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Check if this is a Jules fix PR
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          HEAD_BRANCH="${{ github.event.workflow_run.head_branch }}"
+
+          echo "Branch: $HEAD_BRANCH"
+
+          # Find PR for this branch
+          PR_JSON=$(gh pr list \
+            --repo "${{ github.repository }}" \
+            --head "$HEAD_BRANCH" \
+            --state open \
+            --json number,title,body,author,baseRefName,labels \
+            --limit 1)
+
+          PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number // empty')
+          PR_TITLE=$(echo "$PR_JSON" | jq -r '.[0].title // empty')
+          PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.[0].author.login // empty')
+          PR_BASE=$(echo "$PR_JSON" | jq -r '.[0].baseRefName // empty')
+
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "No open PR found - skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "PR #$PR_NUMBER: $PR_TITLE"
+          echo "Author: $PR_AUTHOR, Base: $PR_BASE"
+
+          # Only handle Jules PRs
+          if [[ "$PR_AUTHOR" != *"jules"* ]] && [[ "$PR_AUTHOR" != *"google-labs"* ]]; then
+            echo "Not a Jules PR - skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Skip if targeting beta (these are original Jules PRs, not fix PRs)
+          # Fix PRs target other Jules branches, not beta
+          if [[ "$PR_BASE" == "beta" ]]; then
+            echo "PR targets beta (not a fix PR) - skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Skip if targeting main
+          if [[ "$PR_BASE" == "main" ]]; then
+            echo "PR targets main - skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # This is a Jules fix PR targeting another branch - auto-merge it
+          echo "✅ This is a Jules fix PR targeting $PR_BASE"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "pr_title=$PR_TITLE" >> "$GITHUB_OUTPUT"
+          echo "base_branch=$PR_BASE" >> "$GITHUB_OUTPUT"
+
+      - name: Get fix PR changes
+        id: fix_changes
+        if: steps.check.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ steps.check.outputs.pr_number }}"
+
+          # Get commits and files from the fix PR
+          PR_DATA=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json commits,files \
+            --jq '{
+              commit_count: (.commits | length),
+              last_commit: .commits[-1].messageHeadline,
+              files: [.files[].path] | join(", ")
+            }' 2>/dev/null || echo "{}")
+
+          COMMIT_COUNT=$(echo "$PR_DATA" | jq -r '.commit_count // 0')
+          LAST_COMMIT=$(echo "$PR_DATA" | jq -r '.last_commit // empty')
+          FILES=$(echo "$PR_DATA" | jq -r '.files // empty')
+
+          echo "commit_count=$COMMIT_COUNT" >> "$GITHUB_OUTPUT"
+          echo "last_commit=$LAST_COMMIT" >> "$GITHUB_OUTPUT"
+          {
+            echo "files<<EOF"
+            echo "$FILES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Auto-merge Jules fix PR
+        if: steps.check.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ steps.check.outputs.pr_number }}"
+          BASE_BRANCH="${{ steps.check.outputs.base_branch }}"
+
+          echo "✅ Auto-merging Jules fix PR #$PR_NUMBER into $BASE_BRANCH"
+
+          # Mark as ready if it's a draft
+          gh pr ready "$PR_NUMBER" --repo "${{ github.repository }}" 2>/dev/null || true
+
+          # Comment on the fix PR
+          gh pr comment "$PR_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --body "## ✅ CI Passed - Auto-Merging
+
+          All checks passed! Merging this fix into \`$BASE_BRANCH\`.
+
+          ---
+          *Auto-merged by Jules Fix Merger*"
+
+          # Squash merge to keep history clean
+          gh pr merge "$PR_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --squash \
+            --delete-branch
+
+          echo "✅ Successfully merged fix PR #$PR_NUMBER"
+
+      - name: Find and update original PR and issue
+        if: steps.check.outputs.skip != 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BASE_BRANCH="${{ steps.check.outputs.base_branch }}"
+          FIX_PR="${{ steps.check.outputs.pr_number }}"
+          FIX_TITLE="${{ steps.check.outputs.pr_title }}"
+
+          # Find the original PR on the base branch
+          ORIGINAL_PR_JSON=$(gh pr list \
+            --repo "${{ github.repository }}" \
+            --head "$BASE_BRANCH" \
+            --state open \
+            --json number,body \
+            --limit 1)
+
+          ORIGINAL_PR=$(echo "$ORIGINAL_PR_JSON" | jq -r '.[0].number // empty')
+          ORIGINAL_BODY=$(echo "$ORIGINAL_PR_JSON" | jq -r '.[0].body // empty')
+
+          # Get fix details
+          COMMIT_COUNT="${{ steps.fix_changes.outputs.commit_count }}"
+          LAST_COMMIT="${{ steps.fix_changes.outputs.last_commit }}"
+          FILES="${{ steps.fix_changes.outputs.files }}"
+
+          if [[ -n "$ORIGINAL_PR" ]]; then
+            # Comment on original PR
+            gh pr comment "$ORIGINAL_PR" \
+              --repo "${{ github.repository }}" \
+              --body "## ✅ Fix PR #$FIX_PR Merged
+
+            Changes: $COMMIT_COUNT commit(s), $FILES
+
+            CI running on updated code."
+
+            # Extract issue number and comment on issue too
+            ISSUE_NUM=$(echo "$ORIGINAL_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
+            if [[ -z "$ISSUE_NUM" ]]; then
+              ISSUE_NUM=$(echo "$BASE_BRANCH" | grep -oE '[-/][0-9]+[-/]' | grep -oE '[0-9]+' | head -1)
+            fi
+
+            if [[ -n "$ISSUE_NUM" ]]; then
+              gh issue comment "$ISSUE_NUM" \
+                --repo "${{ github.repository }}" \
+                --body "## ✅ Jules Fix Merged
+
+              Fix PR #$FIX_PR merged into original PR #$ORIGINAL_PR.
+
+              CI will run again. See Jules's comments above for fix details."
+            fi
+          fi

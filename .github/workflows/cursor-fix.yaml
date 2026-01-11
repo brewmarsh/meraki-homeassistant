@@ -113,8 +113,33 @@ jobs:
           ISSUE_NUM=$(echo "$PR_BASE" | grep -oE '[-/][0-9]+[-/]' | grep -oE '[0-9]+' | head -1)
           echo "issue_number=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
 
+          # Get the last commit details for context
+          LAST_COMMIT=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json commits \
+            --jq '.commits[-1] | {sha: .oid[0:7], message: .messageHeadline, author: .authors[0].login}' 2>/dev/null || echo "{}")
+
+          COMMIT_SHA=$(echo "$LAST_COMMIT" | jq -r '.sha // empty')
+          COMMIT_MSG=$(echo "$LAST_COMMIT" | jq -r '.message // empty')
+          COMMIT_AUTHOR=$(echo "$LAST_COMMIT" | jq -r '.author // empty')
+
+          if [[ -n "$COMMIT_SHA" ]]; then
+            FILES_CHANGED=$(gh api "repos/${{ github.repository }}/commits/${COMMIT_SHA}" \
+              --jq '[.files[].filename] | join(", ")' 2>/dev/null || echo "")
+          else
+            FILES_CHANGED=""
+          fi
+
+          echo "commit_sha=$COMMIT_SHA" >> "$GITHUB_OUTPUT"
+          echo "commit_msg=$COMMIT_MSG" >> "$GITHUB_OUTPUT"
+          echo "commit_author=$COMMIT_AUTHOR" >> "$GITHUB_OUTPUT"
+          {
+            echo "files_changed<<EOF"
+            echo "$FILES_CHANGED"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
       # ============ CI PASSED: Handle success ============
       - name: Handle CI success
+        id: success
         if: steps.check.outputs.skip != 'true' && steps.check.outputs.ci_conclusion == 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -173,50 +198,147 @@ jobs:
             fi
 
           elif [[ "$IS_HANDOFF" == "true" ]]; then
-            # This is a handoff case - Cursor pushed directly to Jules branch
-            echo "Cursor fixed the Jules PR directly - marking ready for review"
+            # This is a handoff case - Cursor fixed CI, now needs to do code review
+            # We DON'T mark as ready yet - Cursor still needs to review the code quality
+            echo "Cursor fixed CI - now launching code review"
 
             gh pr comment "$PR_NUMBER" \
               --repo "${{ github.repository }}" \
-              --body "## ✅ Cursor Review Complete
+              --body "## ✅ CI Fixed - Starting Code Review
 
-            All checks passed! Cursor has fixed the issues.
-
-            This PR is now ready for human review.
+            Cursor has fixed the CI issues. Now performing code quality review.
 
             ---
-            *Cursor review completed*"
+            *CI fixed, review starting*"
 
+            # Change label to indicate CI is fixed but review pending
             gh pr edit "$PR_NUMBER" \
               --repo "${{ github.repository }}" \
               --remove-label "cursor-reviewing" \
-              --add-label "cursor-reviewed" \
-              --add-label "ready-for-review" 2>/dev/null || true
+              --add-label "cursor-ci-fixed" 2>/dev/null || true
+
+            # Set flag to trigger code review
+            echo "needs_code_review=true" >> "$GITHUB_OUTPUT"
+            echo "review_pr=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+            echo "review_branch=$CURSOR_BRANCH" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Update issue - ready for review
-        if: steps.check.outputs.skip != 'true' && steps.check.outputs.ci_conclusion == 'success' && steps.check.outputs.issue_number != ''
+      # After fixing CI, Cursor still needs to review the code quality
+      - name: Launch Cursor code review after CI fix
+        id: code_review
+        if: steps.check.outputs.skip != 'true' && steps.check.outputs.ci_conclusion == 'success' && steps.check.outputs.is_handoff == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          PR_NUMBER="${{ steps.check.outputs.pr_number }}"
+          BRANCH="${{ steps.check.outputs.cursor_branch }}"
+          ISSUE_NUM="${{ steps.check.outputs.issue_number }}"
+
+          echo "🔍 Launching Cursor code review after CI fix"
+
+          # Get issue body for context
+          ISSUE_BODY=""
+          if [[ -n "$ISSUE_NUM" ]]; then
+            ISSUE_BODY=$(gh issue view "$ISSUE_NUM" --repo "${{ github.repository }}" --json body --jq '.body // ""' 2>/dev/null || echo "")
+          fi
+
+          # Launch Cursor for code review (creates cursor-review/* branch)
+          CURSOR_REVIEW_BRANCH="cursor-review/${BRANCH}"
+
+          PROMPT="## Code Review - PR #$PR_NUMBER
+          Issue: #$ISSUE_NUM | Branch: $BRANCH
+
+          Requirements: ${ISSUE_BODY:-See issue}
+
+          ---
+          1. Read AGENTS.md, DEVELOPMENT.md
+          2. Review code quality and patterns
+          3. Run ./run_checks.sh
+          4. Update issue: \`gh issue comment $ISSUE_NUM --body '## 🔍 Review: <findings>'\`
+          5. Create PR → $BRANCH"
+
+          ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
+
+          RESPONSE=$(curl -sS -X POST "https://api.cursor.com/v0/agents" \
+            -u "${CURSOR_API_KEY}:" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"source\": {
+                \"repository\": \"https://github.com/${{ github.repository }}\",
+                \"ref\": \"$BRANCH\"
+              },
+              \"prompt\": {
+                \"text\": ${ESCAPED_PROMPT}
+              },
+              \"target\": {
+                \"branchName\": \"$CURSOR_REVIEW_BRANCH\",
+                \"autoCreatePr\": true
+              }
+            }")
+
+          echo "Cursor API Response: $RESPONSE"
+
+          AGENT_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+          if [[ -n "$AGENT_ID" ]]; then
+            gh pr comment "$PR_NUMBER" \
+              --repo "${{ github.repository }}" \
+              --body "## 🔍 Code Review Started
+
+            CI is fixed. Cursor is now reviewing code quality.
+
+            **Agent**: [$AGENT_ID](https://cursor.com/agents?id=$AGENT_ID)
+            **Review Branch**: \`$CURSOR_REVIEW_BRANCH\`
+
+            ---
+            *Code review in progress*"
+
+            # Update label
+            gh pr edit "$PR_NUMBER" \
+              --repo "${{ github.repository }}" \
+              --remove-label "cursor-ci-fixed" \
+              --add-label "cursor-reviewing" 2>/dev/null || true
+          fi
+
+      - name: Update issue - code review started
+        if: steps.check.outputs.skip != 'true' && steps.check.outputs.ci_conclusion == 'success' && steps.check.outputs.issue_number != '' && steps.check.outputs.is_handoff == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ISSUE_NUM="${{ steps.check.outputs.issue_number }}"
           PR_NUMBER="${{ steps.check.outputs.pr_number }}"
-          JULES_PR="${{ steps.check.outputs.jules_pr }}"
 
-          # Use jules_pr if available (cursor-review branch case), otherwise use pr_number (handoff case)
+          gh issue comment "$ISSUE_NUM" \
+            --repo "${{ github.repository }}" \
+            --body "## 🔍 Cursor Code Review Started
+
+          CI fixed. Cursor is now reviewing code quality on PR #$PR_NUMBER.
+
+          Cursor will provide detailed findings."
+
+      - name: Update issue - ready for review
+        # Only run when review is complete (cursor-review branch merged), not after CI fix handoff
+        if: steps.check.outputs.skip != 'true' && steps.check.outputs.ci_conclusion == 'success' && steps.check.outputs.issue_number != '' && steps.check.outputs.is_handoff != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUM="${{ steps.check.outputs.issue_number }}"
+          JULES_PR="${{ steps.check.outputs.jules_pr }}"
+          PR_NUMBER="${{ steps.check.outputs.pr_number }}"
           DISPLAY_PR="${JULES_PR:-$PR_NUMBER}"
 
           gh issue comment "$ISSUE_NUM" \
             --repo "${{ github.repository }}" \
             --body "## ✅ Ready for Human Review
 
-          Both Jules and Cursor have completed their work.
+          | Status | PR | CI | Review |
+          |--------|----|----|--------|
+          | ✅ Ready | #$DISPLAY_PR | ✅ Passing | ✅ Cursor reviewed |
 
-          **PR**: #$DISPLAY_PR
-          **Status**: Ready for human review and merge to beta
+          Please review the PR and merge to beta.
 
           ---
-          *Automated update*"
+          *See agent comments above for detailed implementation notes.*"
 
           gh issue edit "$ISSUE_NUM" \
             --repo "${{ github.repository }}" \
@@ -261,23 +383,24 @@ jobs:
             if [[ -n "$ISSUE_NUM" ]]; then
               gh issue comment "$ISSUE_NUM" \
                 --repo "${{ github.repository }}" \
-                --body "## 🚨 Escalation to Human
+                --body "## 🚨 Human Intervention Required
 
-            Cursor couldn't fix CI after 10+ attempts. Manual intervention required.
+            Both AI agents exhausted their attempts (Jules: 3, Cursor: 10+).
 
-            **PR**: #$PR_NUMBER
+            | PR | Branch | CI Logs |
+            |----|--------|---------|
+            | #$PR_NUMBER | \`$BRANCH\` | [View](https://github.com/${{ github.repository }}/actions) |
 
-            ---
-            *Escalated by automation*"
+            Please review the agent comments above for context on what was tried."
 
               gh issue edit "$ISSUE_NUM" \
                 --repo "${{ github.repository }}" \
                 --add-label "needs-human-review" 2>/dev/null || true
             fi
 
-          # If this is a handoff from Jules, we need to invoke Cursor
-          elif [[ "$IS_HANDOFF" == "true" ]]; then
-            echo "🔄 Invoking Cursor to fix (handoff from Jules, attempt $((FIX_ATTEMPTS + 1)))"
+          # Both handoff and cursor-review/* branches need to invoke Cursor
+          else
+            echo "🔄 Invoking Cursor to fix (attempt $((FIX_ATTEMPTS + 1)), handoff=$IS_HANDOFF)"
 
             # Comment on PR
             gh pr comment "$PR_NUMBER" \
@@ -289,32 +412,31 @@ jobs:
             ---
             *Cursor workflow*"
 
-            # Invoke Cursor API
-            PROMPT="## 🔧 CI Fix Required - Attempt #$((FIX_ATTEMPTS + 1))
+            # Get CI error logs for context
+            RUN_ID="${{ github.event.workflow_run.id }}"
+            CI_ERRORS=""
+            if [[ -n "$RUN_ID" ]]; then
+              CI_ERRORS=$(gh run view "$RUN_ID" --repo "${{ github.repository }}" --log-failed 2>/dev/null | tail -150 || echo "Could not retrieve error logs")
+            fi
 
-            ## MANDATORY FIRST STEPS
-            1. READ AGENTS.md - Contains project standards
-            2. READ DEVELOPMENT.md - Contains environment setup
+            # Invoke Cursor API with error context
+            PROMPT="## CI Fix #$((FIX_ATTEMPTS + 1)) - Branch: $BRANCH
+            Issue: #$ISSUE_NUM | Push here, no new PR.
 
-            Branch: $BRANCH - Push fixes here, do NOT create new PR.
+            \`\`\`
+            ${CI_ERRORS}
+            \`\`\`
 
-            ## COMMON ERRORS AND FIXES
-
-            ### 'Undefined name MagicMock' or AsyncMock or patch
-            Add to test file: from unittest.mock import MagicMock, AsyncMock, patch
-
-            ### 'ModuleNotFoundError: homeassistant'
-            Use fixtures from tests/conftest.py, don't import HA directly
-
-            ## Instructions
-            1. Run ./run_checks.sh to see failures
-            2. Fix the issues (check imports!)
-            3. Commit: fix(cursor): resolve CI errors
-            4. Push to branch: $BRANCH"
+            ---
+            1. Read AGENTS.md (has common fixes)
+            2. Run ./run_checks.sh
+            3. Fix errors
+            4. Update issue: \`gh issue comment $ISSUE_NUM --body '## 🔧 Fixed: <what/why>'\`
+            5. Commit: fix(cursor): resolve CI errors"
 
             ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
 
-            curl -sS -X POST "https://api.cursor.com/v0/agents" \
+            RESPONSE=$(curl -sS -X POST "https://api.cursor.com/v0/agents" \
               -u "${CURSOR_API_KEY}:" \
               -H "Content-Type: application/json" \
               -d "{
@@ -329,9 +451,21 @@ jobs:
                   \"branchName\": \"$BRANCH\",
                   \"autoCreatePr\": false
                 }
-              }" || echo "Cursor API call completed"
+              }")
 
-          else
-            echo "Cursor will automatically fix and push again."
-            echo "No action needed - waiting for next CI run."
+            echo "Cursor API Response: $RESPONSE"
+            AGENT_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+
+            # Note: Detailed issue updates are now done by Cursor directly during its run
+            # Only log brief status if needed for debugging
+            if [[ -n "$ISSUE_NUM" ]] && [[ "$FIX_ATTEMPTS" -eq 0 ]]; then
+              # Only comment on first attempt to avoid spam
+              gh issue comment "$ISSUE_NUM" \
+                --repo "${{ github.repository }}" \
+                --body "## 🔧 Cursor CI Fix Started
+
+              CI failed on PR #$PR_NUMBER. Cursor is fixing. Agent: [${AGENT_ID:-...}](https://cursor.com/agents?id=$AGENT_ID)
+
+              Cursor will provide detailed updates."
+            fi
           fi
