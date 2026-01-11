@@ -482,8 +482,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             CONF_SCANNING_API_VALIDATOR, DEFAULT_SCANNING_API_VALIDATOR
         )
         if validator:
-            # Compound webhook ID: entry_id/validator
-            scanning_webhook_id = f"{entry.entry_id}/{validator}"
+            # Register webhook with just entry_id - the validator is extracted
+            # from the URL path in the handler (HA only matches first path segment)
+            scanning_webhook_id = entry.entry_id
             ha_webhook.async_register(
                 hass,
                 DOMAIN,
@@ -495,7 +496,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             # Store the webhook_id for cleanup on unload
             entry_data["scanning_webhook_id"] = scanning_webhook_id
             _LOGGER.info(
-                "Registered Scanning API webhook: /api/webhook/%s",
+                "Registered Scanning API webhook: /api/webhook/%s/{validator}",
                 scanning_webhook_id,
             )
         else:

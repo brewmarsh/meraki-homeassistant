@@ -42,15 +42,45 @@ async def async_handle_scanning_api(
 
     This is the direct endpoint handler for Scanning API webhooks.
     It handles both GET (validation) and POST (data) requests.
+
+    URL format: /api/webhook/{config_entry_id}/{validator}
+    HA only matches on config_entry_id, so we extract the validator from the path.
     """
+    # Extract validator from URL path (format: /api/webhook/{entry_id}/{validator})
+    path_parts = request.path.strip("/").split("/")
+    url_validator = path_parts[-1] if len(path_parts) >= 4 else None
+
+    _LOGGER_SCANNING.debug(
+        "Scanning API webhook received: method=%s, entry=%s, path=%s, url_validator=%s",
+        request.method,
+        config_entry_id,
+        request.path,
+        url_validator[:16] + "..." if url_validator else None,
+    )
+
     config_entry = hass.config_entries.async_get_entry(config_entry_id)
     if not config_entry:
+        _LOGGER_SCANNING.warning(
+            "Scanning API webhook: config entry %s not found", config_entry_id
+        )
+        return web.Response(status=404)
+
+    configured_validator = config_entry.options.get(CONF_SCANNING_API_VALIDATOR)
+
+    # Verify the validator in the URL matches our configured validator
+    if url_validator and configured_validator and url_validator != configured_validator:
+        _LOGGER_SCANNING.warning(
+            "Scanning API: URL validator mismatch (url=%s, configured=%s)",
+            url_validator[:16] + "..." if url_validator else None,
+            configured_validator[:16] + "..." if configured_validator else None,
+        )
         return web.Response(status=404)
 
     if request.method == "GET":
-        validator = config_entry.options.get(CONF_SCANNING_API_VALIDATOR)
-        if validator:
-            return web.Response(text=validator)
+        if configured_validator:
+            _LOGGER_SCANNING.debug("Scanning API GET validation - returning validator")
+            return web.Response(text=configured_validator)
+        _LOGGER_SCANNING.warning("Scanning API GET: no validator configured")
         return web.Response(status=404)
 
     if request.method == "POST":
@@ -60,8 +90,12 @@ async def async_handle_scanning_api(
             _LOGGER_SCANNING.warning("Received invalid JSON in Scanning API webhook")
             return web.Response(status=400)
 
+        _LOGGER_SCANNING.debug(
+            "Scanning API POST received, type=%s", data.get("type", "unknown")
+        )
         return await _handle_scanning_api_data(hass, config_entry_id, data)
 
+    _LOGGER_SCANNING.warning("Scanning API: unsupported method %s", request.method)
     return web.Response(status=405)
 
 
@@ -88,18 +122,39 @@ async def _handle_scanning_api_data(
     """
     config_entry = hass.config_entries.async_get_entry(config_entry_id)
     if not config_entry:
+        _LOGGER_SCANNING.warning(
+            "Scanning API data handler: config entry %s not found", config_entry_id
+        )
         return web.Response(status=404)
 
     secret = config_entry.options.get(CONF_SCANNING_API_SECRET)
-    if not secret or data.get("secret") != secret:
-        _LOGGER_SCANNING.warning("Received Scanning API webhook with invalid secret")
+    received_secret = data.get("secret")
+    if not secret:
+        _LOGGER_SCANNING.warning(
+            "Scanning API: no secret configured in integration options"
+        )
+        return web.Response(status=401)
+    if received_secret != secret:
+        _LOGGER_SCANNING.warning(
+            "Scanning API: secret mismatch (received=%s, expected=%s)",
+            received_secret[:8] + "..." if received_secret else "None",
+            secret[:8] + "...",
+        )
         return web.Response(status=401)
 
     if data.get("type") == "DevicesSeen":
+        _LOGGER_SCANNING.debug(
+            "Scanning API: processing DevicesSeen with %d observations",
+            len(data.get("data", {}).get("observations", [])),
+        )
         coordinator: MerakiDataCoordinator = hass.data[DOMAIN][config_entry_id][
             "coordinator"
         ]
         await coordinator.async_handle_scanning_api_data(data["data"])
+    else:
+        _LOGGER_SCANNING.debug(
+            "Scanning API: ignoring message type=%s", data.get("type")
+        )
 
     return web.Response(status=200)
 
