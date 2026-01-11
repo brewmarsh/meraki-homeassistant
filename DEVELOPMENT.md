@@ -2,52 +2,93 @@
 
 This document provides a comprehensive guide for developers who want to contribute to the Meraki Home Assistant integration.
 
+---
+
+## Table of Contents
+
+1. [Getting Started](#1-getting-started)
+2. [Running Quality Checks](#2-running-quality-checks)
+3. [Frontend Development](#3-frontend-development)
+4. [Docker Test Environment](#4-docker-test-environment)
+5. [Core Architectural Principles](#5-core-architectural-principles)
+6. [Home Assistant Integration Patterns](#6-home-assistant-integration-patterns)
+7. [Git Branching Strategy](#7-git-branching-strategy)
+8. [Testing Requirements](#8-testing-requirements)
+9. [Versioning and Releases](#9-versioning-and-releases)
+10. [Commit Message Format](#10-commit-message-format)
+11. [Debugging & Logging](#11-debugging--logging)
+12. [Project Structure](#12-project-structure)
+
+---
+
 ## 1. Getting Started
 
-### 1.1. Package Manager: uv
+### 1.1. Prerequisites
 
-This project uses **`uv`** as the Python package manager and **`pyproject.toml`** for all dependency management. Never use `requirements.txt` files.
+- **Python 3.13.2+** (required)
+- **Node.js 18+** (for frontend development)
+- **Docker** (optional, for isolated testing)
+- **Git** (obviously)
 
-1.  **Install uv** (if not already installed):
+### 1.2. Package Manager: uv
+
+This project uses **`uv`** as the Python package manager and **`pyproject.toml`** for all dependency management. **Never use `requirements.txt` files.**
+
+1. **Install uv** (if not already installed):
+
+   ```bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   ```
+
+2. **Install dependencies:**
+
+   ```bash
+   uv sync --all-extras
+   ```
+
+   This reads `pyproject.toml` and installs all dev dependencies from `[project.optional-dependencies].dev`. The `uv.lock` file ensures reproducible builds.
+
+3. **Adding new dependencies:**
+
+   ```bash
+   # Add a new package
+   uv add <package-name>
+
+   # Or edit pyproject.toml directly under [project.optional-dependencies].dev
+   uv sync --all-extras
+   ```
+
+### 1.3. Quick Start
 
     ```bash
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    ```
 
-2.  **Install dependencies:**
+# Clone the repository
 
-    ```bash
-    uv sync --all-extras
-    ```
+git clone https://github.com/liptonj/meraki-homeassistant.git
+cd meraki-homeassistant
 
-    This reads `pyproject.toml` and installs all dev dependencies from `[project.optional-dependencies].dev`. The `uv.lock` file ensures reproducible builds.
+# Switch to beta branch (development happens here)
 
-3.  **Adding new dependencies:**
-    ```bash
-    uv add <package-name>
-    # Or edit pyproject.toml directly under [project.optional-dependencies].dev
-    uv sync --all-extras
-    ```
+git checkout beta
+git pull origin beta
 
-### 1.2. Docker Test Environment
+# Install dependencies
 
-For a more isolated and consistent testing environment, you can use the provided Docker setup.
+uv sync --all-extras
 
-1.  **Ensure Docker is Running:** Make sure you have Docker Desktop (or the Docker daemon) running on your system.
-2.  **Start Home Assistant:**
-    ```bash
-    docker compose up
-    ```
-    This will start a local Home Assistant instance with your local version of the Meraki integration mounted.
-3.  **Access Home Assistant:**
-    - URL: `http://localhost:8123`
-    - Follow the on-screen prompts to create a user and configure the Meraki integration.
+# Run quality checks to verify setup
+
+./run_checks.sh
+
+````
+
+---
 
 ## 2. Running Quality Checks
 
-Before submitting, you **must** run all quality checks.
+Before submitting changes, you **must** run all quality checks.
 
-**All tool configurations are centralized in `pyproject.toml`** - never create separate config files.
+**All tool configurations are centralized in `pyproject.toml`** - never create separate config files (no `.bandit.yaml`, `.ruff.toml`, `mypy.ini`, `pytest.ini`, etc.).
 
 ### 2.1. Recommended: Use the Helper Script
 
@@ -55,7 +96,7 @@ The easiest way to run all checks is with the helper script:
 
 ```bash
 ./run_checks.sh
-```
+````
 
 This script will:
 
@@ -67,35 +108,58 @@ This script will:
 
 If you need to run checks individually, use `uv run` to ensure tools run in the virtual environment:
 
-1.  **Linting & Formatting (Ruff):** - configured in `[tool.ruff]`
+1. **Linting & Formatting (Ruff):**
 
-    ```bash
-    uv run ruff check --fix .
-    uv run ruff format .
-    ```
+   ```bash
+   # Check and auto-fix issues
+   uv run ruff check --fix .
 
-2.  **Type Checking (mypy):** - configured in `[tool.mypy]`
+   # Format code
+   uv run ruff format .
+   ```
 
-    ```bash
-    uv run mypy custom_components/meraki_ha/ tests/
-    ```
+2. **Type Checking (mypy):**
 
-3.  **Security Analysis (bandit):** - configured in `[tool.bandit]`
+   ```bash
+   uv run mypy custom_components/meraki_ha/ tests/
+   ```
 
-    ```bash
-    uv run bandit -c pyproject.toml -r custom_components/meraki_ha/
-    ```
+3. **Security Analysis (bandit):**
 
-4.  **Run Tests (pytest):** - configured in `[tool.pytest.ini_options]`
+   ```bash
+   uv run bandit -c pyproject.toml -r custom_components/meraki_ha/
+   ```
 
-    ```bash
-    uv run pytest
-    ```
+4. **Run Tests (pytest):**
 
-5.  **Home Assistant Validation (hassfest):**
-    ```bash
-    docker run --rm -v "$(pwd)":/github/workspace ghcr.io/home-assistant/hassfest
-    ```
+   ```bash
+   # Run all tests
+   uv run pytest
+
+   # Run with coverage report
+   uv run pytest --cov=custom_components/meraki_ha --cov-report=term-missing
+
+   # Run specific test file
+   uv run pytest tests/sensor/test_temperature_sensor.py -v
+   ```
+
+5. **Home Assistant Validation (hassfest):**
+
+   ```bash
+   docker run --rm -v "$(pwd)":/github/workspace ghcr.io/home-assistant/hassfest
+   ```
+
+### 2.3. Pre-Commit Checklist
+
+Before committing:
+
+- [ ] `uv run ruff check --fix .` passes
+- [ ] `uv run ruff format .` shows no changes needed
+- [ ] `uv run mypy custom_components/meraki_ha/ tests/` passes
+- [ ] `uv run pytest` passes (all tests green)
+- [ ] Frontend rebuilt if modified (`npm run build`)
+
+---
 
 ## 3. Frontend Development
 
@@ -103,11 +167,21 @@ The Meraki side panel is a modern web application built with React, Vite, and Ty
 
 ### 3.1. Frontend Code Location
 
-The source code for the frontend panel is located in the `custom_components/meraki_ha/www/` directory.
+```
+custom_components/meraki_ha/www/
+├── src/                    # Source code
+│   ├── components/         # React components
+│   ├── hooks/              # Custom React hooks
+│   ├── types/              # TypeScript type definitions
+│   ├── App.tsx             # Main application component
+│   └── main.tsx            # Entry point
+├── package.json            # Dependencies and scripts
+├── vite.config.ts          # Vite configuration
+├── meraki-panel.js         # Built output (committed)
+└── style.css               # Built CSS (committed)
+```
 
 ### 3.2. Installing Dependencies
-
-To work with the frontend code, you must first install the necessary Node.js dependencies.
 
 ```bash
 cd custom_components/meraki_ha/www/
@@ -116,109 +190,360 @@ npm install
 
 ### 3.3. Building the Frontend
 
-After making changes to the frontend code, you must rebuild the panel to generate the final JavaScript and CSS files.
+After making changes, rebuild the panel:
 
 ```bash
 npm run build
 ```
 
-This will compile the frontend application and place the necessary `meraki-panel.js` and `style.css` files in the `custom_components/meraki_ha/www/` directory.
+This compiles the application and places `meraki-panel.js` and `style.css` in the `www/` directory.
+
+**Important:** Always commit the built files alongside source changes.
 
 ### 3.4. Development Server
 
-For a more interactive development experience, you can run the Vite development server:
+For interactive development with hot-reloading:
 
 ```bash
 npm run dev
 ```
 
-This will start a local server, typically on port 5173, that provides hot-reloading. Note that in this mode, the panel will not have access to the Home Assistant `hass` object and may not function completely.
+This starts a local server on port 5173. Note that in this mode, the panel won't have access to the Home Assistant `hass` object and may not function completely.
 
-## 4. Core Architectural Principles
+### 3.5. Frontend Architecture
 
-### 4.1. The "Optimistic UI with Cooldown" Pattern
+The panel uses Home Assistant's custom panel architecture:
 
-This is the **most critical pattern** in this codebase for all entities that modify configuration (e.g., `switch`, `select`, `text`).
+- **Web Component Wrapper:** Receives `hass` and `panel` props from HA
+- **React Application:** Mounted inside the Web Component
+- **API Communication:** Uses `hass.callWS()` for authenticated WebSocket calls
 
-- **Problem:** The Meraki Cloud API has a significant provisioning delay.
-- **Solution:** We use an optimistic state with a timed cooldown.
-  1.  The entity's action method immediately updates its own state and writes it to the UI.
-  2.  It then makes a "fire-and-forget" API call to Meraki.
-  3.  After the API call, it registers a "pending update" with the `MerakiDataCoordinator` (default 150 seconds).
-  4.  The entity's state update method ignores coordinator updates while it is in the cooldown period.
+```typescript
+// Example: Making a WebSocket call
+const data = await hass.callWS({
+  type: 'meraki_ha/get_data',
+  config_entry_id: configEntryId,
+});
+```
 
-### 4.2. API Client Conventions
+---
 
-- All calls to the `meraki` library object **must** use `snake_case` methods.
-- This project's own client wrapper methods also use `snake_case` for consistency.
+## 4. Docker Test Environment
 
-## 5. Home Assistant Integration Best Practices
+For isolated testing with a real Home Assistant instance:
 
-- **Device & Entity Helpers:**
-  - Use the `resolve_device_info` and `format_device_name` helpers for `DeviceInfo`.
-  - Use the `format_entity_name` helper for entity names.
-- **Handling Disabled Features:**
-  - When a feature is disabled in the Meraki Dashboard, the corresponding entity should be set to `Disabled`, not `unknown`.
-- **Constants:**
-  - All constants must be defined in `custom_components/meraki_ha/const.py`.
-- **Configuration Validation:**
-  - All configuration data must be validated using `voluptuous` schemas.
+### 4.1. Starting the Environment
 
-## 6. Git Branching Strategy
+```bash
+docker compose up
+```
+
+### 4.2. Accessing Home Assistant
+
+- URL: `http://localhost:8123`
+- Follow the on-screen prompts to create a user
+- Add the Meraki integration via **Settings** > **Devices & Services**
+
+### 4.3. Rebuilding After Changes
+
+```bash
+# Stop the container
+docker compose down
+
+# Rebuild and start
+docker compose up --build
+```
+
+---
+
+## 5. Core Architectural Principles
+
+### 5.1. The "Optimistic UI with Cooldown" Pattern
+
+This is the **most critical pattern** for entities that modify configuration (`switch`, `select`, `text`, `number`).
+
+**Problem:** The Meraki Cloud API has a significant provisioning delay (up to 2-3 minutes after an API call before the change is reflected in subsequent API reads).
+
+**Solution:** Optimistic state with a timed cooldown:
+
+1. The entity's action method immediately updates its own state and writes it to the UI
+2. It makes a "fire-and-forget" API call to Meraki
+3. After the API call, it registers a "pending update" with the `MerakiDataCoordinator` (default 150 seconds)
+4. The entity's state update method ignores coordinator updates while in the cooldown period
+
+**Implementation Example:**
+
+```python
+async def async_turn_on(self, **kwargs: Any) -> None:
+    """Turn the entity on."""
+    # 1. Optimistically update state immediately
+    self._attr_is_on = True
+    self.async_write_ha_state()
+
+    # 2. Fire-and-forget API call
+    await self.coordinator.client.update_ssid(
+        network_id=self._network_id,
+        number=self._ssid_number,
+        enabled=True
+    )
+
+    # 3. Register pending update to ignore stale coordinator data
+    self.coordinator.register_pending_update(
+        self.entity_id,
+        cooldown_seconds=150
+    )
+```
+
+### 5.2. API Client Conventions
+
+- All calls to the `meraki` library object **must** use `snake_case` methods
+- This project's client wrapper methods also use `snake_case` for consistency
+- Always access the client through the coordinator: `self.coordinator.client`
+
+### 5.3. Centralized Logging
+
+This integration uses a centralized logging system. **Never use `logging.getLogger(__name__)`**.
+
+See [Section 11: Debugging & Logging](#11-debugging--logging) for details.
+
+---
+
+## 6. Home Assistant Integration Patterns
+
+### 6.1. Device & Entity Helpers
+
+```python
+from custom_components.meraki_ha.helpers.device_helper import (
+    resolve_device_info,
+    format_device_name,
+)
+from custom_components.meraki_ha.helpers.entity_helper import format_entity_name
+
+# For DeviceInfo
+device_info = resolve_device_info(coordinator, device_data)
+
+# For device names
+name = format_device_name(network_name, device_name)
+
+# For entity names
+entity_name = format_entity_name(device_name, sensor_type)
+```
+
+### 6.2. Handling Disabled Features
+
+When a feature is disabled in the Meraki Dashboard, set the entity to unavailable rather than unknown:
+
+```python
+# Correct - marks entity as unavailable
+self._attr_available = False
+
+# Wrong - shows "unknown" state which is misleading
+self._attr_native_value = None
+```
+
+### 6.3. Constants
+
+All constants must be defined in `custom_components/meraki_ha/const.py`:
+
+```python
+from custom_components.meraki_ha.const import (
+    DOMAIN,
+    CONF_API_KEY,
+    CONF_SCAN_INTERVAL,
+    # ...
+)
+```
+
+### 6.4. Configuration Validation
+
+All configuration data must be validated using `voluptuous` schemas:
+
+```python
+from custom_components.meraki_ha.schemas import SCHEMA_OPTIONS_STEP
+```
+
+---
+
+## 7. Git Branching Strategy
+
+### 7.1. Branch Structure
+
+- **`main`:** Production releases only. Protected branch.
+- **`beta`:** Active development. All feature branches merge here first.
+- **Feature branches:** Created from `beta`, named descriptively.
+
+### 7.2. Creating a Feature Branch
 
 **Always create new branches FROM the `beta` branch, never from `main`.**
 
 ```bash
-# Create a new feature branch from beta
 git checkout beta
 git pull origin beta
 git checkout -b feat/my-new-feature
+```
 
-# When work is complete and all checks pass, merge back into beta
+### 7.3. Branch Naming Conventions
+
+| Prefix      | Use Case                |
+| ----------- | ----------------------- |
+| `feat/`     | New features            |
+| `fix/`      | Bug fixes               |
+| `bugfix/`   | Bug fixes (alternative) |
+| `refactor/` | Code refactoring        |
+| `docs/`     | Documentation updates   |
+| `test/`     | Test additions/fixes    |
+
+### 7.4. Completing Work
+
+```bash
+# Ensure all checks pass
+./run_checks.sh
+
+# Merge back into beta
 git checkout beta
 git merge feat/my-new-feature
 git push origin beta
 ```
 
-The `main` branch is for **production releases only** and requires a separate PR process from `beta` to `main`.
+---
 
-## 7. Testing Requirements
+## 8. Testing Requirements
+
+### 8.1. Critical Rule
 
 **Never break existing functionality.** Always run the full test suite before completing work.
 
 ```bash
-# Run all tests
 uv run pytest
-
-# Run with coverage
-uv run pytest --cov=custom_components/meraki_ha --cov-report=term-missing
 ```
+
+If any previously passing test fails after your changes, **fix it before marking the task complete**.
+
+### 8.2. Test Coverage Requirements
 
 - All code changes **require corresponding unit tests**
 - New features need tests proving they work
 - Bug fixes need tests proving the bug is fixed
-- Place tests in `tests/` mirroring the source structure
-- If any previously passing test fails after your changes, **fix it before marking the task complete**
+- Target: 95%+ test coverage
 
-## 8. Versioning and Releases
+### 8.3. Test Structure
 
-This project uses an automated versioning and release process based on PR titles:
+Place tests in `tests/` mirroring the source structure:
 
-- `[major]`: Major version update (e.g., `1.2.3` -> `2.0.0`).
-- `[minor]`: Minor version update (e.g., `1.2.3` -> `1.3.0`).
-- `[patch]` or no prefix: Patch version update (e.g., `1.2.3` -> `1.2.4`).
+```
+custom_components/meraki_ha/sensor/temperature.py
+→ tests/sensor/test_temperature.py
+```
 
-A `CHANGELOG.md` is automatically updated, and a new GitHub Release is created.
+### 8.4. Testing Best Practices
 
-## 9. Commit Message Format
+```python
+"""Tests for the temperature sensor."""
+
+import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
+
+from custom_components.meraki_ha.sensor.temperature import TemperatureSensor
+
+
+@pytest.fixture
+def mock_coordinator():
+    """Create a mock coordinator."""
+    coordinator = AsyncMock()
+    coordinator.client = AsyncMock()
+    coordinator.data = {"devices": [...]}
+    return coordinator
+
+
+@pytest.fixture
+def mock_hass():
+    """Create a mock Home Assistant instance."""
+    hass = MagicMock()
+    hass.data = {}
+    return hass
+
+
+async def test_temperature_sensor_value(mock_coordinator, mock_hass):
+    """Test that temperature sensor returns correct value."""
+    sensor = TemperatureSensor(coordinator=mock_coordinator, ...)
+
+    assert sensor.native_value == 72.5
+    assert sensor.native_unit_of_measurement == "°F"
+```
+
+### 8.5. Mocking External APIs
+
+**Never make real Meraki API calls in tests.** Always mock:
+
+```python
+@patch("custom_components.meraki_ha.core.meraki_api_client.MerakiAPIClient")
+async def test_api_call(mock_client):
+    mock_client.return_value.get_devices = AsyncMock(return_value=[...])
+    # Test code here
+```
+
+---
+
+## 9. Versioning and Releases
+
+### 9.1. Automated Versioning
+
+This project uses automated versioning based on PR titles:
+
+| PR Title Prefix   | Version Bump         | Example           |
+| ----------------- | -------------------- | ----------------- |
+| `[major]`         | Major (breaking)     | `1.2.3` → `2.0.0` |
+| `[minor]`         | Minor (new features) | `1.2.3` → `1.3.0` |
+| `[patch]` or none | Patch (bug fixes)    | `1.2.3` → `1.2.4` |
+
+### 9.2. Release Process
+
+1. Changes merge to `beta` branch
+2. CI runs and creates beta releases (e.g., `3.1.0-beta.3`)
+3. When ready for production, PR from `beta` to `main`
+4. Merge creates a production release (e.g., `3.1.0`)
+
+### 9.3. Version Files
+
+Version is tracked in:
+
+- `custom_components/meraki_ha/manifest.json` (source of truth)
+- `CHANGELOG.md` (auto-updated)
+
+---
+
+## 10. Commit Message Format
 
 Use **Conventional Commits** format:
 
 ```
 type(scope): description
 
-feat(sensor): add humidity threshold alert
-fix(api): handle rate limiting gracefully
+[optional body]
+
+[optional footer]
+```
+
+### 10.1. Types
+
+| Type       | Use Case                     |
+| ---------- | ---------------------------- |
+| `feat`     | New feature                  |
+| `fix`      | Bug fix                      |
+| `docs`     | Documentation only           |
+| `refactor` | Code change (no feature/fix) |
+| `test`     | Adding/fixing tests          |
+| `build`    | Build system/dependencies    |
+| `ci`       | CI configuration             |
+| `style`    | Formatting (no logic change) |
+| `perf`     | Performance improvement      |
+| `chore`    | Maintenance tasks            |
+
+### 10.2. Examples
+
+```bash
+feat(camera): add configurable snapshot refresh interval
+fix(api): filter networks before making API calls
 docs(readme): update installation instructions
 refactor(sensor): consolidate MT sensor base class
 test(switch): add SSID toggle tests
@@ -226,15 +551,42 @@ build(deps): update homeassistant to 2025.11
 ci(workflow): add beta branch workflow
 ```
 
-**Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `build`, `ci`, `style`, `perf`, `chore`
+---
 
-## 10. Debugging & Logging
+## 11. Debugging & Logging
 
-This integration uses a **centralized logging system** with feature-specific loggers that can be individually controlled to reduce log noise while debugging specific components.
+### 11.1. Centralized Logging System
 
-### 10.1. Basic Debug Logging
+This integration uses a centralized logging system with feature-specific loggers that can be individually controlled.
 
-Enable debug logging for the entire integration:
+**Always use `MerakiLoggers` from `helpers/logging_helper.py`:**
+
+```python
+from custom_components.meraki_ha.helpers.logging_helper import MerakiLoggers
+
+_LOGGER = MerakiLoggers.SENSOR  # Choose appropriate logger
+```
+
+### 11.2. Available Loggers
+
+| Logger           | Use For                              |
+| ---------------- | ------------------------------------ |
+| `MAIN`           | Core integration, config flows, hubs |
+| `API`            | API client code, endpoints           |
+| `COORDINATOR`    | Data coordinators                    |
+| `MQTT`           | MQTT service for MT sensors          |
+| `ALERTS`         | Webhook alerts                       |
+| `SCANNING_API`   | Scanning API (CMX)                   |
+| `DISCOVERY`      | Device/entity discovery              |
+| `CAMERA`         | Camera operations                    |
+| `SENSOR`         | Sensor entities                      |
+| `SWITCH`         | Switch/toggle entities               |
+| `FRONTEND`       | Frontend panel                       |
+| `DEVICE_TRACKER` | Client tracking                      |
+
+### 11.3. Basic Debug Logging
+
+Enable debug logging for the entire integration in `configuration.yaml`:
 
 ```yaml
 logger:
@@ -243,96 +595,23 @@ logger:
     custom_components.meraki_ha: debug
 ```
 
-### 10.2. Feature-Specific Logging
+### 11.4. Feature-Specific Logging
 
-Control individual features to reduce noise from chatty components (like MQTT):
+Control individual features to reduce noise:
 
 ```yaml
 logger:
   default: info
   logs:
-    # Main integration - shows general info
     custom_components.meraki_ha: info
-
-    # Feature-specific logging:
     custom_components.meraki_ha.mqtt: warning # Silence MQTT spam
-    custom_components.meraki_ha.alerts: debug # Debug webhook alerts
-    custom_components.meraki_ha.scanning_api: debug # Debug Scanning API (CMX)
-    custom_components.meraki_ha.api: debug # Debug Meraki cloud API calls
-    custom_components.meraki_ha.coordinator: info # Data polling updates
-    custom_components.meraki_ha.device_tracker: warning # Client tracking
-    custom_components.meraki_ha.discovery: info # Device/entity discovery
-    custom_components.meraki_ha.camera: debug # Camera snapshots/streams
-    custom_components.meraki_ha.switch: debug # Switch/toggle entities
-    custom_components.meraki_ha.sensor: info # Sensor updates
-    custom_components.meraki_ha.frontend: debug # Web panel/UI
+    custom_components.meraki_ha.api: debug # Debug API calls
+    custom_components.meraki_ha.scanning_api: debug # Debug Scanning API
 ```
 
-### 10.3. Available Feature Loggers
+### 11.5. Performance Timing Decorator
 
-| Logger Name      | Description                                  |
-| ---------------- | -------------------------------------------- |
-| `mqtt`           | MQTT service for MT sensor real-time updates |
-| `alerts`         | Webhook alerts from Meraki Dashboard         |
-| `scanning_api`   | Scanning API (CMX) client presence updates   |
-| `api`            | Meraki cloud API calls                       |
-| `coordinator`    | Data coordinator polling and updates         |
-| `device_tracker` | Client device tracking                       |
-| `camera`         | Camera operations (snapshots, streams)       |
-| `sensor`         | Sensor entity updates                        |
-| `switch`         | Switch/toggle entity operations              |
-| `discovery`      | Device and entity discovery                  |
-| `frontend`       | Frontend panel and web UI                    |
-
-### 10.4. Example: Debug Scanning API Only
-
-If you're troubleshooting the Scanning API but don't want MQTT or alert logs:
-
-```yaml
-logger:
-  default: info
-  logs:
-    custom_components.meraki_ha: info
-    custom_components.meraki_ha.scanning_api: debug
-    custom_components.meraki_ha.alerts: warning # Silence alerts
-    custom_components.meraki_ha.mqtt: warning # Silence MQTT
-```
-
-### 10.5. Using Loggers in Code (For Developers)
-
-**Never use `logging.getLogger(__name__)`** in this codebase. Always use the centralized `MerakiLoggers` class:
-
-```python
-from custom_components.meraki_ha.helpers.logging_helper import MerakiLoggers
-
-# Choose the appropriate logger for your module:
-_LOGGER = MerakiLoggers.SENSOR  # For sensor modules
-
-def setup_my_sensor():
-    _LOGGER.info("Setting up sensor")
-    _LOGGER.debug("Detailed debug info: %s", some_data)
-```
-
-**Logger Selection Guide:**
-
-| Module Type                                | Logger to Use                  |
-| ------------------------------------------ | ------------------------------ |
-| `__init__.py`, config flows, hubs, helpers | `MerakiLoggers.MAIN`           |
-| `core/api/endpoints/`, API utils           | `MerakiLoggers.API`            |
-| Coordinators, repositories                 | `MerakiLoggers.COORDINATOR`    |
-| `services/mqtt_*.py`                       | `MerakiLoggers.MQTT`           |
-| Webhook handlers                           | `MerakiLoggers.ALERTS`         |
-| Scanning API                               | `MerakiLoggers.SCANNING_API`   |
-| `discovery/` handlers                      | `MerakiLoggers.DISCOVERY`      |
-| Camera platform                            | `MerakiLoggers.CAMERA`         |
-| Sensor entities                            | `MerakiLoggers.SENSOR`         |
-| Switch, select, number, text entities      | `MerakiLoggers.SWITCH`         |
-| Frontend, web server                       | `MerakiLoggers.FRONTEND`       |
-| Device tracker                             | `MerakiLoggers.DEVICE_TRACKER` |
-
-### 10.6. Performance Timing with `async_log_time`
-
-For async methods that may be slow (API calls, coordinator updates), use the `async_log_time` decorator:
+For async methods that may be slow, use the `async_log_time` decorator:
 
 ```python
 from custom_components.meraki_ha.async_logging import async_log_time
@@ -345,23 +624,60 @@ class MyApiClient:
         return await self._api.get_devices()
 ```
 
-**Decorator Parameters:**
+---
 
-| Parameter        | Default             | Description                                                |
-| ---------------- | ------------------- | ---------------------------------------------------------- |
-| `logger`         | `MerakiLoggers.API` | Logger instance to use                                     |
-| `level`          | `logging.DEBUG`     | Log level for timing messages                              |
-| `slow_threshold` | `None`              | If set, logs warning when execution exceeds this (seconds) |
+## 12. Project Structure
 
-### 10.7. Configurable Log Levels via Options Flow
+### 12.1. Key Directories
 
-Users can configure log levels per feature in the integration's options. These settings are in `const.py`:
+| Directory                             | Purpose                     |
+| ------------------------------------- | --------------------------- |
+| `custom_components/meraki_ha/`        | Main integration code       |
+| `custom_components/meraki_ha/core/`   | Business logic & API client |
+| `custom_components/meraki_ha/sensor/` | Sensor platform entities    |
+| `custom_components/meraki_ha/switch/` | Switch platform entities    |
+| `custom_components/meraki_ha/www/`    | React frontend              |
+| `tests/`                              | Test suite                  |
+| `docs/`                               | Architecture documentation  |
 
-```python
-CONF_LOG_LEVEL_MQTT = "log_level_mqtt"
-CONF_LOG_LEVEL_API = "log_level_api"
-CONF_LOG_LEVEL_COORDINATOR = "log_level_coordinator"
-# ... etc.
+### 12.2. Key Files
+
+| File                         | Purpose                    |
+| ---------------------------- | -------------------------- |
+| `__init__.py`                | Integration entry point    |
+| `config_flow.py`             | Setup wizard               |
+| `options_flow.py`            | Options configuration      |
+| `const.py`                   | All constants              |
+| `schemas.py`                 | Voluptuous schemas         |
+| `meraki_data_coordinator.py` | Data update coordinator    |
+| `manifest.json`              | Integration metadata       |
+| `pyproject.toml`             | Dependencies & tool config |
+
+### 12.3. Platform Modules
+
+Each entity platform follows a consistent structure:
+
+```
+sensor/
+├── __init__.py              # Platform setup (async_setup_entry)
+├── base.py                  # Base class for sensors
+├── device_sensors.py        # Device-specific sensors
+├── network_sensors.py       # Network-level sensors
+└── mt_sensors/              # MT environmental sensors
+    ├── temperature.py
+    ├── humidity.py
+    └── ...
 ```
 
-Log levels are applied at integration load via `apply_log_levels()` in `logging_helper.py`.
+---
+
+## Need Help?
+
+- **Issues:** [GitHub Issues](https://github.com/liptonj/meraki-homeassistant/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/liptonj/meraki-homeassistant/discussions)
+- **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md)
+- **AI Agents:** See [AGENTS.md](AGENTS.md)
+
+---
+
+_This document was last updated for version 3.1.0._
