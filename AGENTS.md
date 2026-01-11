@@ -1,12 +1,30 @@
 # `AGENTS.md`: AI Agent Guidelines
 
-**This document is for AI agents working on this codebase.** Human developers should refer to the `DEVELOPMENT.md` file for instructions.
+**This document is for AI agents working on this codebase.** Human developers should refer to `DEVELOPMENT.md` for setup and contribution guidelines.
+
+---
+
+## Quick Reference
+
+| What                    | Where                                                    |
+| ----------------------- | -------------------------------------------------------- |
+| Integration entry point | `custom_components/meraki_ha/__init__.py`                |
+| API client              | `custom_components/meraki_ha/core/meraki_api_client.py`  |
+| Data coordinator        | `custom_components/meraki_ha/meraki_data_coordinator.py` |
+| Constants               | `custom_components/meraki_ha/const.py`                   |
+| Config flow             | `custom_components/meraki_ha/config_flow.py`             |
+| Options flow            | `custom_components/meraki_ha/options_flow.py`            |
+| Logging helper          | `custom_components/meraki_ha/helpers/logging_helper.py`  |
+| Frontend source         | `custom_components/meraki_ha/www/src/`                   |
+| Frontend build output   | `custom_components/meraki_ha/www/meraki-panel.js`        |
+| Tests                   | `tests/` (mirrors source structure)                      |
+| Tool configurations     | `pyproject.toml` (ruff, mypy, pytest, bandit)            |
 
 ---
 
 ## 1. Project Overview
 
-This is a **Cisco Meraki integration for Home Assistant**. It allows users to monitor and manage their Meraki network infrastructure (access points, switches, cameras, security appliances, and environmental sensors) directly from Home Assistant.
+This is a **Cisco Meraki integration for Home Assistant**. It monitors and manages Meraki network infrastructure (access points, switches, cameras, security appliances, environmental sensors) directly from Home Assistant.
 
 ### Key Technologies
 
@@ -25,12 +43,14 @@ This is a **Cisco Meraki integration for Home Assistant**. It allows users to mo
 meraki-homeassistant/
 ├── custom_components/meraki_ha/     # Main integration code
 │   ├── __init__.py                  # Integration entry point
-│   ├── api/                         # API client and WebSocket handlers
+│   ├── api/                         # WebSocket handlers
 │   ├── binary_sensor/               # Binary sensor platform
 │   ├── button/                      # Button platform
 │   ├── camera.py                    # Camera platform
 │   ├── coordinators/                # Data update coordinators
 │   ├── core/                        # Core business logic & API client
+│   │   ├── api/endpoints/           # Meraki API endpoint wrappers
+│   │   └── utils/                   # API utilities
 │   ├── discovery/                   # Device discovery handlers
 │   ├── helpers/                     # Utility functions
 │   ├── hubs/                        # Hub/bridge implementations
@@ -41,21 +61,23 @@ meraki-homeassistant/
 │   ├── switch/                      # Switch platform
 │   ├── text/                        # Text input platform
 │   └── www/                         # React frontend (Vite project)
-├── tests/                           # Test suite (mirrors src structure)
+├── tests/                           # Test suite (mirrors source structure)
 ├── docs/                            # Architecture & design documentation
-├── DEVELOPMENT.md                   # Developer setup guide
-├── CONTRIBUTING.md                  # Contribution guidelines
-├── pyproject.toml                   # Python dependencies & tool config (uv)
+├── pyproject.toml                   # Python dependencies & tool config
 ├── uv.lock                          # Lock file for reproducible builds
 └── run_checks.sh                    # Quality check script
 ```
 
-### Dependency Management: uv + pyproject.toml
+---
+
+## 2. Critical Rules (Read First)
+
+### 2.1. Package Management: uv Only
 
 This project uses **`uv`** as the Python package manager. **Never use `requirements.txt` files.**
 
 ```bash
-# Install all dev dependencies (--all-extras is required!)
+# Install all dev dependencies
 uv sync --all-extras
 
 # Add a new dependency
@@ -65,77 +87,66 @@ uv add <package-name>
 uv sync --all-extras
 ```
 
-All dependencies are defined in `pyproject.toml` under `[project.optional-dependencies].dev`. The `--all-extras` flag is required to install these optional dependencies. The `uv.lock` file ensures reproducible builds across environments.
+### 2.2. Tool Configuration: pyproject.toml Only
+
+**All tool configurations are centralized in `pyproject.toml`**. Never create separate config files:
+
+- ❌ `.bandit.yaml`
+- ❌ `.ruff.toml`
+- ❌ `mypy.ini`
+- ❌ `pytest.ini`
+- ❌ `requirements.txt`
+
+### 2.3. Git Branching: Always from Beta
+
+**Always create new branches FROM the `beta` branch, never from `main`.**
+
+```bash
+git checkout beta
+git pull origin beta
+git checkout -b feat/my-new-feature
+
+# When complete, merge back into beta
+git checkout beta
+git merge feat/my-new-feature
+git push origin beta
+```
+
+The `main` branch is for **production releases only**.
+
+### 2.4. Never Break Tests
+
+**Always run the full test suite before completing work.**
+
+```bash
+uv run pytest
+```
+
+If any previously passing test fails after your changes, fix it before marking the task complete.
 
 ---
 
-## 2. Core Mission
+## 3. Core Architectural Patterns
 
-Your primary goal is to assist human developers by performing well-defined tasks, such as fixing bugs, adding features, and refactoring code. You must do so in a way that is consistent with the project's standards and conventions.
+### 3.1. The "Optimistic UI with Cooldown" Pattern ⚠️ CRITICAL
 
----
-
-## 3. Onboarding & Project-Specifics
-
-Before starting any task, you **must** familiarize yourself with the project by reviewing the following files:
-
-- **`README.md`**: To understand the project's purpose, features, and user-facing documentation.
-- **`DEVELOPMENT.md`**: To understand the development environment, coding standards, and architectural principles.
-- **`pyproject.toml`**: To understand Python dependencies and tool configurations (ruff, mypy, pytest).
-- **`custom_components/meraki_ha/www/package.json`**: For frontend dependencies and scripts.
-
----
-
-## 4. Recent Changes (v2.2.1)
-
-The 2.2.1 release introduced significant improvements. Be aware of these when working on related code:
-
-### New Features
-
-- **Camera Snapshot Interval**: Configurable `camera_snapshot_interval` option (0-3600 seconds). Set to 0 for on-demand only (default). Cached snapshots reduce API calls.
-- **Cloud Video URL Attribute**: Camera entities expose `cloud_video_url` attribute for browser viewing. Note: Streaming uses RTSP only.
-- **API Network Filtering**: Only polls networks enabled in integration settings, reducing unnecessary API calls.
-- **Frontend Refactor**:
-  - Proper HA custom panel architecture with Web Component wrapper
-  - Uses `hass.callWS()` for authenticated API calls (no more token prompts)
-  - WebSocket subscription handler registered in `__init__.py`
-- **Frontend UI Redesign**:
-  - Clean card-based layout with CSS variables for light/dark theme support
-  - Device status badges (green=online, red=offline, orange=alerting)
-  - Device icons based on model type (MR, MS, MV, MX, MG, MT)
-- **Camera Linking**: Link Meraki cameras to external NVR cameras (Blue Iris, Frigate, etc.)
-  - Stored as `linked_camera_entity` attribute
-
-### Bug Fixes in 2.2.1
-
-- **API "Invalid device type" error**: Filter networks to only query those with client-capable product types
-- **Camera snapshot 400 errors**: Retry mechanism (3 attempts, 2-second delays) with graceful fallback
-- **Cloud video URL streaming**: Fixed incorrect stream source handling
-- **Traffic analysis errors**: Informational errors no longer logged at ERROR level
-
----
-
-## 5. Core Architectural Principles
-
-### 5.1. The "Optimistic UI with Cooldown" Pattern
-
-This is the **most critical pattern** for entities that modify configuration (e.g., `switch`, `select`, `text`).
+This is the **most important pattern** for entities that modify configuration (`switch`, `select`, `text`, `number`).
 
 **Problem:** The Meraki Cloud API has a significant provisioning delay (up to 2-3 minutes).
 
 **Solution:** Optimistic state with a timed cooldown:
 
-1. The entity's action method immediately updates its own state and writes it to the UI.
-2. It makes a "fire-and-forget" API call to Meraki.
-3. After the API call, it registers a "pending update" with the `MerakiDataCoordinator` (default 150 seconds).
-4. The entity's state update method ignores coordinator updates while in the cooldown period.
+1. Immediately update the entity's state and write to UI
+2. Make a "fire-and-forget" API call to Meraki
+3. Register a "pending update" with the coordinator (default 150 seconds)
+4. Ignore coordinator updates while in the cooldown period
 
-**Example implementation pattern:**
+**Correct Implementation:**
 
 ```python
 async def async_turn_on(self, **kwargs: Any) -> None:
     """Turn the entity on."""
-    # 1. Optimistically update state
+    # 1. Optimistically update state immediately
     self._attr_is_on = True
     self.async_write_ha_state()
 
@@ -146,32 +157,35 @@ async def async_turn_on(self, **kwargs: Any) -> None:
         enabled=True
     )
 
-    # 3. Register pending update to ignore coordinator data
+    # 3. Register pending update to ignore stale coordinator data
     self.coordinator.register_pending_update(
         self.entity_id,
         cooldown_seconds=150
     )
 ```
 
-### 5.2. API Client Conventions
+**Anti-Pattern (WRONG):**
 
-- All calls to the `meraki` library object **must** use `snake_case` methods.
-- The project's own client wrapper (`MerakiAPIClient`) also uses `snake_case` for consistency.
-- Always use the client from the coordinator: `self.coordinator.client`
+```python
+async def async_turn_on(self, **kwargs: Any) -> None:
+    """DON'T DO THIS - waits for API before updating UI."""
+    await self.coordinator.client.update_ssid(...)  # User sees stale state
+    await self.coordinator.async_refresh()  # Still stale - API hasn't propagated
+    self._attr_is_on = True  # Too late - poor UX
+    self.async_write_ha_state()
+```
 
-### 5.3. Centralized Logging System
+### 3.2. Centralized Logging ⚠️ REQUIRED
 
-This integration uses a **centralized logging system** with feature-specific loggers. **Never use `logging.getLogger(__name__)`**.
-
-**Always use `MerakiLoggers` from `helpers/logging_helper.py`:**
+**Never use `logging.getLogger(__name__)`**. Always use `MerakiLoggers`:
 
 ```python
 from custom_components.meraki_ha.helpers.logging_helper import MerakiLoggers
 
 # Choose the appropriate logger for your module:
-_LOGGER = MerakiLoggers.API        # For API client code
 _LOGGER = MerakiLoggers.SENSOR     # For sensor entities
 _LOGGER = MerakiLoggers.SWITCH     # For switch/select/number/text entities
+_LOGGER = MerakiLoggers.API        # For API client code
 _LOGGER = MerakiLoggers.CAMERA     # For camera operations
 _LOGGER = MerakiLoggers.COORDINATOR  # For coordinators
 _LOGGER = MerakiLoggers.DISCOVERY  # For discovery handlers
@@ -179,26 +193,33 @@ _LOGGER = MerakiLoggers.MQTT       # For MQTT services
 _LOGGER = MerakiLoggers.FRONTEND   # For frontend/web UI
 _LOGGER = MerakiLoggers.DEVICE_TRACKER  # For client tracking
 _LOGGER = MerakiLoggers.MAIN       # For core integration code
+_LOGGER = MerakiLoggers.ALERTS     # For webhook alerts
+_LOGGER = MerakiLoggers.SCANNING_API   # For Scanning API/CMX
 ```
 
-**Available Loggers:**
+**Logger Selection Guide:**
 
-| Logger           | Use For                                                       |
-| ---------------- | ------------------------------------------------------------- |
-| `MAIN`           | Core integration (`__init__.py`, config flows, hubs, helpers) |
-| `API`            | API client code (`core/api/endpoints/`, `core/utils/`)        |
-| `COORDINATOR`    | Data coordinators (`coordinators/`, `repository.py`)          |
-| `MQTT`           | MQTT services (`services/mqtt_*.py`)                          |
-| `ALERTS`         | Webhook alerts                                                |
-| `SCANNING_API`   | Scanning API/CMX                                              |
-| `DISCOVERY`      | Device/entity discovery (`discovery/`)                        |
-| `CAMERA`         | Camera platform and related sensors/switches                  |
-| `SENSOR`         | All sensor entities                                           |
-| `SWITCH`         | Switch, select, number, text entities                         |
-| `FRONTEND`       | Frontend panel (`frontend.py`, `web_*.py`)                    |
-| `DEVICE_TRACKER` | Client tracking sensors                                       |
+| Module Type                           | Logger to Use                  |
+| ------------------------------------- | ------------------------------ |
+| `__init__.py`, config flows, helpers  | `MerakiLoggers.MAIN`           |
+| `core/api/endpoints/`, API utils      | `MerakiLoggers.API`            |
+| Coordinators, repositories            | `MerakiLoggers.COORDINATOR`    |
+| `services/mqtt_*.py`                  | `MerakiLoggers.MQTT`           |
+| Webhook handlers                      | `MerakiLoggers.ALERTS`         |
+| `discovery/` handlers                 | `MerakiLoggers.DISCOVERY`      |
+| Camera platform                       | `MerakiLoggers.CAMERA`         |
+| Sensor entities                       | `MerakiLoggers.SENSOR`         |
+| Switch, select, number, text entities | `MerakiLoggers.SWITCH`         |
+| Frontend, web server                  | `MerakiLoggers.FRONTEND`       |
+| Device tracker                        | `MerakiLoggers.DEVICE_TRACKER` |
 
-**Performance Timing Decorator:**
+### 3.3. API Client Conventions
+
+- All calls to the `meraki` library object **must** use `snake_case` methods
+- The project's client wrapper (`MerakiAPIClient`) also uses `snake_case`
+- Always use the client from the coordinator: `self.coordinator.client`
+
+### 3.4. Performance Timing Decorator
 
 For async operations that may be slow, use the `async_log_time` decorator:
 
@@ -212,141 +233,120 @@ async def get_organization_devices(self) -> list[dict]:
     ...
 ```
 
-### 5.4. Home Assistant Integration Best Practices
+---
 
-- **Device & Entity Helpers:**
-  - Use `resolve_device_info()` and `format_device_name()` for `DeviceInfo`.
-  - Use `format_entity_name()` for entity names.
-- **Handling Disabled Features:**
-  - When a feature is disabled in Meraki Dashboard, set the entity to `Disabled`, not `unknown`.
-- **Constants:**
-  - All constants must be defined in `custom_components/meraki_ha/const.py`.
-- **Configuration Validation:**
-  - All configuration data must be validated using `voluptuous` schemas in `schemas.py`.
+## 4. Home Assistant Integration Patterns
 
-### 5.5. MQTT Real-Time Sensor Updates
+### 4.1. Required Patterns
 
-The integration supports **real-time MQTT updates** for Meraki MT environmental sensors, bypassing the API polling delay.
+| Pattern            | Implementation                                                        |
+| ------------------ | --------------------------------------------------------------------- |
+| Entity unique IDs  | All entities must have unique, stable IDs                             |
+| Entity naming      | Use `_attr_has_entity_name = True`                                    |
+| Device info        | Use `resolve_device_info()` and `format_device_name()` helpers        |
+| Entity names       | Use `format_entity_name()` helper                                     |
+| Unavailable states | Mark entities unavailable when device/service is offline, don't throw |
+| CoordinatorEntity  | Use for data updates - centralized polling with automatic refresh     |
+| Config entries     | Use config entries (not YAML configuration)                           |
+| Async code         | Use async/await throughout for I/O-bound operations                   |
+
+### 4.2. Entity Categories
+
+Assign appropriate entity categories:
+
+```python
+from homeassistant.helpers.entity import EntityCategory
+
+# For configuration entities
+_attr_entity_category = EntityCategory.CONFIG
+
+# For diagnostic entities
+_attr_entity_category = EntityCategory.DIAGNOSTIC
+```
+
+### 4.3. Handling Disabled Features
+
+When a feature is disabled in the Meraki Dashboard, set the entity to `Disabled`, not `unknown`:
+
+```python
+# Correct
+self._attr_available = False
+
+# Wrong - don't use unknown for disabled features
+self._attr_native_value = None  # This shows as "unknown"
+```
+
+### 4.4. Constants
+
+All constants must be defined in `custom_components/meraki_ha/const.py`.
+
+### 4.5. Configuration Validation
+
+All configuration data must be validated using `voluptuous` schemas in `schemas.py`.
+
+---
+
+## 5. MQTT Real-Time Sensor Updates
+
+The integration supports **real-time MQTT updates** for Meraki MT environmental sensors.
 
 **How it works:**
 
-1. Meraki MT sensors publish data to an MQTT broker using the topic pattern: `meraki/v1/mt/{network_id}/ble/{sensor_mac}/{metric}`
-2. The `MerakiMqttService` subscribes to HA's MQTT integration and listens for these topics
-3. When a message arrives, it maps the sensor MAC to a device serial and updates the coordinator
-4. MT sensor entities receive immediate updates instead of waiting for the next poll cycle
+1. Meraki MT sensors publish to MQTT: `meraki/v1/mt/{network_id}/ble/{sensor_mac}/{metric}`
+2. `MerakiMqttService` subscribes via HA's MQTT integration
+3. Messages map sensor MAC to device serial and update the coordinator
+4. MT sensor entities receive immediate updates (bypass polling delay)
 
 **Key Components:**
 
-| Component                | Location                                | Purpose                                                                      |
-| ------------------------ | --------------------------------------- | ---------------------------------------------------------------------------- |
-| `MerakiMqttService`      | `services/mqtt_service.py`              | Subscribes to Meraki MQTT topics, parses messages, updates coordinator       |
-| `MqttRelayManager`       | `services/mqtt_relay.py`                | Forwards messages to external MQTT brokers (multiple destinations supported) |
-| `MerakiMqttStatusSensor` | `binary_sensor/mqtt_status.py`          | Binary sensor showing MQTT connection status                                 |
-| `MqttStatusCard`         | `www/src/components/MqttStatusCard.tsx` | Frontend component displaying MQTT stats                                     |
+| Component                | Location                       | Purpose                           |
+| ------------------------ | ------------------------------ | --------------------------------- |
+| `MerakiMqttService`      | `services/mqtt_service.py`     | Subscribe and parse MQTT messages |
+| `MqttRelayManager`       | `services/mqtt_relay.py`       | Forward to external MQTT brokers  |
+| `MerakiMqttStatusSensor` | `binary_sensor/mqtt_status.py` | Show MQTT connection status       |
 
 **Configuration Options:**
 
-- `enable_mqtt`: Enable/disable MQTT functionality (default: `False`)
-- `mqtt_relay_destinations`: List of external MQTT brokers to forward messages to
-
-**Relay Destination Settings:**
-
-Each relay destination can be configured with:
-
-- `name`: Display name for the destination
-- `host`: MQTT broker hostname
-- `port`: Broker port (default: 1883, TLS: 8883)
-- `username`/`password`: Authentication credentials
-- `use_tls`: Enable TLS encryption
-- `topic_filter`: MQTT topic pattern to match (default: `meraki/v1/mt/#`)
-- `device_types`: Filter by device types (e.g., `["MT"]`)
+- `enable_mqtt`: Enable/disable MQTT (default: `False`)
+- `mqtt_relay_destinations`: List of external MQTT brokers to forward to
 
 ---
 
-## 6. Git Branching Strategy
+## 6. Development Workflow
 
-### Critical Rule: Always Branch from Beta
+### 6.1. Running Quality Checks
 
-**Always create new branches FROM the `beta` branch, never from `main`.**
-
-```bash
-# Correct workflow
-git checkout beta
-git pull origin beta
-git checkout -b feat/my-new-feature
-
-# Do your work...
-
-# When complete, merge back into beta
-git checkout beta
-git merge feat/my-new-feature
-git push origin beta
-```
-
-The `main` branch is for **production releases only** and requires a separate PR process from `beta` to `main`.
-
-### Branch Naming Conventions
-
-- `feat/description` - New features
-- `fix/description` or `bugfix/description` - Bug fixes
-- `refactor/description` - Code refactoring
-- `docs/description` - Documentation updates
-- `test/description` - Test additions/fixes
-
----
-
-## 7. Development Workflow
-
-### 7.1. Running Quality Checks
-
-Before submitting changes, you **must** run all quality checks. Use the helper script or individual commands:
-
-**All tool configurations are centralized in `pyproject.toml`** - never create separate config files (no `.bandit.yaml`, `.ruff.toml`, `mypy.ini`, `pytest.ini`, etc.).
+Before submitting changes, run all quality checks:
 
 ```bash
-# Recommended: All-in-one check script (auto-installs uv if needed)
+# All-in-one (recommended)
 ./run_checks.sh
 
-# Or run individually using uv run:
-
-# Linting & Formatting (configured in [tool.ruff])
+# Or individually:
 uv run ruff check --fix .
 uv run ruff format .
-
-# Type Checking (configured in [tool.mypy])
 uv run mypy custom_components/meraki_ha/ tests/
-
-# Security Analysis (configured in [tool.bandit])
 uv run bandit -c pyproject.toml -r custom_components/meraki_ha/
-
-# Run Tests (configured in [tool.pytest.ini_options])
 uv run pytest
 
-# Home Assistant Validation
+# Home Assistant validation
 docker run --rm -v "$(pwd)":/github/workspace ghcr.io/home-assistant/hassfest
 ```
 
-### 7.2. Frontend Development
+### 6.2. Frontend Development
 
 The Meraki side panel is a React application in `custom_components/meraki_ha/www/`.
 
 ```bash
-# Install dependencies
 cd custom_components/meraki_ha/www/
 npm install
-
-# Build for production (required before committing)
-npm run build
-
-# Development server (hot-reload, limited HA integration)
-npm run dev
+npm run build    # Required before committing
+npm run dev      # Development server with hot-reload
 ```
 
-**Important:** After any frontend changes, you must run `npm run build` and commit the built assets (`meraki-panel.js`, `style.css`).
+**Important:** After any frontend changes, run `npm run build` and commit the built assets (`meraki-panel.js`, `style.css`).
 
-### 7.3. Docker Test Environment
-
-For isolated testing with a real Home Assistant instance:
+### 6.3. Docker Test Environment
 
 ```bash
 docker compose up
@@ -355,140 +355,28 @@ docker compose up
 
 ---
 
-## 8. Tool Usage Guidelines
+## 7. Testing Requirements
 
-- **Be precise with your tool calls.** Do not use vague or ambiguous parameters.
-- **Use the `read_file` tool** to get the exact content of a file before modifying it.
-- **Use the `replace` tool** for making targeted changes to files. Be sure to provide enough context in the `old_string` to avoid ambiguity.
-- **Use the `run_shell_command` tool** for running commands. Be mindful of the user's operating system and use the correct syntax.
-- **When in doubt, ask.** If you are unsure about how to proceed, or if a user's request is ambiguous, ask for clarification.
-
----
-
-## 9. Code Contribution Standards
-
-### 9.1. Python Code Style
-
-- Follow **PEP 8** and all rules enforced by Ruff.
-- Use **NumPy-style docstrings** (configured in `pyproject.toml`).
-- Use **type hints** for all function signatures.
-- Prefer **async/await** for I/O-bound operations.
-- Use **early returns** for error conditions; place the happy path last.
-
-### 9.2. Entity Naming Conventions
-
-```python
-# Device name format
-f"{network_name} {device_name}"
-
-# Entity name format
-f"{device_name} {sensor_type}"
-
-# Entity ID format (auto-generated)
-# sensor.{network}_{device}_{type}
-```
-
-### 9.3. Commit Messages
-
-Use **Conventional Commits** format:
-
-```
-type(scope): description
-
-feat(camera): add configurable snapshot refresh interval
-fix(api): filter networks before making API calls
-docs(readme): update installation instructions
-refactor(sensor): consolidate MT sensor base class
-test(switch): add SSID toggle tests
-build(deps): update homeassistant to 2025.11
-ci(workflow): add beta branch workflow
-```
-
-**Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `build`, `ci`, `style`, `perf`, `chore`
-
-### 9.4. Versioning
-
-This project uses an automated versioning and release process based on PR titles:
-
-- `[major]`: Major version update (e.g., `1.2.3` -> `2.0.0`)
-- `[minor]`: Minor version update (e.g., `1.2.3` -> `1.3.0`)
-- `[patch]` or no prefix: Patch version update (e.g., `1.2.3` -> `1.2.4`)
-
----
-
-## 10. Home Assistant Integration Quality Scale
-
-This integration follows the [Home Assistant Integration Quality Scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/) and targets **🏆 Platinum tier**.
-
-### Quality Scale Tiers (Detailed)
-
-| Tier        | Requirements                                                                                                                      |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| 🥉 Bronze   | UI config flow (not YAML), unique entity IDs, basic tests, documentation                                                          |
-| 🥈 Silver   | Error handling, reauthentication when credentials fail, 95%+ test coverage, code owners, auto-recovery from errors                |
-| 🥇 Gold     | Discovery, diagnostics, translations, entity categories, comprehensive docs, firmware updates, full test coverage                 |
-| 🏆 Platinum | All dependencies are async (`async-dependency`), websession injection (`inject-websession`), strict typing, optimized performance |
-
-**This integration should meet Gold tier standards minimum, targeting Platinum.**
-
-### Key Integration Patterns
-
-Follow these Home Assistant integration patterns:
-
-1. **Use config entries** (not YAML configuration)
-2. **Implement proper async code** throughout
-3. **Handle device offline states gracefully** - mark entities unavailable, don't throw errors
-4. **Use `CoordinatorEntity`** for data updates - centralized polling with automatic refresh
-5. **Implement reauthentication** when credentials fail (re-auth flow)
-6. **Provide `DeviceInfo`** for device registry integration
-7. **Use entity naming conventions** (`_attr_has_entity_name = True`)
-8. **Ensure entities recover automatically** from errors without filling logs
-
-### Key Rules to Maintain
-
-When modifying code, ensure these rules remain satisfied:
-
-- **entity-unique-id**: All entities must have unique IDs
-- **has-entity-name**: Use `_attr_has_entity_name = True`
-- **entity-unavailable**: Mark entities unavailable when device/service is offline
-- **entity-device-class**: Use appropriate device classes
-- **entity-category**: Assign `EntityCategory.CONFIG` or `EntityCategory.DIAGNOSTIC` where appropriate
-- **test-coverage**: Maintain 95%+ test coverage
-- **strict-typing**: All code must be fully typed with type annotations
-- **async-dependency**: Use async patterns throughout
-
-### Quality Scale File
-
-Track compliance in `quality_scale.yaml`. Reference the [full rules documentation](https://developers.home-assistant.io/docs/core/integration-quality-scale/rules) for details on each rule.
-
----
-
-## 11. Testing Requirements
-
-### Critical Rule: Never Break Existing Functionality
-
-**Always run the full test suite before completing work.** If any previously passing test fails after your changes, you must fix it before marking the task complete.
-
-```bash
-# Run all tests
-uv run pytest
-
-# Run with coverage report
-uv run pytest --cov=custom_components/meraki_ha --cov-report=term-missing
-```
-
-### Test Requirements
+### 7.1. Test Coverage
 
 - **Unit tests are mandatory** for new features and bug fixes
 - New features need tests proving they work
 - Bug fixes need tests proving the bug is fixed
-- Tests should be placed in the `tests/` directory, mirroring the source structure
-- Use `pytest-asyncio` for async tests (configured with `asyncio_mode = "auto"`)
+- Tests should be placed in `tests/`, mirroring the source structure
 - Mock external API calls; never make real Meraki API calls in tests
 
-**Test file naming:** `test_{module_name}.py`
+### 7.2. Test File Naming
 
-**Example test structure:**
+```
+tests/
+├── sensor/
+│   └── test_temperature_sensor.py
+├── switch/
+│   └── test_ssid_switch.py
+└── test_config_flow.py
+```
+
+### 7.3. Example Test Structure
 
 ```python
 """Tests for the SSID switch platform."""
@@ -518,46 +406,73 @@ async def test_ssid_switch_turn_on(mock_coordinator):
 
 ---
 
-## 12. Security Guidelines
+## 8. Code Style
 
-### 12.1. Credentials
+### 8.1. Python Code Style
 
-- **NEVER** hardcode API keys, tokens, or credentials in source code.
-- Use environment variables or Home Assistant's `config_entry` for secrets.
-- The Meraki API key is stored in `entry.data[CONF_API_KEY]`.
+- Follow **PEP 8** and Ruff rules
+- Use **NumPy-style docstrings** (configured in `pyproject.toml`)
+- Use **type hints** for all function signatures
+- Prefer **async/await** for I/O-bound operations
+- Use **early returns** for error conditions; place happy path last
 
-### 12.2. Cryptography
+### 8.2. Entity Naming Conventions
 
-- Use only modern, secure algorithms (SHA-256+, AES-GCM, ECDHE).
-- Never use MD5, SHA-1, DES, 3DES, or RC4.
-- See the workspace rules for the complete banned algorithm list.
+```python
+# Device name format
+f"{network_name} {device_name}"
+
+# Entity name format
+f"{device_name} {sensor_type}"
+
+# Entity ID format (auto-generated)
+# sensor.{network}_{device}_{type}
+```
+
+### 8.3. Commit Messages
+
+Use **Conventional Commits** format:
+
+```
+type(scope): description
+
+feat(camera): add configurable snapshot refresh interval
+fix(api): filter networks before making API calls
+docs(readme): update installation instructions
+refactor(sensor): consolidate MT sensor base class
+test(switch): add SSID toggle tests
+build(deps): update homeassistant to 2025.11
+ci(workflow): add beta branch workflow
+```
+
+**Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `build`, `ci`, `style`, `perf`, `chore`
 
 ---
 
-## 13. Common Tasks
+## 9. Common Tasks
 
-### Adding a New Sensor
+### 9.1. Adding a New Sensor
 
-1. Create the sensor class in `custom_components/meraki_ha/sensor/` (or appropriate subdirectory).
-2. **Use the correct logger:** `_LOGGER = MerakiLoggers.SENSOR` (never `logging.getLogger(__name__)`).
-3. Register it in the sensor platform's `async_setup_entry()`.
-4. Add constants to `const.py`.
-5. Write unit tests in `tests/sensor/`.
-6. Run all quality checks.
+1. Create the sensor class in `custom_components/meraki_ha/sensor/`
+2. **Use the correct logger:** `_LOGGER = MerakiLoggers.SENSOR`
+3. Register it in the sensor platform's `async_setup_entry()`
+4. Add constants to `const.py`
+5. Write unit tests in `tests/sensor/`
+6. Run all quality checks
 
-### Adding a New Device Type Handler
+### 9.2. Adding a New Device Type Handler
 
-1. Create a handler in `custom_components/meraki_ha/discovery/handlers/`.
-2. **Use the correct logger:** `_LOGGER = MerakiLoggers.DISCOVERY`.
-3. Register the handler in the discovery service.
-4. Ensure proper `DeviceInfo` is returned.
-5. Write unit tests.
+1. Create a handler in `custom_components/meraki_ha/discovery/handlers/`
+2. **Use the correct logger:** `_LOGGER = MerakiLoggers.DISCOVERY`
+3. Register the handler in the discovery service
+4. Ensure proper `DeviceInfo` is returned
+5. Write unit tests
 
-### Adding a New Logger (When Needed)
+### 9.3. Adding a New Logger
 
-If adding a completely new feature area that doesn't fit existing loggers:
+If adding a completely new feature area:
 
-1. Add the logger to `MerakiLoggers` class in `helpers/logging_helper.py`:
+1. Add to `MerakiLoggers` class in `helpers/logging_helper.py`:
    ```python
    MY_FEATURE: logging.Logger = logging.getLogger(f"{DOMAIN}.my_feature")
    ```
@@ -565,23 +480,23 @@ If adding a completely new feature area that doesn't fit existing loggers:
    ```python
    CONF_LOG_LEVEL_MY_FEATURE: Final = "log_level_my_feature"
    ```
-3. Add schema entry in `schemas.py` under `SCHEMA_LOGGING`.
-4. Add mapping in `logging_helper.py` → `_CONFIG_TO_LOGGER_MAP`.
-5. Add translations in `strings.json` and `translations/en.json`.
-6. Run `tests/helpers/test_logging_helper.py` to verify synchronization.
+3. Add schema entry in `schemas.py` under `SCHEMA_LOGGING`
+4. Add mapping in `logging_helper.py` → `_CONFIG_TO_LOGGER_MAP`
+5. Add translations in `strings.json` and `translations/en.json`
+6. Run `tests/helpers/test_logging_helper.py` to verify
 
-### Modifying the Frontend
+### 9.4. Modifying the Frontend
 
-1. Make changes in `custom_components/meraki_ha/www/src/`.
-2. Test with `npm run dev`.
-3. Build with `npm run build`.
-4. Commit both source and built files.
+1. Make changes in `custom_components/meraki_ha/www/src/`
+2. Test with `npm run dev`
+3. Build with `npm run build`
+4. Commit both source and built files
 
 ---
 
-## 14. Troubleshooting
+## 10. Troubleshooting
 
-### Common Issues
+### 10.1. Common Issues
 
 | Issue                      | Solution                                                       |
 | -------------------------- | -------------------------------------------------------------- |
@@ -590,8 +505,9 @@ If adding a completely new feature area that doesn't fit existing loggers:
 | Entity shows "unavailable" | Check coordinator data population and entity `_attr_available` |
 | Frontend not loading       | Rebuild with `npm run build`, clear browser cache              |
 | API rate limiting          | Increase scan interval in integration options                  |
+| Test failures              | Check if mocks are set up correctly for async operations       |
 
-### Debug Logging
+### 10.2. Debug Logging
 
 Add to `configuration.yaml`:
 
@@ -600,42 +516,69 @@ logger:
   default: info
   logs:
     custom_components.meraki_ha: debug
+    # Or target specific features:
+    custom_components.meraki_ha.api: debug
+    custom_components.meraki_ha.mqtt: warning # Silence noisy MQTT
 ```
 
 ---
 
-## 15. Self-Correction and Learning
+## 11. Security Guidelines
 
-- If you make a mistake, acknowledge it and correct it.
-- If you discover a new technique or a better way of doing something, incorporate it into your future work.
-- If you encounter a new tool or a new version of a tool, read its documentation to understand how to use it correctly.
-- Always verify your changes pass all quality checks before considering a task complete.
+### 11.1. Credentials
 
----
+- **NEVER** hardcode API keys, tokens, or credentials in source code
+- Use environment variables or Home Assistant's `config_entry` for secrets
+- The Meraki API key is stored in `entry.data[CONF_API_KEY]`
 
-## 16. Quick Reference
+### 11.2. Cryptography
 
-| What                    | Where                                                    |
-| ----------------------- | -------------------------------------------------------- |
-| Integration entry point | `custom_components/meraki_ha/__init__.py`                |
-| API client              | `custom_components/meraki_ha/core/meraki_api_client.py`  |
-| Data coordinator        | `custom_components/meraki_ha/meraki_data_coordinator.py` |
-| Constants               | `custom_components/meraki_ha/const.py`                   |
-| Config flow             | `custom_components/meraki_ha/config_flow.py`             |
-| Options flow            | `custom_components/meraki_ha/options_flow.py`            |
-| **Logging helper**      | `custom_components/meraki_ha/helpers/logging_helper.py`  |
-| Async timing decorator  | `custom_components/meraki_ha/async_logging.py`           |
-| MQTT service            | `custom_components/meraki_ha/services/mqtt_service.py`   |
-| MQTT relay manager      | `custom_components/meraki_ha/services/mqtt_relay.py`     |
-| Frontend source         | `custom_components/meraki_ha/www/src/`                   |
-| Frontend build output   | `custom_components/meraki_ha/www/meraki-panel.js`        |
-| Test configuration      | `pyproject.toml` → `[tool.pytest.ini_options]`           |
-| Ruff configuration      | `pyproject.toml` → `[tool.ruff]`                         |
-| Mypy configuration      | `pyproject.toml` → `[tool.mypy]`                         |
-| Bandit configuration    | `pyproject.toml` → `[tool.bandit]`                       |
-| CI workflows            | `.github/workflows/`                                     |
-| Agent workflow docs     | `.github/AGENT_WORKFLOWS.md`                             |
+- Use only modern, secure algorithms (SHA-256+, AES-GCM, ECDHE)
+- Never use MD5, SHA-1, DES, 3DES, or RC4
 
 ---
 
-_This document was last updated for version 2.3.1._
+## 12. Quality Scale Compliance
+
+This integration targets **🥇 Gold tier** on the [HA Integration Quality Scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/).
+
+### Key Rules to Maintain
+
+| Rule                | Requirement                                   |
+| ------------------- | --------------------------------------------- |
+| entity-unique-id    | All entities must have unique IDs             |
+| has-entity-name     | Use `_attr_has_entity_name = True`            |
+| entity-unavailable  | Mark entities unavailable when offline        |
+| entity-device-class | Use appropriate device classes                |
+| entity-category     | Assign CONFIG or DIAGNOSTIC where appropriate |
+| test-coverage       | Maintain 95%+ test coverage                   |
+| strict-typing       | All code must be fully typed                  |
+| async-dependency    | Use async patterns throughout                 |
+
+---
+
+## 13. CI/CD Workflows
+
+The project uses GitHub Actions for CI/CD:
+
+| Workflow                         | Trigger         | Purpose                         |
+| -------------------------------- | --------------- | ------------------------------- |
+| `beta-ci.yaml`                   | Push to beta    | Run all quality checks          |
+| `main-ci.yaml`                   | Push to main    | Production release checks       |
+| `beta-version-update.yaml`       | Merge to beta   | Bump beta version               |
+| `production-version-update.yaml` | Merge to main   | Bump production version         |
+| `hassfest.yaml`                  | PR              | Validate manifest and structure |
+| `deploy-local.yml`               | Manual/workflow | Deploy to local HA instance     |
+
+---
+
+## 14. Self-Correction
+
+- If you make a mistake, acknowledge it and correct it
+- If you discover a better technique, incorporate it
+- Always verify changes pass all quality checks before completing a task
+- If tests fail, investigate and fix—don't skip or disable tests
+
+---
+
+_This document was last updated for version 3.1.0._

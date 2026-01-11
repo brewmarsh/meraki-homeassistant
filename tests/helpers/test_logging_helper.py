@@ -178,7 +178,7 @@ class TestApplyLogLevels:
         # Reset logger level first
         MerakiLoggers.MQTT.setLevel(logging.NOTSET)
 
-        options = {}  # No options provided
+        options: dict[str, str] = {}  # No options provided
 
         apply_log_levels(options)
 
