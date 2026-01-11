@@ -28,6 +28,10 @@ concurrency:
 jobs:
   handle-cursor-pr:
     runs-on: ubuntu-latest
+    # This workflow handles:
+    # 1. cursor-review/* branches (Cursor's own review PRs)
+    # 2. PRs with cursor-reviewing label (handoffs from Jules)
+    # We can't filter by label at job level, so we check inside the step
     # Inherits permissions from workflow level
     steps:
       - name: Check if this is a Cursor PR
