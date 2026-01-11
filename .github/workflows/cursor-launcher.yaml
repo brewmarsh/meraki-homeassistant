@@ -36,8 +36,10 @@ concurrency:
 jobs:
   launch-cursor-review:
     runs-on: ubuntu-latest
-    # Only run on CI success (or manual trigger)
-    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+    # Only run on CI success AND not a cursor-review branch (those are handled by cursor-fix.yaml)
+    if: |
+      (github.event.workflow_run.conclusion == 'success' && !startsWith(github.event.workflow_run.head_branch, 'cursor-review/'))
+      || github.event_name == 'workflow_dispatch'
     # Inherits permissions from workflow level
     steps:
       - name: Get PR details
