@@ -159,7 +159,60 @@ async def async_turn_on(self, **kwargs: Any) -> None:
 - The project's own client wrapper (`MerakiAPIClient`) also uses `snake_case` for consistency.
 - Always use the client from the coordinator: `self.coordinator.client`
 
-### 5.3. Home Assistant Integration Best Practices
+### 5.3. Centralized Logging System
+
+This integration uses a **centralized logging system** with feature-specific loggers. **Never use `logging.getLogger(__name__)`**.
+
+**Always use `MerakiLoggers` from `helpers/logging_helper.py`:**
+
+```python
+from custom_components.meraki_ha.helpers.logging_helper import MerakiLoggers
+
+# Choose the appropriate logger for your module:
+_LOGGER = MerakiLoggers.API        # For API client code
+_LOGGER = MerakiLoggers.SENSOR     # For sensor entities
+_LOGGER = MerakiLoggers.SWITCH     # For switch/select/number/text entities
+_LOGGER = MerakiLoggers.CAMERA     # For camera operations
+_LOGGER = MerakiLoggers.COORDINATOR  # For coordinators
+_LOGGER = MerakiLoggers.DISCOVERY  # For discovery handlers
+_LOGGER = MerakiLoggers.MQTT       # For MQTT services
+_LOGGER = MerakiLoggers.FRONTEND   # For frontend/web UI
+_LOGGER = MerakiLoggers.DEVICE_TRACKER  # For client tracking
+_LOGGER = MerakiLoggers.MAIN       # For core integration code
+```
+
+**Available Loggers:**
+
+| Logger           | Use For                                                       |
+| ---------------- | ------------------------------------------------------------- |
+| `MAIN`           | Core integration (`__init__.py`, config flows, hubs, helpers) |
+| `API`            | API client code (`core/api/endpoints/`, `core/utils/`)        |
+| `COORDINATOR`    | Data coordinators (`coordinators/`, `repository.py`)          |
+| `MQTT`           | MQTT services (`services/mqtt_*.py`)                          |
+| `ALERTS`         | Webhook alerts                                                |
+| `SCANNING_API`   | Scanning API/CMX                                              |
+| `DISCOVERY`      | Device/entity discovery (`discovery/`)                        |
+| `CAMERA`         | Camera platform and related sensors/switches                  |
+| `SENSOR`         | All sensor entities                                           |
+| `SWITCH`         | Switch, select, number, text entities                         |
+| `FRONTEND`       | Frontend panel (`frontend.py`, `web_*.py`)                    |
+| `DEVICE_TRACKER` | Client tracking sensors                                       |
+
+**Performance Timing Decorator:**
+
+For async operations that may be slow, use the `async_log_time` decorator:
+
+```python
+from custom_components.meraki_ha.async_logging import async_log_time
+from custom_components.meraki_ha.helpers.logging_helper import MerakiLoggers
+
+@async_log_time(MerakiLoggers.API, slow_threshold=3.0)
+async def get_organization_devices(self) -> list[dict]:
+    """Fetch all devices - logs timing, warns if > 3 seconds."""
+    ...
+```
+
+### 5.4. Home Assistant Integration Best Practices
 
 - **Device & Entity Helpers:**
   - Use `resolve_device_info()` and `format_device_name()` for `DeviceInfo`.
@@ -171,7 +224,7 @@ async def async_turn_on(self, **kwargs: Any) -> None:
 - **Configuration Validation:**
   - All configuration data must be validated using `voluptuous` schemas in `schemas.py`.
 
-### 5.4. MQTT Real-Time Sensor Updates
+### 5.5. MQTT Real-Time Sensor Updates
 
 The integration supports **real-time MQTT updates** for Meraki MT environmental sensors, bypassing the API polling delay.
 
@@ -486,17 +539,36 @@ async def test_ssid_switch_turn_on(mock_coordinator):
 ### Adding a New Sensor
 
 1. Create the sensor class in `custom_components/meraki_ha/sensor/` (or appropriate subdirectory).
-2. Register it in the sensor platform's `async_setup_entry()`.
-3. Add constants to `const.py`.
-4. Write unit tests in `tests/sensor/`.
-5. Run all quality checks.
+2. **Use the correct logger:** `_LOGGER = MerakiLoggers.SENSOR` (never `logging.getLogger(__name__)`).
+3. Register it in the sensor platform's `async_setup_entry()`.
+4. Add constants to `const.py`.
+5. Write unit tests in `tests/sensor/`.
+6. Run all quality checks.
 
 ### Adding a New Device Type Handler
 
 1. Create a handler in `custom_components/meraki_ha/discovery/handlers/`.
-2. Register the handler in the discovery service.
-3. Ensure proper `DeviceInfo` is returned.
-4. Write unit tests.
+2. **Use the correct logger:** `_LOGGER = MerakiLoggers.DISCOVERY`.
+3. Register the handler in the discovery service.
+4. Ensure proper `DeviceInfo` is returned.
+5. Write unit tests.
+
+### Adding a New Logger (When Needed)
+
+If adding a completely new feature area that doesn't fit existing loggers:
+
+1. Add the logger to `MerakiLoggers` class in `helpers/logging_helper.py`:
+   ```python
+   MY_FEATURE: logging.Logger = logging.getLogger(f"{DOMAIN}.my_feature")
+   ```
+2. Add config constant in `const.py`:
+   ```python
+   CONF_LOG_LEVEL_MY_FEATURE: Final = "log_level_my_feature"
+   ```
+3. Add schema entry in `schemas.py` under `SCHEMA_LOGGING`.
+4. Add mapping in `logging_helper.py` → `_CONFIG_TO_LOGGER_MAP`.
+5. Add translations in `strings.json` and `translations/en.json`.
+6. Run `tests/helpers/test_logging_helper.py` to verify synchronization.
 
 ### Modifying the Frontend
 
@@ -551,6 +623,8 @@ logger:
 | Constants               | `custom_components/meraki_ha/const.py`                   |
 | Config flow             | `custom_components/meraki_ha/config_flow.py`             |
 | Options flow            | `custom_components/meraki_ha/options_flow.py`            |
+| **Logging helper**      | `custom_components/meraki_ha/helpers/logging_helper.py`  |
+| Async timing decorator  | `custom_components/meraki_ha/async_logging.py`           |
 | MQTT service            | `custom_components/meraki_ha/services/mqtt_service.py`   |
 | MQTT relay manager      | `custom_components/meraki_ha/services/mqtt_relay.py`     |
 | Frontend source         | `custom_components/meraki_ha/www/src/`                   |
@@ -564,4 +638,4 @@ logger:
 
 ---
 
-_This document was last updated for version 2.3.0._
+_This document was last updated for version 2.3.1._

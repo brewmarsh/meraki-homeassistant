@@ -1,15 +1,15 @@
 """A self-hosted web server for the Meraki integration."""
 
-import logging
 import os
 
-import aiofiles  # type: ignore[import-untyped]
+import aiofiles
 from aiohttp import web
 from homeassistant.core import HomeAssistant
 
+from .helpers.logging_helper import MerakiLoggers
 from .meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.FRONTEND
 
 
 class MerakiWebServer:
@@ -25,11 +25,11 @@ class MerakiWebServer:
         self.hass = hass
         self.coordinator = coordinator
         self.port = port
-        self.runner = None
+        self.runner: web.AppRunner | None = None
         self.app = web.Application()
         self._setup_routes()
 
-    def _setup_routes(self):
+    def _setup_routes(self) -> None:
         """Set up the routes for the web application."""
         static_dir = os.path.join(os.path.dirname(__file__), "www", "dist")
         assets_dir = os.path.join(static_dir, "assets")
@@ -286,7 +286,7 @@ class MerakiWebServer:
             _LOGGER.error("Failed to update L7 firewall rules: %s", e, exc_info=True)
             return web.json_response({"error": str(e)}, status=500)
 
-    async def start(self):
+    async def start(self) -> None:
         """Start the web server."""
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
@@ -297,7 +297,7 @@ class MerakiWebServer:
         except Exception as e:
             _LOGGER.error("Failed to start Meraki web UI server: %s", e)
 
-    async def stop(self):
+    async def stop(self) -> None:
         """Stop the web server."""
         if self.runner:
             await self.runner.cleanup()

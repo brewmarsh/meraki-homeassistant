@@ -8,14 +8,15 @@ with the API and provides a clean interface for other parts of the integration.
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
+
+from ..helpers.logging_helper import MerakiLoggers
 
 if TYPE_CHECKING:
     from ..core.repositories.camera_repository import CameraRepository
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.CAMERA
 
 
 class CameraService:

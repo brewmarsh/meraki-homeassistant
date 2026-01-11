@@ -2,28 +2,28 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
 import voluptuous as vol
-from homeassistant import data_entry_flow
+from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
 from .authentication import validate_meraki_credentials
 from .const import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
+from .helpers.logging_helper import MerakiLoggers
 
 if TYPE_CHECKING:
     from .config_flow import MerakiConfigFlow
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.MAIN
 
 
 async def async_step_reauth(
     self: MerakiConfigFlow,
     user_input: dict[str, Any] | None = None,
-) -> data_entry_flow.FlowResult:
+) -> ConfigFlowResult:
     """
     Handle reauthentication for the Meraki integration.
 

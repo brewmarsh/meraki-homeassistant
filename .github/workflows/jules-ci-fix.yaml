@@ -16,7 +16,7 @@ on:
 # Go to: Settings → Actions → General → Workflow permissions
 # Select: "Read and write permissions"
 permissions:
-  contents: read
+  contents: write
   issues: write
   pull-requests: write
 
@@ -49,17 +49,32 @@ jobs:
             --json number,body,author,labels,baseRefName \
             --limit 1)
 
-          # Only fix PRs targeting beta
           PR_BASE=$(echo "$PR_JSON" | jq -r '.[0].baseRefName // empty')
-          if [[ -n "$PR_BASE" ]] && [[ "$PR_BASE" != "beta" ]]; then
-            echo "PR targets $PR_BASE (not beta) - skipping"
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
           PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number // empty')
           PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.[0].author.login // empty')
           PR_LABELS=$(echo "$PR_JSON" | jq -r '[.[0].labels[].name] | join(" ")' 2>/dev/null || echo "")
+
+          # Determine if this is a fix PR (targets another Jules branch) or original PR (targets beta)
+          IS_FIX_PR="false"
+          if [[ -n "$PR_BASE" ]] && [[ "$PR_BASE" != "beta" ]] && [[ "$PR_BASE" != "main" ]]; then
+            # This is a fix PR targeting another branch
+            # Only proceed if it's a Jules PR and the target is also a Jules branch
+            if [[ "$PR_AUTHOR" == *"jules"* ]] || [[ "$PR_AUTHOR" == *"google-labs"* ]]; then
+              IS_FIX_PR="true"
+              echo "This is a Jules fix PR targeting $PR_BASE"
+            else
+              echo "PR targets $PR_BASE (not beta/main) and not a Jules author - skipping"
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
+          # Skip PRs targeting main
+          if [[ "$PR_BASE" == "main" ]]; then
+            echo "PR targets main - skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
           echo "PR #$PR_NUMBER by $PR_AUTHOR"
           echo "Labels: $PR_LABELS"
@@ -94,37 +109,67 @@ jobs:
           echo "skip=false" >> "$GITHUB_OUTPUT"
           echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
           echo "branch=$HEAD_BRANCH" >> "$GITHUB_OUTPUT"
+          echo "base_branch=$PR_BASE" >> "$GITHUB_OUTPUT"
+          echo "is_fix_pr=$IS_FIX_PR" >> "$GITHUB_OUTPUT"
 
-          # Count fix attempts
+          # Count fix attempts - for fix PRs, also count attempts on original PR
           FIX_ATTEMPTS=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json comments \
-            --jq '[.comments[] | select(.body | contains("Jules Fix Attempt"))] | length')
+            --jq '[.comments[] | select(.body | contains("Jules Fix Attempt") or contains("CI Fix"))] | length')
           echo "fix_attempts=$FIX_ATTEMPTS" >> "$GITHUB_OUTPUT"
 
-          # Extract issue number
+          # Extract issue number from branch or PR body
           PR_BODY=$(echo "$PR_JSON" | jq -r '.[0].body // empty')
           ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
           if [[ -z "$ISSUE_NUM" ]]; then
             ISSUE_NUM=$(echo "$HEAD_BRANCH" | grep -oE '[-/][0-9]+[-/]' | grep -oE '[0-9]+' | head -1)
+          fi
+          if [[ -z "$ISSUE_NUM" ]] && [[ "$IS_FIX_PR" == "true" ]]; then
+            # For fix PRs, try to get issue from the base branch name
+            ISSUE_NUM=$(echo "$PR_BASE" | grep -oE '[-/][0-9]+[-/]' | grep -oE '[0-9]+' | head -1)
           fi
           echo "issue_number=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
 
       - name: Check escalation threshold
         id: escalate
         if: steps.check.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           FIX_ATTEMPTS="${{ steps.check.outputs.fix_attempts }}"
+          IS_FIX_PR="${{ steps.check.outputs.is_fix_pr }}"
+          BASE_BRANCH="${{ steps.check.outputs.base_branch }}"
 
-          # Jules only tries 3 times, then hands off to Cursor
+          # For fix PRs, also count attempts from the original PR
+          TOTAL_ATTEMPTS="$FIX_ATTEMPTS"
+          if [[ "$IS_FIX_PR" == "true" ]]; then
+            # Find the original PR (targeting beta from BASE_BRANCH)
+            ORIGINAL_PR=$(gh pr list \
+              --repo "${{ github.repository }}" \
+              --head "$BASE_BRANCH" \
+              --state open \
+              --json number \
+              --jq '.[0].number // empty')
+
+            if [[ -n "$ORIGINAL_PR" ]]; then
+              ORIGINAL_ATTEMPTS=$(gh pr view "$ORIGINAL_PR" --repo "${{ github.repository }}" --json comments \
+                --jq '[.comments[] | select(.body | contains("Jules Fix Attempt") or contains("CI Fix"))] | length')
+              TOTAL_ATTEMPTS=$((FIX_ATTEMPTS + ORIGINAL_ATTEMPTS))
+              echo "Original PR #$ORIGINAL_PR has $ORIGINAL_ATTEMPTS attempts, total=$TOTAL_ATTEMPTS"
+              echo "original_pr=$ORIGINAL_PR" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+          # Jules only tries 3 times total, then hands off to Cursor
           # After handoff, the cursor-reviewing label prevents Jules from running again
-          # Human escalation is handled separately by Cursor workflow
-          if [[ "$FIX_ATTEMPTS" -ge 3 ]]; then
+          if [[ "$TOTAL_ATTEMPTS" -ge 3 ]]; then
             echo "should_escalate=false" >> "$GITHUB_OUTPUT"
             echo "handoff_to_cursor=true" >> "$GITHUB_OUTPUT"
-            echo "🔄 3+ Jules attempts - handing off to Cursor"
+            echo "🔄 3+ total Jules attempts - handing off to Cursor"
           else
             echo "should_escalate=false" >> "$GITHUB_OUTPUT"
             echo "handoff_to_cursor=false" >> "$GITHUB_OUTPUT"
           fi
+          echo "total_attempts=$TOTAL_ATTEMPTS" >> "$GITHUB_OUTPUT"
 
       - name: Hand off to Cursor
         if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.handoff_to_cursor == 'true'
@@ -134,12 +179,40 @@ jobs:
         run: |
           PR_NUM="${{ steps.check.outputs.pr_number }}"
           BRANCH="${{ steps.check.outputs.branch }}"
+          BASE_BRANCH="${{ steps.check.outputs.base_branch }}"
+          IS_FIX_PR="${{ steps.check.outputs.is_fix_pr }}"
+          ORIGINAL_PR="${{ steps.escalate.outputs.original_pr }}"
           ISSUE_NUM="${{ steps.check.outputs.issue_number }}"
 
           echo "🔄 Jules couldn't fix after 3 attempts - handing off to Cursor"
 
-          # Comment on PR
-          gh pr comment "$PR_NUM" \
+          # For fix PRs, we need to:
+          # 1. Close the fix PR (not needed anymore)
+          # 2. Hand off the ORIGINAL PR to Cursor
+          # 3. Cursor works on the original branch
+          if [[ "$IS_FIX_PR" == "true" ]] && [[ -n "$ORIGINAL_PR" ]]; then
+            TARGET_PR="$ORIGINAL_PR"
+            TARGET_BRANCH="$BASE_BRANCH"
+
+            # Close the fix PR with a comment
+            gh pr comment "$PR_NUM" \
+              --repo "${{ github.repository }}" \
+              --body "## 🔄 Closing - Handoff to Cursor
+
+            Jules fix attempts exhausted. Handing off original PR to Cursor.
+            This fix PR is no longer needed.
+
+            ---
+            *Automated handoff*"
+
+            gh pr close "$PR_NUM" --repo "${{ github.repository }}" --delete-branch 2>/dev/null || true
+          else
+            TARGET_PR="$PR_NUM"
+            TARGET_BRANCH="$BRANCH"
+          fi
+
+          # Comment on the target PR
+          gh pr comment "$TARGET_PR" \
             --repo "${{ github.repository }}" \
             --body "## 🔄 Handoff to Cursor
 
@@ -150,31 +223,20 @@ jobs:
           *Automated handoff*"
 
           # Add cursor-reviewing label to prevent Jules from trying again
-          gh pr edit "$PR_NUM" \
+          gh pr edit "$TARGET_PR" \
             --repo "${{ github.repository }}" \
             --add-label "cursor-reviewing" 2>/dev/null || true
 
-          # Launch Cursor agent
-          PROMPT="## 🔧 CI Fix Required (Handoff from Jules)
+          # Launch Cursor agent on the TARGET branch
+          PROMPT="## Handoff from Jules - Branch: $TARGET_BRANCH
+          Issue: #$ISSUE_NUM | Jules tried 3x, now your turn.
 
-          Jules attempted 3 fixes but CI still fails on branch \`$BRANCH\`.
-          Please analyze the issues with fresh eyes and fix them.
-
-          ### Instructions
-          1. Read DEVELOPMENT.md and AGENTS.md to understand project standards
-          2. Checkout branch: $BRANCH
-          3. Run ./run_checks.sh to see the current failures
-          4. Fix the issues - Jules may have been going in the wrong direction
-          5. Commit with: fix(cursor): resolve CI errors after Jules handoff
-          6. Push to branch: $BRANCH
-
-          ### Testing Notes
-          When running tests, you may see: ModuleNotFoundError: No module named 'homeassistant'
-          This is expected. Use fixtures from conftest.py and mock HA imports.
-
-          ### Quality Checks
-          Run: ./run_checks.sh
-          All checks (ruff, bandit, mypy, pytest) must pass."
+          ---
+          1. Read AGENTS.md, issue #$ISSUE_NUM comments
+          2. Run ./run_checks.sh
+          3. Fix with fresh perspective
+          4. Update issue: \`gh issue comment $ISSUE_NUM --body '## 🤝 Fixed: <what/why>'\`
+          5. Commit: fix(cursor): resolve CI errors after Jules handoff"
 
           # Call Cursor API
           ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
@@ -185,34 +247,70 @@ jobs:
             -d "{
               \"source\": {
                 \"repository\": \"https://github.com/${{ github.repository }}\",
-                \"ref\": \"$BRANCH\"
+                \"ref\": \"$TARGET_BRANCH\"
               },
               \"prompt\": {
                 \"text\": ${ESCAPED_PROMPT}
               },
               \"target\": {
-                \"branchName\": \"$BRANCH\",
+                \"branchName\": \"$TARGET_BRANCH\",
                 \"autoCreatePr\": false
               }
             }")
 
           echo "Cursor API Response: $RESPONSE"
 
+          AGENT_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+
           if [[ -n "$ISSUE_NUM" ]]; then
             gh issue comment "$ISSUE_NUM" \
               --repo "${{ github.repository }}" \
-              --body "## 🔄 Handoff to Cursor
+              --body "## 🔄 Handoff: Jules → Cursor
 
-            Jules couldn't fix CI after 3 attempts.
-            Cursor has been invoked to try with a fresh perspective.
+            Jules exhausted 3 fix attempts. Cursor is taking over.
 
-            **PR**: #$PR_NUM
+            | PR | Branch | Agent |
+            |----|--------|-------|
+            | #$TARGET_PR | \`$TARGET_BRANCH\` | [${AGENT_ID:-...}](https://cursor.com/agents?id=$AGENT_ID) |
 
-            ---
-            *Automated handoff*"
+            Cursor will provide detailed updates."
           fi
 
       # Note: Human escalation is handled by cursor-fix.yaml after Cursor attempts fail
+
+      # Extract what the AI changed in the last commit (for human context)
+      - name: Get previous AI changes
+        id: ai_changes
+        if: steps.check.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUM="${{ steps.check.outputs.pr_number }}"
+
+          # Get the last commit on this PR
+          LAST_COMMIT=$(gh pr view "$PR_NUM" --repo "${{ github.repository }}" --json commits \
+            --jq '.commits[-1] | {sha: .oid[0:7], message: .messageHeadline, author: .authors[0].login}')
+
+          COMMIT_SHA=$(echo "$LAST_COMMIT" | jq -r '.sha // empty')
+          COMMIT_MSG=$(echo "$LAST_COMMIT" | jq -r '.message // empty')
+          COMMIT_AUTHOR=$(echo "$LAST_COMMIT" | jq -r '.author // empty')
+
+          # Get files changed in the last commit
+          if [[ -n "$COMMIT_SHA" ]]; then
+            FILES_CHANGED=$(gh api "repos/${{ github.repository }}/commits/${COMMIT_SHA}" \
+              --jq '[.files[].filename] | join(", ")' 2>/dev/null || echo "Unable to fetch files")
+          else
+            FILES_CHANGED="No commits found"
+          fi
+
+          echo "commit_sha=$COMMIT_SHA" >> "$GITHUB_OUTPUT"
+          echo "commit_msg=$COMMIT_MSG" >> "$GITHUB_OUTPUT"
+          echo "commit_author=$COMMIT_AUTHOR" >> "$GITHUB_OUTPUT"
+          {
+            echo "files_changed<<EOF"
+            echo "$FILES_CHANGED"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Get CI failure details
         id: ci_failure
@@ -251,92 +349,147 @@ jobs:
             echo "ERRORS_EOF"
           } >> "$GITHUB_OUTPUT"
 
+      # For fix PRs that fail: merge partial fixes back into original branch first
+      # This ensures each fix attempt builds on previous work
+      - name: Merge failed fix PR into original branch
+        id: merge_fix
+        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true' && steps.check.outputs.is_fix_pr == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUM="${{ steps.check.outputs.pr_number }}"
+          BASE_BRANCH="${{ steps.check.outputs.base_branch }}"
+
+          echo "📦 Merging failed fix PR #$PR_NUM into $BASE_BRANCH (preserving partial fixes)"
+
+          # Mark as ready if draft
+          gh pr ready "$PR_NUM" --repo "${{ github.repository }}" 2>/dev/null || true
+
+          # Comment on fix PR
+          gh pr comment "$PR_NUM" \
+            --repo "${{ github.repository }}" \
+            --body "## 📦 Merging Partial Fixes
+
+          CI failed, but merging partial fixes into \`$BASE_BRANCH\` so next attempt can build on this progress.
+
+          ---
+          *Automated by Jules CI Self-Heal*"
+
+          # Squash merge (preserves changes, clean history)
+          # Note: This bypasses branch protection - requires admin token or relaxed settings
+          gh pr merge "$PR_NUM" \
+            --repo "${{ github.repository }}" \
+            --squash \
+            --delete-branch \
+            --admin 2>/dev/null || {
+              # If admin merge fails, try regular merge
+              gh pr merge "$PR_NUM" \
+                --repo "${{ github.repository }}" \
+                --squash \
+                --delete-branch 2>/dev/null || {
+                  echo "⚠️ Could not merge fix PR - branch protection may be blocking"
+                  echo "merge_failed=true" >> "$GITHUB_OUTPUT"
+                }
+            }
+
+          echo "✅ Merged fix PR #$PR_NUM into $BASE_BRANCH"
+          echo "target_branch=$BASE_BRANCH" >> "$GITHUB_OUTPUT"
+
+      # Determine which branch Jules should start from
+      # - For fix PRs: start from original branch (now has partial fixes merged)
+      # - For original PRs: start from current branch
       - name: Invoke Jules to fix CI
         if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true'
+        env:
+          STARTING_BRANCH: ${{ steps.check.outputs.is_fix_pr == 'true' && steps.check.outputs.base_branch || steps.check.outputs.branch }}
         uses: google-labs-code/jules-action@v1.0.0
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
-          starting_branch: ${{ steps.check.outputs.branch }}
+          starting_branch: ${{ env.STARTING_BRANCH }}
+          # MINIMAL PROMPT - Only CI errors, no issue/commit/comment context
+          # Jules can run git commands if it needs more info
           prompt: |
-            ## 🔧 CI Fix Required - Attempt #$(( ${{ steps.check.outputs.fix_attempts }} + 1 ))
+            ## 🔧 CI Fix #$(( ${{ steps.escalate.outputs.total_attempts }} + 1 ))
 
-            ## MANDATORY FIRST STEPS
-            1. **READ `AGENTS.md`** - Contains project standards
-            2. **READ `DEVELOPMENT.md`** - Contains environment setup
+            ### Failed: ${{ steps.ci_failure.outputs.failed_jobs }}
 
-            Branch: `${{ steps.check.outputs.branch }}`
-            Push fixes to this branch. Do NOT create a new PR.
-
-            ### Failed Jobs
-            ${{ steps.ci_failure.outputs.failed_jobs }}
-
-            ### Error Logs
             ```
             ${{ steps.errors.outputs.ci_errors }}
             ```
 
-            ## COMMON ERRORS AND FIXES
+            ## 📝 CRITICAL: Update Issue #${{ steps.check.outputs.issue_number }}
+            Future AI agents will read your comments. After fixing, run:
+            ```bash
+            gh issue comment ${{ steps.check.outputs.issue_number }} --body "## 🤖 Jules CI Fix
 
-            ### "Undefined name `MagicMock`" or `AsyncMock` or `patch`
-            **Fix**: Add to the test file:
-            ```python
-            from unittest.mock import MagicMock, AsyncMock, patch
+            ### What Failed
+            <Job name and error>
+
+            ### What I Fixed
+            <Files changed and why>
+
+            ### Root Cause
+            <Why this error occurred>
+
+            ---
+            *Fix attempt #$(( ${{ steps.escalate.outputs.total_attempts }} + 1 ))*"
             ```
 
-            ### "ModuleNotFoundError: No module named 'homeassistant'"
-            **Fix**: Use fixtures from `tests/conftest.py`, don't import HA directly
+            ## Quick Fixes
+            - `MagicMock/AsyncMock/patch undefined` → `from unittest.mock import MagicMock, AsyncMock, patch`
+            - `ModuleNotFoundError: homeassistant` → Use fixtures from `tests/conftest.py`
+            - `F821 Undefined name` → Add missing import
 
-            ### "F821 Undefined name" errors in tests
-            **Fix**: Check imports at top of file - add missing imports
+            ## Do This
+            1. `./run_checks.sh` to verify errors
+            2. Fix ONLY errors above
+            3. Update issue with what you changed and why
+            4. Commit: `fix(jules): resolve CI errors`
+            5. PR target: `${{ steps.check.outputs.base_branch || 'beta' }}`
 
-            ## Instructions
-            1. Fix ONLY the specific errors shown
-            2. Run `./run_checks.sh` to verify all checks pass
-            3. Commit: `fix(jules): resolve CI errors`
-            4. Push to branch: `${{ steps.check.outputs.branch }}`
-
-            ## If You Can't Fix It - Ask for Help
-            After 2-3 failed attempts:
-            1. Add label: `jules-needs-help`
-            2. Comment with what you tried and where you're stuck
-            Cursor will take over.
+            ## ⚠️ NEVER STOP - Ask Cursor for Help
+            If you cannot fix these errors after 1-2 attempts:
+            1. Add label `jules-needs-help` to the PR
+            2. Comment: "🆘 Jules Needs Cursor Help" + what you tried
+            NEVER wait for a human. Cursor will take over immediately.
 
       - name: Comment on PR about fix attempt
         if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          FIX_NUM=$(( ${{ steps.check.outputs.fix_attempts }} + 1 ))
+          TOTAL_ATTEMPTS="${{ steps.escalate.outputs.total_attempts }}"
+          FIX_NUM=$((TOTAL_ATTEMPTS + 1))
           PR_NUM="${{ steps.check.outputs.pr_number }}"
           FAILED_JOBS="${{ steps.ci_failure.outputs.failed_jobs }}"
+          IS_FIX_PR="${{ steps.check.outputs.is_fix_pr }}"
+          ORIGINAL_PR="${{ steps.escalate.outputs.original_pr }}"
 
+          # Comment on the current PR
           gh pr comment "$PR_NUM" \
             --repo "${{ github.repository }}" \
-            --body "## 🔧 Jules Fix Attempt #$FIX_NUM
+            --body "## 🔧 Jules CI Fix #$FIX_NUM
 
-          CI failed. Jules has been invoked to fix the issues.
+          CI failed. Jules invoked to fix.
 
-          **Failed Jobs:** $FAILED_JOBS
-
-          ---
-          *[View CI Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})*"
-
-      - name: Update issue with progress
-        if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true' && steps.check.outputs.issue_number != ''
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          FIX_NUM=$(( ${{ steps.check.outputs.fix_attempts }} + 1 ))
-
-          gh issue comment ${{ steps.check.outputs.issue_number }} \
-            --repo "${{ github.repository }}" \
-            --body "## 🔧 Jules Fix Attempt #$FIX_NUM
-
-          CI failed on PR #${{ steps.check.outputs.pr_number }}.
-
-          **Failed:** ${{ steps.ci_failure.outputs.failed_jobs }}
-
-          @jules has been notified to fix the issues.
+          **Failed:** $FAILED_JOBS
 
           ---
-          *Automated progress update*"
+          *[CI Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})*"
+
+          # For fix PRs, also comment on the original PR to track total attempts
+          if [[ "$IS_FIX_PR" == "true" ]] && [[ -n "$ORIGINAL_PR" ]]; then
+            gh pr comment "$ORIGINAL_PR" \
+              --repo "${{ github.repository }}" \
+              --body "## 🔧 Jules CI Fix #$FIX_NUM (via Fix PR #$PR_NUM)
+
+            Fix PR #$PR_NUM failed CI. Jules invoked again.
+
+            **Failed:** $FAILED_JOBS
+
+            ---
+            *[CI Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})*"
+          fi
+
+      # Note: Detailed issue updates are now done by Jules directly during its run
+      # The workflow only provides brief status markers

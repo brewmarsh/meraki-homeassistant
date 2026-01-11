@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 from ...button.reboot import MerakiRebootButton
 from ...const import CONF_ENABLE_DEVICE_STATUS
+from ...helpers.logging_helper import MerakiLoggers
 from ...sensor.device.cellular_uplink import (
     MerakiCellularSignalSensor,
     MerakiCellularUplinkSensor,
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from ...types import MerakiDevice
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.DISCOVERY
 
 
 class MGHandler(BaseDeviceHandler):

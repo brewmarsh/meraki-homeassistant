@@ -2,17 +2,16 @@
 
 from __future__ import annotations
 
-import logging
-
 from homeassistant.components.number import NumberEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
 from ..core.entities.meraki_network_entity import MerakiNetworkEntity
+from ..helpers.logging_helper import MerakiLoggers
 from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..types import MerakiNetwork
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SWITCH
 
 
 class MerakiUplinkBandwidthNumber(MerakiNetworkEntity, NumberEntity):

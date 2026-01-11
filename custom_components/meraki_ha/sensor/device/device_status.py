@@ -6,7 +6,6 @@ is a Home Assistant sensor entity that displays the status (product type)
 of a specific Meraki device.
 """
 
-import logging
 from collections.abc import Mapping
 from typing import Any
 
@@ -23,12 +22,17 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...core.utils.naming_utils import format_device_name
+from ...helpers.logging_helper import MerakiLoggers
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SENSOR
 
 
-class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
+class MerakiDeviceStatusSensor(
+    CoordinatorEntity,
+    SensorEntity,
+    RestoreEntity,  # type: ignore[type-arg]
+):
     """
     Representation of a Meraki Device Status sensor.
 
@@ -48,6 +52,7 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
     Uses RestoreEntity to preserve state across Home Assistant restarts.
     """
 
+    coordinator: MerakiDataCoordinator
     _attr_has_entity_name = True
     _attr_native_value: str | None = None
 
@@ -76,7 +81,10 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
 
         # Set device info for linking to HA device registry
         # This uses the initial device_data for static info.
-        self._attr_device_info = DeviceInfo(
+        # Hierarchy: Organization → Network → Device Type Group → Devices
+        network_id = device_data.get("networkId")
+        product_type = device_data.get("productType")
+        device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(device_data, config_entry.options),
             model=device_data.get("model"),
@@ -84,6 +92,16 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
             serial_number=self._device_serial,
             sw_version=device_data.get("firmware"),
         )
+        # Link device to its device type group (if product type known)
+        # Otherwise fall back to linking directly to network
+        if network_id and product_type:
+            device_info["via_device"] = (
+                DOMAIN,
+                f"devicetype_{network_id}_{product_type}",
+            )
+        elif network_id:
+            device_info["via_device"] = (DOMAIN, f"network_{network_id}")
+        self._attr_device_info = device_info
 
         # _attr_name is not explicitly set
         self.entity_description = SensorEntityDescription(
@@ -148,11 +166,9 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
             self._attr_native_value = "unknown"  # Default if status is not a string
 
         # Populate attributes from the latest device data
-        self._attr_extra_state_attributes = {
+        attributes = {
             "model": current_device_data.get("model"),
-            "serial_number": current_device_data.get(
-                "serial"
-            ),  # Should match self._device_serial
+            "serial_number": current_device_data.get("serial"),
             "firmware_version": current_device_data.get("firmware"),
             "product_type": current_device_data.get("productType"),
             "mac_address": current_device_data.get("mac"),
@@ -165,7 +181,7 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity, RestoreEntity):
         }
         # Filter out None values from attributes
         self._attr_extra_state_attributes = {
-            k: v for k, v in self._attr_extra_state_attributes.items() if v is not None
+            k: v for k, v in attributes.items() if v is not None
         }
 
         # Add coordinator update timestamp

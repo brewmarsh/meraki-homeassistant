@@ -56,6 +56,32 @@
           "webhook_url": "The publicly accessible URL for Meraki webhooks. Leave empty to use Home Assistant's cloud link.",
           "ignored_networks": "A comma-separated list of network IDs to ignore."
         }
+      },
+      "reauth": {
+        "title": "Re-authenticate Meraki",
+        "description": "Your Meraki API credentials need to be updated. Please enter your new API key.",
+        "data": {
+          "meraki_api_key": "Meraki API Key",
+          "meraki_org_id": "Meraki Organization ID"
+        },
+        "data_description": {
+          "meraki_api_key": "Your personal API key for the Meraki Dashboard.",
+          "meraki_org_id": "The ID of the Meraki Organization."
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Meraki Integration",
+        "description": "Update the settings for your Meraki integration.",
+        "data": {
+          "enabled_networks": "Enabled Networks",
+          "enable_device_tracker": "Enable Client Tracker",
+          "enable_vlan_management": "Enable VLAN Management"
+        },
+        "data_description": {
+          "enabled_networks": "Select which networks to monitor. Leave empty for all networks.",
+          "enable_device_tracker": "Enable tracking of clients connected to the network.",
+          "enable_vlan_management": "Enable VLAN management features."
+        }
       }
     },
     "error": {
@@ -66,38 +92,62 @@
     },
     "abort": {
       "reauth_successful": "Re-authentication successful.",
-      "already_configured": "This Meraki organization is already configured."
+      "reconfigure_successful": "Reconfiguration successful.",
+      "already_configured": "This Meraki organization is already configured.",
+      "unknown_entry": "Unknown configuration entry."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Meraki Options - Basic Settings",
-        "description": "Step 1 of 4: Configure basic integration settings.",
+        "title": "Meraki Integration Settings",
+        "description": "Select a category to configure:",
+        "menu_options": {
+          "network_selection": "Network Selection",
+          "polling": "Polling & Refresh",
+          "camera": "Camera Settings",
+          "mqtt": "MQTT Configuration",
+          "scanning_api": "Scanning API",
+          "display_preferences": "Display Preferences",
+          "notifications": "Notifications",
+          "logging": "Debug Logging"
+        }
+      },
+      "network_selection": {
+        "title": "Network Selection",
+        "description": "Configure which networks are monitored by this integration.",
+        "data": {
+          "enabled_networks": "Enabled Networks",
+          "enable_device_tracker": "Enable Client Tracker",
+          "enable_vlan_management": "Enable VLAN Management"
+        },
+        "data_description": {
+          "enabled_networks": "Select which networks to monitor. Leave empty for all networks.",
+          "enable_device_tracker": "Enable tracking of clients connected to the network.",
+          "enable_vlan_management": "Enable VLAN management features."
+        }
+      },
+      "polling": {
+        "title": "Polling & Refresh Settings",
+        "description": "Configure how often the integration polls the Meraki API.",
         "data": {
           "scan_interval": "Device Status/Ports Polling Interval (seconds)",
           "network_scan_interval": "Network/Org Polling Interval (seconds)",
           "device_scan_interval": "Device Inventory Polling Interval (seconds)",
           "client_scan_interval": "Client Polling Interval (seconds)",
-          "ssid_scan_interval": "SSID Polling Interval (seconds)",
-          "enable_device_tracker": "Enable Client Tracker",
-          "enable_vlan_management": "Enable VLAN Management",
-          "enabled_networks": "Enabled Networks"
+          "ssid_scan_interval": "SSID Polling Interval (seconds)"
         },
         "data_description": {
           "scan_interval": "Polling interval for frequently changing data like device status and port statistics.",
           "network_scan_interval": "Polling interval for rarely changing data like network and organization structure.",
           "device_scan_interval": "Polling interval for infrequently changing data like device inventory.",
           "client_scan_interval": "Polling interval for very frequently changing data like client information.",
-          "ssid_scan_interval": "Polling interval for infrequently changing data like SSID configuration.",
-          "enable_device_tracker": "Enable tracking of clients connected to the network.",
-          "enable_vlan_management": "Enable VLAN management features.",
-          "enabled_networks": "Select which networks to monitor. Leave empty for all networks."
+          "ssid_scan_interval": "Polling interval for infrequently changing data like SSID configuration."
         }
       },
-      "dashboard": {
-        "title": "Meraki Options - Dashboard Settings",
-        "description": "Step 2 of 4: Configure dashboard display preferences.",
+      "display_preferences": {
+        "title": "Display Preferences",
+        "description": "Configure how the dashboard displays information.",
         "data": {
           "dashboard_view_mode": "Default Dashboard View",
           "dashboard_device_type_filter": "Default Device Type Filter",
@@ -111,9 +161,43 @@
           "temperature_unit": "Choose the unit for temperature readings from Meraki sensors (Celsius or Fahrenheit)."
         }
       },
+      "notifications": {
+        "title": "Notification Settings",
+        "description": "Coming Soon\n\nNotification settings will be available in a future update.\n\nThis feature will allow you to configure alert settings and webhook notifications for Meraki events."
+      },
+      "logging": {
+        "title": "Debug Logging",
+        "description": "Control log verbosity for different features. Use 'Warning' or 'Error' to reduce log noise, or 'Debug' for troubleshooting.",
+        "data": {
+          "log_level_mqtt": "MQTT Logging",
+          "log_level_alerts": "Webhook Alerts Logging",
+          "log_level_scanning_api": "Scanning API Logging",
+          "log_level_api": "API Calls Logging",
+          "log_level_coordinator": "Data Coordinator Logging",
+          "log_level_device_tracker": "Device Tracker Logging",
+          "log_level_discovery": "Discovery Logging",
+          "log_level_camera": "Camera Logging",
+          "log_level_sensor": "Sensor Logging",
+          "log_level_switch": "Switch/Select/Number Logging",
+          "log_level_frontend": "Frontend Panel Logging"
+        },
+        "data_description": {
+          "log_level_mqtt": "Real-time MQTT sensor updates (can be chatty).",
+          "log_level_alerts": "Webhook alerts from Meraki Dashboard (device down, client connectivity).",
+          "log_level_scanning_api": "Scanning API (CMX) client presence and location data.",
+          "log_level_api": "Meraki cloud API calls.",
+          "log_level_coordinator": "Data polling and coordinator updates.",
+          "log_level_device_tracker": "Client device tracking updates.",
+          "log_level_discovery": "Device and entity discovery.",
+          "log_level_camera": "Camera snapshots, streams, and MV device operations.",
+          "log_level_sensor": "Sensor entity updates for all device types.",
+          "log_level_switch": "Switch, select, number, and text entity operations.",
+          "log_level_frontend": "Frontend panel and web UI operations."
+        }
+      },
       "camera": {
-        "title": "Meraki Options - Camera Settings",
-        "description": "Step 3 of 4: Configure camera-related settings.",
+        "title": "Camera Settings",
+        "description": "Configure camera-related settings.",
         "data": {
           "camera_snapshot_interval": "Camera Snapshot Refresh Interval (seconds)",
           "camera_link_integration": "Camera Link Integration"
@@ -123,9 +207,25 @@
           "camera_link_integration": "Select an integration to filter which cameras are shown when linking Meraki cameras. Choose 'All Cameras' to see all available camera entities."
         }
       },
+      "scanning_api": {
+        "title": "Scanning API Settings",
+        "description": "Configure the Meraki Scanning API (CMX) receiver for real-time client location updates.\n\n**Webhook URL:** `{webhook_url}`\n\nCopy this URL to your Meraki Dashboard under Wireless > Configure > Scanning API.",
+        "data": {
+          "enable_scanning_api": "Enable Scanning API",
+          "scanning_api_validator": "Validator String",
+          "scanning_api_secret": "Secret",
+          "scanning_api_external_url": "External URL (optional)"
+        },
+        "data_description": {
+          "enable_scanning_api": "Enable the Scanning API receiver to receive real-time client presence and location data.",
+          "scanning_api_validator": "The validator string from Meraki Dashboard. This will be appended to the webhook URL and returned on GET requests.",
+          "scanning_api_secret": "The secret that Meraki will include in POST requests to verify authenticity.",
+          "scanning_api_external_url": "Custom external URL for the webhook (e.g., https://ha.example.com). Leave empty to use Home Assistant's configured external URL."
+        }
+      },
       "mqtt": {
-        "title": "Meraki Options - MQTT Settings",
-        "description": "Step 4 of 4: Configure MQTT for MT sensor real-time updates.\n\n**Configured Relay Destinations ({destination_count}):** {relay_destinations}",
+        "title": "MQTT Configuration",
+        "description": "Configure MQTT for MT sensor real-time updates.\n\nConfigured Relay Destinations ({destination_count}): {relay_destinations}",
         "data": {
           "enable_mqtt": "Enable MQTT for MT Sensors",
           "action": "MQTT Relay Management"
@@ -203,6 +303,11 @@
           "ignored_networks": "A comma-separated list of network IDs to ignore."
         }
       }
+    },
+    "error": {
+      "host_required": "Broker hostname is required.",
+      "name_required": "Destination name is required.",
+      "invalid_port": "Invalid port number. Must be between 1 and 65535."
     }
   },
   "entity": {

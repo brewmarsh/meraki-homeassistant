@@ -8,12 +8,10 @@ Meraki API endpoint categories.
 from __future__ import annotations
 
 import asyncio
-import logging
-from collections.abc import Awaitable, Callable
-from functools import partial
+from collections.abc import Awaitable
 from typing import TYPE_CHECKING, Any
 
-import meraki
+import meraki.aio
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -22,6 +20,7 @@ from ...core.errors import (
     MerakiTrafficAnalysisError,
     MerakiVlansDisabledError,
 )
+from ...helpers.logging_helper import MerakiLoggers
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
@@ -33,7 +32,11 @@ from .endpoints.sensor import SensorEndpoints
 from .endpoints.switch import SwitchEndpoints
 from .endpoints.wireless import WirelessEndpoints
 
-_LOGGER = logging.getLogger(__name__)
+# Use feature-specific logger - can be configured independently via:
+# logger:
+#   logs:
+#     custom_components.meraki_ha.api: debug
+_LOGGER = MerakiLoggers.API
 
 
 class MerakiAPIClient:
@@ -66,7 +69,8 @@ class MerakiAPIClient:
         self._hass = hass
         self._base_url = base_url
 
-        self.dashboard: meraki.DashboardAPI | None = None
+        self.dashboard: meraki.aio.AsyncDashboardAPI | None = None
+        self._api_session: meraki.aio.AsyncDashboardAPI | None = None
 
         # Initialize endpoint handlers
         self.appliance = ApplianceEndpoints(self, self._hass)
@@ -87,13 +91,7 @@ class MerakiAPIClient:
 
     async def async_setup(self) -> None:
         """Perform asynchronous setup of the API client."""
-        self.dashboard = await self._hass.async_add_executor_job(
-            self._create_dashboard_api
-        )
-
-    def _create_dashboard_api(self) -> meraki.DashboardAPI:
-        """Create and return the MerakiDashboardAPI instance."""
-        return meraki.DashboardAPI(
+        self._api_session = meraki.aio.AsyncDashboardAPI(
             api_key=self._api_key,
             base_url=self._base_url,
             output_log=False,
@@ -103,28 +101,12 @@ class MerakiAPIClient:
             wait_on_rate_limit=True,
             nginx_429_retry_wait_time=2,
         )
+        self.dashboard = await self._api_session.__aenter__()
 
-    async def run_sync(
-        self,
-        func: Callable[..., Any],
-        *args: Any,
-        **kwargs: Any,
-    ) -> Any:
-        """
-        Run a synchronous function in a thread pool.
-
-        Args:
-            func: The synchronous function to run.
-            *args: Positional arguments to pass to the function.
-            **kwargs: Keyword arguments to pass to the function.
-
-        Returns
-        -------
-            The result of the function.
-
-        """
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, partial(func, *args, **kwargs))
+    async def async_close(self) -> None:
+        """Close the API client session."""
+        if self._api_session:
+            await self._api_session.__aexit__(None, None, None)
 
     async def _run_with_semaphore(self, coro: Awaitable[Any]) -> Any:
         """
@@ -187,103 +169,90 @@ class MerakiAPIClient:
         """
         Process the initial data, handling errors and merging.
 
+        This method now only returns data for keys that were successfully
+        fetched and are of the expected type (list), preventing accidental
+        clearing of data during partial updates.
+
         Args:
             results: The raw initial data from the API.
 
         Returns
         -------
-            The processed initial data.
+            A dictionary containing only the successfully processed initial data.
 
         """
-        networks_res = results.get("networks")
-        devices_res = results.get("devices")
-        devices_availabilities_res = results.get("devices_availabilities")
-        appliance_uplink_statuses_res = results.get("appliance_uplink_statuses")
-        sensor_readings_res = results.get("sensor_readings")
+        processed_data: dict[str, Any] = {}
 
-        networks: list[MerakiNetwork] = (
-            networks_res if isinstance(networks_res, list) else []
-        )
-        if not isinstance(networks_res, list):
+        # Networks
+        networks_res = results.get("networks")
+        if isinstance(networks_res, list):
+            processed_data["networks"] = networks_res
+        elif "networks" in results:
             _LOGGER.warning("Could not fetch Meraki networks: %s", networks_res)
 
-        devices: list[MerakiDevice] = (
-            devices_res if isinstance(devices_res, list) else []
-        )
-        if not isinstance(devices_res, list):
+        # Devices and related data
+        devices_res = results.get("devices")
+        if isinstance(devices_res, list):
+            devices = devices_res
+            processed_data["devices"] = devices
+
+            # Only process related data if devices were fetched successfully
+            devices_availabilities_res = results.get("devices_availabilities")
+            sensor_readings_res = results.get("sensor_readings")
+            cellular_uplink_statuses_res = results.get("cellular_uplink_statuses")
+
+            if isinstance(devices_availabilities_res, list):
+                availabilities_by_serial = {
+                    a["serial"]: a
+                    for a in devices_availabilities_res
+                    if isinstance(a, dict) and "serial" in a
+                }
+                for device in devices:
+                    if availability := availabilities_by_serial.get(device["serial"]):
+                        device["status"] = availability["status"]
+            elif "devices_availabilities" in results:
+                _LOGGER.warning(
+                    "Could not fetch Meraki device availabilities: %s",
+                    devices_availabilities_res,
+                )
+
+            if isinstance(sensor_readings_res, list):
+                readings_by_serial = {
+                    r["serial"]: r.get("readings", [])
+                    for r in sensor_readings_res
+                    if isinstance(r, dict) and "serial" in r
+                }
+                for device in devices:
+                    if readings := readings_by_serial.get(device["serial"]):
+                        device["readings"] = readings
+            elif "sensor_readings" in results:
+                _LOGGER.warning(
+                    "Could not fetch Meraki sensor readings: %s", sensor_readings_res
+                )
+
+            if isinstance(cellular_uplink_statuses_res, list):
+                cellular_uplinks_by_serial = {
+                    u["serial"]: u.get("uplinks", [])
+                    for u in cellular_uplink_statuses_res
+                    if isinstance(u, dict) and "serial" in u
+                }
+                for device in devices:
+                    if uplinks := cellular_uplinks_by_serial.get(device["serial"]):
+                        device["cellular_uplinks"] = uplinks
+        elif "devices" in results:
             _LOGGER.warning("Could not fetch Meraki devices: %s", devices_res)
 
-        devices_availabilities: list[dict[str, Any]] = (
-            devices_availabilities_res
-            if isinstance(devices_availabilities_res, list)
-            else []
-        )
-        if not isinstance(devices_availabilities_res, list):
-            _LOGGER.warning(
-                "Could not fetch Meraki device availabilities: %s",
-                devices_availabilities_res,
-            )
-
-        appliance_uplink_statuses: list[dict[str, Any]] = (
-            appliance_uplink_statuses_res
-            if isinstance(appliance_uplink_statuses_res, list)
-            else []
-        )
-        if not isinstance(appliance_uplink_statuses_res, list):
+        # Appliance Uplink Statuses
+        appliance_uplink_statuses_res = results.get("appliance_uplink_statuses")
+        if isinstance(appliance_uplink_statuses_res, list):
+            processed_data["appliance_uplink_statuses"] = appliance_uplink_statuses_res
+        elif "appliance_uplink_statuses" in results:
             _LOGGER.warning(
                 "Could not fetch Meraki appliance uplink statuses: %s",
                 appliance_uplink_statuses_res,
             )
 
-        sensor_readings: list[dict[str, Any]] = (
-            sensor_readings_res if isinstance(sensor_readings_res, list) else []
-        )
-        if not isinstance(sensor_readings_res, list):
-            _LOGGER.warning(
-                "Could not fetch Meraki sensor readings: %s", sensor_readings_res
-            )
-
-        # Process cellular gateway uplink statuses
-        cellular_uplink_statuses_res = results.get("cellular_uplink_statuses")
-        cellular_uplink_statuses: list[dict[str, Any]] = (
-            cellular_uplink_statuses_res
-            if isinstance(cellular_uplink_statuses_res, list)
-            else []
-        )
-
-        availabilities_by_serial = {
-            availability["serial"]: availability
-            for availability in devices_availabilities
-            if isinstance(availability, dict) and "serial" in availability
-        }
-
-        readings_by_serial = {
-            reading["serial"]: reading.get("readings", [])
-            for reading in sensor_readings
-            if isinstance(reading, dict) and "serial" in reading
-        }
-
-        # Index cellular uplink statuses by serial
-        cellular_uplinks_by_serial = {
-            uplink["serial"]: uplink.get("uplinks", [])
-            for uplink in cellular_uplink_statuses
-            if isinstance(uplink, dict) and "serial" in uplink
-        }
-
-        for device in devices:
-            if availability := availabilities_by_serial.get(device["serial"]):
-                device["status"] = availability["status"]
-            if readings := readings_by_serial.get(device["serial"]):
-                device["readings"] = readings
-            # Merge cellular uplink data into device
-            if uplinks := cellular_uplinks_by_serial.get(device["serial"]):
-                device["cellular_uplinks"] = uplinks
-
-        return {
-            "networks": networks,
-            "devices": devices,
-            "appliance_uplink_statuses": appliance_uplink_statuses,
-        }
+        return processed_data
 
     async def _async_fetch_network_clients(
         self,
@@ -643,16 +612,22 @@ class MerakiAPIClient:
             previous_data = {}
 
         _LOGGER.debug("Fetching fresh Meraki data from API")
+        # Start with a copy of previous data, fetch new data, and merge it in
+        merged_data = previous_data.copy()
         initial_results = await self._async_fetch_initial_data(
-            fetch_networks, fetch_devices
+            fetch_networks,
+            fetch_devices,
         )
         processed_initial_data = self._process_initial_data(initial_results)
+        merged_data.update(processed_initial_data)
 
         all_networks = processed_initial_data.get(
-            "networks", previous_data.get("networks", [])
+            "networks",
+            previous_data.get("networks", []),
         )
         all_devices = processed_initial_data.get(
-            "devices", previous_data.get("devices", [])
+            "devices",
+            previous_data.get("devices", []),
         )
 
         if enabled_network_ids is not None:
@@ -664,24 +639,38 @@ class MerakiAPIClient:
             networks = all_networks
             devices = all_devices
 
-        network_clients = []
-        device_clients = {}
-        if fetch_clients:
-            network_clients, device_clients = await asyncio.gather(
-                self._async_fetch_network_clients(networks),
-                self._async_fetch_device_clients(devices),
-                return_exceptions=True,
-            )
-
-        detail_tasks = {}
-        if fetch_ssids:
-            detail_tasks = self._build_detail_tasks(networks, devices)
-        detail_results = await asyncio.gather(
-            *detail_tasks.values(),
-            return_exceptions=True,
+        detail_tasks = (
+            self._build_detail_tasks(networks, devices) if fetch_ssids else {}
         )
-        detail_data = dict(zip(detail_tasks.keys(), detail_results, strict=True))
 
+        # Build list of tasks to run concurrently
+        gather_tasks: list[Awaitable[Any]] = []
+        task_names: list[str] = []
+
+        if fetch_clients:
+            gather_tasks.append(self._async_fetch_network_clients(networks))
+            task_names.append("network_clients")
+            gather_tasks.append(self._async_fetch_device_clients(devices))
+            task_names.append("device_clients")
+
+        if detail_tasks:
+            gather_tasks.append(
+                asyncio.gather(*detail_tasks.values(), return_exceptions=True)
+            )
+            task_names.append("detail_results")
+
+        # Await all futures concurrently
+        results = await asyncio.gather(*gather_tasks, return_exceptions=True)
+
+        # Map results back to named variables
+        results_map = dict(zip(task_names, results, strict=True))
+        network_clients = results_map.get("network_clients")
+        device_clients = results_map.get("device_clients")
+        detail_results = results_map.get("detail_results")
+
+        detail_data: dict[str, Any] = {}
+        if detail_results and isinstance(detail_results, list):
+            detail_data = dict(zip(detail_tasks.keys(), detail_results, strict=True))
         processed_detailed_data = self._process_detailed_data(
             detail_data,
             networks,
@@ -701,7 +690,7 @@ class MerakiAPIClient:
                 "devices": devices,
                 "appliance_uplink_statuses": appliance_uplinks,
                 **processed_detailed_data,
-            }
+            },
         )
         if fetch_clients:
             merged_data["clients"] = (
@@ -710,6 +699,9 @@ class MerakiAPIClient:
             merged_data["clients_by_serial"] = (
                 device_clients if isinstance(device_clients, dict) else {}
             )
+
+        # Ensure the 'devices' key reflects any filtering that was done
+        merged_data["devices"] = devices
 
         return merged_data
 
@@ -752,7 +744,7 @@ class MerakiAPIClient:
             The API response.
 
         """
-        return await self.appliance.reboot_device(serial)
+        return await self.devices.reboot_device(serial)
 
     async def async_get_switch_port_statuses(
         self,

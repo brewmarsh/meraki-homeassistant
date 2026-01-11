@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import logging
-
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -12,17 +10,19 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN
 from ...core.utils.naming_utils import format_device_name
 from ...helpers.entity_helpers import format_entity_name
+from ...helpers.logging_helper import MerakiLoggers
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SENSOR
 
 
 class MerakiOrganizationSSIDClientsSensor(
-    CoordinatorEntity,
+    CoordinatorEntity,  # type: ignore[type-arg]
     SensorEntity,
 ):
     """Representation of a Meraki Organization SSID Clients sensor."""
 
+    coordinator: MerakiDataCoordinator
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = "clients"
     _attr_icon = "mdi:wifi"
@@ -51,9 +51,14 @@ class MerakiOrganizationSSIDClientsSensor(
         self._attr_unique_id = f"{org_id}_clients_ssid"
 
         org_device_data = {"name": org_name, "productType": "organization"}
+        config_options = (
+            self.coordinator.config_entry.options
+            if self.coordinator.config_entry
+            else {}
+        )
         formatted_name = format_device_name(
             device=org_device_data,
-            config=self.coordinator.config_entry.options,
+            config=config_options,
         )
         self._attr_device_info = DeviceInfo(
             # Use org_ prefix to prevent collisions with other entity types
@@ -115,9 +120,14 @@ class MerakiOrganizationWirelessClientsSensor(
         self._attr_unique_id = f"{org_id}_clients_wireless"
 
         org_device_data = {"name": org_name, "productType": "organization"}
+        config_options = (
+            self.coordinator.config_entry.options
+            if self.coordinator.config_entry
+            else {}
+        )
         formatted_name = format_device_name(
             device=org_device_data,
-            config=self.coordinator.config_entry.options,
+            config=config_options,
         )
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"org_{org_id}")},
@@ -177,9 +187,14 @@ class MerakiOrganizationApplianceClientsSensor(
         self._attr_unique_id = f"{org_id}_clients_appliance"
 
         org_device_data = {"name": org_name, "productType": "organization"}
+        config_options = (
+            self.coordinator.config_entry.options
+            if self.coordinator.config_entry
+            else {}
+        )
         formatted_name = format_device_name(
             device=org_device_data,
-            config=self.coordinator.config_entry.options,
+            config=config_options,
         )
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"org_{org_id}")},

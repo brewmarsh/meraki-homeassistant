@@ -8,7 +8,6 @@ to the appropriate handlers.
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 from ..const import (
@@ -39,8 +38,9 @@ if TYPE_CHECKING:
     from ..services.network_control_service import NetworkControlService
     from ..types import MerakiDevice
 
+from ..helpers.logging_helper import MerakiLoggers
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.DISCOVERY
 
 HANDLER_MAPPING = {
     "MR": MRHandler,

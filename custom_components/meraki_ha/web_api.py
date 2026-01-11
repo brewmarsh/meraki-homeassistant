@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import json
-import logging
 import os
 from pathlib import Path
 from typing import Any
 
-import aiofiles  # type: ignore[import-untyped]
+import aiofiles
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
@@ -35,10 +34,11 @@ from .const import (
 )
 from .core.errors import MerakiError
 from .core.timed_access_manager import TimedAccessManager
+from .helpers.logging_helper import MerakiLoggers
 from .meraki_data_coordinator import MerakiDataCoordinator
 from .services.camera_service import CameraService
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.FRONTEND
 
 # Storage file for camera mappings (avoids config entry reload on update)
 CAMERA_MAPPINGS_STORAGE = "meraki_camera_mappings.json"

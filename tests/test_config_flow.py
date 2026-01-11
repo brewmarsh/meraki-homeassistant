@@ -127,7 +127,11 @@ async def test_async_step_user_success(mock_hass: MagicMock) -> None:
     flow.hass = mock_hass
     object.__setattr__(flow, "async_set_unique_id", AsyncMock())
     object.__setattr__(flow, "_abort_if_unique_id_configured", MagicMock())
-    flow.async_show_form = MagicMock(return_value={"type": "form", "step_id": "init"})
+    object.__setattr__(
+        flow,
+        "async_show_form",
+        MagicMock(return_value={"type": "form", "step_id": "init"}),
+    )
 
     with patch(
         "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
@@ -146,7 +150,11 @@ async def test_async_step_user_success(mock_hass: MagicMock) -> None:
 async def test_async_step_init_no_input() -> None:
     """Test step init shows form when no input."""
     flow = MerakiConfigFlow()
-    flow.async_show_form = MagicMock(return_value={"type": "form", "step_id": "init"})
+    object.__setattr__(
+        flow,
+        "async_show_form",
+        MagicMock(return_value={"type": "form", "step_id": "init"}),
+    )
 
     result = await flow.async_step_init(None)
 
@@ -160,14 +168,15 @@ async def test_async_step_init_creates_entry() -> None:
     flow = MerakiConfigFlow()
     flow.data = {"org_name": "Test Org", CONF_MERAKI_API_KEY: "key"}
     flow.options = {}
-    flow.async_create_entry = MagicMock(
+    mock_async_create_entry = MagicMock(
         return_value={"type": "create_entry", "title": "Test Org"}
     )
+    object.__setattr__(flow, "async_create_entry", mock_async_create_entry)
 
     _result = await flow.async_step_init({"scan_interval": 60})  # noqa: F841
 
     assert flow.options["scan_interval"] == 60
-    flow.async_create_entry.assert_called_once()
+    mock_async_create_entry.assert_called_once()
 
 
 def test_async_get_options_flow() -> None:
@@ -187,11 +196,12 @@ async def test_async_step_reconfigure_no_entry(mock_hass: MagicMock) -> None:
     flow.hass = mock_hass
     flow.hass.config_entries.async_get_entry = MagicMock(return_value=None)
     flow.context = {"entry_id": "test_entry"}
-    flow.async_abort = MagicMock(return_value={"type": "abort"})
+    mock_async_abort = MagicMock(return_value={"type": "abort"})
+    object.__setattr__(flow, "async_abort", mock_async_abort)
 
     _result = await flow.async_step_reconfigure(None)  # noqa: F841
 
-    flow.async_abort.assert_called_once_with(reason="unknown_entry")
+    mock_async_abort.assert_called_once_with(reason="unknown_entry")
 
 
 @pytest.mark.asyncio
@@ -207,14 +217,15 @@ async def test_async_step_reconfigure_with_input(mock_hass: MagicMock) -> None:
     flow.hass.config_entries.async_update_entry = MagicMock()
     flow.hass.config_entries.async_reload = AsyncMock()
     flow.context = {"entry_id": "test_entry"}
-    flow.async_abort = MagicMock(
+    mock_async_abort = MagicMock(
         return_value={"type": "abort", "reason": "reconfigure_successful"}
     )
+    object.__setattr__(flow, "async_abort", mock_async_abort)
 
     _result = await flow.async_step_reconfigure({"scan_interval": 60})  # noqa: F841
 
     flow.hass.config_entries.async_update_entry.assert_called_once()
-    flow.async_abort.assert_called_with(reason="reconfigure_successful")
+    mock_async_abort.assert_called_with(reason="reconfigure_successful")
 
 
 @pytest.mark.asyncio
@@ -229,8 +240,10 @@ async def test_async_step_reconfigure_shows_form(mock_hass: MagicMock) -> None:
     flow.hass.config_entries.async_get_entry = MagicMock(return_value=mock_entry)
     flow.context = {"entry_id": "test_entry"}
     flow.hass.data = {}
-    flow.async_show_form = MagicMock(
-        return_value={"type": "form", "step_id": "reconfigure"}
+    object.__setattr__(
+        flow,
+        "async_show_form",
+        MagicMock(return_value={"type": "form", "step_id": "reconfigure"}),
     )
 
     result = await flow.async_step_reconfigure(None)
@@ -259,10 +272,11 @@ async def test_async_step_reconfigure_with_networks(mock_hass: MagicMock) -> Non
     flow.hass.config_entries.async_get_entry = MagicMock(return_value=mock_entry)
     flow.context = {"entry_id": "test_entry"}
     flow.hass.data = {DOMAIN: {"test_entry": {"coordinator": mock_coordinator}}}
-    flow.async_show_form = MagicMock(
+    mock_async_show_form = MagicMock(
         return_value={"type": "form", "step_id": "reconfigure"}
     )
+    object.__setattr__(flow, "async_show_form", mock_async_show_form)
 
     _result = await flow.async_step_reconfigure(None)  # noqa: F841
 
-    flow.async_show_form.assert_called_once()
+    mock_async_show_form.assert_called_once()

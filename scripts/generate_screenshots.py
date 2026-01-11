@@ -408,6 +408,17 @@ def create_screenshot_html() -> str:
             // Mock data for the panel
             const mockData = {mock_data_json};
 
+            // Create mock panel config - MUST be set before hass to ensure configEntryId is available
+            const mockPanel = {{
+                component_name: 'meraki-panel',
+                url_path: 'meraki',
+                title: 'Meraki',
+                icon: 'mdi:router-network',
+                config: {{
+                    config_entry_id: 'mock_config_entry',
+                }},
+            }};
+
             // Create a mock hass object with connection for WebSocket subscription
             const mockHass = {{
                 callWS: async (params) => {{
@@ -415,7 +426,16 @@ def create_screenshot_html() -> str:
                     if (params.type === 'meraki_ha/get_config') {{
                         return mockData;
                     }}
+                    // Return empty arrays for registry/states queries
+                    if (params.type === 'config/device_registry/list' ||
+                        params.type === 'config/entity_registry/list' ||
+                        params.type === 'get_states') {{
+                        return [];
+                    }}
                     return {{}};
+                }},
+                callService: async (domain, service, data, target) => {{
+                    console.log('Mock callService called:', domain, service, data, target);
                 }},
                 connection: {{
                     subscribeMessage: async (callback, params) => {{
@@ -427,30 +447,44 @@ def create_screenshot_html() -> str:
                         // Return unsubscribe function
                         return () => {{}};
                     }},
+                    sendMessagePromise: async (message) => {{
+                        console.log('Mock sendMessagePromise called with:', message);
+                        return {{}};
+                    }},
+                    subscribeEvents: async (callback, eventType) => {{
+                        console.log('Mock subscribeEvents called for:', eventType);
+                        return () => {{}};
+                    }},
                 }},
                 states: {{}},
                 services: {{}},
-                user: {{ name: 'Demo User' }},
-                themes: {{ darkMode: true }},
+                user: {{ id: 'demo', name: 'Demo User', is_admin: true, is_owner: true }},
+                themes: {{
+                    default_theme: 'default',
+                    default_dark_theme: null,
+                    themes: {{}},
+                    darkMode: true,
+                }},
+                locale: {{
+                    language: 'en',
+                    number_format: 'language',
+                    time_format: 'language',
+                }},
                 language: 'en',
             }};
 
-            // Create mock panel config
-            const mockPanel = {{
-                config: {{
-                    config_entry_id: 'mock_config_entry',
-                }},
-            }};
-
-            // Set properties on the panel
-            panel.hass = mockHass;
+            // Set properties on the panel - panel config FIRST so configEntryId is available
             panel.panel = mockPanel;
             panel.narrow = false;
             panel.route = {{ path: '/', prefix: '/meraki' }};
+            // Set hass LAST to trigger the render with all data ready
+            panel.hass = mockHass;
 
-            // Signal that panel is ready
-            window.__PANEL_READY__ = true;
-            console.log('Panel initialized with mock data');
+            // Signal that panel is ready after mock data callback fires (100ms) + extra time for React
+            setTimeout(() => {{
+                window.__PANEL_READY__ = true;
+                console.log('Panel initialized with mock data');
+            }}, 300);
         }});
     </script>
             </body>

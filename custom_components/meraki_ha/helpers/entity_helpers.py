@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 from ..const import (
@@ -10,11 +9,12 @@ from ..const import (
     DEVICE_NAME_FORMAT_PREFIX,
     DEVICE_NAME_FORMAT_SUFFIX,
 )
+from .logging_helper import MerakiLoggers
 
 if TYPE_CHECKING:
     from ..meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.MAIN
 
 
 def format_entity_name(
@@ -46,8 +46,9 @@ def get_device_from_coordinator(
     """Get a device from the coordinator by serial number."""
     if not coordinator.data:
         return None
-    devices = coordinator.data.get("devices", [])
-    for device in devices:
-        if device.get("serial") == serial:
-            return device
+    devices = coordinator.data.get("devices")
+    if devices:
+        for device in devices:
+            if device.get("serial") == serial:
+                return device
     return None

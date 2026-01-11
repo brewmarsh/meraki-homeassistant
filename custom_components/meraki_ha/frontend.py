@@ -3,18 +3,18 @@
 from __future__ import annotations
 
 import json
-import logging
 from pathlib import Path
 
-import aiofiles  # type: ignore[import-untyped]
+import aiofiles
 from homeassistant.components import frontend
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
+from .helpers.logging_helper import MerakiLoggers
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.FRONTEND
 
 
 async def async_register_static_path(hass: HomeAssistant) -> None:

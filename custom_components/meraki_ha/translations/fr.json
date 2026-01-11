@@ -7,35 +7,283 @@
         "data": {
           "meraki_api_key": "Clé API Meraki",
           "meraki_org_id": "ID d'organisation Meraki"
+        },
+        "data_description": {
+          "meraki_api_key": "Votre clé API personnelle pour le tableau de bord Meraki.",
+          "meraki_org_id": "L'ID de l'organisation Meraki que vous souhaitez ajouter."
         }
       },
       "init": {
-        "title": "Étape 2 sur 2 : Configuration",
-        "description": "Définissez la configuration de l'intégration. Celles-ci peuvent être modifiées ultérieurement à partir du menu des options.",
+        "title": "Étape 2 sur 2 : Paramètres Généraux",
+        "description": "Configurez les paramètres généraux pour l'intégration Meraki.",
         "data": {
-          "scan_interval": "Intervalle de mise à jour",
-          "enable_device_tracker": "Activer le suivi des appareils",
+          "scan_interval": "Intervalle de mise à jour (secondes)",
+          "enable_device_tracker": "Activer le suivi des clients",
           "enable_vlan_management": "Activer la gestion des VLAN",
-          "ignored_networks": "Réseaux ignorés"
+          "enable_device_status": "Activer les entités d'état des appareils",
+          "enable_org_sensors": "Activer les capteurs d'organisation",
+          "enable_camera_entities": "Activer les entités de caméra",
+          "enable_device_sensors": "Activer les capteurs d'appareils",
+          "enable_network_sensors": "Activer les capteurs de réseau",
+          "enable_vlan_sensors": "Activer les capteurs VLAN",
+          "enable_port_sensors": "Activer les capteurs de port",
+          "enable_ssid_sensors": "Activer les capteurs SSID",
+          "enabled_networks": "Réseaux activés"
+        },
+        "data_description": {
+          "scan_interval": "Fréquence d'interrogation de l'API Meraki pour les mises à jour, en secondes.",
+          "enable_device_tracker": "Suivre les appareils connectés à vos réseaux Meraki.",
+          "enable_vlan_management": "Autoriser la gestion des VLAN.",
+          "enable_device_status": "Créer des capteurs binaires pour l'état en ligne/hors ligne des appareils.",
+          "enable_org_sensors": "Créer des capteurs pour les métriques à l'échelle de l'organisation.",
+          "enable_camera_entities": "Créer des entités pour les caméras Meraki.",
+          "enable_device_sensors": "Créer des capteurs pour les métriques spécifiques aux appareils.",
+          "enable_network_sensors": "Créer des capteurs pour les métriques spécifiques au réseau.",
+          "enable_vlan_sensors": "Créer des capteurs pour les métriques VLAN.",
+          "enable_port_sensors": "Créer des capteurs pour les métriques des ports de switch.",
+          "enable_ssid_sensors": "Créer des capteurs pour les métriques SSID.",
+          "enabled_networks": "Sélectionnez les réseaux Meraki à inclure dans Home Assistant."
+        }
+      },
+      "reauth": {
+        "title": "Réauthentifier Meraki",
+        "description": "Vos identifiants API Meraki doivent être mis à jour. Veuillez entrer votre nouvelle clé API.",
+        "data": {
+          "meraki_api_key": "Clé API Meraki",
+          "meraki_org_id": "ID d'Organisation Meraki"
+        },
+        "data_description": {
+          "meraki_api_key": "Votre clé API personnelle pour le tableau de bord Meraki.",
+          "meraki_org_id": "L'ID de l'Organisation Meraki."
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigurer l'Intégration Meraki",
+        "description": "Mettez à jour les paramètres de votre intégration Meraki.",
+        "data": {
+          "enabled_networks": "Réseaux Activés",
+          "enable_device_tracker": "Activer le Suivi des Clients",
+          "enable_vlan_management": "Activer la Gestion VLAN"
+        },
+        "data_description": {
+          "enabled_networks": "Sélectionnez les réseaux à surveiller. Laissez vide pour tous les réseaux.",
+          "enable_device_tracker": "Activer le suivi des clients connectés au réseau.",
+          "enable_vlan_management": "Activer les fonctionnalités de gestion VLAN."
         }
       }
+    },
+    "error": {
+      "invalid_auth": "Clé API invalide.",
+      "invalid_org_id": "ID d'organisation invalide.",
+      "cannot_connect": "Impossible de se connecter à l'API Meraki.",
+      "unknown": "Une erreur inconnue s'est produite."
+    },
+    "abort": {
+      "reauth_successful": "Réauthentification réussie.",
+      "reconfigure_successful": "Reconfiguration réussie.",
+      "already_configured": "Cette organisation Meraki est déjà configurée.",
+      "unknown_entry": "Entrée de configuration inconnue."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Paramètres Meraki",
-        "description": "Configurez les paramètres de l'intégration Meraki.",
-        "data": {
-          "scan_interval": "Intervalle de mise à jour",
-          "scan_interval_description": "Fréquence d'interrogation de l'API Meraki pour les mises à jour, en secondes.",
-          "enable_device_tracker": "Activer le suivi des appareils",
-          "enable_device_tracker_description": "Suivez les appareils connectés à vos réseaux Meraki en tant qu'entités Home Assistant.",
-          "enable_vlan_management": "Activer la gestion des VLAN",
-          "enable_vlan_management_description": "Exposez les contrôles pour gérer les paramètres VLAN sur vos réseaux.",
-          "ignored_networks": "Réseaux ignorés",
-          "ignored_networks_description": "Une liste de noms de réseau séparés par des virgules à exclure de l'intégration."
+        "title": "Paramètres d'Intégration Meraki",
+        "description": "Sélectionnez une catégorie à configurer :",
+        "menu_options": {
+          "network_selection": "Sélection des Réseaux",
+          "polling": "Sondage et Actualisation",
+          "camera": "Paramètres de Caméra",
+          "mqtt": "Configuration MQTT",
+          "scanning_api": "API de Numérisation",
+          "display_preferences": "Préférences d'Affichage",
+          "notifications": "Notifications"
         }
+      },
+      "network_selection": {
+        "title": "Sélection des Réseaux",
+        "description": "Configurez les réseaux surveillés par cette intégration.",
+        "data": {
+          "enabled_networks": "Réseaux Activés",
+          "enable_device_tracker": "Activer le Suivi des Clients",
+          "enable_vlan_management": "Activer la Gestion VLAN"
+        },
+        "data_description": {
+          "enabled_networks": "Sélectionnez les réseaux à surveiller. Laissez vide pour tous les réseaux.",
+          "enable_device_tracker": "Activer le suivi des clients connectés au réseau.",
+          "enable_vlan_management": "Activer les fonctionnalités de gestion VLAN."
+        }
+      },
+      "polling": {
+        "title": "Paramètres de Sondage et Actualisation",
+        "description": "Configurez la fréquence d'interrogation de l'API Meraki par l'intégration.",
+        "data": {
+          "scan_interval": "Intervalle de Sondage État/Ports (secondes)",
+          "network_scan_interval": "Intervalle de Sondage Réseau/Org (secondes)",
+          "device_scan_interval": "Intervalle de Sondage Inventaire (secondes)",
+          "client_scan_interval": "Intervalle de Sondage Clients (secondes)",
+          "ssid_scan_interval": "Intervalle de Sondage SSID (secondes)"
+        },
+        "data_description": {
+          "scan_interval": "Intervalle de sondage pour les données changeant fréquemment comme l'état des appareils et les statistiques de ports.",
+          "network_scan_interval": "Intervalle de sondage pour les données changeant rarement comme la structure du réseau et de l'organisation.",
+          "device_scan_interval": "Intervalle de sondage pour les données changeant peu fréquemment comme l'inventaire des appareils.",
+          "client_scan_interval": "Intervalle de sondage pour les données changeant très fréquemment comme les informations client.",
+          "ssid_scan_interval": "Intervalle de sondage pour les données changeant peu fréquemment comme la configuration SSID."
+        }
+      },
+      "display_preferences": {
+        "title": "Préférences d'Affichage",
+        "description": "Configurez l'affichage des informations sur le tableau de bord.",
+        "data": {
+          "dashboard_view_mode": "Vue du Tableau de Bord par Défaut",
+          "dashboard_device_type_filter": "Filtre de Type d'Appareil par Défaut",
+          "dashboard_status_filter": "Filtre d'État par Défaut",
+          "temperature_unit": "Unité de Température"
+        },
+        "data_description": {
+          "dashboard_view_mode": "Choisissez comment les appareils sont regroupés sur le tableau de bord (par réseau ou par type d'appareil).",
+          "dashboard_device_type_filter": "Filtrez les types d'appareils affichés sur le tableau de bord. Vous pouvez sélectionner plusieurs types.",
+          "dashboard_status_filter": "Filtre par défaut pour l'état des appareils sur le tableau de bord.",
+          "temperature_unit": "Choisissez l'unité pour les lectures de température des capteurs Meraki (Celsius ou Fahrenheit)."
+        }
+      },
+      "notifications": {
+        "title": "Paramètres de Notification",
+        "description": "Bientôt Disponible\n\nLes paramètres de notification seront disponibles dans une mise à jour future.\n\nCette fonctionnalité vous permettra de configurer les paramètres d'alerte et les notifications webhook pour les événements Meraki."
+      },
+      "camera": {
+        "title": "Paramètres de Caméra",
+        "description": "Configurez les paramètres liés aux caméras.",
+        "data": {
+          "camera_snapshot_interval": "Intervalle d'Actualisation des Captures de Caméra (secondes)",
+          "camera_link_integration": "Intégration de Liaison de Caméra"
+        },
+        "data_description": {
+          "camera_snapshot_interval": "Fréquence d'actualisation des captures de caméra sur le tableau de bord (0 = uniquement à la demande). Le streaming de caméra utilise RTSP et nécessite l'activation du serveur RTSP dans le tableau de bord Meraki.",
+          "camera_link_integration": "Sélectionnez une intégration pour filtrer les caméras affichées lors de la liaison des caméras Meraki. Choisissez 'Toutes les Caméras' pour voir toutes les entités de caméra disponibles."
+        }
+      },
+      "scanning_api": {
+        "title": "Paramètres de l'API de Numérisation",
+        "description": "Configurez le récepteur de l'API de Numérisation (CMX) Meraki pour les mises à jour de localisation des clients en temps réel.\n\n**URL du Webhook :** `{webhook_url}`\n\nCopiez cette URL dans votre tableau de bord Meraki sous Wireless > Configure > Scanning API.",
+        "data": {
+          "enable_scanning_api": "Activer l'API de Numérisation",
+          "scanning_api_validator": "Chaîne de Validation",
+          "scanning_api_secret": "Secret"
+        },
+        "data_description": {
+          "enable_scanning_api": "Activer le récepteur de l'API de Numérisation pour recevoir les données de présence et de localisation des clients en temps réel.",
+          "scanning_api_validator": "La chaîne de validation que Meraki utilisera pour vérifier le point de terminaison (réponse à la requête GET).",
+          "scanning_api_secret": "Le secret que Meraki inclura dans les requêtes POST pour vérifier l'authenticité."
+        }
+      },
+      "mqtt": {
+        "title": "Configuration MQTT",
+        "description": "Configurez MQTT pour les mises à jour en temps réel des capteurs MT.\n\nDestinations de Relais Configurées ({destination_count}) : {relay_destinations}",
+        "data": {
+          "enable_mqtt": "Activer MQTT pour les Capteurs MT",
+          "action": "Gestion des Relais MQTT"
+        },
+        "data_description": {
+          "enable_mqtt": "Activez MQTT pour recevoir les mises à jour en temps réel des capteurs MT via le broker Mosquitto de Home Assistant. Lorsqu'il est activé, le sondage API pour les lectures de capteurs est désactivé.",
+          "action": "Choisissez une action pour gérer les brokers MQTT externes qui recevront les données de capteurs relayées."
+        }
+      },
+      "mqtt_select_destination": {
+        "title": "{action} Destination de Relais MQTT",
+        "description": "Sélectionnez une ou plusieurs destinations pour {action}.",
+        "data": {
+          "destinations": "Sélectionner Destination(s)"
+        },
+        "data_description": {
+          "destinations": "Choisissez une destination de relais dans la liste."
+        }
+      },
+      "mqtt_destination": {
+        "title": "{action} Destination de Relais MQTT",
+        "description": "Configurez un broker MQTT externe pour relayer les données des capteurs Meraki.",
+        "data": {
+          "name": "Nom de la Destination",
+          "host": "Nom d'Hôte du Broker",
+          "port": "Port du Broker",
+          "username": "Nom d'utilisateur (optionnel)",
+          "password": "Mot de passe (optionnel)",
+          "use_tls": "Utiliser TLS",
+          "topic_filter": "Filtre de Sujet",
+          "device_types": "Types d'Appareils (optionnel)"
+        },
+        "data_description": {
+          "name": "Un nom convivial pour cette destination de relais (ex., 'Plateforme IoT').",
+          "host": "Le nom d'hôte ou l'adresse IP du broker MQTT externe.",
+          "port": "Le port du broker MQTT (par défaut : 1883, ou 8883 pour TLS).",
+          "username": "Nom d'utilisateur pour l'authentification du broker (si requis).",
+          "password": "Mot de passe pour l'authentification du broker (si requis).",
+          "use_tls": "Activer le chiffrement TLS pour la connexion.",
+          "topic_filter": "Modèle de sujet à faire correspondre (ex., 'meraki/v1/mt/#' pour tous les capteurs MT).",
+          "device_types": "Filtrez éventuellement par types d'appareils spécifiques."
+        }
+      }
+    },
+    "error": {
+      "host_required": "Le nom d'hôte du broker est requis.",
+      "name_required": "Le nom de la destination est requis.",
+      "invalid_port": "Numéro de port invalide. Doit être entre 1 et 65535."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "meraki_wan1_connectivity": {
+        "name": "Connectivité WAN 1"
+      },
+      "meraki_wan2_connectivity": {
+        "name": "Connectivité WAN 2"
+      },
+      "meraki_network_info": {
+        "name": "Informations Réseau"
+      },
+      "meraki_firmware_status": {
+        "name": "État du Firmware",
+        "state": {
+          "up-to-date": "À jour",
+          "out-of-date": "Obsolète",
+          "unknown": "Inconnu"
+        }
+      },
+      "device_status": {
+        "name": "État",
+        "state": {
+          "online": "En Ligne",
+          "offline": "Hors Ligne",
+          "alerting": "En Alerte",
+          "dormant": "Inactif",
+          "unknown": "Inconnu"
+        }
+      },
+      "radio_settings": {
+        "name": "Paramètres Radio"
+      }
+    },
+    "switch": {
+      "meraki_ssid_enabled_switch": {
+        "name": "SSID Activé"
+      },
+      "meraki_ssid_broadcast_switch": {
+        "name": "Diffusion SSID"
+      },
+      "meraki_camera_sense_switch": {
+        "name": "MV Sense"
+      },
+      "meraki_camera_audio_detection_switch": {
+        "name": "Détection Audio"
+      },
+      "meraki_camera_rtsp_switch": {
+        "name": "Serveur RTSP"
+      }
+    },
+    "text": {
+      "meraki_ssid_name": {
+        "name": "Nom du SSID"
       }
     }
   }

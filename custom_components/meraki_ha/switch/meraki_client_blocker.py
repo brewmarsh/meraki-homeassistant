@@ -1,28 +1,29 @@
 """Switch entity for blocking/unblocking Meraki clients."""
 
-import logging
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
 from ..helpers.device_info_helpers import resolve_device_info
+from ..helpers.logging_helper import MerakiLoggers
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SWITCH
 
 
 class MerakiClientBlockerSwitch(
-    CoordinatorEntity,
+    CoordinatorEntity,  # type: ignore[type-arg]
     SwitchEntity,
 ):
     """Representation of a Meraki Client Blocker switch entity."""
 
+    coordinator: SsidFirewallCoordinator
     entity_category = EntityCategory.CONFIG
     _attr_has_entity_name = True
 

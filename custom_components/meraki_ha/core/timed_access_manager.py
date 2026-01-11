@@ -1,14 +1,14 @@
 """Timed Access Manager for managing Identity PSKs."""
 
-import logging
 from datetime import timedelta
 from typing import Any
 
 from homeassistant.util import dt as dt_util
 
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
+from custom_components.meraki_ha.helpers.logging_helper import MerakiLoggers
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.MAIN
 
 
 class TimedAccessManager:

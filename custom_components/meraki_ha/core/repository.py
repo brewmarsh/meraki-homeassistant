@@ -7,15 +7,15 @@ interacting with the Meraki API client and handling data processing.
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
+from ..helpers.logging_helper import MerakiLoggers
 from .errors import ApiClientCommunicationError
 
 if TYPE_CHECKING:
     from .api.client import MerakiAPIClient
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.COORDINATOR
 
 
 class MerakiRepository:

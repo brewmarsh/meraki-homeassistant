@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import Any, cast
 
 from homeassistant.components.switch import SwitchEntity
@@ -11,10 +10,11 @@ from homeassistant.core import callback
 
 from ..core.entities.meraki_firewall_rule_entity import MerakiFirewallRuleEntity
 from ..core.utils.entity_id_utils import get_firewall_rule_entity_id
+from ..helpers.logging_helper import MerakiLoggers
 from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..types import MerakiFirewallRule
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SWITCH
 
 
 class MerakiFirewallRuleSwitch(MerakiFirewallRuleEntity, SwitchEntity):

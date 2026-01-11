@@ -7,19 +7,19 @@ against the Meraki Dashboard API using the Meraki SDK.
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from meraki.exceptions import APIError as MerakiSDKAPIError
+from meraki.exceptions import APIError, AsyncAPIError
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 from .core.api.client import MerakiAPIClient
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
+from .helpers.logging_helper import MerakiLoggers
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.MAIN
 
 
 class MerakiAuthentication:
@@ -107,14 +107,16 @@ class MerakiAuthentication:
         except MerakiConnectionError as e:
             _LOGGER.error("Connection error: %s", e)
             raise MerakiConnectionError(f"Connection error: {e}") from e
-        except MerakiSDKAPIError as e:
-            if e.status == 401:
+        except (APIError, AsyncAPIError) as e:
+            status = getattr(e, "status", None)
+            message = getattr(e, "message", str(e))
+            if status == 401:
                 _LOGGER.error(
                     "Auth failed (HTTP 401) for org %s.",
                     self.organization_id,
                 )
                 raise ConfigEntryAuthFailed("Invalid API Key (HTTP 401)") from e
-            if e.status == 403:
+            if status == 403:
                 _LOGGER.error(
                     "Auth failed (HTTP 403) for org %s.",
                     self.organization_id,
@@ -122,7 +124,7 @@ class MerakiAuthentication:
                 raise ConfigEntryAuthFailed(
                     f"API key lacks permissions for org {self.organization_id}.",
                 ) from e
-            if e.status == 404:
+            if status == 404:
                 _LOGGER.error(
                     "Query failed (HTTP 404) for org %s.",
                     self.organization_id,
@@ -134,10 +136,10 @@ class MerakiAuthentication:
             _LOGGER.error(
                 "Meraki API error for org %s (HTTP %s).",
                 self.organization_id,
-                e.status,
+                status,
             )
             raise ConfigEntryAuthFailed(
-                f"Meraki API error for org {self.organization_id}: {e.message}",
+                f"Meraki API error for org {self.organization_id}: {message}",
             ) from e
         except ValueError as e:
             _LOGGER.warning(

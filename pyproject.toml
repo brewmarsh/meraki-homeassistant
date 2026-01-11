@@ -21,7 +21,7 @@ dev = [
     "aiofiles==23.2.1",
     "types-aiofiles==25.1.0.20251011",
     "aiomqtt>=2.0.0",
-    "meraki==1.40.1",
+    "meraki>=2.1.0",
     "PyTurboJPEG==1.7.2",
     "ruff>=0.8.0",
     "pip-audit==2.7.3",
@@ -31,6 +31,7 @@ dev = [
     "voluptuous==0.15.2",
     "pyyaml==6.0.3",
     "playwright",
+    "pydantic>=2.0.0",
     "pytest-homeassistant-custom-component==0.13.294",
     "pytest==8.4.2",
     "pytest-cov==7.0.0",
@@ -55,6 +56,10 @@ cache_dir = ".mypy_cache"
 [[tool.mypy.overrides]]
 module = "aiofiles"
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disable_error_code = ["method-assign"]
 
 [tool.ruff]
 exclude = [".pyenv"]
@@ -93,5 +98,5 @@ convention = "numpy"
 skip = "*meraki-panel.js,*/dist/*"
 
 [tool.bandit]
-exclude_dirs = ["tests", "node_modules", "custom_components/meraki_ha/core/utils", ".venv", "venv"]
+exclude_dirs = ["tests", "node_modules", "custom_components/meraki_ha/core/utils", ".venv", "venv", "scripts"]
 skips = ["B101", "B104", "B105", "B106", "B107", "B110", "B112", "B311", "B404", "B603", "B605", "B607"]

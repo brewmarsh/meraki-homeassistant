@@ -7,10 +7,10 @@ discovering and creating network-level entities.
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 from ...const import CONF_ENABLE_NETWORK_SENSORS, CONF_ENABLE_VLAN_SENSORS
+from ...helpers.logging_helper import MerakiLoggers
 from ...sensor.network.meraki_network_info import MerakiNetworkInfoSensor
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
 from ...sensor.network.network_identity import MerakiNetworkIdentitySensor
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from ...types import MerakiDevice
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.DISCOVERY
 
 
 class NetworkHandler(BaseHandler):

@@ -146,40 +146,19 @@ jobs:
             ISSUE_BODY=$(cat /tmp/issue_body.txt)
           fi
 
-          PROMPT="You are reviewing Jules' code for the meraki-homeassistant Home Assistant integration.
+          ISSUE_NUM="${{ steps.pr.outputs.issue_number }}"
 
-          ## MANDATORY FIRST STEPS - DO THIS BEFORE ANYTHING ELSE
-          1. **READ AGENTS.md** - Contains ALL project standards and patterns
-          2. **READ DEVELOPMENT.md** - Contains environment setup instructions
-          3. Do NOT proceed until you have read both files
+          PROMPT="## Code Review - PR #${{ steps.pr.outputs.number }}
+          Issue: #$ISSUE_NUM | From: $JULES_BRANCH → $CURSOR_BRANCH
 
-          ## Context
-          - Jules PR: #${{ steps.pr.outputs.number }}
-          - Jules Branch: $JULES_BRANCH
-          - Your Branch: $CURSOR_BRANCH
+          Requirements: ${ISSUE_BODY:-See issue}
 
-          ## Original Issue Requirements
-          ${ISSUE_BODY}
-
-          ## COMMON ERRORS AND FIXES
-
-          ### 'Undefined name MagicMock' or similar
-          Add to test file: from unittest.mock import MagicMock, AsyncMock, patch
-
-          ### 'ModuleNotFoundError: homeassistant'
-          Use fixtures from tests/conftest.py, don't import HA directly
-
-          ## Your Task
-          1. Verify Jules' implementation meets requirements
-          2. Check design follows existing patterns
-          3. Run ./run_checks.sh - ALL checks must pass
-          4. Fix any test errors (add missing imports!)
-          5. Create PR from $CURSOR_BRANCH targeting $JULES_BRANCH
-
-          ## Test Requirements
-          - ALWAYS include: from unittest.mock import MagicMock, AsyncMock, patch
-          - Use fixtures from tests/conftest.py
-          - Mock HA imports properly"
+          ---
+          1. Read AGENTS.md, DEVELOPMENT.md, issue #$ISSUE_NUM comments
+          2. Review Jules' implementation
+          3. Run ./run_checks.sh
+          4. Update issue: \`gh issue comment $ISSUE_NUM --body '## 🔍 Review: <findings>'\`
+          5. Create PR → $JULES_BRANCH"
 
           ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
 
@@ -218,6 +197,7 @@ jobs:
 
       - name: Comment on Jules PR
         if: steps.pr.outputs.skip != 'true' && steps.cursor.outputs.agent_id != ''
+        continue-on-error: true # Don't fail workflow if commenting fails
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -225,29 +205,43 @@ jobs:
             --repo "${{ github.repository }}" \
             --body "## 🔍 Cursor Code Review Started
 
-          CI passed! Cursor is now reviewing your code.
+          All CI checks passed! Cursor is now performing an in-depth code review.
 
-          **Agent ID**: \`${{ steps.cursor.outputs.agent_id }}\`
-          **Review Branch**: \`${{ steps.cursor.outputs.cursor_branch }}\`
+          **Review Details:**
+          | Field | Value |
+          |-------|-------|
+          | Agent ID | \`${{ steps.cursor.outputs.agent_id }}\` |
+          | Review Branch | \`${{ steps.cursor.outputs.cursor_branch }}\` |
+          | Target | This PR's branch |
 
-          Cursor will create a PR targeting this branch with improvements.
-          Once Cursor's PR passes checks, it will be auto-merged here.
+          **What Cursor Reviews:**
+          - ✅ **Requirements Compliance** - Does the implementation fully address the issue?
+          - ✅ **Code Quality** - Best practices, error handling, type hints
+          - ✅ **Test Coverage** - Are new features properly tested?
+          - ✅ **Design Patterns** - Does it follow existing codebase patterns?
+          - ✅ **Security** - No hardcoded secrets, proper input validation
+
+          **Process:**
+          1. Cursor analyzes the code and makes improvements
+          2. Creates a PR targeting this branch
+          3. Once Cursor's PR passes CI, it will be merged here
+          4. Then this PR is ready for final merge to beta
 
           ---
-          *[View Agent](https://cursor.com/agents?id=${{ steps.cursor.outputs.agent_id }})*"
+          *[View Agent Progress](https://cursor.com/agents?id=${{ steps.cursor.outputs.agent_id }})*"
 
       - name: Update issue with progress
         if: steps.pr.outputs.skip != 'true' && steps.cursor.outputs.agent_id != '' && steps.pr.outputs.issue_number != ''
+        continue-on-error: true # Don't fail workflow if commenting fails
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh issue comment ${{ steps.pr.outputs.issue_number }} \
             --repo "${{ github.repository }}" \
-            --body "## 🔍 Cursor Review Started
+            --body "## 🔍 Cursor Code Review Started
 
-          Jules' PR #${{ steps.pr.outputs.number }} passed CI. Cursor is now reviewing the code for quality and potential issues.
+          CI passed on PR #${{ steps.pr.outputs.number }}. Cursor is reviewing code quality.
 
-          **Review Branch**: \`${{ steps.cursor.outputs.cursor_branch }}\`
+          Agent: [${{ steps.cursor.outputs.agent_id }}](https://cursor.com/agents?id=${{ steps.cursor.outputs.agent_id }})
 
-          ---
-          *[View Agent](https://cursor.com/agents?id=${{ steps.cursor.outputs.agent_id }})*"
+          Cursor will provide detailed review findings."

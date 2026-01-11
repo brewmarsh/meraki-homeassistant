@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
@@ -12,9 +11,10 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN, MANUFACTURER
 from ...core.utils.naming_utils import format_device_name
+from ...helpers.logging_helper import MerakiLoggers
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SENSOR
 
 
 class MerakiNetworkInfoSensor(CoordinatorEntity, SensorEntity):
@@ -41,7 +41,9 @@ class MerakiNetworkInfoSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Return the state of the sensor."""
-        return self._network_name
+        if self._network_name:
+            return str(self._network_name)
+        return None
 
     @property
     def device_info(self) -> DeviceInfo:

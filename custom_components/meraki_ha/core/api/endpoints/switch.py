@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 from custom_components.meraki_ha.core.utils.api_utils import (
@@ -10,13 +9,14 @@ from custom_components.meraki_ha.core.utils.api_utils import (
     validate_response,
 )
 
+from ....helpers.logging_helper import MerakiLoggers
 from ..cache import async_timed_cache
 
 if TYPE_CHECKING:
     from ..client import MerakiAPIClient
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.API
 
 
 class SwitchEndpoints:
@@ -52,10 +52,8 @@ class SwitchEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        statuses = await self._api_client.run_sync(
-            self._api_client.dashboard.switch.getDeviceSwitchPortsStatuses,
-            serial=serial,
-        )
+        api = self._api_client.dashboard.switch
+        statuses = await api.getDeviceSwitchPortsStatuses(serial=serial)
         validated = validate_response(statuses)
         if not isinstance(validated, list):
             _LOGGER.warning("get_device_switch_ports_statuses did not return a list.")
@@ -79,9 +77,8 @@ class SwitchEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        ports = await self._api_client.run_sync(
-            self._api_client.dashboard.switch.getDeviceSwitchPorts, serial=serial
-        )
+        api = self._api_client.dashboard.switch
+        ports = await api.getDeviceSwitchPorts(serial=serial)
         validated = validate_response(ports)
         if not isinstance(validated, list):
             _LOGGER.warning("get_switch_ports did not return a list.")

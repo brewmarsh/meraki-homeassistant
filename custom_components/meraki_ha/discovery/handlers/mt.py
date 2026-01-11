@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 from ...binary_sensor.device.meraki_mt_binary_base import MerakiMtBinarySensor
 from ...const import CONF_ENABLE_DEVICE_STATUS
+from ...helpers.logging_helper import MerakiLoggers
 from ...sensor.device.device_status import MerakiDeviceStatusSensor
 from ...sensor.device.meraki_mt_base import MerakiMtSensor
 from ...sensor_defs.mt_sensors import MT_BINARY_SENSOR_MODELS, MT_SENSOR_MODELS
@@ -17,11 +17,13 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
 
     from ...meraki_data_coordinator import MerakiDataCoordinator
+    from ...services.camera_service import CameraService
     from ...services.device_control_service import DeviceControlService
+    from ...services.network_control_service import NetworkControlService
     from ...types import MerakiDevice
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.DISCOVERY
 
 
 class MTHandler(BaseDeviceHandler):
@@ -44,9 +46,9 @@ class MTHandler(BaseDeviceHandler):
         coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
-        camera_service,  # Unused
+        camera_service: CameraService | None,  # Unused
         control_service: DeviceControlService,
-        network_control_service,  # Unused
+        network_control_service: NetworkControlService | None,  # Unused
     ) -> MTHandler:
         """Create an instance of the handler."""
         return cls(

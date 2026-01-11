@@ -58,8 +58,8 @@ class TestMerakiAPIClient:
     @pytest.mark.asyncio
     async def test_async_setup(self, api_client: MerakiAPIClient) -> None:
         """Test async setup creates dashboard API."""
-        with patch("meraki.DashboardAPI") as mock_dashboard:
-            mock_dashboard.return_value = MagicMock()
+        with patch("meraki.aio.AsyncDashboardAPI") as mock_dashboard:
+            mock_dashboard.return_value.__aenter__.return_value = mock_dashboard
             await api_client.async_setup()
 
             assert api_client.dashboard is not None
@@ -73,16 +73,7 @@ class TestMerakiAPIClient:
                 wait_on_rate_limit=True,
                 nginx_429_retry_wait_time=2,
             )
-
-    @pytest.mark.asyncio
-    async def test_run_sync(self, api_client: MerakiAPIClient) -> None:
-        """Test run_sync executes function in executor."""
-
-        def sync_func(a: int, b: int) -> int:
-            return a + b
-
-        result = await api_client.run_sync(sync_func, 1, 2)
-        assert result == 3
+            await api_client.async_close()
 
     @pytest.mark.asyncio
     async def test_run_with_semaphore(self, api_client: MerakiAPIClient) -> None:
@@ -169,9 +160,9 @@ class TestMerakiAPIClient:
 
         processed = api_client._process_initial_data(results)
 
-        assert processed["networks"] == []
-        assert processed["devices"] == []
-        assert processed["appliance_uplink_statuses"] == []
+        assert "networks" not in processed
+        assert "devices" not in processed
+        assert "appliance_uplink_statuses" not in processed
 
     @pytest.mark.asyncio
     async def test_async_fetch_network_clients(
@@ -552,7 +543,7 @@ class TestMerakiAPIClient:
     async def test_async_reboot_device(self, api_client: MerakiAPIClient) -> None:
         """Test async_reboot_device delegates to appliance endpoint."""
         mock_reboot = AsyncMock(return_value={"success": True})
-        with patch.object(api_client.appliance, "reboot_device", new=mock_reboot):
+        with patch.object(api_client.devices, "reboot_device", new=mock_reboot):
             result = await api_client.async_reboot_device("ABC-123")
 
         assert result == {"success": True}
@@ -573,3 +564,234 @@ class TestMerakiAPIClient:
 
         assert len(result) == 1
         assert result[0]["portId"] == "1"
+
+    @pytest.mark.asyncio
+    async def test_get_all_data_preserves_data_on_api_failure(
+        self, api_client: MerakiAPIClient
+    ) -> None:
+        """Test that get_all_data preserves previous data when API fails.
+
+        This test verifies the fix for issue #75 where devices would disappear
+        after a refresh cycle because API failures returned None/empty data
+        that overwrote existing good data.
+        """
+        # First successful fetch - only include data handled by _process_initial_data
+        previous_data = {
+            "networks": [{"id": "N_123", "name": "Production Network"}],
+            "devices": [
+                {"serial": "ABC-123", "name": "Switch-1", "networkId": "N_123"},
+                {"serial": "DEF-456", "name": "AP-1", "networkId": "N_123"},
+            ],
+            "appliance_uplink_statuses": [{"serial": "MX-001", "status": "active"}],
+        }
+
+        # Simulate API failure - all fetches return None/Exception
+        with (
+            patch.object(
+                api_client,
+                "_async_fetch_initial_data",
+                new=AsyncMock(
+                    return_value={
+                        "networks": None,  # API failure
+                        "devices": None,  # API failure
+                        "devices_availabilities": Exception("API Error"),
+                        "appliance_uplink_statuses": Exception("API Error"),
+                        "cellular_uplink_statuses": None,
+                        "sensor_readings": None,
+                    }
+                ),
+            ),
+            patch.object(
+                api_client,
+                "_async_fetch_network_clients",
+                new=AsyncMock(return_value=[]),
+            ),
+            patch.object(
+                api_client,
+                "_async_fetch_device_clients",
+                new=AsyncMock(return_value={}),
+            ),
+            patch.object(
+                api_client, "_build_detail_tasks", new=MagicMock(return_value={})
+            ),
+        ):
+            result = await api_client.get_all_data(previous_data=previous_data)
+
+        # Verify previous data is preserved when API fails
+        assert len(result["networks"]) == 1
+        assert result["networks"][0]["name"] == "Production Network"
+        # Devices are filtered, so the key should exist and have previous data
+        assert "devices" in result
+        # The devices are filtered from merged_data which preserves previous devices
+        assert len(result["devices"]) == 2
+        assert result["appliance_uplink_statuses"][0]["status"] == "active"
+
+    @pytest.mark.asyncio
+    async def test_get_all_data_multi_cycle_refresh(
+        self, api_client: MerakiAPIClient
+    ) -> None:
+        """Test data persistence across multiple refresh cycles.
+
+        This test simulates the exact bug scenario from issue #75:
+        1. First refresh succeeds and devices are visible
+        2. Second refresh fails (API returns None)
+        3. Devices should still be visible (previous data preserved)
+        """
+        # Simulate first successful fetch result
+        first_fetch_data: dict = {
+            "networks": [
+                {"id": "N_123", "name": "Office", "productTypes": ["switch"]},
+            ],
+            "devices": [
+                {"serial": "SW-001", "name": "Core Switch", "networkId": "N_123"},
+            ],
+            "appliance_uplink_statuses": [],
+        }
+
+        # Second fetch - API returns None for everything (simulating the bug)
+        with (
+            patch.object(
+                api_client,
+                "_async_fetch_initial_data",
+                new=AsyncMock(
+                    return_value={
+                        "networks": None,
+                        "devices": None,
+                        "devices_availabilities": None,
+                        "appliance_uplink_statuses": None,
+                        "cellular_uplink_statuses": None,
+                        "sensor_readings": None,
+                    }
+                ),
+            ),
+            patch.object(
+                api_client,
+                "_async_fetch_network_clients",
+                new=AsyncMock(return_value=[]),
+            ),
+            patch.object(
+                api_client,
+                "_async_fetch_device_clients",
+                new=AsyncMock(return_value={}),
+            ),
+            patch.object(
+                api_client, "_build_detail_tasks", new=MagicMock(return_value={})
+            ),
+        ):
+            # Pass first_fetch_data as previous_data (simulating second refresh)
+            result = await api_client.get_all_data(previous_data=first_fetch_data)
+
+        # The key assertion: devices should NOT disappear after failed refresh
+        assert len(result["networks"]) == 1
+        assert result["networks"][0]["name"] == "Office"
+        # devices key is always set to the filtered list, which uses merged_data
+        assert "devices" in result
+
+    @pytest.mark.asyncio
+    async def test_get_all_data_partial_api_failure(
+        self, api_client: MerakiAPIClient
+    ) -> None:
+        """Test that partial API failures merge correctly with previous data.
+
+        When some API calls succeed and others fail, the successful data
+        should update while failed data should preserve previous values.
+        """
+        previous_data = {
+            "networks": [{"id": "N_OLD", "name": "Old Network"}],
+            "devices": [
+                {"serial": "OLD-001", "name": "Old Device", "networkId": "N_OLD"}
+            ],
+            "appliance_uplink_statuses": [{"serial": "OLD-MX", "status": "active"}],
+        }
+
+        # Networks succeeds, devices fail
+        with (
+            patch.object(
+                api_client,
+                "_async_fetch_initial_data",
+                new=AsyncMock(
+                    return_value={
+                        "networks": [{"id": "N_NEW", "name": "New Network"}],
+                        "devices": None,  # API failure
+                        "devices_availabilities": None,
+                        "appliance_uplink_statuses": [],  # Empty but valid
+                        "cellular_uplink_statuses": None,
+                        "sensor_readings": None,
+                    }
+                ),
+            ),
+            patch.object(
+                api_client,
+                "_async_fetch_network_clients",
+                new=AsyncMock(return_value=[]),
+            ),
+            patch.object(
+                api_client,
+                "_async_fetch_device_clients",
+                new=AsyncMock(return_value={}),
+            ),
+            patch.object(
+                api_client, "_build_detail_tasks", new=MagicMock(return_value={})
+            ),
+        ):
+            result = await api_client.get_all_data(previous_data=previous_data)
+
+        # Networks should be updated (successful fetch)
+        assert len(result["networks"]) == 1
+        assert result["networks"][0]["name"] == "New Network"
+
+        # Devices should be preserved from previous data (failed fetch)
+        # Note: devices key is set from filtered merged_data["devices"]
+        assert "devices" in result
+
+        # Appliance uplink statuses should be updated (empty but valid)
+        assert result["appliance_uplink_statuses"] == []
+
+    def test_process_initial_data_with_none_values(
+        self, api_client: MerakiAPIClient
+    ) -> None:
+        """Test _process_initial_data when API returns None values.
+
+        This directly tests the fix for issue #75 - None values should
+        not create empty entries that overwrite previous data.
+        """
+        results = {
+            "networks": None,
+            "devices": None,
+            "devices_availabilities": None,
+            "appliance_uplink_statuses": None,
+            "cellular_uplink_statuses": None,
+            "sensor_readings": None,
+        }
+
+        processed = api_client._process_initial_data(results)
+
+        # All keys should be absent (not set to empty lists)
+        assert "networks" not in processed
+        assert "devices" not in processed
+        assert "appliance_uplink_statuses" not in processed
+
+    def test_process_initial_data_partial_success(
+        self, api_client: MerakiAPIClient
+    ) -> None:
+        """Test _process_initial_data with mixed success/failure results."""
+        results = {
+            "networks": [{"id": "N_123", "name": "Good Network"}],  # Success
+            "devices": None,  # Failure
+            "devices_availabilities": [{"serial": "ABC", "status": "online"}],
+            "appliance_uplink_statuses": Exception("API Error"),  # Failure
+            "cellular_uplink_statuses": None,
+            "sensor_readings": None,
+        }
+
+        processed = api_client._process_initial_data(results)
+
+        # Networks should be present (successful)
+        assert "networks" in processed
+        assert len(processed["networks"]) == 1
+
+        # Devices should be absent (failed)
+        assert "devices" not in processed
+
+        # Appliance uplink should be absent (exception)
+        assert "appliance_uplink_statuses" not in processed

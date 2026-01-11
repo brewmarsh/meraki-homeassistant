@@ -1,21 +1,27 @@
 """Switch entity for controlling Meraki Adult Content Filtering on an SSID."""
 
-import logging
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..helpers.device_info_helpers import resolve_device_info
+from ..helpers.logging_helper import MerakiLoggers
 from ..meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SWITCH
 
 
-class MerakiAdultContentFilteringSwitch(CoordinatorEntity, SwitchEntity):
+class MerakiAdultContentFilteringSwitch(
+    CoordinatorEntity,
+    SwitchEntity,  # type: ignore[type-arg]
+):
     """Representation of a Meraki Adult Content Filtering switch."""
+
+    coordinator: MerakiDataCoordinator
 
     def __init__(
         self,
@@ -43,7 +49,7 @@ class MerakiAdultContentFilteringSwitch(CoordinatorEntity, SwitchEntity):
         )
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return resolve_device_info(self._ssid, self._config_entry)
 
@@ -53,7 +59,9 @@ class MerakiAdultContentFilteringSwitch(CoordinatorEntity, SwitchEntity):
         ssid_data = self.coordinator.get_ssid(
             self._ssid["networkId"], self._ssid["number"]
         )
-        return ssid_data.get("adultContentFilteringEnabled", False)
+        if ssid_data:
+            return ssid_data.get("adultContentFilteringEnabled", False)
+        return False
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""

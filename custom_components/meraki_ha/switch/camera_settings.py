@@ -1,6 +1,5 @@
 """Base classes for Meraki camera switch entities."""
 
-import logging
 from collections.abc import Mapping
 from typing import Any
 
@@ -11,17 +10,20 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ..const import DOMAIN
 from ..core.api.client import MerakiAPIClient
 from ..core.utils.naming_utils import format_device_name
+from ..helpers.logging_helper import MerakiLoggers
 from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..types import MerakiDevice
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.CAMERA
 
 
 class MerakiCameraSettingSwitchBase(
-    CoordinatorEntity,
+    CoordinatorEntity,  # type: ignore[type-arg]
     SwitchEntity,
 ):
     """Base class for a Meraki Camera Setting Switch."""
+
+    coordinator: MerakiDataCoordinator
 
     def __init__(
         self,
@@ -136,8 +138,10 @@ class MerakiCameraSettingSwitchBase(
         raise NotImplementedError
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
+        if self.coordinator.config_entry is None:
+            return None
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_data["serial"])},
             name=format_device_name(

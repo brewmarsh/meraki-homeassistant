@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 from custom_components.meraki_ha.core.utils.api_utils import (
@@ -10,13 +9,15 @@ from custom_components.meraki_ha.core.utils.api_utils import (
     validate_response,
 )
 
+from ....async_logging import async_log_time
+from ....helpers.logging_helper import MerakiLoggers
 from ..cache import async_timed_cache
 
 if TYPE_CHECKING:
     from ..client import MerakiAPIClient
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.API
 
 
 class OrganizationEndpoints:
@@ -46,8 +47,8 @@ class OrganizationEndpoints:
         """
         if self._api_client.dashboard is None:
             return {}
-        org = await self._api_client.run_sync(
-            self._api_client.dashboard.organizations.getOrganization,
+        api = self._api_client.dashboard.organizations
+        org = await api.getOrganization(
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(org)
@@ -58,6 +59,7 @@ class OrganizationEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=3600)
+    @async_log_time(slow_threshold=2.0)
     async def get_organization_networks(self) -> list[dict[str, Any]]:
         """
         Get all networks for an organization.
@@ -69,8 +71,8 @@ class OrganizationEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        networks = await self._api_client.run_sync(
-            self._api_client.dashboard.organizations.getOrganizationNetworks,
+        api = self._api_client.dashboard.organizations
+        networks = await api.getOrganizationNetworks(
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(networks)
@@ -92,8 +94,8 @@ class OrganizationEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        upgrades = await self._api_client.run_sync(
-            self._api_client.dashboard.organizations.getOrganizationFirmwareUpgrades,
+        api = self._api_client.dashboard.organizations
+        upgrades = await api.getOrganizationFirmwareUpgrades(
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(upgrades)
@@ -104,6 +106,7 @@ class OrganizationEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
+    @async_log_time(slow_threshold=3.0)
     async def get_organization_device_statuses(self) -> list[dict[str, Any]]:
         """
         Get status information for all devices in the organization.
@@ -115,8 +118,8 @@ class OrganizationEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        statuses = await self._api_client.run_sync(
-            self._api_client.dashboard.organizations.getOrganizationDeviceStatuses,
+        api = self._api_client.dashboard.organizations
+        statuses = await api.getOrganizationDeviceStatuses(
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(statuses)
@@ -127,6 +130,7 @@ class OrganizationEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
+    @async_log_time(slow_threshold=3.0)
     async def get_organization_devices_availabilities(self) -> list[dict[str, Any]]:
         """
         Get availability information for all devices in the organization.
@@ -138,8 +142,8 @@ class OrganizationEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        availabilities = await self._api_client.run_sync(
-            self._api_client.dashboard.organizations.getOrganizationDevicesAvailabilities,
+        api = self._api_client.dashboard.organizations
+        availabilities = await api.getOrganizationDevicesAvailabilities(
             organizationId=self._api_client.organization_id,
             total_pages="all",
         )
@@ -153,6 +157,7 @@ class OrganizationEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache()
+    @async_log_time(slow_threshold=3.0)
     async def get_organization_devices(self) -> list[dict[str, Any]]:
         """
         Get all devices in the organization.
@@ -164,8 +169,8 @@ class OrganizationEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        devices = await self._api_client.run_sync(
-            self._api_client.dashboard.organizations.getOrganizationDevices,
+        api = self._api_client.dashboard.organizations
+        devices = await api.getOrganizationDevices(
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(devices)
@@ -187,9 +192,8 @@ class OrganizationEndpoints:
         """
         if self._api_client.dashboard is None:
             return []
-        orgs = await self._api_client.run_sync(
-            self._api_client.dashboard.organizations.getOrganizations
-        )
+        api = self._api_client.dashboard.organizations
+        orgs = await api.getOrganizations()
         validated = validate_response(orgs)
         if not isinstance(validated, list):
             _LOGGER.warning("get_organizations did not return a list.")

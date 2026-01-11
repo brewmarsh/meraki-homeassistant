@@ -7,9 +7,10 @@ interface for all device-specific handlers.
 
 from __future__ import annotations
 
-import logging
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
+
+from ...helpers.logging_helper import MerakiLoggers
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
     from ...types import MerakiDevice
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.DISCOVERY
 
 
 class BaseHandler(ABC):

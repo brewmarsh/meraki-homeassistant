@@ -782,3 +782,177 @@ async def test_tiered_polling_uses_default_intervals(coordinator, mock_api_clien
     assert coordinator.last_device_update is not None
     assert coordinator.last_client_update is not None
     assert coordinator.last_ssid_update is not None
+
+
+# === Scanning API Data Handling Tests ===
+
+
+@pytest.mark.asyncio
+async def test_scanning_api_updates_existing_client(coordinator):
+    """Test that scanning API data updates existing clients."""
+    # Set up coordinator with existing client data
+    coordinator.data = {
+        "clients": [
+            {
+                "mac": "aa:bb:cc:dd:ee:ff",
+                "ip": "192.168.1.100",
+                "description": "Test Device",
+                "lastSeen": "2024-01-01T00:00:00Z",
+            }
+        ]
+    }
+    coordinator.async_update_listeners = MagicMock()
+
+    # Scanning API data payload
+    scanning_data = {
+        "apMac": "00:11:22:33:44:55",
+        "observations": [
+            {
+                "clientMac": "aa:bb:cc:dd:ee:ff",
+                "seenTime": "2024-01-15T12:00:00Z",
+                "rssi": -45,
+                "location": {"lat": 37.7749, "lng": -122.4194},
+            }
+        ],
+    }
+
+    await coordinator.async_handle_scanning_api_data(scanning_data)
+
+    # Verify client data was updated
+    client = coordinator.data["clients"][0]
+    assert client["lastSeen"] == "2024-01-15T12:00:00Z"
+    assert client["rssi"] == -45
+    assert client["recentDeviceMac"] == "00:11:22:33:44:55"
+    assert client["latitude"] == 37.7749
+    assert client["longitude"] == -122.4194
+    coordinator.async_update_listeners.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_scanning_api_ignores_unknown_client(coordinator):
+    """Test that scanning API data ignores unknown client MACs."""
+    # Set up coordinator with no matching client
+    coordinator.data = {
+        "clients": [
+            {
+                "mac": "11:22:33:44:55:66",  # Different MAC
+                "ip": "192.168.1.100",
+            }
+        ]
+    }
+    coordinator.async_update_listeners = MagicMock()
+
+    # Scanning API data with unknown MAC
+    scanning_data = {
+        "apMac": "00:11:22:33:44:55",
+        "observations": [
+            {
+                "clientMac": "aa:bb:cc:dd:ee:ff",  # Unknown MAC
+                "seenTime": "2024-01-15T12:00:00Z",
+                "rssi": -45,
+            }
+        ],
+    }
+
+    await coordinator.async_handle_scanning_api_data(scanning_data)
+
+    # Verify existing client was not modified
+    client = coordinator.data["clients"][0]
+    assert "lastSeen" not in client
+    assert "rssi" not in client
+    # Listeners should not be called since no updates were made
+    coordinator.async_update_listeners.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_scanning_api_handles_multiple_observations(coordinator):
+    """Test that scanning API handles multiple observations correctly."""
+    # Set up coordinator with multiple clients
+    coordinator.data = {
+        "clients": [
+            {"mac": "aa:bb:cc:dd:ee:ff", "ip": "192.168.1.100"},
+            {"mac": "11:22:33:44:55:66", "ip": "192.168.1.101"},
+            {"mac": "ff:ee:dd:cc:bb:aa", "ip": "192.168.1.102"},
+        ]
+    }
+    coordinator.async_update_listeners = MagicMock()
+
+    # Scanning API data with multiple observations
+    scanning_data = {
+        "apMac": "00:11:22:33:44:55",
+        "observations": [
+            {"clientMac": "aa:bb:cc:dd:ee:ff", "seenTime": "2024-01-15T12:00:00Z"},
+            {"clientMac": "11:22:33:44:55:66", "seenTime": "2024-01-15T12:01:00Z"},
+            {"clientMac": "xx:yy:zz:aa:bb:cc", "seenTime": "2024-01-15T12:02:00Z"},
+        ],
+    }
+
+    await coordinator.async_handle_scanning_api_data(scanning_data)
+
+    # Verify first two clients were updated, third client unchanged
+    assert coordinator.data["clients"][0]["lastSeen"] == "2024-01-15T12:00:00Z"
+    assert coordinator.data["clients"][1]["lastSeen"] == "2024-01-15T12:01:00Z"
+    assert "lastSeen" not in coordinator.data["clients"][2]
+    coordinator.async_update_listeners.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_scanning_api_handles_empty_data(coordinator):
+    """Test that scanning API handles missing or empty data gracefully."""
+    coordinator.data = None
+    coordinator.async_update_listeners = MagicMock()
+
+    scanning_data = {
+        "apMac": "00:11:22:33:44:55",
+        "observations": [{"clientMac": "aa:bb:cc:dd:ee:ff"}],
+    }
+
+    # Should not raise an error
+    await coordinator.async_handle_scanning_api_data(scanning_data)
+    coordinator.async_update_listeners.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_scanning_api_handles_missing_clients_key(coordinator):
+    """Test that scanning API handles missing clients key gracefully."""
+    coordinator.data = {"networks": [], "devices": []}  # No clients key
+    coordinator.async_update_listeners = MagicMock()
+
+    scanning_data = {
+        "apMac": "00:11:22:33:44:55",
+        "observations": [{"clientMac": "aa:bb:cc:dd:ee:ff"}],
+    }
+
+    # Should not raise an error
+    await coordinator.async_handle_scanning_api_data(scanning_data)
+    coordinator.async_update_listeners.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_scanning_api_handles_observation_without_location(coordinator):
+    """Test that scanning API handles observations without location data."""
+    coordinator.data = {
+        "clients": [{"mac": "aa:bb:cc:dd:ee:ff", "ip": "192.168.1.100"}]
+    }
+    coordinator.async_update_listeners = MagicMock()
+
+    # Observation without location
+    scanning_data = {
+        "apMac": "00:11:22:33:44:55",
+        "observations": [
+            {
+                "clientMac": "aa:bb:cc:dd:ee:ff",
+                "seenTime": "2024-01-15T12:00:00Z",
+                "rssi": -50,
+                # No location field
+            }
+        ],
+    }
+
+    await coordinator.async_handle_scanning_api_data(scanning_data)
+
+    client = coordinator.data["clients"][0]
+    assert client["lastSeen"] == "2024-01-15T12:00:00Z"
+    assert client["rssi"] == -50
+    assert "latitude" not in client
+    assert "longitude" not in client

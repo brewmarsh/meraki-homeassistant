@@ -7,14 +7,15 @@ processing and managing data for a specific Meraki network.
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
+
+from ..helpers.logging_helper import MerakiLoggers
 
 if TYPE_CHECKING:
     from ...types import MerakiDevice, MerakiNetwork
     from ..meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.MAIN
 
 
 class NetworkHub:

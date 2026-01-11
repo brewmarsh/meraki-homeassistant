@@ -1,0 +1,416 @@
+name: Manual Fix Trigger
+
+run-name: 'Manual: Fix PR #${{ github.event.inputs.pr_number }}'
+
+# Manually trigger self-healing on a stuck PR
+# Use this when a PR is stuck in draft, waiting, or needs a kick
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to fix (e.g., 102)'
+        required: true
+        type: string
+      action:
+        description: 'Action to take'
+        required: true
+        type: choice
+        options:
+          - auto # Analyze and decide
+          - jules-fix # Invoke Jules to fix CI
+          - cursor-fix # Invoke Cursor to fix CI
+          - cursor-review # Invoke Cursor to review code
+          - mark-ready # Mark as ready for human review
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+# Prevent multiple manual triggers on same PR
+concurrency:
+  group: manual-fix-${{ github.event.inputs.pr_number }}
+  cancel-in-progress: false
+
+jobs:
+  analyze-and-act:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get PR details
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ github.event.inputs.pr_number }}"
+
+          PR_JSON=$(gh pr view "$PR_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --json number,title,body,state,isDraft,author,headRefName,baseRefName,labels,mergeable,reviewDecision \
+            2>/dev/null || echo "{}")
+
+          if [[ -z "$PR_JSON" ]] || [[ "$PR_JSON" == "{}" ]]; then
+            echo "::error::PR #$PR_NUMBER not found"
+            exit 1
+          fi
+
+          PR_TITLE=$(echo "$PR_JSON" | jq -r '.title // empty')
+          PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.author.login // empty')
+          PR_BRANCH=$(echo "$PR_JSON" | jq -r '.headRefName // empty')
+          PR_BASE=$(echo "$PR_JSON" | jq -r '.baseRefName // empty')
+          PR_DRAFT=$(echo "$PR_JSON" | jq -r '.isDraft // false')
+          PR_STATE=$(echo "$PR_JSON" | jq -r '.state // empty')
+          PR_LABELS=$(echo "$PR_JSON" | jq -r '[.labels[].name] | join(" ")' 2>/dev/null || echo "")
+          PR_BODY=$(echo "$PR_JSON" | jq -r '.body // empty')
+
+          echo "PR #$PR_NUMBER: $PR_TITLE"
+          echo "Author: $PR_AUTHOR"
+          echo "Branch: $PR_BRANCH -> $PR_BASE"
+          echo "Draft: $PR_DRAFT, State: $PR_STATE"
+          echo "Labels: $PR_LABELS"
+
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "pr_title=$PR_TITLE" >> "$GITHUB_OUTPUT"
+          echo "pr_author=$PR_AUTHOR" >> "$GITHUB_OUTPUT"
+          echo "pr_branch=$PR_BRANCH" >> "$GITHUB_OUTPUT"
+          echo "pr_base=$PR_BASE" >> "$GITHUB_OUTPUT"
+          echo "pr_draft=$PR_DRAFT" >> "$GITHUB_OUTPUT"
+          echo "pr_state=$PR_STATE" >> "$GITHUB_OUTPUT"
+          echo "pr_labels=$PR_LABELS" >> "$GITHUB_OUTPUT"
+
+          # Extract issue number
+          ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
+          if [[ -z "$ISSUE_NUM" ]]; then
+            ISSUE_NUM=$(echo "$PR_BRANCH" | grep -oE '[-/][0-9]+[-/]' | grep -oE '[0-9]+' | head -1)
+          fi
+          echo "issue_number=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
+
+          # Check if Jules or Cursor PR
+          IS_JULES="false"
+          IS_CURSOR="false"
+          if [[ "$PR_AUTHOR" == *"jules"* ]] || [[ "$PR_AUTHOR" == *"google-labs"* ]]; then
+            IS_JULES="true"
+          fi
+          if [[ "$PR_BRANCH" == cursor-review/* ]] || echo "$PR_LABELS" | grep -q "cursor"; then
+            IS_CURSOR="true"
+          fi
+          echo "is_jules=$IS_JULES" >> "$GITHUB_OUTPUT"
+          echo "is_cursor=$IS_CURSOR" >> "$GITHUB_OUTPUT"
+
+      - name: Get latest CI status
+        id: ci
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_BRANCH="${{ steps.pr.outputs.pr_branch }}"
+
+          # Get latest workflow run on this branch
+          RUN_JSON=$(gh run list \
+            --repo "${{ github.repository }}" \
+            --branch "$PR_BRANCH" \
+            --workflow "Beta CI" \
+            --limit 1 \
+            --json databaseId,conclusion,status \
+            2>/dev/null || echo "[]")
+
+          RUN_ID=$(echo "$RUN_JSON" | jq -r '.[0].databaseId // empty')
+          RUN_CONCLUSION=$(echo "$RUN_JSON" | jq -r '.[0].conclusion // empty')
+          RUN_STATUS=$(echo "$RUN_JSON" | jq -r '.[0].status // empty')
+
+          echo "Latest CI Run: $RUN_ID"
+          echo "Status: $RUN_STATUS, Conclusion: $RUN_CONCLUSION"
+
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "conclusion=$RUN_CONCLUSION" >> "$GITHUB_OUTPUT"
+          echo "status=$RUN_STATUS" >> "$GITHUB_OUTPUT"
+
+          # Get error logs if failed
+          if [[ "$RUN_CONCLUSION" == "failure" ]] && [[ -n "$RUN_ID" ]]; then
+            CI_ERRORS=$(gh run view "$RUN_ID" --repo "${{ github.repository }}" --log-failed 2>/dev/null | tail -150 || echo "")
+            echo "$CI_ERRORS" > /tmp/ci_errors.txt
+
+            FAILED_JOBS=$(gh run view "$RUN_ID" --repo "${{ github.repository }}" --json jobs \
+              --jq '[.jobs[] | select(.conclusion == "failure") | .name] | join(", ")' 2>/dev/null || echo "")
+            echo "failed_jobs=$FAILED_JOBS" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Determine action
+        id: action
+        run: |
+          REQUESTED_ACTION="${{ github.event.inputs.action }}"
+          IS_JULES="${{ steps.pr.outputs.is_jules }}"
+          IS_CURSOR="${{ steps.pr.outputs.is_cursor }}"
+          CI_CONCLUSION="${{ steps.ci.outputs.conclusion }}"
+          PR_LABELS="${{ steps.pr.outputs.pr_labels }}"
+
+          if [[ "$REQUESTED_ACTION" != "auto" ]]; then
+            echo "action=$REQUESTED_ACTION" >> "$GITHUB_OUTPUT"
+            echo "Using requested action: $REQUESTED_ACTION"
+            exit 0
+          fi
+
+          # Auto-determine based on state
+          echo "Auto-determining action..."
+
+          # If Cursor is already reviewing, continue with Cursor
+          if echo "$PR_LABELS" | grep -q "cursor-reviewing"; then
+            echo "action=cursor-fix" >> "$GITHUB_OUTPUT"
+            echo "Cursor is reviewing - continuing with Cursor"
+            exit 0
+          fi
+
+          # If CI passed, do code review
+          if [[ "$CI_CONCLUSION" == "success" ]]; then
+            echo "action=cursor-review" >> "$GITHUB_OUTPUT"
+            echo "CI passed - launching code review"
+            exit 0
+          fi
+
+          # If CI failed
+          if [[ "$CI_CONCLUSION" == "failure" ]]; then
+            # Count previous fix attempts
+            FIX_ATTEMPTS=$(gh pr view "${{ steps.pr.outputs.pr_number }}" \
+              --repo "${{ github.repository }}" \
+              --json comments \
+              --jq '[.comments[] | select(.body | contains("Fix Attempt") or contains("CI Fix"))] | length' 2>/dev/null || echo "0")
+
+            echo "Previous fix attempts: $FIX_ATTEMPTS"
+
+            # If Jules PR with < 3 attempts, use Jules
+            if [[ "$IS_JULES" == "true" ]] && [[ "$FIX_ATTEMPTS" -lt 3 ]]; then
+              echo "action=jules-fix" >> "$GITHUB_OUTPUT"
+              echo "Jules PR with $FIX_ATTEMPTS attempts - invoking Jules"
+            else
+              # Otherwise use Cursor
+              echo "action=cursor-fix" >> "$GITHUB_OUTPUT"
+              echo "Invoking Cursor to fix"
+            fi
+            exit 0
+          fi
+
+          # Default: try to run CI first
+          echo "action=run-ci" >> "$GITHUB_OUTPUT"
+          echo "No recent CI - will trigger CI run"
+
+      - name: Mark PR as ready (undraft)
+        if: steps.pr.outputs.pr_draft == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Marking PR as ready (removing draft status)..."
+          gh pr ready "${{ steps.pr.outputs.pr_number }}" --repo "${{ github.repository }}" || true
+
+      - name: Run CI (trigger workflow)
+        if: steps.action.outputs.action == 'run-ci'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Triggering Beta CI on branch ${{ steps.pr.outputs.pr_branch }}..."
+
+          # Re-run the latest workflow or trigger a new one
+          RUN_ID="${{ steps.ci.outputs.run_id }}"
+          if [[ -n "$RUN_ID" ]]; then
+            gh run rerun "$RUN_ID" --repo "${{ github.repository }}" --failed || \
+            gh run rerun "$RUN_ID" --repo "${{ github.repository }}" || true
+          fi
+
+          echo "CI triggered. The self-healing workflows will take over when CI completes."
+
+      - name: Invoke Jules to fix
+        if: steps.action.outputs.action == 'jules-fix'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: google-labs-code/jules-action@v1.0.0
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          starting_branch: ${{ steps.pr.outputs.pr_branch }}
+          prompt: |
+            ## CI Fix - PR #${{ steps.pr.outputs.pr_number }}
+            Issue: #${{ steps.pr.outputs.issue_number }} | Branch: ${{ steps.pr.outputs.pr_branch }}
+
+            Failed: ${{ steps.ci.outputs.failed_jobs }}
+
+            ---
+            1. Read AGENTS.md
+            2. Run ./run_checks.sh
+            3. Fix errors
+            4. Update issue: `gh issue comment ${{ steps.pr.outputs.issue_number }} --body '## 🔧 Fixed: <what/why>'`
+            5. Commit: fix(jules): resolve CI errors
+
+      - name: Invoke Cursor to fix
+        if: steps.action.outputs.action == 'cursor-fix'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          PR_BRANCH="${{ steps.pr.outputs.pr_branch }}"
+          PR_NUMBER="${{ steps.pr.outputs.pr_number }}"
+          ISSUE_NUM="${{ steps.pr.outputs.issue_number }}"
+          FAILED_JOBS="${{ steps.ci.outputs.failed_jobs }}"
+
+          CI_ERRORS=""
+          if [[ -f /tmp/ci_errors.txt ]]; then
+            CI_ERRORS=$(cat /tmp/ci_errors.txt)
+          fi
+
+          # Add cursor-reviewing label
+          gh pr edit "$PR_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --add-label "cursor-reviewing" 2>/dev/null || true
+
+          PROMPT="## CI Fix - PR #$PR_NUMBER
+          Issue: #$ISSUE_NUM | Branch: $PR_BRANCH (push here)
+
+          \`\`\`
+          $CI_ERRORS
+          \`\`\`
+
+          ---
+          1. Read AGENTS.md
+          2. Run ./run_checks.sh
+          3. Fix errors
+          4. Update issue: \`gh issue comment $ISSUE_NUM --body '## 🔧 Fixed: <what/why>'\`
+          5. Commit: fix(cursor): resolve CI errors"
+
+          ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
+
+          RESPONSE=$(curl -sS -X POST "https://api.cursor.com/v0/agents" \
+            -u "${CURSOR_API_KEY}:" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"source\": {
+                \"repository\": \"https://github.com/${{ github.repository }}\",
+                \"ref\": \"$PR_BRANCH\"
+              },
+              \"prompt\": {
+                \"text\": ${ESCAPED_PROMPT}
+              },
+              \"target\": {
+                \"branchName\": \"$PR_BRANCH\",
+                \"autoCreatePr\": false
+              }
+            }")
+
+          echo "Cursor API Response: $RESPONSE"
+          AGENT_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+
+          gh pr comment "$PR_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --body "## 🔧 Manual Fix Triggered
+
+          Cursor is fixing CI issues.
+
+          Agent: [${AGENT_ID:-...}](https://cursor.com/agents?id=$AGENT_ID)"
+
+      - name: Invoke Cursor for code review
+        if: steps.action.outputs.action == 'cursor-review'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          PR_BRANCH="${{ steps.pr.outputs.pr_branch }}"
+          PR_NUMBER="${{ steps.pr.outputs.pr_number }}"
+          ISSUE_NUM="${{ steps.pr.outputs.issue_number }}"
+          CURSOR_BRANCH="cursor-review/${PR_BRANCH}"
+
+          # Get issue body
+          ISSUE_BODY=""
+          if [[ -n "$ISSUE_NUM" ]]; then
+            ISSUE_BODY=$(gh issue view "$ISSUE_NUM" --repo "${{ github.repository }}" --json body --jq '.body // ""' 2>/dev/null || echo "")
+          fi
+
+          # Add label
+          gh pr edit "$PR_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --add-label "cursor-reviewing" 2>/dev/null || true
+
+          PROMPT="## Code Review - PR #$PR_NUMBER
+          Issue: #$ISSUE_NUM | From: $PR_BRANCH → $CURSOR_BRANCH
+
+          Requirements: ${ISSUE_BODY:-See issue}
+
+          ---
+          1. Read AGENTS.md, issue #$ISSUE_NUM comments
+          2. Review code quality
+          3. Run ./run_checks.sh
+          4. Update issue: \`gh issue comment $ISSUE_NUM --body '## 🔍 Review: <findings>'\`
+          5. Create PR → $PR_BRANCH"
+
+          ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
+
+          RESPONSE=$(curl -sS -X POST "https://api.cursor.com/v0/agents" \
+            -u "${CURSOR_API_KEY}:" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"source\": {
+                \"repository\": \"https://github.com/${{ github.repository }}\",
+                \"ref\": \"$PR_BRANCH\"
+              },
+              \"prompt\": {
+                \"text\": ${ESCAPED_PROMPT}
+              },
+              \"target\": {
+                \"branchName\": \"$CURSOR_BRANCH\",
+                \"autoCreatePr\": true
+              }
+            }")
+
+          echo "Cursor API Response: $RESPONSE"
+          AGENT_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+
+          gh pr comment "$PR_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --body "## 🔍 Manual Review Triggered
+
+          Cursor is reviewing code quality.
+
+          Agent: [${AGENT_ID:-...}](https://cursor.com/agents?id=$AGENT_ID)
+          Review Branch: \`$CURSOR_BRANCH\`"
+
+      - name: Mark as ready for human review
+        if: steps.action.outputs.action == 'mark-ready'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ steps.pr.outputs.pr_number }}"
+          ISSUE_NUM="${{ steps.pr.outputs.issue_number }}"
+
+          gh pr edit "$PR_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --remove-label "cursor-reviewing" \
+            --remove-label "in-progress" \
+            --add-label "ready-for-review" 2>/dev/null || true
+
+          gh pr comment "$PR_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --body "## ✅ Manually Marked Ready
+
+          This PR has been manually marked as ready for human review.
+
+          ---
+          *Triggered by @${{ github.actor }}*"
+
+          if [[ -n "$ISSUE_NUM" ]]; then
+            gh issue comment "$ISSUE_NUM" \
+              --repo "${{ github.repository }}" \
+              --body "## ✅ Ready for Human Review
+
+            PR #$PR_NUMBER manually marked ready by @${{ github.actor }}."
+
+            gh issue edit "$ISSUE_NUM" \
+              --repo "${{ github.repository }}" \
+              --remove-label "in-progress" \
+              --add-label "ready-for-review" 2>/dev/null || true
+          fi
+
+      - name: Summary
+        run: |
+          echo "## Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| PR | #${{ steps.pr.outputs.pr_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | \`${{ steps.pr.outputs.pr_branch }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Action | ${{ steps.action.outputs.action }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| CI Status | ${{ steps.ci.outputs.conclusion }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Issue | #${{ steps.pr.outputs.issue_number }} |" >> $GITHUB_STEP_SUMMARY

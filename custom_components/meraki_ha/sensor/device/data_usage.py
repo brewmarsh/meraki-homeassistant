@@ -1,6 +1,5 @@
 """Sensor for Meraki appliance data usage."""
 
-import logging
 from collections.abc import Mapping
 from typing import Any
 
@@ -13,14 +12,16 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...core.utils.naming_utils import format_device_name
+from ...helpers.logging_helper import MerakiLoggers
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SENSOR
 
 
-class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):
+class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):  # type: ignore[type-arg]
     """Representation of a Meraki appliance data usage sensor."""
 
+    coordinator: MerakiDataCoordinator
     _attr_state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement: UnitOfInformation | None = (
         UnitOfInformation.MEGABYTES
@@ -43,13 +44,25 @@ class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_serial}_data_usage"
         self._attr_name = "Data Usage"
 
-        self._attr_device_info = DeviceInfo(
+        # Link device to its device type group for hierarchical display
+        # Hierarchy: Organization → Network → Device Type Group → Device
+        product_type = device_data.get("productType")
+        device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(device_data, self._config_entry.options),
             model=device_data.get("model"),
             manufacturer="Cisco Meraki",
             sw_version=device_data.get("firmware"),
         )
+        # Link device to its device type group (if product type known)
+        if self._network_id and product_type:
+            device_info["via_device"] = (
+                DOMAIN,
+                f"devicetype_{self._network_id}_{product_type}",
+            )
+        elif self._network_id:
+            device_info["via_device"] = (DOMAIN, f"network_{self._network_id}")
+        self._attr_device_info = device_info
         self._update_state()
 
     def _get_current_device_data(self) -> dict[str, Any] | None:
@@ -94,6 +107,10 @@ class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):
             "received_mb": round(total_recv_kb / 1024, 2),
             "timespan_seconds": 86400,
         }
+        if self.coordinator.last_successful_update:
+            self._attr_extra_state_attributes["last_meraki_update"] = (
+                self.coordinator.last_successful_update.isoformat()
+            )
 
     @callback
     def _handle_coordinator_update(self) -> None:

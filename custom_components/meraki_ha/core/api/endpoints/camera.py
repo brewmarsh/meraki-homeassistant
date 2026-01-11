@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 from custom_components.meraki_ha.core.utils.api_utils import (
@@ -10,13 +9,14 @@ from custom_components.meraki_ha.core.utils.api_utils import (
     validate_response,
 )
 
+from ....helpers.logging_helper import MerakiLoggers
 from ..cache import async_timed_cache
 
 if TYPE_CHECKING:
     from ..client import MerakiAPIClient
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.API
 
 
 class CameraEndpoints:
@@ -39,9 +39,8 @@ class CameraEndpoints:
         """Get sense settings for a specific camera."""
         if self._api_client.dashboard is None:
             return {}
-        settings = await self._api_client.run_sync(
-            self._api_client.dashboard.camera.getDeviceCameraSense, serial=serial
-        )
+        api = self._api_client.dashboard.camera
+        settings = await api.getDeviceCameraSense(serial=serial)
         validated = validate_response(settings)
         if not isinstance(validated, dict):
             _LOGGER.warning("get_camera_sense_settings did not return a dict.")
@@ -54,10 +53,8 @@ class CameraEndpoints:
         """Get video settings for a specific camera."""
         if self._api_client.dashboard is None:
             return {}
-        settings = await self._api_client.run_sync(
-            self._api_client.dashboard.camera.getDeviceCameraVideoSettings,
-            serial=serial,
-        )
+        api = self._api_client.dashboard.camera
+        settings = await api.getDeviceCameraVideoSettings(serial=serial)
         validated = validate_response(settings)
         if not isinstance(validated, dict):
             _LOGGER.warning("get_camera_video_settings did not return a dict.")
@@ -70,9 +67,8 @@ class CameraEndpoints:
         """Get video link for a specific camera."""
         if self._api_client.dashboard is None:
             return {}
-        link = await self._api_client.run_sync(
-            self._api_client.dashboard.camera.getDeviceCameraVideoLink, serial=serial
-        )
+        api = self._api_client.dashboard.camera
+        link = await api.getDeviceCameraVideoLink(serial=serial)
         validated = validate_response(link)
         if not isinstance(validated, dict):
             _LOGGER.warning("get_device_camera_video_link did not return a dict.")
@@ -81,16 +77,13 @@ class CameraEndpoints:
 
     @handle_meraki_errors
     async def update_camera_video_settings(
-        self, serial: str, **kwargs
+        self, serial: str, **kwargs: Any
     ) -> dict[str, Any]:
         """Update video settings for a specific camera."""
         if self._api_client.dashboard is None:
             return {}
-        result = await self._api_client.run_sync(
-            self._api_client.dashboard.camera.updateDeviceCameraVideoSettings,
-            serial=serial,
-            **kwargs,
-        )
+        api = self._api_client.dashboard.camera
+        result = await api.updateDeviceCameraVideoSettings(serial=serial, **kwargs)
         validated = validate_response(result)
         if not isinstance(validated, dict):
             _LOGGER.warning("update_camera_video_settings did not return a dict.")
@@ -99,16 +92,13 @@ class CameraEndpoints:
 
     @handle_meraki_errors
     async def update_camera_sense_settings(
-        self, serial: str, **kwargs
+        self, serial: str, **kwargs: Any
     ) -> dict[str, Any]:
         """Update sense settings for a specific camera."""
         if self._api_client.dashboard is None:
             return {}
-        result = await self._api_client.run_sync(
-            self._api_client.dashboard.camera.updateDeviceCameraSense,
-            serial=serial,
-            **kwargs,
-        )
+        api = self._api_client.dashboard.camera
+        result = await api.updateDeviceCameraSense(serial=serial, **kwargs)
         validated = validate_response(result)
         if not isinstance(validated, dict):
             _LOGGER.warning("update_camera_sense_settings did not return a dict.")
@@ -123,8 +113,8 @@ class CameraEndpoints:
         """Get recent analytics for a specific camera."""
         if self._api_client.dashboard is None:
             return []
-        recent = await self._api_client.run_sync(
-            self._api_client.dashboard.camera.getDeviceCameraAnalyticsRecent,
+        api = self._api_client.dashboard.camera
+        recent = await api.getDeviceCameraAnalyticsRecent(
             serial=serial,
             objectType=object_type,
         )
@@ -142,10 +132,8 @@ class CameraEndpoints:
         """Get analytics zones for a specific camera."""
         if self._api_client.dashboard is None:
             return []
-        zones = await self._api_client.run_sync(
-            self._api_client.dashboard.camera.getDeviceCameraAnalyticsZones,
-            serial=serial,
-        )
+        api = self._api_client.dashboard.camera
+        zones = await api.getDeviceCameraAnalyticsZones(serial=serial)
         validated = validate_response(zones)
         if not isinstance(validated, list):
             _LOGGER.warning("get_device_camera_analytics_zones did not return a list.")
@@ -154,16 +142,13 @@ class CameraEndpoints:
 
     @handle_meraki_errors
     async def generate_device_camera_snapshot(
-        self, serial: str, **kwargs
+        self, serial: str, **kwargs: Any
     ) -> dict[str, Any]:
         """Generate a snapshot of what the camera sees."""
         if self._api_client.dashboard is None:
             return {}
-        snapshot = await self._api_client.run_sync(
-            self._api_client.dashboard.camera.generateDeviceCameraSnapshot,
-            serial=serial,
-            **kwargs,
-        )
+        api = self._api_client.dashboard.camera
+        snapshot = await api.generateDeviceCameraSnapshot(serial=serial, **kwargs)
         validated = validate_response(snapshot)
         if not isinstance(validated, dict):
             _LOGGER.warning("generate_device_camera_snapshot did not return a dict.")

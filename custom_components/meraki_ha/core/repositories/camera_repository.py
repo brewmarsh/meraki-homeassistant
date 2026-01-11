@@ -7,16 +7,19 @@ fetching and processing camera-related data from the Meraki API.
 
 from __future__ import annotations
 
-import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
-from ..errors import MerakiInformationalError
+from aiohttp import ClientError
+from meraki.exceptions import AsyncAPIError
+
+from ...helpers.logging_helper import MerakiLoggers
+from ..errors import MerakiError, MerakiInformationalError
 
 if TYPE_CHECKING:
     from ..api.client import MerakiAPIClient
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.CAMERA
 
 
 class CameraRepository:
@@ -64,7 +67,7 @@ class CameraRepository:
                 serial, object_type
             )
             return recent
-        except Exception as e:
+        except (AsyncAPIError, MerakiError, ClientError) as e:
             _LOGGER.error("Error fetching analytics data for %s: %s", serial, e)
             return None
 
@@ -82,12 +85,12 @@ class CameraRepository:
             url = video_link_data.get("url")
 
             # Return any valid HTTPS URL (cloud video links)
-            if url and url.startswith("https://"):
-                return url
+            if url and isinstance(url, str) and url.startswith("https://"):
+                return cast(str, url)
 
             # Also accept HTTP URLs (less common but possible)
-            if url and url.startswith("http://"):
-                return url
+            if url and isinstance(url, str) and url.startswith("http://"):
+                return cast(str, url)
 
             return None
         except MerakiInformationalError as e:
@@ -97,7 +100,7 @@ class CameraRepository:
                 e,
             )
             return None
-        except Exception as e:
+        except (AsyncAPIError, MerakiError, ClientError) as e:
             _LOGGER.debug("Error fetching cloud video link for %s: %s", serial, e)
             return None
 
@@ -116,7 +119,7 @@ class CameraRepository:
                     "Skipping video link fetch for unsupported MV2 model: %s", serial
                 )
                 return None
-        except Exception as e:
+        except (AsyncAPIError, MerakiError, ClientError) as e:
             _LOGGER.warning(
                 "Could not check camera model for %s due to an error "
                 "fetching device details: %s",
@@ -133,8 +136,8 @@ class CameraRepository:
             url = video_link_data.get("url")
 
             # Validate that we received a valid RTSP URL
-            if url and url.startswith("rtsp://"):
-                return url
+            if url and isinstance(url, str) and url.startswith("rtsp://"):
+                return cast(str, url)
 
             # If we get a non-RTSP URL, log it and return None
             if url:
@@ -153,7 +156,7 @@ class CameraRepository:
                 e,
             )
             return None
-        except Exception as e:
+        except (AsyncAPIError, MerakiError, ClientError) as e:
             _LOGGER.debug("Error fetching video link for %s: %s", serial, e)
             return None
 
@@ -165,7 +168,7 @@ class CameraRepository:
             return await self._api_client.network.get_network_camera_analytics_history(
                 network_id, object_type
             )
-        except Exception as e:
+        except (AsyncAPIError, MerakiError, ClientError) as e:
             _LOGGER.error("Error fetching analytics history: %s", e)
             return []
 
@@ -176,7 +179,7 @@ class CameraRepository:
                 await self._api_client.camera.generate_device_camera_snapshot(serial)
             )
             return snapshot_data.get("url")
-        except Exception as e:
+        except (AsyncAPIError, MerakiError, ClientError) as e:
             _LOGGER.error("Error generating snapshot for %s: %s", serial, e)
             return None
 
@@ -186,5 +189,5 @@ class CameraRepository:
             await self._api_client.camera.update_camera_video_settings(
                 serial, externalRtspEnabled=enabled
             )
-        except Exception as e:
+        except (AsyncAPIError, MerakiError, ClientError) as e:
             _LOGGER.error("Error setting RTSP stream for %s: %s", serial, e)

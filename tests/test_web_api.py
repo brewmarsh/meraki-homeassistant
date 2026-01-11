@@ -437,6 +437,7 @@ class TestHandleUpdateEnabledNetworks:
 
         # Verify the config entry was updated
         updated_entry = hass.config_entries.async_get_entry("test_entry_id")
+        assert updated_entry is not None
         assert updated_entry.options[CONF_ENABLED_NETWORKS] == ["N_12345", "N_67890"]
 
     async def test_update_enabled_networks_domain_not_found(

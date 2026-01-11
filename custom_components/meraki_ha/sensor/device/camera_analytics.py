@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
@@ -12,18 +11,20 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...helpers.device_info_helpers import resolve_device_info
+from ...helpers.logging_helper import MerakiLoggers
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.CAMERA
 
 
-class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
+class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):  # type: ignore[type-arg]
     """Base class for Meraki analytics sensors."""
 
+    coordinator: MerakiDataCoordinator
     # Enable polling so async_update() is called in addition to coordinator updates
     _attr_should_poll = True
 
@@ -46,6 +47,8 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return device information."""
+        if self.coordinator.config_entry is None:
+            return None
         return resolve_device_info(self._device, self.coordinator.config_entry)
 
     def _get_current_device_data(self) -> dict[str, Any] | None:

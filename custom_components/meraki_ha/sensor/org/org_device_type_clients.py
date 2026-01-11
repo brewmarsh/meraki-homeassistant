@@ -1,7 +1,5 @@
 """Sensor for tracking clients by device type for the entire organization."""
 
-import logging
-
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
@@ -11,14 +9,19 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN
 from ...core.utils.naming_utils import format_device_name
 from ...helpers.entity_helpers import format_entity_name
+from ...helpers.logging_helper import MerakiLoggers
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SENSOR
 
 
-class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity):
+class MerakiOrganizationDeviceTypeClientsSensor(
+    CoordinatorEntity,
+    SensorEntity,  # type: ignore[type-arg]
+):
     """Representation of a Meraki organization-level client counter by device type."""
 
+    coordinator: MerakiDataCoordinator
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_has_entity_name = True
 
@@ -32,13 +35,15 @@ class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity)
         super().__init__(coordinator)
         self._config_entry = config_entry
         self._device_type = device_type
-        self._org_id = self.coordinator.api_client.organization_id
+        self._org_id = self.coordinator.api.organization_id
         self._attr_unique_id = f"{self._org_id}_{self._device_type}_clients"
         self._attr_name = format_entity_name(self._device_type.capitalize(), "Clients")
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
+        if self.coordinator.config_entry is None:
+            return None
         org_name = self.coordinator.data.get("organization", {}).get(
             "name", "Meraki Organization"
         )

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.binary_sensor import (
@@ -11,20 +10,21 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..const import DOMAIN
+from ..helpers.logging_helper import MerakiLoggers
 
 if TYPE_CHECKING:
     from ..meraki_data_coordinator import MerakiDataCoordinator
     from ..services.mqtt_relay import MqttRelayManager
     from ..services.mqtt_service import MerakiMqttService
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.MQTT
 
 
-class MerakiMqttStatusSensor(CoordinatorEntity, BinarySensorEntity):  # type: ignore[type-arg]
+class MerakiMqttStatusSensor(CoordinatorEntity, BinarySensorEntity):
     """Binary sensor indicating MQTT service connection status."""
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
@@ -77,7 +77,7 @@ class MerakiMqttStatusSensor(CoordinatorEntity, BinarySensorEntity):  # type: ig
         self.async_write_ha_state()
 
 
-class MerakiMqttRelayStatusSensor(CoordinatorEntity, BinarySensorEntity):  # type: ignore[type-arg]
+class MerakiMqttRelayStatusSensor(CoordinatorEntity, BinarySensorEntity):
     """Binary sensor indicating MQTT relay destination connection status."""
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY

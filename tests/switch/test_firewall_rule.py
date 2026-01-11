@@ -152,7 +152,7 @@ async def test_firewall_rule_switch_turn_on(
     )
 
     # Mock async_write_ha_state
-    switch.async_write_ha_state = MagicMock()
+    object.__setattr__(switch, "async_write_ha_state", MagicMock())
 
     await switch.async_turn_on()
 
@@ -176,7 +176,7 @@ async def test_firewall_rule_switch_turn_off(
     )
 
     # Mock async_write_ha_state
-    switch.async_write_ha_state = MagicMock()
+    object.__setattr__(switch, "async_write_ha_state", MagicMock())
 
     await switch.async_turn_off()
 

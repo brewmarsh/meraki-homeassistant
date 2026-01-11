@@ -620,6 +620,20 @@ wheels = [
 ]
 
 [[package]]
+name = "build"
+version = "1.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama", marker = "os_name == 'nt'" },
+    { name = "packaging" },
+    { name = "pyproject-hooks" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/42/18/94eaffda7b329535d91f00fe605ab1f1e5cd68b2074d03f255c7d250687d/build-1.4.0.tar.gz", hash = "sha256:f1b91b925aa322be454f8330c6fb48b465da993d1e7e7e6fa35027ec49f3c936", size = 50054, upload-time = "2026-01-08T16:41:47.696Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c5/0d/84a4380f930db0010168e0aa7b7a8fed9ba1835a8fbb1472bc6d0201d529/build-1.4.0-py3-none-any.whl", hash = "sha256:6a07c1b8eb6f2b311b96fcbdbce5dab5fe637ffda0fd83c9cac622e927501596", size = 24141, upload-time = "2026-01-08T16:41:46.453Z" },
+]
+
+[[package]]
 name = "cachecontrol"
 version = "0.14.4"
 source = { registry = "https://pypi.org/simple" }
@@ -1578,15 +1592,20 @@ wheels = [
 
 [[package]]
 name = "meraki"
-version = "1.40.1"
+version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
+    { name = "build" },
+    { name = "jinja2" },
+    { name = "pytest" },
     { name = "requests" },
+    { name = "setuptools" },
+    { name = "wheel" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/21/38/68ed1285e3c4a19df53f813c35bd15720ebe77739f262589561310174916/meraki-1.40.1.tar.gz", hash = "sha256:835bf4c347e97277af5bf87db3f5081c5856452755a761272ebf130702c0247a", size = 234951, upload-time = "2023-12-12T20:50:47.072Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f8/9f/09b6a2ea9be04413780c1d6e1a12a9865aa5e83b4a30cf793de21cba9620/meraki-2.1.0.tar.gz", hash = "sha256:d100950ec3ce4f59c041cd7edec23d95913694a6218747502dd85b3f10b26790", size = 298090, upload-time = "2026-01-08T18:04:44.031Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0e/3a/3100c510ead7c4280c4392af9fa3b4265310d695a7e38aac182706cadbc6/meraki-1.40.1-py3-none-any.whl", hash = "sha256:c75e7f085a8aab0f12631d7bce3264f3402d41f1e88102e18701d98244658667", size = 262421, upload-time = "2023-12-12T20:50:44.194Z" },
+    { url = "https://files.pythonhosted.org/packages/ab/02/eaf7f98ecf965cef18d9b7c3dc2c9c543220371a0ba0d0664d6bc6dbd66f/meraki-2.1.0-py3-none-any.whl", hash = "sha256:ae434fc49af7f9cae08d21947815b82b44d36249c4539f6a162bd1e342164178", size = 331450, upload-time = "2026-01-08T18:04:42.108Z" },
 ]
 
 [[package]]
@@ -1606,6 +1625,7 @@ dev = [
     { name = "pip-audit" },
     { name = "playwright" },
     { name = "pycares" },
+    { name = "pydantic" },
     { name = "pylint" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -1627,11 +1647,12 @@ requires-dist = [
     { name = "bandit", extras = ["toml"], marker = "extra == 'dev'", specifier = "==1.7.9" },
     { name = "codecov", marker = "extra == 'dev'" },
     { name = "homeassistant", marker = "extra == 'dev'", specifier = "==2025.11.0" },
-    { name = "meraki", marker = "extra == 'dev'", specifier = "==1.40.1" },
+    { name = "meraki", marker = "extra == 'dev'", specifier = ">=2.1.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = "==1.11.0" },
     { name = "pip-audit", marker = "extra == 'dev'", specifier = "==2.7.3" },
     { name = "playwright", marker = "extra == 'dev'" },
     { name = "pycares", marker = "extra == 'dev'", specifier = "==4.11.0" },
+    { name = "pydantic", marker = "extra == 'dev'", specifier = ">=2.0.0" },
     { name = "pylint", marker = "extra == 'dev'", specifier = ">=3.0.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = "==8.4.2" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = "==1.2.0" },
@@ -2468,6 +2489,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pyproject-hooks"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e7/82/28175b2414effca1cdac8dc99f76d660e7a4fb0ceefa4b4ab8f5f6742925/pyproject_hooks-1.2.0.tar.gz", hash = "sha256:1e859bd5c40fae9448642dd871adf459e5e2084186e8d2c2a79a824c970da1f8", size = 19228, upload-time = "2024-09-29T09:24:13.293Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bd/24/12818598c362d7f300f18e74db45963dbcb85150324092410c8b49405e42/pyproject_hooks-1.2.0-py3-none-any.whl", hash = "sha256:9e5c6bfa8dcc30091c74b0cf803c81fdd29d94f01992a7707bc97babb1141913", size = 10216, upload-time = "2024-09-29T09:24:11.978Z" },
+]
+
+[[package]]
 name = "pyrfc3339"
 version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2935,6 +2965,15 @@ wheels = [
 ]
 
 [[package]]
+name = "setuptools"
+version = "78.1.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/81/9c/42314ee079a3e9c24b27515f9fbc7a3c1d29992c33451779011c74488375/setuptools-78.1.1.tar.gz", hash = "sha256:fcc17fd9cd898242f6b4adfaca46137a9edef687f43e6f78469692a5e70d851d", size = 1368163, upload-time = "2025-04-19T18:23:36.68Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/90/99/158ad0609729111163fc1f674a5a42f2605371a4cf036d0441070e2f7455/setuptools-78.1.1-py3-none-any.whl", hash = "sha256:c3a9c4211ff4c309edb8b8c4f1cbfa7ae324c4ba9f91ff254e3d305b9fd54561", size = 1256462, upload-time = "2025-04-19T18:23:34.525Z" },
+]
+
+[[package]]
 name = "six"
 version = "1.17.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3270,6 +3309,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/80/e8/050ffe3b71ff44d3885eee2bed763ca937e2a30bc950d866f22ba657776b/webrtc_models-0.3.0.tar.gz", hash = "sha256:559c743e5cc3bcc8133be1b6fb5e8492a9ddb17151129c21cbb2e3f2a1166526", size = 9411, upload-time = "2024-11-18T17:43:45.682Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f2/e7/62f29980c9e8d75af93b642a0c37aa8e201fd5268ba3a7179c172549bac3/webrtc_models-0.3.0-py3-none-any.whl", hash = "sha256:8fddded3ffd7ca837de878033501927580799a2c1b7829f7ae8a0f43b49004ea", size = 7476, upload-time = "2024-11-18T17:43:44.165Z" },
+]
+
+[[package]]
+name = "wheel"
+version = "0.45.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/8a/98/2d9906746cdc6a6ef809ae6338005b3f21bb568bea3165cfc6a243fdc25c/wheel-0.45.1.tar.gz", hash = "sha256:661e1abd9198507b1409a20c02106d9670b2576e916d58f520316666abca6729", size = 107545, upload-time = "2024-11-23T00:18:23.513Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0b/2c/87f3254fd8ffd29e4c02732eee68a83a1d3c346ae39bc6822dcbcb697f2b/wheel-0.45.1-py3-none-any.whl", hash = "sha256:708e7481cc80179af0e556bbf0cc00b8444c7321e2700b8d8580231d13017248", size = 72494, upload-time = "2024-11-23T00:18:21.207Z" },
 ]
 
 [[package]]

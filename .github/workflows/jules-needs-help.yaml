@@ -127,13 +127,9 @@ jobs:
             --repo "${{ github.repository }}" \
             --body "## 🤝 Handoff: Jules → Cursor
 
-          Jules encountered difficulties and requested Cursor's help.
+          Jules requested help on PR #${{ steps.context.outputs.pr_number }}. Cursor taking over.
 
-          **PR:** #${{ steps.context.outputs.pr_number }}
-          **Status:** Cursor is now taking over to complete the task
-
-          ---
-          *Automated handoff*"
+          Cursor will provide detailed updates."
 
       - name: Invoke Cursor to take over
         env:
@@ -149,43 +145,26 @@ jobs:
           FILES_CHANGED=$(cat /tmp/files_changed.txt)
           CI_ERRORS=$(cat /tmp/ci_errors.txt)
 
-          PROMPT="## 🤝 Taking Over from Jules
+          PROMPT="## Handoff from Jules - PR #$PR_NUM
+          Issue: #$ISSUE_NUM | Branch: $PR_BRANCH (push here, no new PR)
 
-          ## MANDATORY FIRST STEPS - DO THIS BEFORE ANYTHING ELSE
-          1. **READ AGENTS.md** - Contains ALL project standards
-          2. **READ DEVELOPMENT.md** - Contains environment setup
-          3. Do NOT proceed until you have read both files
-
-          Jules requested help on PR #$PR_NUM.
-
-          ## Original Issue Requirements
-          Issue #$ISSUE_NUM:
-          $ISSUE_BODY
-
-          ## Jules' Help Request
+          ### Jules' Help Request
           $HELP_COMMENT
 
-          ## Files Jules Modified
+          ### Files Changed
           $FILES_CHANGED
 
-          ## Recent CI Errors (if any)
+          ### CI Errors
           \`\`\`
           $CI_ERRORS
           \`\`\`
 
-          ## COMMON ERRORS AND FIXES
-
-          ### 'Undefined name MagicMock' or AsyncMock or patch
-          Add to test file: from unittest.mock import MagicMock, AsyncMock, patch
-
-          ### 'ModuleNotFoundError: homeassistant'
-          Use fixtures from tests/conftest.py, don't import HA directly
-
-          ## Your Task
-          1. Fix whatever blocked Jules (check imports!)
-          2. Run ./run_checks.sh - ALL checks must pass
-          3. Commit: fix(cursor): continue from Jules - <description>
-          4. Push to branch: $PR_BRANCH (do NOT create new PR)"
+          ---
+          1. Read AGENTS.md, issue #$ISSUE_NUM comments
+          2. Fix what blocked Jules
+          3. Run ./run_checks.sh
+          4. Update issue: \`gh issue comment $ISSUE_NUM --body '## 🤝 Fixed: <what/why>'\`
+          5. Commit: fix(cursor): continue from Jules"
 
           ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
 

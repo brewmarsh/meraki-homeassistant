@@ -1,11 +1,12 @@
 """Utility functions for naming Meraki devices and entities."""
 
-import logging
 import re
 from collections.abc import Mapping
 from typing import Any
 
-_LOGGER = logging.getLogger(__name__)
+from ...helpers.logging_helper import MerakiLoggers
+
+_LOGGER = MerakiLoggers.API
 
 # Pattern to match one or more existing prefixes like "[Switch] " or "[MV] [MV] "
 # Uses + to match multiple consecutive prefixes

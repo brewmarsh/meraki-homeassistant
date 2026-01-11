@@ -1,13 +1,19 @@
 name: Hassfest
+
 on:
   push:
     branches:
       - main
+      - beta
   pull_request:
+    branches:
+      - main
+      - beta
+
 jobs:
   hassfest:
     name: 'Hassfest'
     runs-on: ubuntu-latest
     steps:
-      - uses: 'actions/checkout@v6'
+      - uses: 'actions/checkout@v4'
       - uses: 'home-assistant/actions/hassfest@master'

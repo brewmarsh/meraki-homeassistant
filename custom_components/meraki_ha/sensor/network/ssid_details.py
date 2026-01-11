@@ -2,18 +2,17 @@
 
 from __future__ import annotations
 
-import logging
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfDataRate
-from homeassistant.helpers.entity import EntityCategory
+from homeassistant.const import EntityCategory, UnitOfDataRate
 
 from ...helpers.device_info_helpers import resolve_device_info
+from ...helpers.logging_helper import MerakiLoggers
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SENSOR
 
 
 class MerakiSSIDDetailSensor(SensorEntity):
@@ -46,7 +45,7 @@ class MerakiSSIDWalledGardenSensor(MerakiSSIDDetailSensor):
 
     _attr_icon = "mdi:wall"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the sensor."""
         super().__init__(*args, **kwargs)
         self._attr_unique_id = (
@@ -67,7 +66,7 @@ class MerakiSSIDTotalUploadLimitSensor(MerakiSSIDDetailSensor):
     _attr_icon = "mdi:upload-network"
     _attr_native_unit_of_measurement = UnitOfDataRate.KILOBITS_PER_SECOND
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the sensor."""
         super().__init__(*args, **kwargs)
         self._attr_unique_id = (
@@ -83,7 +82,7 @@ class MerakiSSIDTotalDownloadLimitSensor(MerakiSSIDDetailSensor):
     _attr_icon = "mdi:download-network"
     _attr_native_unit_of_measurement = UnitOfDataRate.KILOBITS_PER_SECOND
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the sensor."""
         super().__init__(*args, **kwargs)
         self._attr_unique_id = (
@@ -98,7 +97,7 @@ class MerakiSSIDMandatoryDhcpSensor(MerakiSSIDDetailSensor):
 
     _attr_icon = "mdi:ip-network"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the sensor."""
         super().__init__(*args, **kwargs)
         self._attr_unique_id = (
@@ -116,7 +115,7 @@ class MerakiSSIDMinBitrate24GhzSensor(MerakiSSIDDetailSensor):
     _attr_icon = "mdi:speedometer-slow"
     _attr_native_unit_of_measurement = UnitOfDataRate.MEGABITS_PER_SECOND
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the sensor."""
         super().__init__(*args, **kwargs)
         self._attr_unique_id = (
@@ -137,7 +136,7 @@ class MerakiSSIDMinBitrate5GhzSensor(MerakiSSIDDetailSensor):
     _attr_icon = "mdi:speedometer"
     _attr_native_unit_of_measurement = UnitOfDataRate.MEGABITS_PER_SECOND
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the sensor."""
         super().__init__(*args, **kwargs)
         self._attr_unique_id = (

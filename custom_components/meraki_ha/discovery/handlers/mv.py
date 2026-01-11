@@ -7,13 +7,13 @@ entities for Meraki MV series (camera) devices.
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 from ...binary_sensor.device.camera_motion import MerakiMotionSensor
 from ...button.device.camera_snapshot import MerakiSnapshotButton
 from ...camera import MerakiCamera
 from ...const import CONF_ENABLE_CAMERA_ENTITIES, CONF_ENABLE_DEVICE_STATUS
+from ...helpers.logging_helper import MerakiLoggers
 from ...sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from ...types import MerakiDevice
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.DISCOVERY
 
 
 class MVHandler(BaseDeviceHandler):

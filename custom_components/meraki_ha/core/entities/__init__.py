@@ -16,7 +16,7 @@ from ...meraki_data_coordinator import MerakiDataCoordinator
 from ..utils.naming_utils import format_device_name
 
 
-class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
+class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):  # type: ignore[type-arg]
     """
     Base entity class for Meraki entities.
 
@@ -25,6 +25,8 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
     - State availability tracking
     - Common properties and attributes
     """
+
+    coordinator: MerakiDataCoordinator
 
     def __init__(
         self,
@@ -52,34 +54,62 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
 
     @property
     def device_info(self) -> DeviceInfo | None:
-        """Get device info for this entity."""
-        # Handle network-based entities
+        """Get device info for this entity.
+
+        Device Hierarchy:
+        - Organization (top-level hub)
+          - Network (under organization)
+            - Device Type Group (Access Points, Switches, etc.)
+              - Devices (under device type group)
+            - Clients (under network)
+        """
+        # Handle network-based entities (linked to organization)
         if self._network_id and not self._serial:
             network = self.coordinator.get_network(self._network_id)
             if network:
-                return DeviceInfo(
+                firmware = network.get("firmware")
+                org_id = network.get("organizationId")
+                device_info = DeviceInfo(
                     identifiers={(DOMAIN, f"network_{self._network_id}")},
                     name=format_device_name(network, self._config_entry.options),
                     manufacturer=MANUFACTURER,
                     model="Network",
-                    sw_version=network.get("firmware", "unknown"),
+                    sw_version=str(firmware) if firmware else None,
                 )
+                # Link network to its parent organization
+                if org_id:
+                    device_info["via_device"] = (DOMAIN, f"org_{org_id}")
+                return device_info
 
-        # Handle device-based entities
+        # Handle device-based entities (linked to device type group)
         if self._serial:
             device = self.coordinator.get_device(self._serial)
             if device:
-                model = device.get("model", "unknown")
-                return DeviceInfo(
+                model = str(device.get("model", "unknown"))
+                firmware = device.get("firmware")
+                address = device.get("address")
+                network_id = device.get("networkId")
+                product_type = device.get("productType")
+                device_info = DeviceInfo(
                     identifiers={(DOMAIN, self._serial)},
                     name=format_device_name(device, self._config_entry.options),
                     manufacturer=MANUFACTURER,
                     model=model,
-                    sw_version=device.get("firmware", "unknown"),
-                    suggested_area=device.get("address", ""),
+                    sw_version=str(firmware) if firmware else None,
+                    suggested_area=str(address) if address else None,
                     hw_version=model,
                     configuration_url=f"https://dashboard.meraki.com/devices/{self._serial}",
                 )
+                # Link device to its device type group (if product type known)
+                # Otherwise fall back to linking directly to network
+                if network_id and product_type:
+                    device_info["via_device"] = (
+                        DOMAIN,
+                        f"devicetype_{network_id}_{product_type}",
+                    )
+                elif network_id:
+                    device_info["via_device"] = (DOMAIN, f"network_{network_id}")
+                return device_info
 
         return None
 

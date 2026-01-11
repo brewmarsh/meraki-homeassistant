@@ -15,12 +15,27 @@ from .const import (
     CONF_DEVICE_SCAN_INTERVAL,
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_ENABLE_MQTT,
+    CONF_ENABLE_SCANNING_API,
     CONF_ENABLE_VLAN_MANAGEMENT,
     CONF_ENABLED_NETWORKS,
+    CONF_LOG_LEVEL_ALERTS,
+    CONF_LOG_LEVEL_API,
+    CONF_LOG_LEVEL_CAMERA,
+    CONF_LOG_LEVEL_COORDINATOR,
+    CONF_LOG_LEVEL_DEVICE_TRACKER,
+    CONF_LOG_LEVEL_DISCOVERY,
+    CONF_LOG_LEVEL_FRONTEND,
+    CONF_LOG_LEVEL_MQTT,
+    CONF_LOG_LEVEL_SCANNING_API,
+    CONF_LOG_LEVEL_SENSOR,
+    CONF_LOG_LEVEL_SWITCH,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_NETWORK_SCAN_INTERVAL,
     CONF_SCAN_INTERVAL,
+    CONF_SCANNING_API_EXTERNAL_URL,
+    CONF_SCANNING_API_SECRET,
+    CONF_SCANNING_API_VALIDATOR,
     CONF_SSID_SCAN_INTERVAL,
     CONF_TEMPERATURE_UNIT,
     DASHBOARD_VIEW_MODE_NETWORK,
@@ -33,13 +48,23 @@ from .const import (
     DEFAULT_DASHBOARD_VIEW_MODE,
     DEFAULT_DEVICE_SCAN_INTERVAL,
     DEFAULT_ENABLE_MQTT,
+    DEFAULT_ENABLE_SCANNING_API,
     DEFAULT_ENABLE_VLAN_MANAGEMENT,
     DEFAULT_ENABLED_NETWORKS,
+    DEFAULT_LOG_LEVEL,
     DEFAULT_MQTT_PORT,
     DEFAULT_NETWORK_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SCANNING_API_EXTERNAL_URL,
+    DEFAULT_SCANNING_API_SECRET,
+    DEFAULT_SCANNING_API_VALIDATOR,
     DEFAULT_SSID_SCAN_INTERVAL,
     DEFAULT_TEMPERATURE_UNIT,
+    LOG_LEVEL_CRITICAL,
+    LOG_LEVEL_DEBUG,
+    LOG_LEVEL_ERROR,
+    LOG_LEVEL_INFO,
+    LOG_LEVEL_WARNING,
     MQTT_DEST_DEVICE_TYPES,
     MQTT_DEST_HOST,
     MQTT_DEST_NAME,
@@ -61,8 +86,30 @@ CONFIG_SCHEMA = vol.Schema(
     }
 )
 
-# Step 1: Basic Settings
-OPTIONS_SCHEMA_BASIC = vol.Schema(
+# Section: Network Selection
+SCHEMA_NETWORK_SELECTION = vol.Schema(
+    {
+        vol.Optional(
+            CONF_ENABLED_NETWORKS, default=DEFAULT_ENABLED_NETWORKS
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[],
+                multiple=True,
+                custom_value=False,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Required(
+            CONF_ENABLE_DEVICE_TRACKER, default=True
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
+        ): selector.BooleanSelector(),
+    }
+)
+
+# Section: Polling & Refresh
+SCHEMA_POLLING = vol.Schema(
     {
         vol.Required(
             CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
@@ -119,27 +166,12 @@ OPTIONS_SCHEMA_BASIC = vol.Schema(
                 mode=selector.NumberSelectorMode.SLIDER,
             )
         ),
-        vol.Required(
-            CONF_ENABLE_DEVICE_TRACKER, default=True
-        ): selector.BooleanSelector(),
-        vol.Required(
-            CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
-        ): selector.BooleanSelector(),
-        vol.Optional(
-            CONF_ENABLED_NETWORKS, default=DEFAULT_ENABLED_NETWORKS
-        ): selector.SelectSelector(
-            selector.SelectSelectorConfig(
-                options=[],
-                multiple=True,
-                custom_value=False,
-                mode=selector.SelectSelectorMode.DROPDOWN,
-            )
-        ),
     }
 )
 
-# Step 2: Dashboard Settings
-OPTIONS_SCHEMA_DASHBOARD = vol.Schema(
+
+# Section: Display Preferences
+SCHEMA_DISPLAY_PREFERENCES = vol.Schema(
     {
         vol.Required(
             CONF_DASHBOARD_VIEW_MODE, default=DEFAULT_DASHBOARD_VIEW_MODE
@@ -205,8 +237,31 @@ OPTIONS_SCHEMA_DASHBOARD = vol.Schema(
     }
 )
 
-# Step 3: Camera Settings
-OPTIONS_SCHEMA_CAMERA = vol.Schema(
+# Section: Scanning API Settings
+SCHEMA_SCANNING_API = vol.Schema(
+    {
+        vol.Required(
+            CONF_ENABLE_SCANNING_API, default=DEFAULT_ENABLE_SCANNING_API
+        ): selector.BooleanSelector(),
+        vol.Optional(
+            CONF_SCANNING_API_VALIDATOR, default=DEFAULT_SCANNING_API_VALIDATOR
+        ): selector.TextSelector(
+            selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+        ),
+        vol.Optional(
+            CONF_SCANNING_API_SECRET, default=DEFAULT_SCANNING_API_SECRET
+        ): selector.TextSelector(
+            selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+        ),
+        vol.Optional(
+            CONF_SCANNING_API_EXTERNAL_URL, default=DEFAULT_SCANNING_API_EXTERNAL_URL
+        ): selector.TextSelector(
+            selector.TextSelectorConfig(type=selector.TextSelectorType.URL)
+        ),
+    }
+)
+
+SCHEMA_CAMERA = vol.Schema(
     {
         vol.Required(
             CONF_CAMERA_SNAPSHOT_INTERVAL, default=DEFAULT_CAMERA_SNAPSHOT_INTERVAL
@@ -255,10 +310,8 @@ MQTT_DESTINATION_SCHEMA = vol.Schema(
     }
 )
 
-# Step 4: MQTT Settings
-# Note: The MQTT relay destination management is now handled dynamically
-# in options_flow.py using a menu-based action selector, not this schema.
-OPTIONS_SCHEMA_MQTT = vol.Schema(
+# Section: MQTT Settings
+SCHEMA_MQTT = vol.Schema(
     {
         vol.Required(
             CONF_ENABLE_MQTT, default=DEFAULT_ENABLE_MQTT
@@ -321,12 +374,105 @@ MQTT_RELAY_DESTINATION_SCHEMA = vol.Schema(
     }
 )
 
-# Combined schema for backwards compatibility
-OPTIONS_SCHEMA = vol.Schema(
+# Log level options for the selector
+_LOG_LEVEL_OPTIONS = [
+    selector.SelectOptionDict(value=LOG_LEVEL_DEBUG, label="Debug (verbose)"),
+    selector.SelectOptionDict(value=LOG_LEVEL_INFO, label="Info (normal)"),
+    selector.SelectOptionDict(value=LOG_LEVEL_WARNING, label="Warning (quieter)"),
+    selector.SelectOptionDict(value=LOG_LEVEL_ERROR, label="Error (quiet)"),
+    selector.SelectOptionDict(value=LOG_LEVEL_CRITICAL, label="Critical (silent)"),
+]
+
+# Section: Logging Settings
+SCHEMA_LOGGING = vol.Schema(
     {
-        **OPTIONS_SCHEMA_BASIC.schema,
-        **OPTIONS_SCHEMA_DASHBOARD.schema,
-        **OPTIONS_SCHEMA_CAMERA.schema,
-        **OPTIONS_SCHEMA_MQTT.schema,
+        vol.Required(
+            CONF_LOG_LEVEL_MQTT, default=DEFAULT_LOG_LEVEL
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=_LOG_LEVEL_OPTIONS,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Required(
+            CONF_LOG_LEVEL_ALERTS, default=DEFAULT_LOG_LEVEL
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=_LOG_LEVEL_OPTIONS,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Required(
+            CONF_LOG_LEVEL_SCANNING_API, default=DEFAULT_LOG_LEVEL
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=_LOG_LEVEL_OPTIONS,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Required(
+            CONF_LOG_LEVEL_API, default=DEFAULT_LOG_LEVEL
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=_LOG_LEVEL_OPTIONS,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Required(
+            CONF_LOG_LEVEL_COORDINATOR, default=DEFAULT_LOG_LEVEL
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=_LOG_LEVEL_OPTIONS,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Required(
+            CONF_LOG_LEVEL_DEVICE_TRACKER, default=DEFAULT_LOG_LEVEL
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=_LOG_LEVEL_OPTIONS,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Required(
+            CONF_LOG_LEVEL_DISCOVERY, default=DEFAULT_LOG_LEVEL
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=_LOG_LEVEL_OPTIONS,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Required(
+            CONF_LOG_LEVEL_CAMERA, default=DEFAULT_LOG_LEVEL
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=_LOG_LEVEL_OPTIONS,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Required(
+            CONF_LOG_LEVEL_SENSOR, default=DEFAULT_LOG_LEVEL
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=_LOG_LEVEL_OPTIONS,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Required(
+            CONF_LOG_LEVEL_SWITCH, default=DEFAULT_LOG_LEVEL
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=_LOG_LEVEL_OPTIONS,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Required(
+            CONF_LOG_LEVEL_FRONTEND, default=DEFAULT_LOG_LEVEL
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=_LOG_LEVEL_OPTIONS,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
     }
 )

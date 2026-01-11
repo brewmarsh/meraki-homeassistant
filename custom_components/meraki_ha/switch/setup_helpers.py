@@ -1,6 +1,5 @@
 """Helper function for setting up all switch entities."""
 
-import logging
 from typing import cast
 
 from homeassistant.config_entries import ConfigEntry
@@ -11,6 +10,7 @@ from ..const import (
     CONF_ENABLE_VLAN_MANAGEMENT,
 )
 from ..core.api.client import MerakiAPIClient
+from ..helpers.logging_helper import MerakiLoggers
 from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..types import MerakiVlan
 from .access_point_leds import MerakiAPLEDSwitch
@@ -22,7 +22,7 @@ from .meraki_ssid_device_switch import (
 from .mt40_power_outlet import MerakiMt40PowerOutlet
 from .vlan_dhcp import MerakiVLANDHCPSwitch
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SWITCH
 
 
 def _setup_vlan_switches(

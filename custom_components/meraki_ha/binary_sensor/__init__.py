@@ -1,7 +1,6 @@
 """Binary sensor platform for the Meraki Home Assistant integration."""
 
 import asyncio
-import logging
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -9,9 +8,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN
+from ..helpers.logging_helper import MerakiLoggers
 from .mqtt_status import async_setup_mqtt_sensors
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SENSOR
 
 
 async def async_setup_entry(

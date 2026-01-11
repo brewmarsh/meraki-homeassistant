@@ -7,10 +7,11 @@ partially_online). This status is based on the state and tags of associated
 Meraki wireless access points (MR series devices).
 """
 
-import logging
 from typing import Any
 
-_LOGGER = logging.getLogger(__name__)
+from .logging_helper import MerakiLoggers
+
+_LOGGER = MerakiLoggers.MAIN
 
 
 class SsidStatusCalculator:

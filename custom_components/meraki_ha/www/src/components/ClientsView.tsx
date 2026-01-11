@@ -1,4 +1,5 @@
 import React, { useState, memo, useCallback } from 'react';
+import ClientDetailView from './ClientDetailView';
 
 interface Client {
   id: string;
@@ -20,15 +21,12 @@ interface Client {
   status?: string;
   usage?: { sent: number; recv: number };
   networkId?: string;
+  ha_device_id?: string;
+  is_blocked?: boolean;
 }
 
 interface ClientsViewProps {
   clients: Client[];
-  setActiveView: (view: {
-    view: string;
-    deviceId?: string;
-    clientId?: string;
-  }) => void;
   onBack: () => void;
   initialClientId?: string;
 }
@@ -99,18 +97,40 @@ ClientRow.displayName = 'ClientRow';
 
 const ClientsViewComponent: React.FC<ClientsViewProps> = ({
   clients,
-  setActiveView,
   onBack,
   initialClientId,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(
+    initialClientId || null
+  );
 
-  // Find the selected client from initialClientId (passed via navigation)
-  const selectedClient = initialClientId
+  // Find the selected client
+  const selectedClient = selectedClientId
     ? clients.find(
-        (c) => c.id === initialClientId || c.mac === initialClientId
+        (c) => c.id === selectedClientId || c.mac === selectedClientId
       ) || null
     : null;
+
+  // Show client detail view when clicked
+  const handleClientClick = useCallback((client: Client) => {
+    setSelectedClientId(client.id || client.mac);
+  }, []);
+
+  // Navigate to the HA device page for a client
+  const handleNavigateToDevice = useCallback((client: Client) => {
+    if (client.ha_device_id) {
+      const path = `/config/devices/device/${client.ha_device_id}`;
+      const event = new CustomEvent('hass-navigate', {
+        detail: { path },
+        bubbles: true,
+        composed: true,
+      });
+      window.dispatchEvent(event);
+    } else {
+      console.warn('Cannot navigate: client is missing ha_device_id', client);
+    }
+  }, []);
 
   // Filter clients based on search
   const filteredClients = clients.filter((client) => {
@@ -155,212 +175,14 @@ const ClientsViewComponent: React.FC<ClientsViewProps> = ({
     return '🔌';
   }, []);
 
-  // Navigate to client detail view using setActiveView for proper routing
-  const handleClientClick = useCallback(
-    (client: Client) => {
-      setActiveView({ view: 'clients', clientId: client.id || client.mac });
-    },
-    [setActiveView]
-  );
-
+  // Show client detail view if a client is selected
   if (selectedClient) {
     return (
-      <div>
-        <button
-          onClick={() => setActiveView({ view: 'clients' })}
-          className="back-button"
-        >
-          ← Back to Clients
-        </button>
-
-        <div className="device-header">
-          <div className="device-icon">{getClientIcon(selectedClient)}</div>
-          <div className="device-info">
-            <h1>{selectedClient.description || selectedClient.mac}</h1>
-            <div className="meta">
-              <span>
-                <strong>MAC:</strong>{' '}
-                <span className="text-mono">{selectedClient.mac}</span>
-              </span>
-              {selectedClient.ip && (
-                <span>
-                  <strong>IP:</strong> {selectedClient.ip}
-                </span>
-              )}
-              {selectedClient.manufacturer && (
-                <span>
-                  <strong>Manufacturer:</strong> {selectedClient.manufacturer}
-                </span>
-              )}
-              {selectedClient.os && (
-                <span>
-                  <strong>OS:</strong> {selectedClient.os}
-                </span>
-              )}
-              {selectedClient.vlan && (
-                <span>
-                  <strong>VLAN:</strong> {selectedClient.vlan}
-                </span>
-              )}
-              {selectedClient.ssid && (
-                <span>
-                  <strong>SSID:</strong> {selectedClient.ssid}
-                </span>
-              )}
-            </div>
-            {selectedClient.lastSeen && (
-              <div className="meta meta-info">
-                <span>Last seen: {formatDate(selectedClient.lastSeen)}</span>
-              </div>
-            )}
-          </div>
-          <div
-            className={`status-pill ${
-              selectedClient.status?.toLowerCase() || 'online'
-            }`}
-          >
-            <div className="dot"></div>
-            {selectedClient.status || 'Online'}
-          </div>
-        </div>
-
-        {/* Single comprehensive session card */}
-        <div className="info-card mb-5">
-          <h3>📊 Session Details</h3>
-
-          {/* Usage Stats Row */}
-          {selectedClient.usage && (
-            <div className="usage-stats-row">
-              <div className="usage-stat">
-                <div className="usage-stat-label">UPLOADED</div>
-                <div className="usage-stat-value upload">
-                  ↑ {formatBytes(selectedClient.usage.sent)}
-                </div>
-              </div>
-              <div className="usage-divider" />
-              <div className="usage-stat">
-                <div className="usage-stat-label">DOWNLOADED</div>
-                <div className="usage-stat-value download">
-                  ↓ {formatBytes(selectedClient.usage.recv)}
-                </div>
-              </div>
-              <div className="usage-divider" />
-              <div className="usage-stat">
-                <div className="usage-stat-label">TOTAL</div>
-                <div className="usage-stat-value total">
-                  {formatBytes(
-                    selectedClient.usage.sent + selectedClient.usage.recv
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Details Grid */}
-          <div className="info-grid">
-            {/* Connection Type */}
-            <div className="info-item">
-              <div className="label">Connection Type</div>
-              <div className="value">
-                {selectedClient.ssid ? '📶 Wireless' : '🔌 Wired'}
-              </div>
-            </div>
-
-            {/* Connected Device */}
-            {(selectedClient.recentDeviceName ||
-              selectedClient.recentDeviceSerial) && (
-              <div className="info-item">
-                <div className="label">Connected To</div>
-                <div className="value">
-                  {selectedClient.recentDeviceName ||
-                    selectedClient.recentDeviceSerial}
-                  {selectedClient.switchport &&
-                    ` (Port ${selectedClient.switchport})`}
-                </div>
-              </div>
-            )}
-
-            {/* SSID for wireless */}
-            {selectedClient.ssid && (
-              <div className="info-item">
-                <div className="label">SSID</div>
-                <div className="value">{selectedClient.ssid}</div>
-              </div>
-            )}
-
-            {/* VLAN */}
-            {selectedClient.vlan && (
-              <div className="info-item">
-                <div className="label">VLAN</div>
-                <div className="value">{selectedClient.vlan}</div>
-              </div>
-            )}
-
-            {/* IPv6 if available */}
-            {selectedClient.ip6 && (
-              <div className="info-item">
-                <div className="label">IPv6 Address</div>
-                <div className="value text-mono text-xs">
-                  {selectedClient.ip6}
-                </div>
-              </div>
-            )}
-
-            {/* User (802.1x) */}
-            {selectedClient.user && (
-              <div className="info-item">
-                <div className="label">User (802.1x)</div>
-                <div className="value">{selectedClient.user}</div>
-              </div>
-            )}
-
-            {/* First Seen */}
-            {selectedClient.firstSeen && (
-              <div className="info-item">
-                <div className="label">First Connected</div>
-                <div className="value">
-                  {formatDate(selectedClient.firstSeen)}
-                </div>
-              </div>
-            )}
-
-            {/* Session Duration - calculated if we have both dates */}
-            {selectedClient.firstSeen && selectedClient.lastSeen && (
-              <div className="info-item">
-                <div className="label">Known For</div>
-                <div className="value">
-                  {(() => {
-                    const first = new Date(selectedClient.firstSeen);
-                    const last = new Date(selectedClient.lastSeen);
-                    const days = Math.floor(
-                      (last.getTime() - first.getTime()) /
-                        (1000 * 60 * 60 * 24)
-                    );
-                    if (days > 30) return `${Math.floor(days / 30)} months`;
-                    if (days > 0) return `${days} days`;
-                    return 'Today';
-                  })()}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* View Device Button */}
-          {selectedClient.recentDeviceSerial && (
-            <button
-              onClick={() =>
-                setActiveView({
-                  view: 'device',
-                  deviceId: selectedClient.recentDeviceSerial,
-                })
-              }
-              className="btn-primary mt-4"
-            >
-              🔗 View Connected Device
-            </button>
-          )}
-        </div>
-      </div>
+      <ClientDetailView
+        client={selectedClient}
+        onBack={() => setSelectedClientId(null)}
+        onNavigateToDevice={() => handleNavigateToDevice(selectedClient)}
+      />
     );
   }
 

@@ -1,6 +1,5 @@
 """Sensor for tracking clients on a specific network."""
 
-import logging
 from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
@@ -8,6 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
 from ...core.entities.meraki_network_entity import MerakiNetworkEntity
+from ...helpers.logging_helper import MerakiLoggers
 from ...meraki_data_coordinator import MerakiDataCoordinator
 from ...types import MerakiNetwork
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from ...services.network_control_service import NetworkControlService
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SENSOR
 
 
 class MerakiNetworkClientsSensor(MerakiNetworkEntity, SensorEntity):

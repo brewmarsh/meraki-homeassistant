@@ -1,6 +1,6 @@
 """Config flow for the Meraki Home Assistant integration."""
 
-import logging
+from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
@@ -23,10 +23,11 @@ from .const import (
     DOMAIN,
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
+from .helpers.logging_helper import MerakiLoggers
 from .options_flow import MerakiOptionsFlowHandler
-from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
+from .schemas import CONFIG_SCHEMA, SCHEMA_NETWORK_SELECTION
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.MAIN
 
 
 class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg]
@@ -89,13 +90,20 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
                 options=self.options,
             )
 
-        return self.async_show_form(step_id="init", data_schema=OPTIONS_SCHEMA)
+        return self.async_show_form(
+            step_id="init", data_schema=SCHEMA_NETWORK_SELECTION
+        )
 
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
-        """Get the options flow for this handler."""
-        return MerakiOptionsFlowHandler(config_entry)
+        """Get the options flow for this handler.
+
+        Note: As of Home Assistant 2025.x, we should NOT pass config_entry
+        to the OptionsFlow constructor. The framework sets up config_entry
+        after initialization via the handler property.
+        """
+        return MerakiOptionsFlowHandler()
 
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
@@ -125,7 +133,7 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
                 ]
 
         schema_with_defaults = self._populate_schema_defaults(
-            OPTIONS_SCHEMA, entry.options, network_options
+            SCHEMA_NETWORK_SELECTION, entry.options, network_options
         )
 
         return self.async_show_form(
@@ -135,7 +143,7 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
     def _populate_schema_defaults(
         self,
         schema: vol.Schema,
-        defaults: dict[str, Any],
+        defaults: Mapping[str, Any],
         network_options: list[dict[str, str]] | None = None,
     ) -> vol.Schema:
         """Populate a schema with default values from a dictionary."""
@@ -143,17 +151,20 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
         if network_options is None:
             network_options = []
 
+        # Convert to dict for easier handling
+        defaults_dict = dict(defaults)
+
         for key, value in schema.schema.items():
             key_name = key.schema
             target_key = key
 
-            if key_name in defaults:
-                target_key = type(key)(key.schema, default=defaults[key.schema])
+            if key_name in defaults_dict:
+                target_key = type(key)(key.schema, default=defaults_dict[key.schema])
 
             if key_name == CONF_ENABLED_NETWORKS and isinstance(
                 value, selector.SelectSelector
             ):
-                current_values = defaults.get(CONF_ENABLED_NETWORKS, [])
+                current_values = defaults_dict.get(CONF_ENABLED_NETWORKS, [])
                 existing_option_values = {opt["value"] for opt in network_options}
 
                 combined_options = list(network_options)
@@ -162,7 +173,11 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
                         combined_options.append({"label": val, "value": val})
 
                 new_config = value.config.copy()
-                new_config["options"] = combined_options
+                # Use selector.SelectOptionDict for proper typing
+                new_config["options"] = [
+                    selector.SelectOptionDict(label=opt["label"], value=opt["value"])
+                    for opt in combined_options
+                ]
                 value = selector.SelectSelector(new_config)
 
             new_schema_keys[target_key] = value

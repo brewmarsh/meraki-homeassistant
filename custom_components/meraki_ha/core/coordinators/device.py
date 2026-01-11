@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-import logging
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+
+from ...async_logging import async_log_time
+from ...helpers.logging_helper import MerakiLoggers
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -14,7 +16,7 @@ if TYPE_CHECKING:
 
     from ..api.client import MerakiAPIClient
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.COORDINATOR
 
 
 class MerakiDeviceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
@@ -40,6 +42,7 @@ class MerakiDeviceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=timedelta(seconds=update_interval),
         )
 
+    @async_log_time(MerakiLoggers.COORDINATOR, slow_threshold=5.0)
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch device data from the API."""
         try:

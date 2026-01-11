@@ -1,6 +1,5 @@
 """Sensor entity for monitoring connected clients on a Meraki device."""
 
-import logging
 from collections.abc import Mapping
 from typing import Any
 
@@ -10,14 +9,19 @@ from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...helpers.device_info_helpers import resolve_device_info
+from ...helpers.logging_helper import MerakiLoggers
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = MerakiLoggers.SENSOR
 
 
-class MerakiDeviceConnectedClientsSensor(CoordinatorEntity, SensorEntity):
+class MerakiDeviceConnectedClientsSensor(
+    CoordinatorEntity,
+    SensorEntity,  # type: ignore[type-arg]
+):
     """Representation of a Meraki Connected Clients sensor."""
 
+    coordinator: MerakiDataCoordinator
     _attr_icon = "mdi:account-network"
     _attr_native_unit_of_measurement = "clients"
     _attr_state_class = SensorStateClass.MEASUREMENT
@@ -92,6 +96,17 @@ class MerakiDeviceConnectedClientsSensor(CoordinatorEntity, SensorEntity):
         """Handle updated data from the coordinator."""
         self._update_state()
         self.async_write_ha_state()
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return entity state attributes with update timestamp."""
+        attrs: dict[str, Any] = {}
+        if self.coordinator.last_successful_update:
+            attrs["last_meraki_update"] = (
+                self.coordinator.last_successful_update.isoformat()
+            )
+            return attrs
+        return None
 
     @property
     def available(self) -> bool:
