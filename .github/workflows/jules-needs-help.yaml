@@ -145,26 +145,29 @@ jobs:
           FILES_CHANGED=$(cat /tmp/files_changed.txt)
           CI_ERRORS=$(cat /tmp/ci_errors.txt)
 
-          PROMPT="## Handoff from Jules - PR #$PR_NUM
-          Issue: #$ISSUE_NUM | Branch: $PR_BRANCH (push here, no new PR)
+          PROMPT="You are a coding agent for a Home Assistant integration. Taking over from Jules.
 
-          ### Jules' Help Request
+          PR: #$PR_NUM | Issue: #$ISSUE_NUM | Branch: $PR_BRANCH
+
+          Jules requested help with:
           $HELP_COMMENT
 
-          ### Files Changed
-          $FILES_CHANGED
+          Files changed: $FILES_CHANGED
 
-          ### CI Errors
+          CI errors:
           \`\`\`
           $CI_ERRORS
           \`\`\`
 
-          ---
-          1. Read AGENTS.md, issue #$ISSUE_NUM comments
-          2. Fix what blocked Jules
-          3. Run ./run_checks.sh
-          4. Update issue: \`gh issue comment $ISSUE_NUM --body '## 🤝 Fixed: <what/why>'\`
-          5. Commit: fix(cursor): continue from Jules"
+          Steps:
+          1. Read issue #$ISSUE_NUM comments to understand full context
+          2. Read AGENTS.md for project patterns
+          3. Fix what blocked Jules
+          4. Run ./run_checks.sh - must pass
+          5. Commit: fix(cursor): continue from Jules
+          6. Update issue: gh issue comment $ISSUE_NUM --body 'Fixed: <what> because <why>'
+
+          Constraints: Push to $PR_BRANCH. Don't create a new PR."
 
           ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
 

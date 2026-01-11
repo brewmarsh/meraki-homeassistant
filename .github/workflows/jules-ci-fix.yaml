@@ -228,15 +228,21 @@ jobs:
             --add-label "cursor-reviewing" 2>/dev/null || true
 
           # Launch Cursor agent on the TARGET branch
-          PROMPT="## Handoff from Jules - Branch: $TARGET_BRANCH
-          Issue: #$ISSUE_NUM | Jules tried 3x, now your turn.
+          PROMPT="You are a CI fix agent for a Home Assistant integration. Taking over from Jules.
 
-          ---
-          1. Read AGENTS.md, issue #$ISSUE_NUM comments
-          2. Run ./run_checks.sh
-          3. Fix with fresh perspective
-          4. Update issue: \`gh issue comment $ISSUE_NUM --body '## 🤝 Fixed: <what/why>'\`
-          5. Commit: fix(cursor): resolve CI errors after Jules handoff"
+          Branch: $TARGET_BRANCH | Issue: #$ISSUE_NUM
+          Jules attempted 3 fixes without success. Fresh perspective needed.
+
+          Steps:
+          1. Read issue #$ISSUE_NUM comments to see what Jules tried
+          2. Read AGENTS.md for project patterns
+          3. Run ./run_checks.sh to see current errors
+          4. Fix with a different approach than Jules used
+          5. Run ./run_checks.sh - must pass
+          6. Commit: fix(cursor): resolve CI errors after Jules handoff
+          7. Update issue: gh issue comment $ISSUE_NUM --body 'Fixed: <what> because <why>'
+
+          Constraints: Push to $TARGET_BRANCH. Don't repeat Jules' failed approaches."
 
           # Call Cursor API
           ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
@@ -406,52 +412,33 @@ jobs:
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           starting_branch: ${{ env.STARTING_BRANCH }}
-          # MINIMAL PROMPT - Only CI errors, no issue/commit/comment context
-          # Jules can run git commands if it needs more info
+          # CRITICAL: Disable commit context to prevent bloat
+          include_last_commit: false
+          include_commit_log: false
           prompt: |
-            ## 🔧 CI Fix #$(( ${{ steps.escalate.outputs.total_attempts }} + 1 ))
+            You are a CI fix agent for a Home Assistant integration. Fix the failing CI.
 
-            ### Failed: ${{ steps.ci_failure.outputs.failed_jobs }}
+            Failed jobs: ${{ steps.ci_failure.outputs.failed_jobs }}
 
+            Error logs:
             ```
             ${{ steps.errors.outputs.ci_errors }}
             ```
 
-            ## 📝 CRITICAL: Update Issue #${{ steps.check.outputs.issue_number }}
-            Future AI agents will read your comments. After fixing, run:
-            ```bash
-            gh issue comment ${{ steps.check.outputs.issue_number }} --body "## 🤖 Jules CI Fix
+            Steps:
+            1. Run `./run_checks.sh` to reproduce errors locally
+            2. Read `AGENTS.md` for project patterns and conventions
+            3. Fix ONLY the errors shown above
+            4. Run `./run_checks.sh` again - must pass with no errors
+            5. Commit with message: `fix(jules): resolve CI errors`
+            6. Update issue: `gh issue comment ${{ steps.check.outputs.issue_number }} --body "Fixed: <what> because <why>"`
 
-            ### What Failed
-            <Job name and error>
+            Constraints:
+            - Target branch: `${{ steps.check.outputs.base_branch || 'beta' }}`
+            - Don't refactor unrelated code
+            - All tests must pass before creating PR
 
-            ### What I Fixed
-            <Files changed and why>
-
-            ### Root Cause
-            <Why this error occurred>
-
-            ---
-            *Fix attempt #$(( ${{ steps.escalate.outputs.total_attempts }} + 1 ))*"
-            ```
-
-            ## Quick Fixes
-            - `MagicMock/AsyncMock/patch undefined` → `from unittest.mock import MagicMock, AsyncMock, patch`
-            - `ModuleNotFoundError: homeassistant` → Use fixtures from `tests/conftest.py`
-            - `F821 Undefined name` → Add missing import
-
-            ## Do This
-            1. `./run_checks.sh` to verify errors
-            2. Fix ONLY errors above
-            3. Update issue with what you changed and why
-            4. Commit: `fix(jules): resolve CI errors`
-            5. PR target: `${{ steps.check.outputs.base_branch || 'beta' }}`
-
-            ## ⚠️ NEVER STOP - Ask Cursor for Help
-            If you cannot fix these errors after 1-2 attempts:
-            1. Add label `jules-needs-help` to the PR
-            2. Comment: "🆘 Jules Needs Cursor Help" + what you tried
-            NEVER wait for a human. Cursor will take over immediately.
+            If stuck after 2 attempts: add label `jules-needs-help` and comment what you tried.
 
       - name: Comment on PR about fix attempt
         if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true'
