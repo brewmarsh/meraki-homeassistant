@@ -65,8 +65,11 @@ def handle_meraki_errors(
 
             # Check if this is a retry limit error (transient network issue)
             if _is_retry_limit_error(err):
-                _LOGGER.warning(
-                    "API call %s reached retry limit (possible network issue): %s",
+                # Log at DEBUG level since this is handled gracefully.
+                # Transient network issues are common and the code degrades gracefully.
+                _LOGGER.debug(
+                    "API call %s reached retry limit (transient issue, returning "
+                    "empty result): %s",
                     func.__name__,
                     err,
                 )
