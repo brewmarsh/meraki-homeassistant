@@ -207,6 +207,24 @@ CONF_WEB_UI_PORT: Final = "web_ui_port"
 DEFAULT_WEB_UI_PORT: Final = 9000
 
 # MQTT Configuration
+CONF_ENABLE_SCANNING_API: Final = "enable_scanning_api"
+"""Configuration key for enabling Scanning API receiver."""
+
+CONF_SCANNING_API_VALIDATOR: Final = "scanning_api_validator"
+"""Configuration key for Scanning API validator."""
+
+CONF_SCANNING_API_SECRET: Final = "scanning_api_secret"
+"""Configuration key for Scanning API secret."""
+
+DEFAULT_ENABLE_SCANNING_API: Final = False
+"""Default value for Scanning API enable toggle."""
+
+DEFAULT_SCANNING_API_VALIDATOR: Final = ""
+"""Default value for Scanning API validator."""
+
+DEFAULT_SCANNING_API_SECRET: Final = ""
+"""Default value for Scanning API secret."""
+
 CONF_ENABLE_MQTT: Final = "enable_mqtt"
 """Configuration key for enabling MQTT functionality."""
 

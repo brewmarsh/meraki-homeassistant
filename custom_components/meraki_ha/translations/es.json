@@ -95,6 +95,7 @@
           "polling": "Sondeo y Actualización",
           "camera": "Configuración de Cámara",
           "mqtt": "Configuración MQTT",
+          "scanning_api": "API de Escaneo",
           "display_preferences": "Preferencias de Visualización",
           "notifications": "Notificaciones"
         }
@@ -161,6 +162,20 @@
         "data_description": {
           "camera_snapshot_interval": "Frecuencia de actualización de capturas de cámara en el panel (0 = solo bajo demanda). La transmisión de cámara usa RTSP y requiere que el servidor RTSP esté habilitado en el Panel de Meraki.",
           "camera_link_integration": "Seleccione una integración para filtrar qué cámaras se muestran al vincular cámaras Meraki. Elija 'Todas las Cámaras' para ver todas las entidades de cámara disponibles."
+        }
+      },
+      "scanning_api": {
+        "title": "Configuración de API de Escaneo",
+        "description": "Configure el receptor de API de Escaneo (CMX) de Meraki para actualizaciones de ubicación de clientes en tiempo real.\n\n**URL del Webhook:** `{webhook_url}`\n\nCopie esta URL a su Panel de Meraki en Wireless > Configure > Scanning API.",
+        "data": {
+          "enable_scanning_api": "Habilitar API de Escaneo",
+          "scanning_api_validator": "Cadena de Validación",
+          "scanning_api_secret": "Secreto"
+        },
+        "data_description": {
+          "enable_scanning_api": "Habilitar el receptor de API de Escaneo para recibir datos de presencia y ubicación de clientes en tiempo real.",
+          "scanning_api_validator": "La cadena de validación que Meraki usará para verificar el endpoint (respuesta a solicitud GET).",
+          "scanning_api_secret": "El secreto que Meraki incluirá en las solicitudes POST para verificar autenticidad."
         }
       },
       "mqtt": {

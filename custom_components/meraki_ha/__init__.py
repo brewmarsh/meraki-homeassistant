@@ -13,6 +13,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from .api.websocket import async_setup_websocket_api
 from .const import (
     CONF_ENABLE_MQTT,
+    CONF_ENABLE_SCANNING_API,
     CONF_ENABLE_WEB_UI,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
@@ -21,6 +22,7 @@ from .const import (
     CONF_WEB_UI_PORT,
     DATA_CLIENT,
     DEFAULT_ENABLE_MQTT,
+    DEFAULT_ENABLE_SCANNING_API,
     DEFAULT_ENABLE_WEB_UI,
     DEFAULT_MQTT_RELAY_DESTINATIONS,
     DEFAULT_SCAN_INTERVAL,
@@ -438,7 +440,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    if "webhook_id" not in entry.data:
+    # Register webhooks for legacy alerts if enabled
+    # Note: Scanning API does not use programmatic registration
+    if "webhook_id" not in entry.data and not entry.options.get(
+        CONF_ENABLE_SCANNING_API, DEFAULT_ENABLE_SCANNING_API
+    ):
         webhook_id = entry.entry_id
         secret = secrets.token_hex(16)
         await async_register_webhook(

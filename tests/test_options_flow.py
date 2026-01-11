@@ -39,6 +39,7 @@ def create_options_flow_handler(
     # Set up hass mock if not provided
     if hass is None:
         hass = MagicMock()
+        hass.config.external_url = "https://example.com"
         mock_coordinator = MagicMock()
         mock_coordinator.data = {
             "networks": [
@@ -125,6 +126,7 @@ async def test_async_step_init_shows_menu() -> None:
 
     assert result["type"].value == "menu"
     assert result["step_id"] == "init"
+    assert "scanning_api" in result["menu_options"]
 
 
 @pytest.mark.asyncio
@@ -135,6 +137,7 @@ async def test_async_step_init_shows_menu() -> None:
         ("polling", "polling"),
         ("camera", "camera"),
         ("mqtt", "mqtt"),
+        ("scanning_api", "scanning_api"),
         ("display_preferences", "display_preferences"),
     ],
 )

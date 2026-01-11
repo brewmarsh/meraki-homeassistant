@@ -15,12 +15,15 @@ from .const import (
     CONF_DEVICE_SCAN_INTERVAL,
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_ENABLE_MQTT,
+    CONF_ENABLE_SCANNING_API,
     CONF_ENABLE_VLAN_MANAGEMENT,
     CONF_ENABLED_NETWORKS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_NETWORK_SCAN_INTERVAL,
     CONF_SCAN_INTERVAL,
+    CONF_SCANNING_API_SECRET,
+    CONF_SCANNING_API_VALIDATOR,
     CONF_SSID_SCAN_INTERVAL,
     CONF_TEMPERATURE_UNIT,
     DASHBOARD_VIEW_MODE_NETWORK,
@@ -33,11 +36,14 @@ from .const import (
     DEFAULT_DASHBOARD_VIEW_MODE,
     DEFAULT_DEVICE_SCAN_INTERVAL,
     DEFAULT_ENABLE_MQTT,
+    DEFAULT_ENABLE_SCANNING_API,
     DEFAULT_ENABLE_VLAN_MANAGEMENT,
     DEFAULT_ENABLED_NETWORKS,
     DEFAULT_MQTT_PORT,
     DEFAULT_NETWORK_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SCANNING_API_SECRET,
+    DEFAULT_SCANNING_API_VALIDATOR,
     DEFAULT_SSID_SCAN_INTERVAL,
     DEFAULT_TEMPERATURE_UNIT,
     MQTT_DEST_DEVICE_TYPES,
@@ -212,7 +218,25 @@ SCHEMA_DISPLAY_PREFERENCES = vol.Schema(
     }
 )
 
-# Section: Camera Settings
+# Section: Scanning API Settings
+SCHEMA_SCANNING_API = vol.Schema(
+    {
+        vol.Required(
+            CONF_ENABLE_SCANNING_API, default=DEFAULT_ENABLE_SCANNING_API
+        ): selector.BooleanSelector(),
+        vol.Optional(
+            CONF_SCANNING_API_VALIDATOR, default=DEFAULT_SCANNING_API_VALIDATOR
+        ): selector.TextSelector(
+            selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+        ),
+        vol.Optional(
+            CONF_SCANNING_API_SECRET, default=DEFAULT_SCANNING_API_SECRET
+        ): selector.TextSelector(
+            selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+        ),
+    }
+)
+
 SCHEMA_CAMERA = vol.Schema(
     {
         vol.Required(

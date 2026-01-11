@@ -13,6 +13,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from custom_components.meraki_ha.const import CONF_ENABLE_DEVICE_TRACKER, DOMAIN
 from custom_components.meraki_ha.device_tracker import (
     MerakiClientDeviceTracker,
+    _get_friendly_client_name,
     async_setup_entry,
 )
 
@@ -163,16 +164,18 @@ class TestMerakiClientDeviceTracker:
         assert tracker._attr_device_info is not None
         assert tracker._attr_device_info["name"] == "my-device"
 
-    def test_init_uses_ip_fallback(
+    def test_init_uses_manufacturer_os_fallback(
         self,
         mock_hass: MagicMock,
         mock_coordinator: MagicMock,
         mock_config_entry: MagicMock,
     ) -> None:
-        """Test that IP is used for device name as fallback."""
+        """Test manufacturer + OS + last 4 MAC when description/hostname missing."""
         client_data = {
             "mac": "11:22:33:44:55:66",
             "ip": "192.168.1.50",
+            "manufacturer": "Apple",
+            "os": "iOS",
         }
         tracker = MerakiClientDeviceTracker(
             hass=mock_hass,
@@ -181,9 +184,30 @@ class TestMerakiClientDeviceTracker:
             client_data=client_data,
         )
 
-        # Device name uses IP fallback
-        assert tracker._attr_device_info is not None
-        assert tracker._attr_device_info["name"] == "192.168.1.50"
+        # Should use manufacturer + OS + last 4 MAC
+        assert tracker._attr_name == "Apple iOS Device (5566)"
+
+    def test_init_uses_manufacturer_only_fallback(
+        self,
+        mock_hass: MagicMock,
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+    ) -> None:
+        """Test manufacturer + last 4 MAC when no OS info available."""
+        client_data = {
+            "mac": "11:22:33:44:55:66",
+            "ip": "192.168.1.50",
+            "manufacturer": "Samsung",
+        }
+        tracker = MerakiClientDeviceTracker(
+            hass=mock_hass,
+            coordinator=mock_coordinator,
+            config_entry=mock_config_entry,
+            client_data=client_data,
+        )
+
+        # Should use manufacturer + last 4 MAC
+        assert tracker._attr_name == "Samsung Device (5566)"
 
     def test_init_uses_mac_fallback(
         self,
@@ -534,6 +558,74 @@ class TestMerakiClientDeviceTracker:
         # Check cached data was updated
         assert tracker._cached_client_data["ip"] == "192.168.1.200"
         tracker.async_write_ha_state.assert_called_once()
+
+
+class TestGetFriendlyClientName:
+    """Tests for the _get_friendly_client_name function."""
+
+    def test_priority_1_description(self) -> None:
+        """Test description takes highest priority."""
+        client_data = {
+            "mac": "aa:bb:cc:dd:ee:ff",
+            "description": "John's iPhone",
+            "dhcpHostname": "Johns-iPhone",
+            "manufacturer": "Apple",
+            "os": "iOS",
+        }
+        assert _get_friendly_client_name(client_data) == "John's iPhone"
+
+    def test_priority_2_dhcp_hostname(self) -> None:
+        """Test dhcpHostname is used when description is missing."""
+        client_data = {
+            "mac": "aa:bb:cc:dd:ee:ff",
+            "dhcpHostname": "Johns-iPhone",
+            "manufacturer": "Apple",
+            "os": "iOS",
+        }
+        assert _get_friendly_client_name(client_data) == "Johns-iPhone"
+
+    def test_priority_3_manufacturer_os_mac(self) -> None:
+        """Test manufacturer + OS + last 4 MAC when no hostname."""
+        client_data = {
+            "mac": "aa:bb:cc:dd:ee:ff",
+            "manufacturer": "Apple",
+            "os": "iOS",
+        }
+        assert _get_friendly_client_name(client_data) == "Apple iOS Device (eeff)"
+
+    def test_priority_4_manufacturer_mac(self) -> None:
+        """Test manufacturer + last 4 MAC when no OS info."""
+        client_data = {
+            "mac": "aa:bb:cc:dd:ee:ff",
+            "manufacturer": "Apple",
+        }
+        assert _get_friendly_client_name(client_data) == "Apple Device (eeff)"
+
+    def test_priority_5_mac_only(self) -> None:
+        """Test MAC address as last resort."""
+        client_data = {
+            "mac": "aa:bb:cc:dd:ee:ff",
+        }
+        assert _get_friendly_client_name(client_data) == "aa:bb:cc:dd:ee:ff"
+
+    def test_empty_description_uses_next_priority(self) -> None:
+        """Test empty string description falls through to next priority."""
+        client_data = {
+            "mac": "aa:bb:cc:dd:ee:ff",
+            "description": "",
+            "dhcpHostname": "my-device",
+        }
+        # Empty string is falsy, should use dhcpHostname
+        assert _get_friendly_client_name(client_data) == "my-device"
+
+    def test_short_mac_handling(self) -> None:
+        """Test handling of short/invalid MAC addresses."""
+        client_data = {
+            "mac": "ab",
+            "manufacturer": "Unknown",
+        }
+        # Should still work with short MAC
+        assert _get_friendly_client_name(client_data) == "Unknown Device (ab)"
 
 
 class TestAsyncSetupEntry:

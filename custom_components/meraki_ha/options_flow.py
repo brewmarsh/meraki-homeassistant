@@ -83,9 +83,42 @@ class MerakiOptionsFlowHandler(OptionsFlow):
                 "polling",
                 "camera",
                 "mqtt",
+                "scanning_api",
                 "display_preferences",
                 "notifications",
             ],
+        )
+
+    async def async_step_scanning_api(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Handle Scanning API settings."""
+        from .core.errors import MerakiConnectionError
+        from .schemas import SCHEMA_SCANNING_API
+        from .webhook import get_webhook_url
+
+        # Try to get webhook URL, provide helpful message if not available
+        try:
+            webhook_url = get_webhook_url(self.hass, self.config_entry.entry_id)
+        except MerakiConnectionError as err:
+            webhook_url = f"⚠️ {err}"
+
+        if user_input is not None:
+            self.options.update(user_input)
+            return self.async_create_entry(
+                title=CONF_INTEGRATION_TITLE, data=self.options
+            )
+
+        schema_with_defaults = self._populate_schema_defaults(
+            SCHEMA_SCANNING_API,
+            self.options,
+        )
+
+        return self.async_show_form(
+            step_id="scanning_api",
+            data_schema=schema_with_defaults,
+            description_placeholders={"webhook_url": webhook_url},
         )
 
     async def async_step_network_selection(

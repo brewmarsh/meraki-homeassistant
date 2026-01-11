@@ -95,6 +95,7 @@
           "polling": "Polling & Refresh",
           "camera": "Camera Settings",
           "mqtt": "MQTT Configuration",
+          "scanning_api": "Scanning API",
           "display_preferences": "Display Preferences",
           "notifications": "Notifications"
         }
@@ -161,6 +162,20 @@
         "data_description": {
           "camera_snapshot_interval": "How often to refresh camera snapshots on the dashboard (0 = only on demand). Camera streaming uses RTSP and requires the RTSP server to be enabled in the Meraki Dashboard.",
           "camera_link_integration": "Select an integration to filter which cameras are shown when linking Meraki cameras. Choose 'All Cameras' to see all available camera entities."
+        }
+      },
+      "scanning_api": {
+        "title": "Scanning API Settings",
+        "description": "Configure the Meraki Scanning API (CMX) receiver for real-time client location updates.\n\n**Webhook URL:** `{webhook_url}`\n\nCopy this URL to your Meraki Dashboard under Wireless > Configure > Scanning API.",
+        "data": {
+          "enable_scanning_api": "Enable Scanning API",
+          "scanning_api_validator": "Validator String",
+          "scanning_api_secret": "Secret"
+        },
+        "data_description": {
+          "enable_scanning_api": "Enable the Scanning API receiver to receive real-time client presence and location data.",
+          "scanning_api_validator": "The validator string that Meraki will use to verify the endpoint (GET request response).",
+          "scanning_api_secret": "The secret that Meraki will include in POST requests to verify authenticity."
         }
       },
       "mqtt": {

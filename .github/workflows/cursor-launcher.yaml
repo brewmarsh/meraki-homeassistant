@@ -216,6 +216,7 @@ jobs:
 
       - name: Comment on Jules PR
         if: steps.pr.outputs.skip != 'true' && steps.cursor.outputs.agent_id != ''
+        continue-on-error: true  # Don't fail workflow if commenting fails
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -223,29 +224,53 @@ jobs:
             --repo "${{ github.repository }}" \
             --body "## 🔍 Cursor Code Review Started
 
-          CI passed! Cursor is now reviewing your code.
+          All CI checks passed! Cursor is now performing an in-depth code review.
 
-          **Agent ID**: \`${{ steps.cursor.outputs.agent_id }}\`
-          **Review Branch**: \`${{ steps.cursor.outputs.cursor_branch }}\`
+          **Review Details:**
+          | Field | Value |
+          |-------|-------|
+          | Agent ID | \`${{ steps.cursor.outputs.agent_id }}\` |
+          | Review Branch | \`${{ steps.cursor.outputs.cursor_branch }}\` |
+          | Target | This PR's branch |
 
-          Cursor will create a PR targeting this branch with improvements.
-          Once Cursor's PR passes checks, it will be auto-merged here.
+          **What Cursor Reviews:**
+          - ✅ **Requirements Compliance** - Does the implementation fully address the issue?
+          - ✅ **Code Quality** - Best practices, error handling, type hints
+          - ✅ **Test Coverage** - Are new features properly tested?
+          - ✅ **Design Patterns** - Does it follow existing codebase patterns?
+          - ✅ **Security** - No hardcoded secrets, proper input validation
+
+          **Process:**
+          1. Cursor analyzes the code and makes improvements
+          2. Creates a PR targeting this branch
+          3. Once Cursor's PR passes CI, it will be merged here
+          4. Then this PR is ready for final merge to beta
 
           ---
-          *[View Agent](https://cursor.com/agents?id=${{ steps.cursor.outputs.agent_id }})*"
+          *[View Agent Progress](https://cursor.com/agents?id=${{ steps.cursor.outputs.agent_id }})*"
 
       - name: Update issue with progress
         if: steps.pr.outputs.skip != 'true' && steps.cursor.outputs.agent_id != '' && steps.pr.outputs.issue_number != ''
+        continue-on-error: true  # Don't fail workflow if commenting fails
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh issue comment ${{ steps.pr.outputs.issue_number }} \
             --repo "${{ github.repository }}" \
-            --body "## 🔍 Cursor Review Started
+            --body "## 🔍 Cursor Code Review Started
 
-          Jules' PR #${{ steps.pr.outputs.number }} passed CI. Cursor is now reviewing the code for quality and potential issues.
+          Jules' implementation (PR #${{ steps.pr.outputs.number }}) passed all CI checks. Cursor is now performing an in-depth code review.
+
+          **Review Focus:**
+          - Does the implementation fully address all requirements in this issue?
+          - Are there any missing features or edge cases?
+          - Is the code following project patterns and best practices?
+          - Are new features properly tested?
+          - Any potential improvements or simplifications?
 
           **Review Branch**: \`${{ steps.cursor.outputs.cursor_branch }}\`
 
+          Cursor will create a PR with any improvements, which will be merged back into Jules' branch before final merge to beta.
+
           ---
-          *[View Agent](https://cursor.com/agents?id=${{ steps.cursor.outputs.agent_id }})*"
+          *[View Agent Progress](https://cursor.com/agents?id=${{ steps.cursor.outputs.agent_id }})*"

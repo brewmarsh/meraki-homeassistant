@@ -30,6 +30,54 @@ from .meraki_data_coordinator import MerakiDataCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
+def _get_friendly_client_name(client_data: dict[str, Any]) -> str:
+    """Generate a friendly name for a Meraki client.
+
+    Priority order per requirements:
+    1. Client description (from Dashboard) - e.g., "John's iPhone"
+    2. DHCP hostname - e.g., "Johns-iPhone"
+    3. Manufacturer + device type + last 4 MAC - e.g., "Apple iOS Device (ee:ff)"
+    4. Manufacturer + last 4 MAC - e.g., "Apple Device (ee:ff)"
+    5. MAC address (last resort only) - e.g., "aa:bb:cc:dd:ee:ff"
+
+    Parameters
+    ----------
+    client_data : dict[str, Any]
+        The client data from the Meraki API.
+
+    Returns
+    -------
+    str
+        A friendly, human-readable name for the client.
+
+    """
+    # Priority 1: Client description from Dashboard
+    if description := client_data.get("description"):
+        return description
+
+    # Priority 2: DHCP hostname
+    if hostname := client_data.get("dhcpHostname"):
+        return hostname
+
+    # Get MAC for fallback options (extract last 4 chars for uniqueness)
+    mac = client_data.get("mac", "")
+    last_4_mac = mac[-5:].replace(":", "") if len(mac) >= 5 else mac
+
+    # Priority 3: Manufacturer + device type + last 4 MAC
+    manufacturer = client_data.get("manufacturer")
+    os_type = client_data.get("os")
+
+    if manufacturer and os_type:
+        return f"{manufacturer} {os_type} Device ({last_4_mac})"
+
+    # Priority 4: Manufacturer + last 4 MAC
+    if manufacturer:
+        return f"{manufacturer} Device ({last_4_mac})"
+
+    # Priority 5: MAC address (last resort)
+    return mac
+
+
 def _find_existing_device_by_mac(
     hass: HomeAssistant,
     mac_address: str,
@@ -327,8 +375,16 @@ class MerakiClientDeviceTracker(
         self._client_mac = client_data["mac"]
         self._attr_unique_id = f"meraki_client_{self._client_mac}"
 
-        # Entity name within the device context
-        self._attr_name = "Meraki Connection"
+        # Entity name - use friendly name per requirement priority:
+        # 1. Client description (from Dashboard)
+        # 2. DHCP hostname
+        # 3. Manufacturer + device type + last 4 MAC
+        # 4. Manufacturer + last 4 MAC
+        # 5. MAC address (last resort only)
+        self._attr_name = _get_friendly_client_name(client_data)
+
+        # Get client IP for device lookup
+        client_ip = client_data.get("ip")
 
         # Check if this client matches an existing Home Assistant device
         # (e.g., Sonos speaker, Apple TV, smart TV, etc.)
@@ -426,6 +482,16 @@ class MerakiClientDeviceTracker(
         ) or self._cached_client_data.get("description")
 
     @property
+    def latitude(self) -> float | None:
+        """Return latitude value of the device."""
+        return self._cached_client_data.get("latitude")
+
+    @property
+    def longitude(self) -> float | None:
+        """Return longitude value of the device."""
+        return self._cached_client_data.get("longitude")
+
+    @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return additional state attributes.
 
@@ -466,6 +532,10 @@ class MerakiClientDeviceTracker(
                 attrs["connected_to_serial"] = device_serial
             if device_mac := self._cached_client_data.get("recentDeviceMac"):
                 attrs["connected_to_mac"] = device_mac
+
+            # Scanning API data
+            if rssi := self._cached_client_data.get("rssi"):
+                attrs["signal_strength"] = f"{rssi} dBm"
 
             # Group policy information
             if group_policy := self._cached_client_data.get("groupPolicy8021x"):

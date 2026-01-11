@@ -72,25 +72,40 @@ jobs:
 
       - name: Comment on issue - CI started
         if: steps.extract.outputs.issue_number != '' && (steps.extract.outputs.is_jules_pr == 'true' || steps.extract.outputs.is_cursor_pr == 'true')
+        continue-on-error: true  # Don't fail CI if commenting fails
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Determine PR type for context
+          if [[ "${{ steps.extract.outputs.is_cursor_pr }}" == "true" ]]; then
+            PR_TYPE="🔍 Cursor Review"
+            PR_CONTEXT="Cursor is reviewing Jules' implementation for code quality, requirements compliance, and potential improvements."
+          else
+            PR_TYPE="🤖 Jules Implementation"
+            PR_CONTEXT="Jules has submitted code changes to address this issue. Running quality checks before Cursor review."
+          fi
+
           gh issue comment ${{ steps.extract.outputs.issue_number }} \
             --repo "${{ github.repository }}" \
-            --body "## ⏳ CI Running
+            --body "## ⏳ CI Running - ${PR_TYPE}
 
-          **PR**: [#${{ github.event.pull_request.number }}](${{ github.event.pull_request.html_url }})
+          **PR**: [#${{ github.event.pull_request.number }}](${{ github.event.pull_request.html_url }}) - ${{ github.event.pull_request.title }}
+          **Branch**: \`${{ github.event.pull_request.head.ref }}\`
           **Commit**: \`${{ github.event.pull_request.head.sha }}\`
 
-          **Checks in progress:**
-          - 🔍 Linting (ruff, bandit)
-          - 📝 Type checking (mypy)
-          - 🧪 Tests (pytest)
-          - 🏠 Home Assistant validation (hassfest)
-          - 🎨 Frontend build
+          ${PR_CONTEXT}
+
+          **Quality Checks in Progress:**
+          | Check | Description | Status |
+          |-------|-------------|--------|
+          | 🔍 Linting | Code style (ruff) and security (bandit) | ⏳ Running |
+          | 📝 Type Checking | Static type analysis (mypy) | ⏳ Running |
+          | 🧪 Tests | Unit & integration tests (pytest) | ⏳ Running |
+          | 🏠 HA Validation | Home Assistant manifest check (hassfest) | ⏳ Running |
+          | 🎨 Frontend | React panel build verification | ⏳ Running |
 
           ---
-          *[View CI run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})*"
+          *[View CI logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})*"
 
   # Fast linting checks
   lint:
@@ -278,27 +293,43 @@ jobs:
 
       - name: Comment on issue - CI passed
         if: needs.setup.outputs.issue_number != '' && (needs.setup.outputs.is_jules_pr == 'true' || needs.setup.outputs.is_cursor_pr == 'true')
+        continue-on-error: true  # Don't fail CI if commenting fails
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Determine next steps based on PR type
+          if [[ "${{ needs.setup.outputs.is_cursor_pr }}" == "true" ]]; then
+            NEXT_STEP="**Ready for Merge:** Cursor's review PR can now be merged into Jules' branch, then Jules' PR can be merged to beta."
+            PR_TYPE="Cursor Review"
+          else
+            NEXT_STEP="**Next Step:** 🔍 Cursor will now review the code for:
+          - Requirements compliance (does it solve the issue?)
+          - Code quality and best practices
+          - Test coverage for new functionality
+          - Potential improvements or simplifications"
+            PR_TYPE="Jules Implementation"
+          fi
+
           gh issue comment ${{ needs.setup.outputs.issue_number }} \
             --repo "${{ github.repository }}" \
-            --body "## ✅ CI Passed
+            --body "## ✅ CI Passed - ${PR_TYPE}
+
+          **PR**: [#${{ github.event.pull_request.number }}](${{ github.event.pull_request.html_url }})
 
           **All quality checks passed!**
 
-          | Check | Status |
-          |-------|--------|
-          | Linting (ruff, bandit) | ✅ Passed |
-          | Type checking (mypy) | ✅ Passed |
-          | Tests (pytest) | ✅ Passed |
-          | Home Assistant (hassfest) | ✅ Passed |
-          | Frontend build | ✅ Passed |
+          | Check | Description | Result |
+          |-------|-------------|--------|
+          | 🔍 Linting | Code style (ruff) + security (bandit) | ✅ Passed |
+          | 📝 Type Checking | Static type analysis (mypy) | ✅ Passed |
+          | 🧪 Tests | Unit & integration tests (pytest) | ✅ Passed |
+          | 🏠 HA Validation | Home Assistant manifest (hassfest) | ✅ Passed |
+          | 🎨 Frontend | React panel build | ✅ Passed |
 
-          **Next Step:** 🤖 Cursor will now review the code for quality and requirements.
+          ${NEXT_STEP}
 
           ---
-          *[View CI run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})*"
+          *[View CI logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})*"
 
   # Notify on failure
   ci-failure:
@@ -342,19 +373,42 @@ jobs:
 
       - name: Comment on issue - CI failed
         if: needs.setup.outputs.issue_number != '' && (needs.setup.outputs.is_jules_pr == 'true' || needs.setup.outputs.is_cursor_pr == 'true')
+        continue-on-error: true  # Don't fail CI if commenting fails
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Determine recovery action based on PR type
+          if [[ "${{ needs.setup.outputs.is_cursor_pr }}" == "true" ]]; then
+            RECOVERY_ACTION="**Recovery:** Please check the CI logs for details. Cursor may need to re-run with fixes."
+            PR_TYPE="Cursor Review"
+          else
+            RECOVERY_ACTION="**Automatic Recovery:** 🔧 Jules Self-Healing CI will analyze the failures and attempt to fix them automatically. A new commit will be pushed if fixes are found."
+            PR_TYPE="Jules Implementation"
+          fi
+
           gh issue comment ${{ needs.setup.outputs.issue_number }} \
             --repo "${{ github.repository }}" \
-            --body "## ❌ CI Failed
+            --body "## ❌ CI Failed - ${PR_TYPE}
 
-          **Some quality checks failed.**
+          **PR**: [#${{ github.event.pull_request.number }}](${{ github.event.pull_request.html_url }})
+
+          **Some quality checks failed.** This is normal during development - the AI agents will attempt to fix these issues.
 
           **Check Results:**
           ${{ steps.failed.outputs.jobs }}
 
-          **Next Step:** 🤖 Jules Self-Healing CI will attempt to fix the failures automatically.
+          ${RECOVERY_ACTION}
+
+          <details>
+          <summary>💡 Common Fixes</summary>
+
+          - **Linting failures**: Run \`uv run ruff check --fix . && uv run ruff format .\`
+          - **Type errors**: Add missing type hints or fix type mismatches
+          - **Test failures**: Check test output for assertion errors or missing mocks
+          - **Hassfest errors**: Verify manifest.json and translations are valid
+          - **Frontend build**: Run \`cd custom_components/meraki_ha/www && npm run build\`
+
+          </details>
 
           ---
           *[View CI logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})*"

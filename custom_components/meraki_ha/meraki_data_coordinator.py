@@ -1125,3 +1125,56 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         """
         self._traffic_check_timestamps[network_id] = datetime.now()
+
+    async def async_handle_scanning_api_data(self, data: dict[str, Any]) -> None:
+        """
+        Update client data from a Scanning API webhook payload.
+
+        This method is called by the webhook handler when a POST request is received.
+        It updates the client's data in the coordinator and notifies all listeners,
+        but only for clients that already exist.
+
+        Args:
+        ----
+            data: The parsed "data" object from the Scanning API payload.
+
+        """
+        if not self.data or "clients" not in self.data:
+            _LOGGER.debug(
+                "Cannot update from Scanning API - coordinator data not yet available"
+            )
+            return
+
+        clients_by_mac = {
+            client.get("mac"): client for client in self.data.get("clients", [])
+        }
+        ap_mac = data.get("apMac")
+        updated_clients = 0
+
+        for observation in data.get("observations", []):
+            client_mac = observation.get("clientMac")
+            if not client_mac:
+                continue
+
+            client = clients_by_mac.get(client_mac)
+            if client:
+                # This is an existing client, update its data
+                updated_clients += 1
+                client["lastSeen"] = observation.get("seenTime")
+                client["rssi"] = observation.get("rssi")
+                if ap_mac:
+                    client["recentDeviceMac"] = ap_mac
+
+                location = observation.get("location")
+                if isinstance(location, dict):
+                    client["latitude"] = location.get("lat")
+                    client["longitude"] = location.get("lng")
+            else:
+                _LOGGER.debug(
+                    "Ignoring Scanning API observation for unknown client MAC: %s",
+                    client_mac,
+                )
+
+        if updated_clients > 0:
+            _LOGGER.info("Updated %d client(s) from Scanning API data", updated_clients)
+            self.async_update_listeners()

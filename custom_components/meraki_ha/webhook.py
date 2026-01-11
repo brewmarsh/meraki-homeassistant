@@ -10,16 +10,92 @@ from aiohttp import web
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import get_url
 
-from .const import DOMAIN
+from .const import (
+    CONF_SCANNING_API_SECRET,
+    CONF_SCANNING_API_VALIDATOR,
+    DOMAIN,
+)
 from .core.errors import MerakiConnectionError
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
     from .core.api import MerakiAPIClient
+    from .meraki_data_coordinator import MerakiDataCoordinator
 
 
 _LOGGER = logging.getLogger(__name__)
+
+
+async def async_handle_scanning_api(
+    hass: HomeAssistant,
+    config_entry_id: str,
+    request: web.Request,
+) -> web.Response:
+    """Handle a webhook from the Meraki Scanning API.
+
+    This is the direct endpoint handler for Scanning API webhooks.
+    It handles both GET (validation) and POST (data) requests.
+    """
+    config_entry = hass.config_entries.async_get_entry(config_entry_id)
+    if not config_entry:
+        return web.Response(status=404)
+
+    if request.method == "GET":
+        validator = config_entry.options.get(CONF_SCANNING_API_VALIDATOR)
+        if validator:
+            return web.Response(text=validator)
+        return web.Response(status=404)
+
+    if request.method == "POST":
+        try:
+            data = await request.json()
+        except ValueError:
+            _LOGGER.warning("Received invalid JSON in Scanning API webhook")
+            return web.Response(status=400)
+
+        return await _handle_scanning_api_data(hass, config_entry_id, data)
+
+    return web.Response(status=405)
+
+
+async def _handle_scanning_api_data(
+    hass: HomeAssistant,
+    config_entry_id: str,
+    data: dict,
+) -> web.Response:
+    """Process Scanning API data.
+
+    This is a helper function that processes already-parsed JSON data.
+    It handles secret verification and forwards data to the coordinator.
+
+    Args:
+    ----
+        hass: The Home Assistant instance.
+        config_entry_id: The config entry ID.
+        data: The parsed JSON data from the Scanning API.
+
+    Returns
+    -------
+        An aiohttp web.Response object.
+
+    """
+    config_entry = hass.config_entries.async_get_entry(config_entry_id)
+    if not config_entry:
+        return web.Response(status=404)
+
+    secret = config_entry.options.get(CONF_SCANNING_API_SECRET)
+    if not secret or data.get("secret") != secret:
+        _LOGGER.warning("Received Scanning API webhook with invalid secret")
+        return web.Response(status=401)
+
+    if data.get("type") == "DevicesSeen":
+        coordinator: MerakiDataCoordinator = hass.data[DOMAIN][config_entry_id][
+            "coordinator"
+        ]
+        await coordinator.async_handle_scanning_api_data(data["data"])
+
+    return web.Response(status=200)
 
 
 def get_webhook_url(
@@ -138,15 +214,24 @@ async def async_handle_webhook(
     hass: HomeAssistant,
     webhook_id: str,
     request: web.Request,
-) -> None:
+) -> web.Response:
     """
     Handle a webhook from the Meraki API.
+
+    This function acts as a router for different webhook types. It determines
+    whether the request is for the legacy alerts webhook or the new Scanning API
+    based on the presence of a "type" field in the JSON payload, which is
+    unique to the Scanning API.
 
     Args:
     ----
         hass: The Home Assistant instance.
-        webhook_id: The ID of the webhook.
-        request: The request object.
+        webhook_id: The ID of the webhook, which corresponds to the config entry ID.
+        request: The request object from aiohttp.
+
+    Returns
+    -------
+        An aiohttp web.Response object.
 
     """
     try:
@@ -154,22 +239,30 @@ async def async_handle_webhook(
         _LOGGER.debug("Webhook %s received: %s", webhook_id, data)
     except ValueError:
         _LOGGER.warning("Received invalid JSON in webhook %s", webhook_id)
-        return
+        return web.Response(status=400)
 
+    # Differentiate between Scanning API and legacy alerts webhook
+    # The Scanning API payload has a "type" field (e.g., "DevicesSeen")
+    # and a "secret" field, whereas legacy alerts have "sharedSecret".
+    if "type" in data and "secret" in data:
+        # Handle Scanning API data directly (request already parsed above)
+        return await _handle_scanning_api_data(hass, webhook_id, data)
+
+    # --- Legacy Alerts Webhook Handling ---
     entry_data = hass.data.get(DOMAIN, {}).get(webhook_id)
     if not entry_data:
         _LOGGER.warning("Received webhook for unknown config entry: %s", webhook_id)
-        return
+        return web.Response(status=404)
 
     secret = entry_data.get("secret")
     if not secret or data.get("sharedSecret") != secret:
         _LOGGER.warning("Received webhook with invalid secret: %s", webhook_id)
-        return
+        return web.Response(status=401)
 
     coordinator = entry_data.get("coordinator")
     if not coordinator:
         _LOGGER.warning("Coordinator not found for webhook: %s", webhook_id)
-        return
+        return web.Response(status=500)
 
     alert_type = data.get("alertType")
     if alert_type == "APs went down":
@@ -201,3 +294,5 @@ async def async_handle_webhook(
                     break
     else:
         _LOGGER.debug("Ignoring webhook alert type: %s", alert_type)
+
+    return web.Response(status=200)
