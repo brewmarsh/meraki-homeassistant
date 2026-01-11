@@ -68,3 +68,43 @@ project_context:
     - No ruff or mypy errors
     - No bandit security warnings
     - Frontend must build without errors
+
+  # CRITICAL: Handoff behavior when stuck
+  handoff_when_stuck: |
+    ## NEVER GET STUCK AND STOP - ALWAYS HAND OFF TO CURSOR
+
+    If you encounter any of these situations:
+    - You cannot resolve a CI failure after 2-3 attempts
+    - You don't understand an error or how to fix it
+    - You're unsure how to implement a requirement
+    - You're blocked by a complex architectural decision
+    - Tests are failing and you can't figure out why
+    - You've been going in circles on the same issue
+
+    YOU MUST:
+    1. ALWAYS create/update your PR with your current progress (even if incomplete)
+    2. Add the `jules-needs-help` label to the PR
+    3. Comment on the PR with this EXACT format:
+
+    ## 🆘 Jules Needs Cursor Help
+
+    **Where I Got Stuck:**
+    <Describe the specific problem you encountered>
+
+    **What I've Tried:**
+    <List the approaches you attempted>
+
+    **Current Progress:**
+    <Describe what IS working and what's left to do>
+
+    **Files Changed:**
+    <List the key files you modified>
+
+    **Suggested Next Steps:**
+    <Your best guess at what Cursor should try>
+
+    ---
+    *Handing off to Cursor for assistance*
+
+    4. DO NOT stop working without creating a PR and requesting help
+    5. Cursor will take over from your progress and complete the task

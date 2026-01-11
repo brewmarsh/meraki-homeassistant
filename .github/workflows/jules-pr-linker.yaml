@@ -10,6 +10,14 @@ on:
     types:
       - opened
 
+# IMPORTANT: Repository settings must also allow workflow permissions
+# Go to: Settings → Actions → General → Workflow permissions
+# Select: "Read and write permissions"
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 # Prevent duplicate linking for the same PR
 concurrency:
   group: jules-pr-linker-${{ github.event.pull_request.number }}
@@ -18,10 +26,7 @@ concurrency:
 jobs:
   link-pr-to-issue:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: write
-      pull-requests: write
+    # Inherits permissions from workflow level
     steps:
       - name: Check if Jules PR
         id: check

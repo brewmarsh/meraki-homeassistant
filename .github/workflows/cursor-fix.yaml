@@ -12,6 +12,14 @@ on:
     types:
       - completed
 
+# IMPORTANT: Repository settings must also allow workflow permissions
+# Go to: Settings → Actions → General → Workflow permissions
+# Select: "Read and write permissions"
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
 # Prevent multiple handlers on same Cursor branch
 concurrency:
   group: cursor-fix-${{ github.event.workflow_run.head_branch }}
@@ -20,10 +28,7 @@ concurrency:
 jobs:
   handle-cursor-pr:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      issues: write
+    # Inherits permissions from workflow level
     steps:
       - name: Check if this is a Cursor PR
         id: check
@@ -283,20 +288,25 @@ jobs:
             # Invoke Cursor API
             PROMPT="## 🔧 CI Fix Required - Attempt #$((FIX_ATTEMPTS + 1))
 
-            CI failed on branch \`$BRANCH\`. Fix the issues and push.
+            ## MANDATORY FIRST STEPS
+            1. READ AGENTS.md - Contains project standards
+            2. READ DEVELOPMENT.md - Contains environment setup
 
-            ### Instructions
-            1. Read DEVELOPMENT.md and AGENTS.md for project standards
-            2. Run ./run_checks.sh to see failures
-            3. Fix the issues
-            4. Commit with: fix(cursor): resolve CI errors
-            5. Push to branch: $BRANCH
+            Branch: $BRANCH - Push fixes here, do NOT create new PR.
 
-            ### Testing Notes
-            If you see ModuleNotFoundError for homeassistant, use pytest fixtures from conftest.py.
+            ## COMMON ERRORS AND FIXES
 
-            ### Quality Checks
-            Run: ./run_checks.sh (ruff, bandit, mypy, pytest must pass)"
+            ### 'Undefined name MagicMock' or AsyncMock or patch
+            Add to test file: from unittest.mock import MagicMock, AsyncMock, patch
+
+            ### 'ModuleNotFoundError: homeassistant'
+            Use fixtures from tests/conftest.py, don't import HA directly
+
+            ## Instructions
+            1. Run ./run_checks.sh to see failures
+            2. Fix the issues (check imports!)
+            3. Commit: fix(cursor): resolve CI errors
+            4. Push to branch: $BRANCH"
 
             ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
 

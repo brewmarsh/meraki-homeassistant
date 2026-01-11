@@ -1,0 +1,265 @@
+name: Jules Needs Help Handler
+
+run-name: 'Cursor: Help Jules on ${{ github.event.pull_request.head.ref }}'
+
+# Triggers when Jules adds the 'jules-needs-help' label to a PR
+# This workflow invokes Cursor to take over and complete the task
+# Jules' help request comment provides context about where it got stuck
+
+on:
+  pull_request:
+    types: [labeled]
+
+# IMPORTANT: Repository settings must also allow workflow permissions
+# Go to: Settings → Actions → General → Workflow permissions
+# Select: "Read and write permissions"
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+# Prevent multiple handlers for same PR
+concurrency:
+  group: jules-help-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  handle-help-request:
+    runs-on: ubuntu-latest
+    # Only trigger when jules-needs-help label is added
+    if: github.event.label.name == 'jules-needs-help'
+    # Inherits permissions from workflow level
+    steps:
+      - name: Gather context from Jules
+        id: context
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUM="${{ github.event.pull_request.number }}"
+          PR_BRANCH="${{ github.event.pull_request.head.ref }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_BODY="${{ github.event.pull_request.body }}"
+
+          echo "PR #$PR_NUM: $PR_TITLE"
+          echo "Branch: $PR_BRANCH"
+
+          # Get the help request comment from Jules (look for the 🆘 marker)
+          HELP_COMMENT=$(gh pr view "$PR_NUM" --repo "${{ github.repository }}" --json comments \
+            --jq '[.comments[] | select(.body | contains("🆘 Jules Needs Cursor Help"))] | last | .body // empty')
+
+          if [[ -z "$HELP_COMMENT" ]]; then
+            echo "⚠️ No help request comment found, using generic context"
+            HELP_COMMENT="Jules requested help but did not provide specific context."
+          fi
+
+          echo "Found help request comment"
+
+          # Extract issue number from PR body or branch name
+          ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
+          if [[ -z "$ISSUE_NUM" ]]; then
+            ISSUE_NUM=$(echo "$PR_BRANCH" | grep -oE '[-/][0-9]+[-/]' | grep -oE '[0-9]+' | head -1)
+          fi
+          echo "Issue: #$ISSUE_NUM"
+
+          # Get the original issue body for context
+          ISSUE_BODY=""
+          if [[ -n "$ISSUE_NUM" ]]; then
+            ISSUE_BODY=$(gh issue view "$ISSUE_NUM" --repo "${{ github.repository }}" --json body --jq '.body // empty')
+          fi
+
+          # Get list of files changed in the PR
+          FILES_CHANGED=$(gh pr view "$PR_NUM" --repo "${{ github.repository }}" --json files \
+            --jq '[.files[].path] | join("\n")')
+
+          # Get latest CI error logs if available
+          RUN_ID=$(gh run list --repo "${{ github.repository }}" --branch "$PR_BRANCH" \
+            --status failure --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+
+          CI_ERRORS=""
+          if [[ -n "$RUN_ID" ]]; then
+            CI_ERRORS=$(gh run view "$RUN_ID" --repo "${{ github.repository }}" --log-failed 2>/dev/null | tail -200 || echo "")
+          fi
+
+          # Save to files for the next step
+          echo "$HELP_COMMENT" > /tmp/help_comment.txt
+          echo "$ISSUE_BODY" > /tmp/issue_body.txt
+          echo "$FILES_CHANGED" > /tmp/files_changed.txt
+          echo "$CI_ERRORS" > /tmp/ci_errors.txt
+
+          echo "pr_number=$PR_NUM" >> "$GITHUB_OUTPUT"
+          echo "pr_branch=$PR_BRANCH" >> "$GITHUB_OUTPUT"
+          echo "pr_title=$PR_TITLE" >> "$GITHUB_OUTPUT"
+          echo "issue_number=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
+
+      - name: Comment on PR - Cursor taking over
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ steps.context.outputs.pr_number }} \
+            --repo "${{ github.repository }}" \
+            --body "## 🤝 Cursor Taking Over
+
+          I received Jules' help request and am now taking over this task.
+
+          **Branch:** \`${{ steps.context.outputs.pr_branch }}\`
+          **Issue:** #${{ steps.context.outputs.issue_number }}
+
+          I'll analyze where Jules got stuck and continue from there.
+
+          ---
+          *Cursor handoff initiated*"
+
+      - name: Update labels
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit ${{ steps.context.outputs.pr_number }} \
+            --repo "${{ github.repository }}" \
+            --remove-label "jules-needs-help" \
+            --add-label "cursor-reviewing" 2>/dev/null || true
+
+      - name: Update issue with handoff status
+        if: steps.context.outputs.issue_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ steps.context.outputs.issue_number }} \
+            --repo "${{ github.repository }}" \
+            --body "## 🤝 Handoff: Jules → Cursor
+
+          Jules encountered difficulties and requested Cursor's help.
+
+          **PR:** #${{ steps.context.outputs.pr_number }}
+          **Status:** Cursor is now taking over to complete the task
+
+          ---
+          *Automated handoff*"
+
+      - name: Invoke Cursor to take over
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          PR_BRANCH="${{ steps.context.outputs.pr_branch }}"
+          PR_NUM="${{ steps.context.outputs.pr_number }}"
+          ISSUE_NUM="${{ steps.context.outputs.issue_number }}"
+
+          # Read saved context
+          HELP_COMMENT=$(cat /tmp/help_comment.txt)
+          ISSUE_BODY=$(cat /tmp/issue_body.txt)
+          FILES_CHANGED=$(cat /tmp/files_changed.txt)
+          CI_ERRORS=$(cat /tmp/ci_errors.txt)
+
+          PROMPT="## 🤝 Taking Over from Jules
+
+          ## MANDATORY FIRST STEPS - DO THIS BEFORE ANYTHING ELSE
+          1. **READ AGENTS.md** - Contains ALL project standards
+          2. **READ DEVELOPMENT.md** - Contains environment setup
+          3. Do NOT proceed until you have read both files
+
+          Jules requested help on PR #$PR_NUM.
+
+          ## Original Issue Requirements
+          Issue #$ISSUE_NUM:
+          $ISSUE_BODY
+
+          ## Jules' Help Request
+          $HELP_COMMENT
+
+          ## Files Jules Modified
+          $FILES_CHANGED
+
+          ## Recent CI Errors (if any)
+          \`\`\`
+          $CI_ERRORS
+          \`\`\`
+
+          ## COMMON ERRORS AND FIXES
+
+          ### 'Undefined name MagicMock' or AsyncMock or patch
+          Add to test file: from unittest.mock import MagicMock, AsyncMock, patch
+
+          ### 'ModuleNotFoundError: homeassistant'
+          Use fixtures from tests/conftest.py, don't import HA directly
+
+          ## Your Task
+          1. Fix whatever blocked Jules (check imports!)
+          2. Run ./run_checks.sh - ALL checks must pass
+          3. Commit: fix(cursor): continue from Jules - <description>
+          4. Push to branch: $PR_BRANCH (do NOT create new PR)"
+
+          ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
+
+          RESPONSE=$(curl -sS -X POST "https://api.cursor.com/v0/agents" \
+            -u "${CURSOR_API_KEY}:" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"source\": {
+                \"repository\": \"https://github.com/${{ github.repository }}\",
+                \"ref\": \"$PR_BRANCH\"
+              },
+              \"prompt\": {
+                \"text\": ${ESCAPED_PROMPT}
+              },
+              \"target\": {
+                \"branchName\": \"$PR_BRANCH\",
+                \"autoCreatePr\": false
+              }
+            }")
+
+          echo "Cursor API Response: $RESPONSE"
+
+          AGENT_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+          if [[ -n "$AGENT_ID" ]]; then
+            echo "✅ Cursor agent launched: $AGENT_ID"
+
+            # Comment with agent link
+            gh pr comment "$PR_NUM" \
+              --repo "${{ github.repository }}" \
+              --body "## ✅ Cursor Agent Launched
+
+            Cursor is now working on completing this task.
+
+            **Agent ID:** \`$AGENT_ID\`
+
+            I'll push fixes directly to this branch. Once CI passes, this PR will be ready for human review.
+
+            ---
+            *[View Agent](https://cursor.com/agents?id=$AGENT_ID)*"
+          else
+            echo "::error::Failed to launch Cursor agent"
+            echo "$RESPONSE"
+            exit 1
+          fi
+
+  # Handle errors
+  handle-error:
+    needs: handle-help-request
+    if: failure()
+    runs-on: ubuntu-latest
+    # Inherits permissions from workflow level
+    steps:
+      - name: Comment on PR - Error
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --repo "${{ github.repository }}" \
+            --body "## ⚠️ Cursor Handoff Error
+
+          There was an error invoking Cursor to take over.
+
+          **Possible reasons:**
+          - API key configuration issue
+          - Rate limiting
+          - Temporary service unavailability
+
+          Please check the [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
+
+          ---
+          *You may need to manually trigger Cursor or request human help.*"
+
+          # Reset labels
+          gh pr edit ${{ github.event.pull_request.number }} \
+            --repo "${{ github.repository }}" \
+            --remove-label "cursor-reviewing" \
+            --add-label "needs-human-review" 2>/dev/null || true

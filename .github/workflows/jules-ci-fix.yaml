@@ -12,6 +12,14 @@ on:
     types:
       - completed
 
+# IMPORTANT: Repository settings must also allow workflow permissions
+# Go to: Settings → Actions → General → Workflow permissions
+# Select: "Read and write permissions"
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 # Prevent multiple Jules fix agents on same branch
 concurrency:
   group: jules-fix-${{ github.event.workflow_run.head_branch }}
@@ -22,10 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     # Only run on CI failures
     if: github.event.workflow_run.conclusion == 'failure'
-    permissions:
-      contents: read
-      pull-requests: write
-      issues: write
+    # Inherits permissions from workflow level
     steps:
       - name: Check if Jules should fix
         id: check
@@ -255,9 +260,12 @@ jobs:
           prompt: |
             ## 🔧 CI Fix Required - Attempt #$(( ${{ steps.check.outputs.fix_attempts }} + 1 ))
 
-            The CI pipeline failed on branch `${{ steps.check.outputs.branch }}`.
-            Fix the issues and push commits directly to this same branch.
-            Do NOT create a new PR - a PR already exists for this branch.
+            ## MANDATORY FIRST STEPS
+            1. **READ `AGENTS.md`** - Contains project standards
+            2. **READ `DEVELOPMENT.md`** - Contains environment setup
+
+            Branch: `${{ steps.check.outputs.branch }}`
+            Push fixes to this branch. Do NOT create a new PR.
 
             ### Failed Jobs
             ${{ steps.ci_failure.outputs.failed_jobs }}
@@ -267,24 +275,31 @@ jobs:
             ${{ steps.errors.outputs.ci_errors }}
             ```
 
-            ### Instructions
-            1. Read DEVELOPMENT.md and AGENTS.md to understand project standards
-            2. Analyze the error logs above
-            3. Fix ONLY the specific errors shown - do not refactor unrelated code
-            4. Use Python 3.13.2 for all Python code
-            5. Run `./run_checks.sh` to verify all checks pass
-            6. Commit with: `fix(jules): resolve CI errors`
-            7. Push commits to branch: `${{ steps.check.outputs.branch }}`
-            8. Do NOT create a new PR - just push to the existing branch
+            ## COMMON ERRORS AND FIXES
 
-            ### Testing Notes
-            When running tests, you may see: ModuleNotFoundError: No module named 'homeassistant'
-            This is expected. The pytest-homeassistant-custom-component plugin provides HA fixtures.
-            Use fixtures from conftest.py and mock direct HA imports.
+            ### "Undefined name `MagicMock`" or `AsyncMock` or `patch`
+            **Fix**: Add to the test file:
+            ```python
+            from unittest.mock import MagicMock, AsyncMock, patch
+            ```
 
-            ### Quality Checks
-            Run: ./run_checks.sh
-            This runs ruff, bandit, mypy, and pytest. All must pass.
+            ### "ModuleNotFoundError: No module named 'homeassistant'"
+            **Fix**: Use fixtures from `tests/conftest.py`, don't import HA directly
+
+            ### "F821 Undefined name" errors in tests
+            **Fix**: Check imports at top of file - add missing imports
+
+            ## Instructions
+            1. Fix ONLY the specific errors shown
+            2. Run `./run_checks.sh` to verify all checks pass
+            3. Commit: `fix(jules): resolve CI errors`
+            4. Push to branch: `${{ steps.check.outputs.branch }}`
+
+            ## If You Can't Fix It - Ask for Help
+            After 2-3 failed attempts:
+            1. Add label: `jules-needs-help`
+            2. Comment with what you tried and where you're stuck
+            Cursor will take over.
 
       - name: Comment on PR about fix attempt
         if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.handoff_to_cursor != 'true'
