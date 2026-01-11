@@ -117,47 +117,53 @@ project_context:
 
   # CRITICAL: Handoff behavior when stuck
   handoff_when_stuck: |
-    ## ⚠️ NEVER WAIT FOR A HUMAN - ALWAYS HAND OFF TO CURSOR ⚠️
+    ## ⚠️ NEVER LOOP ENDLESSLY - HAND OFF TO CURSOR ⚠️
 
-    You are NEVER allowed to stop and wait for human intervention.
-    If you encounter ANY difficulty, hand off to Cursor IMMEDIATELY.
+    You are NEVER allowed to keep trying the same fix repeatedly.
+    If ./run_checks.sh fails with the SAME error after 2 attempts, STOP.
 
-    ### When to Hand Off (after 1-2 attempts):
-    - CI failures you cannot resolve
-    - Errors you don't understand
-    - Unclear requirements
-    - Complex architectural decisions
-    - Tests failing for unknown reasons
+    ### STOP IMMEDIATELY when:
+    - The SAME test/error fails twice after your fixes
+    - You're running ./run_checks.sh more than 3 times
+    - You see "This step is already complete" but checks still fail
+    - You've tried 2 different approaches and both failed
     - Going in circles on the same issue
-    - ANY situation where you're stuck
+
+    ### This is NOT acceptable:
+    - Running ./run_checks.sh 5+ times hoping for success
+    - Saying "I fixed it" but not verifying with checks
+    - Marking steps complete when they're not actually working
 
     ### HOW TO HAND OFF:
-    1. Create/update PR with current progress (even if incomplete/broken)
-    2. Run: `gh pr edit <PR#> --add-label "jules-needs-help"`
-    3. Comment on PR with this format:
+    1. Commit your current progress (even if broken)
+    2. Create/update PR with current progress
+    3. UPDATE THE ISSUE (not just PR) with handoff context:
 
-    ## 🆘 Jules Needs Cursor Help
+    ```bash
+    gh issue comment <ISSUE#> --body "## 🆘 Jules Handoff to Cursor
 
-    **Where I Got Stuck:**
-    <The specific problem>
+    ### ✅ What I Completed
+    <list files changed and what you did>
 
-    **What I've Tried:**
-    <Your attempts>
+    ### ❌ What I'm Stuck On
+    <the exact error message from ./run_checks.sh>
 
-    **Current Progress:**
-    <What's done vs remaining>
+    ### 🔧 What I Tried
+    <your fix attempts that didn't work>
 
-    **Files Changed:**
-    <Key files modified>
-
-    **Suggested Next Steps:**
-    <What Cursor should try>
+    ### 📝 Suggested Next Steps
+    <what Cursor should try differently>
 
     ---
-    *Handing off to Cursor*
+    *Handing off to Cursor*"
+    ```
+
+    4. Run: `gh pr edit <PR#> --add-label "jules-needs-help"`
+    5. EXIT immediately
 
     ### CRITICAL RULES:
-    - NEVER stop without creating a PR
+    - ALWAYS update the issue BEFORE adding the label
+    - Cursor reads issue comments to understand context
+    - NEVER stop without updating the issue
     - NEVER wait for a human
     - Cursor will take over IMMEDIATELY
-    - This is an AUTOMATED workflow - humans only review at the end

@@ -155,11 +155,12 @@ jobs:
           Requirements: ${ISSUE_BODY:-See issue}
 
           Steps:
-          1. Read AGENTS.md for project patterns
-          2. Review implementation quality and test coverage
-          3. Run ./run_checks.sh - must pass
-          4. Update issue: gh issue comment $ISSUE_NUM --body 'Review: <findings>'
-          5. Create PR targeting $JULES_BRANCH
+          1. Read issue #$ISSUE_NUM comments for context from previous agents
+          2. Read AGENTS.md for project patterns
+          3. Review implementation quality and test coverage
+          4. Run ./run_checks.sh - must pass
+          5. Update issue: gh issue comment $ISSUE_NUM --body 'Review: <findings>'
+          6. Create PR targeting $JULES_BRANCH
 
           Constraints: Don't add unrelated changes. All tests must pass."
 
