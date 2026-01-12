@@ -41,6 +41,7 @@ def camera_entity(mock_coordinator, mock_camera_service):
         camera_service=mock_camera_service,
     )
     camera.hass = MagicMock(spec=HomeAssistant)
+    camera.hass.components = MagicMock()
     camera.entity_id = "camera.meraki_camera"
     return camera
 
