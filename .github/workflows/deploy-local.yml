@@ -154,3 +154,20 @@ jobs:
           echo "Home Assistant restart command sent. Waiting for it to come back online..."
           # Add a sleep to allow Home Assistant to restart
           sleep 60 # Wait for 60 seconds. Adjust as needed.
+
+      - name: Run Release Health Auditor
+        shell: bash
+        env:
+          HA_URL: ${{ secrets.HA_URL }}
+          HA_TOKEN: ${{ secrets.HA_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          echo "Waiting an additional 30 seconds for Home Assistant to fully initialize..."
+          sleep 30
+
+          echo "Installing dependencies for the health auditor..."
+          pip install aiohttp
+
+          echo "Running the health auditor script..."
+          python3 tools/auditor/health_auditor.py
