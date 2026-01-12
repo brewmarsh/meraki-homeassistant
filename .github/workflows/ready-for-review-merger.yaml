@@ -1,0 +1,149 @@
+name: Ready for Review Merger
+
+run-name: 'Auto-merge Ready PR #${{ github.event.workflow_run.head_branch }}'
+
+# When Beta CI passes on a PR that has been reviewed and is ready,
+# auto-merge it into beta. This completes the CI/Review pipeline.
+
+on:
+  workflow_run:
+    workflows: ['Beta CI']
+    types:
+      - completed
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: ready-merger-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  auto-merge-ready:
+    runs-on: ubuntu-latest
+    # Only run on CI success
+    if: github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Check if this is a ready-for-review PR
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          HEAD_BRANCH="${{ github.event.workflow_run.head_branch }}"
+
+          echo "Branch: $HEAD_BRANCH"
+
+          # Skip non-Jules branches
+          if [[ "$HEAD_BRANCH" != *"jules"* ]]; then
+            echo "Not a Jules branch - skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Skip cursor-review branches (handled by cursor-fix.yaml)
+          if [[ "$HEAD_BRANCH" == cursor-review/* ]]; then
+            echo "Cursor review branch - handled elsewhere"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Find PR for this branch
+          PR_JSON=$(gh pr list \
+            --repo "${{ github.repository }}" \
+            --head "$HEAD_BRANCH" \
+            --state open \
+            --json number,title,body,baseRefName,labels \
+            --limit 1)
+
+          PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number // empty')
+          PR_TITLE=$(echo "$PR_JSON" | jq -r '.[0].title // empty')
+          PR_BASE=$(echo "$PR_JSON" | jq -r '.[0].baseRefName // empty')
+          PR_BODY=$(echo "$PR_JSON" | jq -r '.[0].body // empty')
+
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "No open PR found - skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "PR #$PR_NUMBER: $PR_TITLE"
+
+          # Only handle PRs targeting beta
+          if [[ "$PR_BASE" != "beta" ]]; then
+            echo "PR targets $PR_BASE, not beta - skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Check if it has the ready-for-review label
+          HAS_READY_LABEL=$(echo "$PR_JSON" | jq -r '.[0].labels | map(.name) | any(. == "ready-for-review")')
+          HAS_REVIEWED_LABEL=$(echo "$PR_JSON" | jq -r '.[0].labels | map(.name) | any(. == "cursor-reviewed")')
+
+          if [[ "$HAS_READY_LABEL" != "true" && "$HAS_REVIEWED_LABEL" != "true" ]]; then
+            echo "PR not ready for review (missing labels) - skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # This PR is ready to be merged!
+          echo "✅ PR #$PR_NUMBER is ready for merge"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "pr_title=$PR_TITLE" >> "$GITHUB_OUTPUT"
+
+          # Extract issue number
+          ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
+          if [[ -z "$ISSUE_NUM" ]]; then
+            ISSUE_NUM=$(echo "$HEAD_BRANCH" | grep -oE '[-/][0-9]+[-/]' | grep -oE '[0-9]+' | head -1)
+          fi
+          echo "issue_number=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
+
+      - name: Auto-merge ready PR
+        if: steps.check.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ steps.check.outputs.pr_number }}"
+
+          echo "✅ Auto-merging PR #$PR_NUMBER into beta"
+
+          # Mark as ready if it's a draft
+          gh pr ready "$PR_NUMBER" --repo "${{ github.repository }}" 2>/dev/null || true
+
+          # Comment on PR
+          gh pr comment "$PR_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --body "## ✅ All Checks Passed - Auto-Merging
+
+          CI passed and code review complete. Merging into \`beta\`.
+
+          ---
+          *Auto-merged by Ready for Review Merger*"
+
+          # Squash merge
+          gh pr merge "$PR_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --squash \
+            --delete-branch
+
+          echo "✅ Successfully merged PR #$PR_NUMBER"
+
+      - name: Update issue
+        if: steps.check.outputs.skip != 'true' && steps.check.outputs.issue_number != ''
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUM="${{ steps.check.outputs.issue_number }}"
+          PR_NUMBER="${{ steps.check.outputs.pr_number }}"
+
+          gh issue comment "$ISSUE_NUM" \
+            --repo "${{ github.repository }}" \
+            --body "## ✅ Complete
+
+          PR #$PR_NUMBER merged into beta. Issue resolved."
+
+          # Close issue if not already closed
+          gh issue close "$ISSUE_NUM" --repo "${{ github.repository }}" 2>/dev/null || true

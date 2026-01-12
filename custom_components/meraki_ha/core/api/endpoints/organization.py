@@ -36,6 +36,7 @@ class OrganizationEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=3600)
+    @async_log_time(slow_threshold=3.0)
     async def get_organization(self) -> dict[str, Any]:
         """
         Get organization details.
@@ -59,7 +60,7 @@ class OrganizationEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=3600)
-    @async_log_time(slow_threshold=2.0)
+    @async_log_time(slow_threshold=3.0)
     async def get_organization_networks(self) -> list[dict[str, Any]]:
         """
         Get all networks for an organization.
@@ -83,6 +84,7 @@ class OrganizationEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache()
+    @async_log_time(slow_threshold=3.0)
     async def get_organization_firmware_upgrades(self) -> list[dict[str, Any]]:
         """
         Get firmware upgrade status for the organization.
@@ -181,6 +183,7 @@ class OrganizationEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=3600)
+    @async_log_time(slow_threshold=3.0)
     async def get_organizations(self) -> list[dict[str, Any]]:
         """
         Get all organizations accessible by the API key.
