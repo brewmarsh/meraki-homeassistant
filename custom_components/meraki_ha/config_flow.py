@@ -142,6 +142,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         self,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
+<<<<<<< HEAD
         """
         Handle a reconfiguration flow.
 
@@ -154,6 +155,11 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             The flow result.
 
         """
+=======
+        """Handle a reconfiguration flow."""
+        from .meraki_data_coordinator import MerakiDataCoordinator
+
+>>>>>>> 1025a183 (fix: Resolve config flow error during reconfiguration)
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         if not entry:
             return self.async_abort(reason="unknown_entry")
@@ -164,6 +170,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             await self.hass.config_entries.async_reload(entry.entry_id)
             return self.async_abort(reason="reconfigure_successful")
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         schema_with_defaults = self._populate_schema_defaults(
@@ -213,11 +220,26 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
 =======
         schema_with_defaults = self._populate_schema_defaults(
             OPTIONS_SCHEMA, entry.options
+=======
+        coordinator: MerakiDataCoordinator = self.hass.data[DOMAIN][entry.entry_id][
+            "coordinator"
+        ]
+        network_options = []
+        if coordinator.data and coordinator.data.get("networks"):
+            network_options = [
+                {"label": network["name"], "value": network["id"]}
+                for network in coordinator.data["networks"]
+            ]
+
+        schema_with_defaults = MerakiOptionsFlowHandler._populate_schema_defaults(
+            OPTIONS_SCHEMA, entry.options, network_options
+>>>>>>> 1025a183 (fix: Resolve config flow error during reconfiguration)
         )
 
         return self.async_show_form(
             step_id="reconfigure", data_schema=schema_with_defaults
         )
+<<<<<<< HEAD
 
     def _populate_schema_defaults(
         self, schema: vol.Schema, defaults: dict[str, Any]
@@ -232,3 +254,5 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
                 new_schema_keys[key] = value
         return vol.Schema(new_schema_keys)
 >>>>>>> b654416b (fix(tests): Address PR feedback)
+=======
+>>>>>>> 1025a183 (fix: Resolve config flow error during reconfiguration)
