@@ -9,6 +9,7 @@ from custom_components.meraki_ha.core.utils.api_utils import (
     validate_response,
 )
 
+from ....async_logging import async_log_time
 from ....helpers.logging_helper import MerakiLoggers
 
 if TYPE_CHECKING:
@@ -62,6 +63,7 @@ class SensorEndpoints:
         return validated
 
     @handle_meraki_errors
+    @async_log_time(slow_threshold=5.0)
     async def get_organization_sensor_readings_latest(
         self,
     ) -> list[dict[str, Any]]:

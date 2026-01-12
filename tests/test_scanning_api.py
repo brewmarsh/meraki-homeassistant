@@ -24,6 +24,7 @@ def mock_request():
     """Create a mock aiohttp request for direct Scanning API endpoint."""
     request = AsyncMock()
     request.method = "POST"
+    request.path = "/api/webhook/test_entry_id/test_validator"
     request.json = AsyncMock(
         return_value={
             "secret": "test_secret",
@@ -52,6 +53,7 @@ async def test_scanning_api_get_validator(hass: HomeAssistant, mock_config_entry
     }
     request = AsyncMock()
     request.method = "GET"
+    request.path = f"/api/webhook/{mock_config_entry.entry_id}/test_validator"
     hass.config_entries.async_get_entry = MagicMock(return_value=mock_config_entry)
     response = await async_handle_scanning_api(
         hass, mock_config_entry.entry_id, request
@@ -66,6 +68,7 @@ async def test_scanning_api_get_without_validator(
     mock_config_entry.options = {CONF_ENABLE_SCANNING_API: True}
     request = AsyncMock()
     request.method = "GET"
+    request.path = f"/api/webhook/{mock_config_entry.entry_id}/"
     hass.config_entries.async_get_entry = MagicMock(return_value=mock_config_entry)
     response = await async_handle_scanning_api(
         hass, mock_config_entry.entry_id, request
@@ -113,6 +116,7 @@ async def test_scanning_api_unsupported_method(hass: HomeAssistant, mock_config_
     mock_config_entry.options = {CONF_ENABLE_SCANNING_API: True}
     request = AsyncMock()
     request.method = "PUT"  # Unsupported method
+    request.path = f"/api/webhook/{mock_config_entry.entry_id}/"
     hass.config_entries.async_get_entry = MagicMock(return_value=mock_config_entry)
     response = await async_handle_scanning_api(
         hass, mock_config_entry.entry_id, request

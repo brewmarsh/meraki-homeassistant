@@ -211,19 +211,19 @@ def test_coordinator_update_interval_is_fixed(hass, mock_api_client):
     # Test with a valid legacy option
     entry.options = {"scan_interval": 120}
     coord = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
-    # The coordinator's internal update interval is fixed at 30 seconds
+    # The coordinator's internal update interval is fixed at 60 seconds
     # to drive the tiered polling mechanism.
-    assert coord.update_interval == timedelta(seconds=30)
+    assert coord.update_interval == timedelta(seconds=60)
 
     # Test with an invalid legacy option
     entry.options = {"scan_interval": "invalid"}
     coord = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
-    assert coord.update_interval == timedelta(seconds=30)
+    assert coord.update_interval == timedelta(seconds=60)
 
     # Test with a negative legacy option
     entry.options = {"scan_interval": -10}
     coord = MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
-    assert coord.update_interval == timedelta(seconds=30)
+    assert coord.update_interval == timedelta(seconds=60)
 
 
 def test_register_pending_update(coordinator):

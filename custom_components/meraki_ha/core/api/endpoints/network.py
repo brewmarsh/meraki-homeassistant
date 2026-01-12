@@ -6,13 +6,13 @@ from typing import TYPE_CHECKING, Any
 
 from meraki.exceptions import AsyncAPIError
 
-from custom_components.meraki_ha.core.errors import MerakiTrafficAnalysisError
-from custom_components.meraki_ha.core.utils.api_utils import (
+from ....async_logging import async_log_time
+from ....helpers.logging_helper import MerakiLoggers
+from ...errors import MerakiTrafficAnalysisError
+from ...utils.api_utils import (
     handle_meraki_errors,
     validate_response,
 )
-
-from ....helpers.logging_helper import MerakiLoggers
 from ..cache import async_timed_cache
 
 if TYPE_CHECKING:
@@ -38,6 +38,7 @@ class NetworkEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
+    @async_log_time(slow_threshold=3.0)
     async def get_network_clients(self, network_id: str) -> list[dict[str, Any]]:
         """
         Get all clients in a network.
@@ -63,6 +64,7 @@ class NetworkEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
+    @async_log_time(slow_threshold=3.0)
     async def get_network_traffic(
         self, network_id: str, device_type: str
     ) -> list[dict[str, Any]]:

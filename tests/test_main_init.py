@@ -383,8 +383,8 @@ async def test_scanning_api_webhook_registered_when_enabled(
     assert call_args[0][0] == mock_hass  # hass
     assert call_args[0][1] == DOMAIN  # domain
     assert call_args[0][2] == "Meraki Scanning API"  # name
-    # Webhook ID should be entry_id/validator
-    expected_webhook_id = f"{mock_config_entry.entry_id}/test_validator_12345"
+    # Webhook ID should be just the entry_id now
+    expected_webhook_id = mock_config_entry.entry_id
     assert call_args[0][3] == expected_webhook_id
 
 
@@ -523,7 +523,7 @@ async def test_scanning_api_webhook_unregistered_on_unload(
     mock_coordinator = MagicMock()
 
     # Simulate that scanning webhook was registered during setup
-    scanning_webhook_id = f"{mock_config_entry.entry_id}/test_validator"
+    scanning_webhook_id = mock_config_entry.entry_id
     mock_hass.data = {
         DOMAIN: {
             mock_config_entry.entry_id: {
