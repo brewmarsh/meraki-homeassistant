@@ -18,7 +18,7 @@ permissions:
 
 concurrency:
   group: cursor-issue-${{ github.event.issue.number }}
-  cancel-in-progress: false
+  cancel-in-progress: true # Cancel duplicate runs
 
 env:
   PYTHON_VERSION: '3.13.2'

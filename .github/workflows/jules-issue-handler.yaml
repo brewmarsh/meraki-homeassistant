@@ -17,11 +17,15 @@ permissions:
 
 concurrency:
   group: jules-issue-${{ github.event.issue.number }}
-  cancel-in-progress: false
+  cancel-in-progress: true # Cancel duplicate runs
 
 jobs:
   handle-issue:
-    if: contains(github.event.issue.labels.*.name, 'jules-issue')
+    # For 'labeled' event: only trigger when 'jules-issue' label is added (not other labels)
+    # For 'opened' event: check if issue has the label
+    if: |
+      (github.event.action == 'labeled' && github.event.label.name == 'jules-issue') ||
+      (github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'jules-issue'))
     runs-on: ubuntu-latest
     steps:
       - name: Check authorization
